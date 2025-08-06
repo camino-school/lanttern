@@ -36,7 +36,7 @@ defmodule LantternWeb.MenuComponent do
                 active={@active_nav == nav_item.active}
                 path={nav_item.path}
               >
-                <%= nav_item.text %>
+                {nav_item.text}
               </.nav_item>
               <%!-- use this li as placeholder when nav rem(items, 3) != 0 (sm) or rem(items, 2) != 0 --%>
               <li :if={@has_sm_nav_item_placeholder} class="lg:hidden bg-white"></li>
@@ -50,7 +50,7 @@ defmodule LantternWeb.MenuComponent do
           "md:flex md:flex-col md:w-80 lg:w-96"
         ]}>
           <p class="mb-4 font-black text-lg text-ltrn-primary">
-            <%= gettext("You're logged in as") %>
+            {gettext("You're logged in as")}
           </p>
           <.profile_picture
             picture_url={@current_user.current_profile.profile_picture_url}
@@ -59,7 +59,7 @@ defmodule LantternWeb.MenuComponent do
             class="mb-4"
           />
           <p class="font-black text-4xl text-ltrn-dark">
-            <%= @current_user.current_profile.name %>
+            {@current_user.current_profile.name}
           </p>
           <div id="profile-select" class="group mt-2">
             <button
@@ -67,13 +67,12 @@ defmodule LantternWeb.MenuComponent do
               phx-click={toggle_profile_list(@myself)}
               class="flex items-center gap-2 font-black text-lg text-left hover:text-ltrn-subtle"
             >
-              <%= Gettext.dgettext(
+              {Gettext.dgettext(
                 Lanttern.Gettext,
                 "schools",
                 @current_user.current_profile.role ||
                   String.capitalize(@current_user.current_profile.type)
-              ) %> @ <%= @current_user.current_profile.school_name %>
-
+              )} @ {@current_user.current_profile.school_name}
               <.icon name="hero-chevron-down" id="profile-list-down-icon" />
               <.icon name="hero-chevron-up" id="profile-list-up-icon" class="hidden" />
             </button>
@@ -81,8 +80,7 @@ defmodule LantternWeb.MenuComponent do
               :if={!@profiles_loaded}
               class="hidden items-center gap-2 mt-2 group-phx-click-loading:flex"
             >
-              <.spinner />
-              <%= gettext("Loading profiles") %>
+              <.spinner /> {gettext("Loading profiles")}
             </div>
             <div id="profile-list" class="hidden">
               <ul
@@ -116,9 +114,9 @@ defmodule LantternWeb.MenuComponent do
               phx-click={toggle_cycle_list(@myself)}
               class="flex items-center gap-2 font-black text-lg hover:text-ltrn-subtle"
             >
-              <%= if @current_user.current_profile.current_school_cycle,
+              {if @current_user.current_profile.current_school_cycle,
                 do: "#{gettext("Cycle")}: #{@current_user.current_profile.current_school_cycle.name}",
-                else: gettext("No cycle selected") %>
+                else: gettext("No cycle selected")}
               <.icon name="hero-chevron-down" id="cycle-list-down-icon" />
               <.icon name="hero-chevron-up" id="cycle-list-up-icon" class="hidden" />
             </button>
@@ -126,8 +124,7 @@ defmodule LantternWeb.MenuComponent do
               :if={!@has_school_cycles}
               class="hidden items-center gap-2 mt-2 group-phx-click-loading:flex"
             >
-              <.spinner />
-              <%= gettext("Loading cycles") %>
+              <.spinner /> {gettext("Loading cycles")}
             </div>
             <div id="cycle-list" class="hidden">
               <%= if @has_school_cycles do %>
@@ -142,12 +139,12 @@ defmodule LantternWeb.MenuComponent do
                       JS.push("select_school_cycle", value: %{"id" => cycle.id}, target: @myself)
                     }
                   >
-                    <%= cycle.name %>
+                    {cycle.name}
                   </.badge_button>
                 </ul>
               <% else %>
                 <.empty_state_simple class="mt-2 group-phx-click-loading:hidden">
-                  <%= gettext("No cycles registered") %>
+                  {gettext("No cycles registered")}
                 </.empty_state_simple>
               <% end %>
             </div>
@@ -159,24 +156,24 @@ defmodule LantternWeb.MenuComponent do
                   href={~p"/school/staff/#{@current_user.current_profile.staff_member_id}"}
                   class="flex items-center gap-2 hover:text-ltrn-dark"
                 >
-                  <%= gettext("My area") %>
+                  {gettext("My area")}
                 </.link>
               </li>
               <li :if={@current_user.is_root_admin}>
                 <.link href={~p"/admin"} class="flex items-center gap-2 hover:text-ltrn-dark">
-                  <%= gettext("Admin") %>
+                  {gettext("Admin")}
                 </.link>
               </li>
               <li>
                 <.link href={~p"/users/log_out"} method="delete" class="hover:text-ltrn-dark">
-                  <%= gettext("Log out") %>
+                  {gettext("Log out")}
                 </.link>
               </li>
             </ul>
           </nav>
           <span class="hidden sm:block sm:flex-1" />
           <div class="flex items-center gap-4 mt-6 font-bold text-sm text-ltrn-subtle leading-loose">
-            <span><%= gettext("Language:") %></span>
+            <span>{gettext("Language:")}</span>
             <.lang_button
               is_current={@current_user.current_profile.current_locale == "en"}
               phx-click="set_locale"
@@ -199,7 +196,7 @@ defmodule LantternWeb.MenuComponent do
             on_dismiss={JS.push("dismiss_locale_error", target: @myself)}
             class="mt-4"
           >
-            <%= @locale_error %>
+            {@locale_error}
           </.error_block>
           <div class="mt-4">
             <a
@@ -207,7 +204,7 @@ defmodule LantternWeb.MenuComponent do
               target="_blank"
               class="mt-4 text-sm font-display font-bold text-ltrn-subtle hover:underline"
             >
-              <%= gettext("Privacy policy") %>
+              {gettext("Privacy policy")}
             </a>
             <br />
             <a
@@ -215,7 +212,7 @@ defmodule LantternWeb.MenuComponent do
               target="_blank"
               class="mt-4 text-sm font-display font-bold text-ltrn-subtle hover:underline"
             >
-              <%= gettext("Terms of service") %>
+              {gettext("Terms of service")}
             </a>
           </div>
         </div>
@@ -243,8 +240,7 @@ defmodule LantternWeb.MenuComponent do
           "absolute top-2 left-2 block w-4 h-4 rounded-full",
           "md:w-6 md:h-6",
           if(@active, do: "bg-ltrn-primary", else: "group-hover:bg-ltrn-subtle")
-        ]} />
-        <%= render_slot(@inner_block) %>
+        ]} /> {render_slot(@inner_block)}
       </.link>
     </li>
     """
@@ -281,14 +277,14 @@ defmodule LantternWeb.MenuComponent do
             "block font-bold text-sm",
             if(@active, do: "text-ltrn-dark", else: "group-hover/item:text-ltrn-dark")
           ]}>
-            <%= @profile.name %>
+            {@profile.name}
           </span>
           <span class="font-sans font-normal text-xs">
-            <%= Gettext.dgettext(
+            {Gettext.dgettext(
               Lanttern.Gettext,
               "schools",
               @profile.role || String.capitalize(@profile.type)
-            ) %> @ <%= @profile.school_name %>
+            )} @ {@profile.school_name}
           </span>
         </div>
       </button>
@@ -323,7 +319,7 @@ defmodule LantternWeb.MenuComponent do
       class={if(@is_current, do: "text-ltrn-dark", else: "hover:text-ltrn-dark")}
       {@rest}
     >
-      <%= render_slot(@inner_block) %>
+      {render_slot(@inner_block)}
     </button>
     """
   end

@@ -31,9 +31,9 @@ defmodule LantternWeb.ILP.StudentILPAIRevisionOverlayComponent do
         class="p-4"
       >
         <p class="mb-6 text-xs">
-          <%= gettext("Generated in %{datetime}",
+          {gettext("Generated in %{datetime}",
             datetime: format_by_locale(@student_ilp.ai_revision_datetime, @tz)
-          ) %>
+          )}
         </p>
         <.markdown text={@student_ilp.ai_revision} />
         <.ai_generated_content_disclaimer class="mt-4" />
@@ -41,14 +41,14 @@ defmodule LantternWeb.ILP.StudentILPAIRevisionOverlayComponent do
           <.card_base class="p-2 mt-4">
             <p class="flex items-center gap-2 text-ltrn-ai-dark">
               <.icon name="hero-clock-micro" class="w-4 h-4" />
-              <%= gettext("AI revision can be requested every %{minute} minutes",
+              {gettext("AI revision can be requested every %{minute} minutes",
                 minute: @ai_cooldown_minutes
-              ) %>
-              <%= ngettext(
+              )}
+              {ngettext(
                 "(1 minute left until next revision request)",
                 "(%{count} minutes left until next revision request)",
                 @ai_cooldown_minutes_left
-              ) %>
+              )}
             </p>
           </.card_base>
         <% else %>
@@ -68,16 +68,14 @@ defmodule LantternWeb.ILP.StudentILPAIRevisionOverlayComponent do
                 />
               </div>
               <.action type="submit" icon_name="hero-sparkles-mini" theme="ai-generate">
-                <%= gettext("Update revision") %>
+                {gettext("Update revision")}
               </.action>
             </div>
             <p :if={@ai_form_error} class="flex items-center gap-2 mt-2 text-xs">
-              <.icon name="hero-exclamation-circle-micro" class="w-4 h-4" />
-              <%= @ai_form_error %>
+              <.icon name="hero-exclamation-circle-micro" class="w-4 h-4" /> {@ai_form_error}
             </p>
             <p :if={@ai_response_error} class="flex items-center gap-2 mt-2 text-xs">
-              <.icon name="hero-exclamation-circle-micro" class="w-4 h-4" />
-              <%= @ai_response_error %>
+              <.icon name="hero-exclamation-circle-micro" class="w-4 h-4" /> {@ai_response_error}
             </p>
           </form>
         <% end %>

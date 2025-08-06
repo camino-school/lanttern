@@ -31,7 +31,7 @@ defmodule LantternWeb.Assessments.AssessmentPointFormOverlayComponent do
     ~H"""
     <div phx-remove={JS.exec("phx-remove", to: "##{@id}")}>
       <.slide_over id={@id} show={true} on_cancel={@on_cancel}>
-        <:title><%= @title %></:title>
+        <:title>{@title}</:title>
         <.delete_error
           error_message={@delete_error}
           on_delete={JS.push("delete_assessment_point_and_entries", target: @myself)}
@@ -46,7 +46,7 @@ defmodule LantternWeb.Assessments.AssessmentPointFormOverlayComponent do
           phx-target={@myself}
         >
           <.error_block :if={@form.source.action == :insert} class="mb-6">
-            <%= gettext("Oops, something went wrong! Please check the errors below.") %>
+            {gettext("Oops, something went wrong! Please check the errors below.")}
           </.error_block>
           <.input
             :if={!@assessment_point.strand_id}
@@ -78,9 +78,9 @@ defmodule LantternWeb.Assessments.AssessmentPointFormOverlayComponent do
               >
                 <div class="flex-1">
                   <.badge theme="dark">
-                    <%= @selected_curriculum_item.curriculum_component.name %>
+                    {@selected_curriculum_item.curriculum_component.name}
                   </.badge>
-                  <p class="mt-2"><%= @selected_curriculum_item.name %></p>
+                  <p class="mt-2">{@selected_curriculum_item.name}</p>
                 </div>
                 <button
                   type="button"
@@ -116,9 +116,9 @@ defmodule LantternWeb.Assessments.AssessmentPointFormOverlayComponent do
               label={gettext("Differentiation")}
             />
             <p class="mt-4 text-sm">
-              <%= gettext(
+              {gettext(
                 "Use the differentiation flag above when creating assessment points related to a curriculum level differentiation."
-              ) %>
+              )}
             </p>
           </div>
           <.rubric_area id={@id} field={@form[:rubric_id]} rubric={@rubric} options={@rubric_options} />
@@ -137,7 +137,7 @@ defmodule LantternWeb.Assessments.AssessmentPointFormOverlayComponent do
             phx-target={@myself}
             data-confirm={gettext("Are you sure?")}
           >
-            <%= gettext("Delete") %>
+            {gettext("Delete")}
           </.action>
         </:actions_left>
         <:actions>
@@ -147,7 +147,7 @@ defmodule LantternWeb.Assessments.AssessmentPointFormOverlayComponent do
             size="md"
             phx-click={JS.exec("data-cancel", to: "##{@id}")}
           >
-            <%= gettext("Cancel") %>
+            {gettext("Cancel")}
           </.action>
           <.action
             type="submit"
@@ -157,7 +157,7 @@ defmodule LantternWeb.Assessments.AssessmentPointFormOverlayComponent do
             form={"#{@id}-form"}
             phx-disable-with={gettext("Saving...")}
           >
-            <%= gettext("Save") %>
+            {gettext("Save")}
           </.action>
         </:actions>
       </.slide_over>
@@ -177,18 +177,18 @@ defmodule LantternWeb.Assessments.AssessmentPointFormOverlayComponent do
       class={["flex items-start gap-4 p-4 rounded-xs text-sm text-rose-600 bg-rose-100", @class]}
     >
       <div>
-        <p><%= @error_message %></p>
+        <p>{@error_message}</p>
         <button
           type="button"
           phx-click={@on_delete}
           data-confirm={gettext("Are you sure?")}
           class="mt-4 font-display font-bold underline"
         >
-          <%= gettext("Understood. Delete anyway") %>
+          {gettext("Understood. Delete anyway")}
         </button>
       </div>
       <button type="button" phx-click={@on_dismiss} class="shrink-0">
-        <span class="sr-only"><%= gettext("dismiss") %></span>
+        <span class="sr-only">{gettext("dismiss")}</span>
         <.icon name="hero-x-mark" />
       </button>
     </div>
@@ -205,7 +205,7 @@ defmodule LantternWeb.Assessments.AssessmentPointFormOverlayComponent do
     <div class="p-4 rounded-sm mt-10 mb-6 bg-ltrn-lightest">
       <div class="flex items-center gap-2 mb-4 font-bold text-sm">
         <.icon name="hero-view-columns" class="w-6 h-6 text-ltrn-subtle" />
-        <span><%= gettext("Assessment rubric") %></span>
+        <span>{gettext("Assessment rubric")}</span>
       </div>
       <%= if @options != [] do %>
         <.input type="select" field={@field} prompt={gettext("No rubric")} options={@options} />
@@ -219,7 +219,7 @@ defmodule LantternWeb.Assessments.AssessmentPointFormOverlayComponent do
         </div>
       <% else %>
         <.empty_state_simple class="mt-4">
-          <%= gettext("No rubric matching curriculum item and scale") %>
+          {gettext("No rubric matching curriculum item and scale")}
         </.empty_state_simple>
       <% end %>
     </div>

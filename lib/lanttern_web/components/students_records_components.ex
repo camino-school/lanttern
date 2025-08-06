@@ -43,7 +43,7 @@ defmodule LantternWeb.StudentsRecordsComponents do
   def students_records_list(%{show_empty_state_message: true} = assigns) do
     ~H"""
     <div class={@class}>
-      <.empty_state><%= gettext("No student records found for selected filters.") %></.empty_state>
+      <.empty_state>{gettext("No student records found for selected filters.")}</.empty_state>
     </div>
     """
   end
@@ -56,22 +56,21 @@ defmodule LantternWeb.StudentsRecordsComponents do
           <div class="md:w-48 md:shrink-0">
             <div class="flex items-center gap-4 md:block">
               <div class="flex items-center gap-2 text-xs font-bold text-ltrn-subtle">
-                <.icon name="hero-hashtag-mini" class="w-5 h-5" />
-                <%= student_record.id %>
+                <.icon name="hero-hashtag-mini" class="w-5 h-5" /> {student_record.id}
               </div>
               <div class="flex items-center gap-2 text-xs md:mt-2">
                 <.icon name="hero-calendar-mini" class="w-5 h-5 text-ltrn-subtle" />
-                <%= format_by_locale(student_record.date, @current_user.tz, formats()) %>
+                {format_by_locale(student_record.date, @current_user.tz, formats())}
               </div>
               <div :if={student_record.time} class="flex items-center gap-2 text-xs md:mt-2">
                 <.icon name="hero-clock-mini" class="w-5 h-5 text-ltrn-subtle" />
-                <%= format_simple_time(student_record.time) %>
+                {format_simple_time(student_record.time)}
               </div>
             </div>
             <div class="flex flex-wrap gap-2 w-full mt-4">
               <.status_badge status={student_record.status} class="max-w-full" />
               <.badge :for={tag <- student_record.tags} color_map={tag} class="max-w-full">
-                <%= tag.name %>
+                {tag.name}
               </.badge>
               <%= if is_list(student_record.students_tags) do %>
                 <.badge
@@ -79,11 +78,11 @@ defmodule LantternWeb.StudentsRecordsComponents do
                   color_map={student_tag}
                   class="max-w-full"
                 >
-                  <%= student_tag.name %>
+                  {student_tag.name}
                 </.badge>
               <% end %>
               <.badge :for={class <- student_record.classes}>
-                <%= class_with_cycle(class, @current_user) %>
+                {class_with_cycle(class, @current_user)}
               </.badge>
             </div>
           </div>
@@ -102,14 +101,14 @@ defmodule LantternWeb.StudentsRecordsComponents do
               class="block mt-4 font-display font-black hover:text-ltrn-subtle"
               patch={@details_patch.(student_record)}
             >
-              <%= student_record.name %>
+              {student_record.name}
             </.link>
             <.markdown text={student_record.description} class="mt-4 line-clamp-5" />
             <div
               :if={student_record.internal_notes}
               class="p-4 rounded-xs mt-4 bg-ltrn-staff-lightest"
             >
-              <h6 class="mb-2 font-bold text-ltrn-staff-dark"><%= gettext("Internal notes") %></h6>
+              <h6 class="mb-2 font-bold text-ltrn-staff-dark">{gettext("Internal notes")}</h6>
               <.markdown text={student_record.internal_notes} class="line-clamp-3" />
             </div>
             <.action
@@ -118,7 +117,7 @@ defmodule LantternWeb.StudentsRecordsComponents do
               patch={@details_patch.(student_record)}
               class="mt-4"
             >
-              <%= gettext("View more") %>
+              {gettext("View more")}
             </.action>
           </div>
         </div>
@@ -126,7 +125,7 @@ defmodule LantternWeb.StudentsRecordsComponents do
           <div class="flex items-center justify-between gap-4 p-2 rounded-xs bg-ltrn-staff-lightest">
             <div class="md:flex items-center gap-4">
               <div class="flex items-center gap-2">
-                <span class="text-xs text-ltrn-subtle"><%= gettext("Created by") %></span>
+                <span class="text-xs text-ltrn-subtle">{gettext("Created by")}</span>
                 <.person_badge
                   person={student_record.created_by_staff_member}
                   theme="staff"
@@ -135,7 +134,7 @@ defmodule LantternWeb.StudentsRecordsComponents do
                 />
               </div>
               <div :if={student_record.assignees != []} class="flex items-center gap-2 mt-2 md:mt-0">
-                <span class="text-xs text-ltrn-subtle"><%= gettext("Assigned to") %></span>
+                <span class="text-xs text-ltrn-subtle">{gettext("Assigned to")}</span>
                 <div class="flex flex-wrap items-center gap-2">
                   <.person_badge
                     :for={assignee <- student_record.assignees}
@@ -158,7 +157,7 @@ defmodule LantternWeb.StudentsRecordsComponents do
                 >
                   <.icon name="hero-check-circle-mini" />
                 </div>
-                <.tooltip h_pos="right"><%= gettext("Closed on creation") %></.tooltip>
+                <.tooltip h_pos="right">{gettext("Closed on creation")}</.tooltip>
               </div>
               <div
                 :if={student_record.status.is_closed && student_record.closed_at}
@@ -169,14 +168,14 @@ defmodule LantternWeb.StudentsRecordsComponents do
                   style={create_color_map_style(student_record.status)}
                 >
                   <p class="pl-1">
-                    <%= days_and_hours_between(student_record.inserted_at, student_record.closed_at) %>
+                    {days_and_hours_between(student_record.inserted_at, student_record.closed_at)}
                   </p>
                   <.icon name="hero-check-circle-mini" />
                 </div>
                 <.tooltip h_pos="right">
-                  <%= gettext("Closed at %{datetime}",
+                  {gettext("Closed at %{datetime}",
                     datetime: format_by_locale(student_record.closed_at, @current_user.tz)
-                  ) %>
+                  )}
                 </.tooltip>
               </div>
               <div :if={!student_record.status.is_closed} class="group relative">
@@ -185,15 +184,15 @@ defmodule LantternWeb.StudentsRecordsComponents do
                   style={create_color_map_style(student_record.status)}
                 >
                   <p class="pl-1">
-                    <%= days_and_hours_between(student_record.inserted_at, DateTime.utc_now()) %>
+                    {days_and_hours_between(student_record.inserted_at, DateTime.utc_now())}
                   </p>
                   <.icon name="hero-clock-mini" />
                 </div>
-                <.tooltip h_pos="right"><%= gettext("Duration since creation") %></.tooltip>
+                <.tooltip h_pos="right">{gettext("Duration since creation")}</.tooltip>
               </div>
               <div :if={student_record.shared_with_school} class="group relative">
                 <.icon name="hero-globe-americas" class="w-6 h-6 text-ltrn-staff-accent" />
-                <.tooltip h_pos="right"><%= gettext("Visible to all school staff") %></.tooltip>
+                <.tooltip h_pos="right">{gettext("Visible to all school staff")}</.tooltip>
               </div>
             </div>
           </div>
@@ -218,7 +217,7 @@ defmodule LantternWeb.StudentsRecordsComponents do
       icon_name={if(@status.is_closed, do: "hero-check-circle-mini")}
       class={@class}
     >
-      <%= @status.name %>
+      {@status.name}
     </.badge>
     """
   end

@@ -35,9 +35,9 @@ defmodule LantternWeb.FormComponents do
     ~H"""
     <.form :let={f} for={@for} as={@as} {@rest}>
       <div class="mt-10 space-y-8 bg-white">
-        <%= render_slot(@inner_block, f) %>
+        {render_slot(@inner_block, f)}
         <div :for={action <- @actions} class="mt-2 flex items-center justify-between gap-6">
-          <%= render_slot(action, f) %>
+          {render_slot(action, f)}
         </div>
       </div>
     </.form>
@@ -130,9 +130,9 @@ defmodule LantternWeb.FormComponents do
           class="rounded-sm border-zinc-300 text-zinc-900 focus:ring-0"
           {@rest}
         />
-        <%= @label %>
+        {@label}
       </label>
-      <.error :for={msg <- @errors}><%= msg %></.error>
+      <.error :for={msg <- @errors}>{msg}</.error>
     </div>
     """
   end
@@ -159,9 +159,9 @@ defmodule LantternWeb.FormComponents do
           enabled={@checked}
           phx-click={JS.dispatch("click", to: "##{@id}-label")}
         />
-        <%= @label %>
+        {@label}
       </label>
-      <.error :for={msg <- @errors}><%= msg %></.error>
+      <.error :for={msg <- @errors}>{msg}</.error>
     </div>
     """
   end
@@ -175,10 +175,10 @@ defmodule LantternWeb.FormComponents do
         show_optional={@show_optional}
         custom={if @custom_label == [], do: false, else: true}
       >
-        <%= @label || render_slot(@custom_label) %>
+        {@label || render_slot(@custom_label)}
       </.label>
       <div :if={@description != []} class="mb-2">
-        <%= render_slot(@description) %>
+        {render_slot(@description)}
       </div>
       <.select
         id={@id}
@@ -189,7 +189,7 @@ defmodule LantternWeb.FormComponents do
         value={@value}
         {@rest}
       />
-      <.error :for={msg <- @errors}><%= msg %></.error>
+      <.error :for={msg <- @errors}>{msg}</.error>
     </div>
     """
   end
@@ -197,7 +197,7 @@ defmodule LantternWeb.FormComponents do
   def input(%{type: "radio"} = assigns) do
     ~H"""
     <fieldset phx-feedback-for={@name} class={@class}>
-      <legend class="text-sm font-bold"><%= @prompt %></legend>
+      <legend class="text-sm font-bold">{@prompt}</legend>
       <div :for={{label, value} <- @options} class="flex items-center gap-2 mt-4 text-sm">
         <input
           id={"#{@name}-option-#{value}"}
@@ -206,9 +206,9 @@ defmodule LantternWeb.FormComponents do
           value={value}
           checked={"#{@value}" == "#{value}"}
         />
-        <label for={"#{@name}-option-#{value}"}><%= label %></label>
+        <label for={"#{@name}-option-#{value}"}>{label}</label>
       </div>
-      <.error :for={msg <- @errors}><%= msg %></.error>
+      <.error :for={msg <- @errors}>{msg}</.error>
     </fieldset>
     """
   end
@@ -223,13 +223,13 @@ defmodule LantternWeb.FormComponents do
         help_text={@help_text}
         custom={if @custom_label == [], do: false, else: true}
       >
-        <%= @label || render_slot(@custom_label) %>
+        {@label || render_slot(@custom_label)}
       </.label>
       <div :if={@description != []} class="mb-2">
-        <%= render_slot(@description) %>
+        {render_slot(@description)}
       </div>
       <.textarea id={@id} name={@name} errors={@errors} value={@value} {@rest} />
-      <.error :for={msg <- @errors}><%= msg %></.error>
+      <.error :for={msg <- @errors}>{msg}</.error>
     </div>
     """
   end
@@ -244,10 +244,10 @@ defmodule LantternWeb.FormComponents do
         help_text={@help_text}
         custom={if @custom_label == [], do: false, else: true}
       >
-        <%= @label || render_slot(@custom_label) %>
+        {@label || render_slot(@custom_label)}
       </.label>
       <div :if={@description != []} class="mb-2">
-        <%= render_slot(@description) %>
+        {render_slot(@description)}
       </div>
       <div class="flex items-center justify-between gap-2 px-2 rounded-xs mb-1 bg-ltrn-lightest">
         <div class="flex">
@@ -268,7 +268,7 @@ defmodule LantternWeb.FormComponents do
               )
             }
           >
-            <%= gettext("Edit") %>
+            {gettext("Edit")}
           </button>
           <button
             type="button"
@@ -285,7 +285,7 @@ defmodule LantternWeb.FormComponents do
               |> JS.remove_class("border-ltrn-dark text-ltrn-dark font-bold", to: "#edit-btn-#{@id}")
             }
           >
-            <%= gettext("Preview") %>
+            {gettext("Preview")}
           </button>
         </div>
         <.markdown_supported />
@@ -296,7 +296,7 @@ defmodule LantternWeb.FormComponents do
         text={@value || ""}
         class="w-full max-w-none min-h-[10rem] p-4 rounded-xs shadow-xs ring-1 ring-ltrn-lighter bg-white hidden"
       />
-      <.error :for={msg <- @errors}><%= msg %></.error>
+      <.error :for={msg <- @errors}>{msg}</.error>
     </div>
     """
   end
@@ -312,13 +312,13 @@ defmodule LantternWeb.FormComponents do
         help_text={@help_text}
         custom={if @custom_label == [], do: false, else: true}
       >
-        <%= @label || render_slot(@custom_label) %>
+        {@label || render_slot(@custom_label)}
       </.label>
       <div :if={@description != []} class="mb-2">
-        <%= render_slot(@description) %>
+        {render_slot(@description)}
       </div>
       <.base_input type={@type} name={@name} id={@id} value={@value} errors={@errors} {@rest} />
-      <.error :for={msg <- @errors}><%= msg %></.error>
+      <.error :for={msg <- @errors}>{msg}</.error>
     </div>
     """
   end
@@ -337,9 +337,9 @@ defmodule LantternWeb.FormComponents do
     <div class="flex justify-between gap-4 mb-2 text-sm">
       <label for={@for} class="font-bold">
         <.help_tooltip text={@help_text} class="inline-block font-normal" />
-        <%= render_slot(@inner_block) %>
+        {render_slot(@inner_block)}
       </label>
-      <span class="text-ltrn-subtle"><%= gettext("Optional") %></span>
+      <span class="text-ltrn-subtle">{gettext("Optional")}</span>
     </div>
     """
   end
@@ -348,7 +348,7 @@ defmodule LantternWeb.FormComponents do
     ~H"""
     <label for={@for} class="block mb-2">
       <.help_tooltip text={@help_text} class="inline-block font-normal" />
-      <%= render_slot(@inner_block) %>
+      {render_slot(@inner_block)}
     </label>
     """
   end
@@ -357,7 +357,7 @@ defmodule LantternWeb.FormComponents do
     ~H"""
     <label for={@for} class="flex items-center gap-2 mb-2 text-sm font-bold">
       <.help_tooltip text={@help_text} class="font-normal" />
-      <%= render_slot(@inner_block) %>
+      {render_slot(@inner_block)}
     </label>
     """
   end
@@ -373,7 +373,7 @@ defmodule LantternWeb.FormComponents do
     ~H"""
     <div :if={@text} class={["group relative", @class]}>
       <.icon name="hero-question-mark-circle" class={@class} />
-      <.tooltip><%= @text %></.tooltip>
+      <.tooltip>{@text}</.tooltip>
     </div>
     """
   end
@@ -398,7 +398,7 @@ defmodule LantternWeb.FormComponents do
         class="relative size-4 appearance-none rounded-full border border-ltrn-light bg-white before:absolute before:inset-1 before:rounded-full before:bg-white checked:border-ltrn-primary checked:bg-ltrn-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ltrn-primary disabled:border-ltrn-light disabled:bg-ltrn-lightest disabled:before:bg-ltrn-light forced-colors:appearance-auto forced-colors:before:hidden [&:not(:checked)]:before:hidden"
       />
       <label for={"#{@value}-#{@field.id}"} class="block">
-        <%= @label %>
+        {@label}
       </label>
     </div>
     """
@@ -431,8 +431,8 @@ defmodule LantternWeb.FormComponents do
       {@rest}
     >
       <%!-- apply bg and text color to prevent issue #75 --%>
-      <option :if={@prompt} value="" class="bg-ltrn-lighter text-ltrn-dark"><%= @prompt %></option>
-      <%= Phoenix.HTML.Form.options_for_select(@options, @value) %>
+      <option :if={@prompt} value="" class="bg-ltrn-lighter text-ltrn-dark">{@prompt}</option>
+      {Phoenix.HTML.Form.options_for_select(@options, @value)}
     </select>
     """
   end
@@ -463,7 +463,7 @@ defmodule LantternWeb.FormComponents do
         @class
       ]}
       {@rest}
-    ><%= Phoenix.HTML.Form.normalize_value("textarea", @value) %></textarea>
+    >{Phoenix.HTML.Form.normalize_value("textarea", @value)}</textarea>
     """
   end
 
@@ -494,7 +494,7 @@ defmodule LantternWeb.FormComponents do
       @errors != [] && "ring-rose-400 focus-within:ring-rose-400",
       @class
     ]}>
-      <label for={@id} class="sr-only"><%= @label %></label>
+      <label for={@id} class="sr-only">{@label}</label>
       <textarea
         rows={@rows}
         name={@name}
@@ -502,17 +502,17 @@ defmodule LantternWeb.FormComponents do
         class="peer block w-full border-0 bg-transparent p-4 placeholder:text-ltrn-subtle focus:ring-0"
         placeholder={@label}
         {@rest}
-      ><%= Phoenix.HTML.Form.normalize_value("textarea", @value) %></textarea>
+      >{Phoenix.HTML.Form.normalize_value("textarea", @value)}</textarea>
       <div class={[
         "flex items-center justify-between gap-6 w-full p-2 border-t",
         @errors == [] && "border-ltrn-lighter, peer-focus:border-ltrn-primary",
         @errors != [] && "border-rose-400 peer-focus:border-rose-400"
       ]}>
         <div class="flex items-center gap-2">
-          <%= render_slot(@actions_left) %>
+          {render_slot(@actions_left)}
         </div>
         <div class="flex items-center gap-4">
-          <%= render_slot(@actions) %>
+          {render_slot(@actions)}
         </div>
       </div>
     </div>
@@ -580,7 +580,7 @@ defmodule LantternWeb.FormComponents do
     <div class="relative flex items-start py-4">
       <div class="min-w-0 flex-1 text-sm leading-6">
         <label for={@id} class="select-none text-ltrn-dark">
-          <%= @opt.name %>
+          {@opt.name}
         </label>
       </div>
       <div class="ml-3 flex h-6 items-center">
@@ -607,7 +607,7 @@ defmodule LantternWeb.FormComponents do
     ~H"""
     <p class="mt-2 flex items-center gap-2 text-xs text-rose-600 phx-no-feedback:hidden">
       <.icon name="hero-exclamation-circle-mini flex-none" />
-      <%= render_slot(@inner_block) %>
+      {render_slot(@inner_block)}
     </p>
     """
   end
@@ -627,7 +627,7 @@ defmodule LantternWeb.FormComponents do
 
     ~H"""
     <div class={@class}>
-      <.error :for={msg <- @errors}><%= msg %></.error>
+      <.error :for={msg <- @errors}>{msg}</.error>
     </div>
     """
   end
@@ -651,7 +651,7 @@ defmodule LantternWeb.FormComponents do
     >
       <.icon name="hero-exclamation-circle" class="shrink-0" />
       <div class="flex-1">
-        <%= render_slot(@inner_block) %>
+        {render_slot(@inner_block)}
       </div>
       <.icon_button
         :if={@on_dismiss}
@@ -696,12 +696,12 @@ defmodule LantternWeb.FormComponents do
             for={@upload.ref}
             class="cursor-pointer text-ltrn-primary hover:text-ltrn-dark focus-within:outline-hidden focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-ltrn-dark"
           >
-            <span><%= gettext("Upload a cover image file") %></span>
+            <span>{gettext("Upload a cover image file")}</span>
             <.live_file_input upload={@upload} class="sr-only" />
           </label>
-          <span><%= gettext("or drag and drop here") %></span>
+          <span>{gettext("or drag and drop here")}</span>
           <button :if={@is_removing} type="button" phx-click={@on_cancel_replace} class="mt-4">
-            <%= gettext("Cancel cover removal") %>
+            {gettext("Cancel cover removal")}
           </button>
         </div>
       </div>
@@ -728,9 +728,9 @@ defmodule LantternWeb.FormComponents do
         <.live_img_preview entry={entry} class="w-full" />
       </div>
       <.error_block :if={!entry.valid?} class="p-6 border border-red-500 rounded-sm">
-        <p><%= gettext("File \"%{file}\" is invalid.", file: entry.client_name) %></p>
+        <p>{gettext("File \"%{file}\" is invalid.", file: entry.client_name)}</p>
         <%= for err <- upload_errors(@upload, entry) do %>
-          <%= upload_error_to_string(@upload, err) %>
+          {upload_error_to_string(@upload, err)}
         <% end %>
       </.error_block>
       <.icon_button
@@ -773,14 +773,14 @@ defmodule LantternWeb.FormComponents do
           <.live_img_preview entry={entry} class="object-cover w-full h-full" />
         </div>
         <.error_block :if={!entry.valid?} class="p-6 border border-red-500 rounded-sm">
-          <p><%= gettext("File \"%{file}\" is invalid.", file: entry.client_name) %></p>
+          <p>{gettext("File \"%{file}\" is invalid.", file: entry.client_name)}</p>
           <%= for err <- upload_errors(@upload, entry) do %>
-            <%= upload_error_to_string(@upload, err) %>
+            {upload_error_to_string(@upload, err)}
           <% end %>
         </.error_block>
         <div class="flex gap-4">
           <.action type="button" theme="subtle" phx-click={@on_cancel.(entry.ref)}>
-            <%= gettext("Cancel") %>
+            {gettext("Cancel")}
           </.action>
           <.action
             :if={entry.valid? && @on_save}
@@ -789,7 +789,7 @@ defmodule LantternWeb.FormComponents do
             theme="primary"
             phx-click={@on_save.()}
           >
-            <%= gettext("Save") %>
+            {gettext("Save")}
           </.action>
         </div>
       </div>
@@ -808,7 +808,7 @@ defmodule LantternWeb.FormComponents do
             phx-click={@on_remove.()}
             data-confirm={if @on_save, do: gettext("Are you sure?")}
           >
-            <%= gettext("Remove") %>
+            {gettext("Remove")}
           </.action>
           <.action
             :if={@is_removing && @on_cancel_remove}
@@ -816,7 +816,7 @@ defmodule LantternWeb.FormComponents do
             theme="subtle"
             phx-click={@on_cancel_remove.()}
           >
-            <%= gettext("Cancel remove") %>
+            {gettext("Cancel remove")}
           </.action>
           <label
             for={@upload.ref}
@@ -825,7 +825,7 @@ defmodule LantternWeb.FormComponents do
               if(@is_removing, do: "hidden")
             ]}
           >
-            <%= gettext("Upload profile picture") %>
+            {gettext("Upload profile picture")}
             <.live_file_input upload={@upload} class="sr-only" />
           </label>
         </div>
@@ -890,7 +890,7 @@ defmodule LantternWeb.FormComponents do
         target="_blank"
         class="hover:text-ltrn-dark"
       >
-        <%= @message %> <.icon name="hero-information-circle" />
+        {@message} <.icon name="hero-information-circle" />
       </a>
     </p>
     """

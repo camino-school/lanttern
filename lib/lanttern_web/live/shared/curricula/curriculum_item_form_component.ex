@@ -35,7 +35,7 @@ defmodule LantternWeb.Curricula.CurriculumItemFormComponent do
           phx-debounce="1500"
         />
         <div class="mb-6">
-          <.label><%= gettext("Subjects") %></.label>
+          <.label>{gettext("Subjects")}</.label>
           <.badge_button_picker
             id="curriculum-item-subjects-select"
             on_select={&JS.push("toggle_subject", value: %{"id" => &1}, target: @myself)}
@@ -44,7 +44,7 @@ defmodule LantternWeb.Curricula.CurriculumItemFormComponent do
           />
         </div>
         <div class="mb-6">
-          <.label><%= gettext("Years") %></.label>
+          <.label>{gettext("Years")}</.label>
           <.badge_button_picker
             id="curriculum-item-years-select"
             on_select={&JS.push("toggle_year", value: %{"id" => &1}, target: @myself)}
@@ -53,7 +53,7 @@ defmodule LantternWeb.Curricula.CurriculumItemFormComponent do
           />
         </div>
         <.button :if={!@hide_submit} type="submit" phx-disable-with={gettext("Saving...")}>
-          <%= gettext("Save curriculum item") %>
+          {gettext("Save curriculum item")}
         </.button>
       </.form>
     </div>

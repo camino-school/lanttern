@@ -19,7 +19,7 @@ defmodule LantternWeb.Filters.InlineFiltersComponent do
         phx-click={JS.push("toggle_all", target: @myself)}
         {get_select_all_attrs(@selected_items_ids)}
       >
-        <%= @all_text %>
+        {@all_text}
       </.badge_button>
       <.badge_button
         :for={item <- @filter_items}
@@ -27,10 +27,10 @@ defmodule LantternWeb.Filters.InlineFiltersComponent do
         phx-click={JS.push("toggle_filter", value: %{"id" => item.id}, target: @myself)}
         {get_filter_attrs(item.id, @selected_items_ids)}
       >
-        <%= item.name %>
+        {item.name}
       </.badge_button>
       <.badge_button :if={@has_changes} theme="dark" phx-click="apply_filters" phx-target={@myself}>
-        <%= gettext("Apply filters") %>
+        {gettext("Apply filters")}
       </.badge_button>
     </div>
     """

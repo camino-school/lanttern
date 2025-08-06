@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="csrf-token" content={get_csrf_token()} />
     <.live_title suffix=" • Lanttern">
-      <%= assigns[:page_title] || gettext("Hey!") %>
+      {assigns[:page_title] || gettext("Hey!")}
     </.live_title>
 
     <link phx-track-static rel="stylesheet" href={~p"/vendor/glider.min.css"} />
@@ -21,7 +21,7 @@
     </script>
   </head>
   <body class="bg-white antialiased min-h-screen text-sm text-ltrn-dark">
-    <%= @inner_content %>
+    {@inner_content}
     <div
       id="cookies-container"
       class="z-50 fixed bottom-0 inset-x-0 hidden justify-end p-6 sm:p-10"
@@ -29,15 +29,15 @@
     >
       <div class="w-full max-w-xs p-6 rounded-sm bg-white shadow-lg">
         <h6 class="font-display font-bold">
-          🍪 <%= gettext("Lanttern uses cookies...") %>
+          🍪 {gettext("Lanttern uses cookies...")}
         </h6>
         <p class="mt-4">
-          <%= gettext(
+          {gettext(
             "...but only the necessary for session persistence, keeping you logged in even when you close the browser and come back the other day."
-          ) %>
+          )}
         </p>
         <button type="button" class="mt-6 underline" id="accept-cookies-button">
-          <%= gettext("Understood!") %>
+          {gettext("Understood!")}
         </button>
       </div>
     </div>

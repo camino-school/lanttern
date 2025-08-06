@@ -82,7 +82,7 @@ defmodule LantternWeb.Reporting.ReportCardFormComponent do
           class={if !@hide_submit, do: "mb-6"}
         />
         <.button :if={!@hide_submit} phx-disable-with={gettext("Saving...")}>
-          <%= gettext("Save Report card") %>
+          {gettext("Save Report card")}
         </.button>
       </.form>
     </div>

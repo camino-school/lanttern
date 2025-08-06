@@ -14,13 +14,13 @@ defmodule LantternWeb.ClassLive.StudentsComponent do
     <div>
       <div class="flex justify-between gap-6 p-4">
         <div class="flex gap-4">
-          <%= ngettext("1 active student", "%{count} active students", @students_length) %>
+          {ngettext("1 active student", "%{count} active students", @students_length)}
           <span class="text-ltrn-subtle">
-            <%= ngettext(
+            {ngettext(
               "1 deactivated student",
               "%{count} deactivated students",
               @deactivated_students_length
-            ) %>
+            )}
           </span>
         </div>
         <.action
@@ -29,7 +29,7 @@ defmodule LantternWeb.ClassLive.StudentsComponent do
           patch={~p"/school/classes/#{@class}/students?new_student=true"}
           icon_name="hero-plus-circle-mini"
         >
-          <%= gettext("Add student") %>
+          {gettext("Add student")}
         </.action>
       </div>
       <.fluid_grid id="active-students" phx-update="stream" is_full_width class="p-4">

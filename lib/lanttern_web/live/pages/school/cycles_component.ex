@@ -13,7 +13,7 @@ defmodule LantternWeb.SchoolLive.CyclesComponent do
     <div>
       <div :if={@is_school_manager} class="flex justify-end gap-6 p-4">
         <.action type="link" patch={~p"/school/cycles?new=true"} icon_name="hero-plus-circle-mini">
-          <%= gettext("Add cycle") %>
+          {gettext("Add cycle")}
         </.action>
       </div>
       <%= if @has_cycles do %>
@@ -27,20 +27,19 @@ defmodule LantternWeb.SchoolLive.CyclesComponent do
             <:col :let={cycle} label={gettext("Cycle")}>
               <%= if !cycle.parent_cycle_id do %>
                 <div class="flex items-center gap-2 font-bold">
-                  <.icon name="hero-folder" class="w-6 h-6" />
-                  <%= cycle.name %>
+                  <.icon name="hero-folder" class="w-6 h-6" /> {cycle.name}
                 </div>
               <% else %>
                 <div class="ml-8">
-                  <%= cycle.name %>
+                  {cycle.name}
                 </div>
               <% end %>
             </:col>
             <:col :let={cycle} label={gettext("Start at")}>
-              <%= cycle.start_at %>
+              {cycle.start_at}
             </:col>
             <:col :let={cycle} label={gettext("End at")}>
-              <%= cycle.end_at %>
+              {cycle.end_at}
             </:col>
             <:action :let={cycle} :if={@is_school_manager}>
               <.button
@@ -58,7 +57,7 @@ defmodule LantternWeb.SchoolLive.CyclesComponent do
       <% else %>
         <.responsive_container class="pt-6 pb-10">
           <.empty_state>
-            <%= gettext("No cycles in this school") %>
+            {gettext("No cycles in this school")}
           </.empty_state>
         </.responsive_container>
       <% end %>

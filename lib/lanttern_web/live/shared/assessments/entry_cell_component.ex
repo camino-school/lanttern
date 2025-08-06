@@ -150,7 +150,7 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
         style={@style}
       >
         <span class="truncate text-clip">
-          <%= @value %>
+          {@value}
         </span>
       </div>
     <% else %>
@@ -173,7 +173,7 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
     ~H"""
     <%= if @value do %>
       <div class="flex items-center justify-center h-full p-2 rounded-xs font-mono text-sm bg-white shadow-lg">
-        <%= @value %>
+        {@value}
       </div>
     <% else %>
       <.empty />

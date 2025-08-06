@@ -31,7 +31,7 @@ defmodule LantternWeb.MessageBoardComponents do
     <.card_base id={@id} class={["p-6", @class]}>
       <div class="flex items-start justify-between gap-4">
         <h5 class="flex-1 font-display font-black text-xl" inner-html={}>
-          <%= Phoenix.HTML.raw(Earmark.as_html!(@message.name, inner_html: true)) %>
+          {Phoenix.HTML.raw(Earmark.as_html!(@message.name, inner_html: true))}
         </h5>
         <.action
           :if={@on_unarchive}
@@ -40,7 +40,7 @@ defmodule LantternWeb.MessageBoardComponents do
           icon_name="hero-arrow-up-tray-mini"
           data-confirm={gettext("Are you sure?")}
         >
-          <%= gettext("Unarchive") %>
+          {gettext("Unarchive")}
         </.action>
         <.action
           :if={@on_delete}
@@ -50,10 +50,10 @@ defmodule LantternWeb.MessageBoardComponents do
           theme="alert"
           data-confirm={gettext("Are you sure? This action cannot be undone.")}
         >
-          <%= gettext("Delete") %>
+          {gettext("Delete")}
         </.action>
         <.action :if={@edit_patch} type="link" patch={@edit_patch} icon_name="hero-pencil-mini">
-          <%= gettext("Edit") %>
+          {gettext("Edit")}
         </.action>
         <div
           :if={@message.is_pinned && is_nil(@message.archived_at)}
@@ -67,10 +67,10 @@ defmodule LantternWeb.MessageBoardComponents do
       <div class="flex flex-row-reverse sm:flex-row items-center gap-2 mt-2 text-xs">
         <.icon name="hero-calendar-mini" class="w-5 h-5 text-ltrn-subtle" />
         <div class="flex-1 sm:flex sm:items-center sm:gap-2">
-          <%= format_by_locale(@message.inserted_at, @tz) %>
+          {format_by_locale(@message.inserted_at, @tz)}
           <%= if @message.inserted_at != @message.updated_at do %>
             <div class="mt-1 sm:mt-0 text-ltrn-subtle">
-              <%= "(#{gettext("Updated")} #{format_by_locale(@message.updated_at, @tz)})" %>
+              {"(#{gettext("Updated")} #{format_by_locale(@message.updated_at, @tz)})"}
             </div>
           <% end %>
         </div>
@@ -81,10 +81,10 @@ defmodule LantternWeb.MessageBoardComponents do
       >
         <%= if @message.send_to == "classes" do %>
           <.icon name="hero-users-mini" class="w-5 h-5 text-ltrn-subtle" />
-          <.badge :for={class <- @message.classes}><%= class.name %></.badge>
+          <.badge :for={class <- @message.classes}>{class.name}</.badge>
         <% else %>
           <.icon name="hero-user-group-mini" class="w-5 h-5 text-ltrn-subtle" />
-          <.badge><%= gettext("Sent to all school") %></.badge>
+          <.badge>{gettext("Sent to all school")}</.badge>
         <% end %>
       </div>
       <.markdown text={@message.description} class="mt-10" />

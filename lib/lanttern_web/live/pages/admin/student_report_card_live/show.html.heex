@@ -1,5 +1,5 @@
 <.header>
-  Student report card <%= @student_report_card.id %>
+  Student report card {@student_report_card.id}
   <:subtitle>This is a student_report_card record from your database.</:subtitle>
   <:actions>
     <.link
@@ -12,10 +12,10 @@
 </.header>
 
 <.list>
-  <:item title="Report card id">#<%= @student_report_card.report_card_id %></:item>
-  <:item title="Student id">#<%= @student_report_card.student_id %></:item>
-  <:item title="Comment"><%= @student_report_card.comment %></:item>
-  <:item title="Footnote"><%= @student_report_card.footnote %></:item>
+  <:item title="Report card id">#{@student_report_card.report_card_id}</:item>
+  <:item title="Student id">#{@student_report_card.student_id}</:item>
+  <:item title="Comment">{@student_report_card.comment}</:item>
+  <:item title="Footnote">{@student_report_card.footnote}</:item>
 </.list>
 
 <.back navigate={~p"/admin/student_report_cards"}>Back to student_report_cards</.back>
@@ -27,7 +27,7 @@
   on_cancel={JS.patch(~p"/admin/student_report_cards/#{@student_report_card}")}
 >
   <.header>
-    <%= @page_title %>
+    {@page_title}
     <:subtitle>Use this form to manage student_report_card records in your database.</:subtitle>
   </.header>
   <.live_component

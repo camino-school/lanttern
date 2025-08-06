@@ -52,40 +52,40 @@ defmodule LantternWeb.Schools.StudentHeaderComponent do
           ]}>
             <%= if @navigate do %>
               <.link navigate={@navigate.(@student.id)} class="hover:text-ltrn-subtle">
-                <%= @student.name %>
+                {@student.name}
               </.link>
               <a href={@navigate.(@student.id)} target="_blank" class="hover:text-ltrn-subtle">
                 <.icon name="hero-arrow-top-right-on-square-mini" />
               </a>
             <% else %>
-              <%= @student.name %>
+              {@student.name}
             <% end %>
           </h2>
           <.badge :if={@show_deactivated && @student.deactivated_at} theme="dark">
-            <%= gettext("Deactivated") %>
+            {gettext("Deactivated")}
           </.badge>
         </div>
         <div class="flex items-center gap-4 mt-2">
           <%= if @show_tags do %>
             <.badge :for={tag <- @student.tags} color_map={tag}>
-              <%= tag.name %>
+              {tag.name}
             </.badge>
           <% end %>
           <div class="group relative" {if(@cycle_tooltip, do: %{"tabindex" => "0"}, else: %{})}>
             <.badge theme="dark">
-              <%= @cycle.name %>
+              {@cycle.name}
             </.badge>
             <.tooltip :if={@cycle_tooltip} v_pos="bottom">
-              <%= @cycle_tooltip %>
+              {@cycle_tooltip}
             </.tooltip>
           </div>
           <%= if @student.classes == [] do %>
             <.badge>
-              <%= gettext("No classes linked to student in cycle") %>
+              {gettext("No classes linked to student in cycle")}
             </.badge>
           <% else %>
             <.badge :for={class <- @student.classes} id={"#{@id}-student-class-#{class.id}"}>
-              <%= class.name %>
+              {class.name}
             </.badge>
           <% end %>
         </div>

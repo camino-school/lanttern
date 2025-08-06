@@ -34,7 +34,7 @@ defmodule LantternWeb.GradesReports.StudentGradesReportEntryButtonComponent do
       style={@style}
       phx-click={@on_click}
     >
-      <%= @text %>
+      {@text}
     </button>
     """
   end

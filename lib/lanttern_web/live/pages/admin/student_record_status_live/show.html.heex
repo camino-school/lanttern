@@ -1,5 +1,5 @@
 <.header>
-  Student record status <%= @student_record_status.id %>
+  Student record status {@student_record_status.id}
   <:subtitle>This is a student_record_status record from your database.</:subtitle>
   <:actions>
     <.link
@@ -12,9 +12,9 @@
 </.header>
 
 <.list>
-  <:item title="Name"><%= @student_record_status.name %></:item>
-  <:item title="Bg color"><%= @student_record_status.bg_color %></:item>
-  <:item title="Text color"><%= @student_record_status.text_color %></:item>
+  <:item title="Name">{@student_record_status.name}</:item>
+  <:item title="Bg color">{@student_record_status.bg_color}</:item>
+  <:item title="Text color">{@student_record_status.text_color}</:item>
 </.list>
 
 <.back navigate={~p"/admin/student_record_statuses"}>Back to student_record_statuses</.back>

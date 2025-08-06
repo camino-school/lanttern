@@ -12,8 +12,8 @@
   rows={@staff_members}
   row_click={&JS.navigate(~p"/admin/staff_members/#{&1}")}
 >
-  <:col :let={staff_member} label="School"><%= staff_member.school.name %></:col>
-  <:col :let={staff_member} label="Name"><%= staff_member.name %></:col>
+  <:col :let={staff_member} label="School">{staff_member.school.name}</:col>
+  <:col :let={staff_member} label="Name">{staff_member.name}</:col>
   <:action :let={staff_member}>
     <div class="sr-only">
       <.link navigate={~p"/admin/staff_members/#{staff_member}"}>Show</.link>

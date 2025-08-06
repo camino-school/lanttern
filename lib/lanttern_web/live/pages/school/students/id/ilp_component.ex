@@ -22,10 +22,9 @@ defmodule LantternWeb.StudentLive.ILPComponent do
                 icon_name="hero-chevron-down-mini"
               >
                 <%= if @current_template do %>
-                  <%= gettext("ILP model:") %>
-                  <span class="font-bold"><%= @current_template.name %></span>
+                  {gettext("ILP model:")} <span class="font-bold">{@current_template.name}</span>
                 <% else %>
-                  <%= gettext("No ILP model selected") %>
+                  {gettext("No ILP model selected")}
                 <% end %>
               </.action>
               <.dropdown_menu
@@ -45,9 +44,9 @@ defmodule LantternWeb.StudentLive.ILPComponent do
           </div>
         <% else %>
           <p>
-            <%= gettext(
+            {gettext(
               "No ILP templates registered in your school. Talk to your Lanttern school manager."
-            ) %>
+            )}
           </p>
         <% end %>
       </.action_bar>

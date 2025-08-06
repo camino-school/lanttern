@@ -20,7 +20,7 @@ defmodule LantternWeb.Schools.ClassSearchComponent do
     ~H"""
     <div class={@class}>
       <.label :if={@label} for={@id}>
-        <%= @label %>
+        {@label}
       </.label>
       <div class="relative">
         <.base_input
@@ -71,7 +71,7 @@ defmodule LantternWeb.Schools.ClassSearchComponent do
             data-result-name={class.name}
           >
             <div class="flex-1 truncate group-aria-selected:font-bold" }>
-              <%= class.name %> (<%= class.cycle.name %>)
+              {class.name} ({class.cycle.name})
             </div>
             <.icon
               name="hero-check"

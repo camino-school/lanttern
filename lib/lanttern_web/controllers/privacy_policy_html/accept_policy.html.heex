@@ -4,25 +4,25 @@
     <.link href="/" class="relative z-10 -ml-10 font-display font-black text-2xl">Lanttern</.link>
   </div>
   <h1 class="mb-6 font-display font-black text-3xl">
-    <%= gettext("Privacy policy and terms of service") %>
+    {gettext("Privacy policy and terms of service")}
   </h1>
   <p>
-    <%= gettext(
+    {gettext(
       "By using Lanttern you confirm to have read and agree to our %{privacy_policy_link_str} and %{terms_of_service_link_str}.",
       privacy_policy_link_str: @privacy_policy_link_str,
       terms_of_service_link_str: @terms_of_service_link_str
     )
-    |> raw() %>
+    |> raw()}
   </p>
   <.error_block :if={@error} class="mt-10">
-    <%= @error %>
+    {@error}
   </.error_block>
   <div class="flex flex-row-reverse gap-4 w-full mt-10">
     <.link href={~p"/accept_privacy_policy"} method="post" class={get_button_styles("primary")}>
-      <%= gettext("Confirm") %>
+      {gettext("Confirm")}
     </.link>
     <.link href={~p"/users/log_out"} method="delete" class={get_button_styles("ghost")}>
-      <%= gettext("Log out") %>
+      {gettext("Log out")}
     </.link>
   </div>
 </div>

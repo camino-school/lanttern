@@ -18,7 +18,7 @@ defmodule LantternWeb.LearningContext.StrandFormComponent do
     <div class={@class}>
       <.form for={@form} id="strand-form" phx-target={@myself} phx-change="validate" phx-submit="save">
         <.error_block :if={@form.source.action == :insert} class="mb-6">
-          <%= gettext("Oops, something went wrong! Please check the errors below.") %>
+          {gettext("Oops, something went wrong! Please check the errors below.")}
         </.error_block>
         <.image_field
           current_image_url={@strand.cover_image_url}
@@ -89,7 +89,7 @@ defmodule LantternWeb.LearningContext.StrandFormComponent do
         </div>
         <div :if={@show_actions} class="flex justify-end mt-6">
           <.button type="submit" phx-disable-with={gettext("Saving...")}>
-            <%= gettext("Save Strand") %>
+            {gettext("Save Strand")}
           </.button>
         </div>
       </.form>

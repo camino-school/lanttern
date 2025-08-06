@@ -1,19 +1,19 @@
 <.header_nav current_user={@current_user}>
   <:breadcrumb navigate={~p"/school/students"}>
-    <%= @current_user.current_profile.school_name %>
+    {@current_user.current_profile.school_name}
   </:breadcrumb>
-  <:title><%= gettext("Deactivated students") %></:title>
+  <:title>{gettext("Deactivated students")}</:title>
   <div class="flex gap-4 p-4">
-    <%= ngettext(
+    {ngettext(
       "1 deactivated student",
       "%{count} deactivated students",
       @students_length
-    ) %>
+    )}
   </div>
 </.header_nav>
 <%= if @students_length == 0 do %>
   <.empty_state class="px-4 py-10">
-    <%= gettext("No deactivated students found") %>
+    {gettext("No deactivated students found")}
   </.empty_state>
 <% else %>
   <.fluid_grid id="students" phx-update="stream" is_full_width class="p-4">

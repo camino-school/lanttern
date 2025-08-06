@@ -43,7 +43,7 @@ defmodule LantternWeb.ILP.StudentILPManagerComponent do
     ~H"""
     <div class={@class}>
       <.card_base :if={!@student} class="p-10 mb-10">
-        <.empty_state><%= gettext("No student selected") %></.empty_state>
+        <.empty_state>{gettext("No student selected")}</.empty_state>
       </.card_base>
       <.live_component
         :if={@student}
@@ -56,10 +56,10 @@ defmodule LantternWeb.ILP.StudentILPManagerComponent do
         show_tags
       />
       <.card_base :if={!@template} class="p-10">
-        <.empty_state><%= gettext("No ILP template selected") %></.empty_state>
+        <.empty_state>{gettext("No ILP template selected")}</.empty_state>
       </.card_base>
       <.card_base :if={@student && @template && !@student_ilp} class="p-10">
-        <.empty_state><%= gettext("No student ILP created yet") %></.empty_state>
+        <.empty_state>{gettext("No student ILP created yet")}</.empty_state>
         <div class="flex justify-center mt-10">
           <.action
             type="link"
@@ -68,10 +68,10 @@ defmodule LantternWeb.ILP.StudentILPManagerComponent do
             size="md"
             patch="?student_ilp=new"
           >
-            <%= gettext("Create %{student}'s %{cycle} ILP",
+            {gettext("Create %{student}'s %{cycle} ILP",
               student: @student.name,
               cycle: @cycle.name
-            ) %>
+            )}
           </.action>
         </div>
       </.card_base>

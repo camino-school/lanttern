@@ -58,7 +58,7 @@ defmodule LantternWeb.Reporting.StrandReportFormComponent do
           show_optional
         />
         <.button :if={!@hide_submit} type="submit" phx-disable-with={gettext("Saving...")}>
-          <%= gettext("Save Strand report") %>
+          {gettext("Save Strand report")}
         </.button>
       </.form>
     </div>

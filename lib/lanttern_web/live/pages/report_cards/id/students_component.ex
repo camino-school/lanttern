@@ -23,7 +23,7 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
       <.responsive_container>
         <div class="mb-10">
           <p class="font-display font-bold text-2xl">
-            <%= gettext("Students linked to this report card") %>
+            {gettext("Students linked to this report card")}
           </p>
           <.live_component
             module={InlineFiltersComponent}
@@ -54,14 +54,14 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
           <% else %>
             <div class="p-10 mt-4 rounded-sm shadow-xl bg-white">
               <.empty_state>
-                <%= gettext("No students linked to this report card yet") %>
+                {gettext("No students linked to this report card yet")}
               </.empty_state>
             </div>
           <% end %>
         </div>
         <div class="flex items-center justify-between gap-4">
           <p class="flex-1 font-display font-bold text-2xl">
-            <%= case @report_card.school_cycle.parent_cycle do
+            {case @report_card.school_cycle.parent_cycle do
               %{name: parent_cycle_name} ->
                 gettext("Link students from %{year} (%{cycle}) to this report card",
                   year: @report_card.year.name,
@@ -72,7 +72,7 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
                 gettext("Link students from %{year} to this report card",
                   year: @report_card.year.name
                 )
-            end %>
+            end}
           </p>
           <.action
             :if={@other_students_length > 1}
@@ -83,7 +83,7 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
             phx-click="create_all_students_report_cards"
             phx-target={@myself}
           >
-            <%= gettext("Link all") %>
+            {gettext("Link all")}
           </.action>
         </div>
         <.other_students_list
@@ -99,12 +99,12 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
         show={true}
         on_cancel={JS.patch(~p"/report_cards/#{@report_card}/students")}
       >
-        <:title><%= @form_overlay_title %></:title>
+        <:title>{@form_overlay_title}</:title>
         <.metadata class="mb-4" icon_name="hero-document-text">
-          <%= @report_card.name %>
+          {@report_card.name}
         </.metadata>
         <.metadata class="mb-4" icon_name="hero-user">
-          <%= @student.name %>
+          {@student.name}
         </.metadata>
         <.live_component
           module={StudentReportCardFormComponent}
@@ -121,7 +121,7 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
             phx-target={@myself}
             data-confirm={gettext("Are you sure?")}
           >
-            <%= gettext("Delete") %>
+            {gettext("Delete")}
           </.button>
         </:actions_left>
         <:actions>
@@ -130,23 +130,23 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
             theme="ghost"
             phx-click={JS.exec("data-cancel", to: "#student-report-card-form-overlay")}
           >
-            <%= gettext("Cancel") %>
+            {gettext("Cancel")}
           </.button>
           <.button type="submit" form="student-report-card-form">
-            <%= gettext("Save") %>
+            {gettext("Save")}
           </.button>
         </:actions>
       </.slide_over>
       <.fixed_bar :if={@selected_students_report_cards_ids != []} class="flex items-center gap-6">
         <p class="flex-1 text-sm text-white">
-          <%= ngettext(
+          {ngettext(
             "1 student report card selected",
             "%{count} students report cards selected",
             length(@selected_students_report_cards_ids)
-          ) %>
+          )}
         </p>
         <div class="flex items-center gap-2">
-          <span class="text-sm text-white"><%= gettext("Student access") %></span>
+          <span class="text-sm text-white">{gettext("Student access")}</span>
           <div class="group relative">
             <.icon_button
               type="button"
@@ -162,7 +162,7 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
                 )
               }
             />
-            <.tooltip h_pos="center"><%= gettext("Remove access") %></.tooltip>
+            <.tooltip h_pos="center">{gettext("Remove access")}</.tooltip>
           </div>
           <div class="group relative">
             <.icon_button
@@ -178,11 +178,11 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
                 )
               }
             />
-            <.tooltip h_pos="center"><%= gettext("Allow access") %></.tooltip>
+            <.tooltip h_pos="center">{gettext("Allow access")}</.tooltip>
           </div>
         </div>
         <div class="flex items-center gap-2">
-          <span class="text-sm text-white"><%= gettext("Guardian access") %></span>
+          <span class="text-sm text-white">{gettext("Guardian access")}</span>
           <div class="group relative">
             <.icon_button
               type="button"
@@ -198,7 +198,7 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
                 )
               }
             />
-            <.tooltip h_pos="center"><%= gettext("Remove access") %></.tooltip>
+            <.tooltip h_pos="center">{gettext("Remove access")}</.tooltip>
           </div>
           <div class="group relative">
             <.icon_button
@@ -214,17 +214,17 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
                 )
               }
             />
-            <.tooltip h_pos="right"><%= gettext("Allow access") %></.tooltip>
+            <.tooltip h_pos="right">{gettext("Allow access")}</.tooltip>
           </div>
         </div>
       </.fixed_bar>
       <.fixed_bar :if={@selected_students_ids != []} class="flex items-center gap-6">
         <p class="flex-1 text-sm text-white">
-          <%= ngettext(
+          {ngettext(
             "1 student selected",
             "%{count} students selected",
             length(@selected_students_ids)
-          ) %>
+          )}
         </p>
         <.button
           phx-click={
@@ -235,10 +235,10 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
           }
           theme="ghost"
         >
-          <%= gettext("Clear selection") %>
+          {gettext("Clear selection")}
         </.button>
         <.button type="button" phx-click="batch_create_student_report_card" phx-target={@myself}>
-          <%= gettext("Link selected") %>
+          {gettext("Link selected")}
         </.button>
       </.fixed_bar>
     </div>
@@ -273,7 +273,7 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
         >
           <.icon name="hero-chat-bubble-oval-left-mini" class="w-5 h-5 text-ltrn-diff-dark" />
           <.tooltip h_pos="center">
-            <%= gettext("Has comments") %>
+            {gettext("Has comments")}
           </.tooltip>
         </div>
         <div
@@ -282,7 +282,7 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
         >
           <.icon name="hero-document-text-mini" class="w-5 h-5 text-ltrn-diff-dark" />
           <.tooltip h_pos="center">
-            <%= gettext("Has footnote") %>
+            {gettext("Has footnote")}
           </.tooltip>
         </div>
         <.access_status
@@ -306,7 +306,7 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
           >
             <.icon name="hero-eye-mini" class="w-5 h-5" />
           </a>
-          <.tooltip h_pos="center"><%= gettext("Preview") %></.tooltip>
+          <.tooltip h_pos="center">{gettext("Preview")}</.tooltip>
         </div>
         <div class="group relative">
           <.link
@@ -317,7 +317,7 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
           >
             <.icon name="hero-pencil-mini" class="w-5 h-5" />
           </.link>
-          <.tooltip h_pos="center"><%= gettext("Edit") %></.tooltip>
+          <.tooltip h_pos="center">{gettext("Edit")}</.tooltip>
         </div>
       </div>
     </div>
@@ -348,7 +348,7 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
         class="absolute -top-1 -right-1 text-ltrn-primary"
       />
       <.tooltip h_pos="center">
-        <%= if @has_access, do: @with_access_text, else: @without_access_text %>
+        {if @has_access, do: @with_access_text, else: @without_access_text}
       </.tooltip>
     </div>
     """
@@ -363,7 +363,7 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
     ~H"""
     <div class="p-10 mt-4 rounded-sm shadow-xl bg-white">
       <.empty_state>
-        <%= case @report_card.school_cycle.parent_cycle do
+        {case @report_card.school_cycle.parent_cycle do
           %{name: parent_cycle_name} ->
             gettext(
               "All students from %{year} (%{cycle}) classes are already linked to this report card",
@@ -375,7 +375,7 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
             gettext("All students from %{year} classes are already linked to this report card",
               year: @report_card.year.name
             )
-        end %>
+        end}
       </.empty_state>
     </div>
     """
@@ -422,7 +422,7 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
           icon_name="hero-link-mini"
           patch={~p"/report_cards/#{@report_card_id}/students?create_student_report=#{@student.id}"}
         >
-          <%= gettext("Link") %>
+          {gettext("Link")}
         </.action>
       </div>
     </div>

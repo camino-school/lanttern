@@ -16,19 +16,19 @@ defmodule LantternWeb.StudentsRecordsSettingsLive.StatusComponent do
       <.action_bar class="flex items-center justify-between gap-4 p-4">
         <p class="flex items-center gap-2">
           <.icon name="hero-information-circle-mini" class="text-ltrn-subtle" />
-          <%= gettext("Manage student records statuses below") %>
+          {gettext("Manage student records statuses below")}
         </p>
         <.action
           type="link"
           patch={~p"/students_records/settings/status?new=true"}
           icon_name="hero-plus-circle-mini"
         >
-          <%= gettext("New status") %>
+          {gettext("New status")}
         </.action>
       </.action_bar>
       <%= if @statuses_length == 0 do %>
         <div class="p-10">
-          <.empty_state><%= gettext("No student record status created yet") %></.empty_state>
+          <.empty_state>{gettext("No student record status created yet")}</.empty_state>
         </div>
       <% else %>
         <.responsive_container id="student-record-statuses" class="p-4">
@@ -51,14 +51,14 @@ defmodule LantternWeb.StudentsRecordsSettingsLive.StatusComponent do
                 color_map={status}
                 icon_name={if(status.is_closed, do: "hero-check-circle-mini")}
               >
-                <%= status.name %>
+                {status.name}
               </.badge>
               <.action
                 type="link"
                 patch={~p"/students_records/settings/status?edit=#{status.id}"}
                 theme="subtle"
               >
-                <%= gettext("Edit") %>
+                {gettext("Edit")}
               </.action>
             </div>
           </.sortable_card>

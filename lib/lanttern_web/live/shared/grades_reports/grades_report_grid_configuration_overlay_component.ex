@@ -18,9 +18,9 @@ defmodule LantternWeb.GradesReports.GradesReportGridConfigurationOverlayComponen
     <div>
       <.slide_over id={@id} show={true} on_cancel={@on_cancel}>
         <:title>
-          <%= gettext("%{grades_report} grid configuration", grades_report: @grades_report.name) %>
+          {gettext("%{grades_report} grid configuration", grades_report: @grades_report.name)}
         </:title>
-        <h5 class="mb-4 font-display font-black text-lg"><%= gettext("Grid subcycles") %></h5>
+        <h5 class="mb-4 font-display font-black text-lg">{gettext("Grid subcycles")}</h5>
         <.badge_button_picker
           id="grades-report-subcycles-select"
           on_select={&JS.push("toggle_cycle", value: %{"id" => &1}, target: @myself)}
@@ -29,16 +29,16 @@ defmodule LantternWeb.GradesReports.GradesReportGridConfigurationOverlayComponen
         />
         <%= if @grades_report_cycles == [] do %>
           <div class="p-4 rounded-sm mt-4 text-ltrn-subtle bg-ltrn-lighter">
-            <%= gettext("No subcycles linked") %>
+            {gettext("No subcycles linked")}
           </div>
         <% else %>
           <div class="grid grid-cols-[1fr_min-content_min-content] gap-2">
             <div class="grid grid-cols-subgrid col-span-3 items-center px-4 py-2 rounded-sm mt-4 text-sm text-ltrn-subtle bg-ltrn-lighter">
-              <div><%= gettext("Subcycle") %></div>
-              <div class="text-center"><%= gettext("Grading weight") %></div>
+              <div>{gettext("Subcycle")}</div>
+              <div class="text-center">{gettext("Grading weight")}</div>
               <div class="group relative text-center">
                 <.icon name="hero-eye" class="w-6 h-6" />
-                <.tooltip h_pos="right"><%= gettext("Visibility in grades reports") %></.tooltip>
+                <.tooltip h_pos="right">{gettext("Visibility in grades reports")}</.tooltip>
               </div>
             </div>
             <.grades_report_cycle_form
@@ -50,11 +50,11 @@ defmodule LantternWeb.GradesReports.GradesReportGridConfigurationOverlayComponen
           </div>
         <% end %>
         <h5 class="mt-10 font-display font-black text-lg">
-          <%= gettext("Final grades visibility") %>
+          {gettext("Final grades visibility")}
         </h5>
         <.card_base class="flex items-center p-4 mt-4">
           <p class="flex-1">
-            <%= @grades_report.school_cycle.name %>
+            {@grades_report.school_cycle.name}
           </p>
           <.icon_button
             name={if @grades_report.final_is_visible, do: "hero-eye", else: "hero-eye-slash"}
@@ -64,7 +64,7 @@ defmodule LantternWeb.GradesReports.GradesReportGridConfigurationOverlayComponen
             phx-click={JS.push("toggle_final_grades_visibility", target: @myself)}
           />
         </.card_base>
-        <h5 class="mt-10 mb-6 font-display font-black text-lg"><%= gettext("Grid subjects") %></h5>
+        <h5 class="mt-10 mb-6 font-display font-black text-lg">{gettext("Grid subjects")}</h5>
         <div class="flex-1 flex flex-wrap gap-2">
           <.badge_button
             :for={subject <- @subjects}
@@ -76,12 +76,12 @@ defmodule LantternWeb.GradesReports.GradesReportGridConfigurationOverlayComponen
             }
             phx-click={JS.push("toggle_subject", value: %{"id" => subject.id}, target: @myself)}
           >
-            <%= subject.name %>
+            {subject.name}
           </.badge_button>
         </div>
         <%= if @sortable_grades_report_subjects == [] do %>
           <div class="p-4 rounded-sm mt-4 text-ltrn-subtle bg-ltrn-lighter">
-            <%= gettext("No subjects linked") %>
+            {gettext("No subjects linked")}
           </div>
         <% else %>
           <.sortable_card
@@ -103,7 +103,7 @@ defmodule LantternWeb.GradesReports.GradesReportGridConfigurationOverlayComponen
               )
             }
           >
-            <%= grades_report_subject.subject.name %>
+            {grades_report_subject.subject.name}
           </.sortable_card>
         <% end %>
       </.slide_over>
@@ -145,7 +145,7 @@ defmodule LantternWeb.GradesReports.GradesReportGridConfigurationOverlayComponen
       class="grid grid-cols-subgrid col-span-3 items-center p-4 rounded-sm mt-1 bg-white shadow-lg"
       phx-change={JS.push("update_grades_report_cycle_weight", target: @myself)}
     >
-      <%= @grades_report_cycle.school_cycle.name %>
+      {@grades_report_cycle.school_cycle.name}
       <input
         type="number"
         name={@form[:weight].name}

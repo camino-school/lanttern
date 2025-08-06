@@ -24,11 +24,11 @@ defmodule LantternWeb.RubricsComponents do
       <div :for={descriptor <- @rubric.descriptors}>
         <%= if descriptor.scale_type == "ordinal" do %>
           <.badge color_map={descriptor.ordinal_value}>
-            <%= descriptor.ordinal_value.name %>
+            {descriptor.ordinal_value.name}
           </.badge>
         <% else %>
           <.badge>
-            <%= descriptor.score %>
+            {descriptor.score}
           </.badge>
         <% end %>
         <.markdown class="mt-2" text={descriptor.descriptor} />
@@ -71,10 +71,10 @@ defmodule LantternWeb.RubricsComponents do
       style={@active_style}
     >
       <%= if @descriptor.scale_type == "numeric" do %>
-        <.badge theme="dark" class="shadow-lg"><%= @descriptor.score %></.badge>
+        <.badge theme="dark" class="shadow-lg">{@descriptor.score}</.badge>
       <% else %>
         <.badge color_map={@descriptor.ordinal_value} class="shadow-lg">
-          <%= @descriptor.ordinal_value.name %>
+          {@descriptor.ordinal_value.name}
         </.badge>
       <% end %>
       <.markdown text={@descriptor.descriptor} class="flex-1 w-full" style={@active_text_style} />

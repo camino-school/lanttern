@@ -30,7 +30,7 @@ defmodule LantternWeb.Schools.StudentFormOverlayComponent do
     ~H"""
     <div phx-remove={JS.exec("phx-remove", to: "##{@id}")}>
       <.slide_over id={@id} show={true} on_cancel={@on_cancel}>
-        <:title><%= @title %></:title>
+        <:title>{@title}</:title>
         <.form
           id={"student-form-#{@id}"}
           for={@form}
@@ -39,7 +39,7 @@ defmodule LantternWeb.Schools.StudentFormOverlayComponent do
           phx-target={@myself}
         >
           <.error_block :if={@form.source.action in [:insert, :update]} class="mb-6">
-            <%= gettext("Oops, something went wrong! Please check the errors below.") %>
+            {gettext("Oops, something went wrong! Please check the errors below.")}
           </.error_block>
           <.input
             field={@form[:name]}
@@ -59,7 +59,7 @@ defmodule LantternWeb.Schools.StudentFormOverlayComponent do
             notify_component={@myself}
           />
           <div class="mb-6">
-            <.label><%= gettext("Student tags") %></.label>
+            <.label>{gettext("Student tags")}</.label>
             <%= if @student_tags != [] do %>
               <.badge_button_picker
                 id={"student-tags-picker-#{@id}"}
@@ -72,7 +72,7 @@ defmodule LantternWeb.Schools.StudentFormOverlayComponent do
                 use_color_map_as_active
               />
             <% else %>
-              <.empty_state_simple><%= gettext("No selected classes") %></.empty_state_simple>
+              <.empty_state_simple>{gettext("No selected classes")}</.empty_state_simple>
             <% end %>
           </div>
           <.card_base class="p-4" bg_class="bg-ltrn-mesh-cyan">
@@ -84,7 +84,7 @@ defmodule LantternWeb.Schools.StudentFormOverlayComponent do
             />
             <p class="flex items-center gap-2 mt-4">
               <.icon name="hero-information-circle-mini" class="text-ltrn-subtle" />
-              <%= gettext("Enables the user to login at Lanttern via Google Sign In") %>
+              {gettext("Enables the user to login at Lanttern via Google Sign In")}
             </p>
           </.card_base>
         </.form>
@@ -98,7 +98,7 @@ defmodule LantternWeb.Schools.StudentFormOverlayComponent do
             phx-target={@myself}
             data-confirm={gettext("Are you sure? You can reactive the student later.")}
           >
-            <%= gettext("Deactivate") %>
+            {gettext("Deactivate")}
           </.action>
           <.action
             :if={@student.deactivated_at}
@@ -109,7 +109,7 @@ defmodule LantternWeb.Schools.StudentFormOverlayComponent do
             phx-target={@myself}
             data-confirm={gettext("Are you sure?")}
           >
-            <%= gettext("Delete") %>
+            {gettext("Delete")}
           </.action>
           <.action
             :if={@student.deactivated_at}
@@ -119,7 +119,7 @@ defmodule LantternWeb.Schools.StudentFormOverlayComponent do
             phx-click="reactivate"
             phx-target={@myself}
           >
-            <%= gettext("Reactivate") %>
+            {gettext("Reactivate")}
           </.action>
         </:actions_left>
         <:actions>
@@ -129,7 +129,7 @@ defmodule LantternWeb.Schools.StudentFormOverlayComponent do
             size="md"
             phx-click={JS.exec("data-cancel", to: "##{@id}")}
           >
-            <%= gettext("Cancel") %>
+            {gettext("Cancel")}
           </.action>
           <.action
             type="submit"
@@ -138,7 +138,7 @@ defmodule LantternWeb.Schools.StudentFormOverlayComponent do
             icon_name="hero-check"
             form={"student-form-#{@id}"}
           >
-            <%= gettext("Save") %>
+            {gettext("Save")}
           </.action>
         </:actions>
       </.slide_over>

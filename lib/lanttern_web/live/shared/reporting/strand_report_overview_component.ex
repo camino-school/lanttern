@@ -29,17 +29,17 @@ defmodule LantternWeb.Reporting.StrandReportOverviewComponent do
       />
       <.responsive_container class="px-2 mt-10" no_default_padding>
         <hgroup class="font-display font-black">
-          <h1 class="text-4xl sm:text-5xl"><%= @strand_report.strand.name %></h1>
+          <h1 class="text-4xl sm:text-5xl">{@strand_report.strand.name}</h1>
           <p :if={@strand_report.strand.type} class="mt-2 text-xl sm:text-2xl">
-            <%= @strand_report.strand.type %>
+            {@strand_report.strand.type}
           </p>
         </hgroup>
         <div class="flex flex-wrap gap-2 mt-6">
           <.badge :for={subject <- @strand_report.strand.subjects} theme="dark">
-            <%= Gettext.dgettext(Lanttern.Gettext, "taxonomy", subject.name) %>
+            {Gettext.dgettext(Lanttern.Gettext, "taxonomy", subject.name)}
           </.badge>
           <.badge :for={year <- @strand_report.strand.years} theme="dark">
-            <%= Gettext.dgettext(Lanttern.Gettext, "taxonomy", year.name) %>
+            {Gettext.dgettext(Lanttern.Gettext, "taxonomy", year.name)}
           </.badge>
         </div>
         <.markdown :if={@description} text={@description} class="mt-10" />
@@ -55,13 +55,13 @@ defmodule LantternWeb.Reporting.StrandReportOverviewComponent do
             <div class="flex items-center gap-4">
               <div class="flex-1">
                 <.badge :if={goal.is_differentiation} theme="diff" class="mb-2">
-                  <%= gettext("Curriculum differentiation") %>
+                  {gettext("Curriculum differentiation")}
                 </.badge>
                 <p>
                   <strong class="inline-block mr-2 font-display font-bold">
-                    <%= goal.curriculum_item.curriculum_component.name %>
+                    {goal.curriculum_item.curriculum_component.name}
                   </strong>
-                  <%= goal.curriculum_item.name %>
+                  {goal.curriculum_item.name}
                 </p>
               </div>
             </div>
@@ -75,12 +75,13 @@ defmodule LantternWeb.Reporting.StrandReportOverviewComponent do
           </.card_base>
         </div>
         <%!-- <div :if={@has_rubric} class={if @description, do: "mt-10"}>
-          <h3 class="font-display font-black text-xl"><%= gettext("Strand rubrics") %></h3>
+          <h3 class="font-display font-black text-xl">{gettext("Strand rubrics")}</h3>
           <.rubric_card :for={{dom_id, rubric} <- @streams.rubrics} id={dom_id} rubric={rubric} />
           <.rubric_card :for={{dom_id, rubric} <- @streams.diff_rubrics} id={dom_id} rubric={rubric} />
-        </div> --%>
+        </div>
+         --%>
         <.empty_state :if={!@description && !@has_rubric}>
-          <%= gettext("No strand report info yet.") %>
+          {gettext("No strand report info yet.")}
         </.empty_state>
       </.responsive_container>
     </div>
@@ -98,10 +99,10 @@ defmodule LantternWeb.Reporting.StrandReportOverviewComponent do
       <div class="flex items-center gap-2 mb-6">
         <div class="flex-1 pr-2">
           <.badge :if={@rubric.is_differentiation} theme="diff" class="mb-2">
-            <%= gettext("Rubric differentiation") %>
+            {gettext("Rubric differentiation")}
           </.badge>
           <p class="font-display font-black">
-            <%= gettext("Rubric criteria") %>: <%= @rubric.criteria %>
+            {gettext("Rubric criteria")}: {@rubric.criteria}
           </p>
         </div>
       </div>

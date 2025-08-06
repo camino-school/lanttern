@@ -1,5 +1,5 @@
 <.header>
-  Profile <%= @profile.id %>
+  Profile {@profile.id}
   <:subtitle>This is a profile record from your database.</:subtitle>
   <:actions>
     <.link href={~p"/admin/profiles/#{@profile}/edit"}>
@@ -9,15 +9,15 @@
 </.header>
 
 <.list>
-  <:item title="User"><%= @profile.user.email %></:item>
+  <:item title="User">{@profile.user.email}</:item>
   <:item :if={@profile.type == "student"} title="Student">
-    <%= @profile.student.name %>
+    {@profile.student.name}
   </:item>
   <:item :if={@profile.type == "staff"} title="Stafr member">
-    <%= @profile.staff_member.name %>
+    {@profile.staff_member.name}
   </:item>
   <:item :if={@profile.type == "guardian"} title="Guardian of">
-    <%= @profile.guardian_of_student.name %>
+    {@profile.guardian_of_student.name}
   </:item>
 </.list>
 

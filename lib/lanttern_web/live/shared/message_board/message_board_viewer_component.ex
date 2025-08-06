@@ -25,7 +25,7 @@ defmodule LantternWeb.MessageBoard.MessageBoardViewerComponent do
     <div>
       <div :if={@has_messages} class={@class}>
         <.responsive_container>
-          <h4 class="font-display font-black text-2xl"><%= gettext("Message board") %></h4>
+          <h4 class="font-display font-black text-2xl">{gettext("Message board")}</h4>
           <div phx-update="stream" id="messages-list">
             <.message_board_card
               :for={{dom_id, message} <- @streams.messages}

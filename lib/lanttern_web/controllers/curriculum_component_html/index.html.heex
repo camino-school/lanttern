@@ -13,14 +13,14 @@
   row_click={&JS.navigate(~p"/admin/curriculum_components/#{&1}")}
 >
   <:col :let={curriculum_component} label="Curriculum">
-    <%= curriculum_component.curriculum.name %>
+    {curriculum_component.curriculum.name}
   </:col>
-  <:col :let={curriculum_component} label="Code"><%= curriculum_component.code %></:col>
-  <:col :let={curriculum_component} label="Name"><%= curriculum_component.name %></:col>
+  <:col :let={curriculum_component} label="Code">{curriculum_component.code}</:col>
+  <:col :let={curriculum_component} label="Name">{curriculum_component.name}</:col>
   <:col :let={curriculum_component} label="Description">
-    <%= curriculum_component.description %>
+    {curriculum_component.description}
   </:col>
-  <:col :let={curriculum_component} label="Position"><%= curriculum_component.position %></:col>
+  <:col :let={curriculum_component} label="Position">{curriculum_component.position}</:col>
   <:col :let={curriculum_component} label="Colors">
     <.badge style={
       [
@@ -35,8 +35,8 @@
       ]
       |> Enum.join(" ")
     }>
-      bg: <%= curriculum_component.bg_color || "—" %> / text: <%= curriculum_component.text_color ||
-        "—" %>
+      bg: {curriculum_component.bg_color || "—"} / text: {curriculum_component.text_color ||
+        "—"}
     </.badge>
   </:col>
   <:action :let={curriculum_component}>

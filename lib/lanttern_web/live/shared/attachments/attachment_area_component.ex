@@ -24,19 +24,18 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
 
   """
 
-  alias Lanttern.Assessments
   use LantternWeb, :live_component
 
   import Lanttern.Utils, only: [swap: 3]
-  alias Lanttern.SupabaseHelpers
 
+  alias Lanttern.Assessments
   alias Lanttern.Attachments
   alias Lanttern.Attachments.Attachment
   alias Lanttern.ILP
-  alias Lanttern.ILP.ILPCommentAttachment
   alias Lanttern.LearningContext
   alias Lanttern.Notes
   alias Lanttern.StudentsCycleInfo
+  alias Lanttern.SupabaseHelpers
 
   # shared
 
@@ -54,7 +53,7 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
         ]}
       >
         <.icon name="hero-paper-clip" class="w-6 h-6" />
-        <h5 class="font-display font-bold text-sm"><%= @title %></h5>
+        <h5 class="font-display font-bold text-sm">{@title}</h5>
       </div>
       <.attachments_list
         :if={@attachments_length > 0}
@@ -74,30 +73,17 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
         }
         on_move_up={
           fn i ->
-            JS.push("reorder_attachments",
-              value: %{from: i, to: i - 1},
-              target: @myself
-            )
+            JS.push("reorder_attachments", value: %{from: i, to: i - 1}, target: @myself)
           end
         }
         on_move_down={
           fn i ->
-            JS.push("reorder_attachments",
-              value: %{from: i, to: i + 1},
-              target: @myself
-            )
+            JS.push("reorder_attachments", value: %{from: i, to: i + 1}, target: @myself)
           end
         }
-        on_edit={
-          fn id ->
-            JS.push("edit", value: %{"id" => id}, target: @myself)
-          end
-        }
-        on_remove={
-          fn id ->
-            JS.push("delete", value: %{"id" => id}, target: @myself)
-          end
-        }
+        on_edit={&JS.push("edit", value: %{"id" => &1}, target: @myself)}
+        on_remove={&JS.push("delete", value: %{"id" => &1}, target: @myself)}
+        on_signed_url={&JS.push("signed_url", value: %{"url" => &1}, target: @myself)}
       />
       <div
         :if={@is_adding_external || @is_editing}
@@ -126,14 +112,14 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
           />
           <div class="flex justify-end gap-2">
             <.button type="button" theme="ghost" phx-click="cancel" phx-target={@myself}>
-              <%= gettext("Cancel") %>
+              {gettext("Cancel")}
             </.button>
             <.button
               type="submit"
               phx-disable-with={gettext("Saving...")}
               id="save-external-attachment"
             >
-              <%= gettext("Save") %>
+              {gettext("Save")}
             </.button>
           </div>
         </.form>
@@ -143,14 +129,13 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
         class="p-4 border border-dashed border-ltrn-subtle rounded-sm mt-4 shadow-lg bg-white"
       >
         <p class="flex items-center gap-2 text-sm text-ltrn-subtle">
-          <.icon name="hero-paper-clip-mini" />
-          <%= gettext("File upload") %>
+          <.icon name="hero-paper-clip-mini" /> {gettext("File upload")}
         </p>
         <p class="mt-2 font-bold">
-          <%= entry.client_name %>
+          {entry.client_name}
         </p>
         <.error_block :if={@invalid_upload_msg} class="mt-4">
-          <%= @invalid_upload_msg %>
+          {@invalid_upload_msg}
         </.error_block>
         <div class="flex justify-end gap-4 mt-10">
           <.button
@@ -158,10 +143,10 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
             theme="ghost"
             phx-click={JS.push("cancel_upload", value: %{"ref" => entry.ref}, target: @myself)}
           >
-            <%= gettext("Cancel") %>
+            {gettext("Cancel")}
           </.button>
           <.button type="submit" form={"#{@id}-attachments-upload-form"} disabled={!entry.valid?}>
-            <%= gettext("Upload") %>
+            {gettext("Upload")}
           </.button>
         </div>
       </div>
@@ -192,10 +177,10 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
                 for={@uploads.attachment_file.ref}
                 class="cursor-pointer text-ltrn-primary hover:text-ltrn-dark focus-within:outline-hidden focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-ltrn-dark"
               >
-                <span><%= gettext("Upload a file") %></span>
+                <span>{gettext("Upload a file")}</span>
                 <.live_file_input upload={@uploads.attachment_file} class="sr-only" />
               </label>
-              <span><%= gettext("or drag and drop here") %></span>
+              <span>{gettext("or drag and drop here")}</span>
             </div>
           </form>
         </div>
@@ -207,10 +192,10 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
               class="inline text-ltrn-primary hover:text-ltrn-dark focus-within:outline-hidden focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-ltrn-dark"
               phx-click="add_external"
               phx-target={@myself}
-              id="external-link-button"
+              id={"#{@id}-external-link-button"}
             >
-              <%= gettext("Or add a link to an external file") %>
-              <span class="text-ltrn-subtle"><%= gettext("(e.g. Google Docs)") %></span>
+              {gettext("Or add a link to an external file")}
+              <span class="text-ltrn-subtle">{gettext("(e.g. Google Docs)")}</span>
             </button>
           </div>
         </div>
@@ -220,7 +205,7 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
         class="mt-4"
         on_dismiss={JS.push("clear_upload_error", target: @myself)}
       >
-        <%= @upload_error %>
+        {@upload_error}
       </.error_block>
     </div>
     """
@@ -286,7 +271,7 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
     do: assign(socket, :type, :moment_card_attachments)
 
   defp assign_type(%{assigns: %{ilp_comment_id: _}} = socket),
-    do: assign(socket, :type, :ilp_comments_attachments)
+    do: assign(socket, :type, :ilp_comment_attachments)
 
   defp stream_attachments(%{assigns: %{type: :note_attachments, note_id: id}} = socket) do
     attachments = Attachments.list_attachments(note_id: id)
@@ -324,8 +309,8 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
     handle_stream_attachments_socket_assigns(socket, attachments)
   end
 
-  defp stream_attachments(%{assigns: %{type: :ilp_comments_attachments}} = socket) do
-    attachments = ILP.list_ilp_comment_attachments(socket.assigns.ilp_comment_id)
+  defp stream_attachments(%{assigns: %{type: :ilp_comment_attachments}} = socket) do
+    attachments = Attachments.list_attachments(ilp_comment_id: socket.assigns.ilp_comment_id)
     attachments_ids = Enum.map(attachments, & &1.id)
 
     socket
@@ -359,19 +344,6 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
     {:noreply, socket}
   end
 
-  def handle_event("edit", params, %{assigns: %{type: :ilp_comments_attachments}} = socket) do
-    attachment = ILP.get_ilp_comment_attachment!(params["id"])
-    changeset = ILP.change_ilp_comment_attachment(attachment, %{})
-
-    socket =
-      socket
-      |> assign(:is_editing, true)
-      |> assign(:attachment, attachment)
-      |> assign_form(changeset)
-
-    {:noreply, socket}
-  end
-
   def handle_event("edit", %{"id" => id}, socket) do
     attachment = Attachments.get_attachment!(id)
     changeset = Attachments.change_attachment(attachment, %{})
@@ -394,15 +366,6 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
     {:noreply, socket}
   end
 
-  def handle_event("validate", %{"ilp_comment_attachment" => params}, socket) do
-    changeset =
-      %ILPCommentAttachment{}
-      |> ILPCommentAttachment.changeset(params)
-      |> Map.put(:action, :validate)
-
-    {:noreply, assign_form(socket, changeset)}
-  end
-
   def handle_event("validate", %{"attachment" => attachment_params}, socket) do
     changeset =
       %Attachment{}
@@ -423,42 +386,6 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
 
       %{is_editing: true} ->
         save_attachment(socket, :edit, params)
-    end
-  end
-
-  def handle_event("save", %{"ilp_comment_attachment" => params}, socket) do
-    case socket.assigns do
-      %{is_adding_external: true} ->
-        params =
-          params
-          |> Map.put("is_external", true)
-
-        save_attachment(socket, :new, params)
-
-      %{is_editing: true} ->
-        save_attachment(socket, :edit, params)
-    end
-  end
-
-  def handle_event("delete", params, %{assigns: %{type: :ilp_comments_attachments}} = socket) do
-    attachment = ILP.get_ilp_comment_attachment!(params["id"])
-
-    case ILP.delete_ilp_comment_attachment(attachment) do
-      {:ok, _attachment} ->
-        socket =
-          socket
-          |> stream_attachments()
-
-        notify(__MODULE__, {:deleted, attachment}, socket.assigns)
-
-        {:noreply, socket}
-
-      {:error, _changeset} ->
-        socket =
-          socket
-          |> assign(:error_msg, gettext("Error deleting attachment"))
-
-        {:noreply, socket}
     end
   end
 
@@ -502,8 +429,8 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
       :moment_card_attachments ->
         LearningContext.update_moment_card_attachments_positions(attachments_ids)
 
-      :ilp_comments_attachments ->
-        ILP.update_ilp_comment_attachment_positions(attachments_ids)
+      :ilp_comment_attachments ->
+        ILP.update_ilp_comment_attachments_positions(attachments_ids)
     end
     |> case do
       :ok -> {:noreply, stream_attachments(socket)}
@@ -556,10 +483,8 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
 
       case SupabaseHelpers.upload_object("attachments", entry.client_name, file_path, opts) do
         {:ok, object} ->
-          base_url = SupabaseHelpers.config()[:base_url]
-          attachment_url = "#{base_url}/storage/v1/object/public/#{URI.encode(object.key)}"
-
-          {:ok, {:ok, {attachment_url, entry.client_name}}}
+          attachment_path = URI.encode(object.key)
+          {:ok, {:ok, {attachment_path, entry.client_name}}}
 
         {:error, %{message: message}} ->
           {:ok, {:error, message}}
@@ -567,8 +492,11 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
     end)
     |> hd()
     |> case do
-      {:ok, {link, name}} -> save_attachment(socket, :new, %{"name" => name, "link" => link})
-      {:error, message} -> {:noreply, assign(socket, :upload_error, message)}
+      {:ok, {attachment_path, name}} ->
+        save_attachment(socket, :new, %{"name" => name, "link" => attachment_path})
+
+      {:error, message} ->
+        {:noreply, assign(socket, :upload_error, message)}
     end
   end
 
@@ -578,6 +506,13 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
 
   def handle_event("clear_upload_error", _, socket) do
     {:noreply, assign(socket, :upload_error, nil)}
+  end
+
+  def handle_event("signed_url", %{"url" => url}, socket) do
+    case SupabaseHelpers.create_signed_url(url) do
+      {:ok, external} -> {:noreply, push_event(socket, "open_external", %{url: external})}
+      {:error, :invalid_url} -> {:noreply, put_flash(socket, :error, gettext("Invalid URL"))}
+    end
   end
 
   # helpers
@@ -692,10 +627,17 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
     end
   end
 
-  defp save_attachment(%{assigns: %{type: :ilp_comments_attachments}} = socket, :new, params) do
-    params = Map.put(params, "ilp_comment_id", socket.assigns.ilp_comment_id)
+  defp save_attachment(%{assigns: %{type: :ilp_comment_attachments}} = socket, :new, params) do
+    %{
+      current_profile: current_profile,
+      ilp_comment_id: ilp_comment_id
+    } = socket.assigns
 
-    case ILP.create_ilp_comment_attachment(params) do
+    case ILP.create_ilp_comment_attachment(
+           current_profile.id,
+           ilp_comment_id,
+           params
+         ) do
       {:ok, attachment} ->
         socket =
           socket
@@ -703,26 +645,6 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
           |> stream_attachments()
 
         notify(__MODULE__, {:created, attachment}, socket.assigns)
-
-        {:noreply, socket}
-
-      {:error, %Ecto.Changeset{} = changeset} ->
-        {:noreply, assign_form(socket, changeset)}
-    end
-  end
-
-  defp save_attachment(%{assigns: %{type: :ilp_comments_attachments}} = socket, :edit, params) do
-    params = Map.put(params, "ilp_comment_id", socket.assigns.ilp_comment_id)
-
-    case ILP.update_ilp_comment_attachment(socket.assigns.attachment, params) do
-      {:ok, attachment} ->
-        socket =
-          socket
-          |> assign(:is_adding_external, false)
-          |> assign(:is_editing, false)
-          |> stream_attachments()
-
-        notify(__MODULE__, {:edited, attachment}, socket.assigns)
 
         {:noreply, socket}
 

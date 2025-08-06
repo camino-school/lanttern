@@ -1,5 +1,5 @@
 <.header_nav current_user={@current_user}>
-  <:title><%= gettext("Student records") %></:title>
+  <:title>{gettext("Student records")}</:title>
   <div class="flex items-center gap-4 p-4">
     <div class="flex-1 flex flex-wrap items-center gap-4">
       <.icon name="hero-funnel-mini" class="text-ltrn-subtle" />
@@ -9,7 +9,7 @@
           icon_name="hero-chevron-down-mini"
           phx-click={JS.push("open_student_search_modal")}
         >
-          <%= gettext("Student") %>
+          {gettext("Student")}
         </.action>
       <% else %>
         <.badge
@@ -17,7 +17,7 @@
           on_remove={JS.push("remove_student_filter")}
           theme="primary"
         >
-          <%= student.name %>
+          {student.name}
         </.badge>
       <% end %>
       <%= if @selected_classes == [] do %>
@@ -26,7 +26,7 @@
           icon_name="hero-chevron-down-mini"
           phx-click={JS.exec("data-show", to: "#students-records-classes-filters-overlay")}
         >
-          <%= gettext("Classes") %>
+          {gettext("Classes")}
         </.action>
       <% else %>
         <.badge
@@ -34,7 +34,7 @@
           on_remove={JS.push("remove_class_filter", value: %{"id" => class.id})}
           theme="primary"
         >
-          <%= class_with_cycle(class, @current_user) %>
+          {class_with_cycle(class, @current_user)}
         </.badge>
       <% end %>
       <%= if @selected_student_record_statuses == [] do %>
@@ -43,7 +43,7 @@
           icon_name="hero-chevron-down-mini"
           phx-click={JS.exec("data-show", to: "#student-record-status-filter-modal")}
         >
-          <%= gettext("Status") %>
+          {gettext("Status")}
         </.action>
       <% else %>
         <.badge
@@ -51,7 +51,7 @@
           color_map={status}
           on_remove={JS.push("remove_status_filter")}
         >
-          <%= status.name %>
+          {status.name}
         </.badge>
       <% end %>
       <.badge
@@ -60,7 +60,7 @@
         on_click={JS.exec("data-show", to: "#student-record-tag-filter-modal")}
         on_remove={JS.push("remove_tag_filter", value: %{"id" => tag.id})}
       >
-        <%= tag.name %>
+        {tag.name}
       </.badge>
       <.badge
         :for={student_tag <- @selected_student_tags}
@@ -68,7 +68,7 @@
         on_click={JS.exec("data-show", to: "#student-record-tag-filter-modal")}
         on_remove={JS.push("remove_student_tag_filter", value: %{"id" => student_tag.id})}
       >
-        <%= student_tag.name %>
+        {student_tag.name}
       </.badge>
       <.action
         :if={@selected_student_record_tags == [] and @selected_student_tags == []}
@@ -76,7 +76,7 @@
         icon_name="hero-chevron-down-mini"
         phx-click={JS.exec("data-show", to: "#student-record-tag-filter-modal")}
       >
-        <%= gettext("Tags") %>
+        {gettext("Tags")}
       </.action>
       <%= if @selected_student_record_assignees == [] do %>
         <.action
@@ -84,7 +84,7 @@
           icon_name="hero-chevron-down-mini"
           phx-click={JS.push("open_assignee_search_modal")}
         >
-          <%= gettext("Assignee") %>
+          {gettext("Assignee")}
         </.action>
       <% else %>
         <.badge
@@ -92,7 +92,7 @@
           on_remove={JS.push("remove_assignee_filter")}
           theme="staff"
         >
-          <%= assignee.name %>
+          {assignee.name}
         </.badge>
       <% end %>
     </div>
@@ -102,11 +102,11 @@
         patch={~p"/students_records?student_record=new"}
         icon_name="hero-plus-circle-mini"
       >
-        <%= gettext("New student record") %>
+        {gettext("New student record")}
       </.action>
       <.link class="hover:text-ltrn-subtle" navigate={~p"/students_records/settings/status"}>
         <span class="sr-only">
-          <%= gettext("Student records settings") %>
+          {gettext("Student records settings")}
         </span>
         <.icon name="hero-cog-6-tooth-mini" />
       </.link>
@@ -116,18 +116,18 @@
 <.responsive_container class="p-4">
   <div class="flex items-center justify-between gap-4 mb-4">
     <p>
-      <%= ngettext(
+      {ngettext(
         "Showing 1 result for selected filters",
         "Showing %{count} results for selected filters",
         @students_records_length
-      ) %>
+      )}
     </p>
     <div class="relative">
       <.action type="button" id="select-view-dropdown-button" icon_name="hero-eye-mini">
-        <%= case @current_student_record_view do
+        {case @current_student_record_view do
           "all" -> gettext("All records")
           "open" -> gettext("Only open")
-        end %>
+        end}
       </.action>
       <.dropdown_menu
         id="select-view-dropdown"
@@ -162,7 +162,7 @@
 </.responsive_container>
 <div :if={@has_next} class="flex justify-center pb-10">
   <.button theme="ghost" phx-click="load_more" class="mt-6">
-    <%= gettext("Load more records") %>
+    {gettext("Load more records")}
   </.button>
 </div>
 <.modal
@@ -172,7 +172,7 @@
   on_cancel={JS.push("close_student_search_modal")}
 >
   <h5 class="mb-10 font-display font-black text-xl">
-    <%= gettext("Filter records by student") %>
+    {gettext("Filter records by student")}
   </h5>
   <form>
     <.live_component
@@ -242,7 +242,7 @@
   on_cancel={JS.push("close_assignee_search_modal")}
 >
   <h5 class="mb-10 font-display font-black text-xl">
-    <%= gettext("Filter records by assignee") %>
+    {gettext("Filter records by assignee")}
   </h5>
   <form>
     <.live_component

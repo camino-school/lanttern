@@ -8,12 +8,12 @@
 </.header>
 
 <.table id="students" rows={@students} row_click={&JS.navigate(~p"/admin/students/#{&1}")}>
-  <:col :let={student} label="Name"><%= student.name %></:col>
-  <:col :let={student} label="School"><%= student.school.name %></:col>
+  <:col :let={student} label="Name">{student.name}</:col>
+  <:col :let={student} label="School">{student.school.name}</:col>
   <:col :let={student} label="Classes">
-    <%= student.classes
+    {student.classes
     |> Enum.map(& &1.name)
-    |> Enum.join(", ") %>
+    |> Enum.join(", ")}
   </:col>
   <:action :let={student}>
     <div class="sr-only">

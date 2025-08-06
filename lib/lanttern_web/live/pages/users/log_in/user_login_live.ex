@@ -36,7 +36,6 @@ defmodule LantternWeb.UserLoginLive do
         >
         </div>
       </div>
-
       <%!-- <.header class="text-center">
         Sign in to account
         <:subtitle>
@@ -63,7 +62,8 @@ defmodule LantternWeb.UserLoginLive do
             Sign in <span aria-hidden="true">→</span>
           </.button>
         </:actions>
-      </.simple_form> --%>
+      </.simple_form>
+       --%>
     </div>
     """
   end

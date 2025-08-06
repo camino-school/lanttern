@@ -36,7 +36,7 @@ defmodule LantternWeb.Assessments.FeedbackFormComponent do
             </.button>
           </:actions>
         </.textarea_with_actions>
-        <.error :for={{msg, _opts} <- @form[:comment].errors}><%= msg %></.error>
+        <.error :for={{msg, _opts} <- @form[:comment].errors}>{msg}</.error>
       </.form>
     </div>
     """

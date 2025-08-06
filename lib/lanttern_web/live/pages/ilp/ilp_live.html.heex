@@ -1,5 +1,5 @@
 <.header_nav current_user={@current_user}>
-  <:title><%= @page_title %></:title>
+  <:title>{@page_title}</:title>
   <div class="flex items-center justify-between gap-4 p-4">
     <%= if @has_templates do %>
       <div class="flex items-center gap-4">
@@ -10,10 +10,9 @@
             icon_name="hero-chevron-down-mini"
           >
             <%= if @current_template do %>
-              <%= gettext("ILP model:") %>
-              <span class="font-bold"><%= @current_template.name %></span>
+              {gettext("ILP model:")} <span class="font-bold">{@current_template.name}</span>
             <% else %>
-              <%= gettext("No ILP model selected") %>
+              {gettext("No ILP model selected")}
             <% end %>
           </.action>
           <.dropdown_menu
@@ -40,14 +39,14 @@
       </div>
     <% else %>
       <p>
-        <%= gettext(
+        {gettext(
           "No ILP templates registered in your school. Talk to your Lanttern school manager."
-        ) %>
+        )}
       </p>
     <% end %>
     <div class="flex gap-4">
       <.action type="link" patch={~p"/ilp?show_metrics=true"} icon_name="hero-chart-bar-mini">
-        <%= gettext("Metrics") %>
+        {gettext("Metrics")}
       </.action>
       <.action
         :if={@is_ilp_manager}
@@ -55,7 +54,7 @@
         navigate={~p"/ilp/settings"}
         icon_name="hero-cog-6-tooth-mini"
       >
-        <%= gettext("Settings") %>
+        {gettext("Settings")}
       </.action>
     </div>
   </div>
@@ -78,18 +77,18 @@
 </.responsive_container>
 <.modal :if={@metrics} id="ilp-metrics-overlay" show on_cancel={JS.patch(~p"/ilp")}>
   <h5 class="mb-10 font-display font-black text-xl">
-    <%= gettext("ILP creation metrics") %>
+    {gettext("ILP creation metrics")}
   </h5>
   <div
     :for={{class, std_count, ilp_count} <- @metrics}
     class="flex items-center justify-between gap-4 py-4 border-t border-ltrn-lighter"
   >
     <.link navigate={~p"/school/classes/#{class}/ilp"} class="font-bold hover:text-ltrn-subtle">
-      <%= class.name %>
+      {class.name}
     </.link>
     <div class="flex items-center gap-2">
       <p class="text-ltrn-subtle">
-        <%= gettext("%{count} of %{total} ILPs created", count: ilp_count, total: std_count) %>
+        {gettext("%{count} of %{total} ILPs created", count: ilp_count, total: std_count)}
       </p>
       <div class="w-32 h-4 p-1 rounded-full bg-ltrn-lightest overflow-hidden shadow-inner">
         <div

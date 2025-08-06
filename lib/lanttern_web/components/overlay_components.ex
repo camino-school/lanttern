@@ -80,7 +80,7 @@ defmodule LantternWeb.OverlayComponents do
                 <.icon name="hero-x-mark-solid" class="h-5 w-5" />
               </button>
               <div id={"#{@id}-content"}>
-                <%= render_slot(@inner_block) %>
+                {render_slot(@inner_block)}
               </div>
             </.focus_wrap>
           </div>
@@ -208,18 +208,18 @@ defmodule LantternWeb.OverlayComponents do
                     class="px-4 sm:px-6 py-6 font-display font-black text-3xl"
                     id={"#{@id}-title"}
                   >
-                    <%= render_slot(@title) %>
+                    {render_slot(@title)}
                   </h2>
                   <div id={"#{@id}-content"} class="p-4 sm:px-6">
-                    <%= render_slot(@inner_block) %>
+                    {render_slot(@inner_block)}
                   </div>
                 </div>
                 <div :if={render_slot(@actions)} class="flex shrink-0 justify-between gap-4 p-4">
                   <div class="flex items-center gap-4">
-                    <%= render_slot(@actions_left) %>
+                    {render_slot(@actions_left)}
                   </div>
                   <div class="flex items-center gap-4">
-                    <%= render_slot(@actions) %>
+                    {render_slot(@actions)}
                   </div>
                 </div>
               </div>
@@ -325,7 +325,7 @@ defmodule LantternWeb.OverlayComponents do
             class="relative transform min-w-full h-full rounded-sm bg-white shadow-xl transition-all"
           >
             <div id={"#{@id}-content"} class={@class}>
-              <%= render_slot(@inner_block) %>
+              {render_slot(@inner_block)}
             </div>
             <button
               phx-click={JS.exec("data-cancel", to: "##{@id}")}
@@ -444,7 +444,7 @@ defmodule LantternWeb.OverlayComponents do
           }
           data-confirm={Map.get(item, :confirm_msg)}
         >
-          <%= item.text %>
+          {item.text}
         </button>
       </div>
     </div>
@@ -528,7 +528,7 @@ defmodule LantternWeb.OverlayComponents do
         }
         data-confirm={Map.get(item, :confirm_msg)}
       >
-        <%= item.text %>
+        {item.text}
       </button>
     </div>
     """
@@ -558,7 +558,7 @@ defmodule LantternWeb.OverlayComponents do
     ~H"""
     <.modal id={@id} on_cancel={@on_cancel}>
       <h5 class="mb-10 font-display font-black text-xl">
-        <%= @title %>
+        {@title}
       </h5>
       <.badge_button_picker
         on_select={&@on_select.(&1)}
@@ -573,10 +573,10 @@ defmodule LantternWeb.OverlayComponents do
           size="md"
           phx-click={JS.exec("data-cancel", to: "##{@id}")}
         >
-          <%= gettext("Cancel") %>
+          {gettext("Cancel")}
         </.action>
         <.action type="button" theme="primary" size="md" phx-click={@on_save}>
-          <%= gettext("Save") %>
+          {gettext("Save")}
         </.action>
       </div>
     </.modal>
@@ -616,11 +616,11 @@ defmodule LantternWeb.OverlayComponents do
     ~H"""
     <.modal id={@id} on_cancel={@on_cancel}>
       <h5 class="font-display font-black text-xl">
-        <%= @title %>
+        {@title}
       </h5>
       <div :for={group <- @groups} class="mt-10">
         <h6 :if={group[:title]} class="mb-4 font-display font-black text-base text-ltrn-subtle">
-          <%= group.title %>
+          {group.title}
         </h6>
         <.badge_button_picker
           on_select={&group.on_select.(&1)}
@@ -636,10 +636,10 @@ defmodule LantternWeb.OverlayComponents do
           size="md"
           phx-click={JS.exec("data-cancel", to: "##{@id}")}
         >
-          <%= gettext("Cancel") %>
+          {gettext("Cancel")}
         </.action>
         <.action type="button" theme="primary" size="md" phx-click={@on_save}>
-          <%= gettext("Save") %>
+          {gettext("Save")}
         </.action>
       </div>
     </.modal>

@@ -296,6 +296,19 @@ defmodule LantternWeb.StudentLiveTest do
       ilp_comment =
         insert(:ilp_comment, %{student_ilp: student_ilp, owner: ctx.user.current_profile})
 
+      attachment =
+        insert(:attachment, %{
+          is_external: false,
+          link: "bucket/file.jpg",
+          name: "file.jpg"
+        })
+
+      _ilp_comment_attachment =
+        insert(:ilp_comment_attachment, %{
+          ilp_comment: ilp_comment,
+          attachment: attachment
+        })
+
       new_attrs = %{name: "Teacher's feedback'", content: "Feedback content."}
 
       ctx.conn
@@ -304,15 +317,27 @@ defmodule LantternWeb.StudentLiveTest do
       |> assert_has("h2", text: "Edit")
       |> fill_in("Content", with: new_attrs.content)
       |> assert_has("h5", text: "Attachments")
-      |> click_button("#external-link-button", "add a link")
+      |> click_button("#ilp-comment-external-link-button", "add a link")
       |> fill_in("Attachment name", with: "Site")
       |> fill_in("Link", with: "https://www.algo.com")
       |> click_button("#save-external-attachment", "Save")
       |> click_button("#save-action-ilp-comment", "Save")
 
-      ctx.conn
-      |> visit("#{@live_view_base_path}/#{student_ilp.student_id}/ilp")
-      |> assert_has("p", text: new_attrs.content)
+      Mimic.copy(Supabase.Storage.FileHandler)
+
+      Mimic.expect(Supabase.Storage.FileHandler, :create_signed_url, fn _, _, _, _ ->
+        {:ok, %{body: %{"signedURL" => "/file.jpg"}}}
+      end)
+
+      {:ok, view, _html} = live(ctx.conn, "#{@live_view_base_path}/#{student_ilp.student_id}/ilp")
+      assert view |> has_element?("p", new_attrs.content)
+
+      view
+      |> element("a", attachment.name)
+      |> render_click()
+
+      assert_push_event(view, "open_external", %{url: url})
+      assert url =~ "/storage/v1/file.jpg"
     end
 
     test "renders ok when list all ILP comment for a student_ilp", ctx do
@@ -339,14 +364,18 @@ defmodule LantternWeb.StudentLiveTest do
       school = ctx.user.current_profile.staff_member.school
       student_ilp = insert(:student_ilp, %{school: school})
 
+      attachment =
+        insert(:attachment, %{owner: ctx.user.current_profile})
+
       ilp_comment =
         insert(:ilp_comment, %{student_ilp: student_ilp, owner: ctx.user.current_profile})
 
-      attachment = insert(:ilp_comment_attachment, %{ilp_comment: ilp_comment})
+      insert(:ilp_comment_attachment, %{attachment: attachment, ilp_comment: ilp_comment})
 
       ctx.conn
       |> visit("#{@live_view_base_path}/#{student_ilp.student_id}/ilp")
       |> assert_has("p", text: ilp_comment.content)
+      |> assert_has("a", text: attachment.name)
       |> click_link("#edit-comment-#{ilp_comment.id}", "Edit")
       |> click_button("Remove")
 

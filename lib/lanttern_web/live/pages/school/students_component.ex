@@ -24,7 +24,7 @@ defmodule LantternWeb.SchoolLive.StudentsComponent do
             phx-click={JS.exec("data-show", to: "#school-students-classes-filters-overlay")}
             icon_name="hero-chevron-down-mini"
           >
-            <%= format_action_items_text(@selected_classes, gettext("All classes")) %>
+            {format_action_items_text(@selected_classes, gettext("All classes"))}
           </.action>
           <.badge
             :for={tag <- @selected_student_tags}
@@ -32,7 +32,7 @@ defmodule LantternWeb.SchoolLive.StudentsComponent do
             on_click={JS.exec("data-show", to: "#student-tag-filter-modal")}
             on_remove={JS.push("remove_tag_filter", value: %{"id" => tag.id}, target: @myself)}
           >
-            <%= tag.name %>
+            {tag.name}
           </.badge>
           <.action
             :if={@selected_student_tags == []}
@@ -40,20 +40,20 @@ defmodule LantternWeb.SchoolLive.StudentsComponent do
             icon_name="hero-chevron-down-mini"
             phx-click={JS.exec("data-show", to: "#student-tag-filter-modal")}
           >
-            <%= gettext("Tags") %>
+            {gettext("Tags")}
           </.action>
-          <%= ngettext("1 active student", "%{count} active students", @students_length) %>
+          {ngettext("1 active student", "%{count} active students", @students_length)}
           <.action type="link" theme="subtle" navigate={~p"/school/students/deactivated"}>
-            <%= gettext("View deactivated students") %>
+            {gettext("View deactivated students")}
           </.action>
         </div>
         <div :if={@is_school_manager} class="flex items-center gap-4">
           <.action type="link" patch={~p"/school/students?new=true"} icon_name="hero-plus-circle-mini">
-            <%= gettext("Add student") %>
+            {gettext("Add student")}
           </.action>
           <.link class="hover:text-ltrn-subtle" navigate={~p"/school/students/settings"}>
             <span class="sr-only">
-              <%= gettext("Students settings") %>
+              {gettext("Students settings")}
             </span>
             <.icon name="hero-cog-6-tooth-mini" />
           </.link>

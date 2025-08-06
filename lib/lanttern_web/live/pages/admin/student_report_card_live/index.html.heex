@@ -17,16 +17,16 @@
   }
 >
   <:col :let={{_id, student_report_card}} label="Report card id">
-    #<%= student_report_card.report_card_id %>
+    #{student_report_card.report_card_id}
   </:col>
   <:col :let={{_id, student_report_card}} label="Student id">
-    #<%= student_report_card.student_id %>
+    #{student_report_card.student_id}
   </:col>
   <:col :let={{_id, student_report_card}} label="Comment">
-    <%= student_report_card.comment %>
+    {student_report_card.comment}
   </:col>
   <:col :let={{_id, student_report_card}} label="Footnote">
-    <%= student_report_card.footnote %>
+    {student_report_card.footnote}
   </:col>
   <:action :let={{_id, student_report_card}}>
     <div class="sr-only">
@@ -51,7 +51,7 @@
   on_cancel={JS.patch(~p"/admin/student_report_cards")}
 >
   <.header>
-    <%= @page_title %>
+    {@page_title}
     <:subtitle>Use this form to manage student_report_card records in your database.</:subtitle>
   </.header>
   <.live_component

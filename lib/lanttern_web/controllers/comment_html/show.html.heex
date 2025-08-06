@@ -1,5 +1,5 @@
 <.header>
-  Comment <%= @comment.id %>
+  Comment {@comment.id}
   <:subtitle>This is a comment record from your database.</:subtitle>
   <:actions>
     <.link href={~p"/admin/comments/#{@comment}/edit"}>
@@ -9,8 +9,8 @@
 </.header>
 
 <.list>
-  <:item title="Comment"><%= @comment.comment %></:item>
-  <:item title="Author"><%= comment_author(@comment) %></:item>
+  <:item title="Comment">{@comment.comment}</:item>
+  <:item title="Author">{comment_author(@comment)}</:item>
 </.list>
 
 <.back navigate={~p"/admin/comments"}>Back to comments</.back>

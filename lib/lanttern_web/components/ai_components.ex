@@ -67,9 +67,9 @@ defmodule LantternWeb.AIComponents do
               class={["flex-1 border-4 overflow-auto ltrn-ai-overlay-border", @class]}
             >
               <h4 :if={@panel_title} class="mb-6 font-display font-black text-lg text-ltrn-ai-dark">
-                <%= @panel_title %>
+                {@panel_title}
               </h4>
-              <%= render_slot(@inner_block) %>
+              {render_slot(@inner_block)}
             </div>
             <h6 class="shrink-0 flex items-center gap-2 mt-2">
               <.ai_spots />
@@ -205,9 +205,9 @@ defmodule LantternWeb.AIComponents do
       ]}
     >
       <.ai_spots />
-      <span class="font-display font-bold text-sm text-ltrn-ai-dark"><%= @name %></span>
+      <span class="font-display font-bold text-sm text-ltrn-ai-dark">{@name}</span>
       <div class="flex-1 flex items-center gap-6 justify-end pr-2">
-        <%= render_slot(@inner_block) %>
+        {render_slot(@inner_block)}
       </div>
     </div>
     """

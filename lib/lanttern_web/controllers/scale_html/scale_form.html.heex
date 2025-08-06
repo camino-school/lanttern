@@ -22,7 +22,10 @@
   </div>
   <div phx-feedback-for="scale[breakpoints]">
     <.label>Breakpoints</.label>
-    <%= for n <- 0..4 do %>
+    <%= for n
+    <-
+      0..4
+      do %>
       <input
         type="number"
         step="0.01"
@@ -41,7 +44,7 @@
           Gettext.dgettext(Lanttern.Gettext, "errors", msg, opts)
         end)
     }>
-      <%= msg %>
+      {msg}
     </.error>
   </div>
   <:actions>

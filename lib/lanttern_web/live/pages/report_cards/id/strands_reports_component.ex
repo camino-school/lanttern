@@ -18,21 +18,21 @@ defmodule LantternWeb.ReportCardLive.StrandsReportsComponent do
     ~H"""
     <div>
       <.action_bar class="flex items-center justify-between">
-        <p><%= gettext("Strands linked to report") %></p>
+        <p>{gettext("Strands linked to report")}</p>
         <div class="shrink-0 flex items-center gap-4">
           <.action
             type="link"
             patch={~p"/report_cards/#{@report_card}/strands?is_reordering=true"}
             icon_name="hero-arrows-up-down-mini"
           >
-            <%= gettext("Reorder") %>
+            {gettext("Reorder")}
           </.action>
           <.action
             type="link"
             patch={~p"/report_cards/#{@report_card}/strands?is_creating_strand_report=true"}
             icon_name="hero-link-mini"
           >
-            <%= gettext("Link strand") %>
+            {gettext("Link strand")}
           </.action>
         </div>
       </.action_bar>
@@ -60,7 +60,7 @@ defmodule LantternWeb.ReportCardLive.StrandsReportsComponent do
                 </div>
               <% else %>
                 <p class="p-6 text-sm text-ltrn-subtle bg-ltrn-lightest">
-                  <%= gettext("No strand report description") %>
+                  {gettext("No strand report description")}
                 </p>
               <% end %>
               <.live_component
@@ -76,7 +76,7 @@ defmodule LantternWeb.ReportCardLive.StrandsReportsComponent do
           </.strand_card>
         </.responsive_grid>
       <% else %>
-        <.empty_state><%= gettext("No strands linked to this report yet") %></.empty_state>
+        <.empty_state>{gettext("No strands linked to this report yet")}</.empty_state>
       <% end %>
       <.slide_over
         :if={@show_strand_report_form}
@@ -84,15 +84,15 @@ defmodule LantternWeb.ReportCardLive.StrandsReportsComponent do
         show={true}
         on_cancel={JS.patch(~p"/report_cards/#{@report_card}/strands")}
       >
-        <:title><%= @form_overlay_title %></:title>
+        <:title>{@form_overlay_title}</:title>
         <%= if @strand do %>
           <div class="flex items-center gap-4 p-4 mb-6 rounded-sm font-display bg-white shadow-lg">
             <div class="flex-1">
-              <p class="font-black"><%= @strand.name %></p>
-              <p :if={@strand.type} class="text-sm text-ltrn-subtle"><%= @strand.type %></p>
+              <p class="font-black">{@strand.name}</p>
+              <p :if={@strand.type} class="text-sm text-ltrn-subtle">{@strand.type}</p>
               <div class="flex flex-wrap gap-1 mt-4">
-                <.badge :for={subject <- @strand.subjects}><%= subject.name %></.badge>
-                <.badge :for={year <- @strand.years}><%= year.name %></.badge>
+                <.badge :for={subject <- @strand.subjects}>{subject.name}</.badge>
+                <.badge :for={year <- @strand.years}>{year.name}</.badge>
               </div>
             </div>
             <button
@@ -113,7 +113,7 @@ defmodule LantternWeb.ReportCardLive.StrandsReportsComponent do
             hide_submit
           />
         <% else %>
-          <p class="mb-2"><%= gettext("Which strand do you want to link to this report?") %></p>
+          <p class="mb-2">{gettext("Which strand do you want to link to this report?")}</p>
           <.live_component
             module={StrandSearchComponent}
             id="strand-search"
@@ -130,7 +130,7 @@ defmodule LantternWeb.ReportCardLive.StrandsReportsComponent do
             phx-target={@myself}
             data-confirm={gettext("Are you sure?")}
           >
-            <%= gettext("Delete") %>
+            {gettext("Delete")}
           </.button>
         </:actions_left>
         <:actions>
@@ -139,10 +139,10 @@ defmodule LantternWeb.ReportCardLive.StrandsReportsComponent do
             theme="ghost"
             phx-click={JS.exec("data-cancel", to: "#strand-report-form-overlay")}
           >
-            <%= gettext("Cancel") %>
+            {gettext("Cancel")}
           </.button>
           <.button type="submit" form="strand-report-form" disabled={!@strand}>
-            <%= gettext("Save") %>
+            {gettext("Save")}
           </.button>
         </:actions>
       </.slide_over>
@@ -152,7 +152,7 @@ defmodule LantternWeb.ReportCardLive.StrandsReportsComponent do
         show={true}
         on_cancel={JS.patch(~p"/report_cards/#{@report_card}/strands")}
       >
-        <:title><%= gettext("Reorder strands reports") %></:title>
+        <:title>{gettext("Reorder strands reports")}</:title>
         <ol>
           <li
             :for={{sortable_strand_report, i} <- @sortable_strands_reports}
@@ -176,9 +176,9 @@ defmodule LantternWeb.ReportCardLive.StrandsReportsComponent do
               }
               class="font-display font-bold"
             >
-              <p><%= i + 1 %>. <%= sortable_strand_report.name %></p>
+              <p>{i + 1}. {sortable_strand_report.name}</p>
               <p :if={sortable_strand_report.type} class="mt-2 text-sm text-ltrn-subtle">
-                <%= sortable_strand_report.type %>
+                {sortable_strand_report.type}
               </p>
             </.sortable_card>
           </li>
@@ -189,10 +189,10 @@ defmodule LantternWeb.ReportCardLive.StrandsReportsComponent do
             theme="ghost"
             phx-click={JS.exec("data-cancel", to: "#strands-reports-reorder-overlay")}
           >
-            <%= gettext("Cancel") %>
+            {gettext("Cancel")}
           </.button>
           <.button type="button" phx-click="save_order" phx-target={@myself}>
-            <%= gettext("Save") %>
+            {gettext("Save")}
           </.button>
         </:actions>
       </.slide_over>

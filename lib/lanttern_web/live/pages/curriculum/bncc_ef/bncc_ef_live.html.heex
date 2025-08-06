@@ -9,12 +9,12 @@
 <div class="container mx-auto lg:max-w-5xl mt-10">
   <div class="flex items-center text-sm">
     <p class="flex items-center gap-2">
-      <%= @items_count %> results in
+      {@items_count} results in
       <%= if @current_subjects == [] do %>
         <.badge>all subjects</.badge>
       <% else %>
         <.badge :for={sub <- @current_subjects}>
-          <%= sub.name %>
+          {sub.name}
         </.badge>
       <% end %>
       <span>|</span>
@@ -22,7 +22,7 @@
         <.badge>all years</.badge>
       <% else %>
         <.badge :for={year <- @current_years}>
-          <%= year.name %>
+          {year.name}
         </.badge>
       <% end %>
     </p>
@@ -37,21 +37,21 @@
     No results
   <% else %>
     <.table id="habilidades-bncc" rows={@streams.habilidades_bncc}>
-      <:col :let={{_id, ha}} label="ID">#<%= ha.id %></:col>
-      <:col :let={{_id, ha}} label="Code"><%= ha.code %></:col>
+      <:col :let={{_id, ha}} label="ID">#{ha.id}</:col>
+      <:col :let={{_id, ha}} label="Code">{ha.code}</:col>
       <:col :let={{_id, ha}} label="Campo de Atuação">
-        <%= ha.campo_de_atuacao || "—" %>
+        {ha.campo_de_atuacao || "—"}
       </:col>
       <:col :let={{_id, ha}} label="Prática de Linguagem">
-        <%= ha.pratica_de_linguagem || "—" %>
+        {ha.pratica_de_linguagem || "—"}
       </:col>
       <:col :let={{_id, ha}} label="Unidade Temática">
-        <%= ha.unidade_tematica || "—" %>
+        {ha.unidade_tematica || "—"}
       </:col>
       <:col :let={{_id, ha}} label="Objeto de Conhecimento">
-        <%= ha.objeto_de_conhecimento %>
+        {ha.objeto_de_conhecimento}
       </:col>
-      <:col :let={{_id, ha}} label="Habilidade"><%= ha.name %></:col>
+      <:col :let={{_id, ha}} label="Habilidade">{ha.name}</:col>
     </.table>
   <% end %>
 </div>

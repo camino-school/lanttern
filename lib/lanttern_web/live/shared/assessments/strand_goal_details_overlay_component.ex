@@ -15,6 +15,7 @@ defmodule LantternWeb.Assessments.StrandGoalDetailsOverlayComponent do
   alias Lanttern.Assessments
   alias Lanttern.Reporting
   alias Lanttern.Rubrics
+  alias Lanttern.SupabaseHelpers
 
   # shared components
   import LantternWeb.AssessmentsComponents
@@ -27,20 +28,20 @@ defmodule LantternWeb.Assessments.StrandGoalDetailsOverlayComponent do
     <div>
       <.slide_over id="assessment-point-details" show={true} on_cancel={@on_cancel}>
         <p class="mb-2 font-display font-bold text-sm">
-          <%= @strand_goal.curriculum_item.curriculum_component.name %>
+          {@strand_goal.curriculum_item.curriculum_component.name}
         </p>
         <p class="text-base">
-          <%= @strand_goal.curriculum_item.name %>
+          {@strand_goal.curriculum_item.name}
         </p>
         <div class="flex flex-wrap items-center gap-2 mt-4">
           <.badge :if={@strand_goal.curriculum_item.code} theme="dark">
-            <%= @strand_goal.curriculum_item.code %>
+            {@strand_goal.curriculum_item.code}
           </.badge>
           <.badge :if={@strand_goal.is_differentiation} theme="diff">
-            <%= gettext("Curriculum differentiation") %>
+            {gettext("Curriculum differentiation")}
           </.badge>
           <.badge :for={subject <- @strand_goal.curriculum_item.subjects}>
-            <%= subject.name %>
+            {subject.name}
           </.badge>
         </div>
         <div class="py-10 border-b-2 border-ltrn-lighter">
@@ -60,15 +61,14 @@ defmodule LantternWeb.Assessments.StrandGoalDetailsOverlayComponent do
         <div class="flex items-center justify-between gap-2 mt-10">
           <h5 class="flex items-center gap-2 font-display font-black text-base">
             <.icon :if={@rubric} name="hero-view-columns" class="w-6 h-6" />
-            <%= if @rubric, do: gettext("Assessment rubric"), else: gettext("Assessment scale") %>
+            {if @rubric, do: gettext("Assessment rubric"), else: gettext("Assessment scale")}
           </h5>
           <.badge :if={@rubric && @rubric.is_differentiation} theme="diff">
-            <%= gettext("Differentiation") %>
+            {gettext("Differentiation")}
           </.badge>
         </div>
         <p :if={@rubric} class="mt-2 text-sm">
-          <span class="font-bold"><%= gettext("Criteria:") %></span>
-          <%= @rubric.criteria %>
+          <span class="font-bold">{gettext("Criteria:")}</span> {@rubric.criteria}
         </p>
         <div class="py-4 overflow-x-auto">
           <.report_scale
@@ -79,13 +79,16 @@ defmodule LantternWeb.Assessments.StrandGoalDetailsOverlayComponent do
         </div>
         <div :if={@entry && @entry.evidences != []} class="mt-10">
           <h5 class="flex items-center gap-2 font-display font-black text-base">
-            <.icon name="hero-paper-clip" class="w-6 h-6" />
-            <%= gettext("Learning evidences") %>
+            <.icon name="hero-paper-clip" class="w-6 h-6" /> {gettext("Learning evidences")}
           </h5>
-          <.attachments_list id="goals-attachments-list" attachments={@entry.evidences} />
+          <.attachments_list
+            id="goals-attachments-list"
+            attachments={@entry.evidences}
+            on_signed_url={&JS.push("signed_url", value: %{"url" => &1}, target: @myself)}
+          />
         </div>
         <div :if={@has_formative_assessment} class="mt-10">
-          <h5 class="font-display font-black text-base"><%= gettext("Formative assessment") %></h5>
+          <h5 class="font-display font-black text-base">{gettext("Formative assessment")}</h5>
           <div id="moments-assessment-points-and-entries" phx-update="stream">
             <div
               :for={
@@ -95,7 +98,7 @@ defmodule LantternWeb.Assessments.StrandGoalDetailsOverlayComponent do
               id={dom_id}
             >
               <h6 class="mt-6 font-display font-black text-base text-ltrn-subtle">
-                <%= moment.name %>
+                {moment.name}
               </h6>
               <.moment_assessment_point_entry
                 :for={{assessment_point, entry} <- assessment_points_and_entries}
@@ -103,6 +106,7 @@ defmodule LantternWeb.Assessments.StrandGoalDetailsOverlayComponent do
                 assessment_point={assessment_point}
                 entry={entry}
                 id={"#{assessment_point.id}-#{entry.id}"}
+                on_signed_url={&JS.push("signed_url", value: %{"url" => &1}, target: @myself)}
               />
             </div>
           </div>
@@ -110,7 +114,7 @@ defmodule LantternWeb.Assessments.StrandGoalDetailsOverlayComponent do
         <div :if={@strand_goal.report_info} class="mt-10">
           <h5 class="flex items-center gap-2 font-display font-black text-base">
             <.icon name="hero-information-circle" class="w-6 h-6" />
-            <%= gettext("About this assessment") %>
+            {gettext("About this assessment")}
           </h5>
           <.markdown text={@strand_goal.report_info} class="max-w-none mt-4" />
         </div>
@@ -148,6 +152,14 @@ defmodule LantternWeb.Assessments.StrandGoalDetailsOverlayComponent do
       |> stream_moments_assessment_points_and_entries()
 
     {:ok, socket}
+  end
+
+  @impl true
+  def handle_event("signed_url", %{"url" => url}, socket) do
+    case SupabaseHelpers.create_signed_url(url) do
+      {:ok, external} -> {:noreply, push_event(socket, "open_external", %{url: external})}
+      {:error, :invalid_url} -> {:noreply, put_flash(socket, :error, gettext("Invalid URL"))}
+    end
   end
 
   defp assign_strand_goal(socket, assigns) do

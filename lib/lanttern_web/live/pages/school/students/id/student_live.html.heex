@@ -1,34 +1,34 @@
 <div>
   <.header_nav current_user={@current_user}>
     <:breadcrumb navigate={~p"/school/students"}>
-      <%= gettext("%{school} students", school: @student.school.name) %>
+      {gettext("%{school} students", school: @student.school.name)}
     </:breadcrumb>
-    <:title><%= @student.name %></:title>
+    <:title>{@student.name}</:title>
     <div class="flex items-center justify-between gap-4 px-4">
       <.neo_tabs id="student-nav-tabs">
         <:tab patch={~p"/school/students/#{@student}"} is_current={@live_action == :show}>
-          <%= gettext("About") %>
+          {gettext("About")}
         </:tab>
         <:tab patch={~p"/school/students/#{@student}/ilp"} is_current={@live_action == :ilp}>
-          <%= gettext("ILP") %>
+          {gettext("ILP")}
         </:tab>
         <:tab
           patch={~p"/school/students/#{@student}/student_records"}
           is_current={@live_action == :student_records}
         >
-          <%= gettext("Student records") %>
+          {gettext("Student records")}
         </:tab>
         <:tab
           patch={~p"/school/students/#{@student}/report_cards"}
           is_current={@live_action == :report_cards}
         >
-          <%= gettext("Report cards") %>
+          {gettext("Report cards")}
         </:tab>
         <:tab
           patch={~p"/school/students/#{@student}/grades_reports"}
           is_current={@live_action == :grades_reports}
         >
-          <%= gettext("Grades reports") %>
+          {gettext("Grades reports")}
         </:tab>
       </.neo_tabs>
       <.action
@@ -37,7 +37,7 @@
         patch={"#{@current_path}?edit=true"}
         icon_name="hero-pencil-mini"
       >
-        <%= gettext("Edit student") %>
+        {gettext("Edit student")}
       </.action>
     </div>
   </.header_nav>

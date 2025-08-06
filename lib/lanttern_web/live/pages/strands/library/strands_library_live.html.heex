@@ -1,6 +1,6 @@
 <.header_nav current_user={@current_user}>
-  <:breadcrumb navigate={~p"/strands"}><%= gettext("Strands") %></:breadcrumb>
-  <:title><%= gettext("Library") %></:title>
+  <:breadcrumb navigate={~p"/strands"}>{gettext("Strands")}</:breadcrumb>
+  <:title>{gettext("Library")}</:title>
   <div class="flex items-center gap-6 p-4">
     <div class="flex-1 flex items-center gap-6 min-w-0">
       <.action
@@ -8,14 +8,14 @@
         phx-click={JS.exec("data-show", to: "#strands-year-filters")}
         icon_name="hero-chevron-down-mini"
       >
-        <%= format_action_items_text(@selected_years, gettext("All years")) %>
+        {format_action_items_text(@selected_years, gettext("All years"))}
       </.action>
       <.action
         type="button"
         phx-click={JS.exec("data-show", to: "#strands-subject-filters")}
         icon_name="hero-chevron-down-mini"
       >
-        <%= format_action_items_text(@selected_subjects, gettext("All subjects")) %>
+        {format_action_items_text(@selected_subjects, gettext("All subjects"))}
       </.action>
       <.action
         type="button"
@@ -23,17 +23,17 @@
         icon_name="hero-star-mini"
         theme={if @only_starred_strands, do: "primary", else: "subtle"}
       >
-        <%= if @only_starred_strands, do: gettext("Only starred"), else: gettext("All") %>
+        {if @only_starred_strands, do: gettext("Only starred"), else: gettext("All")}
       </.action>
     </div>
     <.action type="link" patch={~p"/strands/library/new"} icon_name="hero-plus-circle-mini">
-      <%= gettext("Create strand") %>
+      {gettext("Create strand")}
     </.action>
   </div>
 </.header_nav>
 <%= if @strands_length < 1 do %>
   <.empty_state class="p-10 m-4 mx-6 sm:mx-10 rounded-sm bg-white shadow-lg">
-    <%= gettext("No strands matching selected filters") %>
+    {gettext("No strands matching selected filters")}
   </.empty_state>
 <% else %>
   <.responsive_grid id="strands-list" phx-update="stream" class="p-4" is_full_width>
@@ -53,7 +53,7 @@
   </.responsive_grid>
   <div :if={@has_next_page} class="p-4 text-center">
     <.button type="button" theme="ghost" phx-click="load-more">
-      <%= gettext("Load more strands") %>
+      {gettext("Load more strands")}
     </.button>
   </div>
 <% end %>
@@ -79,7 +79,7 @@
   show={true}
   on_cancel={JS.patch(~p"/strands/library")}
 >
-  <:title><%= gettext("New strand") %></:title>
+  <:title>{gettext("New strand")}</:title>
   <.live_component
     module={StrandFormComponent}
     id={:new}
@@ -98,10 +98,10 @@
       theme="ghost"
       phx-click={JS.exec("data-cancel", to: "#strand-form-overlay")}
     >
-      <%= gettext("Cancel") %>
+      {gettext("Cancel")}
     </.button>
     <.button type="submit" form="strand-form">
-      <%= gettext("Save") %>
+      {gettext("Save")}
     </.button>
   </:actions>
 </.slide_over>

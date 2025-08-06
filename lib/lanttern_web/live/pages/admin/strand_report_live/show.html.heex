@@ -1,5 +1,5 @@
 <.header>
-  Strand report <%= @strand_report.id %>
+  Strand report {@strand_report.id}
   <:subtitle>This is a strand_report record from your database.</:subtitle>
   <:actions>
     <.link
@@ -12,10 +12,10 @@
 </.header>
 
 <.list>
-  <:item title="Report card id">#<%= @strand_report.report_card_id %></:item>
-  <:item title="Strand id">#<%= @strand_report.strand_id %></:item>
-  <:item title="Position"><%= @strand_report.position %></:item>
-  <:item title="Description"><%= @strand_report.description %></:item>
+  <:item title="Report card id">#{@strand_report.report_card_id}</:item>
+  <:item title="Strand id">#{@strand_report.strand_id}</:item>
+  <:item title="Position">{@strand_report.position}</:item>
+  <:item title="Description">{@strand_report.description}</:item>
 </.list>
 
 <.back navigate={~p"/admin/strand_reports"}>Back to strand_reports</.back>
@@ -27,7 +27,7 @@
   on_cancel={JS.patch(~p"/admin/strand_reports/#{@strand_report}")}
 >
   <.header>
-    <%= @page_title %>
+    {@page_title}
     <:subtitle>Use this form to manage strand_report records in your database.</:subtitle>
   </.header>
   <.live_component

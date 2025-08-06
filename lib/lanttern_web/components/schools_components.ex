@@ -50,25 +50,25 @@ defmodule LantternWeb.SchoolsComponents do
           class="shrink-0 w-32 h-32 rounded-full bg-white bg-cover bg-center shadow-lg"
           style={"background-image: url('#{@logo_image_url}')"}
         >
-          <span class="sr-only"><%= gettext("School logo") %></span>
+          <span class="sr-only">{gettext("School logo")}</span>
         </div>
         <div
           class="flex-1 text-white"
           style={if @school.text_color, do: "color: #{@school.text_color}"}
         >
           <p>
-            <%= gettext(
+            {gettext(
               "Students information and learning data by %{school_name}.",
               school_name: "<strong>#{@school.name}</strong>"
             )
-            |> raw() %>
+            |> raw()}
           </p>
           <p class="mt-4">
-            <%= gettext(
+            {gettext(
               "Powered by %{lanttern}.",
               lanttern: "<strong>Lanttern</strong>"
             )
-            |> raw() %>
+            |> raw()}
           </p>
         </div>
       </.responsive_container>
@@ -104,22 +104,22 @@ defmodule LantternWeb.SchoolsComponents do
       <div class="min-w-0 flex-1">
         <%= if @navigate do %>
           <.link navigate={@navigate} class="font-bold hover:text-ltrn-subtle">
-            <%= @student.name %>
+            {@student.name}
           </.link>
         <% else %>
           <div class="font-bold">
-            <%= @student.name %>
+            {@student.name}
           </div>
         <% end %>
         <div :if={@has_badge} class="flex flex-wrap gap-1 mt-2">
           <%= if is_list(@student.tags) do %>
             <.badge :for={tag <- @student.tags} color_map={tag}>
-              <%= tag.name %>
+              {tag.name}
             </.badge>
           <% end %>
           <%= if is_list(@student.classes) do %>
             <.badge :for={class <- @student.classes}>
-              <%= class.name %>
+              {class.name}
             </.badge>
           <% end %>
         </div>
@@ -128,7 +128,7 @@ defmodule LantternWeb.SchoolsComponents do
           class="mt-2 text-xs text-ltrn-subtle truncate"
           title={@student.email}
         >
-          <%= @student.email %>
+          {@student.email}
         </div>
       </div>
       <.button
@@ -169,26 +169,26 @@ defmodule LantternWeb.SchoolsComponents do
         <div class="text-ltrn-subtle">
           <%= if @navigate do %>
             <.link navigate={@navigate} class="font-bold hover:text-ltrn-dark">
-              <%= @student.name %>
+              {@student.name}
             </.link>
           <% else %>
             <div class="font-bold">
-              <%= @student.name %>
+              {@student.name}
             </div>
           <% end %>
           <div
             :if={is_list(@student.classes) && @student.classes != []}
             class="flex flex-wrap gap-1 mt-2"
           >
-            <.badge :for={class <- @student.classes}><%= class.name %></.badge>
+            <.badge :for={class <- @student.classes}>{class.name}</.badge>
           </div>
           <div :if={@student.email} class="mt-2 text-xs truncate" title={@student.email}>
-            <%= @student.email %>
+            {@student.email}
           </div>
         </div>
         <div :if={@show_actions} class="flex gap-4 mt-4">
           <.action type="button" phx-click={@on_reactivate}>
-            <%= gettext("Reactivate") %>
+            {gettext("Reactivate")}
           </.action>
           <.action
             type="button"
@@ -196,7 +196,7 @@ defmodule LantternWeb.SchoolsComponents do
             phx-click={@on_delete}
             data-confirm={gettext("Are you sure?")}
           >
-            <%= gettext("Delete") %>
+            {gettext("Delete")}
           </.action>
         </div>
       </div>

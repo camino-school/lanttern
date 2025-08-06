@@ -22,33 +22,32 @@ defmodule LantternWeb.GradesReports.GradeDetailsOverlayComponent do
     ~H"""
     <div>
       <.slide_over id={@id} show={true} on_cancel={@on_cancel}>
-        <:title><%= gettext("Grade details") %></:title>
+        <:title>{gettext("Grade details")}</:title>
         <div class="flex items-center gap-6 mb-10">
           <div
             :if={@student_grades_report_entry.ordinal_value}
             class="self-stretch flex items-center p-6 rounded-sm"
             style={create_color_map_style(@student_grades_report_entry.ordinal_value)}
           >
-            <%= @student_grades_report_entry.ordinal_value.name %>
+            {@student_grades_report_entry.ordinal_value.name}
           </div>
           <div
             :if={@student_grades_report_entry.score}
             class="self-stretch flex items-center p-6 border border-ltrn-lighter rounded-sm font-mono font-bold bg-ltrn-lightes"
           >
-            <%= @student_grades_report_entry.score %>
+            {@student_grades_report_entry.score}
           </div>
           <div class="flex-1">
             <.metadata class="mb-4" icon_name="hero-bookmark">
-              <span class="font-bold"><%= gettext("Subject") %>:</span>
-              <%= Gettext.dgettext(
+              <span class="font-bold">{gettext("Subject")}:</span> {Gettext.dgettext(
                 Lanttern.Gettext,
                 "taxonomy",
                 @student_grades_report_entry.grades_report_subject.subject.name
-              ) %>
+              )}
             </.metadata>
             <.metadata icon_name="hero-calendar">
-              <span class="font-bold"><%= gettext("Cycle") %>:</span>
-              <%= @student_grades_report_entry.grades_report_cycle.school_cycle.name %>
+              <span class="font-bold">{gettext("Cycle")}:</span>
+              {@student_grades_report_entry.grades_report_cycle.school_cycle.name}
             </.metadata>
           </div>
         </div>
@@ -65,15 +64,15 @@ defmodule LantternWeb.GradesReports.GradeDetailsOverlayComponent do
             class="self-stretch flex items-center px-4 py-2 rounded-sm text-sm opacity-70"
             style={create_color_map_style(@student_grades_report_entry.pre_retake_ordinal_value)}
           >
-            <%= @student_grades_report_entry.pre_retake_ordinal_value.name %>
+            {@student_grades_report_entry.pre_retake_ordinal_value.name}
           </div>
           <div
             :if={@student_grades_report_entry.pre_retake_score}
             class="self-stretch flex items-center px-4 py-2 rounded-sm font-mono font-bold text-sm opacity-70"
           >
-            <%= @student_grades_report_entry.pre_retake_score %>
+            {@student_grades_report_entry.pre_retake_score}
           </div>
-          <p class="text-sm text-ltrn-subtle"><%= gettext("Grade before retake process") %></p>
+          <p class="text-sm text-ltrn-subtle">{gettext("Grade before retake process")}</p>
         </div>
         <div
           :if={@student_grades_report_entry.comment}
@@ -81,11 +80,11 @@ defmodule LantternWeb.GradesReports.GradeDetailsOverlayComponent do
         >
           <h6 class="flex items-center gap-2 mb-4 font-display font-bold text-ltrn-staff-dark">
             <.icon name="hero-chat-bubble-oval-left-mini" class="text-ltrn-staff-accent" />
-            <%= gettext("Comment") %>
+            {gettext("Comment")}
           </h6>
           <.markdown text={@student_grades_report_entry.comment} />
         </div>
-        <h6 class="mb-4 font-display font-bold"><%= gettext("Grade composition") %></h6>
+        <h6 class="mb-4 font-display font-bold">{gettext("Grade composition")}</h6>
         <.grade_composition_table student_grades_report_entry={@student_grades_report_entry} />
         <.live_component
           module={ScaleInfoTableComponent}
