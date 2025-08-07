@@ -118,7 +118,6 @@ defmodule Lanttern.MixProject do
       "assets.build": ["cmd --cd assets npm i", "tailwind default", "esbuild default"],
       "assets.deploy": [
         "cmd --cd assets npm ci --only=prod",
-        "tailwind.install --if-missing",
         "tailwind default --minify",
         "esbuild default --minify",
         "phx.digest"
