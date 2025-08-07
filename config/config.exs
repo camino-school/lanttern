@@ -52,8 +52,8 @@ config :esbuild,
 
 # Configure tailwind (the version is required)
 config :tailwind,
-  version: "4.1.4",
-  default: [
+  version: "4.1.7",
+  lanttern: [
     args: ~w(
       --input=css/app.css
       --output=../priv/static/assets/app.css
