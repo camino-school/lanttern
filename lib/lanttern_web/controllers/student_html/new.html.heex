@@ -1,13 +1,15 @@
-<.header>
-  New Student
-  <:subtitle>Use this form to manage student records in your database.</:subtitle>
-</.header>
+<Layouts.admin flash={@flash}>
+  <.header>
+    New Student
+    <:subtitle>Use this form to manage student records in your database.</:subtitle>
+  </.header>
 
-<.student_form
-  school_options={@school_options}
-  class_options={@class_options}
-  changeset={@changeset}
-  action={~p"/admin/students"}
-/>
+  <.student_form
+    school_options={@school_options}
+    class_options={@class_options}
+    changeset={@changeset}
+    action={~p"/admin/students"}
+  />
 
-<.back navigate={~p"/admin/students"}>Back to students</.back>
+  <.back navigate={~p"/admin/students"}>Back to students</.back>
+</Layouts.admin>

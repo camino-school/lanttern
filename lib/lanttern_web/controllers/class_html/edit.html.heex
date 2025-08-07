@@ -1,15 +1,17 @@
-<.header>
-  Edit Class {@class.id}
-  <:subtitle>Use this form to manage class records in your database.</:subtitle>
-</.header>
+<Layouts.admin flash={@flash}>
+  <.header>
+    Edit Class {@class.id}
+    <:subtitle>Use this form to manage class records in your database.</:subtitle>
+  </.header>
 
-<.class_form
-  school_options={@school_options}
-  cycle_options={@cycle_options}
-  year_options={@year_options}
-  student_options={@student_options}
-  changeset={@changeset}
-  action={~p"/admin/classes/#{@class}"}
-/>
+  <.class_form
+    school_options={@school_options}
+    cycle_options={@cycle_options}
+    year_options={@year_options}
+    student_options={@student_options}
+    changeset={@changeset}
+    action={~p"/admin/classes/#{@class}"}
+  />
 
-<.back navigate={~p"/admin/classes"}>Back to classes</.back>
+  <.back navigate={~p"/admin/classes"}>Back to classes</.back>
+</Layouts.admin>

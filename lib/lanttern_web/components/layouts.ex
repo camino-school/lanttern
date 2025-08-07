@@ -40,6 +40,32 @@ defmodule LantternWeb.Layouts do
   end
 
   @doc """
+  Renders the layout for root admins.
+  """
+  attr :flash, :map, required: true, doc: "the map of flash messages"
+  slot :inner_block, required: true
+
+  def admin(assigns) do
+    ~H"""
+    <header class="flex justify-between w-full p-2 border-b border-ltrn-subtle">
+      <div class="flex gap-4">
+        <.link href={~p"/admin"}>Admin home</.link>
+      </div>
+      <div class="flex gap-4">
+        <.link href={~p"/dashboard"}>Back to main</.link>
+        <.link href={~p"/users/log_out"} method="delete" data-confirm="Are you sure?">Logout</.link>
+      </div>
+    </header>
+    <main class="px-4 py-20 sm:px-6 lg:px-8">
+      <div class="mx-auto">
+        {render_slot(@inner_block)}
+      </div>
+    </main>
+    <.flash_group flash={@flash} />
+    """
+  end
+
+  @doc """
   Shows the flash group with standard titles and content.
 
   ## Examples

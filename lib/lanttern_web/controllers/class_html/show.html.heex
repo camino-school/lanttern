@@ -1,27 +1,29 @@
-<.header>
-  Class {@class.id}
-  <:subtitle>This is a class record from your database.</:subtitle>
-  <:actions>
-    <.link href={~p"/admin/classes/#{@class}/edit"}>
-      <.button>Edit class</.button>
-    </.link>
-  </:actions>
-</.header>
+<Layouts.admin flash={@flash}>
+  <.header>
+    Class {@class.id}
+    <:subtitle>This is a class record from your database.</:subtitle>
+    <:actions>
+      <.link href={~p"/admin/classes/#{@class}/edit"}>
+        <.button>Edit class</.button>
+      </.link>
+    </:actions>
+  </.header>
 
-<.list>
-  <:item title="Name">{@class.name}</:item>
-  <:item title="School">{@class.school.name}</:item>
-  <:item title="Cycle">{@class.cycle.name}</:item>
-  <:item title="Years">
-    {@class.years
-    |> Enum.map(& &1.name)
-    |> Enum.join(", ")}
-  </:item>
-  <:item title="Students">
-    {@class.students
-    |> Enum.map(& &1.name)
-    |> Enum.join(", ")}
-  </:item>
-</.list>
+  <.list>
+    <:item title="Name">{@class.name}</:item>
+    <:item title="School">{@class.school.name}</:item>
+    <:item title="Cycle">{@class.cycle.name}</:item>
+    <:item title="Years">
+      {@class.years
+      |> Enum.map(& &1.name)
+      |> Enum.join(", ")}
+    </:item>
+    <:item title="Students">
+      {@class.students
+      |> Enum.map(& &1.name)
+      |> Enum.join(", ")}
+    </:item>
+  </.list>
 
-<.back navigate={~p"/admin/classes"}>Back to classes</.back>
+  <.back navigate={~p"/admin/classes"}>Back to classes</.back>
+</Layouts.admin>

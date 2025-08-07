@@ -1,25 +1,27 @@
-<.header>
-  Listing Comments
-  <:actions>
-    <.link href={~p"/admin/comments/new"}>
-      <.button>New Comment</.button>
-    </.link>
-  </:actions>
-</.header>
+<Layouts.admin flash={@flash}>
+  <.header>
+    Listing Comments
+    <:actions>
+      <.link href={~p"/admin/comments/new"}>
+        <.button>New Comment</.button>
+      </.link>
+    </:actions>
+  </.header>
 
-<.table id="comments" rows={@comments} row_click={&JS.navigate(~p"/admin/comments/#{&1}")}>
-  <:col :let={comment} label="#">{comment.id}</:col>
-  <:col :let={comment} label="Comment">{comment.comment}</:col>
-  <:col :let={comment} label="Author">{comment_author(comment)}</:col>
-  <:action :let={comment}>
-    <div class="sr-only">
-      <.link navigate={~p"/admin/comments/#{comment}"}>Show</.link>
-    </div>
-    <.link navigate={~p"/admin/comments/#{comment}/edit"}>Edit</.link>
-  </:action>
-  <:action :let={comment}>
-    <.link href={~p"/admin/comments/#{comment}"} method="delete" data-confirm="Are you sure?">
-      Delete
-    </.link>
-  </:action>
-</.table>
+  <.table id="comments" rows={@comments} row_click={&JS.navigate(~p"/admin/comments/#{&1}")}>
+    <:col :let={comment} label="#">{comment.id}</:col>
+    <:col :let={comment} label="Comment">{comment.comment}</:col>
+    <:col :let={comment} label="Author">{comment_author(comment)}</:col>
+    <:action :let={comment}>
+      <div class="sr-only">
+        <.link navigate={~p"/admin/comments/#{comment}"}>Show</.link>
+      </div>
+      <.link navigate={~p"/admin/comments/#{comment}/edit"}>Edit</.link>
+    </:action>
+    <:action :let={comment}>
+      <.link href={~p"/admin/comments/#{comment}"} method="delete" data-confirm="Are you sure?">
+        Delete
+      </.link>
+    </:action>
+  </.table>
+</Layouts.admin>

@@ -1,8 +1,10 @@
-<.header>
-  New Subject
-  <:subtitle>Use this form to manage subject records in your database.</:subtitle>
-</.header>
+<Layouts.admin flash={@flash}>
+  <.header>
+    New Subject
+    <:subtitle>Use this form to manage subject records in your database.</:subtitle>
+  </.header>
 
-<.subject_form changeset={@changeset} action={~p"/admin/subjects"} />
+  <.subject_form changeset={@changeset} action={~p"/admin/subjects"} />
 
-<.back navigate={~p"/admin/subjects"}>Back to subjects</.back>
+  <.back navigate={~p"/admin/subjects"}>Back to subjects</.back>
+</Layouts.admin>

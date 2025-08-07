@@ -1,6 +1,8 @@
-<div class="container mx-auto lg:max-w-5xl">
-  <.header>
-    Import school staff
-  </.header>
-  {render_state(assigns)}
-</div>
+<Layouts.admin flash={@flash}>
+  <div class="container mx-auto lg:max-w-5xl">
+    <.header>
+      Import school staff
+    </.header>
+    {render_state(assigns)}
+  </div>
+</Layouts.admin>

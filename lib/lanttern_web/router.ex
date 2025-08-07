@@ -15,11 +15,6 @@ defmodule LantternWeb.Router do
     plug :put_locale
   end
 
-  pipeline :admin do
-    plug :put_layout, html: {LantternWeb.Layouts, :admin}
-    plug :require_root_admin
-  end
-
   # we skip the https://hexdocs.pm/sobelow/Sobelow.Config.CSRF.html
   # because for Sign In with Google pipeline we don't use :protect_from_forgery plug.
   # instead, we use :verify_google_csrf_token plug and
@@ -180,7 +175,7 @@ defmodule LantternWeb.Router do
   end
 
   scope "/admin", LantternWeb do
-    pipe_through [:browser, :require_authenticated_user, :admin]
+    pipe_through [:browser, :require_authenticated_user, :require_root_admin]
 
     get "/", AdminController, :home
     post "/seed_base_taxonomy", AdminController, :seed_base_taxonomy

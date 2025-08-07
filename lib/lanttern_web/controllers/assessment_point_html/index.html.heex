@@ -1,37 +1,39 @@
-<.header>
-  Listing Assessment points
-  <:actions>
-    <.link href={~p"/admin/assessment_points/new"}>
-      <.button>New Assessment point</.button>
-    </.link>
-  </:actions>
-</.header>
+<Layouts.admin flash={@flash}>
+  <.header>
+    Listing Assessment points
+    <:actions>
+      <.link href={~p"/admin/assessment_points/new"}>
+        <.button>New Assessment point</.button>
+      </.link>
+    </:actions>
+  </.header>
 
-<.table
-  id="assessment_points"
-  rows={@assessment_points}
-  row_click={&JS.navigate(~p"/admin/assessment_points/#{&1}")}
->
-  <:col :let={assessment_point} label="Name">{assessment_point.name}</:col>
-  <:col :let={assessment_point} label="Date">
-    {Timex.local(assessment_point.datetime) |> Timex.format!("{ISO:Extended}")}
-  </:col>
-  <:col :let={assessment_point} label="Description">{assessment_point.description}</:col>
-  <:action :let={assessment_point}>
-    <div class="sr-only">
-      <.link navigate={~p"/admin/assessment_points/#{assessment_point}"}>Show</.link>
-    </div>
-    <.link navigate={~p"/admin/assessment_points/#{assessment_point}/edit"}>
-      Edit
-    </.link>
-  </:action>
-  <:action :let={assessment_point}>
-    <.link
-      href={~p"/admin/assessment_points/#{assessment_point}"}
-      method="delete"
-      data-confirm="Are you sure?"
-    >
-      Delete
-    </.link>
-  </:action>
-</.table>
+  <.table
+    id="assessment_points"
+    rows={@assessment_points}
+    row_click={&JS.navigate(~p"/admin/assessment_points/#{&1}")}
+  >
+    <:col :let={assessment_point} label="Name">{assessment_point.name}</:col>
+    <:col :let={assessment_point} label="Date">
+      {Timex.local(assessment_point.datetime) |> Timex.format!("{ISO:Extended}")}
+    </:col>
+    <:col :let={assessment_point} label="Description">{assessment_point.description}</:col>
+    <:action :let={assessment_point}>
+      <div class="sr-only">
+        <.link navigate={~p"/admin/assessment_points/#{assessment_point}"}>Show</.link>
+      </div>
+      <.link navigate={~p"/admin/assessment_points/#{assessment_point}/edit"}>
+        Edit
+      </.link>
+    </:action>
+    <:action :let={assessment_point}>
+      <.link
+        href={~p"/admin/assessment_points/#{assessment_point}"}
+        method="delete"
+        data-confirm="Are you sure?"
+      >
+        Delete
+      </.link>
+    </:action>
+  </.table>
+</Layouts.admin>
