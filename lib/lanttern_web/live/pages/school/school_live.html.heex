@@ -59,14 +59,6 @@
   is_school_manager={@is_school_manager}
 />
 <.live_component
-  :if={@live_action == :message_board}
-  module={MessageBoardComponent}
-  id={:message_board}
-  current_user={@current_user}
-  params={@params}
-  is_communication_manager={@is_communication_manager}
-/>
-<.live_component
   :if={@live_action == :manage_moment_cards_templates}
   module={MomentCardsTemplatesComponent}
   id={:school_moment_cards_templates}

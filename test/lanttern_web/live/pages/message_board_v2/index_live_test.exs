@@ -14,23 +14,34 @@ defmodule LantternWeb.MessageBoard.IndexLiveTest do
       attrs = %{school: school, send_to: "classes", classes_ids: [class.id]}
 
       message = insert(:message, attrs)
+
+      archived =
+        insert(:message, %{
+          school: school,
+          name: "archived message abc",
+          description: "archived message desc abc",
+          archived_at: DateTime.utc_now()
+        })
+
       m2 = insert(:message, %{school: school})
 
       Lanttern.Filters.set_profile_current_filters(ctx.user, %{classes_ids: [class.id]})
 
       ctx.conn
-      |> visit("/school/message_board_v2")
+      |> visit("/school/message_board")
       |> assert_has("h1", text: "Message board admin")
       |> refute_has("h3", text: message.name)
       |> assert_has("h3", text: m2.name)
       |> assert_has("button", text: class.name)
+      |> refute_has("h3", text: archived.name)
     end
 
     test "create a new message", ctx do
+      %{conn: conn} = set_user_permissions(["communication_management"], ctx)
       attr = %{name: "test message", description: "test description", color: "CBCBCB"}
 
-      ctx.conn
-      |> visit("/school/message_board_v2")
+      conn
+      |> visit("/school/message_board")
       |> assert_has("h1", text: "Message board admin")
       |> click_link("Add new message")
       |> fill_in("Message title", with: attr.name)
@@ -38,25 +49,42 @@ defmodule LantternWeb.MessageBoard.IndexLiveTest do
       |> fill_in("Message color", with: attr.color)
       |> click_button("Save")
 
-      ctx.conn
-      |> visit("/school/message_board_v2")
+      conn
+      |> visit("/school/message_board")
       |> assert_has("h3", text: attr.name)
     end
 
+    test "prevent user w/o permission to create a message", ctx do
+      section = insert(:section)
+
+      ctx.conn
+      |> visit("/school/message_board?new=true&section_id=#{section.id}")
+      |> refute_has("h2", text: "New message")
+    end
+
     test "edit a existing message", ctx do
+      %{conn: conn} = set_user_permissions(["communication_management"], ctx)
       message = insert(:message, %{school: ctx.user.current_profile.staff_member.school})
       attrs = %{name: "edited name"}
 
-      ctx.conn
-      |> visit("/school/message_board_v2")
+      conn
+      |> visit("/school/message_board")
       |> assert_has("h3", text: message.name)
       |> click_link("#message-#{message.id} a", "Edit")
       |> fill_in("Message title", with: attrs.name)
       |> click_button("Save")
 
-      ctx.conn
-      |> visit("/school/message_board_v2")
+      conn
+      |> visit("/school/message_board")
       |> assert_has("h3", text: attrs.name)
+    end
+
+    test "prevent user w/o permission to edit a message", ctx do
+      message = insert(:message, %{name: "message from other school"})
+
+      ctx.conn
+      |> visit("/school/message_board?edit=#{message.id}")
+      |> refute_has("h2", text: "Edit message")
     end
   end
 end

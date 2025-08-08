@@ -267,6 +267,16 @@ defmodule Lanttern.MessageBoard do
     Message.changeset(message, attrs)
   end
 
+  def get_message_per_school(id, school_id) do
+    from(m in Message, where: m.id == ^id and m.school_id == ^school_id)
+    |> preload([:classes])
+    |> Repo.one()
+    |> case do
+      nil -> {:error, :not_found}
+      message -> {:ok, message}
+    end
+  end
+
   @doc """
   Returns the list of sections ordered by position with messages preloaded and filtered.
 

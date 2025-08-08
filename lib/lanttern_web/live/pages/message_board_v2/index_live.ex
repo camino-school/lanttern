@@ -11,10 +11,12 @@ defmodule LantternWeb.MessageBoard.IndexLive do
 
   # shared
   alias LantternWeb.MessageBoard.MessageFormOverlayComponentV2
-  # alias LantternWeb.MessageBoard.SectionFormOverlayComponent
 
   def mount(_params, _session, socket) do
     if connected?(socket), do: send(self(), :initialized)
+
+    communication_manager? =
+      "communication_management" in socket.assigns.current_user.current_profile.permissions
 
     socket =
       socket
@@ -27,6 +29,7 @@ defmodule LantternWeb.MessageBoard.IndexLive do
       |> assign(:messages, [])
       |> assign(:section, nil)
       |> assign(:sections, [])
+      |> assign(:communication_manager?, communication_manager?)
 
     {:ok, socket}
   end
@@ -86,7 +89,7 @@ defmodule LantternWeb.MessageBoard.IndexLive do
 
     socket
     |> put_flash(elem(flash_message, 0), elem(flash_message, 1))
-    |> push_patch(to: ~p"/school/message_board_v2")
+    |> push_patch(to: ~p"/school/message_board")
     |> then(&{:noreply, &1})
   end
 
@@ -100,7 +103,7 @@ defmodule LantternWeb.MessageBoard.IndexLive do
 
   #   socket
   #   |> put_flash(elem(flash_message, 0), elem(flash_message, 1))
-  #   |> push_patch(to: ~p"/school/message_board_v2")
+  #   |> push_patch(to: ~p"/school/message_board")
   #   |> then(&{:noreply, &1})
   # end
 
@@ -140,6 +143,9 @@ defmodule LantternWeb.MessageBoard.IndexLive do
 
   defp assign_section(socket), do: assign(socket, :section, nil)
 
+  defp assign_message(%{assigns: %{communication_manager?: false}} = socket),
+    do: assign(socket, :message, nil)
+
   defp assign_message(%{assigns: %{params: %{"new" => "true", "section_id" => id}}} = socket) do
     message = %Message{
       school_id: socket.assigns.current_user.current_profile.school_id,
@@ -154,14 +160,15 @@ defmodule LantternWeb.MessageBoard.IndexLive do
   end
 
   defp assign_message(%{assigns: %{params: %{"edit" => message_id}}} = socket) do
-    message = MessageBoard.get_message(message_id, preloads: :classes)
+    school_id = socket.assigns.current_user.current_profile.school_id
 
-    if message do
+    with true <- socket.assigns.communication_manager?,
+         {:ok, message} <- MessageBoard.get_message_per_school(message_id, school_id) do
       socket
       |> assign(:message, message)
       |> assign(:message_overlay_title, gettext("Edit message"))
     else
-      assign(socket, :message, nil)
+      _ -> assign(socket, :message, nil)
     end
   end
 
@@ -230,7 +237,7 @@ defmodule LantternWeb.MessageBoard.IndexLive do
 
         <.action
           type="link"
-          patch={~p"/school/message_board_v2?new_section=true"}
+          patch={~p"/school/message_board?new_section=true"}
           icon_name="hero-plus-circle-mini"
         >
           {gettext("Create section")}
@@ -266,7 +273,7 @@ defmodule LantternWeb.MessageBoard.IndexLive do
                     </.action>
                     <.action
                       type="link"
-                      patch={~p"/school/message_board_v2?new=true&section_id=#{section.id}"}
+                      patch={~p"/school/message_board?new=true&section_id=#{section.id}"}
                       theme="ghost"
                       icon_name="hero-plus-mini"
                     >
@@ -281,13 +288,14 @@ defmodule LantternWeb.MessageBoard.IndexLive do
                       <.card_message
                         message={message}
                         mode="admin"
-                        edit_patch={~p"/school/message_board_v2?edit=#{message.id}"}
+                        edit_patch={~p"/school/message_board?edit=#{message.id}"}
                         on_delete={JS.push("delete_message", value: %{message_id: message.id})}
                       />
                     <% end %>
 
                     <.link
-                      patch={~p"/school/message_board_v2?new=true&section_id=#{section.id}"}
+                      :if={@communication_manager?}
+                      patch={~p"/school/message_board?new=true&section_id=#{section.id}"}
                       class="bg-white border-2 border-dashed border-gray-300 rounded-lg p-6 h-48 flex flex-col items-center justify-center text-gray-400 hover:text-gray-600 hover:border-gray-400 transition-colors group"
                     >
                       <.icon
@@ -312,7 +320,7 @@ defmodule LantternWeb.MessageBoard.IndexLive do
         section={@section}
         title={@message_overlay_title}
         current_profile={@current_user.current_profile}
-        on_cancel={JS.patch(~p"/school/message_board_v2")}
+        on_cancel={JS.patch(~p"/school/message_board")}
         notify_parent
       />
 
@@ -323,7 +331,7 @@ defmodule LantternWeb.MessageBoard.IndexLive do
         section={@section}
         title={@section_overlay_title}
         current_profile={@current_user.current_profile}
-        on_cancel={JS.patch(~p"/school/message_board_v2")}
+        on_cancel={JS.patch(~p"/school/message_board")}
         notify_parent
       /> --%>
 
@@ -332,7 +340,7 @@ defmodule LantternWeb.MessageBoard.IndexLive do
         id="message-board-classes-filters-overlay"
         current_user={@current_user}
         title={gettext("Filter messages by class")}
-        navigate={~p"/school/message_board_v2"}
+        navigate={~p"/school/message_board"}
         classes={@classes}
         selected_classes_ids={@selected_classes_ids}
       />
