@@ -117,7 +117,9 @@ defmodule Lanttern.MixProject do
         "cmd --cd assets npm ci --only=prod",
         # Temporarily disabled - using pre-compiled CSS
         # "tailwind lanttern --minify",
-        "cmd echo '=== Checking for CSS file ===' && ls -la priv/static/assets/css/ && stat priv/static/assets/css/app.css",
+        "cmd echo '=== Git and file system check ===' && git ls-tree HEAD priv/static/assets/css/ && echo '=== Finding CSS files ===' && find . -name 'app.css' -type f || echo 'No CSS files found'",
+        "cmd mkdir -p priv/static/assets/css",
+        "cmd echo '=== Final CSS file check ===' && ls -la priv/static/assets/css/ || echo 'Directory creation failed'",
         "esbuild lanttern --minify",
         "phx.digest"
       ],
