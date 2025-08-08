@@ -120,7 +120,7 @@ defmodule Lanttern.MixProject do
         "cmd --cd assets npm ci --only=prod",
         # changing this due to GitHub connectivity issues
         # "tailwind lanttern --minify",
-        "cmd ./node_modules/.bin/tailwindcss -i assets/css/app.css -o priv/static/assets/app.css --minify",
+        "cmd --cd assets ./node_modules/.bin/tailwindcss -i css/app.css -o ../priv/static/assets/app.css --minify",
         "esbuild lanttern --minify",
         "phx.digest"
       ],
