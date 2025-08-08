@@ -27,6 +27,9 @@ lanttern-*.tar
 
 # Ignore assets that are produced by build tools.
 /priv/static/assets/
+!/priv/static/assets/css/
+!/priv/static/assets/*.css
+!/priv/static/assets/*.css.gz
 /priv/cldr/
 
 # Ignore digested assets cache.
