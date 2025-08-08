@@ -55,6 +55,9 @@ COPY lib lib
 
 COPY assets assets
 
+# install tailwind before assets.deploy
+RUN mix tailwind.install
+
 # compile assets
 RUN mix assets.deploy
 
