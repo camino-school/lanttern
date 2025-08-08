@@ -55,8 +55,8 @@ COPY lib lib
 
 COPY assets assets
 
-# install tailwindcss globally via npm (bypasses GitHub connectivity issues)
-RUN npm install -g tailwindcss@4.1.7
+# install tailwindcss locally via npm (bypasses GitHub connectivity issues)
+RUN npm install tailwindcss@4.1.7
 
 # compile assets
 RUN mix assets.deploy
