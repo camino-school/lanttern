@@ -18,5 +18,17 @@ config :swoosh, local: false
 # Do not print debug messages in production
 config :logger, level: :info
 
+# Configure tailwind (the version is required)
+config :tailwind,
+  version: "4.1.7",
+  lanttern: [
+    args: ~w(
+      --input=assets/css/app.css
+      --output=priv/static/assets/css/app.css
+    ),
+    cd: Path.expand("..", __DIR__),
+    path: Path.expand("../_build/tailwindcss-linux-x64", __DIR__)
+  ]
+
 # Runtime production configuration, including reading
 # of environment variables, is done on config/runtime.exs.
