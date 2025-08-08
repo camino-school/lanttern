@@ -59,7 +59,7 @@ defmodule Lanttern.MixProject do
       {:phoenix_live_view, "~> 1.1.3"},
       {:lazy_html, ">= 0.1.0", only: :test},
       {:phoenix_live_dashboard, "~> 0.8.2"},
-      {:esbuild, "~> 0.7", runtime: Mix.env() == :dev},
+      {:esbuild, "~> 0.10", runtime: Mix.env() == :dev},
       {:tailwind, "~> 0.3.0", runtime: Mix.env() == :dev},
       {:swoosh, "~> 1.3"},
       {:req, "~> 0.5"},
@@ -115,13 +115,11 @@ defmodule Lanttern.MixProject do
       test: ["ecto.create --quiet", "ecto.migrate --quiet", "test --cover"],
       "test.drop": ["ecto.drop", "test"],
       "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],
-      "assets.build": ["cmd --cd assets npm i", "tailwind lanttern", "esbuild default"],
+      "assets.build": ["cmd --cd assets npm i", "tailwind lanttern", "esbuild lanttern"],
       "assets.deploy": [
         "cmd --cd assets npm ci --only=prod",
-        # changing this due to GitHub connectivity issues
-        # "tailwind lanttern --minify",
-        "cmd --cd assets npx tailwindcss@4.1.7 -i css/app.css -o ../priv/static/assets/app.css --minify",
-        "esbuild default --minify",
+        "tailwind lanttern --minify",
+        "esbuild lanttern --minify",
         "phx.digest"
       ],
       precommit: [
