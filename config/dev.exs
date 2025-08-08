@@ -26,7 +26,7 @@ config :lanttern, LantternWeb.Endpoint,
   secret_key_base: "HHWaL4wdvifHzU6yX99MXzes7c+1PrCoPOaanQBH60/edoVqR8r1FsswZTG87k4F",
   watchers: [
     esbuild: {Esbuild, :install_and_run, [:default, ~w(--sourcemap=inline --watch)]},
-    tailwind: {Tailwind, :install_and_run, [:default, ~w(--watch)]}
+    tailwind: {Tailwind, :install_and_run, [:lanttern, ~w(--watch)]}
   ]
 
 # ## SSL Support

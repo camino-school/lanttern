@@ -55,8 +55,14 @@ COPY lib lib
 
 COPY assets assets
 
-# install tailwind before assets.deploy
-RUN mix tailwind.install
+# install tailwind with retry logic (to handle GitHub connectivity issues)
+RUN for i in 1 2 3; do \
+    echo "Attempt $i: Installing tailwind..." && \
+    mix tailwind.install && break || \
+    (echo "Attempt $i failed, waiting..." && sleep 10); \
+  done && \
+  echo "Tailwind installation completed" || \
+  (echo "All attempts failed" && exit 1)
 
 # compile assets
 RUN mix assets.deploy

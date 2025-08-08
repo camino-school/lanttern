@@ -115,7 +115,7 @@ defmodule Lanttern.MixProject do
       test: ["ecto.create --quiet", "ecto.migrate --quiet", "test --cover"],
       "test.drop": ["ecto.drop", "test"],
       "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],
-      "assets.build": ["cmd --cd assets npm i", "tailwind default", "esbuild default"],
+      "assets.build": ["cmd --cd assets npm i", "tailwind lanttern", "esbuild default"],
       "assets.deploy": [
         "cmd --cd assets npm ci --only=prod",
         "tailwind lanttern --minify",
