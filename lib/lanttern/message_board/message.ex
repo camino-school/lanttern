@@ -8,6 +8,7 @@ defmodule Lanttern.MessageBoard.Message do
   use Gettext, backend: Lanttern.Gettext
 
   alias Lanttern.MessageBoard.MessageClass
+  alias Lanttern.MessageBoard.Section
   alias Lanttern.Schools.Class
   alias Lanttern.Schools.School
 
@@ -18,11 +19,11 @@ defmodule Lanttern.MessageBoard.Message do
           subtitle: String.t() | nil,
           color: String.t() | nil,
           cover: String.t() | nil,
-          section: String.t(),
           send_to: String.t(),
           archived_at: DateTime.t() | nil,
           is_pinned: boolean(),
           school_id: pos_integer() | nil,
+          section_id: pos_integer() | nil,
           school: School.t() | nil,
           classes_ids: [pos_integer()] | nil,
           classes: [Class.t()] | nil,
@@ -39,11 +40,12 @@ defmodule Lanttern.MessageBoard.Message do
     field :subtitle, :string
     field :color, :string
     field :cover, :string
-    field :section, :string, default: "News"
+    field :position, :integer, default: 0
 
     field :classes_ids, {:array, :id}, virtual: true
 
     belongs_to :school, School
+    belongs_to :section, Section
 
     has_many :message_classes, MessageClass, on_replace: :delete
     has_many :classes, through: [:message_classes, :class]
@@ -61,12 +63,13 @@ defmodule Lanttern.MessageBoard.Message do
         :school_id,
         :send_to,
         :is_pinned,
-        :section,
+        :section_id,
         :subtitle,
         :color,
-        :cover
+        :cover,
+        :position
       ])
-      |> validate_required([:name, :description, :school_id, :send_to])
+      |> validate_required([:name, :description, :school_id, :send_to, :section_id])
       |> check_constraint(
         :send_to,
         name: :valid_send_to,

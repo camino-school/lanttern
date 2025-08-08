@@ -1,11 +1,12 @@
 defmodule Lanttern.MessageBoardTest do
   use Lanttern.DataCase
 
+  alias Lanttern.MessageBoard
   alias Lanttern.Repo
 
-  alias Lanttern.MessageBoard
+  import Lanttern.Factory
 
-  describe "board_messages" do
+  describe "messages" do
     alias Lanttern.MessageBoard.Message
 
     import Lanttern.MessageBoardFixtures
@@ -143,17 +144,11 @@ defmodule Lanttern.MessageBoardTest do
 
     test "create_message/1 with valid data creates a school message" do
       school = Lanttern.SchoolsFixtures.school_fixture()
-
-      valid_attrs = %{
-        name: "some name",
-        description: "some description",
-        send_to: "school",
-        school_id: school.id
-      }
+      valid_attrs = params_with_assocs(:message, %{school: school})
 
       assert {:ok, %Message{} = message} = MessageBoard.create_message(valid_attrs)
-      assert message.name == "some name"
-      assert message.description == "some description"
+      assert message.name == valid_attrs.name
+      assert message.description == valid_attrs.description
       assert message.send_to == "school"
       assert message.school_id == school.id
     end
@@ -161,18 +156,13 @@ defmodule Lanttern.MessageBoardTest do
     test "create_message/1 with valid data creates a class message" do
       school = Lanttern.SchoolsFixtures.school_fixture()
       class = Lanttern.SchoolsFixtures.class_fixture(%{school_id: school.id})
+      attrs = %{classes_ids: [class.id], school: school, send_to: "classes"}
 
-      valid_attrs = %{
-        name: "some name",
-        description: "some description",
-        send_to: "classes",
-        school_id: school.id,
-        classes_ids: [class.id]
-      }
+      valid_attrs = params_with_assocs(:message, attrs)
 
       assert {:ok, %Message{} = message} = MessageBoard.create_message(valid_attrs)
-      assert message.name == "some name"
-      assert message.description == "some description"
+      assert message.name == valid_attrs.name
+      assert message.description == valid_attrs.description
       assert message.send_to == "classes"
       assert message.school_id == school.id
 
@@ -226,6 +216,57 @@ defmodule Lanttern.MessageBoardTest do
     test "change_message/1 returns a message changeset" do
       message = message_fixture() |> Repo.preload(:message_classes)
       assert %Ecto.Changeset{} = MessageBoard.change_message(message)
+    end
+  end
+
+  describe "sections" do
+    alias Lanttern.MessageBoard.Section
+
+    import Lanttern.MessageBoardFixtures
+
+    @invalid_attrs %{name: nil, position: nil}
+
+    test "get_section!/1 returns the section with given id" do
+      section = insert(:section)
+      assert MessageBoard.get_section!(section.id) == section
+    end
+
+    test "create_section/1 with valid data creates a section" do
+      valid_attrs = params_for(:section)
+
+      assert {:ok, %Section{} = section} = MessageBoard.create_section(valid_attrs)
+      assert section.name == valid_attrs.name
+      assert section.position == valid_attrs.position
+    end
+
+    test "create_section/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} = MessageBoard.create_section(@invalid_attrs)
+    end
+
+    test "update_section/2 with valid data updates the section" do
+      section = insert(:section)
+      update_attrs = params_for(:section)
+
+      assert {:ok, %Section{} = section} = MessageBoard.update_section(section, update_attrs)
+      assert section.name == update_attrs.name
+      assert section.position == update_attrs.position
+    end
+
+    test "update_section/2 with invalid data returns error changeset" do
+      section = insert(:section)
+      assert {:error, %Ecto.Changeset{}} = MessageBoard.update_section(section, @invalid_attrs)
+      assert section == MessageBoard.get_section!(section.id)
+    end
+
+    test "delete_section/1 deletes the section" do
+      section = insert(:section)
+      assert {:ok, %Section{}} = MessageBoard.delete_section(section)
+      assert_raise Ecto.NoResultsError, fn -> MessageBoard.get_section!(section.id) end
+    end
+
+    test "change_section/1 returns a section changeset" do
+      section = insert(:section)
+      assert %Ecto.Changeset{} = MessageBoard.change_section(section)
     end
   end
 end

@@ -9,10 +9,11 @@ defmodule Lanttern.Factory do
   use Lanttern.ILPCommentAttachmentFactory
   use Lanttern.ILPCommentFactory
   use Lanttern.ILPTemplateFactory
-  use Lanttern.MessageBoardFactory
+  use Lanttern.MessageFactory
   use Lanttern.NoteFactory
   use Lanttern.ProfileFactory
   use Lanttern.SchoolFactory
+  use Lanttern.SectionFactory
   use Lanttern.StaffMemberFactory
   use Lanttern.StrandNoteRelationshipFactory
   use Lanttern.StudentFactory

@@ -4,7 +4,6 @@ defmodule LantternWeb.SchoolLive.MessageBoardComponentTest do
   import Lanttern.Factory
 
   alias Lanttern.MessageBoard
-  alias Lanttern.MessageBoardFixtures
 
   @live_view_path "/school/message_board"
 
@@ -12,7 +11,7 @@ defmodule LantternWeb.SchoolLive.MessageBoardComponentTest do
 
   describe "Message board" do
     test "list messages", %{conn: conn, user: user} do
-      school_id = user.current_profile.school_id
+      school = user.current_profile.staff_member.school
 
       message =
         insert(:message, %{
@@ -22,8 +21,8 @@ defmodule LantternWeb.SchoolLive.MessageBoardComponentTest do
         })
 
       {:ok, archived} =
-        MessageBoardFixtures.message_fixture(%{
-          school_id: school_id,
+        insert(:message, %{
+          school: school,
           name: "archived message abc",
           description: "archived message desc abc"
         })
@@ -56,10 +55,9 @@ defmodule LantternWeb.SchoolLive.MessageBoardComponentTest do
 
     test "allow user with communication management permissions to edit message", context do
       %{conn: conn, user: user} = set_user_permissions(["communication_management"], context)
-      school_id = user.current_profile.school_id
+      school = user.current_profile.staff_member.school
 
-      message =
-        MessageBoardFixtures.message_fixture(%{school_id: school_id, name: "message abc"})
+      message = insert(:message, %{school: school, name: "message abc"})
 
       {:ok, view, _html} = live(conn, "#{@live_view_path}?edit=#{message.id}")
 
@@ -67,10 +65,9 @@ defmodule LantternWeb.SchoolLive.MessageBoardComponentTest do
     end
 
     test "prevent user without communication management permissions to edit message", ctx do
-      school_id = ctx.user.current_profile.school_id
+      school = ctx.user.current_profile.staff_member.school
 
-      message =
-        MessageBoardFixtures.message_fixture(%{school_id: school_id, name: "message abc"})
+      message = insert(:message, %{school: school, name: "message abc"})
 
       {:ok, view, _html} = live(ctx.conn, "#{@live_view_path}?edit=#{message.id}")
 
@@ -80,8 +77,7 @@ defmodule LantternWeb.SchoolLive.MessageBoardComponentTest do
     test "prevent user to edit message from other schools", context do
       %{conn: conn} = set_user_permissions(["communication_management"], context)
 
-      message =
-        MessageBoardFixtures.message_fixture(%{name: "message from other school"})
+      message = insert(:message, %{name: "message from other school"})
 
       {:ok, view, _html} = live(conn, "#{@live_view_path}?edit=#{message.id}")
 

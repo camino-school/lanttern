@@ -105,7 +105,7 @@ defmodule LantternWeb.StudentHomeLiveV2 do
         %{type: "guardian", guardian_of_student_id: id} -> id
       end
 
-    sections = MessageBoard.list_student_messages_with_sections(student_id, school_id)
+    sections = MessageBoard.list_sections_for_students(student_id, school_id)
 
     assign(socket, :sections, sections)
   end

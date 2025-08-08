@@ -9,6 +9,7 @@ defmodule Lanttern.MessageBoard do
   import Lanttern.RepoHelpers
 
   alias Lanttern.MessageBoard.Message
+  alias Lanttern.MessageBoard.Section
   alias Lanttern.Schools.Class
   # alias Lanttern.Schools.Student
 
@@ -121,58 +122,6 @@ defmodule Lanttern.MessageBoard do
       ]
     )
     |> Repo.all()
-  end
-
-  @doc """
-  Returns the list of messages grouped by sections for a given student.
-
-  A message is related to the student if it's sent to the student's classes or school.
-
-  ## Options
-
-  - `:preloads` - preloads associated data for messages
-  """
-  @spec list_student_messages_with_sections(pos_integer(), pos_integer(), keyword()) :: [map()]
-  def list_student_messages_with_sections(student_id, school_id, opts \\ []) do
-    student_classes_ids =
-      from(
-        cl in Class,
-        join: cs in "classes_students",
-        on: cl.id == cs.class_id,
-        where: cs.student_id == ^student_id,
-        group_by: cl.id,
-        select: cl.id
-      )
-      |> Repo.all()
-
-    messages =
-      from(
-        m in Message,
-        left_join: mc in assoc(m, :message_classes),
-        where: is_nil(m.archived_at),
-        where:
-          (m.send_to == "classes" and mc.class_id in ^student_classes_ids) or
-            (m.send_to == "school" and m.school_id == ^school_id),
-        group_by: m.id,
-        order_by: [
-          m.section,
-          desc: fragment("CASE WHEN ? THEN 1 ELSE 0 END", m.is_pinned),
-          desc: m.inserted_at
-        ]
-      )
-      |> Repo.all()
-      |> maybe_preload(opts)
-
-    messages
-    |> Enum.group_by(& &1.section)
-    |> Enum.map(fn {section_name, section_messages} ->
-      %{
-        name: section_name || "News",
-        messages: section_messages,
-        messages_count: length(section_messages)
-      }
-    end)
-    |> Enum.sort_by(& &1.name)
   end
 
   @doc """
@@ -319,43 +268,29 @@ defmodule Lanttern.MessageBoard do
   end
 
   @doc """
-  Returns the list of messages grouped by sections with message counts.
+  Returns the list of sections ordered by position with messages preloaded and filtered.
 
-  Uses a single optimized query to fetch all messages and groups them in Elixir.
+  ## Parameters
 
-  ## Options
-
-  - `:school_id` - filters messages by school id
-  - `:classes_ids` - filters messages sent to given classes OR to the school. Requires `school_id`.
-  - `:preloads` - preloads associated data for messages
+  - `school_id` - the school id for filtering messages
+  - `classes_ids` - list of class ids for filtering messages
   """
-  def list_messages_with_sections(opts \\ []) do
-    messages =
+  def list_sections(school_id, classes_ids) when is_list(classes_ids) do
+    messages_query =
       from(
         m in Message,
         where: is_nil(m.archived_at),
-        group_by: m.id,
         order_by: [
-          m.section,
           desc: fragment("CASE WHEN ? THEN 1 ELSE 0 END", m.is_pinned),
           desc: m.inserted_at
         ]
       )
-      |> apply_sections_filter_opts(opts)
-      |> Repo.all()
-      |> maybe_preload(opts)
+      |> apply_sections_filter_opts(classes_ids: classes_ids, school_id: school_id)
+      |> preload([:classes])
 
-    messages
-    |> Enum.group_by(& &1.section)
-    |> Enum.map(fn {section_name, section_messages} ->
-      %{
-        name: section_name || "News",
-        section: section_name,
-        messages: section_messages,
-        messages_count: length(section_messages)
-      }
-    end)
-    |> Enum.sort_by(& &1.name)
+    from(s in Section, order_by: s.position)
+    |> preload(messages: ^messages_query)
+    |> Repo.all()
   end
 
   defp apply_sections_filter_opts(queryable, opts) do
@@ -378,5 +313,78 @@ defmodule Lanttern.MessageBoard do
             from(m in queryable, where: m.school_id == ^school_id)
         end
     end
+  end
+
+  @doc """
+  Lists sections with messages filtered by student.
+
+  A message is related to the student if it's sent to the student's classes or school.
+  Returns sections with their associated messages filtered by student access.
+  """
+  def list_sections_for_students(student_id, school_id) do
+    student_classes_ids =
+      from(
+        cl in Class,
+        join: cs in "classes_students",
+        on: cl.id == cs.class_id,
+        where: cs.student_id == ^student_id,
+        select: cl.id
+      )
+      |> Repo.all()
+
+    messages_query =
+      from(
+        m in Message,
+        left_join: mc in assoc(m, :message_classes),
+        where: is_nil(m.archived_at),
+        order_by: [
+          desc: fragment("CASE WHEN ? THEN 1 ELSE 0 END", m.is_pinned),
+          desc: m.inserted_at
+        ]
+      )
+      |> apply_sections_filter_opts(classes_ids: student_classes_ids, school_id: school_id)
+
+    from(s in Section, order_by: s.position)
+    |> preload(messages: ^messages_query)
+    |> Repo.all()
+  end
+
+  @doc """
+  Gets a single section.
+
+  Raises `Ecto.NoResultsError` if the Section does not exist.
+  """
+  def get_section!(id), do: Repo.get!(Section, id)
+
+  @doc """
+  Creates a section.
+  """
+  def create_section(attrs) do
+    %Section{}
+    |> Section.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a section.
+  """
+  def update_section(%Section{} = section, attrs) do
+    section
+    |> Section.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a section.
+  """
+  def delete_section(%Section{} = section) do
+    Repo.delete(section)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking section changes.
+  """
+  def change_section(%Section{} = section, attrs \\ %{}) do
+    Section.changeset(section, attrs)
   end
 end

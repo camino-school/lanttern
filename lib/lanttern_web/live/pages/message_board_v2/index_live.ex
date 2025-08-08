@@ -11,6 +11,7 @@ defmodule LantternWeb.MessageBoard.IndexLive do
 
   # shared
   alias LantternWeb.MessageBoard.MessageFormOverlayComponentV2
+  # alias LantternWeb.MessageBoard.SectionFormOverlayComponent
 
   def mount(_params, _session, socket) do
     if connected?(socket), do: send(self(), :initialized)
@@ -24,8 +25,8 @@ defmodule LantternWeb.MessageBoard.IndexLive do
       |> assign(:selected_classes_ids, [])
       |> assign(:message, nil)
       |> assign(:messages, [])
-      |> assign(:total_messages_count, 0)
       |> assign(:section, nil)
+      |> assign(:sections, [])
 
     {:ok, socket}
   end
@@ -89,6 +90,20 @@ defmodule LantternWeb.MessageBoard.IndexLive do
     |> then(&{:noreply, &1})
   end
 
+  # def handle_info({SectionFormOverlayComponent, {action, _section}}, socket)
+  #     when action in [:created, :updated] do
+  #   flash_message =
+  #     case action do
+  #       :created -> {:info, gettext("Section created successfully")}
+  #       :updated -> {:info, gettext("Section updated successfully")}
+  #     end
+
+  #   socket
+  #   |> put_flash(elem(flash_message, 0), elem(flash_message, 1))
+  #   |> push_patch(to: ~p"/school/message_board_v2")
+  #   |> then(&{:noreply, &1})
+  # end
+
   def handle_info(:initialized, socket) do
     socket =
       socket
@@ -110,39 +125,27 @@ defmodule LantternWeb.MessageBoard.IndexLive do
     assign_classes_filter(socket, assign_classes_filter_opts)
   end
 
-  defp assign_section(%{assigns: %{params: %{"section" => section}}} = socket) do
+  defp assign_sections(socket) do
+    school_id = socket.assigns.current_user.current_profile.school_id
+    sections = MessageBoard.list_sections(school_id, socket.assigns.selected_classes_ids)
+
+    assign(socket, :sections, sections)
+  end
+
+  defp assign_section(%{assigns: %{params: %{"section_id" => section_id}}} = socket) do
+    section = MessageBoard.get_section!(section_id)
+
     assign(socket, :section, section)
   end
 
   defp assign_section(socket), do: assign(socket, :section, nil)
 
-  defp assign_sections(socket) do
-    school_id = socket.assigns.current_user.current_profile.school_id
-
-    sections =
-      MessageBoard.list_messages_with_sections(
-        school_id: school_id,
-        classes_ids: socket.assigns.selected_classes_ids,
-        preloads: :classes
-      )
-
-    socket
-    |> assign(:sections, sections)
-    |> assign(:total_messages_count, count_total_messages(sections))
-  end
-
-  defp count_total_messages(sections) do
-    Enum.reduce(sections, 0, fn section, acc -> acc + section.messages_count end)
-  end
-
-  defp assign_message(%{assigns: %{params: %{"new" => "true"}}} = socket) do
-    section = Map.get(socket.assigns.params, "section", "news")
-
+  defp assign_message(%{assigns: %{params: %{"new" => "true", "section_id" => id}}} = socket) do
     message = %Message{
       school_id: socket.assigns.current_user.current_profile.school_id,
       classes: [],
       send_to: "school",
-      section: section
+      section_id: id
     }
 
     socket
@@ -223,21 +226,13 @@ defmodule LantternWeb.MessageBoard.IndexLive do
             </button>
             <.icon name="hero-eye" class="w-4 h-4 text-gray-400" />
           </div>
-
-          <p class="text-sm text-gray-600">
-            {if @total_messages_count == 0 do
-              gettext("No messages")
-            else
-              ngettext(
-                "Showing 1 message",
-                "Showing %{count} messages",
-                @total_messages_count
-              )
-            end}
-          </p>
         </div>
 
-        <.action type="link" patch={~p"/school/message_board_v2"} icon_name="hero-plus-circle-mini">
+        <.action
+          type="link"
+          patch={~p"/school/message_board_v2?new_section=true"}
+          icon_name="hero-plus-circle-mini"
+        >
           {gettext("Create section")}
         </.action>
       </.action_bar>
@@ -250,10 +245,10 @@ defmodule LantternWeb.MessageBoard.IndexLive do
           )}
         </p>
 
-        <%= if @total_messages_count == 0 do %>
+        <%= if @sections == [] do %>
           <.card_base class="p-10 mt-4">
             <.empty_state>
-              {gettext("No messages created yet")}
+              {gettext("No sections created yet")}
             </.empty_state>
           </.card_base>
         <% else %>
@@ -264,7 +259,6 @@ defmodule LantternWeb.MessageBoard.IndexLive do
                   <div class="flex items-center space-x-3">
                     <.icon name="hero-bars-2" class="w-5 h-5 text-gray-400 cursor-move" />
                     <h2 class="text-lg font-semibold text-gray-800">{section.name}</h2>
-                    <.badge>{section.messages_count}</.badge>
                   </div>
                   <div class="flex items-center space-x-2">
                     <.action type="button" theme="subtle" icon_name="hero-cog-6-tooth-mini">
@@ -272,7 +266,7 @@ defmodule LantternWeb.MessageBoard.IndexLive do
                     </.action>
                     <.action
                       type="link"
-                      patch={~p"/school/message_board_v2?new=true&section=#{section.name}"}
+                      patch={~p"/school/message_board_v2?new=true&section_id=#{section.id}"}
                       theme="ghost"
                       icon_name="hero-plus-mini"
                     >
@@ -293,7 +287,7 @@ defmodule LantternWeb.MessageBoard.IndexLive do
                     <% end %>
 
                     <.link
-                      patch={~p"/school/message_board_v2?new=true&section=#{section.name}"}
+                      patch={~p"/school/message_board_v2?new=true&section_id=#{section.id}"}
                       class="bg-white border-2 border-dashed border-gray-300 rounded-lg p-6 h-48 flex flex-col items-center justify-center text-gray-400 hover:text-gray-600 hover:border-gray-400 transition-colors group"
                     >
                       <.icon
@@ -314,13 +308,24 @@ defmodule LantternWeb.MessageBoard.IndexLive do
         :if={@message}
         module={MessageFormOverlayComponentV2}
         id="message-form-overlay"
-        section={@section}
         message={@message}
+        section={@section}
         title={@message_overlay_title}
         current_profile={@current_user.current_profile}
         on_cancel={JS.patch(~p"/school/message_board_v2")}
         notify_parent
       />
+
+      <%!-- <.live_component
+        :if={@section}
+        module={SectionFormOverlayComponent}
+        id="section-form-overlay"
+        section={@section}
+        title={@section_overlay_title}
+        current_profile={@current_user.current_profile}
+        on_cancel={JS.patch(~p"/school/message_board_v2")}
+        notify_parent
+      /> --%>
 
       <.live_component
         module={LantternWeb.Filters.ClassesFilterOverlayComponent}

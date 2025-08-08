@@ -14,7 +14,7 @@ defmodule LantternWeb.StudentHomeLiveV2Test do
 
       ctx.conn
       |> visit(@live_view_path)
-      |> assert_has("h3", text: message.section)
+      |> assert_has("h3", text: message.section.name)
       |> assert_has("h3", text: message.name)
       |> click_button("span[phx-click='card_lookout']", "Find out more")
       # |> assert_path("/student_v2?message=#{message.id}")

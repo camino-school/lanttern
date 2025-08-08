@@ -4,15 +4,13 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponentV2 do
 
   ### Attrs
 
-      attr :message, Message, required: true
-      attr :title, :string, required: true
-      attr :current_profile, Profile, required: true
-      attr :section_id, :string
-      attr :section, :string
-      attr :on_cancel, :any, required: true, doc: "`<.slide_over>` `on_cancel` attr"
-      attr :notify_parent, :boolean
-      attr :notify_component, Phoenix.LiveComponent.CID
-
+    attr :message, Message, required: true
+    attr :title, :string, required: true
+    attr :current_profile, Profile, required: true
+    attr :section, :string
+    attr :on_cancel, :any, required: true, doc: "`<.slide_over>` `on_cancel` attr"
+    attr :notify_parent, :boolean
+    attr :notify_component, Phoenix.LiveComponent.CID
   """
 
   use LantternWeb, :live_component
@@ -30,7 +28,6 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponentV2 do
   def render(assigns) do
     ~H"""
     <div phx-remove={JS.exec("phx-remove", to: "##{@id}")}>
-      <%!-- <.slide_over id={@id} show={@form.action == nil} on_cancel={@on_cancel}> --%>
       <.slide_over id={@id} show={true} on_cancel={@on_cancel}>
         <:title>{@title}</:title>
         <.form
@@ -40,7 +37,6 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponentV2 do
           phx-submit="save"
           phx-target={@myself}
         >
-          <%!-- <%= @section %> --%>
           <.error_block :if={@form.source.action in [:insert, :update]} class="mb-6">
             {gettext("Oops, something went wrong! Please check the errors below.")}
           </.error_block>
@@ -81,7 +77,6 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponentV2 do
             class="mb-6"
             phx-debounce="1500"
           />
-          <%!-- allow send to selection only when creating message --%>
           <%= if @message.id do %>
             <div :if={@message.send_to == "school"} class="flex items-center gap-2 mb-6">
               <.icon name="hero-user-group" class="w-6 h-6" />
@@ -123,6 +118,7 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponentV2 do
               if(@form[:send_to].value != "classes", do: "hidden")
             ]}
           />
+
           <div
             :if={@form[:classes_ids].errors != [] && @form.source.action in [:insert, :update]}
             class="mb-6"
@@ -168,6 +164,7 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponentV2 do
       socket
       |> assign(:initialized, false)
       |> assign(:is_removing_cover, false)
+      |> assign(:section, nil)
       |> allow_upload(:cover,
         accept: ~w(.jpg .jpeg .png .webp),
         max_file_size: 5_000_000,
@@ -178,10 +175,7 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponentV2 do
   end
 
   @impl true
-  def update(
-        %{action: {ClassesFieldComponent, {:changed, selected_classes_ids}}},
-        socket
-      ) do
+  def update(%{action: {ClassesFieldComponent, {:changed, selected_classes_ids}}}, socket) do
     socket =
       socket
       |> assign(:selected_classes_ids, selected_classes_ids)
@@ -258,7 +252,6 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponentV2 do
         [image_url] -> image_url
       end
 
-    # besides "consumed" cover image, we should also consider is_removing_cover flag
     cover_image_url =
       cond do
         cover_image_url -> cover_image_url
@@ -340,6 +333,6 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponentV2 do
     params
     |> Map.put("school_id", assigns.message.school_id)
     |> Map.put("classes_ids", assigns.selected_classes_ids)
-    |> Map.put("section", assigns.section)
+    |> Map.put("section_id", assigns.message.section_id || assigns.section.id)
   end
 end

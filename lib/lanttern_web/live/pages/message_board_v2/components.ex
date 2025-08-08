@@ -106,6 +106,7 @@ defmodule LantternWeb.MessageBoard.Components do
   def card_message(assigns) do
     ~H"""
     <div
+      id={"message-#{@message.id}"}
       class="bg-white/90 backdrop-blur-sm shadow-sm hover:shadow-lg transition-all duration-200 rounded-sm border-l-12 group cursor-pointer"
       style={"border-color: ##{@message.color}"}
     >
