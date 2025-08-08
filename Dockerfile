@@ -55,14 +55,8 @@ COPY lib lib
 
 COPY assets assets
 
-# install tailwind with retry logic (to handle GitHub connectivity issues)
-RUN for i in 1 2 3; do \
-    echo "Attempt $i: Installing tailwind..." && \
-    mix tailwind.install && break || \
-    (echo "Attempt $i failed, waiting..." && sleep 10); \
-  done && \
-  echo "Tailwind installation completed" || \
-  (echo "All attempts failed" && exit 1)
+# install tailwindcss globally via npm (bypasses GitHub connectivity issues)
+RUN npm install -g tailwindcss@4.1.7
 
 # compile assets
 RUN mix assets.deploy
