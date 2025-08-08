@@ -112,8 +112,11 @@ defmodule Lanttern.MixProject do
       "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],
       "assets.build": ["cmd --cd assets npm i", "tailwind lanttern", "esbuild lanttern"],
       "assets.deploy": [
+        # needed only while tailwind task is disabled
+        "phx.digest.clean --all",
         "cmd --cd assets npm ci --only=prod",
-        # "tailwind lanttern --minify", # Temporarily disabled - using pre-compiled CSS
+        # Temporarily disabled - using pre-compiled CSS
+        # "tailwind lanttern --minify",
         "esbuild lanttern --minify",
         "phx.digest"
       ],
