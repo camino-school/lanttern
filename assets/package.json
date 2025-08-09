@@ -4,6 +4,7 @@
     "@tailwindcss/typography": "^0.5.16",
     "glider-js": "^1.7.9",
     "sortablejs": "^1.15.6",
+    "tailwindcss": "^4.1.11",
     "three": "^0.168.0",
     "three.meshline": "^1.4.0"
   }
