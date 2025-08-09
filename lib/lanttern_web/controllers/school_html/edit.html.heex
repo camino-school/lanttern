@@ -1,8 +1,10 @@
-<.header>
-  Edit School {@school.id}
-  <:subtitle>Use this form to manage school records in your database.</:subtitle>
-</.header>
+<Layouts.admin flash={@flash}>
+  <.header>
+    Edit School {@school.id}
+    <:subtitle>Use this form to manage school records in your database.</:subtitle>
+  </.header>
 
-<.school_form changeset={@changeset} action={~p"/admin/schools/#{@school}"} />
+  <.school_form changeset={@changeset} action={~p"/admin/schools/#{@school}"} />
 
-<.back navigate={~p"/admin/schools"}>Back to schools</.back>
+  <.back navigate={~p"/admin/schools"}>Back to schools</.back>
+</Layouts.admin>

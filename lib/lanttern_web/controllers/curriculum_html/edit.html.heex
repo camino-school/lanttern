@@ -1,8 +1,10 @@
-<.header>
-  Edit Curriculum {@curriculum.id}
-  <:subtitle>Use this form to manage curriculum records in your database.</:subtitle>
-</.header>
+<Layouts.admin flash={@flash}>
+  <.header>
+    Edit Curriculum {@curriculum.id}
+    <:subtitle>Use this form to manage curriculum records in your database.</:subtitle>
+  </.header>
 
-<.curriculum_form changeset={@changeset} action={~p"/admin/curricula/#{@curriculum}"} />
+  <.curriculum_form changeset={@changeset} action={~p"/admin/curricula/#{@curriculum}"} />
 
-<.back navigate={~p"/admin/curricula"}>Back to curricula</.back>
+  <.back navigate={~p"/admin/curricula"}>Back to curricula</.back>
+</Layouts.admin>

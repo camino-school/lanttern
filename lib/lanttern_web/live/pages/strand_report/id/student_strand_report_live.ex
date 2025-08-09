@@ -35,7 +35,7 @@ defmodule LantternWeb.StudentStrandReportLive do
       |> assign_is_student()
       |> assign_allow_access()
 
-    {:ok, socket, layout: {LantternWeb.Layouts, :app_logged_in_blank}}
+    {:ok, socket}
   end
 
   defp assign_student_report_card(socket, params) do

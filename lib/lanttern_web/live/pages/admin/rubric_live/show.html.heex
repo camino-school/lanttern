@@ -1,33 +1,35 @@
-<.header>
-  Rubric {@rubric.id}
-  <:subtitle>This is a rubric record from your database.</:subtitle>
-  <:actions>
-    <.link patch={~p"/admin/rubrics/#{@rubric}/show/edit"} phx-click={JS.push_focus()}>
-      <.button>Edit rubric</.button>
-    </.link>
-  </:actions>
-</.header>
+<Layouts.admin flash={@flash}>
+  <.header>
+    Rubric {@rubric.id}
+    <:subtitle>This is a rubric record from your database.</:subtitle>
+    <:actions>
+      <.link patch={~p"/admin/rubrics/#{@rubric}/show/edit"} phx-click={JS.push_focus()}>
+        <.button>Edit rubric</.button>
+      </.link>
+    </:actions>
+  </.header>
 
-<.list>
-  <:item title="Criteria">{@rubric.criteria}</:item>
-  <:item title="Scale">{@rubric.scale.name}</:item>
-  <:item title="Is differentiation">{@rubric.is_differentiation}</:item>
-</.list>
+  <.list>
+    <:item title="Criteria">{@rubric.criteria}</:item>
+    <:item title="Scale">{@rubric.scale.name}</:item>
+    <:item title="Is differentiation">{@rubric.is_differentiation}</:item>
+  </.list>
 
-<.back navigate={~p"/admin/rubrics"}>Back to rubrics</.back>
+  <.back navigate={~p"/admin/rubrics"}>Back to rubrics</.back>
 
-<.modal
-  :if={@live_action == :edit}
-  id="rubric-modal"
-  show
-  on_cancel={JS.patch(~p"/admin/rubrics/#{@rubric}")}
->
-  <.live_component
-    module={LantternWeb.Admin.RubricLive.FormComponent}
-    id={@rubric.id}
-    title={@page_title}
-    action={@live_action}
-    rubric={@rubric}
-    patch={~p"/admin/rubrics/#{@rubric}"}
-  />
-</.modal>
+  <.modal
+    :if={@live_action == :edit}
+    id="rubric-modal"
+    show
+    on_cancel={JS.patch(~p"/admin/rubrics/#{@rubric}")}
+  >
+    <.live_component
+      module={LantternWeb.Admin.RubricLive.FormComponent}
+      id={@rubric.id}
+      title={@page_title}
+      action={@live_action}
+      rubric={@rubric}
+      patch={~p"/admin/rubrics/#{@rubric}"}
+    />
+  </.modal>
+</Layouts.admin>

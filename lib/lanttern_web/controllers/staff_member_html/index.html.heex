@@ -1,32 +1,34 @@
-<.header>
-  Listing staff members
-  <:actions>
-    <.link href={~p"/admin/staff_members/new"}>
-      <.button>New staff member</.button>
-    </.link>
-  </:actions>
-</.header>
+<Layouts.admin flash={@flash}>
+  <.header>
+    Listing staff members
+    <:actions>
+      <.link href={~p"/admin/staff_members/new"}>
+        <.button>New staff member</.button>
+      </.link>
+    </:actions>
+  </.header>
 
-<.table
-  id="staff-members"
-  rows={@staff_members}
-  row_click={&JS.navigate(~p"/admin/staff_members/#{&1}")}
->
-  <:col :let={staff_member} label="School">{staff_member.school.name}</:col>
-  <:col :let={staff_member} label="Name">{staff_member.name}</:col>
-  <:action :let={staff_member}>
-    <div class="sr-only">
-      <.link navigate={~p"/admin/staff_members/#{staff_member}"}>Show</.link>
-    </div>
-    <.link navigate={~p"/admin/staff_members/#{staff_member}/edit"}>Edit</.link>
-  </:action>
-  <:action :let={staff_member}>
-    <.link
-      href={~p"/admin/staff_members/#{staff_member}"}
-      method="delete"
-      data-confirm="Are you sure?"
-    >
-      Delete
-    </.link>
-  </:action>
-</.table>
+  <.table
+    id="staff-members"
+    rows={@staff_members}
+    row_click={&JS.navigate(~p"/admin/staff_members/#{&1}")}
+  >
+    <:col :let={staff_member} label="School">{staff_member.school.name}</:col>
+    <:col :let={staff_member} label="Name">{staff_member.name}</:col>
+    <:action :let={staff_member}>
+      <div class="sr-only">
+        <.link navigate={~p"/admin/staff_members/#{staff_member}"}>Show</.link>
+      </div>
+      <.link navigate={~p"/admin/staff_members/#{staff_member}/edit"}>Edit</.link>
+    </:action>
+    <:action :let={staff_member}>
+      <.link
+        href={~p"/admin/staff_members/#{staff_member}"}
+        method="delete"
+        data-confirm="Are you sure?"
+      >
+        Delete
+      </.link>
+    </:action>
+  </.table>
+</Layouts.admin>

@@ -1,12 +1,14 @@
-<.header>
-  Edit Composition {@composition.id}
-  <:subtitle>Use this form to manage composition records in your database.</:subtitle>
-</.header>
+<Layouts.admin flash={@flash}>
+  <.header>
+    Edit Composition {@composition.id}
+    <:subtitle>Use this form to manage composition records in your database.</:subtitle>
+  </.header>
 
-<.composition_form
-  scale_options={@scale_options}
-  changeset={@changeset}
-  action={~p"/admin/grading_compositions/#{@composition}"}
-/>
+  <.composition_form
+    scale_options={@scale_options}
+    changeset={@changeset}
+    action={~p"/admin/grading_compositions/#{@composition}"}
+  />
 
-<.back navigate={~p"/admin/grading_compositions"}>Back to compositions</.back>
+  <.back navigate={~p"/admin/grading_compositions"}>Back to compositions</.back>
+</Layouts.admin>

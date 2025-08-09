@@ -1,14 +1,16 @@
-<.header>
-  Edit Curriculum Item {@curriculum_item.id}
-  <:subtitle>Use this form to manage curriculum item records in your database.</:subtitle>
-</.header>
+<Layouts.admin flash={@flash}>
+  <.header>
+    Edit Curriculum Item {@curriculum_item.id}
+    <:subtitle>Use this form to manage curriculum item records in your database.</:subtitle>
+  </.header>
 
-<.curriculum_item_form
-  curriculum_component_options={@curriculum_component_options}
-  subject_options={@subject_options}
-  year_options={@year_options}
-  changeset={@changeset}
-  action={~p"/admin/curriculum_items/#{@curriculum_item}"}
-/>
+  <.curriculum_item_form
+    curriculum_component_options={@curriculum_component_options}
+    subject_options={@subject_options}
+    year_options={@year_options}
+    changeset={@changeset}
+    action={~p"/admin/curriculum_items/#{@curriculum_item}"}
+  />
 
-<.back navigate={~p"/admin/curriculum_items"}>Back to items</.back>
+  <.back navigate={~p"/admin/curriculum_items"}>Back to items</.back>
+</Layouts.admin>

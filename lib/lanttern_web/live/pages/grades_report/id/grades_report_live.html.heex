@@ -1,157 +1,159 @@
-<div>
-  <.header_nav current_user={@current_user}>
-    <:breadcrumb navigate={~p"/grades_reports"}>{gettext("Grades reports")}</:breadcrumb>
-    <:title>{@grades_report.name}</:title>
-    <div class="flex items-center gap-6 p-4">
-      <div class="flex-1 flex items-center gap-4">
-        <div class="flex items-center gap-2">
-          <.icon name="hero-calendar-mini" class="text-ltrn-subtle" />
-          {@grades_report.year.name}, {gettext("Cycle")} {@grades_report.school_cycle.name}
-        </div>
-        <div class="flex items-center gap-2">
-          <.icon name="hero-view-columns-mini" class="text-ltrn-subtle" />
-          {gettext("Scale")} {@grades_report.scale.name}
-          <div
-            :if={@grades_report.scale.ordinal_values != []}
-            class="flex items-center gap-2 ml-2"
-          >
-            <%= for ov
+<Layouts.app_logged_in flash={@flash} current_user={@current_user} current_path={@current_path}>
+  <div>
+    <.header_nav current_user={@current_user}>
+      <:breadcrumb navigate={~p"/grades_reports"}>{gettext("Grades reports")}</:breadcrumb>
+      <:title>{@grades_report.name}</:title>
+      <div class="flex items-center gap-6 p-4">
+        <div class="flex-1 flex items-center gap-4">
+          <div class="flex items-center gap-2">
+            <.icon name="hero-calendar-mini" class="text-ltrn-subtle" />
+            {@grades_report.year.name}, {gettext("Cycle")} {@grades_report.school_cycle.name}
+          </div>
+          <div class="flex items-center gap-2">
+            <.icon name="hero-view-columns-mini" class="text-ltrn-subtle" />
+            {gettext("Scale")} {@grades_report.scale.name}
+            <div
+              :if={@grades_report.scale.ordinal_values != []}
+              class="flex items-center gap-2 ml-2"
+            >
+              <%= for ov
             <- @grades_report.scale.ordinal_values do %>
-              <.badge color_map={ov}>
-                {ov.name}
-              </.badge>
-            <% end %>
+                <.badge color_map={ov}>
+                  {ov.name}
+                </.badge>
+              <% end %>
+            </div>
           </div>
         </div>
+        <div class="flex gap-4">
+          <.action
+            type="link"
+            icon_name="hero-cog-6-tooth-mini"
+            patch={~p"/grades_reports/#{@grades_report}?is_configuring=true"}
+          >
+            {gettext("Configure")}
+          </.action>
+          <.action
+            type="link"
+            icon_name="hero-pencil-mini"
+            patch={~p"/grades_reports/#{@grades_report}?is_editing=true"}
+          >
+            {gettext("Edit")}
+          </.action>
+        </div>
       </div>
-      <div class="flex gap-4">
-        <.action
-          type="link"
-          icon_name="hero-cog-6-tooth-mini"
-          patch={~p"/grades_reports/#{@grades_report}?is_configuring=true"}
-        >
-          {gettext("Configure")}
-        </.action>
-        <.action
-          type="link"
-          icon_name="hero-pencil-mini"
-          patch={~p"/grades_reports/#{@grades_report}?is_editing=true"}
-        >
-          {gettext("Edit")}
-        </.action>
-      </div>
-    </div>
-  </.header_nav>
-  <.responsive_container :if={@grades_report.info} class="py-6 sm:py-10">
-    <.markdown text={@grades_report.info} />
-  </.responsive_container>
-</div>
-<.students_grades_report_full_grid
-  students={@streams.students}
-  cycle_name={@grades_report.school_cycle.name}
-  has_students={@has_students}
-  final_is_visible={@grades_report.final_is_visible}
-  on_toggle_final_grades_visibility={fn -> JS.push("toggle_final_grades_visibility") end}
-  grades_report_cycles={@grades_report_cycles}
-  grades_report_subjects={@grades_report_subjects}
-  students_grades_map={@students_grades_map}
-  student_navigate={fn student -> ~p"/school/students/#{student}/grades_reports" end}
-  on_calculate_final={fn -> JS.push("calculate_all") end}
-  on_calculate_student={
-    fn student_id ->
-      JS.push("calculate_student", value: %{student_id: student_id})
-    end
-  }
-  on_calculate_subject={
-    fn grades_report_subject_id ->
-      JS.push("calculate_subject", value: %{grades_report_subject_id: grades_report_subject_id})
-    end
-  }
-  on_calculate_cell={
-    fn student_id, grades_report_subject_id ->
-      JS.push("calculate_cell",
-        value: %{
-          student_id: student_id,
-          grades_report_subject_id: grades_report_subject_id
-        }
-      )
-    end
-  }
-  on_entry_click={
-    fn student_grades_report_entry_id ->
-      JS.patch(
-        ~p"/grades_reports/#{@grades_report}?student_grades_report_entry=#{student_grades_report_entry_id}"
-      )
-    end
-  }
-  on_final_entry_click={
-    fn student_grades_report_final_entry_id ->
-      JS.patch(
-        ~p"/grades_reports/#{@grades_report}?student_grades_report_final_entry=#{student_grades_report_final_entry_id}"
-      )
-    end
-  }
-/>
-<.slide_over
-  :if={@is_editing}
-  id="grades-report-form-overlay"
-  show={true}
-  on_cancel={JS.patch(~p"/grades_reports/#{@grades_report}")}
->
-  <:title>{gettext("Edit grades report")}</:title>
-  <.live_component
-    module={GradesReportFormComponent}
-    id={@grades_report.id}
-    grades_report={@grades_report}
-    current_user={@current_user}
-    navigate={fn _ -> ~p"/grades_reports/#{@grades_report}" end}
-    hide_submit
+    </.header_nav>
+    <.responsive_container :if={@grades_report.info} class="py-6 sm:py-10">
+      <.markdown text={@grades_report.info} />
+    </.responsive_container>
+  </div>
+  <.students_grades_report_full_grid
+    students={@streams.students}
+    cycle_name={@grades_report.school_cycle.name}
+    has_students={@has_students}
+    final_is_visible={@grades_report.final_is_visible}
+    on_toggle_final_grades_visibility={fn -> JS.push("toggle_final_grades_visibility") end}
+    grades_report_cycles={@grades_report_cycles}
+    grades_report_subjects={@grades_report_subjects}
+    students_grades_map={@students_grades_map}
+    student_navigate={fn student -> ~p"/school/students/#{student}/grades_reports" end}
+    on_calculate_final={fn -> JS.push("calculate_all") end}
+    on_calculate_student={
+      fn student_id ->
+        JS.push("calculate_student", value: %{student_id: student_id})
+      end
+    }
+    on_calculate_subject={
+      fn grades_report_subject_id ->
+        JS.push("calculate_subject", value: %{grades_report_subject_id: grades_report_subject_id})
+      end
+    }
+    on_calculate_cell={
+      fn student_id, grades_report_subject_id ->
+        JS.push("calculate_cell",
+          value: %{
+            student_id: student_id,
+            grades_report_subject_id: grades_report_subject_id
+          }
+        )
+      end
+    }
+    on_entry_click={
+      fn student_grades_report_entry_id ->
+        JS.patch(
+          ~p"/grades_reports/#{@grades_report}?student_grades_report_entry=#{student_grades_report_entry_id}"
+        )
+      end
+    }
+    on_final_entry_click={
+      fn student_grades_report_final_entry_id ->
+        JS.patch(
+          ~p"/grades_reports/#{@grades_report}?student_grades_report_final_entry=#{student_grades_report_final_entry_id}"
+        )
+      end
+    }
   />
-  <:actions_left>
-    <.button
-      type="button"
-      theme="ghost"
-      phx-click="delete_grades_report"
-      data-confirm={gettext("Are you sure?")}
-    >
-      {gettext("Delete")}
-    </.button>
-  </:actions_left>
-  <:actions>
-    <.button
-      type="button"
-      theme="ghost"
-      phx-click={JS.exec("data-cancel", to: "#grades-report-form-overlay")}
-    >
-      {gettext("Cancel")}
-    </.button>
-    <.button type="submit" form="grades-report-form">
-      {gettext("Save")}
-    </.button>
-  </:actions>
-</.slide_over>
-<.live_component
-  :if={@is_configuring}
-  module={GradesReportGridConfigurationOverlayComponent}
-  id="grades-report-grid-configuration-overlay"
-  grades_report={@grades_report}
-  on_cancel={JS.patch(~p"/grades_reports/#{@grades_report}")}
-/>
-<.live_component
-  :if={@is_editing_student_grades_report_entry}
-  module={StudentGradesReportEntryOverlayComponent}
-  id={"student-grade-report-entry-#{@student_grades_report_entry.id}"}
-  student_grades_report_entry={@student_grades_report_entry}
-  scale_id={@grades_report.scale_id}
-  navigate={~p"/grades_reports/#{@grades_report}"}
-  on_cancel={JS.patch(~p"/grades_reports/#{@grades_report}")}
-/>
-<.live_component
-  :if={@is_editing_student_grades_report_final_entry}
-  module={StudentGradesReportFinalEntryOverlayComponent}
-  id={@student_grades_report_final_entry.id}
-  student_grades_report_final_entry={@student_grades_report_final_entry}
-  scale_id={@grades_report.scale_id}
-  navigate={~p"/grades_reports/#{@grades_report}"}
-  on_cancel={JS.patch(~p"/grades_reports/#{@grades_report}")}
-/>
+  <.slide_over
+    :if={@is_editing}
+    id="grades-report-form-overlay"
+    show={true}
+    on_cancel={JS.patch(~p"/grades_reports/#{@grades_report}")}
+  >
+    <:title>{gettext("Edit grades report")}</:title>
+    <.live_component
+      module={GradesReportFormComponent}
+      id={@grades_report.id}
+      grades_report={@grades_report}
+      current_user={@current_user}
+      navigate={fn _ -> ~p"/grades_reports/#{@grades_report}" end}
+      hide_submit
+    />
+    <:actions_left>
+      <.button
+        type="button"
+        theme="ghost"
+        phx-click="delete_grades_report"
+        data-confirm={gettext("Are you sure?")}
+      >
+        {gettext("Delete")}
+      </.button>
+    </:actions_left>
+    <:actions>
+      <.button
+        type="button"
+        theme="ghost"
+        phx-click={JS.exec("data-cancel", to: "#grades-report-form-overlay")}
+      >
+        {gettext("Cancel")}
+      </.button>
+      <.button type="submit" form="grades-report-form">
+        {gettext("Save")}
+      </.button>
+    </:actions>
+  </.slide_over>
+  <.live_component
+    :if={@is_configuring}
+    module={GradesReportGridConfigurationOverlayComponent}
+    id="grades-report-grid-configuration-overlay"
+    grades_report={@grades_report}
+    on_cancel={JS.patch(~p"/grades_reports/#{@grades_report}")}
+  />
+  <.live_component
+    :if={@is_editing_student_grades_report_entry}
+    module={StudentGradesReportEntryOverlayComponent}
+    id={"student-grade-report-entry-#{@student_grades_report_entry.id}"}
+    student_grades_report_entry={@student_grades_report_entry}
+    scale_id={@grades_report.scale_id}
+    navigate={~p"/grades_reports/#{@grades_report}"}
+    on_cancel={JS.patch(~p"/grades_reports/#{@grades_report}")}
+  />
+  <.live_component
+    :if={@is_editing_student_grades_report_final_entry}
+    module={StudentGradesReportFinalEntryOverlayComponent}
+    id={@student_grades_report_final_entry.id}
+    student_grades_report_final_entry={@student_grades_report_final_entry}
+    scale_id={@grades_report.scale_id}
+    navigate={~p"/grades_reports/#{@grades_report}"}
+    on_cancel={JS.patch(~p"/grades_reports/#{@grades_report}")}
+  />
+</Layouts.app_logged_in>

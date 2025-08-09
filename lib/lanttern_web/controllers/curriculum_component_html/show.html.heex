@@ -1,37 +1,39 @@
-<.header>
-  Curriculum component {@curriculum_component.id}
-  <:subtitle>This is a curriculum_component record from your database.</:subtitle>
-  <:actions>
-    <.link href={~p"/admin/curriculum_components/#{@curriculum_component}/edit"}>
-      <.button>Edit curriculum_component</.button>
-    </.link>
-  </:actions>
-</.header>
+<Layouts.admin flash={@flash}>
+  <.header>
+    Curriculum component {@curriculum_component.id}
+    <:subtitle>This is a curriculum_component record from your database.</:subtitle>
+    <:actions>
+      <.link href={~p"/admin/curriculum_components/#{@curriculum_component}/edit"}>
+        <.button>Edit curriculum_component</.button>
+      </.link>
+    </:actions>
+  </.header>
 
-<.list>
-  <:item title="Curriculum">{@curriculum_component.curriculum.name}</:item>
-  <:item title="Code">{@curriculum_component.code}</:item>
-  <:item title="Name">{@curriculum_component.name}</:item>
-  <:item title="Description">{@curriculum_component.description}</:item>
-  <:item title="Position">{@curriculum_component.position}</:item>
-  <:item title="Colors">
-    <.badge style={
-      [
-        if(@curriculum_component.bg_color,
-          do: "background-color: #{@curriculum_component.bg_color};",
-          else: ""
-        ),
-        if(@curriculum_component.text_color,
-          do: "color: #{@curriculum_component.text_color};",
-          else: ""
-        )
-      ]
-      |> Enum.join(" ")
-    }>
-      bg: {@curriculum_component.bg_color || "—"} / text: {@curriculum_component.text_color ||
-        "—"}
-    </.badge>
-  </:item>
-</.list>
+  <.list>
+    <:item title="Curriculum">{@curriculum_component.curriculum.name}</:item>
+    <:item title="Code">{@curriculum_component.code}</:item>
+    <:item title="Name">{@curriculum_component.name}</:item>
+    <:item title="Description">{@curriculum_component.description}</:item>
+    <:item title="Position">{@curriculum_component.position}</:item>
+    <:item title="Colors">
+      <.badge style={
+        [
+          if(@curriculum_component.bg_color,
+            do: "background-color: #{@curriculum_component.bg_color};",
+            else: ""
+          ),
+          if(@curriculum_component.text_color,
+            do: "color: #{@curriculum_component.text_color};",
+            else: ""
+          )
+        ]
+        |> Enum.join(" ")
+      }>
+        bg: {@curriculum_component.bg_color || "—"} / text: {@curriculum_component.text_color ||
+          "—"}
+      </.badge>
+    </:item>
+  </.list>
 
-<.back navigate={~p"/admin/curriculum_components"}>Back to curriculum_components</.back>
+  <.back navigate={~p"/admin/curriculum_components"}>Back to curriculum_components</.back>
+</Layouts.admin>

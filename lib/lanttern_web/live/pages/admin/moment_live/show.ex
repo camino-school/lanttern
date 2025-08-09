@@ -1,5 +1,5 @@
 defmodule LantternWeb.Admin.MomentLive.Show do
-  use LantternWeb, {:live_view, layout: :admin}
+  use LantternWeb, :live_view
 
   alias Lanttern.LearningContext
 

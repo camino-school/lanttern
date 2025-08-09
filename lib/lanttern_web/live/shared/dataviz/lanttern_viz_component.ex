@@ -60,10 +60,14 @@ defmodule LantternWeb.Dataviz.LantternVizComponent do
               |> JS.push("select_item", value: %{"id" => ci.id}, target: @myself)
             }
           >
-            <.badge class="group-[.active]:hidden">{ci.curriculum_component.name}</.badge>
-            <.badge theme="dark" class="hidden group-[.active]:inline-flex">
-              {ci.curriculum_component.name}
-            </.badge>
+            <div class="inline-flex group-[.active]:hidden">
+              <.badge>{ci.curriculum_component.name}</.badge>
+            </div>
+            <div class="hidden group-[.active]:inline-flex">
+              <.badge theme="dark">
+                {ci.curriculum_component.name}
+              </.badge>
+            </div>
             <br /> {ci.name}
           </button>
         </div>

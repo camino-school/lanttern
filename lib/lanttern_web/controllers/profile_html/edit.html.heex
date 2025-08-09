@@ -1,14 +1,16 @@
-<.header>
-  Edit Profile {@profile.id}
-  <:subtitle>Use this form to manage profile records in your database.</:subtitle>
-</.header>
+<Layouts.admin flash={@flash}>
+  <.header>
+    Edit Profile {@profile.id}
+    <:subtitle>Use this form to manage profile records in your database.</:subtitle>
+  </.header>
 
-<.profile_form
-  user_options={@user_options}
-  student_options={@student_options}
-  staff_member_options={@staff_member_options}
-  changeset={@changeset}
-  action={~p"/admin/profiles/#{@profile}"}
-/>
+  <.profile_form
+    user_options={@user_options}
+    student_options={@student_options}
+    staff_member_options={@staff_member_options}
+    changeset={@changeset}
+    action={~p"/admin/profiles/#{@profile}"}
+  />
 
-<.back navigate={~p"/admin/profiles"}>Back to profiles</.back>
+  <.back navigate={~p"/admin/profiles"}>Back to profiles</.back>
+</Layouts.admin>

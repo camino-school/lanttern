@@ -1,16 +1,18 @@
-<.header>
-  Comment {@comment.id}
-  <:subtitle>This is a comment record from your database.</:subtitle>
-  <:actions>
-    <.link href={~p"/admin/comments/#{@comment}/edit"}>
-      <.button>Edit comment</.button>
-    </.link>
-  </:actions>
-</.header>
+<Layouts.admin flash={@flash}>
+  <.header>
+    Comment {@comment.id}
+    <:subtitle>This is a comment record from your database.</:subtitle>
+    <:actions>
+      <.link href={~p"/admin/comments/#{@comment}/edit"}>
+        <.button>Edit comment</.button>
+      </.link>
+    </:actions>
+  </.header>
 
-<.list>
-  <:item title="Comment">{@comment.comment}</:item>
-  <:item title="Author">{comment_author(@comment)}</:item>
-</.list>
+  <.list>
+    <:item title="Comment">{@comment.comment}</:item>
+    <:item title="Author">{comment_author(@comment)}</:item>
+  </.list>
 
-<.back navigate={~p"/admin/comments"}>Back to comments</.back>
+  <.back navigate={~p"/admin/comments"}>Back to comments</.back>
+</Layouts.admin>

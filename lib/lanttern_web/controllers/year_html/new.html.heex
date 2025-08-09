@@ -1,8 +1,10 @@
-<.header>
-  New Year
-  <:subtitle>Use this form to manage year records in your database.</:subtitle>
-</.header>
+<Layouts.admin flash={@flash}>
+  <.header>
+    New Year
+    <:subtitle>Use this form to manage year records in your database.</:subtitle>
+  </.header>
 
-<.year_form changeset={@changeset} action={~p"/admin/years"} />
+  <.year_form changeset={@changeset} action={~p"/admin/years"} />
 
-<.back navigate={~p"/admin/years"}>Back to years</.back>
+  <.back navigate={~p"/admin/years"}>Back to years</.back>
+</Layouts.admin>

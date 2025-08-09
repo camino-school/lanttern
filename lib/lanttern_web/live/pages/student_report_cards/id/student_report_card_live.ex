@@ -65,8 +65,7 @@ defmodule LantternWeb.StudentReportCardLive do
       student_grades_map: %{}
     ]
 
-    {:ok, socket,
-     layout: {LantternWeb.Layouts, :app_logged_in_blank}, temporary_assigns: temporary_assigns}
+    {:ok, socket, temporary_assigns: temporary_assigns}
   end
 
   defp assign_grades_report(socket) do

@@ -1,49 +1,51 @@
-<.header>
-  Moment {@moment.id}
-  <:subtitle>This is a moment record from your database.</:subtitle>
-  <:actions>
-    <.link patch={~p"/admin/moments/#{@moment}/show/edit"} phx-click={JS.push_focus()}>
-      <.button>Edit moment</.button>
-    </.link>
-  </:actions>
-</.header>
-
-<.list>
-  <:item title="Strand">{@moment.strand.name}</:item>
-  <:item title="Name">{@moment.name}</:item>
-  <:item title="Description">{@moment.description}</:item>
-  <:item title="Position">{@moment.position}</:item>
-  <:item title="Subjects">
-    {@moment.subjects
-    |> Enum.map(& &1.name)
-    |> Enum.join(", ")}
-  </:item>
-  <:item title="Curriculum items">
-    {@moment.curriculum_items
-    |> Enum.map(& &1.name)
-    |> Enum.join(", ")}
-  </:item>
-</.list>
-
-<.back navigate={~p"/admin/moments"}>Back to moments</.back>
-
-<.modal
-  :if={@live_action == :edit}
-  id="moment-modal"
-  show
-  on_cancel={JS.patch(~p"/admin/moments/#{@moment}")}
->
+<Layouts.admin flash={@flash}>
   <.header>
-    {@page_title}
-    <:subtitle>Use this form to manage moment records in your database.</:subtitle>
+    Moment {@moment.id}
+    <:subtitle>This is a moment record from your database.</:subtitle>
+    <:actions>
+      <.link patch={~p"/admin/moments/#{@moment}/show/edit"} phx-click={JS.push_focus()}>
+        <.button>Edit moment</.button>
+      </.link>
+    </:actions>
   </.header>
-  <.live_component
-    module={LantternWeb.LearningContext.MomentFormComponent}
-    id={@moment.id}
-    action={@live_action}
-    moment={@moment}
-    patch={~p"/admin/moments/#{@moment}"}
-    class="mt-6"
-    is_admin
-  />
-</.modal>
+
+  <.list>
+    <:item title="Strand">{@moment.strand.name}</:item>
+    <:item title="Name">{@moment.name}</:item>
+    <:item title="Description">{@moment.description}</:item>
+    <:item title="Position">{@moment.position}</:item>
+    <:item title="Subjects">
+      {@moment.subjects
+      |> Enum.map(& &1.name)
+      |> Enum.join(", ")}
+    </:item>
+    <:item title="Curriculum items">
+      {@moment.curriculum_items
+      |> Enum.map(& &1.name)
+      |> Enum.join(", ")}
+    </:item>
+  </.list>
+
+  <.back navigate={~p"/admin/moments"}>Back to moments</.back>
+
+  <.modal
+    :if={@live_action == :edit}
+    id="moment-modal"
+    show
+    on_cancel={JS.patch(~p"/admin/moments/#{@moment}")}
+  >
+    <.header>
+      {@page_title}
+      <:subtitle>Use this form to manage moment records in your database.</:subtitle>
+    </.header>
+    <.live_component
+      module={LantternWeb.LearningContext.MomentFormComponent}
+      id={@moment.id}
+      action={@live_action}
+      moment={@moment}
+      patch={~p"/admin/moments/#{@moment}"}
+      class="mt-6"
+      is_admin
+    />
+  </.modal>
+</Layouts.admin>

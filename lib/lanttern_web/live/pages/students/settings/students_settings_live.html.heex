@@ -1,12 +1,14 @@
-<.header_nav current_user={@current_user}>
-  <:breadcrumb navigate={~p"/school/students"}>
-    {@current_user.current_profile.school_name}
-  </:breadcrumb>
-  <:title>{gettext("Students settings")}</:title>
-</.header_nav>
-<.live_component
-  module={TagsComponent}
-  id="student-tag-manager"
-  current_user={@current_user}
-  params={@params}
-/>
+<Layouts.app_logged_in flash={@flash} current_user={@current_user} current_path={@current_path}>
+  <.header_nav current_user={@current_user}>
+    <:breadcrumb navigate={~p"/school/students"}>
+      {@current_user.current_profile.school_name}
+    </:breadcrumb>
+    <:title>{gettext("Students settings")}</:title>
+  </.header_nav>
+  <.live_component
+    module={TagsComponent}
+    id="student-tag-manager"
+    current_user={@current_user}
+    params={@params}
+  />
+</Layouts.app_logged_in>

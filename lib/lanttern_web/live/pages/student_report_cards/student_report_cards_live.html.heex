@@ -1,53 +1,55 @@
-<.responsive_container class="pt-6 sm:pt-10">
-  <.page_title_with_menu>{gettext("Report cards")}</.page_title_with_menu>
-  <div class="flex items-center gap-4 mt-10">
-    <h3 class="flex-1 font-display font-black text-xl">
-      {if @current_user.current_profile.type == "student" do
-        gettext("Your %{cycle} report cards", cycle: @current_cycle.name)
-      else
-        gettext("%{student}'s %{cycle} report cards",
-          student: @student.name,
-          cycle: @current_cycle.name
-        )
-      end}
-    </h3>
-  </div>
-</.responsive_container>
-<%= if @has_student_report_cards do %>
-  <.responsive_grid class="px-6 py-10 sm:px-10">
-    <.report_card_card
-      :for={{dom_id, student_report_card} <- @streams.student_report_cards}
-      id={dom_id}
-      report_card={student_report_card.report_card}
-      navigate={~p"/student_report_cards/#{student_report_card}"}
-      year={student_report_card.report_card.year}
-      cycle={student_report_card.report_card.school_cycle}
-      class="shrink-0 w-64 sm:w-auto"
-    />
-  </.responsive_grid>
-<% else %>
-  <.responsive_container class="my-10">
-    <.empty_state class="p-10 rounded-sm bg-white shadow-lg">
-      {gettext("No student report cards for selected cycle created yet.")}
-    </.empty_state>
+<Layouts.app_logged_in flash={@flash} current_user={@current_user} current_path={@current_path}>
+  <.responsive_container class="pt-6 sm:pt-10">
+    <.page_title_with_menu>{gettext("Report cards")}</.page_title_with_menu>
+    <div class="flex items-center gap-4 mt-10">
+      <h3 class="flex-1 font-display font-black text-xl">
+        {if @current_user.current_profile.type == "student" do
+          gettext("Your %{cycle} report cards", cycle: @current_cycle.name)
+        else
+          gettext("%{student}'s %{cycle} report cards",
+            student: @student.name,
+            cycle: @current_cycle.name
+          )
+        end}
+      </h3>
+    </div>
   </.responsive_container>
-<% end %>
-<%= if @has_student_report_cards_wip do %>
-  <.responsive_container>
-    <p class="font-display font-black text-xl text-ltrn-subtle">
-      {gettext("Report cards under development")}
-    </p>
-  </.responsive_container>
-  <.responsive_grid class="px-6 py-10 sm:px-10">
-    <.report_card_card
-      :for={{dom_id, student_report_card} <- @streams.student_report_cards_wip}
-      id={dom_id}
-      report_card={student_report_card.report_card}
-      is_wip
-      year={student_report_card.report_card.year}
-      cycle={student_report_card.report_card.school_cycle}
-      class="shrink-0 w-64 sm:w-auto"
-    />
-  </.responsive_grid>
-<% end %>
-<.school_branding_footer school={@school} />
+  <%= if @has_student_report_cards do %>
+    <.responsive_grid class="px-6 py-10 sm:px-10">
+      <.report_card_card
+        :for={{dom_id, student_report_card} <- @streams.student_report_cards}
+        id={dom_id}
+        report_card={student_report_card.report_card}
+        navigate={~p"/student_report_cards/#{student_report_card}"}
+        year={student_report_card.report_card.year}
+        cycle={student_report_card.report_card.school_cycle}
+        class="shrink-0 w-64 sm:w-auto"
+      />
+    </.responsive_grid>
+  <% else %>
+    <.responsive_container class="my-10">
+      <.empty_state class="p-10 rounded-sm bg-white shadow-lg">
+        {gettext("No student report cards for selected cycle created yet.")}
+      </.empty_state>
+    </.responsive_container>
+  <% end %>
+  <%= if @has_student_report_cards_wip do %>
+    <.responsive_container>
+      <p class="font-display font-black text-xl text-ltrn-subtle">
+        {gettext("Report cards under development")}
+      </p>
+    </.responsive_container>
+    <.responsive_grid class="px-6 py-10 sm:px-10">
+      <.report_card_card
+        :for={{dom_id, student_report_card} <- @streams.student_report_cards_wip}
+        id={dom_id}
+        report_card={student_report_card.report_card}
+        is_wip
+        year={student_report_card.report_card.year}
+        cycle={student_report_card.report_card.school_cycle}
+        class="shrink-0 w-64 sm:w-auto"
+      />
+    </.responsive_grid>
+  <% end %>
+  <.school_branding_footer school={@school} />
+</Layouts.app_logged_in>

@@ -1,38 +1,40 @@
-<.header>
-  Listing Assessment point entries
-  <:actions>
-    <.link href={~p"/admin/assessment_point_entries/new"}>
-      <.button>New Assessment point entry</.button>
-    </.link>
-  </:actions>
-</.header>
-
-<.table
-  id="assessment_point_entries"
-  rows={@assessment_point_entries}
-  row_click={&JS.navigate(~p"/admin/assessment_point_entries/#{&1}")}
->
-  <:col :let={assessment_point_entry} label="Observation">
-    {assessment_point_entry.observation}
-  </:col>
-  <:col :let={assessment_point_entry} label="Score">{assessment_point_entry.score}</:col>
-  <:action :let={assessment_point_entry}>
-    <div class="sr-only">
-      <.link navigate={~p"/admin/assessment_point_entries/#{assessment_point_entry}"}>
-        Show
+<Layouts.admin flash={@flash}>
+  <.header>
+    Listing Assessment point entries
+    <:actions>
+      <.link href={~p"/admin/assessment_point_entries/new"}>
+        <.button>New Assessment point entry</.button>
       </.link>
-    </div>
-    <.link navigate={~p"/admin/assessment_point_entries/#{assessment_point_entry}/edit"}>
-      Edit
-    </.link>
-  </:action>
-  <:action :let={assessment_point_entry}>
-    <.link
-      href={~p"/admin/assessment_point_entries/#{assessment_point_entry}"}
-      method="delete"
-      data-confirm="Are you sure?"
-    >
-      Delete
-    </.link>
-  </:action>
-</.table>
+    </:actions>
+  </.header>
+
+  <.table
+    id="assessment_point_entries"
+    rows={@assessment_point_entries}
+    row_click={&JS.navigate(~p"/admin/assessment_point_entries/#{&1}")}
+  >
+    <:col :let={assessment_point_entry} label="Observation">
+      {assessment_point_entry.observation}
+    </:col>
+    <:col :let={assessment_point_entry} label="Score">{assessment_point_entry.score}</:col>
+    <:action :let={assessment_point_entry}>
+      <div class="sr-only">
+        <.link navigate={~p"/admin/assessment_point_entries/#{assessment_point_entry}"}>
+          Show
+        </.link>
+      </div>
+      <.link navigate={~p"/admin/assessment_point_entries/#{assessment_point_entry}/edit"}>
+        Edit
+      </.link>
+    </:action>
+    <:action :let={assessment_point_entry}>
+      <.link
+        href={~p"/admin/assessment_point_entries/#{assessment_point_entry}"}
+        method="delete"
+        data-confirm="Are you sure?"
+      >
+        Delete
+      </.link>
+    </:action>
+  </.table>
+</Layouts.admin>

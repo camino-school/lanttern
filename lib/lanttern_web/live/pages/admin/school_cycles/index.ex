@@ -1,5 +1,5 @@
 defmodule LantternWeb.Admin.CycleLive.Index do
-  use LantternWeb, {:live_view, layout: :admin}
+  use LantternWeb, :live_view
 
   alias Lanttern.Schools
   alias Lanttern.Schools.Cycle

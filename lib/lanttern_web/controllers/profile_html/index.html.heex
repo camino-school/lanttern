@@ -1,32 +1,34 @@
-<.header>
-  Listing Profiles
-  <:actions>
-    <.link href={~p"/admin/profiles/new"}>
-      <.button>New Profile</.button>
-    </.link>
-  </:actions>
-</.header>
+<Layouts.admin flash={@flash}>
+  <.header>
+    Listing Profiles
+    <:actions>
+      <.link href={~p"/admin/profiles/new"}>
+        <.button>New Profile</.button>
+      </.link>
+    </:actions>
+  </.header>
 
-<.table id="profiles" rows={@profiles} row_click={&JS.navigate(~p"/admin/profiles/#{&1}")}>
-  <:col :let={profile} label="User">{profile.user.email}</:col>
-  <:col :let={profile} label="Student">
-    {if profile.type == "student", do: profile.student.name, else: "—"}
-  </:col>
-  <:col :let={profile} label="Staff member">
-    {if profile.type == "staff", do: profile.staff_member.name, else: "—"}
-  </:col>
-  <:col :let={profile} label="Guardian of">
-    {if profile.type == "guardian", do: profile.guardian_of_student.name, else: "—"}
-  </:col>
-  <:action :let={profile}>
-    <div class="sr-only">
-      <.link navigate={~p"/admin/profiles/#{profile}"}>Show</.link>
-    </div>
-    <.link navigate={~p"/admin/profiles/#{profile}/edit"}>Edit</.link>
-  </:action>
-  <:action :let={profile}>
-    <.link href={~p"/admin/profiles/#{profile}"} method="delete" data-confirm="Are you sure?">
-      Delete
-    </.link>
-  </:action>
-</.table>
+  <.table id="profiles" rows={@profiles} row_click={&JS.navigate(~p"/admin/profiles/#{&1}")}>
+    <:col :let={profile} label="User">{profile.user.email}</:col>
+    <:col :let={profile} label="Student">
+      {if profile.type == "student", do: profile.student.name, else: "—"}
+    </:col>
+    <:col :let={profile} label="Staff member">
+      {if profile.type == "staff", do: profile.staff_member.name, else: "—"}
+    </:col>
+    <:col :let={profile} label="Guardian of">
+      {if profile.type == "guardian", do: profile.guardian_of_student.name, else: "—"}
+    </:col>
+    <:action :let={profile}>
+      <div class="sr-only">
+        <.link navigate={~p"/admin/profiles/#{profile}"}>Show</.link>
+      </div>
+      <.link navigate={~p"/admin/profiles/#{profile}/edit"}>Edit</.link>
+    </:action>
+    <:action :let={profile}>
+      <.link href={~p"/admin/profiles/#{profile}"} method="delete" data-confirm="Are you sure?">
+        Delete
+      </.link>
+    </:action>
+  </.table>
+</Layouts.admin>

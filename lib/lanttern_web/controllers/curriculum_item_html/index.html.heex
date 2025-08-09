@@ -1,68 +1,70 @@
-<.header>
-  Listing Curriculum Items
-  <:actions>
-    <.link href={~p"/admin/curriculum_items/new"}>
-      <.button>New Curriculum Item</.button>
-    </.link>
-  </:actions>
-</.header>
+<Layouts.admin flash={@flash}>
+  <.header>
+    Listing Curriculum Items
+    <:actions>
+      <.link href={~p"/admin/curriculum_items/new"}>
+        <.button>New Curriculum Item</.button>
+      </.link>
+    </:actions>
+  </.header>
 
-<.simple_form for={@form} action={~p"/admin/curriculum_items"} method="get" class="mt-6">
-  <.input field={@form[:q]} type="text" label="Search" />
-  <.input
-    field={@form[:year_id]}
-    type="select"
-    label="Year"
-    options={@year_options}
-    prompt="All years"
-  />
-  <.input
-    field={@form[:subject_id]}
-    type="select"
-    label="Subject"
-    options={@subject_options}
-    prompt="All subjects"
-  />
-  <:actions>
-    <.button>Filter</.button>
-  </:actions>
-</.simple_form>
+  <.simple_form for={@form} action={~p"/admin/curriculum_items"} method="get" class="mt-6">
+    <.input field={@form[:q]} type="text" label="Search" />
+    <.input
+      field={@form[:year_id]}
+      type="select"
+      label="Year"
+      options={@year_options}
+      prompt="All years"
+    />
+    <.input
+      field={@form[:subject_id]}
+      type="select"
+      label="Subject"
+      options={@subject_options}
+      prompt="All subjects"
+    />
+    <:actions>
+      <.button>Filter</.button>
+    </:actions>
+  </.simple_form>
 
-<p class="mt-6">Listing {length(@curriculum_items)} results</p>
+  <p class="mt-6">Listing {length(@curriculum_items)} results</p>
 
-<.table
-  id="curriculum_items"
-  rows={@curriculum_items}
-  row_click={&JS.navigate(~p"/admin/curriculum_items/#{&1}")}
->
-  <:col :let={curriculum_item} label="Code">{curriculum_item.code}</:col>
-  <:col :let={curriculum_item} label="Component">
-    {curriculum_item.curriculum_component.name}
-  </:col>
-  <:col :let={curriculum_item} label="Subject">
-    <%= for subject <- curriculum_item.subjects do %>
-      {subject.name}
-    <% end %>
-  </:col>
-  <:col :let={curriculum_item} label="Year">
-    <%= for year <- curriculum_item.years do %>
-      {year.name}
-    <% end %>
-  </:col>
-  <:col :let={curriculum_item} label="Name">{curriculum_item.name}</:col>
-  <:action :let={curriculum_item}>
-    <div class="sr-only">
-      <.link navigate={~p"/admin/curriculum_items/#{curriculum_item}"}>Show</.link>
-    </div>
-    <.link navigate={~p"/admin/curriculum_items/#{curriculum_item}/edit"}>Edit</.link>
-  </:action>
-  <:action :let={curriculum_item}>
-    <.link
-      href={~p"/admin/curriculum_items/#{curriculum_item}"}
-      method="delete"
-      data-confirm="Are you sure?"
-    >
-      Delete
-    </.link>
-  </:action>
-</.table>
+  <.table
+    id="curriculum_items"
+    rows={@curriculum_items}
+    row_click={&JS.navigate(~p"/admin/curriculum_items/#{&1}")}
+  >
+    <:col :let={curriculum_item} label="Code">{curriculum_item.code}</:col>
+    <:col :let={curriculum_item} label="Component">
+      {curriculum_item.curriculum_component.name}
+    </:col>
+    <:col :let={curriculum_item} label="Subject">
+      <%= for subject <- curriculum_item.subjects do %>
+        {subject.name}
+      <% end %>
+    </:col>
+    <:col :let={curriculum_item} label="Year">
+      <%= for year <- curriculum_item.years do %>
+        {year.name}
+      <% end %>
+    </:col>
+    <:col :let={curriculum_item} label="Name">{curriculum_item.name}</:col>
+    <:action :let={curriculum_item}>
+      <div class="sr-only">
+        <.link navigate={~p"/admin/curriculum_items/#{curriculum_item}"}>Show</.link>
+      </div>
+      <.link navigate={~p"/admin/curriculum_items/#{curriculum_item}/edit"}>Edit</.link>
+    </:action>
+    <:action :let={curriculum_item}>
+      <.link
+        href={~p"/admin/curriculum_items/#{curriculum_item}"}
+        method="delete"
+        data-confirm="Are you sure?"
+      >
+        Delete
+      </.link>
+    </:action>
+  </.table>
+</Layouts.admin>

@@ -1,27 +1,29 @@
-<.header>
-  Listing Feedback
-  <:actions>
-    <.link href={~p"/admin/feedback/new"}>
-      <.button>New Feedback</.button>
-    </.link>
-  </:actions>
-</.header>
+<Layouts.admin flash={@flash}>
+  <.header>
+    Listing Feedback
+    <:actions>
+      <.link href={~p"/admin/feedback/new"}>
+        <.button>New Feedback</.button>
+      </.link>
+    </:actions>
+  </.header>
 
-<.table id="feedback" rows={@feedback_list} row_click={&JS.navigate(~p"/admin/feedback/#{&1}")}>
-  <:col :let={feedback} label="#">{feedback.id}</:col>
-  <:col :let={feedback} label="Assessment point">{feedback.assessment_point.name}</:col>
-  <:col :let={feedback} label="Student">{feedback.student.name}</:col>
-  <:col :let={feedback} label="Teacher">{feedback.profile.staff_member.name}</:col>
-  <:col :let={feedback} label="Comment">{feedback.comment}</:col>
-  <:action :let={feedback}>
-    <div class="sr-only">
-      <.link navigate={~p"/admin/feedback/#{feedback}"}>Show</.link>
-    </div>
-    <.link navigate={~p"/admin/feedback/#{feedback}/edit"}>Edit</.link>
-  </:action>
-  <:action :let={feedback}>
-    <.link href={~p"/admin/feedback/#{feedback}"} method="delete" data-confirm="Are you sure?">
-      Delete
-    </.link>
-  </:action>
-</.table>
+  <.table id="feedback" rows={@feedback_list} row_click={&JS.navigate(~p"/admin/feedback/#{&1}")}>
+    <:col :let={feedback} label="#">{feedback.id}</:col>
+    <:col :let={feedback} label="Assessment point">{feedback.assessment_point.name}</:col>
+    <:col :let={feedback} label="Student">{feedback.student.name}</:col>
+    <:col :let={feedback} label="Teacher">{feedback.profile.staff_member.name}</:col>
+    <:col :let={feedback} label="Comment">{feedback.comment}</:col>
+    <:action :let={feedback}>
+      <div class="sr-only">
+        <.link navigate={~p"/admin/feedback/#{feedback}"}>Show</.link>
+      </div>
+      <.link navigate={~p"/admin/feedback/#{feedback}/edit"}>Edit</.link>
+    </:action>
+    <:action :let={feedback}>
+      <.link href={~p"/admin/feedback/#{feedback}"} method="delete" data-confirm="Are you sure?">
+        Delete
+      </.link>
+    </:action>
+  </.table>
+</Layouts.admin>

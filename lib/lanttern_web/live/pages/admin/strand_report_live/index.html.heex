@@ -1,58 +1,60 @@
-<.header>
-  Listing Strand reports
-  <:actions>
-    <.link patch={~p"/admin/strand_reports/new"}>
-      <.button>New Strand report</.button>
-    </.link>
-  </:actions>
-</.header>
-
-<.table
-  id="strand_reports"
-  rows={@streams.strand_reports}
-  row_click={
-    fn {_id, strand_report} -> JS.navigate(~p"/admin/strand_reports/#{strand_report}") end
-  }
->
-  <:col :let={{_id, strand_report}} label="Report card id">
-    #{strand_report.report_card_id}
-  </:col>
-  <:col :let={{_id, strand_report}} label="Strand id">#{strand_report.strand_id}</:col>
-  <:col :let={{_id, strand_report}} label="Position">{strand_report.position}</:col>
-  <:col :let={{_id, strand_report}} label="Description">{strand_report.description}</:col>
-  <:action :let={{_id, strand_report}}>
-    <div class="sr-only">
-      <.link navigate={~p"/admin/strand_reports/#{strand_report}"}>Show</.link>
-    </div>
-    <.link patch={~p"/admin/strand_reports/#{strand_report}/edit"}>Edit</.link>
-  </:action>
-  <:action :let={{id, strand_report}}>
-    <.link
-      phx-click={JS.push("delete", value: %{id: strand_report.id}) |> hide("##{id}")}
-      data-confirm="Are you sure?"
-    >
-      Delete
-    </.link>
-  </:action>
-</.table>
-
-<.modal
-  :if={@live_action in [:new, :edit]}
-  id="strand_report-modal"
-  show
-  on_cancel={JS.patch(~p"/admin/strand_reports")}
->
+<Layouts.admin flash={@flash}>
   <.header>
-    {@page_title}
-    <:subtitle>Use this form to manage strand_report records in your database.</:subtitle>
+    Listing Strand reports
+    <:actions>
+      <.link patch={~p"/admin/strand_reports/new"}>
+        <.button>New Strand report</.button>
+      </.link>
+    </:actions>
   </.header>
-  <.live_component
-    module={LantternWeb.Reporting.StrandReportFormComponent}
-    id={@strand_report.id || :new}
-    strand_report={@strand_report}
-    patch={~p"/admin/strand_reports"}
-    class="mt-6"
-    notify_parent
-    is_admin
-  />
-</.modal>
+
+  <.table
+    id="strand_reports"
+    rows={@streams.strand_reports}
+    row_click={
+      fn {_id, strand_report} -> JS.navigate(~p"/admin/strand_reports/#{strand_report}") end
+    }
+  >
+    <:col :let={{_id, strand_report}} label="Report card id">
+      #{strand_report.report_card_id}
+    </:col>
+    <:col :let={{_id, strand_report}} label="Strand id">#{strand_report.strand_id}</:col>
+    <:col :let={{_id, strand_report}} label="Position">{strand_report.position}</:col>
+    <:col :let={{_id, strand_report}} label="Description">{strand_report.description}</:col>
+    <:action :let={{_id, strand_report}}>
+      <div class="sr-only">
+        <.link navigate={~p"/admin/strand_reports/#{strand_report}"}>Show</.link>
+      </div>
+      <.link patch={~p"/admin/strand_reports/#{strand_report}/edit"}>Edit</.link>
+    </:action>
+    <:action :let={{id, strand_report}}>
+      <.link
+        phx-click={JS.push("delete", value: %{id: strand_report.id}) |> hide("##{id}")}
+        data-confirm="Are you sure?"
+      >
+        Delete
+      </.link>
+    </:action>
+  </.table>
+
+  <.modal
+    :if={@live_action in [:new, :edit]}
+    id="strand_report-modal"
+    show
+    on_cancel={JS.patch(~p"/admin/strand_reports")}
+  >
+    <.header>
+      {@page_title}
+      <:subtitle>Use this form to manage strand_report records in your database.</:subtitle>
+    </.header>
+    <.live_component
+      module={LantternWeb.Reporting.StrandReportFormComponent}
+      id={@strand_report.id || :new}
+      strand_report={@strand_report}
+      patch={~p"/admin/strand_reports"}
+      class="mt-6"
+      notify_parent
+      is_admin
+    />
+  </.modal>
+</Layouts.admin>

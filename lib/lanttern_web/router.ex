@@ -15,11 +15,6 @@ defmodule LantternWeb.Router do
     plug :put_locale
   end
 
-  pipeline :admin do
-    plug :put_layout, html: {LantternWeb.Layouts, :admin}
-    plug :require_root_admin
-  end
-
   # we skip the https://hexdocs.pm/sobelow/Sobelow.Config.CSRF.html
   # because for Sign In with Google pipeline we don't use :protect_from_forgery plug.
   # instead, we use :verify_google_csrf_token plug and
@@ -57,7 +52,6 @@ defmodule LantternWeb.Router do
     pipe_through [:browser, :require_authenticated_user, :require_privacy_policy_accepted]
 
     live_session :authenticated_staff_member,
-      layout: {LantternWeb.Layouts, :app_logged_in},
       on_mount: [
         {LantternWeb.UserAuth, :ensure_authenticated_staff_member},
         {LantternWeb.Path, :put_path_in_socket},
@@ -137,7 +131,6 @@ defmodule LantternWeb.Router do
     end
 
     live_session :authenticated_guardian,
-      layout: {LantternWeb.Layouts, :app_logged_in},
       on_mount: [
         {LantternWeb.UserAuth, :ensure_authenticated_guardian},
         {LantternWeb.Path, :put_path_in_socket},
@@ -147,7 +140,6 @@ defmodule LantternWeb.Router do
     end
 
     live_session :authenticated_student,
-      layout: {LantternWeb.Layouts, :app_logged_in},
       on_mount: [
         {LantternWeb.UserAuth, :ensure_authenticated_student},
         {LantternWeb.Path, :put_path_in_socket},
@@ -157,7 +149,6 @@ defmodule LantternWeb.Router do
     end
 
     live_session :authenticated_student_or_guardian,
-      layout: {LantternWeb.Layouts, :app_logged_in},
       on_mount: [
         {LantternWeb.UserAuth, :ensure_authenticated_student_or_guardian},
         {LantternWeb.Path, :put_path_in_socket},
@@ -170,7 +161,6 @@ defmodule LantternWeb.Router do
     end
 
     live_session :authenticated_user,
-      layout: {LantternWeb.Layouts, :app_logged_in},
       on_mount: [
         {LantternWeb.UserAuth, :ensure_authenticated},
         {LantternWeb.Path, :put_path_in_socket},
@@ -185,7 +175,7 @@ defmodule LantternWeb.Router do
   end
 
   scope "/admin", LantternWeb do
-    pipe_through [:browser, :require_authenticated_user, :admin]
+    pipe_through [:browser, :require_authenticated_user, :require_root_admin]
 
     get "/", AdminController, :home
     post "/seed_base_taxonomy", AdminController, :seed_base_taxonomy

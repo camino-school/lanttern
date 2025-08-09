@@ -1,41 +1,43 @@
-<.header>
-  Strand report {@strand_report.id}
-  <:subtitle>This is a strand_report record from your database.</:subtitle>
-  <:actions>
-    <.link
-      patch={~p"/admin/strand_reports/#{@strand_report}/show/edit"}
-      phx-click={JS.push_focus()}
-    >
-      <.button>Edit strand_report</.button>
-    </.link>
-  </:actions>
-</.header>
-
-<.list>
-  <:item title="Report card id">#{@strand_report.report_card_id}</:item>
-  <:item title="Strand id">#{@strand_report.strand_id}</:item>
-  <:item title="Position">{@strand_report.position}</:item>
-  <:item title="Description">{@strand_report.description}</:item>
-</.list>
-
-<.back navigate={~p"/admin/strand_reports"}>Back to strand_reports</.back>
-
-<.modal
-  :if={@live_action == :edit}
-  id="strand_report-modal"
-  show
-  on_cancel={JS.patch(~p"/admin/strand_reports/#{@strand_report}")}
->
+<Layouts.admin flash={@flash}>
   <.header>
-    {@page_title}
-    <:subtitle>Use this form to manage strand_report records in your database.</:subtitle>
+    Strand report {@strand_report.id}
+    <:subtitle>This is a strand_report record from your database.</:subtitle>
+    <:actions>
+      <.link
+        patch={~p"/admin/strand_reports/#{@strand_report}/show/edit"}
+        phx-click={JS.push_focus()}
+      >
+        <.button>Edit strand_report</.button>
+      </.link>
+    </:actions>
   </.header>
-  <.live_component
-    module={LantternWeb.Reporting.StrandReportFormComponent}
-    id={@strand_report.id}
-    strand_report={@strand_report}
-    patch={~p"/admin/strand_reports/#{@strand_report}"}
-    class="mt-6"
-    is_admin
-  />
-</.modal>
+
+  <.list>
+    <:item title="Report card id">#{@strand_report.report_card_id}</:item>
+    <:item title="Strand id">#{@strand_report.strand_id}</:item>
+    <:item title="Position">{@strand_report.position}</:item>
+    <:item title="Description">{@strand_report.description}</:item>
+  </.list>
+
+  <.back navigate={~p"/admin/strand_reports"}>Back to strand_reports</.back>
+
+  <.modal
+    :if={@live_action == :edit}
+    id="strand_report-modal"
+    show
+    on_cancel={JS.patch(~p"/admin/strand_reports/#{@strand_report}")}
+  >
+    <.header>
+      {@page_title}
+      <:subtitle>Use this form to manage strand_report records in your database.</:subtitle>
+    </.header>
+    <.live_component
+      module={LantternWeb.Reporting.StrandReportFormComponent}
+      id={@strand_report.id}
+      strand_report={@strand_report}
+      patch={~p"/admin/strand_reports/#{@strand_report}"}
+      class="mt-6"
+      is_admin
+    />
+  </.modal>
+</Layouts.admin>

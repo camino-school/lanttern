@@ -1,91 +1,93 @@
-<div>
-  <.header_nav current_user={@current_user}>
-    <:breadcrumb navigate={~p"/school/students"}>
-      {gettext("%{school} students", school: @student.school.name)}
-    </:breadcrumb>
-    <:title>{@student.name}</:title>
-    <div class="flex items-center justify-between gap-4 px-4">
-      <.neo_tabs id="student-nav-tabs">
-        <:tab patch={~p"/school/students/#{@student}"} is_current={@live_action == :show}>
-          {gettext("About")}
-        </:tab>
-        <:tab patch={~p"/school/students/#{@student}/ilp"} is_current={@live_action == :ilp}>
-          {gettext("ILP")}
-        </:tab>
-        <:tab
-          patch={~p"/school/students/#{@student}/student_records"}
-          is_current={@live_action == :student_records}
+<Layouts.app_logged_in flash={@flash} current_user={@current_user} current_path={@current_path}>
+  <div>
+    <.header_nav current_user={@current_user}>
+      <:breadcrumb navigate={~p"/school/students"}>
+        {gettext("%{school} students", school: @student.school.name)}
+      </:breadcrumb>
+      <:title>{@student.name}</:title>
+      <div class="flex items-center justify-between gap-4 px-4">
+        <.neo_tabs id="student-nav-tabs">
+          <:tab patch={~p"/school/students/#{@student}"} is_current={@live_action == :show}>
+            {gettext("About")}
+          </:tab>
+          <:tab patch={~p"/school/students/#{@student}/ilp"} is_current={@live_action == :ilp}>
+            {gettext("ILP")}
+          </:tab>
+          <:tab
+            patch={~p"/school/students/#{@student}/student_records"}
+            is_current={@live_action == :student_records}
+          >
+            {gettext("Student records")}
+          </:tab>
+          <:tab
+            patch={~p"/school/students/#{@student}/report_cards"}
+            is_current={@live_action == :report_cards}
+          >
+            {gettext("Report cards")}
+          </:tab>
+          <:tab
+            patch={~p"/school/students/#{@student}/grades_reports"}
+            is_current={@live_action == :grades_reports}
+          >
+            {gettext("Grades reports")}
+          </:tab>
+        </.neo_tabs>
+        <.action
+          :if={@is_school_manager}
+          type="link"
+          patch={"#{@current_path}?edit=true"}
+          icon_name="hero-pencil-mini"
         >
-          {gettext("Student records")}
-        </:tab>
-        <:tab
-          patch={~p"/school/students/#{@student}/report_cards"}
-          is_current={@live_action == :report_cards}
-        >
-          {gettext("Report cards")}
-        </:tab>
-        <:tab
-          patch={~p"/school/students/#{@student}/grades_reports"}
-          is_current={@live_action == :grades_reports}
-        >
-          {gettext("Grades reports")}
-        </:tab>
-      </.neo_tabs>
-      <.action
-        :if={@is_school_manager}
-        type="link"
-        patch={"#{@current_path}?edit=true"}
-        icon_name="hero-pencil-mini"
-      >
-        {gettext("Edit student")}
-      </.action>
-    </div>
-  </.header_nav>
+          {gettext("Edit student")}
+        </.action>
+      </div>
+    </.header_nav>
+    <.live_component
+      :if={@live_action == :show}
+      module={AboutComponent}
+      id="student-about"
+      student={@student}
+      current_user={@current_user}
+      params={@params}
+    />
+    <.live_component
+      :if={@live_action == :report_cards}
+      module={StudentReportCardsComponent}
+      id="student-report-cards"
+      student={@student}
+    />
+    <.live_component
+      :if={@live_action == :grades_reports}
+      module={GradesReportsComponent}
+      id="grades-reports"
+      student={@student}
+      params={@params}
+    />
+  </div>
   <.live_component
-    :if={@live_action == :show}
-    module={AboutComponent}
-    id="student-about"
+    :if={@live_action == :ilp}
+    module={ILPComponent}
+    id="student-ilp-tab"
     student={@student}
     current_user={@current_user}
     params={@params}
   />
   <.live_component
-    :if={@live_action == :report_cards}
-    module={StudentReportCardsComponent}
-    id="student-report-cards"
+    :if={@live_action == :student_records}
+    module={StudentRecordsComponent}
+    id="student-records"
     student={@student}
-  />
-  <.live_component
-    :if={@live_action == :grades_reports}
-    module={GradesReportsComponent}
-    id="grades-reports"
-    student={@student}
+    current_user={@current_user}
     params={@params}
   />
-</div>
-<.live_component
-  :if={@live_action == :ilp}
-  module={ILPComponent}
-  id="student-ilp-tab"
-  student={@student}
-  current_user={@current_user}
-  params={@params}
-/>
-<.live_component
-  :if={@live_action == :student_records}
-  module={StudentRecordsComponent}
-  id="student-records"
-  student={@student}
-  current_user={@current_user}
-  params={@params}
-/>
-<.live_component
-  :if={@is_editing}
-  module={StudentFormOverlayComponent}
-  id="student-form-overlay"
-  student={@student}
-  current_cycle={@current_user.current_profile.current_school_cycle}
-  title={gettext("Edit student")}
-  on_cancel={JS.patch(@current_path)}
-  notify_parent
-/>
+  <.live_component
+    :if={@is_editing}
+    module={StudentFormOverlayComponent}
+    id="student-form-overlay"
+    student={@student}
+    current_cycle={@current_user.current_profile.current_school_cycle}
+    title={gettext("Edit student")}
+    on_cancel={JS.patch(@current_path)}
+    notify_parent
+  />
+</Layouts.app_logged_in>

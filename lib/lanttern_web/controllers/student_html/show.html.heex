@@ -1,21 +1,23 @@
-<.header>
-  Student {@student.id}
-  <:subtitle>This is a student record from your database.</:subtitle>
-  <:actions>
-    <.link href={~p"/admin/students/#{@student}/edit"}>
-      <.button>Edit student</.button>
-    </.link>
-  </:actions>
-</.header>
+<Layouts.admin flash={@flash}>
+  <.header>
+    Student {@student.id}
+    <:subtitle>This is a student record from your database.</:subtitle>
+    <:actions>
+      <.link href={~p"/admin/students/#{@student}/edit"}>
+        <.button>Edit student</.button>
+      </.link>
+    </:actions>
+  </.header>
 
-<.list>
-  <:item title="Name">{@student.name}</:item>
-  <:item title="School">{@student.school.name}</:item>
-  <:item title="Classes">
-    {@student.classes
-    |> Enum.map(& &1.name)
-    |> Enum.join(", ")}
-  </:item>
-</.list>
+  <.list>
+    <:item title="Name">{@student.name}</:item>
+    <:item title="School">{@student.school.name}</:item>
+    <:item title="Classes">
+      {@student.classes
+      |> Enum.map(& &1.name)
+      |> Enum.join(", ")}
+    </:item>
+  </.list>
 
-<.back navigate={~p"/admin/students"}>Back to students</.back>
+  <.back navigate={~p"/admin/students"}>Back to students</.back>
+</Layouts.admin>

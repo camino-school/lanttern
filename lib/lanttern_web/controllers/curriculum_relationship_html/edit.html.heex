@@ -1,14 +1,18 @@
-<.header>
-  Edit Curriculum relationship {@curriculum_relationship.id}
-  <:subtitle>Use this form to manage curriculum_relationship records in your database.</:subtitle>
-</.header>
+<Layouts.admin flash={@flash}>
+  <.header>
+    Edit Curriculum relationship {@curriculum_relationship.id}
+    <:subtitle>
+      Use this form to manage curriculum_relationship records in your database.
+    </:subtitle>
+  </.header>
 
-<.curriculum_relationship_form
-  curriculum_item_options={@curriculum_item_options}
-  changeset={@changeset}
-  action={~p"/admin/curriculum_relationships/#{@curriculum_relationship}"}
-/>
+  <.curriculum_relationship_form
+    curriculum_item_options={@curriculum_item_options}
+    changeset={@changeset}
+    action={~p"/admin/curriculum_relationships/#{@curriculum_relationship}"}
+  />
 
-<.back navigate={~p"/admin/curriculum_relationships"}>
-  Back to curriculum_relationships
-</.back>
+  <.back navigate={~p"/admin/curriculum_relationships"}>
+    Back to curriculum_relationships
+  </.back>
+</Layouts.admin>

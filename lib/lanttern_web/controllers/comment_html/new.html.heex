@@ -1,12 +1,14 @@
-<.header>
-  New Comment
-  <:subtitle>Use this form to manage comment records in your database.</:subtitle>
-</.header>
+<Layouts.admin flash={@flash}>
+  <.header>
+    New Comment
+    <:subtitle>Use this form to manage comment records in your database.</:subtitle>
+  </.header>
 
-<.comment_form
-  profile_options={@profile_options}
-  changeset={@changeset}
-  action={~p"/admin/comments"}
-/>
+  <.comment_form
+    profile_options={@profile_options}
+    changeset={@changeset}
+    action={~p"/admin/comments"}
+  />
 
-<.back navigate={~p"/admin/comments"}>Back to comments</.back>
+  <.back navigate={~p"/admin/comments"}>Back to comments</.back>
+</Layouts.admin>

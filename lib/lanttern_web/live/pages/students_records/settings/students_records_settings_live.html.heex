@@ -1,33 +1,38 @@
-<.header_nav current_user={@current_user}>
-  <:breadcrumb navigate={~p"/students_records"}>
-    {gettext("Student records")}
-  </:breadcrumb>
-  <:title>{gettext("Settings")}</:title>
-  <div class="px-4">
-    <.neo_tabs>
-      <:tab
-        patch={~p"/students_records/settings/status"}
-        is_current={@live_action == :manage_status}
-      >
-        {gettext("Status")}
-      </:tab>
-      <:tab patch={~p"/students_records/settings/tags"} is_current={@live_action == :manage_tags}>
-        {gettext("Tags")}
-      </:tab>
-    </.neo_tabs>
-  </div>
-</.header_nav>
-<.live_component
-  :if={@live_action == :manage_status}
-  module={StatusComponent}
-  id="student-record-status-manager"
-  current_user={@current_user}
-  params={@params}
-/>
-<.live_component
-  :if={@live_action == :manage_tags}
-  module={TagsComponent}
-  id="student-record-tag-manager"
-  current_user={@current_user}
-  params={@params}
-/>
+<Layouts.app_logged_in flash={@flash} current_user={@current_user} current_path={@current_path}>
+  <.header_nav current_user={@current_user}>
+    <:breadcrumb navigate={~p"/students_records"}>
+      {gettext("Student records")}
+    </:breadcrumb>
+    <:title>{gettext("Settings")}</:title>
+    <div class="px-4">
+      <.neo_tabs>
+        <:tab
+          patch={~p"/students_records/settings/status"}
+          is_current={@live_action == :manage_status}
+        >
+          {gettext("Status")}
+        </:tab>
+        <:tab
+          patch={~p"/students_records/settings/tags"}
+          is_current={@live_action == :manage_tags}
+        >
+          {gettext("Tags")}
+        </:tab>
+      </.neo_tabs>
+    </div>
+  </.header_nav>
+  <.live_component
+    :if={@live_action == :manage_status}
+    module={StatusComponent}
+    id="student-record-status-manager"
+    current_user={@current_user}
+    params={@params}
+  />
+  <.live_component
+    :if={@live_action == :manage_tags}
+    module={TagsComponent}
+    id="student-record-tag-manager"
+    current_user={@current_user}
+    params={@params}
+  />
+</Layouts.app_logged_in>

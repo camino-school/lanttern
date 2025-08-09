@@ -1,15 +1,17 @@
-<.header>
-  School {@school.id}
-  <:subtitle>This is a school record from your database.</:subtitle>
-  <:actions>
-    <.link href={~p"/admin/schools/#{@school}/edit"}>
-      <.button>Edit school</.button>
-    </.link>
-  </:actions>
-</.header>
+<Layouts.admin flash={@flash}>
+  <.header>
+    School {@school.id}
+    <:subtitle>This is a school record from your database.</:subtitle>
+    <:actions>
+      <.link href={~p"/admin/schools/#{@school}/edit"}>
+        <.button>Edit school</.button>
+      </.link>
+    </:actions>
+  </.header>
 
-<.list>
-  <:item title="Name">{@school.name}</:item>
-</.list>
+  <.list>
+    <:item title="Name">{@school.name}</:item>
+  </.list>
 
-<.back navigate={~p"/admin/schools"}>Back to schools</.back>
+  <.back navigate={~p"/admin/schools"}>Back to schools</.back>
+</Layouts.admin>

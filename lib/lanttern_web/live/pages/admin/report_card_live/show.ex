@@ -1,5 +1,5 @@
 defmodule LantternWeb.Admin.ReportCardLive.Show do
-  use LantternWeb, {:live_view, layout: :admin}
+  use LantternWeb, :live_view
 
   alias Lanttern.Reporting
 

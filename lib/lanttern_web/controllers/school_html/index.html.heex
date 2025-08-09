@@ -1,23 +1,25 @@
-<.header>
-  Listing Schools
-  <:actions>
-    <.link href={~p"/admin/schools/new"}>
-      <.button>New School</.button>
-    </.link>
-  </:actions>
-</.header>
+<Layouts.admin flash={@flash}>
+  <.header>
+    Listing Schools
+    <:actions>
+      <.link href={~p"/admin/schools/new"}>
+        <.button>New School</.button>
+      </.link>
+    </:actions>
+  </.header>
 
-<.table id="schools" rows={@schools} row_click={&JS.navigate(~p"/admin/schools/#{&1}")}>
-  <:col :let={school} label="Name">{school.name}</:col>
-  <:action :let={school}>
-    <div class="sr-only">
-      <.link navigate={~p"/admin/schools/#{school}"}>Show</.link>
-    </div>
-    <.link navigate={~p"/admin/schools/#{school}/edit"}>Edit</.link>
-  </:action>
-  <:action :let={school}>
-    <.link href={~p"/admin/schools/#{school}"} method="delete" data-confirm="Are you sure?">
-      Delete
-    </.link>
-  </:action>
-</.table>
+  <.table id="schools" rows={@schools} row_click={&JS.navigate(~p"/admin/schools/#{&1}")}>
+    <:col :let={school} label="Name">{school.name}</:col>
+    <:action :let={school}>
+      <div class="sr-only">
+        <.link navigate={~p"/admin/schools/#{school}"}>Show</.link>
+      </div>
+      <.link navigate={~p"/admin/schools/#{school}/edit"}>Edit</.link>
+    </:action>
+    <:action :let={school}>
+      <.link href={~p"/admin/schools/#{school}"} method="delete" data-confirm="Are you sure?">
+        Delete
+      </.link>
+    </:action>
+  </.table>
+</Layouts.admin>

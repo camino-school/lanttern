@@ -1,173 +1,175 @@
-<div>
-  <.header_nav current_user={@current_user}>
-    <:breadcrumb navigate={~p"/curriculum"}>{gettext("Curriculum")}</:breadcrumb>
-    <:breadcrumb
-      navigate={~p"/curriculum/#{@curriculum_component.curriculum}"}
-      title={@curriculum_component.curriculum.name}
-    >
-      {@curriculum_component.curriculum.name}
-    </:breadcrumb>
-    <:title>{@curriculum_component.name}</:title>
-    <div class="flex items-center justify-between gap-4 p-4">
-      <p class="flex flex-wrap gap-2">
-        {ngettext(
-          "Showing 1 result for",
-          "Showing %{count} results for",
-          @curriculum_items_count
-        )}
-        <%= if length(@selected_subjects) == 0 do %>
-          <.badge>{gettext("all subjects")}</.badge>
-        <% else %>
-          <.badge :for={subject <- @selected_subjects}>{subject.name}</.badge>
-        <% end %>
-        {gettext("and")}
-        <%= if length(@selected_years) == 0 do %>
-          <.badge>{gettext("all years")}</.badge>
-        <% else %>
-          <.badge :for={year <- @selected_years}>{year.name}</.badge>
-        <% end %>
-      </p>
-      <.action
-        type="link"
-        patch={
-          ~p"/curriculum/component/#{@curriculum_component}?is_creating_curriculum_item=true"
-        }
-        icon_name="hero-plus-circle-mini"
+<Layouts.app_logged_in flash={@flash} current_user={@current_user} current_path={@current_path}>
+  <div>
+    <.header_nav current_user={@current_user}>
+      <:breadcrumb navigate={~p"/curriculum"}>{gettext("Curriculum")}</:breadcrumb>
+      <:breadcrumb
+        navigate={~p"/curriculum/#{@curriculum_component.curriculum}"}
+        title={@curriculum_component.curriculum.name}
       >
-        {gettext("New curriculum item")}
-      </.action>
-    </div>
-  </.header_nav>
-</div>
-<.data_grid
-  id="curriculum-items-table"
-  stream={@streams.curriculum_items}
-  show_empty_state_message={
-    if @curriculum_items_count == 0,
-      do: gettext("No curriculum items found for selected filters.")
-  }
->
-  <:col :let={curriculum_item} label="Id" template_col="max-content">
-    <.badge theme="dark">
-      #{curriculum_item.id}
-    </.badge>
-  </:col>
-  <:col :let={curriculum_item} label={gettext("Code")} template_col="max-content">
-    <%= if curriculum_item.code do %>
-      <.badge theme="dark">
-        ({curriculum_item.code})
-      </.badge>
-    <% else %>
-      <span class="text-ltrn-subtle">—</span>
-    <% end %>
-  </:col>
-  <:col :let={curriculum_item} label={gettext("Item")} template_col="minmax(0, 2fr)">
-    {curriculum_item.name}
-  </:col>
-  <:col
-    :let={curriculum_item}
-    label={gettext("Subjects")}
-    on_filter={JS.exec("data-show", to: "#subjects-filter-modal")}
-    filter_is_active={length(@selected_subjects_ids) > 0}
-    class="flex flex-wrap gap-2"
-  >
-    <.badge :for={subject <- curriculum_item.subjects}>
-      {subject.name}
-    </.badge>
-  </:col>
-  <:col
-    :let={curriculum_item}
-    label={gettext("Years")}
-    on_filter={JS.exec("data-show", to: "#years-filter-modal")}
-    filter_is_active={length(@selected_years_ids) > 0}
-    class="flex flex-wrap gap-2"
-  >
-    <.badge :for={year <- curriculum_item.years}>
-      {year.name}
-    </.badge>
-  </:col>
-  <:action :let={curriculum_item}>
-    <.icon_button
-      type="button"
-      sr_text={gettext("Edit curriculum item")}
-      name="hero-pencil-mini"
-      size="sm"
-      theme="ghost"
-      phx-click={
-        JS.patch(
-          ~p"/curriculum/component/#{@curriculum_component}?is_editing_curriculum_item=#{curriculum_item.id}"
-        )
-      }
-    />
-  </:action>
-</.data_grid>
-<section :if={@curriculum_component.description}>
-  <.responsive_container class="py-10">
-    <h2 class="mb-6 font-display font-black text-2xl">
-      {gettext("About the curriculum component")}
-    </h2>
-    <.markdown text={@curriculum_component.description} />
-  </.responsive_container>
-</section>
-<.live_component
-  module={LantternWeb.Filters.FiltersOverlayComponent}
-  id="subjects-filter-modal"
-  current_user={@current_user}
-  title={gettext("Filter curriculum items by subject")}
-  filter_type={:subjects}
-  navigate={~p"/curriculum/component/#{@curriculum_component}"}
-/>
-<.live_component
-  module={LantternWeb.Filters.FiltersOverlayComponent}
-  id="years-filter-modal"
-  current_user={@current_user}
-  title={gettext("Filter curriculum items by year")}
-  filter_type={:years}
-  navigate={~p"/curriculum/component/#{@curriculum_component}"}
-/>
-<.slide_over
-  :if={@show_curriculum_item_form}
-  id="curriculum-item-form-overlay"
-  show={true}
-  on_cancel={JS.patch(~p"/curriculum/component/#{@curriculum_component}")}
->
-  <:title>{@form_overlay_title}</:title>
-  <.label>{gettext("Curriculum component")}</.label>
-  <div class="p-4 rounded-sm mb-6 bg-white shadow-lg">
-    <.badge :if={@curriculum_component.code} class="mb-2">
-      {@curriculum_component.code}
-    </.badge>
-    <div class="font-display font-bold">
-      {@curriculum_component.name}
-    </div>
+        {@curriculum_component.curriculum.name}
+      </:breadcrumb>
+      <:title>{@curriculum_component.name}</:title>
+      <div class="flex items-center justify-between gap-4 p-4">
+        <p class="flex flex-wrap gap-2">
+          {ngettext(
+            "Showing 1 result for",
+            "Showing %{count} results for",
+            @curriculum_items_count
+          )}
+          <%= if length(@selected_subjects) == 0 do %>
+            <.badge>{gettext("all subjects")}</.badge>
+          <% else %>
+            <.badge :for={subject <- @selected_subjects}>{subject.name}</.badge>
+          <% end %>
+          {gettext("and")}
+          <%= if length(@selected_years) == 0 do %>
+            <.badge>{gettext("all years")}</.badge>
+          <% else %>
+            <.badge :for={year <- @selected_years}>{year.name}</.badge>
+          <% end %>
+        </p>
+        <.action
+          type="link"
+          patch={
+            ~p"/curriculum/component/#{@curriculum_component}?is_creating_curriculum_item=true"
+          }
+          icon_name="hero-plus-circle-mini"
+        >
+          {gettext("New curriculum item")}
+        </.action>
+      </div>
+    </.header_nav>
   </div>
+  <.data_grid
+    id="curriculum-items-table"
+    stream={@streams.curriculum_items}
+    show_empty_state_message={
+      if @curriculum_items_count == 0,
+        do: gettext("No curriculum items found for selected filters.")
+    }
+  >
+    <:col :let={curriculum_item} label="Id" template_col="max-content">
+      <.badge theme="dark">
+        #{curriculum_item.id}
+      </.badge>
+    </:col>
+    <:col :let={curriculum_item} label={gettext("Code")} template_col="max-content">
+      <%= if curriculum_item.code do %>
+        <.badge theme="dark">
+          ({curriculum_item.code})
+        </.badge>
+      <% else %>
+        <span class="text-ltrn-subtle">—</span>
+      <% end %>
+    </:col>
+    <:col :let={curriculum_item} label={gettext("Item")} template_col="minmax(0, 2fr)">
+      {curriculum_item.name}
+    </:col>
+    <:col
+      :let={curriculum_item}
+      label={gettext("Subjects")}
+      on_filter={JS.exec("data-show", to: "#subjects-filter-modal")}
+      filter_is_active={length(@selected_subjects_ids) > 0}
+      class="flex flex-wrap gap-2"
+    >
+      <.badge :for={subject <- curriculum_item.subjects}>
+        {subject.name}
+      </.badge>
+    </:col>
+    <:col
+      :let={curriculum_item}
+      label={gettext("Years")}
+      on_filter={JS.exec("data-show", to: "#years-filter-modal")}
+      filter_is_active={length(@selected_years_ids) > 0}
+      class="flex flex-wrap gap-2"
+    >
+      <.badge :for={year <- curriculum_item.years}>
+        {year.name}
+      </.badge>
+    </:col>
+    <:action :let={curriculum_item}>
+      <.icon_button
+        type="button"
+        sr_text={gettext("Edit curriculum item")}
+        name="hero-pencil-mini"
+        size="sm"
+        theme="ghost"
+        phx-click={
+          JS.patch(
+            ~p"/curriculum/component/#{@curriculum_component}?is_editing_curriculum_item=#{curriculum_item.id}"
+          )
+        }
+      />
+    </:action>
+  </.data_grid>
+  <section :if={@curriculum_component.description}>
+    <.responsive_container class="py-10">
+      <h2 class="mb-6 font-display font-black text-2xl">
+        {gettext("About the curriculum component")}
+      </h2>
+      <.markdown text={@curriculum_component.description} />
+    </.responsive_container>
+  </section>
   <.live_component
-    module={CurriculumItemFormComponent}
-    id={@curriculum_item.id || :new}
-    curriculum_item={@curriculum_item}
+    module={LantternWeb.Filters.FiltersOverlayComponent}
+    id="subjects-filter-modal"
+    current_user={@current_user}
+    title={gettext("Filter curriculum items by subject")}
+    filter_type={:subjects}
     navigate={~p"/curriculum/component/#{@curriculum_component}"}
-    hide_submit
   />
-  <:actions_left :if={@curriculum_item.id}>
-    <.button
-      type="button"
-      theme="ghost"
-      phx-click="delete_curriculum_item"
-      data-confirm={gettext("Are you sure?")}
-    >
-      {gettext("Delete")}
-    </.button>
-  </:actions_left>
-  <:actions>
-    <.button
-      type="button"
-      theme="ghost"
-      phx-click={JS.exec("data-cancel", to: "#curriculum-item-form-overlay")}
-    >
-      {gettext("Cancel")}
-    </.button>
-    <.button type="submit" form="curriculum-item-form">
-      {gettext("Save")}
-    </.button>
-  </:actions>
-</.slide_over>
+  <.live_component
+    module={LantternWeb.Filters.FiltersOverlayComponent}
+    id="years-filter-modal"
+    current_user={@current_user}
+    title={gettext("Filter curriculum items by year")}
+    filter_type={:years}
+    navigate={~p"/curriculum/component/#{@curriculum_component}"}
+  />
+  <.slide_over
+    :if={@show_curriculum_item_form}
+    id="curriculum-item-form-overlay"
+    show={true}
+    on_cancel={JS.patch(~p"/curriculum/component/#{@curriculum_component}")}
+  >
+    <:title>{@form_overlay_title}</:title>
+    <.label>{gettext("Curriculum component")}</.label>
+    <div class="p-4 rounded-sm mb-6 bg-white shadow-lg">
+      <.badge :if={@curriculum_component.code} class="mb-2">
+        {@curriculum_component.code}
+      </.badge>
+      <div class="font-display font-bold">
+        {@curriculum_component.name}
+      </div>
+    </div>
+    <.live_component
+      module={CurriculumItemFormComponent}
+      id={@curriculum_item.id || :new}
+      curriculum_item={@curriculum_item}
+      navigate={~p"/curriculum/component/#{@curriculum_component}"}
+      hide_submit
+    />
+    <:actions_left :if={@curriculum_item.id}>
+      <.button
+        type="button"
+        theme="ghost"
+        phx-click="delete_curriculum_item"
+        data-confirm={gettext("Are you sure?")}
+      >
+        {gettext("Delete")}
+      </.button>
+    </:actions_left>
+    <:actions>
+      <.button
+        type="button"
+        theme="ghost"
+        phx-click={JS.exec("data-cancel", to: "#curriculum-item-form-overlay")}
+      >
+        {gettext("Cancel")}
+      </.button>
+      <.button type="submit" form="curriculum-item-form">
+        {gettext("Save")}
+      </.button>
+    </:actions>
+  </.slide_over>
+</Layouts.app_logged_in>
