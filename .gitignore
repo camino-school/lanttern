@@ -26,9 +26,7 @@ erl_crash.dump
 lanttern-*.tar
 
 # Ignore assets that are produced by build tools.
-# /priv/static/assets/  # Temporarily disabled to version CSS
-# version precompiled app.css
-# !/priv/static/assets/css/app.css
+/priv/static/assets/
 /priv/cldr/
 
 # Ignore digested assets cache.

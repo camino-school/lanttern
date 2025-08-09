@@ -112,14 +112,8 @@ defmodule Lanttern.MixProject do
       "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],
       "assets.build": ["cmd --cd assets npm i", "tailwind lanttern", "esbuild lanttern"],
       "assets.deploy": [
-        # needed only while tailwind task is disabled
-        "phx.digest.clean --all",
         "cmd --cd assets npm ci --only=prod",
-        # Temporarily disabled - using pre-compiled CSS
-        # "tailwind lanttern --minify",
-        "cmd echo '=== Git and file system check ===' && git ls-tree HEAD priv/static/assets/css/ && echo '=== Finding CSS files ===' && find . -name 'app.css' -type f || echo 'No CSS files found'",
-        "cmd mkdir -p priv/static/assets/css",
-        "cmd echo '=== Final CSS file check ===' && ls -la priv/static/assets/css/ || echo 'Directory creation failed'",
+        "tailwind lanttern --minify",
         "esbuild lanttern --minify",
         "phx.digest"
       ],
