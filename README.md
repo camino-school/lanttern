@@ -17,17 +17,20 @@ export GOOGLE_CLIENT_ID="********"
 export ROOT_ADMIN_EMAIL="some.email@example.com"
 ```
 
-### To enable automatic environment reloading, you can:
+### To enable automatic environment reloading, you can
 
 1. Install `direnv`
 
 2. Add the following configuration to your shell configuration file (`~/.bashrc` or `~/.bash_profile`):
+
 ```bash
 eval "$(direnv hook bash)"
 ```
+
 3. Create a `.envrc` file in the root of your project. Copy the same information from your `.env` file into `.envrc`. This allows the environment variables to be loaded automatically, without needing to run `source .env`.
 
 4. Allow direnv to load the .envrc file by running:
+
 ```bash
 direnv allow
 ```
@@ -42,11 +45,6 @@ mix gettext.merge priv/gettext # to update all locale-specific .po
 ```
 
 Currently supported locales are `en` (default) and `pt_BR`.
-
-## `git_hooks` issue
-
-We need to run `mix git_hooks.install` before commiting for the first time.
-See [this issue](https://github.com/qgadrian/elixir_git_hooks/issues/133)
 
 ## Deployment
 
@@ -96,6 +94,9 @@ and view it in the `cover/` folder. Source: [excoveralls](https://github.com/par
 
 To investigate the perfomance process run `mix test --slowest 10`
 
+## LLM Agents
+
+Use the versioned `AGENTS.md` as reference for setting your own LLM agent instruction (e.g. copy and paste the content into a `CLAUDE.md` file for working with Claude Code).
 
 ## Restoring a PostgreSQL Backup
 
@@ -123,7 +124,7 @@ PGPASSWORD=postgres psql -h localhost -U postgres -d lanttern_dev -c "CREATE EXT
 ```
 
 ### Restore the Backup
- 
+
 `PGPASSWORD=postgres psql --set ON_ERROR_STOP=on -h localhost -U postgres lanttern_dev < <FILENAME>.sql`
 
 ## Learn more

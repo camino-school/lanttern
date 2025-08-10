@@ -1,8 +1,10 @@
-<.header>
-  Edit Scale {@scale.id}
-  <:subtitle>Use this form to manage scale records in your database.</:subtitle>
-</.header>
+<Layouts.admin flash={@flash}>
+  <.header>
+    Edit Scale {@scale.id}
+    <:subtitle>Use this form to manage scale records in your database.</:subtitle>
+  </.header>
 
-<.scale_form changeset={@changeset} action={~p"/admin/scales/#{@scale}"} />
+  <.scale_form changeset={@changeset} action={~p"/admin/scales/#{@scale}"} />
 
-<.back navigate={~p"/admin/scales"}>Back to scales</.back>
+  <.back navigate={~p"/admin/scales"}>Back to scales</.back>
+</Layouts.admin>

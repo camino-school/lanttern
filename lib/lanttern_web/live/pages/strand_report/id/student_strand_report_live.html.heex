@@ -1,96 +1,103 @@
-<.header_nav current_user={@current_user} menu_style="legacy">
-  <:breadcrumb navigate={~p"/student_strands"}>
-    {gettext("Strands")}
-  </:breadcrumb>
-  <:breadcrumb is_info>
-    <.mini_strand_card strand={@strand_report.strand} class="w-60" />
-  </:breadcrumb>
-  <:title>{@strand_report.strand.name}</:title>
-  <div class="flex items-center justify-between gap-4 px-4">
-    <.neo_tabs id="strand-nav-tabs">
-      <:tab
-        patch={~p"/strand_report/#{@strand_report}?tab=overview"}
-        is_current={@current_tab == :overview && "true"}
-      >
-        {gettext("Overview")}
-      </:tab>
-      <:tab
-        patch={~p"/strand_report/#{@strand_report}?tab=assessment"}
-        is_current={@current_tab == :assessment && "true"}
-      >
-        {gettext("Assessment")}
-      </:tab>
-      <:tab
-        :if={@strand_report.has_moments}
-        patch={~p"/strand_report/#{@strand_report}?tab=moments"}
-        is_current={@current_tab == :moments && "true"}
-      >
-        {gettext("Moments")}
-      </:tab>
-      <:tab
-        :if={@note || @is_student}
-        patch={~p"/strand_report/#{@strand_report}?tab=student_notes"}
-        is_current={@current_tab == :student_notes && "true"}
-      >
-        {gettext("Student notes")}
-      </:tab>
-    </.neo_tabs>
+<Layouts.app_logged_in
+  flash={@flash}
+  current_user={@current_user}
+  current_path={@current_path}
+  no_bg
+>
+  <.header_nav current_user={@current_user} menu_style="legacy">
+    <:breadcrumb navigate={~p"/student_strands"}>
+      {gettext("Strands")}
+    </:breadcrumb>
+    <:breadcrumb is_info>
+      <.mini_strand_card strand={@strand_report.strand} class="w-60" />
+    </:breadcrumb>
+    <:title>{@strand_report.strand.name}</:title>
+    <div class="flex items-center justify-between gap-4 px-4">
+      <.neo_tabs id="strand-nav-tabs">
+        <:tab
+          patch={~p"/strand_report/#{@strand_report}?tab=overview"}
+          is_current={@current_tab == :overview && "true"}
+        >
+          {gettext("Overview")}
+        </:tab>
+        <:tab
+          patch={~p"/strand_report/#{@strand_report}?tab=assessment"}
+          is_current={@current_tab == :assessment && "true"}
+        >
+          {gettext("Assessment")}
+        </:tab>
+        <:tab
+          :if={@strand_report.has_moments}
+          patch={~p"/strand_report/#{@strand_report}?tab=moments"}
+          is_current={@current_tab == :moments && "true"}
+        >
+          {gettext("Moments")}
+        </:tab>
+        <:tab
+          :if={@note || @is_student}
+          patch={~p"/strand_report/#{@strand_report}?tab=student_notes"}
+          is_current={@current_tab == :student_notes && "true"}
+        >
+          {gettext("Student notes")}
+        </:tab>
+      </.neo_tabs>
+    </div>
+  </.header_nav>
+  <div class="ltrn-bg-main-local">
+    <.live_component
+      :if={@current_tab == :overview}
+      module={StrandReportOverviewComponent}
+      id="strand-overview"
+      strand_report={@strand_report}
+      student_id={@student_report_card.student_id}
+      allow_access={@allow_access}
+      class="p-4"
+    />
+    <.live_component
+      :if={@current_tab == :assessment}
+      module={StrandReportAssessmentComponent}
+      id="student-assessment"
+      strand_report={@strand_report}
+      student_report_card={@student_report_card}
+      params={@params}
+      class="py-10"
+      base_path={~p"/strand_report/#{@strand_report.id}?tab=assessment"}
+      current_profile={@current_user.current_profile}
+    />
+    <.live_component
+      :if={@current_tab == :moments}
+      module={StrandReportMomentsComponent}
+      id="student-moments"
+      strand_report={@strand_report}
+      student_id={@student_report_card.student_id}
+      student_report_card_id={@student_report_card.id}
+      current_profile={@current_user.current_profile}
+      params={@params}
+      class="py-10"
+      base_path={~p"/strand_report/#{@strand_report.id}?tab=moments"}
+    />
+    <div :if={@current_tab == :student_notes} class="py-10">
+      <.responsive_container>
+        <.live_component
+          module={NoteComponent}
+          id="student-strand-notes"
+          note={@note}
+          current_user={@current_user}
+          strand_id={@strand_report.strand_id}
+          title={
+            if @is_student,
+              do: gettext("My strand notes"),
+              else: gettext("Student strand notes")
+          }
+          empty_msg={
+            if @is_student,
+              do: gettext("You don't have any notes for this strand yet"),
+              else: gettext("No student notes for this strand")
+          }
+          empty_add_note_msg={gettext("Add a strand note")}
+          allow_editing={@is_student}
+        />
+      </.responsive_container>
+    </div>
   </div>
-</.header_nav>
-<div class="ltrn-bg-main-local">
-  <.live_component
-    :if={@current_tab == :overview}
-    module={StrandReportOverviewComponent}
-    id="strand-overview"
-    strand_report={@strand_report}
-    student_id={@student_report_card.student_id}
-    allow_access={@allow_access}
-    class="p-4"
-  />
-  <.live_component
-    :if={@current_tab == :assessment}
-    module={StrandReportAssessmentComponent}
-    id="student-assessment"
-    strand_report={@strand_report}
-    student_report_card={@student_report_card}
-    params={@params}
-    class="py-10"
-    base_path={~p"/strand_report/#{@strand_report.id}?tab=assessment"}
-    current_profile={@current_user.current_profile}
-  />
-  <.live_component
-    :if={@current_tab == :moments}
-    module={StrandReportMomentsComponent}
-    id="student-moments"
-    strand_report={@strand_report}
-    student_id={@student_report_card.student_id}
-    student_report_card_id={@student_report_card.id}
-    current_profile={@current_user.current_profile}
-    params={@params}
-    class="py-10"
-    base_path={~p"/strand_report/#{@strand_report.id}?tab=moments"}
-  />
-  <div :if={@current_tab == :student_notes} class="py-10">
-    <.responsive_container>
-      <.live_component
-        module={NoteComponent}
-        id="student-strand-notes"
-        note={@note}
-        current_user={@current_user}
-        strand_id={@strand_report.strand_id}
-        title={
-          if @is_student,
-            do: gettext("My strand notes"),
-            else: gettext("Student strand notes")
-        }
-        empty_msg={
-          if @is_student,
-            do: gettext("You don't have any notes for this strand yet"),
-            else: gettext("No student notes for this strand")
-        }
-        empty_add_note_msg={gettext("Add a strand note")}
-        allow_editing={@is_student}
-      />
-    </.responsive_container>
-  </div>
-</div>
+</Layouts.app_logged_in>

@@ -1,24 +1,26 @@
-<.header>
-  Profile {@profile.id}
-  <:subtitle>This is a profile record from your database.</:subtitle>
-  <:actions>
-    <.link href={~p"/admin/profiles/#{@profile}/edit"}>
-      <.button>Edit profile</.button>
-    </.link>
-  </:actions>
-</.header>
+<Layouts.admin flash={@flash}>
+  <.header>
+    Profile {@profile.id}
+    <:subtitle>This is a profile record from your database.</:subtitle>
+    <:actions>
+      <.link href={~p"/admin/profiles/#{@profile}/edit"}>
+        <.button>Edit profile</.button>
+      </.link>
+    </:actions>
+  </.header>
 
-<.list>
-  <:item title="User">{@profile.user.email}</:item>
-  <:item :if={@profile.type == "student"} title="Student">
-    {@profile.student.name}
-  </:item>
-  <:item :if={@profile.type == "staff"} title="Stafr member">
-    {@profile.staff_member.name}
-  </:item>
-  <:item :if={@profile.type == "guardian"} title="Guardian of">
-    {@profile.guardian_of_student.name}
-  </:item>
-</.list>
+  <.list>
+    <:item title="User">{@profile.user.email}</:item>
+    <:item :if={@profile.type == "student"} title="Student">
+      {@profile.student.name}
+    </:item>
+    <:item :if={@profile.type == "staff"} title="Stafr member">
+      {@profile.staff_member.name}
+    </:item>
+    <:item :if={@profile.type == "guardian"} title="Guardian of">
+      {@profile.guardian_of_student.name}
+    </:item>
+  </.list>
 
-<.back navigate={~p"/admin/profiles"}>Back to profiles</.back>
+  <.back navigate={~p"/admin/profiles"}>Back to profiles</.back>
+</Layouts.admin>

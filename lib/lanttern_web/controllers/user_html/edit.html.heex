@@ -1,8 +1,10 @@
-<.header>
-  Edit User {@user.id}
-  <:subtitle>Use this form to manage user records in your database.</:subtitle>
-</.header>
+<Layouts.admin flash={@flash}>
+  <.header>
+    Edit User {@user.id}
+    <:subtitle>Use this form to manage user records in your database.</:subtitle>
+  </.header>
 
-<.user_form changeset={@changeset} action={~p"/admin/users/#{@user}"} />
+  <.user_form changeset={@changeset} action={~p"/admin/users/#{@user}"} />
 
-<.back navigate={~p"/admin/users"}>Back to users</.back>
+  <.back navigate={~p"/admin/users"}>Back to users</.back>
+</Layouts.admin>

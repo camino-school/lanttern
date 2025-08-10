@@ -1,33 +1,35 @@
-<.header>
-  Listing profile settings
-</.header>
+<Layouts.admin flash={@flash}>
+  <.header>
+    Listing profile settings
+  </.header>
 
-<.table id="profiles" rows={@streams.profiles}>
-  <:col :let={{_id, profile}} label="Profile id">{profile.id}</:col>
-  <:col :let={{_id, profile}} label="Type">{profile.type}</:col>
-  <:col :let={{_id, profile}} label="Name">{profile.name}</:col>
-  <:col :let={{_id, profile}} label="Permissions">
-    {profile.settings && Enum.join(profile.settings.permissions, ", ")}
-  </:col>
-  <:action :let={{_id, profile}}>
-    <.link patch={~p"/admin/profile_settings/#{profile}/edit"}>
-      Edit
-    </.link>
-  </:action>
-</.table>
+  <.table id="profiles" rows={@streams.profiles}>
+    <:col :let={{_id, profile}} label="Profile id">{profile.id}</:col>
+    <:col :let={{_id, profile}} label="Type">{profile.type}</:col>
+    <:col :let={{_id, profile}} label="Name">{profile.name}</:col>
+    <:col :let={{_id, profile}} label="Permissions">
+      {profile.settings && Enum.join(profile.settings.permissions, ", ")}
+    </:col>
+    <:action :let={{_id, profile}}>
+      <.link patch={~p"/admin/profile_settings/#{profile}/edit"}>
+        Edit
+      </.link>
+    </:action>
+  </.table>
 
-<.modal
-  :if={@live_action in [:new, :edit]}
-  id="profile_settings-modal"
-  show
-  on_cancel={JS.patch(~p"/admin/profile_settings")}
->
-  <.live_component
-    module={LantternWeb.Admin.ProfileSettingsLive.FormComponent}
-    id={@profile_settings.id || :new}
-    title={@page_title}
-    action={@live_action}
-    profile_settings={@profile_settings}
-    patch={~p"/admin/profile_settings"}
-  />
-</.modal>
+  <.modal
+    :if={@live_action in [:new, :edit]}
+    id="profile_settings-modal"
+    show
+    on_cancel={JS.patch(~p"/admin/profile_settings")}
+  >
+    <.live_component
+      module={LantternWeb.Admin.ProfileSettingsLive.FormComponent}
+      id={@profile_settings.id || :new}
+      title={@page_title}
+      action={@live_action}
+      profile_settings={@profile_settings}
+      patch={~p"/admin/profile_settings"}
+    />
+  </.modal>
+</Layouts.admin>

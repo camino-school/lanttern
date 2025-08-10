@@ -1,150 +1,155 @@
-<.header_nav current_user={@current_user}>
-  <:title>{gettext("Grades reports")}</:title>
-  <div class="flex items-center gap-6 p-4">
-    <div class="flex-1 flex items-center gap-6 min-w-0">
-      <.action
-        type="button"
-        phx-click={JS.exec("data-show", to: "#grades-reports-year-filters-overlay")}
-        icon_name="hero-chevron-down-mini"
-      >
-        {format_action_items_text(@selected_years, gettext("All years"))}
+<Layouts.app_logged_in flash={@flash} current_user={@current_user} current_path={@current_path}>
+  <.header_nav current_user={@current_user}>
+    <:title>{gettext("Grades reports")}</:title>
+    <div class="flex items-center gap-6 p-4">
+      <div class="flex-1 flex items-center gap-6 min-w-0">
+        <.action
+          type="button"
+          phx-click={JS.exec("data-show", to: "#grades-reports-year-filters-overlay")}
+          icon_name="hero-chevron-down-mini"
+        >
+          {format_action_items_text(@selected_years, gettext("All years"))}
+        </.action>
+        <div class="group relative flex items-center gap-2">
+          <.icon name="hero-information-circle-mini" class="text-ltrn-subtle" />
+          {gettext("Showing %{cycle} grades reports", cycle: Map.get(@current_cycle, :name))}
+          <.tooltip v_pos="bottom">
+            {gettext("Change current cycle in main menu to view other cyles' grades reports")}
+          </.tooltip>
+        </div>
+      </div>
+      <.action type="link" patch={~p"/grades_reports?new=true"} icon_name="hero-plus-circle-mini">
+        {gettext("New grades report")}
       </.action>
-      <div class="group relative flex items-center gap-2">
-        <.icon name="hero-information-circle-mini" class="text-ltrn-subtle" />
-        {gettext("Showing %{cycle} grades reports", cycle: Map.get(@current_cycle, :name))}
-        <.tooltip v_pos="bottom">
-          {gettext("Change current cycle in main menu to view other cyles' grades reports")}
-        </.tooltip>
-      </div>
     </div>
-    <.action type="link" patch={~p"/grades_reports?new=true"} icon_name="hero-plus-circle-mini">
-      {gettext("New grades report")}
-    </.action>
-  </div>
-</.header_nav>
-<.responsive_container class="pb-10">
-  <%= if @has_grades_reports do %>
-    <div phx-update="stream" id="grade-reports-grid">
-      <div
-        :for={{dom_id, grades_report} <- @streams.grades_reports}
-        id={dom_id}
-        class="p-6 rounded-sm mt-10 bg-white shadow-lg"
-      >
-        <div class="flex items-center justify-between gap-6 mb-6">
-          <h3 class="font-display font-black text-2xl">
-            <.link navigate={~p"/grades_reports/#{grades_report}"} class="hover:text-ltrn-subtle">
-              {grades_report.name}
-            </.link>
-          </h3>
-          <.action
-            type="link"
-            icon_name="hero-pencil-mini"
-            patch={~p"/grades_reports?is_editing=#{grades_report.id}"}
-          >
-            {gettext("Edit")}
-          </.action>
-        </div>
-        <div class="flex items-center gap-6 mb-6 text-sm">
-          <div class="flex items-center gap-2">
-            <.icon name="hero-calendar" class="w-6 h-6 shrink-0 text-ltrn-subtle" />
-            <div :if={grades_report.year}>
-              {grades_report.year.name},
-            </div>
-            {gettext("Cycle")} {grades_report.school_cycle.name}
-          </div>
-          <div class="flex items-center gap-2">
-            <.icon name="hero-view-columns" class="w-6 h-6 shrink-0 text-ltrn-subtle" />
-            {gettext("Scale")} {grades_report.scale.name}
-            <div
-              :if={grades_report.scale.ordinal_values != []}
-              class="flex items-center gap-2 ml-2"
+  </.header_nav>
+  <.responsive_container class="pb-10">
+    <%= if @has_grades_reports do %>
+      <div phx-update="stream" id="grade-reports-grid">
+        <div
+          :for={{dom_id, grades_report} <- @streams.grades_reports}
+          id={dom_id}
+          class="p-6 rounded-sm mt-10 bg-white shadow-lg"
+        >
+          <div class="flex items-center justify-between gap-6 mb-6">
+            <h3 class="font-display font-black text-2xl">
+              <.link
+                navigate={~p"/grades_reports/#{grades_report}"}
+                class="hover:text-ltrn-subtle"
+              >
+                {grades_report.name}
+              </.link>
+            </h3>
+            <.action
+              type="link"
+              icon_name="hero-pencil-mini"
+              patch={~p"/grades_reports?is_editing=#{grades_report.id}"}
             >
-              <%= for ov
+              {gettext("Edit")}
+            </.action>
+          </div>
+          <div class="flex items-center gap-6 mb-6 text-sm">
+            <div class="flex items-center gap-2">
+              <.icon name="hero-calendar" class="w-6 h-6 shrink-0 text-ltrn-subtle" />
+              <div :if={grades_report.year}>
+                {grades_report.year.name},
+              </div>
+              {gettext("Cycle")} {grades_report.school_cycle.name}
+            </div>
+            <div class="flex items-center gap-2">
+              <.icon name="hero-view-columns" class="w-6 h-6 shrink-0 text-ltrn-subtle" />
+              {gettext("Scale")} {grades_report.scale.name}
+              <div
+                :if={grades_report.scale.ordinal_values != []}
+                class="flex items-center gap-2 ml-2"
+              >
+                <%= for ov
             <- grades_report.scale.ordinal_values do %>
-                <.badge color_map={ov}>
-                  {ov.name}
-                </.badge>
-              <% end %>
+                  <.badge color_map={ov}>
+                    {ov.name}
+                  </.badge>
+                <% end %>
+              </div>
             </div>
           </div>
+          <.markdown :if={grades_report.info} text={grades_report.info} class="mb-6" />
+          <.grades_report_grid
+            grades_report={grades_report}
+            on_configure={JS.patch(~p"/grades_reports?is_configuring_grid=#{grades_report.id}")}
+            on_composition_click={JS.push("edit_composition")}
+            show_cycle_visibility
+          />
         </div>
-        <.markdown :if={grades_report.info} text={grades_report.info} class="mb-6" />
-        <.grades_report_grid
-          grades_report={grades_report}
-          on_configure={JS.patch(~p"/grades_reports?is_configuring_grid=#{grades_report.id}")}
-          on_composition_click={JS.push("edit_composition")}
-          show_cycle_visibility
-        />
       </div>
-    </div>
-  <% else %>
-    <.empty_state class="mt-12">
-      {gettext("No %{cycle} grade reports matching current filters created yet",
-        cycle: Map.get(@current_cycle, :name)
-      )}
-    </.empty_state>
-  <% end %>
-</.responsive_container>
-<.slide_over
-  :if={@show_grades_report_form}
-  id="grades-report-form-overlay"
-  show={true}
-  on_cancel={JS.patch(~p"/grades_reports")}
->
-  <:title>{@form_overlay_title}</:title>
+    <% else %>
+      <.empty_state class="mt-12">
+        {gettext("No %{cycle} grade reports matching current filters created yet",
+          cycle: Map.get(@current_cycle, :name)
+        )}
+      </.empty_state>
+    <% end %>
+  </.responsive_container>
+  <.slide_over
+    :if={@show_grades_report_form}
+    id="grades-report-form-overlay"
+    show={true}
+    on_cancel={JS.patch(~p"/grades_reports")}
+  >
+    <:title>{@form_overlay_title}</:title>
+    <.live_component
+      module={GradesReportFormComponent}
+      id={@grades_report.id || :new}
+      grades_report={@grades_report}
+      current_user={@current_user}
+      navigate={fn _ -> ~p"/grades_reports" end}
+      hide_submit
+    />
+    <:actions_left :if={@grades_report.id}>
+      <.button
+        type="button"
+        theme="ghost"
+        phx-click="delete_grades_report"
+        data-confirm={gettext("Are you sure?")}
+      >
+        {gettext("Delete")}
+      </.button>
+    </:actions_left>
+    <:actions>
+      <.button
+        type="button"
+        theme="ghost"
+        phx-click={JS.exec("data-cancel", to: "#grades-report-form-overlay")}
+      >
+        {gettext("Cancel")}
+      </.button>
+      <.button type="submit" form="grades-report-form">
+        {gettext("Save")}
+      </.button>
+    </:actions>
+  </.slide_over>
   <.live_component
-    module={GradesReportFormComponent}
-    id={@grades_report.id || :new}
+    :if={@show_grades_report_grid_configuration}
+    module={GradesReportGridConfigurationOverlayComponent}
+    id="grades-report-grid-configuration-overlay"
     grades_report={@grades_report}
-    current_user={@current_user}
-    navigate={fn _ -> ~p"/grades_reports" end}
-    hide_submit
+    on_cancel={JS.navigate(~p"/grades_reports")}
   />
-  <:actions_left :if={@grades_report.id}>
-    <.button
-      type="button"
-      theme="ghost"
-      phx-click="delete_grades_report"
-      data-confirm={gettext("Are you sure?")}
-    >
-      {gettext("Delete")}
-    </.button>
-  </:actions_left>
-  <:actions>
-    <.button
-      type="button"
-      theme="ghost"
-      phx-click={JS.exec("data-cancel", to: "#grades-report-form-overlay")}
-    >
-      {gettext("Cancel")}
-    </.button>
-    <.button type="submit" form="grades-report-form">
-      {gettext("Save")}
-    </.button>
-  </:actions>
-</.slide_over>
-<.live_component
-  :if={@show_grades_report_grid_configuration}
-  module={GradesReportGridConfigurationOverlayComponent}
-  id="grades-report-grid-configuration-overlay"
-  grades_report={@grades_report}
-  on_cancel={JS.navigate(~p"/grades_reports")}
-/>
-<.live_component
-  :if={@is_editing_grade_composition}
-  title={gettext("Edit grade composition")}
-  module={GradeCompositionOverlayComponent}
-  id="grade-composition-overlay"
-  grades_report_id={@grades_report_id}
-  grades_report_cycle_id={@grades_report_cycle_id}
-  grades_report_subject_id={@grades_report_subject_id}
-  on_cancel={JS.patch(~p"/grades_reports")}
-/>
-<.live_component
-  module={LantternWeb.Filters.FiltersOverlayComponent}
-  id="grades-reports-year-filters-overlay"
-  current_user={@current_user}
-  title={gettext("Filter grades reports by year")}
-  filter_type={:years}
-  navigate={~p"/grades_reports"}
-/>
+  <.live_component
+    :if={@is_editing_grade_composition}
+    title={gettext("Edit grade composition")}
+    module={GradeCompositionOverlayComponent}
+    id="grade-composition-overlay"
+    grades_report_id={@grades_report_id}
+    grades_report_cycle_id={@grades_report_cycle_id}
+    grades_report_subject_id={@grades_report_subject_id}
+    on_cancel={JS.patch(~p"/grades_reports")}
+  />
+  <.live_component
+    module={LantternWeb.Filters.FiltersOverlayComponent}
+    id="grades-reports-year-filters-overlay"
+    current_user={@current_user}
+    title={gettext("Filter grades reports by year")}
+    filter_type={:years}
+    navigate={~p"/grades_reports"}
+  />
+</Layouts.app_logged_in>

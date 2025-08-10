@@ -1,34 +1,36 @@
-<.header>
-  Listing Compositions
-  <:actions>
-    <.link href={~p"/admin/grading_compositions/new"}>
-      <.button>New Composition</.button>
-    </.link>
-  </:actions>
-</.header>
+<Layouts.admin flash={@flash}>
+  <.header>
+    Listing Compositions
+    <:actions>
+      <.link href={~p"/admin/grading_compositions/new"}>
+        <.button>New Composition</.button>
+      </.link>
+    </:actions>
+  </.header>
 
-<.table
-  id="compositions"
-  rows={@compositions}
-  row_click={&JS.navigate(~p"/admin/grading_compositions/#{&1}")}
->
-  <:col :let={composition} label="Name">{composition.name}</:col>
-  <:col :let={composition} label="Final grade scale">
-    {composition.final_grade_scale.name}
-  </:col>
-  <:action :let={composition}>
-    <div class="sr-only">
-      <.link navigate={~p"/admin/grading_compositions/#{composition}"}>Show</.link>
-    </div>
-    <.link navigate={~p"/admin/grading_compositions/#{composition}/edit"}>Edit</.link>
-  </:action>
-  <:action :let={composition}>
-    <.link
-      href={~p"/admin/grading_compositions/#{composition}"}
-      method="delete"
-      data-confirm="Are you sure?"
-    >
-      Delete
-    </.link>
-  </:action>
-</.table>
+  <.table
+    id="compositions"
+    rows={@compositions}
+    row_click={&JS.navigate(~p"/admin/grading_compositions/#{&1}")}
+  >
+    <:col :let={composition} label="Name">{composition.name}</:col>
+    <:col :let={composition} label="Final grade scale">
+      {composition.final_grade_scale.name}
+    </:col>
+    <:action :let={composition}>
+      <div class="sr-only">
+        <.link navigate={~p"/admin/grading_compositions/#{composition}"}>Show</.link>
+      </div>
+      <.link navigate={~p"/admin/grading_compositions/#{composition}/edit"}>Edit</.link>
+    </:action>
+    <:action :let={composition}>
+      <.link
+        href={~p"/admin/grading_compositions/#{composition}"}
+        method="delete"
+        data-confirm="Are you sure?"
+      >
+        Delete
+      </.link>
+    </:action>
+  </.table>
+</Layouts.admin>

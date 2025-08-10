@@ -1,17 +1,19 @@
-<.header>
-  Ordinal value {@ordinal_value.id}
-  <:subtitle>This is a ordinal_value record from your database.</:subtitle>
-  <:actions>
-    <.link href={~p"/admin/ordinal_values/#{@ordinal_value}/edit"}>
-      <.button>Edit ordinal_value</.button>
-    </.link>
-  </:actions>
-</.header>
+<Layouts.admin flash={@flash}>
+  <.header>
+    Ordinal value {@ordinal_value.id}
+    <:subtitle>This is a ordinal_value record from your database.</:subtitle>
+    <:actions>
+      <.link href={~p"/admin/ordinal_values/#{@ordinal_value}/edit"}>
+        <.button>Edit ordinal_value</.button>
+      </.link>
+    </:actions>
+  </.header>
 
-<.list>
-  <:item title="Scale">{@ordinal_value.scale.name}</:item>
-  <:item title="Name">{@ordinal_value.name}</:item>
-  <:item title="Normalized value">{@ordinal_value.normalized_value}</:item>
-</.list>
+  <.list>
+    <:item title="Scale">{@ordinal_value.scale.name}</:item>
+    <:item title="Name">{@ordinal_value.name}</:item>
+    <:item title="Normalized value">{@ordinal_value.normalized_value}</:item>
+  </.list>
 
-<.back navigate={~p"/admin/ordinal_values"}>Back to ordinal_values</.back>
+  <.back navigate={~p"/admin/ordinal_values"}>Back to ordinal_values</.back>
+</Layouts.admin>

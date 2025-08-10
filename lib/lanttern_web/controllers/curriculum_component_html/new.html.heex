@@ -1,12 +1,14 @@
-<.header>
-  New Curriculum component
-  <:subtitle>Use this form to manage curriculum_component records in your database.</:subtitle>
-</.header>
+<Layouts.admin flash={@flash}>
+  <.header>
+    New Curriculum component
+    <:subtitle>Use this form to manage curriculum_component records in your database.</:subtitle>
+  </.header>
 
-<.curriculum_component_form
-  curriculum_options={@curriculum_options}
-  changeset={@changeset}
-  action={~p"/admin/curriculum_components"}
-/>
+  <.curriculum_component_form
+    curriculum_options={@curriculum_options}
+    changeset={@changeset}
+    action={~p"/admin/curriculum_components"}
+  />
 
-<.back navigate={~p"/admin/curriculum_components"}>Back to curriculum_components</.back>
+  <.back navigate={~p"/admin/curriculum_components"}>Back to curriculum_components</.back>
+</Layouts.admin>
