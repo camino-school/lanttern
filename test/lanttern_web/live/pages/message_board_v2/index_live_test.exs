@@ -4,9 +4,9 @@ defmodule LantternWeb.MessageBoard.IndexLiveTest do
   import Lanttern.Factory
   import PhoenixTest
 
-  setup [:register_and_log_in_staff_member]
+  describe "Message board liveview as Staff" do
+    setup [:register_and_log_in_staff_member]
 
-  describe "Message board view basic navigation" do
     test "list only filter classes", ctx do
       school = ctx.user.current_profile.staff_member.school
       cycle = ctx.user.current_profile.current_school_cycle
@@ -86,5 +86,75 @@ defmodule LantternWeb.MessageBoard.IndexLiveTest do
       |> visit("/school/message_board?edit=#{message.id}")
       |> refute_has("h2", text: "Edit message")
     end
+
+    test "create a new section w/ permissions", ctx do
+      %{conn: conn} = set_user_permissions(["communication_management"], ctx)
+      attr = %{name: "test section"}
+
+      conn
+      |> visit("/school/message_board")
+      |> assert_has("h1", text: "Message board admin")
+      |> click_link("Create section")
+      |> fill_in("Section name", with: attr.name)
+      |> click_button("Save")
+
+      conn
+      |> visit("/school/message_board")
+      |> assert_has("h2", text: attr.name)
+    end
+
+    test "edit a existing section", ctx do
+      %{conn: conn} = set_user_permissions(["communication_management"], ctx)
+      attr = %{name: "test section"}
+      section = insert(:section, %{name: "old title"})
+
+      conn
+      |> visit("/school/message_board")
+      |> assert_has("h1", text: "Message board admin")
+      |> click_link("#section-#{section.id}-settings", "Settings")
+      |> fill_in("Section name", with: attr.name)
+      |> click_button("Save")
+
+      conn
+      |> visit("/school/message_board")
+      |> assert_has("h2", text: attr.name)
+    end
+
+    @tag :skip
+    test "delete a existing section" do
+      # show delete button only no message show
+    end
+
+    @tag :skip
+    test "reorder a existing section" do
+      # html position sequence ok when correct order
+    end
+
+    @tag :skip
+    test "reorder a existing message" do
+      # html position sequence ok when correct order
+    end
+
+    @tag :skip
+    test "include attachments to a existing section" do
+      # crud and include in another commit as a feature like in moment card
+    end
+
+    # @tag :skip
+    # test "show message to student and guardian" do
+    #   # login with profile
+    # end
+
+    # @tag :skip
+    # test "show message to student in specific class" do
+    #   # create a class
+    #   # login with profile, assoc to class
+    # end
+
+    # @tag :skip
+    # test "show message to guardian in specific class" do
+    #   # create a class
+    #   # login with profile, assoc to class
+    # end
   end
 end

@@ -7,7 +7,7 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponentV2 do
     attr :message, Message, required: true
     attr :title, :string, required: true
     attr :current_profile, Profile, required: true
-    attr :section, :string
+    attr :section_id, :integer
     attr :on_cancel, :any, required: true, doc: "`<.slide_over>` `on_cancel` attr"
     attr :notify_parent, :boolean
     attr :notify_component, Phoenix.LiveComponent.CID
@@ -164,7 +164,7 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponentV2 do
       socket
       |> assign(:initialized, false)
       |> assign(:is_removing_cover, false)
-      |> assign(:section, nil)
+      |> assign(:section_id, nil)
       |> allow_upload(:cover,
         accept: ~w(.jpg .jpeg .png .webp),
         max_file_size: 5_000_000,
@@ -333,6 +333,6 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponentV2 do
     params
     |> Map.put("school_id", assigns.message.school_id)
     |> Map.put("classes_ids", assigns.selected_classes_ids)
-    |> Map.put("section_id", assigns.message.section_id || assigns.section.id)
+    |> Map.put("section_id", assigns.message.section_id || assigns.section_id)
   end
 end
