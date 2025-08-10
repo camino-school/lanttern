@@ -1,7 +1,5 @@
 # The directory Mix will write compiled artifacts to.
 /_build/
-# Exception: keep tailwind binary for CI
-!/_build/tailwindcss-linux-x64
 
 # If you run "mix test --cover", coverage assets end up here.
 /cover/

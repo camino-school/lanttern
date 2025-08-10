@@ -53,12 +53,14 @@ config :esbuild,
 # Configure tailwind (use npm version)
 config :tailwind,
   version: "4.1.11",
+  version_check: false,
   lanttern: [
     args: ~w(
       --input=assets/css/app.css
       --output=priv/static/assets/css/app.css
     ),
-    cd: Path.expand("..", __DIR__)
+    cd: Path.expand("..", __DIR__),
+    path: Path.expand("../assets/node_modules/.bin/tailwindcss", __DIR__)
   ]
 
 # Configures Elixir's Logger
