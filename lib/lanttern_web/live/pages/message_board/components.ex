@@ -7,7 +7,6 @@ defmodule LantternWeb.MessageBoard.Components do
 
   use Gettext, backend: Lanttern.Gettext
   import LantternWeb.CoreComponents
-  # import LantternWeb.DateTimeHelpers
 
   alias Lanttern.MessageBoard.Message
 

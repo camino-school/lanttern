@@ -103,7 +103,7 @@ defmodule LantternWeb.MessageBoard.IndexLiveTest do
       |> assert_has("h2", text: attr.name)
     end
 
-    test "edit a existing section", ctx do
+    test "edit a existing section w/ permissions", ctx do
       %{conn: conn} = set_user_permissions(["communication_management"], ctx)
       attr = %{name: "test section"}
       section = insert(:section, %{name: "old title"})
@@ -120,9 +120,19 @@ defmodule LantternWeb.MessageBoard.IndexLiveTest do
       |> assert_has("h2", text: attr.name)
     end
 
-    @tag :skip
-    test "delete a existing section" do
-      # show delete button only no message show
+    test "delete a existing section w/ permissions", ctx do
+      %{conn: conn} = set_user_permissions(["communication_management"], ctx)
+      section = insert(:section, %{name: "section to delete"})
+
+      conn
+      |> visit("/school/message_board")
+      |> assert_has("h2", text: section.name)
+      |> click_link("#section-#{section.id}-settings", "Settings")
+      |> click_button("Delete")
+
+      conn
+      |> visit("/school/message_board")
+      |> refute_has("h2", text: section.name)
     end
 
     @tag :skip

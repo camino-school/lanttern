@@ -54,6 +54,7 @@ defmodule LantternWeb.MessageBoard.IndexLive do
       {:ok, _message} ->
         socket
         |> put_flash(:info, gettext("Message deleted successfully"))
+        |> assign_sections()
         |> then(&{:noreply, &1})
 
       {:error, _changeset} ->
@@ -80,6 +81,7 @@ defmodule LantternWeb.MessageBoard.IndexLive do
         socket
         |> put_flash(:info, "Section updated successfully")
         |> push_patch(to: ~p"/school/message_board")
+        |> assign_sections()
         |> assign(:form_action, nil)
         |> then(&{:noreply, &1})
 
@@ -98,11 +100,27 @@ defmodule LantternWeb.MessageBoard.IndexLive do
         socket
         |> put_flash(:info, "Section created successfully")
         |> push_patch(to: ~p"/school/message_board")
+        |> assign_sections()
         |> assign(:form_action, nil)
         |> then(&{:noreply, &1})
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign(socket, :form, to_form(changeset))}
+    end
+  end
+
+  def handle_event("delete_section", _params, %{assigns: %{section: section}} = socket) do
+    case MessageBoard.delete_section(section) do
+      {:ok, _section} ->
+        socket
+        |> put_flash(:info, gettext("Section deleted successfully"))
+        |> push_patch(to: ~p"/school/message_board")
+        |> assign_sections()
+        |> assign(:form_action, nil)
+        |> then(&{:noreply, &1})
+
+      {:error, _changeset} ->
+        {:noreply, put_flash(socket, :error, gettext("Failed to delete section"))}
     end
   end
 
@@ -117,6 +135,7 @@ defmodule LantternWeb.MessageBoard.IndexLive do
     socket
     |> put_flash(elem(flash_message, 0), elem(flash_message, 1))
     |> push_patch(to: ~p"/school/message_board")
+    |> assign_sections()
     |> then(&{:noreply, &1})
   end
 
@@ -375,7 +394,7 @@ defmodule LantternWeb.MessageBoard.IndexLive do
               type="button"
               theme="subtle"
               size="md"
-              phx-click="delete"
+              phx-click="delete_section"
               data-confirm={gettext("Are you sure?")}
             >
               {gettext("Delete")}
