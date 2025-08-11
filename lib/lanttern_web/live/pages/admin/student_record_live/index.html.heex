@@ -1,54 +1,56 @@
-<.header>
-  Listing Students records
-  <:actions>
-    <.link patch={~p"/admin/students_records/new"}>
-      <.button>New Student record</.button>
-    </.link>
-  </:actions>
-</.header>
+<Layouts.admin flash={@flash}>
+  <.header>
+    Listing Students records
+    <:actions>
+      <.link patch={~p"/admin/students_records/new"}>
+        <.button>New Student record</.button>
+      </.link>
+    </:actions>
+  </.header>
 
-<.table
-  id="students_records"
-  rows={@streams.students_records}
-  row_click={
-    fn {_id, student_record} -> JS.navigate(~p"/admin/students_records/#{student_record}") end
-  }
->
-  <:col :let={{_id, student_record}} label="Students">
-    {Enum.map(student_record.students, & &1.name) |> Enum.join(", ")}
-  </:col>
-  <:col :let={{_id, student_record}} label="Name">{student_record.name}</:col>
-  <:col :let={{_id, student_record}} label="Description">{student_record.description}</:col>
-  <:col :let={{_id, student_record}} label="Date">{student_record.date}</:col>
-  <:col :let={{_id, student_record}} label="Time">{student_record.time}</:col>
-  <:action :let={{_id, student_record}}>
-    <div class="sr-only">
-      <.link navigate={~p"/admin/students_records/#{student_record}"}>Show</.link>
-    </div>
-    <.link patch={~p"/admin/students_records/#{student_record}/edit"}>Edit</.link>
-  </:action>
-  <:action :let={{id, student_record}}>
-    <.link
-      phx-click={JS.push("delete", value: %{id: student_record.id}) |> hide("##{id}")}
-      data-confirm="Are you sure?"
-    >
-      Delete
-    </.link>
-  </:action>
-</.table>
+  <.table
+    id="students_records"
+    rows={@streams.students_records}
+    row_click={
+      fn {_id, student_record} -> JS.navigate(~p"/admin/students_records/#{student_record}") end
+    }
+  >
+    <:col :let={{_id, student_record}} label="Students">
+      {Enum.map(student_record.students, & &1.name) |> Enum.join(", ")}
+    </:col>
+    <:col :let={{_id, student_record}} label="Name">{student_record.name}</:col>
+    <:col :let={{_id, student_record}} label="Description">{student_record.description}</:col>
+    <:col :let={{_id, student_record}} label="Date">{student_record.date}</:col>
+    <:col :let={{_id, student_record}} label="Time">{student_record.time}</:col>
+    <:action :let={{_id, student_record}}>
+      <div class="sr-only">
+        <.link navigate={~p"/admin/students_records/#{student_record}"}>Show</.link>
+      </div>
+      <.link patch={~p"/admin/students_records/#{student_record}/edit"}>Edit</.link>
+    </:action>
+    <:action :let={{id, student_record}}>
+      <.link
+        phx-click={JS.push("delete", value: %{id: student_record.id}) |> hide("##{id}")}
+        data-confirm="Are you sure?"
+      >
+        Delete
+      </.link>
+    </:action>
+  </.table>
 
-<.modal
-  :if={@live_action in [:new, :edit]}
-  id="student_record-modal"
-  show
-  on_cancel={JS.patch(~p"/admin/students_records")}
->
-  <.live_component
-    module={LantternWeb.Admin.StudentRecordLive.FormComponent}
-    id={@student_record.id || :new}
-    title={@page_title}
-    action={@live_action}
-    student_record={@student_record}
-    patch={~p"/admin/students_records"}
-  />
-</.modal>
+  <.modal
+    :if={@live_action in [:new, :edit]}
+    id="student_record-modal"
+    show
+    on_cancel={JS.patch(~p"/admin/students_records")}
+  >
+    <.live_component
+      module={LantternWeb.Admin.StudentRecordLive.FormComponent}
+      id={@student_record.id || :new}
+      title={@page_title}
+      action={@live_action}
+      student_record={@student_record}
+      patch={~p"/admin/students_records"}
+    />
+  </.modal>
+</Layouts.admin>

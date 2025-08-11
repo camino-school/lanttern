@@ -1,48 +1,50 @@
-<.header>
-  Strand {@strand.id}
-  <:subtitle>This is a strand record from your database.</:subtitle>
-  <:actions>
-    <.link patch={~p"/admin/strands/#{@strand}/show/edit"} phx-click={JS.push_focus()}>
-      <.button>Edit strand</.button>
-    </.link>
-  </:actions>
-</.header>
-
-<.list>
-  <:item title="Id">#{@strand.id}</:item>
-  <:item title="Name">{@strand.name}</:item>
-  <:item title="Description">{@strand.description}</:item>
-  <:item title="Subjects">
-    {@strand.subjects
-    |> Enum.map(& &1.name)
-    |> Enum.join(", ")}
-  </:item>
-  <:item title="Years">
-    {@strand.years
-    |> Enum.map(& &1.name)
-    |> Enum.join(", ")}
-  </:item>
-</.list>
-
-<.back navigate={~p"/admin/strands"}>Back to strands</.back>
-
-<.modal
-  :if={@live_action == :edit}
-  id="strand-modal"
-  show
-  on_cancel={JS.patch(~p"/admin/strands/#{@strand}")}
->
+<Layouts.admin flash={@flash}>
   <.header>
-    {@page_title}
-    <:subtitle>Use this form to manage strand records in your database.</:subtitle>
+    Strand {@strand.id}
+    <:subtitle>This is a strand record from your database.</:subtitle>
+    <:actions>
+      <.link patch={~p"/admin/strands/#{@strand}/show/edit"} phx-click={JS.push_focus()}>
+        <.button>Edit strand</.button>
+      </.link>
+    </:actions>
   </.header>
-  <.live_component
-    module={LantternWeb.LearningContext.StrandFormComponent}
-    id={@strand.id}
-    strand={@strand}
-    action={@live_action}
-    patch={~p"/admin/strands/#{@strand}"}
-    notify_parent
-    show_actions
-  />
-</.modal>
+
+  <.list>
+    <:item title="Id">#{@strand.id}</:item>
+    <:item title="Name">{@strand.name}</:item>
+    <:item title="Description">{@strand.description}</:item>
+    <:item title="Subjects">
+      {@strand.subjects
+      |> Enum.map(& &1.name)
+      |> Enum.join(", ")}
+    </:item>
+    <:item title="Years">
+      {@strand.years
+      |> Enum.map(& &1.name)
+      |> Enum.join(", ")}
+    </:item>
+  </.list>
+
+  <.back navigate={~p"/admin/strands"}>Back to strands</.back>
+
+  <.modal
+    :if={@live_action == :edit}
+    id="strand-modal"
+    show
+    on_cancel={JS.patch(~p"/admin/strands/#{@strand}")}
+  >
+    <.header>
+      {@page_title}
+      <:subtitle>Use this form to manage strand records in your database.</:subtitle>
+    </.header>
+    <.live_component
+      module={LantternWeb.LearningContext.StrandFormComponent}
+      id={@strand.id}
+      strand={@strand}
+      action={@live_action}
+      patch={~p"/admin/strands/#{@strand}"}
+      notify_parent
+      show_actions
+    />
+  </.modal>
+</Layouts.admin>

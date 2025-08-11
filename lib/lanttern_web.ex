@@ -38,9 +38,7 @@ defmodule LantternWeb do
 
   def controller do
     quote do
-      use Phoenix.Controller,
-        formats: [:html, :json],
-        layouts: [html: LantternWeb.Layouts]
+      use Phoenix.Controller, formats: [:html, :json]
 
       import Plug.Conn
       use Gettext, backend: Lanttern.Gettext
@@ -49,12 +47,9 @@ defmodule LantternWeb do
     end
   end
 
-  def live_view(opts \\ []) do
-    layout = Keyword.get(opts, :layout, :app)
-
+  def live_view do
     quote do
-      use Phoenix.LiveView,
-        layout: {LantternWeb.Layouts, unquote(layout)}
+      use Phoenix.LiveView
 
       # from https://hexdocs.pm/phoenix_live_view/using-gettext.html
       on_mount LantternWeb.LocalizationHelpers
@@ -103,6 +98,8 @@ defmodule LantternWeb do
 
       # Shortcut for generating JS commands
       alias Phoenix.LiveView.JS
+
+      alias LantternWeb.Layouts
 
       # Routes generation with the ~p sigil
       unquote(verified_routes())

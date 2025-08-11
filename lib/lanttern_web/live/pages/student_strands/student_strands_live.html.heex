@@ -1,56 +1,58 @@
-<.responsive_container class="pt-6 sm:pt-10">
-  <.page_title_with_menu>{gettext("Strands")}</.page_title_with_menu>
-  <div class="sm:flex sm:items-center sm:gap-4 mt-10">
-    <%= if @has_student_report_cards_cycles do %>
-      <.live_component
-        module={InlineFiltersComponent}
-        id="cycles-filter"
-        filter_items={@student_report_cards_cycles}
-        selected_items_ids={@selected_cycles_ids}
-        all_text={gettext("All cycles")}
-        class="flex-1"
-        notify_parent
-        is_single
-        hide_all_opt
-      />
-    <% else %>
-      <p class="flex-1">
-        {gettext("No strands in %{cycle} yet", cycle: Map.get(@current_cycle, :name))}
-      </p>
-    <% end %>
-  </div>
-  <div :if={!@has_student_strands} class="p-6 rounde mt-6 mb-10 bg-white shadow-sm lg">
-    <.empty_state>
-      {gettext("No strands related to selected cycles")}
-    </.empty_state>
-  </div>
-</.responsive_container>
-<.responsive_grid
-  :if={@has_student_strands}
-  id="student-strands"
-  phx-update="stream"
-  class="px-6 py-10 sm:px-10"
->
-  <.strand_card
-    :for={{dom_id, {strand, entries}} <- @streams.student_strands}
-    id={dom_id}
-    strand={strand}
-    navigate={~p"/strand_report/#{strand.strand_report_id}"}
-    hide_description
-    class="shrink-0 w-64 sm:w-auto"
-  >
-    <:bottom_content :if={entries != []}>
-      <div class="group relative flex flex-wrap justify-center gap-px p-2 border-t border-ltrn-lighter">
+<Layouts.app_logged_in flash={@flash} current_user={@current_user} current_path={@current_path}>
+  <.responsive_container class="pt-6 sm:pt-10">
+    <.page_title_with_menu>{gettext("Strands")}</.page_title_with_menu>
+    <div class="sm:flex sm:items-center sm:gap-4 mt-10">
+      <%= if @has_student_report_cards_cycles do %>
         <.live_component
-          :for={entry <- entries}
-          module={EntryParticleComponent}
-          id={entry.id}
-          entry={entry}
-          size="sm"
+          module={InlineFiltersComponent}
+          id="cycles-filter"
+          filter_items={@student_report_cards_cycles}
+          selected_items_ids={@selected_cycles_ids}
+          all_text={gettext("All cycles")}
+          class="flex-1"
+          notify_parent
+          is_single
+          hide_all_opt
         />
-        <.tooltip h_pos="center">{gettext("Formative assessment pattern")}</.tooltip>
-      </div>
-    </:bottom_content>
-  </.strand_card>
-</.responsive_grid>
-<.school_branding_footer school={@school} />
+      <% else %>
+        <p class="flex-1">
+          {gettext("No strands in %{cycle} yet", cycle: Map.get(@current_cycle, :name))}
+        </p>
+      <% end %>
+    </div>
+    <div :if={!@has_student_strands} class="p-6 rounde mt-6 mb-10 bg-white shadow-sm lg">
+      <.empty_state>
+        {gettext("No strands related to selected cycles")}
+      </.empty_state>
+    </div>
+  </.responsive_container>
+  <.responsive_grid
+    :if={@has_student_strands}
+    id="student-strands"
+    phx-update="stream"
+    class="px-6 py-10 sm:px-10"
+  >
+    <.strand_card
+      :for={{dom_id, {strand, entries}} <- @streams.student_strands}
+      id={dom_id}
+      strand={strand}
+      navigate={~p"/strand_report/#{strand.strand_report_id}"}
+      hide_description
+      class="shrink-0 w-64 sm:w-auto"
+    >
+      <:bottom_content :if={entries != []}>
+        <div class="group relative flex flex-wrap justify-center gap-px p-2 border-t border-ltrn-lighter">
+          <.live_component
+            :for={entry <- entries}
+            module={EntryParticleComponent}
+            id={entry.id}
+            entry={entry}
+            size="sm"
+          />
+          <.tooltip h_pos="center">{gettext("Formative assessment pattern")}</.tooltip>
+        </div>
+      </:bottom_content>
+    </.strand_card>
+  </.responsive_grid>
+  <.school_branding_footer school={@school} />
+</Layouts.app_logged_in>

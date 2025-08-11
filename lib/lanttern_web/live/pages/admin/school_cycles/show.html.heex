@@ -1,38 +1,40 @@
-<.header>
-  Cycle {@cycle.id}
-  <:subtitle>This is a cycle record from your database.</:subtitle>
-  <:actions>
-    <.link patch={~p"/admin/school_cycles/#{@cycle}/show/edit"} phx-click={JS.push_focus()}>
-      <.button>Edit cycle</.button>
-    </.link>
-  </:actions>
-</.header>
+<Layouts.admin flash={@flash}>
+  <.header>
+    Cycle {@cycle.id}
+    <:subtitle>This is a cycle record from your database.</:subtitle>
+    <:actions>
+      <.link patch={~p"/admin/school_cycles/#{@cycle}/show/edit"} phx-click={JS.push_focus()}>
+        <.button>Edit cycle</.button>
+      </.link>
+    </:actions>
+  </.header>
 
-<.list>
-  <:item title="Name">
-    {@cycle.name}{if !@cycle.parent_cycle_id, do: " (parent cycle)"}
-  </:item>
-  <:item title="Start at">{@cycle.start_at}</:item>
-  <:item title="End at">{@cycle.end_at}</:item>
-  <:item title="Parent cycle">
-    {if @cycle.parent_cycle, do: @cycle.parent_cycle.name, else: "-"}
-  </:item>
-</.list>
+  <.list>
+    <:item title="Name">
+      {@cycle.name}{if !@cycle.parent_cycle_id, do: " (parent cycle)"}
+    </:item>
+    <:item title="Start at">{@cycle.start_at}</:item>
+    <:item title="End at">{@cycle.end_at}</:item>
+    <:item title="Parent cycle">
+      {if @cycle.parent_cycle, do: @cycle.parent_cycle.name, else: "-"}
+    </:item>
+  </.list>
 
-<.back navigate={~p"/admin/school_cycles"}>Back to school_cycles</.back>
+  <.back navigate={~p"/admin/school_cycles"}>Back to school_cycles</.back>
 
-<.modal
-  :if={@live_action == :edit}
-  id="cycle-modal"
-  show
-  on_cancel={JS.patch(~p"/admin/school_cycles/#{@cycle}")}
->
-  <.live_component
-    module={LantternWeb.Admin.CycleLive.FormComponent}
-    id={@cycle.id}
-    title={@page_title}
-    action={@live_action}
-    cycle={@cycle}
-    patch={~p"/admin/school_cycles/#{@cycle}"}
-  />
-</.modal>
+  <.modal
+    :if={@live_action == :edit}
+    id="cycle-modal"
+    show
+    on_cancel={JS.patch(~p"/admin/school_cycles/#{@cycle}")}
+  >
+    <.live_component
+      module={LantternWeb.Admin.CycleLive.FormComponent}
+      id={@cycle.id}
+      title={@page_title}
+      action={@live_action}
+      cycle={@cycle}
+      patch={~p"/admin/school_cycles/#{@cycle}"}
+    />
+  </.modal>
+</Layouts.admin>

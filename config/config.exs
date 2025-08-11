@@ -23,6 +23,7 @@ config :lanttern, Lanttern.Repo,
 # Configures the endpoint
 config :lanttern, LantternWeb.Endpoint,
   url: [host: "localhost"],
+  adapter: Bandit.PhoenixAdapter,
   render_errors: [
     formats: [html: LantternWeb.ErrorHTML, json: LantternWeb.ErrorJSON],
     layout: false
@@ -41,24 +42,26 @@ config :lanttern, Lanttern.Mailer, adapter: Swoosh.Adapters.Local
 
 # Configure esbuild (the version is required)
 config :esbuild,
-  version: "0.17.11",
-  default: [
+  version: "0.25.4",
+  lanttern: [
     args:
-      ~w(js/app.js --bundle --target=es2017 --outdir=../priv/static/assets --external:/fonts/* --external:/images/*),
+      ~w(js/app.js --bundle --target=es2022 --outdir=../priv/static/assets/js --external:/fonts/* --external:/images/*  --alias:@=.),
     cd: Path.expand("../assets", __DIR__),
-    env: %{"NODE_PATH" => Path.expand("../deps", __DIR__)}
+    env: %{"NODE_PATH" => [Path.expand("../deps", __DIR__), Mix.Project.build_path()]}
   ]
 
-# Configure tailwind (the version is required)
+# Configure tailwind (use npm version)
 config :tailwind,
-  version: "4.1.4",
-  default: [
+  version: "4.1.11",
+  version_check: false,
+  lanttern: [
     args: ~w(
-      --input=css/app.css
-      --output=../priv/static/assets/app.css
+      --input=assets/css/app.css
+      --output=priv/static/assets/css/app.css
     ),
-    cd: Path.expand("../assets", __DIR__)
-  ]
+    cd: Path.expand("..", __DIR__)
+  ],
+  path: Path.expand("../assets/node_modules/.bin/tailwindcss", __DIR__)
 
 # Configures Elixir's Logger
 config :logger, :console,
@@ -69,22 +72,6 @@ config :logger, :console,
 
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
-
-# Git hooks
-if Mix.env() == :dev do
-  config :git_hooks,
-    auto_install: true,
-    verbose: true,
-    hooks: [
-      pre_commit: [
-        tasks: [
-          {:cmd, "mix clean"},
-          {:cmd, "mix check"},
-          {:cmd, "mix test"}
-        ]
-      ]
-    ]
-end
 
 # Authentication config
 config :lanttern, LantternWeb.UserAuth, google_client_id: System.get_env("GOOGLE_CLIENT_ID")

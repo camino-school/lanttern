@@ -1,17 +1,19 @@
-<.header>
-  Subject {@subject.id}
-  <:subtitle>This is a subject record from your database.</:subtitle>
-  <:actions>
-    <.link href={~p"/admin/subjects/#{@subject}/edit"}>
-      <.button>Edit subject</.button>
-    </.link>
-  </:actions>
-</.header>
+<Layouts.admin flash={@flash}>
+  <.header>
+    Subject {@subject.id}
+    <:subtitle>This is a subject record from your database.</:subtitle>
+    <:actions>
+      <.link href={~p"/admin/subjects/#{@subject}/edit"}>
+        <.button>Edit subject</.button>
+      </.link>
+    </:actions>
+  </.header>
 
-<.list>
-  <:item title="Code">{@subject.code}</:item>
-  <:item title="Name">{@subject.name}</:item>
-  <:item title="Short name">{@subject.short_name}</:item>
-</.list>
+  <.list>
+    <:item title="Code">{@subject.code}</:item>
+    <:item title="Name">{@subject.name}</:item>
+    <:item title="Short name">{@subject.short_name}</:item>
+  </.list>
 
-<.back navigate={~p"/admin/subjects"}>Back to subjects</.back>
+  <.back navigate={~p"/admin/subjects"}>Back to subjects</.back>
+</Layouts.admin>

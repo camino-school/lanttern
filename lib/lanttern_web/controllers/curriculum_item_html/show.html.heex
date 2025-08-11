@@ -1,27 +1,29 @@
-<.header>
-  Curriculum Item {@curriculum_item.id}
-  <:subtitle>This is a curriculum item record from your database.</:subtitle>
-  <:actions>
-    <.link href={~p"/admin/curriculum_items/#{@curriculum_item}/edit"}>
-      <.button>Edit curriculum item</.button>
-    </.link>
-  </:actions>
-</.header>
+<Layouts.admin flash={@flash}>
+  <.header>
+    Curriculum Item {@curriculum_item.id}
+    <:subtitle>This is a curriculum item record from your database.</:subtitle>
+    <:actions>
+      <.link href={~p"/admin/curriculum_items/#{@curriculum_item}/edit"}>
+        <.button>Edit curriculum item</.button>
+      </.link>
+    </:actions>
+  </.header>
 
-<.list>
-  <:item title="Component">{@curriculum_item.curriculum_component.name}</:item>
-  <:item title="Subject">
-    <%= for subject <- @curriculum_item.subjects do %>
-      {subject.name}
-    <% end %>
-  </:item>
-  <:item title="Year">
-    <%= for year <- @curriculum_item.years do %>
-      {year.name}
-    <% end %>
-  </:item>
-  <:item title="Name">{@curriculum_item.name}</:item>
-  <:item title="Code">{@curriculum_item.code}</:item>
-</.list>
+  <.list>
+    <:item title="Component">{@curriculum_item.curriculum_component.name}</:item>
+    <:item title="Subject">
+      <%= for subject <- @curriculum_item.subjects do %>
+        {subject.name}
+      <% end %>
+    </:item>
+    <:item title="Year">
+      <%= for year <- @curriculum_item.years do %>
+        {year.name}
+      <% end %>
+    </:item>
+    <:item title="Name">{@curriculum_item.name}</:item>
+    <:item title="Code">{@curriculum_item.code}</:item>
+  </.list>
 
-<.back navigate={~p"/admin/curriculum_items"}>Back to curriculum items</.back>
+  <.back navigate={~p"/admin/curriculum_items"}>Back to curriculum items</.back>
+</Layouts.admin>

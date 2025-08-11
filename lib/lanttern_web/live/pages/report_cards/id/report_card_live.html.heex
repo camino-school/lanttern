@@ -1,142 +1,144 @@
-<div>
-  <.header_nav current_user={@current_user}>
-    <:breadcrumb navigate={~p"/report_cards"}>{gettext("Report cards")}</:breadcrumb>
-    <:title>{@report_card.name}</:title>
-    <div class="flex items-center justify-between gap-4 px-4">
-      <.neo_tabs>
-        <:tab patch={~p"/report_cards/#{@report_card}"} is_current={@live_action == :show}>
-          {gettext("Overview")}
-        </:tab>
-        <:tab
-          patch={~p"/report_cards/#{@report_card}/students"}
-          is_current={@live_action == :students}
-        >
-          {gettext("Students")}
-        </:tab>
-        <:tab
-          patch={~p"/report_cards/#{@report_card}/strands"}
-          is_current={@live_action == :strands}
-        >
-          {gettext("Strands")}
-        </:tab>
-        <:tab
-          patch={~p"/report_cards/#{@report_card}/grades"}
-          is_current={@live_action == :grades}
-        >
-          {gettext("Grades")}
-        </:tab>
-        <:tab
-          patch={~p"/report_cards/#{@report_card}/tracking"}
-          is_current={@live_action == :tracking}
-        >
-          {gettext("Tracking")}
-        </:tab>
-      </.neo_tabs>
-      <div class="flex items-center gap-4">
-        <.action
-          type="link"
-          patch={"#{@current_path}?is_editing=true"}
-          icon_name="hero-pencil-mini"
-        >
-          {gettext("Edit")}
-        </.action>
-        <.menu_button id="report-card-more">
-          <:item
-            id={"remove-report-card-#{@report_card.id}"}
-            text={gettext("Delete")}
-            theme="alert"
-            on_click={JS.push("delete_report_card")}
-            confirm_msg={gettext("Are you sure?")}
-          />
-        </.menu_button>
+<Layouts.app_logged_in flash={@flash} current_user={@current_user} current_path={@current_path}>
+  <div>
+    <.header_nav current_user={@current_user}>
+      <:breadcrumb navigate={~p"/report_cards"}>{gettext("Report cards")}</:breadcrumb>
+      <:title>{@report_card.name}</:title>
+      <div class="flex items-center justify-between gap-4 px-4">
+        <.neo_tabs>
+          <:tab patch={~p"/report_cards/#{@report_card}"} is_current={@live_action == :show}>
+            {gettext("Overview")}
+          </:tab>
+          <:tab
+            patch={~p"/report_cards/#{@report_card}/students"}
+            is_current={@live_action == :students}
+          >
+            {gettext("Students")}
+          </:tab>
+          <:tab
+            patch={~p"/report_cards/#{@report_card}/strands"}
+            is_current={@live_action == :strands}
+          >
+            {gettext("Strands")}
+          </:tab>
+          <:tab
+            patch={~p"/report_cards/#{@report_card}/grades"}
+            is_current={@live_action == :grades}
+          >
+            {gettext("Grades")}
+          </:tab>
+          <:tab
+            patch={~p"/report_cards/#{@report_card}/tracking"}
+            is_current={@live_action == :tracking}
+          >
+            {gettext("Tracking")}
+          </:tab>
+        </.neo_tabs>
+        <div class="flex items-center gap-4">
+          <.action
+            type="link"
+            patch={"#{@current_path}?is_editing=true"}
+            icon_name="hero-pencil-mini"
+          >
+            {gettext("Edit")}
+          </.action>
+          <.menu_button id="report-card-more">
+            <:item
+              id={"remove-report-card-#{@report_card.id}"}
+              text={gettext("Delete")}
+              theme="alert"
+              on_click={JS.push("delete_report_card")}
+              confirm_msg={gettext("Are you sure?")}
+            />
+          </.menu_button>
+        </div>
       </div>
+    </.header_nav>
+    <div :if={@live_action == :show} class="p-4">
+      <.cover_image
+        image_url={@cover_image_url}
+        alt_text={gettext("Report card cover image")}
+        empty_state_text={gettext("Edit report to add a cover image")}
+      />
+      <.responsive_container class="py-10">
+        <h1 class="font-display font-black text-2xl sm:text-3xl">{@report_card.name}</h1>
+        <div class="flex gap-2 mt-6">
+          <.badge theme="dark">
+            {gettext("Cycle")}: {@report_card.school_cycle.name}
+          </.badge>
+          <.badge theme="dark">
+            {@report_card.year.name}
+          </.badge>
+        </div>
+        <.markdown :if={@report_card.description} text={@report_card.description} class="mt-10" />
+      </.responsive_container>
     </div>
-  </.header_nav>
-  <div :if={@live_action == :show} class="p-4">
-    <.cover_image
-      image_url={@cover_image_url}
-      alt_text={gettext("Report card cover image")}
-      empty_state_text={gettext("Edit report to add a cover image")}
+    <.live_component
+      :if={@live_action == :students}
+      module={StudentsComponent}
+      id="report-card-students"
+      report_card={@report_card}
+      current_user={@current_user}
+      params={@params}
     />
-    <.responsive_container class="py-10">
-      <h1 class="font-display font-black text-2xl sm:text-3xl">{@report_card.name}</h1>
-      <div class="flex gap-2 mt-6">
-        <.badge theme="dark">
-          {gettext("Cycle")}: {@report_card.school_cycle.name}
-        </.badge>
-        <.badge theme="dark">
-          {@report_card.year.name}
-        </.badge>
-      </div>
-      <.markdown :if={@report_card.description} text={@report_card.description} class="mt-10" />
-    </.responsive_container>
+    <.live_component
+      :if={@live_action == :strands}
+      module={StrandsReportsComponent}
+      id="report-card-strands-reports"
+      report_card={@report_card}
+      params={@params}
+    />
+    <.live_component
+      :if={@live_action == :grades}
+      module={GradesComponent}
+      id="report-card-grades"
+      report_card={@report_card}
+      current_user={@current_user}
+      params={@params}
+    />
   </div>
   <.live_component
-    :if={@live_action == :students}
-    module={StudentsComponent}
-    id="report-card-students"
-    report_card={@report_card}
-    current_user={@current_user}
-    params={@params}
-  />
-  <.live_component
-    :if={@live_action == :strands}
-    module={StrandsReportsComponent}
-    id="report-card-strands-reports"
-    report_card={@report_card}
-    params={@params}
-  />
-  <.live_component
     :if={@live_action == :grades}
-    module={GradesComponent}
-    id="report-card-grades"
+    module={StudentsGradesComponent}
+    id="report-card-students-grades"
     report_card={@report_card}
     current_user={@current_user}
     params={@params}
   />
-</div>
-<.live_component
-  :if={@live_action == :grades}
-  module={StudentsGradesComponent}
-  id="report-card-students-grades"
-  report_card={@report_card}
-  current_user={@current_user}
-  params={@params}
-/>
-<div :if={@live_action == :tracking}>
-  <.live_component
-    module={StudentsTrackingComponent}
-    id="report-card-students-tracking"
-    report_card={@report_card}
-    current_user={@current_user}
-    params={@params}
-  />
-</div>
-<.slide_over
-  :if={@is_editing}
-  id="report-card-form-overlay"
-  show={true}
-  on_cancel={JS.patch(@current_path)}
->
-  <:title>{gettext("Edit report card")}</:title>
-  <.live_component
-    module={ReportCardFormComponent}
-    id={@report_card.id}
-    report_card={@report_card}
-    navigate={@current_path}
-    parent_cycle_id={@report_card.school_cycle.parent_cycle_id}
-    hide_submit
-  />
-  <:actions>
-    <.button
-      type="button"
-      theme="ghost"
-      phx-click={JS.exec("data-cancel", to: "#report-card-form-overlay")}
-    >
-      {gettext("Cancel")}
-    </.button>
-    <.button type="submit" form="report-card-form">
-      {gettext("Save")}
-    </.button>
-  </:actions>
-</.slide_over>
+  <div :if={@live_action == :tracking}>
+    <.live_component
+      module={StudentsTrackingComponent}
+      id="report-card-students-tracking"
+      report_card={@report_card}
+      current_user={@current_user}
+      params={@params}
+    />
+  </div>
+  <.slide_over
+    :if={@is_editing}
+    id="report-card-form-overlay"
+    show={true}
+    on_cancel={JS.patch(@current_path)}
+  >
+    <:title>{gettext("Edit report card")}</:title>
+    <.live_component
+      module={ReportCardFormComponent}
+      id={@report_card.id}
+      report_card={@report_card}
+      navigate={@current_path}
+      parent_cycle_id={@report_card.school_cycle.parent_cycle_id}
+      hide_submit
+    />
+    <:actions>
+      <.button
+        type="button"
+        theme="ghost"
+        phx-click={JS.exec("data-cancel", to: "#report-card-form-overlay")}
+      >
+        {gettext("Cancel")}
+      </.button>
+      <.button type="submit" form="report-card-form">
+        {gettext("Save")}
+      </.button>
+    </:actions>
+  </.slide_over>
+</Layouts.app_logged_in>

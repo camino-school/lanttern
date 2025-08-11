@@ -1,87 +1,89 @@
-<div class="container mx-auto lg:max-w-5xl">
-  <h1 class="font-display font-black text-3xl">Admin</h1>
-  <div class="grid gap-4 grid-cols-3 mt-12">
-    <.link_list title="Identity">
-      <:item link={~p"/admin/users"}>Users</:item>
-      <:item link={~p"/admin/profiles"}>Profiles</:item>
-      <:item link={~p"/admin/profile_settings"}>Profile settings</:item>
-    </.link_list>
-    <.link_list title="Assessments">
-      <:item link={~p"/admin/assessment_points"}>Assessment points</:item>
-      <:item link={~p"/admin/assessment_point_entries"}>Assessment point entries</:item>
-      <:item link={~p"/admin/feedback"}>Feedback</:item>
-    </.link_list>
-    <.link_list title="Rubrics">
-      <:item link={~p"/admin/rubrics"}>Rubrics</:item>
-    </.link_list>
-    <.link_list title="Curricula">
-      <:item link={~p"/admin/curricula"}>Curricula</:item>
-      <:item link={~p"/admin/curriculum_components"}>Curriculum components</:item>
-      <:item link={~p"/admin/curriculum_items"}>Curriculum items</:item>
-      <:item link={~p"/admin/curriculum_relationships"}>Curriculum relationships</:item>
-    </.link_list>
-    <.link_list title="Grading">
-      <:item link={~p"/admin/scales"}>Scales</:item>
-      <:item link={~p"/admin/ordinal_values"}>Ordinal values</:item>
-    </.link_list>
-    <.link_list title="Schools">
-      <:item link={~p"/admin/schools"}>Schools</:item>
-      <:item link={~p"/admin/school_cycles"}>Cycles</:item>
-      <:item link={~p"/admin/classes"}>Classes</:item>
-      <:item link={~p"/admin/students"}>Students</:item>
-      <:item link={~p"/admin/import_students"}>Import students</:item>
-      <:item link={~p"/admin/staff_members"}>Staff</:item>
-      <:item link={~p"/admin/import_staff_members"}>Import staff</:item>
-    </.link_list>
-    <.link_list title="Taxonomy">
-      <:item link={~p"/admin/subjects"}>Subjects</:item>
-      <:item link={~p"/admin/years"}>Years</:item>
-    </.link_list>
-    <.link_list title="Conversation">
-      <:item link={~p"/admin/comments"}>Comments</:item>
-    </.link_list>
-    <.link_list title="Personalization">
-      <:item link={~p"/admin/notes"}>
-        Notes
-      </:item>
-    </.link_list>
-    <.link_list title="Learning Context">
-      <:item link={~p"/admin/strands"}>Strands</:item>
-      <:item link={~p"/admin/moments"}>Moments</:item>
-    </.link_list>
-    <.link_list title="Reporting">
-      <:item link={~p"/admin/report_cards"}>Report cards</:item>
-      <:item link={~p"/admin/strand_reports"}>Strand reports</:item>
-      <:item link={~p"/admin/student_report_cards"}>Student report cards</:item>
-    </.link_list>
-    <.link_list title="Student records">
-      <:item link={~p"/admin/students_records"}>Student records</:item>
-      <:item link={~p"/admin/student_record_statuses"}>Record statuses</:item>
-      <:item link={~p"/admin/student_record_tags"}>Record tags</:item>
-    </.link_list>
-    <div>
-      <h2 class="font-display font-black text-xl text-ltrn-subtle">Seeds</h2>
-      <ul>
-        <%= if @has_base_taxonomy do %>
-          <li class="flex items-center text-ltrn-subtle">
-            Base taxonomy seeded <.icon name="hero-check-circle" class="text-green-500" />
-          </li>
-        <% else %>
-          <li>
-            <.link href={~p"/admin/seed_base_taxonomy"} method="post">Seed base taxonomy</.link>
-          </li>
-        <% end %>
-        <%= if @has_base_taxonomy and @is_bncc_registered do %>
-          <li class="flex items-center text-ltrn-subtle">
-            BNCC seeded <.icon name="hero-check-circle" class="text-green-500" />
-          </li>
-        <% end %>
-        <%= if @has_base_taxonomy and not @is_bncc_registered do %>
-          <li>
-            <.link href={~p"/admin/seed_bncc"} method="post">Seed BNCC</.link>
-          </li>
-        <% end %>
-      </ul>
+<Layouts.admin flash={@flash}>
+  <div class="container mx-auto lg:max-w-5xl">
+    <h1 class="font-display font-black text-3xl">Admin</h1>
+    <div class="grid gap-4 grid-cols-3 mt-12">
+      <.link_list title="Identity">
+        <:item link={~p"/admin/users"}>Users</:item>
+        <:item link={~p"/admin/profiles"}>Profiles</:item>
+        <:item link={~p"/admin/profile_settings"}>Profile settings</:item>
+      </.link_list>
+      <.link_list title="Assessments">
+        <:item link={~p"/admin/assessment_points"}>Assessment points</:item>
+        <:item link={~p"/admin/assessment_point_entries"}>Assessment point entries</:item>
+        <:item link={~p"/admin/feedback"}>Feedback</:item>
+      </.link_list>
+      <.link_list title="Rubrics">
+        <:item link={~p"/admin/rubrics"}>Rubrics</:item>
+      </.link_list>
+      <.link_list title="Curricula">
+        <:item link={~p"/admin/curricula"}>Curricula</:item>
+        <:item link={~p"/admin/curriculum_components"}>Curriculum components</:item>
+        <:item link={~p"/admin/curriculum_items"}>Curriculum items</:item>
+        <:item link={~p"/admin/curriculum_relationships"}>Curriculum relationships</:item>
+      </.link_list>
+      <.link_list title="Grading">
+        <:item link={~p"/admin/scales"}>Scales</:item>
+        <:item link={~p"/admin/ordinal_values"}>Ordinal values</:item>
+      </.link_list>
+      <.link_list title="Schools">
+        <:item link={~p"/admin/schools"}>Schools</:item>
+        <:item link={~p"/admin/school_cycles"}>Cycles</:item>
+        <:item link={~p"/admin/classes"}>Classes</:item>
+        <:item link={~p"/admin/students"}>Students</:item>
+        <:item link={~p"/admin/import_students"}>Import students</:item>
+        <:item link={~p"/admin/staff_members"}>Staff</:item>
+        <:item link={~p"/admin/import_staff_members"}>Import staff</:item>
+      </.link_list>
+      <.link_list title="Taxonomy">
+        <:item link={~p"/admin/subjects"}>Subjects</:item>
+        <:item link={~p"/admin/years"}>Years</:item>
+      </.link_list>
+      <.link_list title="Conversation">
+        <:item link={~p"/admin/comments"}>Comments</:item>
+      </.link_list>
+      <.link_list title="Personalization">
+        <:item link={~p"/admin/notes"}>
+          Notes
+        </:item>
+      </.link_list>
+      <.link_list title="Learning Context">
+        <:item link={~p"/admin/strands"}>Strands</:item>
+        <:item link={~p"/admin/moments"}>Moments</:item>
+      </.link_list>
+      <.link_list title="Reporting">
+        <:item link={~p"/admin/report_cards"}>Report cards</:item>
+        <:item link={~p"/admin/strand_reports"}>Strand reports</:item>
+        <:item link={~p"/admin/student_report_cards"}>Student report cards</:item>
+      </.link_list>
+      <.link_list title="Student records">
+        <:item link={~p"/admin/students_records"}>Student records</:item>
+        <:item link={~p"/admin/student_record_statuses"}>Record statuses</:item>
+        <:item link={~p"/admin/student_record_tags"}>Record tags</:item>
+      </.link_list>
+      <div>
+        <h2 class="font-display font-black text-xl text-ltrn-subtle">Seeds</h2>
+        <ul>
+          <%= if @has_base_taxonomy do %>
+            <li class="flex items-center text-ltrn-subtle">
+              Base taxonomy seeded <.icon name="hero-check-circle" class="text-green-500" />
+            </li>
+          <% else %>
+            <li>
+              <.link href={~p"/admin/seed_base_taxonomy"} method="post">Seed base taxonomy</.link>
+            </li>
+          <% end %>
+          <%= if @has_base_taxonomy and @is_bncc_registered do %>
+            <li class="flex items-center text-ltrn-subtle">
+              BNCC seeded <.icon name="hero-check-circle" class="text-green-500" />
+            </li>
+          <% end %>
+          <%= if @has_base_taxonomy and not @is_bncc_registered do %>
+            <li>
+              <.link href={~p"/admin/seed_bncc"} method="post">Seed BNCC</.link>
+            </li>
+          <% end %>
+        </ul>
+      </div>
     </div>
   </div>
-</div>
+</Layouts.admin>

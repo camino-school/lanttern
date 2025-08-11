@@ -1,6 +1,6 @@
 defmodule LantternWeb.Admin.ProfileSettingsLive.Index do
   alias Lanttern.Personalization
-  use LantternWeb, {:live_view, layout: :admin}
+  use LantternWeb, :live_view
 
   alias Lanttern.Identity
   alias Lanttern.Personalization.ProfileSettings

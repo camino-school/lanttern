@@ -1,68 +1,78 @@
-<.header_nav current_user={@current_user}>
-  <:title>{@current_user.current_profile.school_name}</:title>
-  <div class="px-4">
-    <.neo_tabs>
-      <:tab patch={~p"/school/classes"} is_current={@live_action == :manage_classes}>
-        {"#{@current_user.current_profile.current_school_cycle.name} #{gettext("classes")}"}
-      </:tab>
-      <:tab patch={~p"/school/students"} is_current={@live_action == :manage_students}>
-        {gettext("Students")}
-      </:tab>
-      <:tab patch={~p"/school/staff"} is_current={@live_action == :manage_staff}>
-        {gettext("Staff")}
-      </:tab>
-      <:tab patch={~p"/school/cycles"} is_current={@live_action == :manage_cycles}>
-        {gettext("Cycles")}
-      </:tab>
-      <:tab patch={~p"/school/message_board"} is_current={@live_action == :message_board}>
-        {gettext("Message board")}
-      </:tab>
-      <:tab
-        patch={~p"/school/moment_cards_templates"}
-        is_current={@live_action == :manage_moment_cards_templates}
-      >
-        {gettext("Templates")}
-      </:tab>
-    </.neo_tabs>
-  </div>
-</.header_nav>
-<.live_component
-  :if={@live_action == :manage_classes}
-  module={ClassesComponent}
-  id={:school_classes}
-  current_user={@current_user}
-  params={@params}
-  is_school_manager={@is_school_manager}
-/>
-<.live_component
-  :if={@live_action == :manage_students}
-  module={StudentsComponent}
-  id={:school_classes}
-  current_user={@current_user}
-  params={@params}
-  is_school_manager={@is_school_manager}
-/>
-<.live_component
-  :if={@live_action == :manage_staff}
-  module={StaffComponent}
-  id={:school_staff}
-  current_user={@current_user}
-  params={@params}
-  is_school_manager={@is_school_manager}
-/>
-<.live_component
-  :if={@live_action == :manage_cycles}
-  module={CyclesComponent}
-  id={:school_cycles}
-  current_user={@current_user}
-  params={@params}
-  is_school_manager={@is_school_manager}
-/>
-<.live_component
-  :if={@live_action == :manage_moment_cards_templates}
-  module={MomentCardsTemplatesComponent}
-  id={:school_moment_cards_templates}
-  current_user={@current_user}
-  params={@params}
-  is_content_manager={@is_content_manager}
-/>
+<Layouts.app_logged_in flash={@flash} current_user={@current_user} current_path={@current_path}>
+  <.header_nav current_user={@current_user}>
+    <:title>{@current_user.current_profile.school_name}</:title>
+    <div class="px-4">
+      <.neo_tabs>
+        <:tab patch={~p"/school/classes"} is_current={@live_action == :manage_classes}>
+          {"#{@current_user.current_profile.current_school_cycle.name} #{gettext("classes")}"}
+        </:tab>
+        <:tab patch={~p"/school/students"} is_current={@live_action == :manage_students}>
+          {gettext("Students")}
+        </:tab>
+        <:tab patch={~p"/school/staff"} is_current={@live_action == :manage_staff}>
+          {gettext("Staff")}
+        </:tab>
+        <:tab patch={~p"/school/cycles"} is_current={@live_action == :manage_cycles}>
+          {gettext("Cycles")}
+        </:tab>
+        <:tab patch={~p"/school/message_board"} is_current={@live_action == :message_board}>
+          {gettext("Message board")}
+        </:tab>
+        <:tab
+          patch={~p"/school/moment_cards_templates"}
+          is_current={@live_action == :manage_moment_cards_templates}
+        >
+          {gettext("Templates")}
+        </:tab>
+      </.neo_tabs>
+    </div>
+  </.header_nav>
+  <.live_component
+    :if={@live_action == :manage_classes}
+    module={ClassesComponent}
+    id={:school_classes}
+    current_user={@current_user}
+    params={@params}
+    is_school_manager={@is_school_manager}
+  />
+  <.live_component
+    :if={@live_action == :manage_students}
+    module={StudentsComponent}
+    id={:school_classes}
+    current_user={@current_user}
+    params={@params}
+    is_school_manager={@is_school_manager}
+  />
+  <.live_component
+    :if={@live_action == :manage_staff}
+    module={StaffComponent}
+    id={:school_staff}
+    current_user={@current_user}
+    params={@params}
+    is_school_manager={@is_school_manager}
+  />
+  <.live_component
+    :if={@live_action == :manage_cycles}
+    module={CyclesComponent}
+    id={:school_cycles}
+    current_user={@current_user}
+    params={@params}
+    is_school_manager={@is_school_manager}
+  />
+  <.live_component
+    :if={@live_action == :message_board}
+    module={MessageBoardComponent}
+    id={:message_board}
+    current_user={@current_user}
+    params={@params}
+    is_communication_manager={@is_communication_manager}
+  />
+  <.live_component
+    :if={@live_action == :manage_moment_cards_templates}
+    module={MomentCardsTemplatesComponent}
+    id={:school_moment_cards_templates}
+    current_user={@current_user}
+    params={@params}
+    is_content_manager={@is_content_manager}
+  />
+</Layouts.app_logged_in>
