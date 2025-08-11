@@ -9,7 +9,7 @@ defmodule Lanttern.MessageFactory do
         %Lanttern.MessageBoard.Message{
           description: "some description",
           section: build(:section),
-          name: sequence(:name, &"name-#{&1}"),
+          name: sequence(:name, &"name_#{&1}"),
           send_to: "school",
           school: build(:school)
         }

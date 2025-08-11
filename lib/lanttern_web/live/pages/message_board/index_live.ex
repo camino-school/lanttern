@@ -124,6 +124,14 @@ defmodule LantternWeb.MessageBoard.IndexLive do
     end
   end
 
+  def handle_event("sortable_update", %{"oldIndex" => old, "newIndex" => new}, socket) do
+    {changed_id, rest} = List.pop_at(socket.assigns.section.messages, old)
+    new_messages = List.insert_at(rest, new, changed_id)
+    MessageBoard.update_messages_position(new_messages)
+
+    {:noreply, assign_sections(socket)}
+  end
+
   def handle_info({MessageFormOverlayComponentV2, {action, _message}}, socket)
       when action in [:created, :updated] do
     flash_message =
@@ -178,7 +186,7 @@ defmodule LantternWeb.MessageBoard.IndexLive do
   end
 
   defp assign_section(%{assigns: %{params: %{"edit_section" => id}}} = socket) do
-    section = MessageBoard.get_section!(id)
+    section = MessageBoard.get_section!(id) |> Lanttern.Repo.preload(:messages)
     changeset = MessageBoard.change_section(section)
 
     socket
@@ -324,7 +332,10 @@ defmodule LantternWeb.MessageBoard.IndexLive do
                 </div>
 
                 <div class="p-4">
-                  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4">
+                  <div
+                    class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4"
+                    id={"section-#{section.id}-messages"}
+                  >
                     <%= for message <- section.messages do %>
                       <.card_message
                         message={message}
@@ -389,6 +400,21 @@ defmodule LantternWeb.MessageBoard.IndexLive do
               phx-debounce="1500"
             />
           </.form>
+          <div
+            :if={@form_action == :edit}
+            phx-hook="Sortable"
+            id="sortable-section-cards"
+            data-sortable-handle=".sortable-handle"
+            phx-update="ignore"
+          >
+            <.dragable_card
+              :for={message <- @section.messages}
+              id={"sortable-#{message.id}"}
+              class="mb-4"
+            >
+              {message.name}
+            </.dragable_card>
+          </div>
           <:actions_left :if={@section.id}>
             <.action
               type="button"

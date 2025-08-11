@@ -135,13 +135,28 @@ defmodule LantternWeb.MessageBoard.IndexLiveTest do
       |> refute_has("h2", text: section.name)
     end
 
-    @tag :skip
-    test "reorder a existing section" do
-      # html position sequence ok when correct order
+    test "reorder a existing message", ctx do
+      %{conn: conn} = set_user_permissions(["communication_management"], ctx)
+      school = ctx.user.current_profile.staff_member.school
+      section = insert(:section)
+      message1 = insert(:message, %{section: section, school: school})
+      message2 = insert(:message, %{section: section, school: school})
+      message3 = insert(:message, %{section: section, school: school})
+
+      {:ok, view, _html} = live(conn, "/school/message_board")
+
+      html = render(view)
+      assert html =~ ~r/#{message1.name}.*#{message2.name}.*#{message3.name}/s
+
+      view |> element("#section-#{section.id}-settings") |> render_click()
+      assert render_hook(view, "sortable_update", %{"oldIndex" => 0, "newIndex" => 2})
+
+      html = render(view)
+      assert html =~ ~r/#{message2.name}.*#{message3.name}.*#{message1.name}/s
     end
 
     @tag :skip
-    test "reorder a existing message" do
+    test "reorder a existing section" do
       # html position sequence ok when correct order
     end
 

@@ -290,10 +290,7 @@ defmodule Lanttern.MessageBoard do
       from(
         m in Message,
         where: is_nil(m.archived_at),
-        order_by: [
-          desc: fragment("CASE WHEN ? THEN 1 ELSE 0 END", m.is_pinned),
-          desc: m.inserted_at
-        ]
+        order_by: m.position
       )
       |> apply_sections_filter_opts(classes_ids: classes_ids, school_id: school_id)
       |> preload([:classes])
@@ -347,10 +344,7 @@ defmodule Lanttern.MessageBoard do
         m in Message,
         left_join: mc in assoc(m, :message_classes),
         where: is_nil(m.archived_at),
-        order_by: [
-          desc: fragment("CASE WHEN ? THEN 1 ELSE 0 END", m.is_pinned),
-          desc: m.inserted_at
-        ]
+        order_by: m.position
       )
       |> apply_sections_filter_opts(classes_ids: student_classes_ids, school_id: school_id)
 
@@ -396,5 +390,20 @@ defmodule Lanttern.MessageBoard do
   """
   def change_section(%Section{} = section, attrs \\ %{}) do
     Section.changeset(section, attrs)
+  end
+
+  def update_messages_position(messages) do
+    messages
+    |> Enum.with_index()
+    |> Enum.reduce(Ecto.Multi.new(), fn {message, i}, multi ->
+      query = from(m in Message, where: m.id == ^message.id)
+
+      Ecto.Multi.update_all(multi, "update-#{message.id}", query, set: [position: i])
+    end)
+    |> Repo.transaction()
+    |> case do
+      {:ok, _data} -> :ok
+      _ -> {:error, "Something went wrong"}
+    end
   end
 end
