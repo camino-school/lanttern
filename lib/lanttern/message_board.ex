@@ -278,6 +278,14 @@ defmodule Lanttern.MessageBoard do
   end
 
   @doc """
+  Returns the list of sections ordered by position.
+  """
+  def list_sections do
+    from(s in Section, order_by: s.position)
+    |> Repo.all()
+  end
+
+  @doc """
   Returns the list of sections ordered by position with messages preloaded and filtered.
 
   ## Parameters
@@ -399,6 +407,21 @@ defmodule Lanttern.MessageBoard do
       query = from(m in Message, where: m.id == ^message.id)
 
       Ecto.Multi.update_all(multi, "update-#{message.id}", query, set: [position: i])
+    end)
+    |> Repo.transaction()
+    |> case do
+      {:ok, _data} -> :ok
+      _ -> {:error, "Something went wrong"}
+    end
+  end
+
+  def update_section_position(sections) do
+    sections
+    |> Enum.with_index()
+    |> Enum.reduce(Ecto.Multi.new(), fn {section, i}, multi ->
+      query = from(m in Section, where: m.id == ^section.id)
+
+      Ecto.Multi.update_all(multi, "update-#{section.id}", query, set: [position: i])
     end)
     |> Repo.transaction()
     |> case do

@@ -143,21 +143,39 @@ defmodule LantternWeb.MessageBoard.IndexLiveTest do
       message2 = insert(:message, %{section: section, school: school})
       message3 = insert(:message, %{section: section, school: school})
 
-      {:ok, view, _html} = live(conn, "/school/message_board")
-
-      html = render(view)
-      assert html =~ ~r/#{message1.name}.*#{message2.name}.*#{message3.name}/s
-
-      view |> element("#section-#{section.id}-settings") |> render_click()
-      assert render_hook(view, "sortable_update", %{"oldIndex" => 0, "newIndex" => 2})
-
-      html = render(view)
-      assert html =~ ~r/#{message2.name}.*#{message3.name}.*#{message1.name}/s
+      conn
+      |> visit("/school/message_board")
+      |> tap(fn %{view: view} ->
+        assert render(view) =~ ~r/#{message1.name}.*#{message2.name}.*#{message3.name}/s
+      end)
+      |> click_link("#section-#{section.id}-settings", "Settings")
+      |> tap(fn %{view: view} ->
+        assert render_hook(view, "sortable_update", %{"oldIndex" => 0, "newIndex" => 2})
+      end)
+      |> tap(fn %{view: view} ->
+        assert render(view) =~ ~r/#{message2.name}.*#{message3.name}.*#{message1.name}/s
+      end)
     end
 
-    @tag :skip
-    test "reorder a existing section" do
-      # html position sequence ok when correct order
+    test "reorder a existing section", ctx do
+      %{conn: conn} = set_user_permissions(["communication_management"], ctx)
+      section1 = insert(:section)
+      section2 = insert(:section)
+
+      conn
+      |> visit("/school/message_board/")
+      |> click_link("Reorder sections")
+      |> tap(fn %{current_path: path} -> assert path == "/school/message_board/reorder" end)
+      |> assert_has("h1", text: "Message board admin - Reorder sections")
+      |> tap(fn %{view: view} ->
+        assert render(view) =~ ~r/#{section1.name}.*#{section2.name}/s
+        assert render_hook(view, "sortable_update", %{"oldIndex" => 1, "newIndex" => 2})
+      end)
+      |> click_link("Manage messages")
+      |> tap(fn %{current_path: path} -> assert path == "/school/message_board" end)
+      |> tap(fn %{view: view} ->
+        assert render(view) =~ ~r/#{section2.name}.*#{section1.name}/s
+      end)
     end
 
     @tag :skip

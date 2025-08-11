@@ -278,13 +278,22 @@ defmodule LantternWeb.MessageBoard.IndexLive do
             {format_action_items_text(@selected_classes, gettext("All years"))}
           </.action>
         </div>
-        <.action
-          type="link"
-          patch={~p"/school/message_board?new_section=true"}
-          icon_name="hero-plus-circle-mini"
-        >
-          {gettext("Create section")}
-        </.action>
+        <div class="flex items-center gap-4">
+          <.action
+            type="link"
+            navigate={~p"/school/message_board/reorder"}
+            icon_name="hero-arrows-up-down-mini"
+          >
+            {gettext("Reorder sections")}
+          </.action>
+          <.action
+            type="link"
+            patch={~p"/school/message_board?new_section=true"}
+            icon_name="hero-plus-circle-mini"
+          >
+            {gettext("Create section")}
+          </.action>
+        </div>
       </.action_bar>
 
       <.responsive_container class="p-4">
@@ -307,7 +316,7 @@ defmodule LantternWeb.MessageBoard.IndexLive do
               <div class="bg-white rounded-lg shadow-sm border border-gray-200">
                 <div class="flex items-center justify-between p-4 border-b border-gray-200">
                   <div class="flex items-center space-x-3">
-                    <.icon name="hero-bars-2" class="w-5 h-5 text-gray-400 cursor-move" />
+                    <%!-- <.icon name="hero-bars-2" class="w-5 h-5 text-gray-400 cursor-move" /> --%>
                     <h2 class="text-lg font-semibold text-gray-800">{section.name}</h2>
                   </div>
                   <div class="flex items-center space-x-2">
@@ -421,7 +430,7 @@ defmodule LantternWeb.MessageBoard.IndexLive do
               theme="subtle"
               size="md"
               phx-click="delete_section"
-              data-confirm={gettext("Are you sure?")}
+              data-confirm={gettext("Are you sure? All messages in this section will be deleted.")}
             >
               {gettext("Delete")}
             </.action>

@@ -17,7 +17,7 @@ defmodule LantternWeb.StudentHomeLiveV2Test do
       |> assert_has("h3", text: message.section.name)
       |> assert_has("h3", text: message.name)
       |> click_button("span[phx-click='card_lookout']", "Find out more")
-      # |> assert_path("/student_v2?message=#{message.id}")
+      |> tap(fn %{current_path: path} -> assert path == "/student_v2?message=#{message.id}" end)
       |> assert_has("#card-message-overlay-#{message.id}")
       |> assert_has("h1", text: message.name)
       |> assert_has("p", text: message.description)
