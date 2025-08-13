@@ -137,7 +137,7 @@ defmodule LantternWeb.Router do
         {LantternWeb.Path, :put_path_in_socket},
         {LantternWeb.LocalizationHelpers, :put_timezone}
       ] do
-      live "/guardian", GuardianHomeLive
+      live "/guardian", HomeLive
     end
 
     live_session :authenticated_student,
@@ -146,8 +146,7 @@ defmodule LantternWeb.Router do
         {LantternWeb.Path, :put_path_in_socket},
         {LantternWeb.LocalizationHelpers, :put_timezone}
       ] do
-      live "/student", StudentHomeLive
-      live "/student_v2", StudentHomeLiveV2
+      live "/student", HomeLive
     end
 
     live_session :authenticated_student_or_guardian,

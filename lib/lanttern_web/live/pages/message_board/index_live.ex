@@ -237,7 +237,7 @@ defmodule LantternWeb.MessageBoard.IndexLive do
 
   def render(assigns) do
     ~H"""
-    <div>
+    <Layouts.app_logged_in flash={@flash} current_user={@current_user} current_path={@current_path}>
       <.header_nav current_user={@current_user}>
         <:title>{@current_user.current_profile.school_name}</:title>
         <div class="px-4">
@@ -466,7 +466,7 @@ defmodule LantternWeb.MessageBoard.IndexLive do
         classes={@classes}
         selected_classes_ids={@selected_classes_ids}
       />
-    </div>
+    </Layouts.app_logged_in>
     """
   end
 end

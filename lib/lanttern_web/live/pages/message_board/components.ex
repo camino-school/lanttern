@@ -106,7 +106,7 @@ defmodule LantternWeb.MessageBoard.Components do
     ~H"""
     <div
       id={"message-#{@message.id}"}
-      class="bg-white/90 backdrop-blur-sm shadow-sm hover:shadow-lg transition-all duration-200 rounded-sm border-l-12 group cursor-pointer"
+      class="relative bg-white/90 backdrop-blur-sm shadow-sm hover:shadow-lg transition-all duration-200 rounded-sm border-l-12 group cursor-pointer"
       style={"border-color: ##{@message.color}"}
     >
       <%= if @message.cover && @message.cover != "" do %>
@@ -137,26 +137,17 @@ defmodule LantternWeb.MessageBoard.Components do
           </div>
         </div>
         <%= if @mode == "admin" do %>
-          <.action
-            :if={@on_delete}
-            type="button"
-            phx-click={@on_delete}
-            icon_name="hero-x-mark-mini"
-            theme="alert"
-            data-confirm={gettext("Are you sure? This action cannot be undone.")}
-            class="inline-flex"
-          >
-            {gettext("Delete")}
-          </.action>
-          <.action
-            :if={@edit_patch}
-            class="inline-flex"
-            type="link"
-            patch={@edit_patch}
-            icon_name="hero-pencil-mini"
-          >
-            {gettext("Edit")}
-          </.action>
+          <div class="absolute bottom-3 right-6">
+            <.action
+              :if={@edit_patch}
+              class="inline-flex"
+              type="link"
+              patch={@edit_patch}
+              icon_name="hero-pencil-mini"
+            >
+              {gettext("Edit")}
+            </.action>
+          </div>
         <% else %>
           <div class="absolute bottom-3 right-6">
             <button class="w-full flex justify-between items-center text-gray-900 hover:text-gray-900 transition-colors group-hover:text-blue-600">
