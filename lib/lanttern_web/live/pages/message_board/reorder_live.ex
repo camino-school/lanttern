@@ -38,7 +38,8 @@ defmodule LantternWeb.MessageBoard.ReorderLive do
   end
 
   defp assign_sections(socket) do
-    sections = MessageBoard.list_sections()
+    school_id = socket.assigns.current_user.current_profile.school_id
+    sections = MessageBoard.list_sections(school_id)
 
     assign(socket, :sections, sections)
   end

@@ -19,8 +19,6 @@ defmodule Lanttern.MessageBoardTest do
       message = message_fixture()
       {:ok, _archived} = message_fixture() |> MessageBoard.archive_message()
 
-      # wait 1 second to test ordering by inserted_at
-      Process.sleep(1000)
       pinned = message_fixture(%{is_pinned: true})
 
       assert MessageBoard.list_messages() == [pinned, message]
@@ -224,11 +222,16 @@ defmodule Lanttern.MessageBoardTest do
 
     import Lanttern.MessageBoardFixtures
 
-    @invalid_attrs %{name: nil, position: nil}
+    @invalid_attrs %{name: nil, position: nil, school_id: nil}
 
     test "get_section!/1 returns the section with given id" do
       section = insert(:section)
-      assert MessageBoard.get_section!(section.id) == section
+      fetched_section = MessageBoard.get_section!(section.id)
+
+      assert fetched_section.id == section.id
+      assert fetched_section.name == section.name
+      assert fetched_section.position == section.position
+      assert fetched_section.school_id == section.school_id
     end
 
     test "create_section/1 with valid data creates a section" do
@@ -237,6 +240,7 @@ defmodule Lanttern.MessageBoardTest do
       assert {:ok, %Section{} = section} = MessageBoard.create_section(valid_attrs)
       assert section.name == valid_attrs.name
       assert section.position == valid_attrs.position
+      assert section.school_id == valid_attrs.school_id
     end
 
     test "create_section/1 with invalid data returns error changeset" do
@@ -250,12 +254,19 @@ defmodule Lanttern.MessageBoardTest do
       assert {:ok, %Section{} = section} = MessageBoard.update_section(section, update_attrs)
       assert section.name == update_attrs.name
       assert section.position == update_attrs.position
+      assert section.school_id == update_attrs.school_id
     end
 
     test "update_section/2 with invalid data returns error changeset" do
       section = insert(:section)
+      original_section = MessageBoard.get_section!(section.id)
+
       assert {:error, %Ecto.Changeset{}} = MessageBoard.update_section(section, @invalid_attrs)
-      assert section == MessageBoard.get_section!(section.id)
+
+      updated_section = MessageBoard.get_section!(section.id)
+      assert updated_section.name == original_section.name
+      assert updated_section.position == original_section.position
+      assert updated_section.school_id == original_section.school_id
     end
 
     test "delete_section/1 deletes the section" do

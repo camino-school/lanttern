@@ -91,7 +91,10 @@ defmodule LantternWeb.MessageBoard.IndexLive do
   end
 
   def handle_event("save_section", params, %{assigns: %{form_action: :create}} = socket) do
-    section_params = Map.get(params, "section")
+    section_params =
+      params
+      |> Map.get("section")
+      |> Map.put("school_id", socket.assigns.current_user.current_profile.school_id)
 
     section_params
     |> MessageBoard.create_section()

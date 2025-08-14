@@ -8,26 +8,8 @@ defmodule Lanttern.Repo.Migrations.UpdateBoardMessagesFields do
       add :cover, :string
       add :position, :integer, default: 0, null: false
 
-      # Add section_id as nullable first
-      add :section_id, references(:sections, on_delete: :delete_all), null: true
+      add :section_id, references(:sections, on_delete: :delete_all), null: false
     end
-
-    # Create a default section if it doesn't exist
-    execute """
-    INSERT INTO sections (name, position, inserted_at, updated_at)
-    VALUES ('News', 0, NOW(), NOW())
-    ON CONFLICT DO NOTHING
-    """
-
-    # Update existing messages to use the default section
-    execute """
-    UPDATE board_messages
-    SET section_id = (SELECT id FROM sections WHERE name = 'News' LIMIT 1)
-    WHERE section_id IS NULL
-    """
-
-    # Now make section_id not null
-    execute "ALTER TABLE board_messages ALTER COLUMN section_id SET NOT NULL"
   end
 
   def down do

@@ -12,18 +12,20 @@ defmodule LantternWeb.MessageBoard.IndexLiveTest do
       cycle = ctx.user.current_profile.current_school_cycle
       class = insert(:class, %{school: school, cycle: cycle})
       attrs = %{school: school, send_to: "classes", classes_ids: [class.id]}
+      section = insert(:section, %{school: school})
 
       message = insert(:message, attrs)
 
       archived =
         insert(:message, %{
           school: school,
+          section: section,
           name: "archived message abc",
           description: "archived message desc abc",
           archived_at: DateTime.utc_now()
         })
 
-      m2 = insert(:message, %{school: school})
+      m2 = insert(:message, %{section: section, school: school})
 
       Lanttern.Filters.set_profile_current_filters(ctx.user, %{classes_ids: [class.id]})
 
@@ -39,6 +41,7 @@ defmodule LantternWeb.MessageBoard.IndexLiveTest do
     test "create a new message", ctx do
       %{conn: conn} = set_user_permissions(["communication_management"], ctx)
       attr = %{name: "test message", description: "test description", color: "CBCBCB"}
+      insert(:section, %{school: ctx.user.current_profile.staff_member.school})
 
       conn
       |> visit("/school/message_board")
@@ -64,7 +67,9 @@ defmodule LantternWeb.MessageBoard.IndexLiveTest do
 
     test "edit a existing message", ctx do
       %{conn: conn} = set_user_permissions(["communication_management"], ctx)
-      message = insert(:message, %{school: ctx.user.current_profile.staff_member.school})
+      school = ctx.user.current_profile.staff_member.school
+      section = insert(:section, %{school: school})
+      message = insert(:message, %{school: school, section: section})
       attrs = %{name: "edited name"}
 
       conn
@@ -105,8 +110,9 @@ defmodule LantternWeb.MessageBoard.IndexLiveTest do
 
     test "edit a existing section w/ permissions", ctx do
       %{conn: conn} = set_user_permissions(["communication_management"], ctx)
+      school = ctx.user.current_profile.staff_member.school
       attr = %{name: "test section"}
-      section = insert(:section, %{name: "old title"})
+      section = insert(:section, %{name: "old title", school: school})
 
       conn
       |> visit("/school/message_board")
@@ -122,7 +128,8 @@ defmodule LantternWeb.MessageBoard.IndexLiveTest do
 
     test "delete a existing section w/ permissions", ctx do
       %{conn: conn} = set_user_permissions(["communication_management"], ctx)
-      section = insert(:section, %{name: "section to delete"})
+      school = ctx.user.current_profile.staff_member.school
+      section = insert(:section, %{name: "section to delete", school: school})
 
       conn
       |> visit("/school/message_board")
@@ -138,7 +145,7 @@ defmodule LantternWeb.MessageBoard.IndexLiveTest do
     test "reorder a existing message", ctx do
       %{conn: conn} = set_user_permissions(["communication_management"], ctx)
       school = ctx.user.current_profile.staff_member.school
-      section = insert(:section)
+      section = insert(:section, %{school: school})
       message1 = insert(:message, %{section: section, school: school})
       message2 = insert(:message, %{section: section, school: school})
       message3 = insert(:message, %{section: section, school: school})
@@ -159,8 +166,9 @@ defmodule LantternWeb.MessageBoard.IndexLiveTest do
 
     test "reorder a existing section", ctx do
       %{conn: conn} = set_user_permissions(["communication_management"], ctx)
-      section1 = insert(:section)
-      section2 = insert(:section)
+      school = ctx.user.current_profile.staff_member.school
+      section1 = insert(:section, %{school: school})
+      section2 = insert(:section, %{school: school})
 
       conn
       |> visit("/school/message_board/")
@@ -169,7 +177,7 @@ defmodule LantternWeb.MessageBoard.IndexLiveTest do
       |> assert_has("h1", text: "Message board admin - Reorder sections")
       |> tap(fn %{view: view} ->
         assert render(view) =~ ~r/#{section1.name}.*#{section2.name}/s
-        assert render_hook(view, "sortable_update", %{"oldIndex" => 1, "newIndex" => 2})
+        assert render_hook(view, "sortable_update", %{"oldIndex" => 0, "newIndex" => 1})
       end)
       |> click_link("Manage messages")
       |> tap(fn %{current_path: path} -> assert path == "/school/message_board" end)

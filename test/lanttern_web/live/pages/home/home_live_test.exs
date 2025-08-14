@@ -8,7 +8,9 @@ defmodule LantternWeb.HomeLiveTest do
     setup [:register_and_log_in_student]
 
     test "displays message board and opens message overlay", ctx do
-      message = insert(:message, %{school: ctx.user.current_profile.student.school})
+      school = ctx.user.current_profile.student.school
+      section = insert(:section, %{school: school})
+      message = insert(:message, %{school: school, section: section})
 
       ctx.conn
       |> visit("/student")
@@ -26,7 +28,9 @@ defmodule LantternWeb.HomeLiveTest do
     setup [:register_and_log_in_guardian]
 
     test "displays message board and opens message overlay", ctx do
-      message = insert(:message, %{school: ctx.user.current_profile.guardian_of_student.school})
+      school = ctx.user.current_profile.guardian_of_student.school
+      section = insert(:section, %{school: school})
+      message = insert(:message, %{section: section, school: school})
 
       ctx.conn
       |> visit("/guardian")

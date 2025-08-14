@@ -10,7 +10,8 @@ defmodule Lanttern.SectionFactory do
       def section_factory do
         %Lanttern.MessageBoard.Section{
           name: sequence(:section_name, &"Section #{&1}"),
-          position: 0
+          position: 0,
+          school: insert(:school)
         }
       end
     end

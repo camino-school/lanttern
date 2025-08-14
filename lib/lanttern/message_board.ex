@@ -278,10 +278,13 @@ defmodule Lanttern.MessageBoard do
   end
 
   @doc """
-  Returns the list of sections ordered by position.
+  Returns the list of sections ordered by position for a specific school.
   """
-  def list_sections do
-    from(s in Section, order_by: s.position)
+  def list_sections(school_id) do
+    from(s in Section,
+      where: s.school_id == ^school_id,
+      order_by: s.position
+    )
     |> Repo.all()
   end
 
@@ -303,7 +306,10 @@ defmodule Lanttern.MessageBoard do
       |> apply_sections_filter_opts(classes_ids: classes_ids, school_id: school_id)
       |> preload([:classes])
 
-    from(s in Section, order_by: s.position)
+    from(s in Section,
+      where: s.school_id == ^school_id,
+      order_by: s.position
+    )
     |> preload(messages: ^messages_query)
     |> Repo.all()
   end
@@ -356,7 +362,10 @@ defmodule Lanttern.MessageBoard do
       )
       |> apply_sections_filter_opts(classes_ids: student_classes_ids, school_id: school_id)
 
-    from(s in Section, order_by: s.position)
+    from(s in Section,
+      where: s.school_id == ^school_id,
+      order_by: s.position
+    )
     |> preload(messages: ^messages_query)
     |> Repo.all()
   end
