@@ -1536,6 +1536,24 @@ defmodule Lanttern.ReportingTest do
           scale_type: o_scale.type
         })
 
+      # create evidences for assessment_point_1_entry
+      evidence_1 = Lanttern.AttachmentsFixtures.attachment_fixture()
+      evidence_2 = Lanttern.AttachmentsFixtures.attachment_fixture()
+
+      {:ok, _} =
+        Lanttern.Repo.insert(%Lanttern.Assessments.AssessmentPointEntryEvidence{
+          assessment_point_entry_id: assessment_point_1_entry.id,
+          attachment_id: evidence_1.id,
+          position: 0
+        })
+
+      {:ok, _} =
+        Lanttern.Repo.insert(%Lanttern.Assessments.AssessmentPointEntryEvidence{
+          assessment_point_entry_id: assessment_point_1_entry.id,
+          attachment_id: evidence_2.id,
+          position: 1
+        })
+
       assert [
                {expected_assessment_point_1, expected_entry_1},
                {expected_assessment_point_2, expected_entry_2},
@@ -1552,6 +1570,9 @@ defmodule Lanttern.ReportingTest do
       assert expected_entry_1.scale == o_scale
       assert expected_entry_1.ordinal_value == ov_1
       assert expected_entry_1.differentiation_rubric.id == diff_rubric_1.id
+      assert [expected_evidence_1, expected_evidence_2] = expected_entry_1.evidences
+      assert expected_evidence_1.id == evidence_1.id
+      assert expected_evidence_2.id == evidence_2.id
 
       # assessment point 2 assertions
 
@@ -1560,6 +1581,7 @@ defmodule Lanttern.ReportingTest do
       assert expected_entry_2.id == assessment_point_2_entry.id
       assert expected_entry_2.scale == o_scale
       assert expected_entry_2.ordinal_value == ov_2
+      assert [] = expected_entry_2.evidences
 
       # assessment point 3 assertions
 
@@ -1569,6 +1591,7 @@ defmodule Lanttern.ReportingTest do
       assert expected_entry_3.id == assessment_point_3_entry.id
       assert expected_entry_3.scale == n_scale
       assert expected_entry_3.score == 5
+      assert [] = expected_entry_3.evidences
     end
 
     test "list_strand_goal_moments_and_student_entries/2 returns all moments with assessment points and entries for the given strand goal and student" do
