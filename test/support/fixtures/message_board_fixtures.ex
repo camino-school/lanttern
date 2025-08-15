@@ -6,6 +6,8 @@ defmodule Lanttern.MessageBoardFixtures do
 
   alias Lanttern.SchoolsFixtures
 
+  import Lanttern.Factory
+
   @doc """
   Generate a message.
   """
@@ -16,7 +18,8 @@ defmodule Lanttern.MessageBoardFixtures do
         description: "some description",
         name: "some name",
         send_to: "school",
-        school_id: SchoolsFixtures.maybe_gen_school_id(attrs)
+        school_id: SchoolsFixtures.maybe_gen_school_id(attrs),
+        section_id: insert(:section).id
       })
       |> Lanttern.MessageBoard.create_message()
 
