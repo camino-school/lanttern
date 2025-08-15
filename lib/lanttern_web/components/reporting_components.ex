@@ -360,7 +360,11 @@ defmodule LantternWeb.ReportingComponents do
         <p class="flex-1 text-base font-bold">{@assessment_point.name}</p>
         <.assessment_point_entry_badge entry={@entry} class="shrink-0" />
       </div>
-      <.markdown :if={@assessment_point.report_info} text={@assessment_point.report_info} class="my-6"/>
+      <.markdown
+        :if={@assessment_point.report_info}
+        text={@assessment_point.report_info}
+        class="my-6"
+      />
       <.rubric_area
         :if={@entry.differentiation_rubric || @assessment_point.rubric}
         rubric={@entry.differentiation_rubric || @assessment_point.rubric}
