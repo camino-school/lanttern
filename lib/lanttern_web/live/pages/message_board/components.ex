@@ -107,7 +107,7 @@ defmodule LantternWeb.MessageBoard.Components do
     <div
       id={"message-#{@message.id}"}
       class="relative bg-white/90 backdrop-blur-sm shadow-sm hover:shadow-lg transition-all duration-200 rounded-sm border-l-12 group cursor-pointer"
-      style={"border-color: ##{@message.color}"}
+      style={"border-color: #{@message.color}"}
     >
       <%= if @message.cover && @message.cover != "" do %>
         <div class="w-full h-45 mb-2 overflow-hidden rounded-tr-lg">
@@ -171,7 +171,7 @@ defmodule LantternWeb.MessageBoard.Components do
     ~H"""
     <div
       class="bg-white/90 backdrop-blur-sm shadow-sm hover:shadow-lg transition-all duration-200 rounded-sm border-l-12 group cursor-pointer"
-      style={"border-color: ##{@message.color}"}
+      style={"border-color: #{@message.color}"}
     >
       <%= if @message.cover && @message.cover != "" do %>
         <div class="w-full h-45 mb-2 overflow-hidden rounded-tr-lg">

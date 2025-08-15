@@ -11,7 +11,7 @@ defmodule LantternWeb.MessageBoard.IndexLive do
   alias Lanttern.Schools.Cycle
 
   # shared
-  alias LantternWeb.MessageBoard.MessageFormOverlayComponentV2
+  alias LantternWeb.MessageBoard.MessageFormOverlayComponent
 
   def mount(_params, _session, socket) do
     if connected?(socket), do: send(self(), :initialized)
@@ -135,7 +135,7 @@ defmodule LantternWeb.MessageBoard.IndexLive do
     {:noreply, assign_sections(socket)}
   end
 
-  def handle_info({MessageFormOverlayComponentV2, {action, _message}}, socket)
+  def handle_info({MessageFormOverlayComponent, {action, _message}}, socket)
       when action in [:created, :updated] do
     flash_message =
       case action do
@@ -378,7 +378,7 @@ defmodule LantternWeb.MessageBoard.IndexLive do
 
       <.live_component
         :if={@message}
-        module={MessageFormOverlayComponentV2}
+        module={MessageFormOverlayComponent}
         id="message-form-overlay"
         message={@message}
         section_id={@section_id}

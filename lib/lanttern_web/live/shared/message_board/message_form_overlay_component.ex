@@ -1,4 +1,4 @@
-defmodule LantternWeb.MessageBoard.MessageFormOverlayComponentV2 do
+defmodule LantternWeb.MessageBoard.MessageFormOverlayComponent do
   @moduledoc """
   Renders an overlay with a `Message` form
 
@@ -56,9 +56,9 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponentV2 do
           />
           <.input
             field={@form[:color]}
-            type="text"
-            label={gettext("Message color")}
-            class="mb-6"
+            type="color"
+            label={gettext("Card color")}
+            class="mb-6 w-20"
             phx-debounce="1500"
           />
           <.image_field

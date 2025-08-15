@@ -49,7 +49,7 @@ defmodule LantternWeb.MessageBoard.IndexLiveTest do
       |> click_link("Add new message")
       |> fill_in("Message title", with: attr.name)
       |> fill_in("Description", with: attr.description)
-      |> fill_in("Message color", with: attr.color)
+      |> fill_in("Card color", with: attr.color)
       |> click_button("Save")
 
       conn
