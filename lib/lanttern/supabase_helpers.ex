@@ -3,6 +3,8 @@ defmodule Lanttern.SupabaseHelpers do
   Wrapper around `Supabase` for ease of use
   """
 
+  @default_expires_in 600
+
   @doc """
   `Supabase.Storage.create_bucket/2` wrapper.
   -
@@ -123,25 +125,27 @@ defmodule Lanttern.SupabaseHelpers do
 
   @spec create_signed_url(object_key :: String.t()) ::
           {:ok, String.t()} | {:error, :invalid_object_key}
-  def create_signed_url(object_key) do
+  def create_signed_url(object_key, opts \\ []) do
     with [_, bucket_id, path] <- Regex.run(~r/(.+?)\/(.+)/, object_key),
-         {:ok, signed_url} <- create_signed_url(path, bucket_id) do
+         {:ok, signed_url} <- do_create_signed_url(path, bucket_id, opts) do
       {:ok, signed_url}
     else
       _ -> {:error, :invalid_object_key}
     end
   end
 
-  @spec create_signed_url(String.t(), String.t()) ::
-          {:ok, String.t()} | {:error, :invalid_object_key}
-  def create_signed_url(path, bucket_id) do
-    base_url = config()[:base_url]
-    seconds = 60
-    opts = [expires_in: seconds]
+  @spec do_create_signed_url(path :: String.t(), bucket_id :: String.t(), opts :: Keyword.t()) ::
+          {:ok, String.t()} | {:error, any()}
+  defp do_create_signed_url(path, bucket_id, opts) do
+    storage = Supabase.Storage.from(client(), bucket_id)
 
-    case Supabase.Storage.FileHandler.create_signed_url(client(), bucket_id, path, opts) do
-      {:ok, %{body: body}} -> {:ok, "#{base_url}/storage/v1#{body["signedURL"]}"}
-      _ -> {:error, :invalid_object_key}
+    opts =
+      [expires_in: @default_expires_in]
+      |> Keyword.merge(opts)
+
+    case Supabase.Storage.File.create_signed_url(storage, path, opts) do
+      {:ok, signed_url} -> {:ok, signed_url}
+      {:error, error} -> {:error, error}
     end
   end
 end

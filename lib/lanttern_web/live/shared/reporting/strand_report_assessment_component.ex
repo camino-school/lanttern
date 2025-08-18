@@ -17,14 +17,13 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
   alias Lanttern.Assessments.AssessmentPoint
   alias Lanttern.GradesReports
   alias Lanttern.Reporting
-  alias Lanttern.SupabaseHelpers
   alias LantternWeb.Assessments.EntryParticleComponent
   alias LantternWeb.Assessments.StrandGoalDetailsOverlayComponent
+  alias LantternWeb.Attachments.AttachmentViewComponent
   alias LantternWeb.GradesReports.GradeDetailsOverlayComponent
   alias LantternWeb.GradesReports.StudentGradesReportEntryButtonComponent
 
   import LantternWeb.AssessmentsComponents
-  import LantternWeb.AttachmentsComponents
 
   @impl true
   def render(assigns) do
@@ -64,12 +63,12 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
             </h4>
           </div>
           <div id="strand-evidences" phx-update="stream">
-            <.attachment_card
+            <.live_component
               :for={{dom_id, {evidence, goal_id, moment_name}} <- @streams.strand_evidences}
+              module={AttachmentViewComponent}
               id={dom_id}
               class="mt-6"
               attachment={evidence}
-              on_signed_url={&JS.push("signed_url", value: %{"url" => &1}, target: @myself)}
             >
               <p class="mt-4 text-xs">
                 {if moment_name do
@@ -82,7 +81,7 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
                   {gettext("View assessment details")}
                 </.link>
               </p>
-            </.attachment_card>
+            </.live_component>
           </div>
         </div>
         <div :if={@has_student_grades_report_entries} class="mt-10">
@@ -499,12 +498,4 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
 
   defp assign_student_grades_report_entry_id(socket),
     do: assign(socket, :student_grades_report_entry_id, nil)
-
-  @impl true
-  def handle_event("signed_url", %{"url" => url}, socket) do
-    case SupabaseHelpers.create_signed_url(url) do
-      {:ok, external} -> {:noreply, push_event(socket, "open_external", %{url: external})}
-      {:error, :invalid_url} -> {:noreply, put_flash(socket, :error, gettext("Invalid URL"))}
-    end
-  end
 end

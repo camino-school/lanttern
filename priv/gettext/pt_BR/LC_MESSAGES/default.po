@@ -115,8 +115,8 @@ msgstr "Aplicando filtros..."
 #: lib/lanttern_web/live/pages/strands/moment/id/moment_live.html.heex:114
 #: lib/lanttern_web/live/shared/assessments/assessment_point_form_overlay_component.ex:150
 #: lib/lanttern_web/live/shared/assessments/entry_details_overlay_component.ex:266
-#: lib/lanttern_web/live/shared/attachments/attachment_area_component.ex:115
-#: lib/lanttern_web/live/shared/attachments/attachment_area_component.ex:146
+#: lib/lanttern_web/live/shared/attachments/attachment_area_component.ex:114
+#: lib/lanttern_web/live/shared/attachments/attachment_area_component.ex:145
 #: lib/lanttern_web/live/shared/filters/classes_filter_overlay_component.ex:60
 #: lib/lanttern_web/live/shared/filters/cycles_filter_overlay_component.ex:50
 #: lib/lanttern_web/live/shared/filters/filters_overlay_component.ex:25
@@ -183,7 +183,7 @@ msgstr "Nova trilha"
 #: lib/lanttern_web/live/shared/assessments/assessments_grid_component.ex:159
 #: lib/lanttern_web/live/shared/assessments/entry_details_overlay_component.ex:75
 #: lib/lanttern_web/live/shared/assessments/entry_details_overlay_component.ex:320
-#: lib/lanttern_web/live/shared/attachments/attachment_area_component.ex:122
+#: lib/lanttern_web/live/shared/attachments/attachment_area_component.ex:121
 #: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_overlay_component.ex:74
 #: lib/lanttern_web/live/shared/grades_reports/student_grades_report_final_entry_overlay_component.ex:77
 #: lib/lanttern_web/live/shared/ilp/ilp_comment_form_overlay_component.ex:105
@@ -308,7 +308,7 @@ msgid "Save Strand"
 msgstr "Salvar Trilha"
 
 #: lib/lanttern_web/live/shared/assessments/assessment_point_form_overlay_component.ex:158
-#: lib/lanttern_web/live/shared/attachments/attachment_area_component.ex:119
+#: lib/lanttern_web/live/shared/attachments/attachment_area_component.ex:118
 #: lib/lanttern_web/live/shared/curricula/curriculum_item_form_component.ex:55
 #: lib/lanttern_web/live/shared/grades_reports/grades_report_form_component.ex:86
 #: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_form_component.ex:105
@@ -354,7 +354,7 @@ msgid "cancel"
 msgstr "cancelar"
 
 #: lib/lanttern_web/components/form_components.ex:702
-#: lib/lanttern_web/live/shared/attachments/attachment_area_component.ex:183
+#: lib/lanttern_web/live/shared/attachments/attachment_area_component.ex:182
 #, elixir-autogen, elixir-format
 msgid "or drag and drop here"
 msgstr "ou arraste e solte aqui"
@@ -515,17 +515,17 @@ msgstr "Deletar anotação"
 #: lib/lanttern_web/live/shared/assessments/assessment_point_form_component.ex:87
 #: lib/lanttern_web/live/shared/assessments/assessment_point_form_overlay_component.ex:116
 #: lib/lanttern_web/live/shared/assessments/entry_details_overlay_component.ex:34
-#: lib/lanttern_web/live/shared/assessments/strand_goal_details_overlay_component.ex:67
-#: lib/lanttern_web/live/shared/reporting/strand_report_assessment_component.ex:272
+#: lib/lanttern_web/live/shared/assessments/strand_goal_details_overlay_component.ex:66
+#: lib/lanttern_web/live/shared/reporting/strand_report_assessment_component.ex:271
 #: lib/lanttern_web/live/shared/rubrics/rubric_form_overlay_component.ex:261
 #, elixir-autogen, elixir-format
 msgid "Differentiation"
 msgstr "Diferenciação"
 
-#: lib/lanttern_web/components/attachments_components.ex:146
+#: lib/lanttern_web/components/attachments_components.ex:97
 #: lib/lanttern_web/components/core_components.ex:1467
 #: lib/lanttern_web/components/form_components.ex:271
-#: lib/lanttern_web/components/ilp_components.ex:125
+#: lib/lanttern_web/components/ilp_components.ex:124
 #: lib/lanttern_web/components/learning_context_components.ex:81
 #: lib/lanttern_web/components/message_board_components.ex:56
 #: lib/lanttern_web/live/pages/grades_report/grades_reports_live.html.heex:48
@@ -539,7 +539,7 @@ msgstr "Diferenciação"
 #: lib/lanttern_web/live/pages/students_records/settings/status_component.ex:61
 #: lib/lanttern_web/live/pages/students_records/settings/tags_component.ex:57
 #: lib/lanttern_web/live/shared/assessments/entry_details_overlay_component.ex:253
-#: lib/lanttern_web/live/shared/ilp/student_ilp_component.ex:56
+#: lib/lanttern_web/live/shared/ilp/student_ilp_component.ex:55
 #, elixir-autogen, elixir-format
 msgid "Edit"
 msgstr "Editar"
@@ -823,7 +823,7 @@ msgstr "Salvar momento"
 #: lib/lanttern_web/live/shared/assessments/entry_details_overlay_component.ex:575
 #: lib/lanttern_web/live/shared/assessments/entry_details_overlay_component.ex:776
 #: lib/lanttern_web/live/shared/assessments/entry_details_overlay_component.ex:777
-#: lib/lanttern_web/live/shared/attachments/attachment_area_component.ex:454
+#: lib/lanttern_web/live/shared/attachments/attachment_area_component.ex:453
 #, elixir-autogen, elixir-format
 msgid "Something went wrong"
 msgstr "Algo deu errado"
@@ -843,7 +843,7 @@ msgstr "Trilha com momentos e/ou pontos de avaliação (objetivos) conectados. D
 msgid "Strand has linked moments."
 msgstr "Trilha possui momentos conectados."
 
-#: lib/lanttern_web/live/shared/reporting/strand_report_moments_component.ex:30
+#: lib/lanttern_web/live/shared/reporting/strand_report_moments_component.ex:29
 #, elixir-autogen, elixir-format
 msgid "Strand moments"
 msgstr "Momentos da trilha"
@@ -992,7 +992,7 @@ msgstr "Componente curricular"
 
 #: lib/lanttern_web/live/pages/strands/id/strand_rubrics_component.ex:45
 #: lib/lanttern_web/live/pages/strands/id/strand_rubrics_component.ex:117
-#: lib/lanttern_web/live/shared/assessments/strand_goal_details_overlay_component.ex:41
+#: lib/lanttern_web/live/shared/assessments/strand_goal_details_overlay_component.ex:40
 #: lib/lanttern_web/live/shared/reporting/strand_report_overview_component.ex:58
 #, elixir-autogen, elixir-format
 msgid "Curriculum differentiation"
@@ -1025,7 +1025,7 @@ msgstr "Ciclo"
 msgid "Cycle already added to this grade report"
 msgstr "Ciclo já adicionado à este relatório de nota"
 
-#: lib/lanttern_web/components/reporting_components.ex:358
+#: lib/lanttern_web/components/reporting_components.ex:357
 #: lib/lanttern_web/live/shared/assessments/assessments_grid_component.ex:267
 #: lib/lanttern_web/live/shared/assessments/assessments_grid_component.ex:322
 #: lib/lanttern_web/live/shared/assessments/assessments_grid_component.ex:352
@@ -1306,7 +1306,7 @@ msgstr "Nenhuma trilha vinculada a este relatório ainda"
 
 #: lib/lanttern_web/components/grades_reports_components.ex:629
 #: lib/lanttern_web/components/grades_reports_components.ex:857
-#: lib/lanttern_web/components/reporting_components.ex:493
+#: lib/lanttern_web/components/reporting_components.ex:496
 #, elixir-autogen, elixir-format
 msgid "No students linked to this grades report"
 msgstr "Nenhum estudante vinculado a este relatório de notas"
@@ -1362,7 +1362,7 @@ msgstr "Prévia"
 msgid "Recalculate grade"
 msgstr "Recalcular nota"
 
-#: lib/lanttern_web/components/attachments_components.ex:151
+#: lib/lanttern_web/components/attachments_components.ex:102
 #: lib/lanttern_web/components/core_components.ex:342
 #: lib/lanttern_web/components/core_components.ex:1555
 #: lib/lanttern_web/components/form_components.ex:811
@@ -1649,7 +1649,7 @@ msgstr "Bem-vinda!"
 msgid "You must log in to access this page."
 msgstr "Você precisa estar logado para acessar esta página."
 
-#: lib/lanttern_web/live/shared/assessments/strand_goal_details_overlay_component.ex:117
+#: lib/lanttern_web/live/shared/assessments/strand_goal_details_overlay_component.ex:114
 #, elixir-autogen, elixir-format
 msgid "About this assessment"
 msgstr "Sobre esta avaliação"
@@ -1898,7 +1898,8 @@ msgid "Has footnote"
 msgstr "Possui nota de rodapé"
 
 #: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:425
-#: lib/lanttern_web/live/shared/attachments/attachment_area_component.ex:109
+#: lib/lanttern_web/live/shared/attachments/attachment_area_component.ex:108
+#: lib/lanttern_web/live/shared/attachments/attachment_view_component.ex:36
 #, elixir-autogen, elixir-format
 msgid "Link"
 msgstr "Vincular"
@@ -2018,7 +2019,7 @@ msgstr "Nenhuma anotação de estudante sobre esta trilha"
 
 #: lib/lanttern_web/live/pages/strands/id/strand_live.html.heex:27
 #: lib/lanttern_web/live/pages/strands/moment/id/moment_live.html.heex:27
-#: lib/lanttern_web/live/shared/ilp/student_ilp_component.ex:90
+#: lib/lanttern_web/live/shared/ilp/student_ilp_component.ex:89
 #, elixir-autogen, elixir-format
 msgid "Notes"
 msgstr "Anotações"
@@ -2041,50 +2042,43 @@ msgstr "Anotações do estudante sobre a trilha"
 msgid "updated"
 msgstr "atualizado"
 
-#: lib/lanttern_web/live/shared/attachments/attachment_area_component.ex:198
+#: lib/lanttern_web/live/shared/attachments/attachment_area_component.ex:197
 #, elixir-autogen, elixir-format
 msgid "(e.g. Google Docs)"
 msgstr "(por exemplo: Google Docs)"
 
-#: lib/lanttern_web/components/attachments_components.ex:154
+#: lib/lanttern_web/components/attachments_components.ex:105
 #: lib/lanttern_web/components/message_board_components.ex:51
 #, elixir-autogen, elixir-format
 msgid "Are you sure? This action cannot be undone."
 msgstr "Você tem certeza? Esta ação não pode ser desfeita."
 
-#: lib/lanttern_web/live/shared/attachments/attachment_area_component.ex:102
+#: lib/lanttern_web/live/shared/attachments/attachment_area_component.ex:101
 #, elixir-autogen, elixir-format
 msgid "Attachment name"
 msgstr "Nome do anexo"
 
-#: lib/lanttern_web/components/attachments_components.ex:104
+#: lib/lanttern_web/components/attachments_components.ex:67
 #, elixir-autogen, elixir-format
 msgid "Copy attachment link markdown"
 msgstr "Copiar link do anexo em markdown"
 
-#: lib/lanttern_web/live/shared/attachments/attachment_area_component.ex:408
+#: lib/lanttern_web/live/shared/attachments/attachment_area_component.ex:407
 #, elixir-autogen, elixir-format
 msgid "Error deleting attachment"
 msgstr "Erro ao deletar anexo"
-
-#: lib/lanttern_web/components/attachments_components.ex:27
-#: lib/lanttern_web/components/attachments_components.ex:108
-#: lib/lanttern_web/components/attachments_components.ex:160
-#, elixir-autogen, elixir-format
-msgid "External link"
-msgstr "Link externo"
 
 #: lib/lanttern_web/components/form_components.ex:848
 #, elixir-autogen, elixir-format
 msgid "File too large (max. %{file_size}MB)"
 msgstr "Arquivo muito grande (máx. %{file_size}MB)"
 
-#: lib/lanttern_web/live/shared/attachments/attachment_area_component.ex:132
+#: lib/lanttern_web/live/shared/attachments/attachment_area_component.ex:131
 #, elixir-autogen, elixir-format
 msgid "File upload"
 msgstr "Upload de arquivo"
 
-#: lib/lanttern/attachments/attachment.ex:83
+#: lib/lanttern/attachments/attachment.ex:87
 #, elixir-autogen, elixir-format
 msgid "Invalid link format"
 msgstr "Formato do link inválido"
@@ -2099,25 +2093,23 @@ msgstr "Anexos da anotação"
 msgid "Only %{formats} files accepted"
 msgstr "Apenas arquivos do tipo %{formats} são aceitos"
 
-#: lib/lanttern_web/live/shared/attachments/attachment_area_component.ex:197
+#: lib/lanttern_web/live/shared/attachments/attachment_area_component.ex:196
 #, elixir-autogen, elixir-format
 msgid "Or add a link to an external file"
 msgstr "Ou adicione um link para um arquivo externo"
 
-#: lib/lanttern_web/components/attachments_components.ex:36
-#: lib/lanttern_web/components/attachments_components.ex:117
-#: lib/lanttern_web/components/attachments_components.ex:169
-#: lib/lanttern_web/live/shared/attachments/attachment_area_component.ex:149
+#: lib/lanttern_web/live/shared/attachments/attachment_area_component.ex:148
+#: lib/lanttern_web/live/shared/attachments/attachment_view_component.ex:45
 #, elixir-autogen, elixir-format
 msgid "Upload"
 msgstr "Upload"
 
-#: lib/lanttern_web/live/shared/attachments/attachment_area_component.ex:180
+#: lib/lanttern_web/live/shared/attachments/attachment_area_component.ex:179
 #, elixir-autogen, elixir-format
 msgid "Upload a file"
 msgstr "Upload de arquivo"
 
-#: lib/lanttern_web/components/ilp_components.ex:139
+#: lib/lanttern_web/components/ilp_components.ex:138
 #: lib/lanttern_web/live/pages/strands/id/notes_component.ex:83
 #: lib/lanttern_web/live/shared/ilp/ilp_comment_form_overlay_component.ex:69
 #: lib/lanttern_web/live/shared/learning_context/moment_card_overlay_component.ex:52
@@ -2130,7 +2122,7 @@ msgstr "Anexos"
 msgid "Invalid assessment view"
 msgstr "Visualização de avaliação inválida"
 
-#: lib/lanttern_web/components/ilp_components.ex:171
+#: lib/lanttern_web/components/ilp_components.ex:169
 #: lib/lanttern_web/live/pages/school/staff/id/students_records_component.ex:74
 #: lib/lanttern_web/live/pages/students_records/students_records_live.html.heex:13
 #: lib/lanttern_web/live/shared/assessments/assessments_grid_component.ex:429
@@ -2138,7 +2130,7 @@ msgstr "Visualização de avaliação inválida"
 msgid "Student"
 msgstr "Estudante"
 
-#: lib/lanttern_web/components/ilp_components.ex:189
+#: lib/lanttern_web/components/ilp_components.ex:187
 #: lib/lanttern_web/live/shared/assessments/assessments_grid_component.ex:426
 #, elixir-autogen, elixir-format
 msgid "Teacher"
@@ -2157,7 +2149,7 @@ msgstr "Autoavaliação do estudante"
 
 #: lib/lanttern_web/components/reporting_components.ex:40
 #: lib/lanttern_web/live/shared/assessments/entry_details_overlay_component.ex:219
-#: lib/lanttern_web/live/shared/reporting/strand_report_assessment_component.ex:298
+#: lib/lanttern_web/live/shared/reporting/strand_report_assessment_component.ex:297
 #, elixir-autogen, elixir-format
 msgid "Teacher comment"
 msgstr "Comentário do professor"
@@ -2302,7 +2294,7 @@ msgid "Invalid assessment group by option"
 msgstr "Opção de agrupamento de avaliação inválida"
 
 #: lib/lanttern_web/live/pages/strands/moment/id/moment_live.html.heex:21
-#: lib/lanttern_web/live/shared/reporting/strand_report_moments_component.ex:94
+#: lib/lanttern_web/live/shared/reporting/strand_report_moments_component.ex:93
 #, elixir-autogen, elixir-format
 msgid "Moment assessment"
 msgstr "Avaliação do momento"
@@ -2373,45 +2365,45 @@ msgstr "Nenhuma trilha favoritada ainda"
 msgid "Strand removed from your starred list"
 msgstr "Trilha removida da sua lista de favoritas"
 
-#: lib/lanttern_web/live/shared/reporting/strand_report_assessment_component.ex:313
+#: lib/lanttern_web/live/shared/reporting/strand_report_assessment_component.ex:312
 #, elixir-autogen, elixir-format
 msgid "Assessment info"
 msgstr "Informações da avaliação"
 
 #: lib/lanttern_web/live/shared/assessments/assessment_point_form_component.ex:111
 #: lib/lanttern_web/live/shared/assessments/assessment_point_form_overlay_component.ex:208
-#: lib/lanttern_web/live/shared/assessments/strand_goal_details_overlay_component.ex:64
+#: lib/lanttern_web/live/shared/assessments/strand_goal_details_overlay_component.ex:63
 #, elixir-autogen, elixir-format
 msgid "Assessment rubric"
 msgstr "Rubrica de avaliação"
 
-#: lib/lanttern_web/live/shared/assessments/strand_goal_details_overlay_component.ex:64
+#: lib/lanttern_web/live/shared/assessments/strand_goal_details_overlay_component.ex:63
 #, elixir-autogen, elixir-format
 msgid "Assessment scale"
 msgstr "Escala da avaliação"
 
-#: lib/lanttern_web/live/shared/assessments/strand_goal_details_overlay_component.ex:71
+#: lib/lanttern_web/live/shared/assessments/strand_goal_details_overlay_component.ex:70
 #, elixir-autogen, elixir-format
 msgid "Criteria:"
 msgstr "Critério:"
 
-#: lib/lanttern_web/live/shared/assessments/strand_goal_details_overlay_component.ex:91
+#: lib/lanttern_web/live/shared/assessments/strand_goal_details_overlay_component.ex:89
 #, elixir-autogen, elixir-format
 msgid "Formative assessment"
 msgstr "Avaliação formativa"
 
 #: lib/lanttern_web/live/pages/student_strands/student_strands_live.html.heex:52
-#: lib/lanttern_web/live/shared/reporting/strand_report_assessment_component.ex:251
+#: lib/lanttern_web/live/shared/reporting/strand_report_assessment_component.ex:250
 #, elixir-autogen, elixir-format
 msgid "Formative assessment pattern"
 msgstr "Padrão da avaliação formativa"
 
-#: lib/lanttern_web/live/shared/reporting/strand_report_assessment_component.ex:317
+#: lib/lanttern_web/live/shared/reporting/strand_report_assessment_component.ex:316
 #, elixir-autogen, elixir-format
 msgid "Has rubric"
 msgstr "Possui rubrica"
 
-#: lib/lanttern_web/live/shared/reporting/strand_report_assessment_component.ex:36
+#: lib/lanttern_web/live/shared/reporting/strand_report_assessment_component.ex:35
 #, elixir-autogen, elixir-format
 msgid "Here you'll find information about the strand final and formative assessments."
 msgstr "Aqui você irá encontrar informações sobre as avaliações final e formativa da trilha."
@@ -2424,17 +2416,17 @@ msgid "No entry"
 msgstr "Sem registro"
 
 #: lib/lanttern_web/components/reporting_components.ex:44
-#: lib/lanttern_web/live/shared/reporting/strand_report_assessment_component.ex:303
+#: lib/lanttern_web/live/shared/reporting/strand_report_assessment_component.ex:302
 #, elixir-autogen, elixir-format
 msgid "Student comment"
 msgstr "Comentário do estudante"
 
-#: lib/lanttern_web/live/shared/reporting/strand_report_moments_component.ex:32
+#: lib/lanttern_web/live/shared/reporting/strand_report_moments_component.ex:31
 #, elixir-autogen, elixir-format
 msgid "Here you'll find information about the strand learning journey."
 msgstr "Aqui você irá encontrar informações sobre a jornada de aprendizagem da trilha."
 
-#: lib/lanttern_web/live/shared/reporting/strand_report_moments_component.ex:86
+#: lib/lanttern_web/live/shared/reporting/strand_report_moments_component.ex:85
 #, elixir-autogen, elixir-format
 msgid "No moments registered for this strand"
 msgstr "Nenhum momento registrado nesta trilha"
@@ -2444,12 +2436,12 @@ msgstr "Nenhum momento registrado nesta trilha"
 msgid "No strand report info yet."
 msgstr "Nenhuma informação do relatório ainda."
 
-#: lib/lanttern_web/live/shared/reporting/strand_report_assessment_component.ex:39
+#: lib/lanttern_web/live/shared/reporting/strand_report_assessment_component.ex:38
 #, elixir-autogen, elixir-format
 msgid "You can click the assessment card to view more details about it."
 msgstr "Você pode clicar no card da avaliação para ver mais detalhes."
 
-#: lib/lanttern_web/live/shared/reporting/strand_report_moments_component.ex:35
+#: lib/lanttern_web/live/shared/reporting/strand_report_moments_component.ex:34
 #, elixir-autogen, elixir-format
 msgid "You can click the moment card to view more details about it, including information about formative assessment."
 msgstr "Você pode clicar no card de momento para ver mais detalhes, incluindo informações sobre avaliação formativa."
@@ -2459,17 +2451,17 @@ msgstr "Você pode clicar no card de momento para ver mais detalhes, incluindo i
 msgid "Final assessment not available yet"
 msgstr "A avaliação final ainda não está disponível"
 
-#: lib/lanttern_web/live/shared/reporting/strand_report_assessment_component.ex:34
+#: lib/lanttern_web/live/shared/reporting/strand_report_assessment_component.ex:33
 #, elixir-autogen, elixir-format
 msgid "Goals assessment entries"
 msgstr "Registros da avaliação de objetivos"
 
-#: lib/lanttern_web/live/shared/reporting/strand_report_assessment_component.ex:127
+#: lib/lanttern_web/live/shared/reporting/strand_report_assessment_component.ex:126
 #, elixir-autogen, elixir-format
 msgid "Goals without assessment entries"
 msgstr "Objetivos sem registros de avaliação"
 
-#: lib/lanttern_web/live/shared/reporting/strand_report_assessment_component.ex:57
+#: lib/lanttern_web/live/shared/reporting/strand_report_assessment_component.ex:56
 #, elixir-autogen, elixir-format
 msgid "No assessment entries for this strand yet"
 msgstr "Nenhum registro de avaliação para esta trilha ainda"
@@ -2486,7 +2478,7 @@ msgstr "Rubrica de diferenciação"
 msgid "Add students to report card to track entries"
 msgstr "Adicione estudantes ao report card para acompanhar os registros"
 
-#: lib/lanttern_web/components/reporting_components.ex:449
+#: lib/lanttern_web/components/reporting_components.ex:452
 #, elixir-autogen, elixir-format
 msgid "No strands with moments assessment linked to this report card"
 msgstr "Nenhuma trilha com avaliações nos momentos vinculada a este report card"
@@ -2541,27 +2533,27 @@ msgstr "Avaliação final"
 msgid "Layers (moments)"
 msgstr "Camadas (momentos)"
 
-#: lib/lanttern_web/live/shared/reporting/strand_report_assessment_component.ex:76
+#: lib/lanttern_web/live/shared/reporting/strand_report_assessment_component.ex:75
 #, elixir-autogen, elixir-format
 msgid "In the context of"
 msgstr "No contexto de"
 
-#: lib/lanttern_web/live/shared/assessments/strand_goal_details_overlay_component.ex:82
+#: lib/lanttern_web/live/shared/assessments/strand_goal_details_overlay_component.ex:81
 #, elixir-autogen, elixir-format
 msgid "Learning evidences"
 msgstr "Evidências de aprendizagem"
 
-#: lib/lanttern_web/live/shared/reporting/strand_report_assessment_component.ex:82
+#: lib/lanttern_web/live/shared/reporting/strand_report_assessment_component.ex:81
 #, elixir-autogen, elixir-format
 msgid "View assessment details"
 msgstr "Ver detalhes da avaliação"
 
-#: lib/lanttern_web/live/shared/reporting/strand_report_assessment_component.ex:308
+#: lib/lanttern_web/live/shared/reporting/strand_report_assessment_component.ex:307
 #, elixir-autogen, elixir-format
 msgid "With learning evidences"
 msgstr "Possui evidências de aprendizagem"
 
-#: lib/lanttern_web/live/shared/reporting/strand_report_assessment_component.ex:63
+#: lib/lanttern_web/live/shared/reporting/strand_report_assessment_component.ex:62
 #, elixir-autogen, elixir-format
 msgid "All strand evidences"
 msgstr "Todas as evidências da trilha"
@@ -3609,12 +3601,12 @@ msgstr "Notas sobre diferenciação"
 msgid "If active the card and selected attachments will be displayed for students and guardians in the strand moment details page"
 msgstr "Se ativo, o card e os anexos selecionados serão exibidos para estudantes e responsáveis na página de detalhes do momento da trilha"
 
-#: lib/lanttern_web/live/shared/reporting/strand_report_moments_component.ex:118
+#: lib/lanttern_web/live/shared/reporting/strand_report_moments_component.ex:116
 #, elixir-autogen, elixir-format
 msgid "More about this moment"
 msgstr "Mais sobre este momento"
 
-#: lib/lanttern_web/components/attachments_components.ex:136
+#: lib/lanttern_web/components/attachments_components.ex:87
 #: lib/lanttern_web/live/shared/learning_context/moment_card_overlay_component.ex:174
 #, elixir-autogen, elixir-format
 msgid "Share with students and guardians"
@@ -3625,7 +3617,7 @@ msgstr "Compartilhar com estudantes e responsáveis"
 msgid "Shared"
 msgstr "Compartilhado"
 
-#: lib/lanttern_web/components/attachments_components.ex:133
+#: lib/lanttern_web/components/attachments_components.ex:84
 #, elixir-autogen, elixir-format
 msgid "Shared with students and guardians"
 msgstr "Compartilhado com estudantes e responsáveis"
@@ -4666,8 +4658,8 @@ msgstr "Nenhum estudante selecionado"
 msgid "Notes (shared with students/guardians)"
 msgstr "Anotações (compartilhadas com estudantes/responsáveis)"
 
-#: lib/lanttern_web/live/shared/ilp/student_ilp_component.ex:129
-#: lib/lanttern_web/live/shared/ilp/student_ilp_component.ex:137
+#: lib/lanttern_web/live/shared/ilp/student_ilp_component.ex:127
+#: lib/lanttern_web/live/shared/ilp/student_ilp_component.ex:135
 #, elixir-autogen, elixir-format
 msgid "Nothing yet"
 msgstr "Nada ainda"
@@ -4682,7 +4674,7 @@ msgstr "Buscar por ILP de estudante"
 msgid "Sections and components"
 msgstr "Seções e componentes"
 
-#: lib/lanttern_web/live/shared/ilp/student_ilp_component.ex:100
+#: lib/lanttern_web/live/shared/ilp/student_ilp_component.ex:99
 #, elixir-autogen, elixir-format
 msgid "Teacher notes (internal)"
 msgstr "Anotações do professor (internas)"
@@ -4910,7 +4902,7 @@ msgstr "Usa rubrica na avaliação final"
 msgid "Using the rubric with a differentiation assessment point (curriculum differentiation)."
 msgstr "Usando a rubrica com um ponto de avaliação de diferenciação (diferenciação curricular)."
 
-#: lib/lanttern_web/live/shared/reporting/strand_report_moments_component.ex:113
+#: lib/lanttern_web/live/shared/reporting/strand_report_moments_component.ex:111
 #, elixir-autogen, elixir-format
 msgid "This moment does not have assessment entries yet"
 msgstr "Este momento ainda não possui registros de avaliação"
@@ -4926,12 +4918,12 @@ msgstr "%{count} de %{total} ILPs criados"
 msgid "%{school} classes"
 msgstr "Turmas de %{school}"
 
-#: lib/lanttern_web/live/shared/ilp/student_ilp_component.ex:113
+#: lib/lanttern_web/live/shared/ilp/student_ilp_component.ex:111
 #, elixir-autogen, elixir-format
 msgid "About %{template}"
 msgstr "Sobre %{template}"
 
-#: lib/lanttern_web/live/shared/ilp/student_ilp_component.ex:46
+#: lib/lanttern_web/live/shared/ilp/student_ilp_component.ex:45
 #, elixir-autogen, elixir-format
 msgid "About this ILP model"
 msgstr "Sobre este modelo de ILP"
@@ -5040,7 +5032,7 @@ msgstr "Intervalo de requisição da IA (em minutos):"
 msgid "Current model:"
 msgstr "Modelo atual:"
 
-#: lib/lanttern_web/live/shared/reporting/strand_report_assessment_component.ex:89
+#: lib/lanttern_web/live/shared/reporting/strand_report_assessment_component.ex:88
 #, elixir-autogen, elixir-format
 msgid "Grading"
 msgstr "Conceitos"
@@ -5132,7 +5124,7 @@ msgstr "Você não tem acesso à página de configurações de estudantes"
 msgid "Use this area to manage the strand curriculum."
 msgstr "Use esta área para gerenciar o currículo da trilha."
 
-#: lib/lanttern_web/components/ilp_components.ex:156
+#: lib/lanttern_web/components/ilp_components.ex:154
 #, elixir-autogen, elixir-format
 msgid "Add ILP comment"
 msgstr "Adicionar comentário ao ILP"
@@ -5177,12 +5169,12 @@ msgstr "Editar comentário"
 msgid "Generate revision"
 msgstr "Gerar revisão"
 
-#: lib/lanttern_web/components/ilp_components.ex:180
+#: lib/lanttern_web/components/ilp_components.ex:178
 #, elixir-autogen, elixir-format
 msgid "Guardian"
 msgstr "Responsável"
 
-#: lib/lanttern_web/components/ilp_components.ex:93
+#: lib/lanttern_web/components/ilp_components.ex:92
 #, elixir-autogen, elixir-format
 msgid "ILP comments"
 msgstr "Comentários do ILP"
@@ -5204,7 +5196,7 @@ msgstr "Instruções de revisão de ILP da LantternAI"
 msgid "New Comment"
 msgstr "Novo Comentário"
 
-#: lib/lanttern_web/components/ilp_components.ex:97
+#: lib/lanttern_web/components/ilp_components.ex:96
 #, elixir-autogen, elixir-format
 msgid "No comments in this ILP yet"
 msgstr "Nenhuym comentário neste ILP ainda"
@@ -5224,11 +5216,17 @@ msgstr "Atualizar revisão"
 msgid "View"
 msgstr "Visualizar"
 
-#: lib/lanttern_web/live/shared/assessments/strand_goal_details_overlay_component.ex:161
-#: lib/lanttern_web/live/shared/attachments/attachment_area_component.ex:514
-#: lib/lanttern_web/live/shared/ilp/student_ilp_component.ex:260
-#: lib/lanttern_web/live/shared/reporting/strand_report_assessment_component.ex:507
-#: lib/lanttern_web/live/shared/reporting/strand_report_moments_component.ex:180
+#: lib/lanttern_web/live/shared/attachments/attachment_view_component.ex:34
 #, elixir-autogen, elixir-format
-msgid "Invalid URL"
-msgstr "URL inválida"
+msgid "Attachment"
+msgstr "Anexo"
+
+#: lib/lanttern_web/live/shared/attachments/attachment_view_component.ex:60
+#, elixir-autogen, elixir-format
+msgid "Loading %{attachment}"
+msgstr "Carregando %{attachment}"
+
+#: lib/lanttern_web/live/shared/attachments/attachment_view_component.ex:69
+#, elixir-autogen, elixir-format
+msgid "Something went wrong while fetching the attachment"
+msgstr "Algo deu errado ao carregar o anexo"
