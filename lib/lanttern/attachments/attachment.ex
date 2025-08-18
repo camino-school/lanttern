@@ -47,6 +47,10 @@ defmodule Lanttern.Attachments.Attachment do
     field :description, :string
     field :is_external, :boolean, default: false
 
+    # used for manage async presigned URL generation
+    field :signed_link, :string, virtual: true
+    field :signed_link_error, :boolean, default: false, virtual: true
+
     # used in the context of moment card attachments
     field :is_shared, :boolean, virtual: true
 

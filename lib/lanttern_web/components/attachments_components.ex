@@ -9,43 +9,7 @@ defmodule LantternWeb.AttachmentsComponents do
   import LantternWeb.CoreComponents
   import LantternWeb.OverlayComponents
 
-  alias Lanttern.Attachments.Attachment
-
-  @doc """
-  Renders an attachment card.
-  """
-  attr :attachment, Attachment, required: true
-  attr :id, :string, default: nil
-  attr :class, :any, default: nil
-  attr :on_signed_url, :any, required: true
-  slot :inner_block
-
-  def attachment_card(assigns) do
-    ~H"""
-    <.card_base id={@id} class={["p-6", @class]}>
-      <%= if(@attachment.is_external) do %>
-        <.badge>{gettext("External link")}</.badge>
-        <a
-          href={@attachment.link}
-          target="_blank"
-          class="block mt-2 text-sm underline hover:text-ltrn-subtle"
-        >
-          {@attachment.name}
-        </a>
-      <% else %>
-        <.badge theme="cyan">{gettext("Upload")}</.badge>
-        <.link
-          phx-click={@on_signed_url.(@attachment.link)}
-          class="block mt-2 text-sm underline hover:text-ltrn-subtle"
-          target="_blank"
-        >
-          {@attachment.name}
-        </.link>
-      <% end %>
-      {render_slot(@inner_block)}
-    </.card_base>
-    """
-  end
+  alias LantternWeb.Attachments.AttachmentViewComponent
 
   @doc """
   Renders an assessment point entry badge.
@@ -57,13 +21,12 @@ defmodule LantternWeb.AttachmentsComponents do
   attr :on_move_down, :any, default: nil, doc: "function. required when edit is allowed"
   attr :on_edit, :any, default: nil, doc: "function. required when edit is allowed"
   attr :on_remove, :any, default: nil, doc: "function. required when edit is allowed"
-  attr :on_signed_url, :any, required: true, doc: "function. required when open signed link"
 
   attr :on_toggle_share, :any,
     default: nil,
     doc: "function. If present, will render a toggle button based on attachment `is_shared`."
 
-  attr :id, :string, default: nil
+  attr :id, :string, required: true
   attr :class, :any, default: nil
 
   def attachments_list(assigns) do
@@ -74,7 +37,7 @@ defmodule LantternWeb.AttachmentsComponents do
     <ul id={@id} phx-update="stream" class={@class}>
       <li
         :for={{dom_id, {attachment, i}} <- @attachments}
-        id={dom_id}
+        id={"#{@id}-#{dom_id}"}
         class="flex items-center gap-4 mt-4"
       >
         <%= if @allow_editing do %>
@@ -104,25 +67,13 @@ defmodule LantternWeb.AttachmentsComponents do
                 <.tooltip>{gettext("Copy attachment link markdown")}</.tooltip>
               </button>
               <div class="flex-1 min-w-0">
-                <%= if(attachment.is_external) do %>
-                  <.badge>{gettext("External link")}</.badge>
-                  <a
-                    href={attachment.link}
-                    target="_blank"
-                    class="block mt-2 text-sm underline hover:text-ltrn-subtle"
-                  >
-                    {attachment.name}
-                  </a>
-                <% else %>
-                  <.badge theme="cyan">{gettext("Upload")}</.badge>
-                  <.link
-                    phx-click={@on_signed_url.(attachment.link)}
-                    class="block mt-2 text-sm underline hover:text-ltrn-subtle"
-                    target="_blank"
-                  >
-                    {attachment.name}
-                  </.link>
-                <% end %>
+                <.live_component
+                  module={AttachmentViewComponent}
+                  id={"#{@id}-#{dom_id}-view"}
+                  attachment={attachment}
+                  no_card
+                  show_upload_and_link_badges
+                />
                 <div :if={@on_toggle_share} class="flex items-center gap-2 mt-6">
                   <.toggle
                     enabled={attachment.is_shared}
@@ -155,27 +106,12 @@ defmodule LantternWeb.AttachmentsComponents do
             />
           </.menu_button>
         <% else %>
-          <div class="flex-1 min-w-0 p-4 rounded-sm bg-white shadow-lg">
-            <%= if(attachment.is_external) do %>
-              <.badge>{gettext("External link")}</.badge>
-              <a
-                href={attachment.link}
-                target="_blank"
-                class="block mt-2 text-sm underline hover:text-ltrn-subtle"
-              >
-                {attachment.name}
-              </a>
-            <% else %>
-              <.badge theme="cyan">{gettext("Upload")}</.badge>
-              <.link
-                phx-click={@on_signed_url.(attachment.link)}
-                class="block mt-2 text-sm underline hover:text-ltrn-subtle"
-                target="_blank"
-              >
-                {attachment.name}
-              </.link>
-            <% end %>
-          </div>
+          <.live_component
+            module={AttachmentViewComponent}
+            id={"#{@id}-#{dom_id}-view"}
+            attachment={attachment}
+            class="flex-1 min-w-0"
+          />
         <% end %>
       </li>
     </ul>

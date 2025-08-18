@@ -83,7 +83,6 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
         }
         on_edit={&JS.push("edit", value: %{"id" => &1}, target: @myself)}
         on_remove={&JS.push("delete", value: %{"id" => &1}, target: @myself)}
-        on_signed_url={&JS.push("signed_url", value: %{"url" => &1}, target: @myself)}
       />
       <div
         :if={@is_adding_external || @is_editing}
@@ -506,13 +505,6 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
 
   def handle_event("clear_upload_error", _, socket) do
     {:noreply, assign(socket, :upload_error, nil)}
-  end
-
-  def handle_event("signed_url", %{"url" => url}, socket) do
-    case SupabaseHelpers.create_signed_url(url) do
-      {:ok, external} -> {:noreply, push_event(socket, "open_external", %{url: external})}
-      {:error, :invalid_url} -> {:noreply, put_flash(socket, :error, gettext("Invalid URL"))}
-    end
   end
 
   # helpers
