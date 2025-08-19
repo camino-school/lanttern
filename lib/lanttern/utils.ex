@@ -16,4 +16,29 @@ defmodule Lanttern.Utils do
     |> List.replace_at(i1, e2)
     |> List.replace_at(i2, e1)
   end
+
+  @doc """
+  Normalizes map keys to atoms.
+
+  Converts all string keys in a map to atom keys, leaving atom keys unchanged.
+  Non-string, non-atom keys are left as-is.
+
+  ## Examples
+
+      iex> normalize_attrs_to_atom_keys(%{"name" => "John", "age" => 30})
+      %{name: "John", age: 30}
+
+      iex> normalize_attrs_to_atom_keys(%{name: "John", age: 30})
+      %{name: "John", age: 30}
+
+      iex> normalize_attrs_to_atom_keys(%{})
+      %{}
+
+  """
+  def normalize_attrs_to_atom_keys(attrs) when is_map(attrs) do
+    Map.new(attrs, fn
+      {key, value} when is_binary(key) -> {String.to_atom(key), value}
+      {key, value} -> {key, value}
+    end)
+  end
 end

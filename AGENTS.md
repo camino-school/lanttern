@@ -7,6 +7,50 @@ Lanttern is a web application written using the Phoenix web framework for educat
 - Use Tidewave MCP for development tooling
 - use `mix credo` (also included in `mix precommit`) for code quality
 - use `mix sobelow` for security analysis when needed
+- when requested to write commit messages, PR summaries, or PR reviews:
+  - use markdown, and write it to a `_transfer.md` file, so we can simply copy and paste it in GitHub
+  - for PRs, remember that we can see all code changes through diff in the PR UI, so focus on giving information about the context, changes made, expected impacts — the idea is that the summary can complement the code changes. you can still reference the relevant files if needed.
+  - for PRs, do not include a test plan
+
+## Testing
+
+### List assertions
+
+- Prefer using pattern matching for assertions instead of checking with `length/1` and `hd/1`
+
+### Test fixtures
+
+- We are favoring `ExMachina` factories instead of default fixture functions.
+- When creating new schemas use factories instead of Phoenix generators' fixtures, and when generating data for testing always prefer using factories, if available.
+- Factories should `build` and `insert` only if needed. For example, if a factory of `A` belongs to `B`, the factory should have a `b = Map.get(attrs, :b, insert(:b))`, which is used in `a = %A{b: b}`. As this is not the default ExMachina behavior, we also need to manually handle merge and lazy evaluation. Putting it all together:
+
+```elixir
+ def a_factory(attrs) do
+  b = Map.get(attrs, :b, build(:b))
+
+  %A{b: b}
+  |> merge_attributes(attrs)
+  |> evaluate_lazy_attributes()
+end
+ ```
+
+## Type spec
+
+### Schema type `t()` spec
+
+- Always include `| Ecto.Association.NotLoaded.t()` for preloaded structures
+- Always include `| nil` for nullable fields
+
+## Temporary guidelines
+
+### Transition to Phoenix 1.8 scopes
+
+The recent Phoenix framework release introduced [scopes](https://hexdocs.pm/phoenix/scopes.html) for enhanced security.
+
+Currently, the structure we're using more or less like scope is the `current_user` (`%User{}`).
+We will officialy migrate to scopes soon, but until that happens, we want the new context functions (e.g. CRUD) to
+always include `current_user` as one of the params, so we can extract the user profile, school, and etc. for
+access control.
 
 <!-- usage-rules-start -->
 <!-- usage-rules-header -->
