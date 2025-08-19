@@ -8,10 +8,13 @@ defmodule Lanttern.MessageBoard do
   alias Lanttern.Repo
   import Lanttern.RepoHelpers
 
+  alias Lanttern.Attachments.Attachment
+  alias Lanttern.Identity.User
   alias Lanttern.MessageBoard.Message
+  alias Lanttern.MessageBoard.MessageAttachment
   alias Lanttern.MessageBoard.Section
   alias Lanttern.Schools.Class
-  # alias Lanttern.Schools.Student
+  # alias Lanttern.Schools.Student*
 
   @doc """
   Returns the list of messages.
@@ -438,4 +441,118 @@ defmodule Lanttern.MessageBoard do
       _ -> {:error, "Something went wrong"}
     end
   end
+
+  # @doc """
+  # Returns the list of message_attachments.
+
+  # ## Examples
+
+  #     iex> list_message_attachments()
+  #     [%MessageAttachment{}, ...]
+
+  # """
+  # def list_message_attachments do
+  #   Repo.all(MessageAttachment)
+  # end
+
+  # @doc """
+  # Gets a single message_attachment.
+
+  # Raises `Ecto.NoResultsError` if the Message attachment does not exist.
+
+  # ## Examples
+
+  #     iex> get_message_attachment!(123)
+  #     %MessageAttachment{}
+
+  #     iex> get_message_attachment!(456)
+  #     ** (Ecto.NoResultsError)
+
+  # """
+  # def get_message_attachment!(id), do: Repo.get!(MessageAttachment, id)
+
+  @doc """
+  Creates a message_attachment.
+  """
+  @spec create_message_attachment(User.t(), pos_integer(), map()) ::
+          {:ok, Attachment.t()} | {:error, Ecto.Changeset.t()}
+  def create_message_attachment(%{current_profile: profile}, message_id, attrs \\ %{}) do
+    insert_query =
+      %Attachment{}
+      |> Attachment.changeset(Map.put(attrs, "owner_id", profile.id))
+
+    Ecto.Multi.new()
+    |> Ecto.Multi.insert(:insert_attachment, insert_query)
+    |> Ecto.Multi.run(
+      :link_message,
+      fn _repo, %{insert_attachment: attachment} ->
+        attrs =
+          from(
+            ma in MessageAttachment,
+            where: ma.message_id == ^message_id
+          )
+          |> set_position_in_attrs(%{
+            message_id: message_id,
+            attachment_id: attachment.id,
+            owner_id: profile.id
+          })
+
+        %MessageAttachment{}
+        |> MessageAttachment.changeset(attrs)
+        |> Repo.insert()
+      end
+    )
+    |> Repo.transaction()
+    |> case do
+      {:error, _multi, changeset, _changes} -> {:error, changeset}
+      {:ok, %{insert_attachment: attachment}} -> {:ok, attachment}
+    end
+  end
+
+  # @doc """
+  # Updates a message_attachment.
+
+  # ## Examples
+
+  #     iex> update_message_attachment(message_attachment, %{field: new_value})
+  #     {:ok, %MessageAttachment{}}
+
+  #     iex> update_message_attachment(message_attachment, %{field: bad_value})
+  #     {:error, %Ecto.Changeset{}}
+
+  # """
+  # def update_message_attachment(%MessageAttachment{} = message_attachment, attrs) do
+  #   message_attachment
+  #   |> MessageAttachment.changeset(attrs)
+  #   |> Repo.update()
+  # end
+
+  # @doc """
+  # Deletes a message_attachment.
+
+  # ## Examples
+
+  #     iex> delete_message_attachment(message_attachment)
+  #     {:ok, %MessageAttachment{}}
+
+  #     iex> delete_message_attachment(message_attachment)
+  #     {:error, %Ecto.Changeset{}}
+
+  # """
+  # def delete_message_attachment(%MessageAttachment{} = message_attachment) do
+  #   Repo.delete(message_attachment)
+  # end
+
+  # @doc """
+  # Returns an `%Ecto.Changeset{}` for tracking message_attachment changes.
+
+  # ## Examples
+
+  #     iex> change_message_attachment(message_attachment)
+  #     %Ecto.Changeset{data: %MessageAttachment{}}
+
+  # """
+  # def change_message_attachment(%MessageAttachment{} = message_attachment, attrs \\ %{}) do
+  #   MessageAttachment.changeset(message_attachment, attrs)
+  # end
 end

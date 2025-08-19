@@ -1,6 +1,8 @@
 defmodule Lanttern.MessageBoardTest do
   use Lanttern.DataCase
 
+  alias Lanttern.Attachments.Attachment
+  alias Lanttern.Identity.User
   alias Lanttern.MessageBoard
   alias Lanttern.Repo
 
@@ -278,6 +280,31 @@ defmodule Lanttern.MessageBoardTest do
     test "change_section/1 returns a section changeset" do
       section = insert(:section)
       assert %Ecto.Changeset{} = MessageBoard.change_section(section)
+    end
+  end
+
+  describe "create_message_attachment/3" do
+    test "returns ok when valid data" do
+      attrs = %{
+        "name" => "some name",
+        "link" => "https://create-valid.link"
+      }
+
+      message = insert(:message)
+      profile = insert(:profile)
+
+      assert {:ok, %Attachment{} = subject} =
+               MessageBoard.create_message_attachment(
+                 %User{current_profile: profile},
+                 message.id,
+                 attrs
+               )
+
+      assert subject = Lanttern.Repo.preload(subject, :message)
+
+      assert subject.id
+      assert subject.owner_id == profile.id
+      assert subject.message.id == message.id
     end
   end
 end
