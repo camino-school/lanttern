@@ -59,6 +59,42 @@ defmodule LantternWeb.Router do
       ] do
       live "/dashboard", DashboardLive, :index
 
+      # strands
+
+      live "/strands", StrandsLive, :index
+      live "/strands/library", StrandsLibraryLive, :index
+      live "/strands/library/new", StrandsLibraryLive, :new
+
+      live "/strands/:id", StrandLive, :show
+      live "/strands/:id/rubrics", StrandLive, :rubrics
+      live "/strands/:id/assessment", StrandLive, :assessment
+      live "/strands/:id/moments", StrandLive, :moments
+      live "/strands/:id/notes", StrandLive, :notes
+
+      live "/strands/moment/:id", MomentLive, :show
+      live "/strands/moment/:id/assessment", MomentLive, :assessment
+      live "/strands/moment/:id/cards", MomentLive, :cards
+      live "/strands/moment/:id/notes", MomentLive, :notes
+
+      # sparks
+
+      live "/sparks", SparksLive, :index
+      live "/sparks/new", SparksLive, :new
+      live "/sparks/:id/edit", SparksLive, :edit
+
+      # students records
+
+      live "/students_records", StudentsRecordsLive, :index
+      live "/students_records/settings/status", StudentsRecordsSettingsLive, :manage_status
+      live "/students_records/settings/tags", StudentsRecordsSettingsLive, :manage_tags
+
+      # ILP
+
+      live "/ilp", ILPLive, :index
+      live "/ilp/settings", ILPSettingsLive, :index
+
+      # School management
+
       live "/school/students", SchoolLive, :manage_students
       live "/school/classes", SchoolLive, :manage_classes
       live "/school/staff", SchoolLive, :manage_staff
@@ -84,20 +120,7 @@ defmodule LantternWeb.Router do
 
       live "/school/message_board/archive", ArchivedMessagesLive, :index
 
-      live "/strands", StrandsLive, :index
-      live "/strands/library", StrandsLibraryLive, :index
-      live "/strands/library/new", StrandsLibraryLive, :new
-
-      live "/strands/:id", StrandLive, :show
-      live "/strands/:id/rubrics", StrandLive, :rubrics
-      live "/strands/:id/assessment", StrandLive, :assessment
-      live "/strands/:id/moments", StrandLive, :moments
-      live "/strands/:id/notes", StrandLive, :notes
-
-      live "/strands/moment/:id", MomentLive, :show
-      live "/strands/moment/:id/assessment", MomentLive, :assessment
-      live "/strands/moment/:id/cards", MomentLive, :cards
-      live "/strands/moment/:id/notes", MomentLive, :notes
+      # curriculum
 
       live "/curriculum", CurriculaLive, :index
       live "/curriculum/bncc_ef", BnccEfLive, :index
@@ -118,16 +141,6 @@ defmodule LantternWeb.Router do
 
       live "/grades_reports", GradesReportsLive
       live "/grades_reports/:id", GradesReportLive
-
-      # students records
-
-      live "/students_records", StudentsRecordsLive, :index
-      live "/students_records/settings/status", StudentsRecordsSettingsLive, :manage_status
-      live "/students_records/settings/tags", StudentsRecordsSettingsLive, :manage_tags
-      # ILP
-
-      live "/ilp", ILPLive, :index
-      live "/ilp/settings", ILPSettingsLive, :index
     end
 
     live_session :authenticated_guardian,

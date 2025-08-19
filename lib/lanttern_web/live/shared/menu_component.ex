@@ -335,6 +335,9 @@ defmodule LantternWeb.MenuComponent do
     LantternWeb.StrandLive => :strands,
     LantternWeb.MomentLive => :strands,
 
+    # sparks
+    LantternWeb.SparksLive => :sparks,
+
     # students records
     LantternWeb.StudentsRecordsLive => :students_records,
     LantternWeb.StudentsRecordsSettingsLive => :students_records,
@@ -424,6 +427,7 @@ defmodule LantternWeb.MenuComponent do
         text: gettext("Dashboard")
       },
       %{profile: "staff", active: :strands, path: ~p"/strands", text: gettext("Strands")},
+      %{profile: "staff", active: :sparks, path: ~p"/sparks", text: gettext("Sparks")},
       %{
         profile: "staff",
         active: :students_records,

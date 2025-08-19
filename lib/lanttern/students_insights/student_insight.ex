@@ -8,6 +8,7 @@ defmodule Lanttern.StudentsInsights.StudentInsight do
 
   use Gettext, backend: Lanttern.Gettext
 
+  alias Lanttern.Identity.User
   alias Lanttern.Schools.School
   alias Lanttern.Schools.StaffMember
   alias Lanttern.Schools.Student
@@ -38,26 +39,17 @@ defmodule Lanttern.StudentsInsights.StudentInsight do
   end
 
   @doc false
-  def changeset(student_insight, attrs) do
+  def changeset(student_insight, attrs, current_user) do
     student_insight
-    |> cast(attrs, [
-      :description,
-      :author_id,
-      :school_id
-    ])
-    |> validate_required([
-      :description,
-      :author_id,
-      :school_id
-    ])
+    |> cast(attrs, [:description])
+    |> put_change(:author_id, current_user.current_profile.staff_member_id)
+    |> put_change(:school_id, current_user.current_profile.school_id)
+    |> validate_required([:description, :author_id, :school_id])
     |> validate_length(:description,
       max: 280,
       message: gettext("Description must be 280 characters or less")
     )
-    |> foreign_key_constraint(:author_id)
-    |> foreign_key_constraint(:school_id)
     |> put_students(attrs)
-    |> validate_students_required()
   end
 
   defp put_students(changeset, %{students: students}) when is_list(students) do
@@ -66,7 +58,7 @@ defmodule Lanttern.StudentsInsights.StudentInsight do
 
   defp put_students(changeset, _attrs), do: changeset
 
-  defp validate_students_required(changeset) do
+  def validate_students_required(changeset) do
     students = get_field(changeset, :students)
 
     case students do
@@ -75,4 +67,14 @@ defmodule Lanttern.StudentsInsights.StudentInsight do
       [_ | _] -> changeset
     end
   end
+
+  def validate_ownership(
+        %User{current_profile: %{staff_member_id: staff_member_id}},
+        %__MODULE__{author_id: author_id}
+      )
+      when staff_member_id == author_id,
+      do: :ok
+
+  def validate_ownership(_current_user, _student_insight),
+    do: {:error, :unauthorized}
 end

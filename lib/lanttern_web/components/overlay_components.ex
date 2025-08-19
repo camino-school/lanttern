@@ -37,7 +37,9 @@ defmodule LantternWeb.OverlayComponents do
   attr :id, :string, required: true
   attr :show, :boolean, default: false
   attr :on_cancel, JS, default: %JS{}
+
   slot :inner_block, required: true
+  slot :title
 
   def modal(assigns) do
     ~H"""
@@ -80,6 +82,9 @@ defmodule LantternWeb.OverlayComponents do
                 <.icon name="hero-x-mark-solid" class="h-5 w-5" />
               </button>
               <div id={"#{@id}-content"}>
+                <h4 :if={@title != []} class="mb-10 font-display font-black text-xl">
+                  {render_slot(@title)}
+                </h4>
                 {render_slot(@inner_block)}
               </div>
             </.focus_wrap>

@@ -266,11 +266,11 @@ defmodule Lanttern.StudentsInsightsTest do
     end
 
     test "change_student_insight/2 returns a student_insight changeset" do
-      {_current_user, school, staff_member, _profile} = create_user_with_profile()
+      {current_user, school, staff_member, _profile} = create_user_with_profile()
 
       insight = insert(:student_insight, school: school, author: staff_member)
 
-      assert %Ecto.Changeset{} = StudentsInsights.change_student_insight(insight)
+      assert %Ecto.Changeset{} = StudentsInsights.change_student_insight(current_user, insight)
     end
 
     test "create_student_insight/2 works with string keys" do

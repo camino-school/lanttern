@@ -51,22 +51,35 @@ defmodule LantternWeb.Filters.ClassesFilterOverlayComponent do
             label={gettext("Search all school classes")}
           />
         </form>
-        <div class="flex justify-between gap-2 mt-10">
-          <.button type="button" theme="ghost" phx-click={JS.push("clear_filters", target: @myself)}>
+        <div class="flex justify-between gap-4 mt-10">
+          <.action
+            type="button"
+            theme="subtle"
+            size="md"
+            phx-click={JS.push("clear_filters", target: @myself)}
+          >
             {gettext("Clear filters")}
-          </.button>
-          <div class="flex gap-2">
-            <.button type="button" theme="ghost" phx-click={JS.exec("data-cancel", to: "##{@id}")}>
-              {gettext("Cancel")}
-            </.button>
-            <.button
+          </.action>
+          <div class="flex gap-4">
+            <.action
               type="button"
+              theme="subtle"
+              size="md"
+              phx-click={JS.exec("data-cancel", to: "##{@id}")}
+            >
+              {gettext("Cancel")}
+            </.action>
+            <.action
+              type="button"
+              theme="primary"
+              size="md"
+              icon_name="hero-check"
               disabled={!@has_changes}
               phx-click={JS.push("apply_filters", target: @myself)}
               phx-disable-with={gettext("Applying filters...")}
             >
               {gettext("Apply filters")}
-            </.button>
+            </.action>
           </div>
         </div>
       </.modal>

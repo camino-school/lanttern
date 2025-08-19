@@ -1,0 +1,85 @@
+<Layouts.app_logged_in flash={@flash} current_user={@current_user} current_path={@current_path}>
+  <.header_nav current_user={@current_user}>
+    <:title>{gettext("Sparks")}</:title>
+    <div class="flex items-center gap-6 p-4">
+      <div class="flex-1 flex items-center gap-6 min-w-0">
+        <.action
+          type="button"
+          phx-click={JS.exec("data-show", to: "#sparks-classes-filters-overlay")}
+          icon_name="hero-chevron-down-mini"
+        >
+          {format_action_items_text(@selected_classes, gettext("All classes"))}
+        </.action>
+      </div>
+      <div class="flex items-center gap-6">
+        <.action
+          :if={@selected_classes != []}
+          type="link"
+          patch={~p"/sparks/new"}
+          icon_name="hero-plus-circle-mini"
+        >
+          {gettext("New sparkle")}
+        </.action>
+      </div>
+    </div>
+  </.header_nav>
+  <%= if @selected_classes == [] do %>
+    <.responsive_container class="py-10">
+      <p>{gettext("Select at least one class to view and create sparks")}</p>
+    </.responsive_container>
+  <% else %>
+    <.responsive_container class="py-10">
+      form and list here
+    </.responsive_container>
+  <% end %>
+  <.modal
+    :if={@form && @selected_classes != []}
+    id="sparkle-form-modal"
+    show
+    on_cancel={JS.patch(~p"/sparks")}
+  >
+    <:title>
+      {case @live_action do
+        :new -> gettext("New Spark")
+        :edit -> gettext("Edit Spark")
+      end}
+    </:title>
+    <.form
+      for={@form}
+      phx-change="validate"
+      phx-submit="save"
+    >
+      <.input
+        field={@form[:description]}
+        type="textarea"
+        class="mb-6"
+        phx-debounce="1500"
+      />
+      <.error_block :if={@form.source.action in [:insert, :update]} class="mb-6">
+        {gettext("Oops, something went wrong! Please check the errors above.")}
+      </.error_block>
+      <div class="flex items-center justify-end gap-6">
+        <.action
+          type="button"
+          theme="subtle"
+          size="md"
+          phx-click={JS.exec("data-cancel", to: "#sparkle-form-modal")}
+        >
+          {gettext("Cancel")}
+        </.action>
+        <.action type="submit" theme="primary" size="md" icon_name="hero-check">
+          {gettext("Save")}
+        </.action>
+      </div>
+    </.form>
+  </.modal>
+  <.live_component
+    module={LantternWeb.Filters.ClassesFilterOverlayComponent}
+    id="sparks-classes-filters-overlay"
+    current_user={@current_user}
+    title={gettext("View sparks by class")}
+    navigate={~p"/sparks"}
+    classes={@classes}
+    selected_classes_ids={@selected_classes_ids}
+  />
+</Layouts.app_logged_in>

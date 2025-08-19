@@ -111,22 +111,13 @@ defmodule Lanttern.StudentsInsights do
       {:error, %Ecto.Changeset{}}
 
   """
-  @spec create_student_insight(current_user :: User.t(), map()) ::
-          {:ok, StudentInsight.t()} | {:error, Ecto.Changeset.t()}
-  def create_student_insight(
-        %User{current_profile: current_profile} = current_user,
-        attrs \\ %{}
-      ) do
-    normalized_attrs = Utils.normalize_attrs_to_atom_keys(attrs)
+  def create_student_insight(%User{} = current_user, attrs \\ %{}) do
+    attrs = Utils.normalize_attrs_to_atom_keys(attrs)
 
-    with {:ok, final_attrs} <- prepare_attrs_with_students(current_user, normalized_attrs) do
-      attrs_with_user_data =
-        final_attrs
-        |> Map.put(:author_id, current_profile.staff_member_id)
-        |> Map.put(:school_id, current_profile.school_id)
-
+    with {:ok, attrs} <- prepare_attrs_with_students(current_user, attrs) do
       %StudentInsight{}
-      |> StudentInsight.changeset(attrs_with_user_data)
+      |> StudentInsight.changeset(attrs, current_user)
+      |> StudentInsight.validate_students_required()
       |> Repo.insert()
     end
   end
@@ -177,23 +168,20 @@ defmodule Lanttern.StudentsInsights do
       {:error, :unauthorized}
 
   """
-  @spec update_student_insight(current_user :: User.t(), StudentInsight.t(), map()) ::
+  @spec update_student_insight(User.t(), StudentInsight.t(), map()) ::
           {:ok, StudentInsight.t()} | {:error, Ecto.Changeset.t()} | {:error, :unauthorized}
   def update_student_insight(
-        %User{current_profile: current_profile} = current_user,
+        %User{} = current_user,
         %StudentInsight{} = student_insight,
         attrs
       ) do
-    if student_insight.author_id == current_profile.staff_member_id do
-      normalized_attrs = Utils.normalize_attrs_to_atom_keys(attrs)
-
-      with {:ok, final_attrs} <- prepare_attrs_with_students(current_user, normalized_attrs) do
-        student_insight
-        |> StudentInsight.changeset(final_attrs)
-        |> Repo.update()
-      end
-    else
-      {:error, :unauthorized}
+    with :ok <- StudentInsight.validate_ownership(current_user, student_insight),
+         attrs <- Utils.normalize_attrs_to_atom_keys(attrs),
+         {:ok, attrs} <- prepare_attrs_with_students(current_user, attrs) do
+      student_insight
+      |> StudentInsight.changeset(attrs, current_user)
+      |> StudentInsight.validate_students_required()
+      |> Repo.update()
     end
   end
 
@@ -211,16 +199,14 @@ defmodule Lanttern.StudentsInsights do
       {:error, :unauthorized}
 
   """
-  @spec delete_student_insight(current_user :: User.t(), StudentInsight.t()) ::
+  @spec delete_student_insight(User.t(), StudentInsight.t()) ::
           {:ok, StudentInsight.t()} | {:error, Ecto.Changeset.t()} | {:error, :unauthorized}
   def delete_student_insight(
-        %User{current_profile: current_profile},
+        %User{} = current_user,
         %StudentInsight{} = student_insight
       ) do
-    if student_insight.author_id == current_profile.staff_member_id do
+    with :ok <- StudentInsight.validate_ownership(current_user, student_insight) do
       Repo.delete(student_insight)
-    else
-      {:error, :unauthorized}
     end
   end
 
@@ -233,8 +219,12 @@ defmodule Lanttern.StudentsInsights do
       %Ecto.Changeset{data: %StudentInsight{}}
 
   """
-  def change_student_insight(%StudentInsight{} = student_insight, attrs \\ %{}) do
-    StudentInsight.changeset(student_insight, attrs)
+  def change_student_insight(
+        %User{} = current_user,
+        %StudentInsight{} = student_insight,
+        attrs \\ %{}
+      ) do
+    StudentInsight.changeset(student_insight, attrs, current_user)
   end
 
   # Gets students by their IDs ensuring they belong to the current user's school.
