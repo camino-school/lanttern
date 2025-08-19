@@ -17,6 +17,7 @@ defmodule Lanttern.Schools.Student do
   alias Lanttern.Schools.Class
   alias Lanttern.Schools.School
   alias Lanttern.StudentsCycleInfo.StudentCycleInfo
+  alias Lanttern.StudentsInsights.StudentInsight
   alias Lanttern.StudentTags.StudentTagRelationship
   alias Lanttern.StudentTags.Tag
 
@@ -35,6 +36,7 @@ defmodule Lanttern.Schools.Student do
           grades_report_entries: [StudentGradesReportEntry.t()],
           ilps: [StudentILP.t()],
           tags: [Tag.t()],
+          student_insights: [StudentInsight.t()],
           profile: Profile.t(),
           inserted_at: DateTime.t(),
           updated_at: DateTime.t()
@@ -71,6 +73,10 @@ defmodule Lanttern.Schools.Student do
     has_many :grades_report_entries, Lanttern.GradesReports.StudentGradesReportEntry
     has_many :ilps, StudentILP
     has_many :student_tag_relationships, StudentTagRelationship, on_replace: :delete
+
+    many_to_many :student_insights, StudentInsight,
+      join_through: "students_students_insights",
+      on_replace: :delete
 
     has_one :profile, Profile
 

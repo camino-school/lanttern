@@ -9,10 +9,19 @@ defmodule Lanttern.StudentInsightFactory do
         school = Map.get(attrs, :school, insert(:school))
         author = Map.get(attrs, :author, build(:staff_member, %{school: school}))
 
+        students =
+          Map.get(attrs, :students, [
+            build(:student, %{
+              school: school,
+              name: "Student #{System.unique_integer([:positive])}"
+            })
+          ])
+
         %Lanttern.StudentsInsights.StudentInsight{
           description: "This student learns better with visual aids and structured activities",
           author: author,
-          school: school
+          school: school,
+          students: students
         }
         |> merge_attributes(attrs)
         |> evaluate_lazy_attributes()

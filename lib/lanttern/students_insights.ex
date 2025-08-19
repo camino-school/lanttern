@@ -7,7 +7,10 @@ defmodule Lanttern.StudentsInsights do
   import Lanttern.RepoHelpers
   alias Lanttern.Repo
 
+  use Gettext, backend: Lanttern.Gettext
+
   alias Lanttern.Identity.User
+  alias Lanttern.Schools.Student
   alias Lanttern.StudentsInsights.StudentInsight
   alias Lanttern.Utils
 
@@ -111,18 +114,53 @@ defmodule Lanttern.StudentsInsights do
   @spec create_student_insight(current_user :: User.t(), map()) ::
           {:ok, StudentInsight.t()} | {:error, Ecto.Changeset.t()}
   def create_student_insight(
-        %User{current_profile: current_profile},
+        %User{current_profile: current_profile} = current_user,
         attrs \\ %{}
       ) do
-    attrs_with_user_data =
-      attrs
-      |> Utils.normalize_attrs_to_atom_keys()
-      |> Map.put(:author_id, current_profile.staff_member_id)
-      |> Map.put(:school_id, current_profile.school_id)
+    normalized_attrs = Utils.normalize_attrs_to_atom_keys(attrs)
 
-    %StudentInsight{}
-    |> StudentInsight.changeset(attrs_with_user_data)
-    |> Repo.insert()
+    with {:ok, final_attrs} <- prepare_attrs_with_students(current_user, normalized_attrs) do
+      attrs_with_user_data =
+        final_attrs
+        |> Map.put(:author_id, current_profile.staff_member_id)
+        |> Map.put(:school_id, current_profile.school_id)
+
+      %StudentInsight{}
+      |> StudentInsight.changeset(attrs_with_user_data)
+      |> Repo.insert()
+    end
+  end
+
+  defp prepare_attrs_with_students(current_user, %{student_ids: student_ids} = attrs)
+       when is_list(student_ids) and length(student_ids) > 0 do
+    case get_students_for_school(current_user, student_ids) do
+      {:ok, students} ->
+        {:ok, Map.put(attrs, :students, students)}
+
+      {:error, :invalid_students} ->
+        {:error,
+         %Ecto.Changeset{}
+         |> Ecto.Changeset.add_error(
+           :student_ids,
+           gettext("contain invalid or cross-school students")
+         )}
+    end
+  end
+
+  defp prepare_attrs_with_students(_current_user, %{student_ids: []} = _attrs) do
+    {:error,
+     %Ecto.Changeset{}
+     |> Ecto.Changeset.add_error(:student_ids, gettext("at least one student must be provided"))}
+  end
+
+  defp prepare_attrs_with_students(_current_user, attrs) do
+    if Map.has_key?(attrs, :student_ids) do
+      {:error,
+       %Ecto.Changeset{}
+       |> Ecto.Changeset.add_error(:student_ids, gettext("at least one student must be provided"))}
+    else
+      {:ok, attrs}
+    end
   end
 
   @doc """
@@ -142,14 +180,18 @@ defmodule Lanttern.StudentsInsights do
   @spec update_student_insight(current_user :: User.t(), StudentInsight.t(), map()) ::
           {:ok, StudentInsight.t()} | {:error, Ecto.Changeset.t()} | {:error, :unauthorized}
   def update_student_insight(
-        %User{current_profile: current_profile},
+        %User{current_profile: current_profile} = current_user,
         %StudentInsight{} = student_insight,
         attrs
       ) do
     if student_insight.author_id == current_profile.staff_member_id do
-      student_insight
-      |> StudentInsight.changeset(attrs)
-      |> Repo.update()
+      normalized_attrs = Utils.normalize_attrs_to_atom_keys(attrs)
+
+      with {:ok, final_attrs} <- prepare_attrs_with_students(current_user, normalized_attrs) do
+        student_insight
+        |> StudentInsight.changeset(final_attrs)
+        |> Repo.update()
+      end
     else
       {:error, :unauthorized}
     end
@@ -193,5 +235,24 @@ defmodule Lanttern.StudentsInsights do
   """
   def change_student_insight(%StudentInsight{} = student_insight, attrs \\ %{}) do
     StudentInsight.changeset(student_insight, attrs)
+  end
+
+  # Gets students by their IDs ensuring they belong to the current user's school.
+  # Returns `{:ok, students}` if all student IDs are valid and belong to the school.
+  # Returns `{:error, :invalid_students}` if any student doesn't exist or belongs to a different school.
+  @spec get_students_for_school(User.t(), [pos_integer()]) ::
+          {:ok, [Student.t()]} | {:error, :invalid_students}
+  defp get_students_for_school(%User{current_profile: current_profile}, student_ids) do
+    students =
+      from(s in Student,
+        where: s.id in ^student_ids and s.school_id == ^current_profile.school_id
+      )
+      |> Repo.all()
+
+    if length(students) == length(student_ids) do
+      {:ok, students}
+    else
+      {:error, :invalid_students}
+    end
   end
 end
