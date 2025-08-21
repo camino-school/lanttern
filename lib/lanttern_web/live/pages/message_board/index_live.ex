@@ -23,6 +23,7 @@ defmodule LantternWeb.MessageBoard.IndexLive do
     socket =
       socket
       |> assign(:initialized, false)
+      |> assign(:show_reorder, false)
       |> assign(:classes, [])
       |> assign(:selected_classes, [])
       |> assign(:selected_classes_ids, [])
@@ -44,6 +45,7 @@ defmodule LantternWeb.MessageBoard.IndexLive do
       |> assign(:params, params)
       |> assign_message()
       |> assign_section()
+      |> assign_reorder()
 
     {:noreply, socket}
   end
@@ -155,6 +157,10 @@ defmodule LantternWeb.MessageBoard.IndexLive do
     {:noreply, socket}
   end
 
+  def handle_info({LantternWeb.MessageBoard.ReorderComponent, :reordered}, socket) do
+    {:noreply, assign_sections(socket)}
+  end
+
   def handle_info(:initialized, socket) do
     socket =
       socket
@@ -243,66 +249,45 @@ defmodule LantternWeb.MessageBoard.IndexLive do
 
   defp assign_message(socket), do: assign(socket, :message, nil)
 
+  defp assign_reorder(%{assigns: %{params: %{"reorder" => "true"}}} = socket) do
+    assign(socket, :show_reorder, true)
+  end
+
+  defp assign_reorder(socket), do: assign(socket, :show_reorder, false)
+
   def render(assigns) do
     ~H"""
     <Layouts.app_logged_in flash={@flash} current_user={@current_user} current_path={@current_path}>
       <.header_nav current_user={@current_user}>
-        <:title>{@current_user.current_profile.school_name}</:title>
-        <div class="px-4">
-          <.neo_tabs>
-            <:tab patch={~p"/school/classes"} is_current={@live_action == :manage_classes}>
-              {"#{@current_user.current_profile.current_school_cycle.name} #{gettext("classes")}"}
-            </:tab>
-            <:tab patch={~p"/school/students"} is_current={@live_action == :manage_students}>
-              {gettext("Students")}
-            </:tab>
-            <:tab patch={~p"/school/staff"} is_current={@live_action == :manage_staff}>
-              {gettext("Staff")}
-            </:tab>
-            <:tab patch={~p"/school/cycles"} is_current={@live_action == :manage_cycles}>
-              {gettext("Cycles")}
-            </:tab>
-            <:tab patch={~p"/school/message_board"} is_current={@live_action == :message_board}>
-              {gettext("Message board")}
-            </:tab>
-            <:tab
-              patch={~p"/school/moment_cards_templates"}
-              is_current={@live_action == :manage_moment_cards_templates}
+        <:title>{gettext("Message board admin")}</:title>
+        <div class="flex items-center justify-between gap-4 p-4">
+          <div class="flex items-center gap-4">
+            <.action
+              type="button"
+              phx-click={JS.exec("data-show", to: "#message-board-classes-filters-overlay")}
+              icon_name="hero-chevron-down-mini"
             >
-              {gettext("Templates")}
-            </:tab>
-          </.neo_tabs>
+              {format_action_items_text(@selected_classes, gettext("All years"))}
+            </.action>
+          </div>
+          <div class="flex items-center gap-4">
+            <.action
+              type="link"
+              patch={~p"/school/message_board?reorder=true"}
+              icon_name="hero-arrows-up-down-mini"
+            >
+              {gettext("Reorder sections")}
+            </.action>
+            <.action
+              type="link"
+              patch={~p"/school/message_board?new_section=true"}
+              icon_name="hero-plus-circle-mini"
+            >
+              {gettext("Create section")}
+            </.action>
+          </div>
         </div>
       </.header_nav>
-
-      <.action_bar class="flex items-center justify-between gap-4 p-4">
-        <div class="flex items-center gap-4">
-          <h1 class="text-2xl font-bold text-gray-800">Message board admin</h1>
-          <.action
-            type="button"
-            phx-click={JS.exec("data-show", to: "#message-board-classes-filters-overlay")}
-            icon_name="hero-chevron-down-mini"
-          >
-            {format_action_items_text(@selected_classes, gettext("All years"))}
-          </.action>
-        </div>
-        <div class="flex items-center gap-4">
-          <.action
-            type="link"
-            navigate={~p"/school/message_board/reorder"}
-            icon_name="hero-arrows-up-down-mini"
-          >
-            {gettext("Reorder sections")}
-          </.action>
-          <.action
-            type="link"
-            patch={~p"/school/message_board?new_section=true"}
-            icon_name="hero-plus-circle-mini"
-          >
-            {gettext("Create section")}
-          </.action>
-        </div>
-      </.action_bar>
 
       <.responsive_container class="p-4">
         <p class="flex items-center gap-2 mb-6">
@@ -456,6 +441,38 @@ defmodule LantternWeb.MessageBoard.IndexLive do
           </:actions>
         </.slide_over>
       </div>
+
+      <.slide_over
+        :if={@show_reorder}
+        id="reorder-sections-overlay"
+        show={true}
+        on_cancel={JS.patch(~p"/school/message_board")}
+      >
+        <:title>{gettext("Reorder sections")}</:title>
+        <.live_component
+          module={LantternWeb.MessageBoard.ReorderComponent}
+          id="reorder-sections-component"
+          current_user={@current_user}
+        />
+        <:actions>
+          <.action
+            type="button"
+            theme="subtle"
+            size="md"
+            phx-click={JS.exec("data-cancel", to: "#reorder-sections-overlay")}
+          >
+            {gettext("Cancel")}
+          </.action>
+          <.action
+            type="button"
+            theme="primary"
+            size="md"
+            phx-click={JS.patch(~p"/school/message_board")}
+          >
+            {gettext("Done")}
+          </.action>
+        </:actions>
+      </.slide_over>
 
       <.live_component
         module={LantternWeb.Filters.ClassesFilterOverlayComponent}

@@ -173,13 +173,16 @@ defmodule LantternWeb.MessageBoard.IndexLiveTest do
       conn
       |> visit("/school/message_board/")
       |> click_link("Reorder sections")
-      |> tap(fn %{current_path: path} -> assert path == "/school/message_board/reorder" end)
-      |> assert_has("h1", text: "Message board admin - Reorder sections")
+      |> tap(fn %{current_path: path} -> assert path == "/school/message_board?reorder=true" end)
+      |> assert_has("h2", text: "Reorder sections")
       |> tap(fn %{view: view} ->
         assert render(view) =~ ~r/#{section1.name}.*#{section2.name}/s
-        assert render_hook(view, "sortable_update", %{"oldIndex" => 0, "newIndex" => 1})
+
+        assert view
+               |> element("#sortable-section-cards")
+               |> render_hook("sortable_update", %{"oldIndex" => 0, "newIndex" => 1})
       end)
-      |> click_link("Manage messages")
+      |> click_button("Done")
       |> tap(fn %{current_path: path} -> assert path == "/school/message_board" end)
       |> tap(fn %{view: view} ->
         assert render(view) =~ ~r/#{section2.name}.*#{section1.name}/s
