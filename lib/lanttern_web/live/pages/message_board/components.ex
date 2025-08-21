@@ -106,11 +106,11 @@ defmodule LantternWeb.MessageBoard.Components do
     ~H"""
     <div
       id={"message-#{@message.id}"}
-      class="relative bg-white/90 backdrop-blur-sm shadow-sm hover:shadow-lg transition-all duration-200 rounded-sm border-l-12 group cursor-pointer"
+      class="aspect-square relative bg-white/90 backdrop-blur-sm shadow-sm hover:shadow-lg transition-all duration-200 rounded-sm border-l-12 group cursor-pointer"
       style={"border-color: #{@message.color}"}
     >
       <%= if @message.cover && @message.cover != "" do %>
-        <div class="w-full h-45 mb-2 overflow-hidden rounded-tr-lg">
+        <div class="w-full h-3/5 overflow-hidden rounded-tr-lg">
           <img
             src={@message.cover || "/placeholder.svg"}
             alt={@message.name}
@@ -120,11 +120,6 @@ defmodule LantternWeb.MessageBoard.Components do
       <% end %>
       <div class="p-6">
         <div class="flex items-start gap-4">
-          <%= if !@message.cover do %>
-            <div class="flex-shrink-0">
-              <.icon name={get_message_icon(@message.name)} class="w-8 h-8 text-gray-600" />
-            </div>
-          <% end %>
           <div class="flex-1 min-w-0">
             <div class="flex items-center gap-2 mb-2">
               <h3 class="font-bold text-lg text-gray-800 truncate">
@@ -137,16 +132,15 @@ defmodule LantternWeb.MessageBoard.Components do
           </div>
         </div>
         <%= if @mode == "admin" do %>
-          <div class="absolute bottom-3 right-6">
+          <div class="absolute bottom-6 right-6">
             <.action
               :if={@edit_patch}
-              class="inline-flex"
+              id={"message-#{@message.id}-edit"}
+              class="inline-flex hover:text-gray-600 group-hover:text-gray-900"
               type="link"
               patch={@edit_patch}
               icon_name="hero-pencil-mini"
-            >
-              {gettext("Edit")}
-            </.action>
+            ></.action>
           </div>
         <% else %>
           <div class="absolute bottom-3 right-6">
@@ -174,19 +168,16 @@ defmodule LantternWeb.MessageBoard.Components do
       style={"border-color: #{@message.color}"}
     >
       <%= if @message.cover && @message.cover != "" do %>
-        <div class="w-full h-45 mb-2 overflow-hidden rounded-tr-lg">
+        <div class="rounded-tr-lg">
           <img
             src={@message.cover || "/placeholder.svg"}
             alt={@message.name}
-            class="w-full h-full object-cover"
           />
         </div>
       <% end %>
       <div class="p-6">
-        <div class="flex items-start gap-4">
-          <div class="flex-shrink-0">
-            <.icon name={get_message_icon(@message.name)} class="w-8 h-8 text-gray-600" />
-          </div>
+        <div class="flex items-start">
+
           <div class="flex-1 min-w-0">
             <div class="flex items-center gap-2 mb-2">
               <h3 class="font-bold text-lg text-gray-800 truncate">
@@ -213,32 +204,5 @@ defmodule LantternWeb.MessageBoard.Components do
       </div>
     </div>
     """
-  end
-
-  defp get_message_icon(title) do
-    title_lower = String.downcase(title)
-
-    cond do
-      String.contains?(title_lower, ["news", "newsletter", "caminews"]) ->
-        "hero-newspaper"
-
-      String.contains?(title_lower, ["evento", "events"]) ->
-        "hero-calendar-days"
-
-      String.contains?(title_lower, ["cardápio", "menu"]) ->
-        "hero-clipboard-document-list"
-
-      String.contains?(title_lower, ["calendário", "calendar"]) ->
-        "hero-calendar"
-
-      String.contains?(title_lower, ["horário", "schedule", "time"]) ->
-        "hero-clock"
-
-      String.contains?(title_lower, ["agendar", "appointment", "atendimento"]) ->
-        "hero-user-group"
-
-      true ->
-        "hero-document-text"
-    end
   end
 end

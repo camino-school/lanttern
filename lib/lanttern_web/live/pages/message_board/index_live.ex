@@ -332,20 +332,12 @@ defmodule LantternWeb.MessageBoard.IndexLive do
                     >
                       {gettext("Settings")}
                     </.action>
-                    <.action
-                      type="link"
-                      patch={~p"/school/message_board?new=true&section_id=#{section.id}"}
-                      theme="ghost"
-                      icon_name="hero-plus-mini"
-                    >
-                      {gettext("New message")}
-                    </.action>
                   </div>
                 </div>
 
                 <div class="p-4">
                   <div
-                    class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4"
+                    class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-4"
                     id={"section-#{section.id}-messages"}
                   >
                     <%= for message <- section.messages do %>

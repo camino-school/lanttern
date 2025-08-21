@@ -75,7 +75,7 @@ defmodule LantternWeb.MessageBoard.IndexLiveTest do
       conn
       |> visit("/school/message_board")
       |> assert_has("h3", text: message.name)
-      |> click_link("#message-#{message.id} a", "Edit")
+      |> click_link("#message-#{message.id}-edit", "")
       |> fill_in("Message title", with: attrs.name)
       |> click_button("Save")
 
