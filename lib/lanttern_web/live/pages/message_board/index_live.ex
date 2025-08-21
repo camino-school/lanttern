@@ -11,6 +11,7 @@ defmodule LantternWeb.MessageBoard.IndexLive do
   alias Lanttern.Schools.Cycle
 
   # shared
+  alias LantternWeb.Attachments.AttachmentAreaComponent
   alias LantternWeb.MessageBoard.MessageFormOverlayComponent
 
   def mount(_params, _session, socket) do
@@ -148,6 +149,10 @@ defmodule LantternWeb.MessageBoard.IndexLive do
     |> push_patch(to: ~p"/school/message_board")
     |> assign_sections()
     |> then(&{:noreply, &1})
+  end
+
+  def handle_info({AttachmentAreaComponent, {_action, _attachment}}, socket) do
+    {:noreply, socket}
   end
 
   def handle_info(:initialized, socket) do

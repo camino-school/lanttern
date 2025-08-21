@@ -21,6 +21,7 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponent do
 
   # shared
 
+  alias LantternWeb.Attachments.AttachmentAreaComponent
   alias LantternWeb.Schools.ClassesFieldComponent
   import LantternWeb.FormComponents
 
@@ -128,6 +129,17 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponent do
             </.error>
           </div>
         </.form>
+        <.live_component
+          :if={@message.id}
+          module={AttachmentAreaComponent}
+          id="message-attachments"
+          title={gettext("Attachments")}
+          allow_editing={true}
+          notify_parent
+          class="mt-10"
+          current_profile={@current_profile}
+          message_id={@message.id}
+        />
         <:actions_left :if={@message.id}>
           <.action
             type="button"

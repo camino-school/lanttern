@@ -140,7 +140,8 @@ defmodule LantternWeb.MessageBoard.Components do
               type="link"
               patch={@edit_patch}
               icon_name="hero-pencil-mini"
-            ></.action>
+            >
+            </.action>
           </div>
         <% else %>
           <div class="absolute bottom-3 right-6">
@@ -177,7 +178,6 @@ defmodule LantternWeb.MessageBoard.Components do
       <% end %>
       <div class="p-6">
         <div class="flex items-start">
-
           <div class="flex-1 min-w-0">
             <div class="flex items-center gap-2 mb-2">
               <h3 class="font-bold text-lg text-gray-800 truncate">

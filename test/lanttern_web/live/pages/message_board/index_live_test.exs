@@ -186,9 +186,31 @@ defmodule LantternWeb.MessageBoard.IndexLiveTest do
       end)
     end
 
-    @tag :skip
-    test "include attachments to a existing section" do
-      # crud and include in another commit as a feature like in moment card
+    test "include attachments to a existing message", ctx do
+      %{conn: conn} = set_user_permissions(["communication_management"], ctx)
+      school = ctx.user.current_profile.staff_member.school
+      section = insert(:section, %{school: school})
+      message = insert(:message, %{school: school, section: section})
+
+      conn
+      |> visit("/school/message_board")
+      |> assert_has("h3", text: message.name)
+      |> click_link("#message-#{message.id} a", "")
+      |> assert_has("h2", text: "Edit message")
+      |> click_button(
+        "#message-attachments-external-link-button",
+        "Or add a link to an external file"
+      )
+      |> fill_in("Attachment name", with: "News")
+      |> fill_in("Link", with: "http://www.science.org/article-1")
+      |> submit()
+      |> assert_has("a", text: "News")
+      |> click_button(".block.w-full", "Edit")
+      |> fill_in("Attachment name", with: "Article2")
+      |> fill_in("Link", with: "http://www.science.org/article-2")
+      |> submit()
+      |> assert_has("a", text: "Article2")
+      |> refute_has("a", text: "News")
     end
 
     # @tag :skip

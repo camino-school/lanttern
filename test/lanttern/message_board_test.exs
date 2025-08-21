@@ -2,7 +2,6 @@ defmodule Lanttern.MessageBoardTest do
   use Lanttern.DataCase
 
   alias Lanttern.Attachments.Attachment
-  alias Lanttern.Identity.User
   alias Lanttern.MessageBoard
   alias Lanttern.Repo
 
@@ -294,11 +293,7 @@ defmodule Lanttern.MessageBoardTest do
       profile = insert(:profile)
 
       assert {:ok, %Attachment{} = subject} =
-               MessageBoard.create_message_attachment(
-                 %User{current_profile: profile},
-                 message.id,
-                 attrs
-               )
+               MessageBoard.create_message_attachment(profile.id, message.id, attrs)
 
       assert subject = Lanttern.Repo.preload(subject, :message)
 
