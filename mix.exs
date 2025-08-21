@@ -83,7 +83,7 @@ defmodule Lanttern.MixProject do
       {:slugify, "~> 1.3"},
       {:image, "~> 0.37"},
       {:ex_openai, "~> 1.8.0-beta"},
-      {:tidewave, "~> 0.1.10", only: :dev},
+      {:tidewave, "~> 0.3", only: :dev},
       {:excoveralls, "~> 0.18", only: :test},
       {:phoenix_test, "~> 0.7.1", only: :test, runtime: false},
       {:ex_machina, "~> 2.8.0", only: :test},
@@ -91,7 +91,8 @@ defmodule Lanttern.MixProject do
       {:ex_cldr_dates_times, "~> 2.0"},
       {:mimic, "~> 1.12", only: :test},
       {:usage_rules, "~> 0.1", only: [:dev]},
-      {:igniter, "~> 0.6", only: [:dev]}
+      {:igniter, "~> 0.6", only: [:dev]},
+      {:live_debugger, "~> 0.3.0", only: :dev}
     ]
   end
 
@@ -116,6 +117,11 @@ defmodule Lanttern.MixProject do
         "tailwind lanttern --minify",
         "esbuild lanttern --minify",
         "phx.digest"
+      ],
+      restore: [
+        "ecto.drop",
+        "ecto.create",
+        "cmd PGPASSWORD=postgres pg_restore --verbose --clean --no-acl --no-owner -h localhost -U postgres -d lanttern_dev lanttern.backup"
       ],
       precommit: [
         "compile --warning-as-errors",

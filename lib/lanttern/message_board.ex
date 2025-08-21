@@ -8,9 +8,13 @@ defmodule Lanttern.MessageBoard do
   alias Lanttern.Repo
   import Lanttern.RepoHelpers
 
+  alias Lanttern.Attachments.Attachment
+  alias Lanttern.Identity.User
   alias Lanttern.MessageBoard.Message
+  alias Lanttern.MessageBoard.MessageAttachment
+  alias Lanttern.MessageBoard.Section
   alias Lanttern.Schools.Class
-  alias Lanttern.Schools.Student
+  # alias Lanttern.Schools.Student*
 
   @doc """
   Returns the list of messages.
@@ -92,8 +96,8 @@ defmodule Lanttern.MessageBoard do
       [%Message{}, ...]
 
   """
-  @spec list_student_messages(Student.t()) :: [Message.t()]
-  def list_student_messages(%Student{} = student) do
+  @spec list_student_messages(map()) :: [Message.t()]
+  def list_student_messages(student) do
     %{id: student_id, school_id: school_id} = student
 
     student_classes_ids =
@@ -265,4 +269,290 @@ defmodule Lanttern.MessageBoard do
   def change_message(%Message{} = message, attrs \\ %{}) do
     Message.changeset(message, attrs)
   end
+
+  def get_message_per_school(id, school_id) do
+    from(m in Message, where: m.id == ^id and m.school_id == ^school_id)
+    |> preload([:classes])
+    |> Repo.one()
+    |> case do
+      nil -> {:error, :not_found}
+      message -> {:ok, message}
+    end
+  end
+
+  @doc """
+  Returns the list of sections ordered by position for a specific school.
+  """
+  def list_sections(school_id) do
+    from(s in Section,
+      where: s.school_id == ^school_id,
+      order_by: s.position
+    )
+    |> Repo.all()
+  end
+
+  @doc """
+  Returns the list of sections ordered by position with messages preloaded and filtered.
+
+  ## Parameters
+
+  - `school_id` - the school id for filtering messages
+  - `classes_ids` - list of class ids for filtering messages
+  """
+  def list_sections(school_id, classes_ids) when is_list(classes_ids) do
+    messages_query =
+      from(
+        m in Message,
+        where: is_nil(m.archived_at),
+        order_by: m.position
+      )
+      |> apply_sections_filter_opts(classes_ids: classes_ids, school_id: school_id)
+      |> preload([:classes])
+
+    from(s in Section,
+      where: s.school_id == ^school_id,
+      order_by: s.position
+    )
+    |> preload(messages: ^messages_query)
+    |> Repo.all()
+  end
+
+  defp apply_sections_filter_opts(queryable, opts) do
+    case Keyword.get(opts, :school_id) do
+      nil ->
+        queryable
+
+      school_id ->
+        case Keyword.get(opts, :classes_ids) do
+          classes_ids when is_list(classes_ids) and classes_ids != [] ->
+            from(
+              m in queryable,
+              left_join: mc in assoc(m, :message_classes),
+              where:
+                (m.send_to == "school" and m.school_id == ^school_id) or
+                  mc.class_id in ^classes_ids
+            )
+
+          _ ->
+            from(m in queryable, where: m.school_id == ^school_id)
+        end
+    end
+  end
+
+  @doc """
+  Lists sections with messages filtered by student.
+
+  A message is related to the student if it's sent to the student's classes or school.
+  Returns sections with their associated messages filtered by student access.
+  """
+  def list_sections_for_students(student_id, school_id) do
+    student_classes_ids =
+      from(
+        cl in Class,
+        join: cs in "classes_students",
+        on: cl.id == cs.class_id,
+        where: cs.student_id == ^student_id,
+        select: cl.id
+      )
+      |> Repo.all()
+
+    messages_query =
+      from(
+        m in Message,
+        left_join: mc in assoc(m, :message_classes),
+        where: is_nil(m.archived_at),
+        order_by: m.position
+      )
+      |> apply_sections_filter_opts(classes_ids: student_classes_ids, school_id: school_id)
+
+    from(s in Section,
+      where: s.school_id == ^school_id,
+      order_by: s.position
+    )
+    |> preload(messages: ^messages_query)
+    |> Repo.all()
+  end
+
+  @doc """
+  Gets a single section.
+
+  Raises `Ecto.NoResultsError` if the Section does not exist.
+  """
+  def get_section!(id), do: Repo.get!(Section, id)
+
+  @doc """
+  Creates a section.
+  """
+  def create_section(attrs) do
+    %Section{}
+    |> Section.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a section.
+  """
+  def update_section(%Section{} = section, attrs) do
+    section
+    |> Section.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a section.
+  """
+  def delete_section(%Section{} = section) do
+    Repo.delete(section)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking section changes.
+  """
+  def change_section(%Section{} = section, attrs \\ %{}) do
+    Section.changeset(section, attrs)
+  end
+
+  def update_messages_position(messages) do
+    messages
+    |> Enum.with_index()
+    |> Enum.reduce(Ecto.Multi.new(), fn {message, i}, multi ->
+      query = from(m in Message, where: m.id == ^message.id)
+
+      Ecto.Multi.update_all(multi, "update-#{message.id}", query, set: [position: i])
+    end)
+    |> Repo.transaction()
+    |> case do
+      {:ok, _data} -> :ok
+      _ -> {:error, "Something went wrong"}
+    end
+  end
+
+  def update_section_position(sections) do
+    sections
+    |> Enum.with_index()
+    |> Enum.reduce(Ecto.Multi.new(), fn {section, i}, multi ->
+      query = from(m in Section, where: m.id == ^section.id)
+
+      Ecto.Multi.update_all(multi, "update-#{section.id}", query, set: [position: i])
+    end)
+    |> Repo.transaction()
+    |> case do
+      {:ok, _data} -> :ok
+      _ -> {:error, "Something went wrong"}
+    end
+  end
+
+  # @doc """
+  # Returns the list of message_attachments.
+
+  # ## Examples
+
+  #     iex> list_message_attachments()
+  #     [%MessageAttachment{}, ...]
+
+  # """
+  # def list_message_attachments do
+  #   Repo.all(MessageAttachment)
+  # end
+
+  # @doc """
+  # Gets a single message_attachment.
+
+  # Raises `Ecto.NoResultsError` if the Message attachment does not exist.
+
+  # ## Examples
+
+  #     iex> get_message_attachment!(123)
+  #     %MessageAttachment{}
+
+  #     iex> get_message_attachment!(456)
+  #     ** (Ecto.NoResultsError)
+
+  # """
+  # def get_message_attachment!(id), do: Repo.get!(MessageAttachment, id)
+
+  @doc """
+  Creates a message_attachment.
+  """
+  @spec create_message_attachment(User.t(), pos_integer(), map()) ::
+          {:ok, Attachment.t()} | {:error, Ecto.Changeset.t()}
+  def create_message_attachment(%{current_profile: profile}, message_id, attrs \\ %{}) do
+    insert_query =
+      %Attachment{}
+      |> Attachment.changeset(Map.put(attrs, "owner_id", profile.id))
+
+    Ecto.Multi.new()
+    |> Ecto.Multi.insert(:insert_attachment, insert_query)
+    |> Ecto.Multi.run(
+      :link_message,
+      fn _repo, %{insert_attachment: attachment} ->
+        attrs =
+          from(
+            ma in MessageAttachment,
+            where: ma.message_id == ^message_id
+          )
+          |> set_position_in_attrs(%{
+            message_id: message_id,
+            attachment_id: attachment.id,
+            owner_id: profile.id
+          })
+
+        %MessageAttachment{}
+        |> MessageAttachment.changeset(attrs)
+        |> Repo.insert()
+      end
+    )
+    |> Repo.transaction()
+    |> case do
+      {:error, _multi, changeset, _changes} -> {:error, changeset}
+      {:ok, %{insert_attachment: attachment}} -> {:ok, attachment}
+    end
+  end
+
+  # @doc """
+  # Updates a message_attachment.
+
+  # ## Examples
+
+  #     iex> update_message_attachment(message_attachment, %{field: new_value})
+  #     {:ok, %MessageAttachment{}}
+
+  #     iex> update_message_attachment(message_attachment, %{field: bad_value})
+  #     {:error, %Ecto.Changeset{}}
+
+  # """
+  # def update_message_attachment(%MessageAttachment{} = message_attachment, attrs) do
+  #   message_attachment
+  #   |> MessageAttachment.changeset(attrs)
+  #   |> Repo.update()
+  # end
+
+  # @doc """
+  # Deletes a message_attachment.
+
+  # ## Examples
+
+  #     iex> delete_message_attachment(message_attachment)
+  #     {:ok, %MessageAttachment{}}
+
+  #     iex> delete_message_attachment(message_attachment)
+  #     {:error, %Ecto.Changeset{}}
+
+  # """
+  # def delete_message_attachment(%MessageAttachment{} = message_attachment) do
+  #   Repo.delete(message_attachment)
+  # end
+
+  # @doc """
+  # Returns an `%Ecto.Changeset{}` for tracking message_attachment changes.
+
+  # ## Examples
+
+  #     iex> change_message_attachment(message_attachment)
+  #     %Ecto.Changeset{data: %MessageAttachment{}}
+
+  # """
+  # def change_message_attachment(%MessageAttachment{} = message_attachment, attrs \\ %{}) do
+  #   MessageAttachment.changeset(message_attachment, attrs)
+  # end
 end
