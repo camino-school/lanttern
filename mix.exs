@@ -71,7 +71,7 @@ defmodule Lanttern.MixProject do
       {:bandit, "~> 1.5"},
       {:timex, "~> 3.0"},
       {:joken, "~> 2.5"},
-      {:joken_jwks, "~> 1.6.0"},
+      {:joken_jwks, "~> 1.7"},
       {:benchee, "~> 1.0", only: :dev},
       {:ex_doc, "~> 0.27", runtime: false},
       {:earmark, "~> 1.4"},
@@ -92,7 +92,8 @@ defmodule Lanttern.MixProject do
       {:mimic, "~> 1.12", only: :test},
       {:usage_rules, "~> 0.1", only: [:dev]},
       {:igniter, "~> 0.6", only: [:dev]},
-      {:live_debugger, "~> 0.3.0", only: :dev}
+      {:live_debugger, "~> 0.3.0", only: :dev},
+      {:mix_audit, "~> 2.1", only: [:dev, :test], runtime: false}
     ]
   end
 
@@ -128,6 +129,7 @@ defmodule Lanttern.MixProject do
         "deps.unlock --unused",
         "format",
         "credo --strict",
+        "deps.audit",
         "test"
       ]
     ]
