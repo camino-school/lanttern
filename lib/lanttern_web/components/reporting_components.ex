@@ -198,28 +198,12 @@ defmodule LantternWeb.ReportingComponents do
 
     ~H"""
     <div class={["grid gap-1 min-w-full", @class]} id={@id} style={@grid_template_columns_style}>
-      <%= for {ordinal_value, descriptor}
-      <-
-        @ordinal_values_and_descriptors
-        do %>
-        {is_active = @entry && @entry.ordinal_value_id == ordinal_value.id}
-        <div
-          class="p-2 border border-ltrn-lighter rounded-sm font-mono bg-ltrn-lightest"
-          style={if is_active, do: create_color_map_style(ordinal_value)}
-        >
-          <div
-            class="p-1 rounded-xs text-xs text-center text-ltrn-subtle bg-ltrn-lighter shadow-lg"
-            style={if is_active, do: create_color_map_style(ordinal_value)}
-          >
-            {ordinal_value.name}
-          </div>
-          <.markdown
-            text={descriptor.descriptor}
-            class="mt-2 text-[0.75rem]"
-            style={if is_active, do: create_color_map_text_style(ordinal_value)}
-          />
-        </div>
-      <% end %>
+      <.report_scale_descriptor
+        :for={{ordinal_value, descriptor} <- @ordinal_values_and_descriptors}
+        entry={@entry}
+        ordinal_value={ordinal_value}
+        descriptor={descriptor}
+      />
     </div>
     """
   end
@@ -279,6 +263,41 @@ defmodule LantternWeb.ReportingComponents do
     ~H"""
     <div id={@id} class={["min-w-full", @class]}>
       <.report_scale_numeric_bar score={@entry && @entry.score} scale={@scale} />
+    </div>
+    """
+  end
+
+  attr :entry, :any, required: true
+  attr :ordinal_value, :map, required: true
+  attr :descriptor, :map, required: true
+
+  defp report_scale_descriptor(assigns) do
+    %{entry: entry, ordinal_value: ordinal_value} = assigns
+    is_active = entry && entry.ordinal_value_id == ordinal_value.id
+    color_map_style = if is_active, do: create_color_map_style(ordinal_value)
+    color_map_text_style = if is_active, do: create_color_map_text_style(ordinal_value)
+
+    assigns =
+      assigns
+      |> assign(:color_map_style, color_map_style)
+      |> assign(:color_map_text_style, color_map_text_style)
+
+    ~H"""
+    <div
+      class="p-2 border border-ltrn-lighter rounded-sm font-mono bg-ltrn-lightest"
+      style={@color_map_style}
+    >
+      <div
+        class="p-1 rounded-xs text-xs text-center text-ltrn-subtle bg-ltrn-lighter shadow-lg"
+        style={@color_map_style}
+      >
+        {@ordinal_value.name}
+      </div>
+      <.markdown
+        text={@descriptor.descriptor}
+        class="mt-2 text-[0.75rem]"
+        style={@color_map_text_style}
+      />
     </div>
     """
   end
