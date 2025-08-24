@@ -246,10 +246,44 @@ defmodule LantternWeb.HomeLive do
                 </h3>
               </div>
 
-              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <%= for message <- section.messages do %>
-                  <.message_card message={message} />
-                <% end %>
+              <div id={"section-#{section.id}-messages-wrapper"} class="relative">
+                <!-- Carousel - horizontal scroll with snap on mobile, grid fallback on md+ -->
+                <div
+                  id={"section-#{section.id}-messages"}
+                  class="hide-scrollbar snap-x snap-mandatory overflow-x-auto md:overflow-visible md:snap-none flex md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-4 gap-4"
+                >
+                  <%= for message <- section.messages do %>
+                    <div
+                      id={"section-#{section.id}-message-#{message.id}"}
+                      class="snap-center flex-shrink-0 w-80 md:w-auto md:static"
+                    >
+                      <.message_card message={message} />
+                    </div>
+                  <% end %>
+                </div>
+                
+    <!-- Indicators (anchors to each snap item) - hidden on md+ -->
+                <div class="mt-3 flex items-center justify-center space-x-2 md:hidden indicators">
+                  <%= for message <- section.messages do %>
+                    <a
+                      href={"#section-#{section.id}-message-#{message.id}"}
+                      class="block w-2 h-2 rounded-full bg-white focus:outline-none indicator-dot"
+                      style="border: 1px solid #94A3B8;"
+                      aria-label={gettext("Go to message %{id}", id: message.id)}
+                    >
+                    </a>
+                  <% end %>
+                </div>
+                
+    <!-- per-message CSS to color the indicator when the corresponding card is targeted -->
+                <style>
+                  <%= for message <- section.messages do %>
+                    #section-<%= section.id %>-messages-wrapper:has(#section-<%= section.id %>-message-<%= message.id %>:target) .indicators a[href="#section-<%= section.id %>-message-<%= message.id %>"] {
+                      background: #94A3B8;
+                      border-color: #94A3B8;
+                    }
+                  <% end %>
+                </style>
               </div>
             </div>
           <% end %>

@@ -41,6 +41,15 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponent do
           <.error_block :if={@form.source.action in [:insert, :update]} class="mb-6">
             {gettext("Oops, something went wrong! Please check the errors below.")}
           </.error_block>
+          <.image_field
+            current_image_url={@message.cover}
+            is_removing={@is_removing_cover}
+            upload={@uploads.cover}
+            on_cancel_replace={JS.push("cancel-replace-cover", target: @myself)}
+            on_cancel_upload={JS.push("cancel-upload", target: @myself)}
+            on_replace={JS.push("replace-cover", target: @myself)}
+            class="mb-6"
+          />
           <.input
             field={@form[:name]}
             type="text"
@@ -61,15 +70,6 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponent do
             label={gettext("Card color")}
             class="mb-6 w-20"
             phx-debounce="1500"
-          />
-          <.image_field
-            current_image_url={@message.cover}
-            is_removing={@is_removing_cover}
-            upload={@uploads.cover}
-            on_cancel_replace={JS.push("cancel-replace-cover", target: @myself)}
-            on_cancel_upload={JS.push("cancel-upload", target: @myself)}
-            on_replace={JS.push("replace-cover", target: @myself)}
-            class="mb-6"
           />
           <.input
             field={@form[:description]}

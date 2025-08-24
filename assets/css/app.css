@@ -313,3 +313,17 @@ button {
 .glider-dot.active {
   background: #22d3ee;
 }
+
+/* hide scrollbars for carousels (used on mobile message board) */
+.hide-scrollbar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none; /* Chrome, Safari and Opera */
+}
+
+/* indicator transition for message board bullets */
+.indicator-dot {
+  transition: background-color 200ms ease, border-color 200ms ease;
+}

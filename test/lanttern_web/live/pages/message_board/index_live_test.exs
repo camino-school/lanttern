@@ -117,7 +117,7 @@ defmodule LantternWeb.MessageBoard.IndexLiveTest do
       conn
       |> visit("/school/message_board")
       |> assert_has("h1", text: "Message board admin")
-      |> click_link("#section-#{section.id}-settings", "Settings")
+      |> click_link("#section-#{section.id}-settings", "")
       |> fill_in("Section name", with: attr.name)
       |> click_button("Save")
 
@@ -134,7 +134,7 @@ defmodule LantternWeb.MessageBoard.IndexLiveTest do
       conn
       |> visit("/school/message_board")
       |> assert_has("h2", text: section.name)
-      |> click_link("#section-#{section.id}-settings", "Settings")
+      |> click_link("#section-#{section.id}-settings", "")
       |> click_button("Delete")
 
       conn
@@ -155,7 +155,7 @@ defmodule LantternWeb.MessageBoard.IndexLiveTest do
       |> tap(fn %{view: view} ->
         assert render(view) =~ ~r/#{message1.name}.*#{message2.name}.*#{message3.name}/s
       end)
-      |> click_link("#section-#{section.id}-settings", "Settings")
+      |> click_link("#section-#{section.id}-settings", "")
       |> tap(fn %{view: view} ->
         assert render_hook(view, "sortable_update", %{"oldIndex" => 0, "newIndex" => 2})
       end)

@@ -102,19 +102,23 @@ defmodule LantternWeb.MessageBoard.Components do
     required: true,
     doc: "expects `mode` defined when show in admin and student/guardian view."
 
-  def card_message(assigns) do
+  def message_card_admin(assigns) do
     ~H"""
     <div
       id={"message-#{@message.id}"}
-      class="aspect-square relative bg-white/90 backdrop-blur-sm shadow-sm hover:shadow-lg transition-all duration-200 rounded-sm border-l-12 group cursor-pointer"
-      style={"border-color: #{@message.color}"}
+      class="aspect-square relative bg-white/90 backdrop-blur-sm shadow-sm hover:shadow-lg transition-all duration-200 rounded-md border-l-12 border-1group cursor-pointer"
+      style={"
+       border-color: #{@message.color};
+       border-left-opacity: 1;
+       border-opacity: 0.5;
+      "}
     >
       <%= if @message.cover && @message.cover != "" do %>
-        <div class="w-full h-3/5 overflow-hidden rounded-tr-lg">
+        <div class="w-full h-9/16 overflow-hidden rounded-tr-md">
           <img
             src={@message.cover || "/placeholder.svg"}
             alt={@message.name}
-            class="w-full h-full object-cover"
+            class="w-full h-full aspect-video object-cover"
           />
         </div>
       <% end %>
@@ -126,9 +130,6 @@ defmodule LantternWeb.MessageBoard.Components do
                 {@message.name}
               </h3>
             </div>
-            <p class="text-gray-600 text-sm mb-4 line-clamp-2">
-              {@message.subtitle}
-            </p>
           </div>
         </div>
         <%= if @mode == "admin" do %>
@@ -139,11 +140,15 @@ defmodule LantternWeb.MessageBoard.Components do
               class="inline-flex hover:text-gray-600 group-hover:text-gray-900"
               type="link"
               patch={@edit_patch}
+              theme="subtle"
               icon_name="hero-pencil-mini"
             >
             </.action>
           </div>
         <% else %>
+          <p class="text-gray-600 text-sm mb-4 line-clamp-2">
+            {@message.subtitle}
+          </p>
           <div class="absolute bottom-3 right-6">
             <button class="w-full flex justify-between items-center text-gray-900 hover:text-gray-900 transition-colors group-hover:text-blue-600">
               <span class="font-medium" phx-click="card_lookout" phx-value-id={@message.id}>
@@ -165,11 +170,11 @@ defmodule LantternWeb.MessageBoard.Components do
   def message_card(assigns) do
     ~H"""
     <div
-      class="bg-white/90 backdrop-blur-sm shadow-sm hover:shadow-lg transition-all duration-200 rounded-sm border-l-12 group cursor-pointer"
+      class="aspect-square bg-white/90 backdrop-blur-sm shadow-sm hover:shadow-lg transition-all duration-200 rounded-sm border-l-12 group cursor-pointer"
       style={"border-color: #{@message.color}"}
     >
       <%= if @message.cover && @message.cover != "" do %>
-        <div class="rounded-tr-lg">
+        <div class="w-full h-9/16 overflow-hidden rounded-tr-md">
           <img
             src={@message.cover || "/placeholder.svg"}
             alt={@message.name}
@@ -184,7 +189,7 @@ defmodule LantternWeb.MessageBoard.Components do
                 {@message.name}
               </h3>
             </div>
-            <p class="text-gray-600 text-sm mb-4 line-clamp-2">
+            <p class="text-gray-600 text-sm mb-4 line-clamp-2 truncate">
               {@message.subtitle}
             </p>
           </div>
@@ -192,7 +197,7 @@ defmodule LantternWeb.MessageBoard.Components do
         <div class="absolute bottom-3 right-6">
           <button class="w-full flex justify-between items-center text-gray-900 hover:text-gray-900 transition-colors group-hover:text-blue-600">
             <span class="font-medium" phx-click="card_lookout" phx-value-id={@message.id}>
-              {gettext("Find out more")}&nbsp
+              {gettext("See more")}&nbsp
             </span>
             <.icon
               name="hero-arrow-right"

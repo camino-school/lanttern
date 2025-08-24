@@ -306,11 +306,11 @@ defmodule LantternWeb.MessageBoard.IndexLive do
         <% else %>
           <div class="space-y-8">
             <%= for section <- @sections do %>
-              <div class="bg-white rounded-lg shadow-sm border border-gray-200">
-                <div class="flex items-center justify-between p-4 border-b border-gray-200">
+              <div class="bg-white rounded-lg shadow-lg">
+                <div class="flex items-center justify-between p-4 border-gray-200">
                   <div class="flex items-center space-x-3">
                     <%!-- <.icon name="hero-bars-2" class="w-5 h-5 text-gray-400 cursor-move" /> --%>
-                    <h2 class="text-lg font-semibold text-gray-800">{section.name}</h2>
+                    <h2 class="text-lg font-bold text-gray-800">{section.name}</h2>
                   </div>
                   <div class="flex items-center space-x-2">
                     <.action
@@ -320,18 +320,16 @@ defmodule LantternWeb.MessageBoard.IndexLive do
                       icon_name="hero-cog-6-tooth-mini"
                       id={"section-#{section.id}-settings"}
                     >
-                      {gettext("Settings")}
                     </.action>
                   </div>
                 </div>
-
                 <div class="p-4">
                   <div
                     class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-4"
                     id={"section-#{section.id}-messages"}
                   >
                     <%= for message <- section.messages do %>
-                      <.card_message
+                      <.message_card_admin
                         message={message}
                         mode="admin"
                         edit_patch={~p"/school/message_board?edit=#{message.id}"}
@@ -342,11 +340,11 @@ defmodule LantternWeb.MessageBoard.IndexLive do
                     <.link
                       :if={@communication_manager?}
                       patch={~p"/school/message_board?new=true&section_id=#{section.id}"}
-                      class="bg-white border-2 border-dashed border-gray-300 rounded-lg p-6 h-48 flex flex-col items-center justify-center text-gray-400 hover:text-gray-600 hover:border-gray-400 transition-colors group"
+                      class="aspect-square w-full h-full bg-white border-1 border-dashed border-gray-300 rounded-lg p-6 h-48 flex flex-col items-center justify-center text-gray-400 hover:text-gray-600 hover:border-gray-400 transition-colors group shadow-lg"
                     >
                       <.icon
                         name="hero-plus"
-                        class="w-12 h-12 mb-4 group-hover:scale-110 transition-transform"
+                        class="w-12 h-12 aspect-square mb-4 group-hover:scale-110 transition-transform"
                       />
                       <span class="text-sm font-medium">Add new message</span>
                     </.link>
@@ -404,7 +402,7 @@ defmodule LantternWeb.MessageBoard.IndexLive do
             <.dragable_card
               :for={message <- @section.messages}
               id={"sortable-#{message.id}"}
-              class="mb-4"
+              class={"border-[#{message.color}] mb-4 border-l-5 border-1"}
             >
               {message.name}
             </.dragable_card>
