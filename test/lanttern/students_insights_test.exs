@@ -152,9 +152,12 @@ defmodule Lanttern.StudentsInsightsTest do
           name: "Valid Test Student #{System.unique_integer([:positive])}"
         )
 
+      tag = insert(:student_insight_tag, school: school)
+
       valid_attrs = %{
         description: "This student learns better with visual learning techniques",
-        student_id: student.id
+        student_id: student.id,
+        tag_id: tag.id
       }
 
       assert {:ok, %StudentInsight{} = insight} =
@@ -163,6 +166,7 @@ defmodule Lanttern.StudentsInsightsTest do
       assert insight.description == "This student learns better with visual learning techniques"
       assert insight.author_id == current_user.current_profile.staff_member_id
       assert insight.school_id == current_user.current_profile.school_id
+      assert insight.tag_id == tag.id
     end
 
     test "create_student_insight/2 with invalid data returns error changeset" do
@@ -282,10 +286,13 @@ defmodule Lanttern.StudentsInsightsTest do
           name: "String Keys Student #{System.unique_integer([:positive])}"
         )
 
+      tag = insert(:student_insight_tag, school: school)
+
       # Use string keys like Phoenix forms would provide
       attrs_with_string_keys = %{
         "description" => "This student learns better with visual learning techniques",
-        "student_id" => student.id
+        "student_id" => student.id,
+        "tag_id" => tag.id
       }
 
       assert {:ok, %StudentInsight{} = insight} =
@@ -294,6 +301,7 @@ defmodule Lanttern.StudentsInsightsTest do
       assert insight.description == "This student learns better with visual learning techniques"
       assert insight.author_id == current_user.current_profile.staff_member_id
       assert insight.school_id == current_user.current_profile.school_id
+      assert insight.tag_id == tag.id
     end
 
     test "create_student_insight/2 works with mixed atom and string keys" do
@@ -305,10 +313,13 @@ defmodule Lanttern.StudentsInsightsTest do
           name: "Mixed Keys Student #{System.unique_integer([:positive])}"
         )
 
+      tag = insert(:student_insight_tag, school: school)
+
       # Mix of atom and string keys
       mixed_attrs = %{
         "description" => "Mixed keys test",
         "student_id" => student.id,
+        tag_id: tag.id,
         extra_field: "atom key value"
       }
 
@@ -318,6 +329,7 @@ defmodule Lanttern.StudentsInsightsTest do
       assert insight.description == "Mixed keys test"
       assert insight.author_id == current_user.current_profile.staff_member_id
       assert insight.school_id == current_user.current_profile.school_id
+      assert insight.tag_id == tag.id
     end
 
     test "cross-school access protection - users can only access insights from their own school" do
@@ -399,10 +411,12 @@ defmodule Lanttern.StudentsInsightsTest do
       {current_user, school, _staff_member, _profile} = create_user_with_profile()
 
       student1 = insert(:student, school: school, name: "Student 1")
+      tag = insert(:student_insight_tag, school: school)
 
       attrs = %{
         description: "Great insight about this student",
-        student_id: student1.id
+        student_id: student1.id,
+        tag_id: tag.id
       }
 
       assert {:ok, %StudentInsight{} = insight} =
@@ -423,9 +437,12 @@ defmodule Lanttern.StudentsInsightsTest do
           name: "String Test Student #{System.unique_integer([:positive])}"
         )
 
+      tag = insert(:student_insight_tag, school: school)
+
       attrs = %{
         "description" => "String keys test",
-        "student_id" => student.id
+        "student_id" => student.id,
+        "tag_id" => tag.id
       }
 
       assert {:ok, %StudentInsight{} = insight} =
@@ -560,6 +577,278 @@ defmodule Lanttern.StudentsInsightsTest do
                StudentsInsights.update_student_insight(current_user, insight, update_attrs)
 
       assert "student is invalid or from different school" in errors_on(changeset).student_id
+    end
+  end
+
+  describe "tags" do
+    import Lanttern.Factory
+
+    alias Lanttern.StudentsInsights.Tag
+
+    test "list_tags/2 returns all tags for current user's school" do
+      {current_user, school, _staff_member, _profile} = create_user_with_profile()
+
+      _tag1 = insert(:student_insight_tag, school: school, name: "Important")
+      _tag2 = insert(:student_insight_tag, school: school, name: "Urgent")
+
+      # Create tag in different school (should not be returned)
+      other_school = insert(:school)
+      _other_tag = insert(:student_insight_tag, school: other_school, name: "Other")
+
+      results = StudentsInsights.list_tags(current_user)
+
+      assert length(results) == 2
+      names = Enum.map(results, & &1.name)
+      assert "Important" in names
+      assert "Urgent" in names
+      # Results should be ordered by name
+      assert results |> hd() |> Map.get(:name) == "Important"
+    end
+
+    test "list_tags/2 with preloads option loads associated data" do
+      {current_user, school, _staff_member, _profile} = create_user_with_profile()
+
+      tag = insert(:student_insight_tag, school: school, name: "Test Tag")
+
+      [result] = StudentsInsights.list_tags(current_user, preloads: [:school])
+
+      assert result.id == tag.id
+      assert result.school.id == school.id
+    end
+
+    test "get_tag/3 returns the tag when it belongs to user's school" do
+      {current_user, school, _staff_member, _profile} = create_user_with_profile()
+
+      tag = insert(:student_insight_tag, school: school, name: "Test Tag")
+
+      result = StudentsInsights.get_tag(current_user, tag.id)
+
+      assert result.id == tag.id
+      assert result.name == "Test Tag"
+    end
+
+    test "get_tag/3 returns nil when tag belongs to different school" do
+      {current_user, _school, _staff_member, _profile} = create_user_with_profile()
+
+      other_school = insert(:school)
+      other_tag = insert(:student_insight_tag, school: other_school, name: "Other Tag")
+
+      assert StudentsInsights.get_tag(current_user, other_tag.id) |> is_nil()
+    end
+
+    test "get_tag/3 with preloads option loads associated data" do
+      {current_user, school, _staff_member, _profile} = create_user_with_profile()
+
+      tag = insert(:student_insight_tag, school: school, name: "Test Tag")
+
+      result = StudentsInsights.get_tag(current_user, tag.id, preloads: [:school])
+
+      assert result.id == tag.id
+      assert result.school.id == school.id
+    end
+
+    test "get_tag!/3 returns the tag when it belongs to user's school" do
+      {current_user, school, _staff_member, _profile} = create_user_with_profile()
+
+      tag = insert(:student_insight_tag, school: school, name: "Test Tag")
+
+      result = StudentsInsights.get_tag!(current_user, tag.id)
+
+      assert result.id == tag.id
+      assert result.name == "Test Tag"
+    end
+
+    test "get_tag!/3 raises when tag belongs to different school" do
+      {current_user, _school, _staff_member, _profile} = create_user_with_profile()
+
+      other_school = insert(:school)
+      other_tag = insert(:student_insight_tag, school: other_school, name: "Other Tag")
+
+      assert_raise Ecto.NoResultsError, fn ->
+        StudentsInsights.get_tag!(current_user, other_tag.id)
+      end
+    end
+
+    test "create_tag/2 with valid data creates a tag" do
+      {current_user, _school, _staff_member, _profile} = create_user_with_profile()
+
+      valid_attrs = %{
+        name: "Important",
+        bg_color: "#ff0000",
+        text_color: "#ffffff"
+      }
+
+      assert {:ok, %Tag{} = tag} = StudentsInsights.create_tag(current_user, valid_attrs)
+
+      assert tag.name == "Important"
+      assert tag.bg_color == "#ff0000"
+      assert tag.text_color == "#ffffff"
+      assert tag.school_id == current_user.current_profile.school_id
+    end
+
+    test "create_tag/2 with invalid data returns error changeset" do
+      {current_user, _school, _staff_member, _profile} = create_user_with_profile()
+
+      invalid_attrs = %{name: nil}
+
+      assert {:error, %Ecto.Changeset{}} =
+               StudentsInsights.create_tag(current_user, invalid_attrs)
+    end
+
+    test "create_tag/2 works with string keys" do
+      {current_user, _school, _staff_member, _profile} = create_user_with_profile()
+
+      attrs_with_string_keys = %{
+        "name" => "String Keys Tag",
+        "bg_color" => "#00ff00",
+        "text_color" => "#000000"
+      }
+
+      assert {:ok, %Tag{} = tag} =
+               StudentsInsights.create_tag(current_user, attrs_with_string_keys)
+
+      assert tag.name == "String Keys Tag"
+      assert tag.bg_color == "#00ff00"
+      assert tag.text_color == "#000000"
+      assert tag.school_id == current_user.current_profile.school_id
+    end
+
+    test "update_tag/3 with valid data updates the tag when it belongs to user's school" do
+      {current_user, school, _staff_member, _profile} = create_user_with_profile()
+
+      tag = insert(:student_insight_tag, school: school, name: "Original Name")
+
+      update_attrs = %{
+        name: "Updated Name",
+        bg_color: "#0000ff"
+      }
+
+      assert {:ok, %Tag{} = updated_tag} =
+               StudentsInsights.update_tag(current_user, tag, update_attrs)
+
+      assert updated_tag.name == "Updated Name"
+      assert updated_tag.bg_color == "#0000ff"
+      assert updated_tag.id == tag.id
+    end
+
+    test "update_tag/3 returns unauthorized when tag belongs to different school" do
+      {current_user, _school, _staff_member, _profile} = create_user_with_profile()
+
+      other_school = insert(:school)
+      other_tag = insert(:student_insight_tag, school: other_school, name: "Other Tag")
+
+      update_attrs = %{name: "Trying to update"}
+
+      assert {:error, :unauthorized} =
+               StudentsInsights.update_tag(current_user, other_tag, update_attrs)
+    end
+
+    test "update_tag/3 with invalid data returns error changeset" do
+      {current_user, school, _staff_member, _profile} = create_user_with_profile()
+
+      tag = insert(:student_insight_tag, school: school, name: "Test Tag")
+
+      invalid_attrs = %{name: nil}
+
+      assert {:error, %Ecto.Changeset{}} =
+               StudentsInsights.update_tag(current_user, tag, invalid_attrs)
+    end
+
+    test "delete_tag/2 deletes the tag when it belongs to user's school" do
+      {current_user, school, _staff_member, _profile} = create_user_with_profile()
+
+      tag = insert(:student_insight_tag, school: school, name: "Tag to Delete")
+
+      assert {:ok, %Tag{}} = StudentsInsights.delete_tag(current_user, tag)
+
+      assert_raise Ecto.NoResultsError, fn ->
+        StudentsInsights.get_tag!(current_user, tag.id)
+      end
+    end
+
+    test "delete_tag/2 returns unauthorized when tag belongs to different school" do
+      {current_user, _school, _staff_member, _profile} = create_user_with_profile()
+
+      other_school = insert(:school)
+      other_tag = insert(:student_insight_tag, school: other_school, name: "Other Tag")
+
+      assert {:error, :unauthorized} = StudentsInsights.delete_tag(current_user, other_tag)
+
+      # Verify tag still exists in the database (wasn't deleted)
+      assert Lanttern.Repo.get(Tag, other_tag.id) != nil
+    end
+
+    test "change_tag/3 returns a tag changeset" do
+      {current_user, school, _staff_member, _profile} = create_user_with_profile()
+
+      tag = insert(:student_insight_tag, school: school, name: "Test Tag")
+
+      assert %Ecto.Changeset{} = StudentsInsights.change_tag(current_user, tag)
+    end
+
+    test "change_tag/3 returns changeset with provided attributes" do
+      {current_user, school, _staff_member, _profile} = create_user_with_profile()
+
+      tag = insert(:student_insight_tag, school: school, name: "Test Tag")
+
+      attrs = %{name: "Changed Name"}
+      changeset = StudentsInsights.change_tag(current_user, tag, attrs)
+
+      assert %Ecto.Changeset{} = changeset
+      assert changeset.changes.name == "Changed Name"
+    end
+
+    test "cross-school access protection - users can only access tags from their own school" do
+      # Create two separate schools with users
+      {user1, school1, _staff1, _profile1} = create_user_with_profile()
+      {user2, school2, _staff2, _profile2} = create_user_with_profile()
+
+      # Create tags in each school
+      tag1 = insert(:student_insight_tag, school: school1, name: "School 1 Tag")
+      tag2 = insert(:student_insight_tag, school: school2, name: "School 2 Tag")
+
+      # User1 should only see tags from school1
+      tags_for_user1 = StudentsInsights.list_tags(user1)
+      assert length(tags_for_user1) == 1
+      assert hd(tags_for_user1).id == tag1.id
+
+      # User2 should only see tags from school2
+      tags_for_user2 = StudentsInsights.list_tags(user2)
+      assert length(tags_for_user2) == 1
+      assert hd(tags_for_user2).id == tag2.id
+
+      # Cross-school get should return nil
+      assert StudentsInsights.get_tag(user1, tag2.id) == nil
+      assert StudentsInsights.get_tag(user2, tag1.id) == nil
+    end
+
+    test "empty results when no tags exist for user's school" do
+      {current_user, _school, _staff_member, _profile} = create_user_with_profile()
+
+      # Create tag in different school
+      other_school = insert(:school)
+      _other_tag = insert(:student_insight_tag, school: other_school, name: "Other Tag")
+
+      tags = StudentsInsights.list_tags(current_user)
+
+      assert tags == []
+    end
+
+    test "tags are ordered by name" do
+      {current_user, school, _staff_member, _profile} = create_user_with_profile()
+
+      # Create tags in non-alphabetical order
+      insert(:student_insight_tag, school: school, name: "Zebra")
+      insert(:student_insight_tag, school: school, name: "Alpha")
+      insert(:student_insight_tag, school: school, name: "Bravo")
+
+      tags = StudentsInsights.list_tags(current_user)
+
+      assert length(tags) == 3
+      [first, second, third] = tags
+      assert first.name == "Alpha"
+      assert second.name == "Bravo"
+      assert third.name == "Zebra"
     end
   end
 end

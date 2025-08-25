@@ -12,6 +12,7 @@ defmodule Lanttern.StudentsInsights do
   alias Lanttern.Identity.User
   alias Lanttern.Schools.Student
   alias Lanttern.StudentsInsights.StudentInsight
+  alias Lanttern.StudentsInsights.Tag
   alias Lanttern.Utils
 
   @doc """
@@ -114,14 +115,20 @@ defmodule Lanttern.StudentsInsights do
   def create_student_insight(%User{} = current_user, attrs \\ %{}) do
     attrs = Utils.normalize_attrs_to_atom_keys(attrs)
 
-    with {:ok, attrs} <- prepare_attrs_with_student(current_user, attrs) do
+    with {:ok, attrs} <- prepare_attrs_with_student_and_tag(current_user, attrs) do
       %StudentInsight{}
       |> StudentInsight.changeset(attrs, current_user)
       |> Repo.insert()
     end
   end
 
-  defp prepare_attrs_with_student(current_user, %{student_id: student_id} = attrs)
+  defp prepare_attrs_with_student_and_tag(current_user, attrs) do
+    with {:ok, attrs} <- validate_student_attrs(current_user, attrs) do
+      validate_tag_attrs(current_user, attrs)
+    end
+  end
+
+  defp validate_student_attrs(current_user, %{student_id: student_id} = attrs)
        when is_integer(student_id) do
     case get_student_for_school(current_user, student_id) do
       {:ok, _student} ->
@@ -137,11 +144,37 @@ defmodule Lanttern.StudentsInsights do
     end
   end
 
-  defp prepare_attrs_with_student(_current_user, attrs) do
+  defp validate_student_attrs(_current_user, attrs) do
     if Map.has_key?(attrs, :student_id) do
       {:error,
        %Ecto.Changeset{}
        |> Ecto.Changeset.add_error(:student_id, gettext("student is required"))}
+    else
+      {:ok, attrs}
+    end
+  end
+
+  defp validate_tag_attrs(current_user, %{tag_id: tag_id} = attrs)
+       when is_integer(tag_id) do
+    case get_tag_for_school(current_user, tag_id) do
+      {:ok, _tag} ->
+        {:ok, attrs}
+
+      {:error, :invalid_tag} ->
+        {:error,
+         %Ecto.Changeset{}
+         |> Ecto.Changeset.add_error(
+           :tag_id,
+           gettext("tag is invalid or from different school")
+         )}
+    end
+  end
+
+  defp validate_tag_attrs(_current_user, attrs) do
+    if Map.has_key?(attrs, :tag_id) do
+      {:error,
+       %Ecto.Changeset{}
+       |> Ecto.Changeset.add_error(:tag_id, gettext("tag is required"))}
     else
       {:ok, attrs}
     end
@@ -170,7 +203,7 @@ defmodule Lanttern.StudentsInsights do
       ) do
     with :ok <- StudentInsight.validate_ownership(current_user, student_insight),
          attrs <- Utils.normalize_attrs_to_atom_keys(attrs),
-         {:ok, attrs} <- prepare_attrs_with_student(current_user, attrs) do
+         {:ok, attrs} <- prepare_attrs_with_student_and_tag(current_user, attrs) do
       student_insight
       |> StudentInsight.changeset(attrs, current_user)
       |> Repo.update()
@@ -234,6 +267,180 @@ defmodule Lanttern.StudentsInsights do
     case student do
       %Student{} = student -> {:ok, student}
       nil -> {:error, :invalid_student}
+    end
+  end
+
+  # Tag-related functions
+
+  @doc """
+  Returns the list of tags for the current user's school.
+
+  ## Options
+
+  - `:preloads` - preloads associated data
+
+  ## Examples
+
+      iex> list_tags(current_user, [])
+      [%Tag{}, ...]
+
+  """
+  @spec list_tags(current_user :: User.t(), Keyword.t()) :: [Tag.t()]
+  def list_tags(%User{current_profile: current_profile}, opts \\ []) do
+    from(t in Tag,
+      where: t.school_id == ^current_profile.school_id,
+      order_by: t.name
+    )
+    |> Repo.all()
+    |> maybe_preload(opts)
+  end
+
+  @doc """
+  Gets a single tag scoped to the current user's school.
+
+  Returns `nil` if the tag does not exist or doesn't belong to user's school.
+
+  ## Options
+
+  - `:preloads` - preloads associated data
+
+  ## Examples
+
+      iex> get_tag(current_user, 123)
+      %Tag{}
+
+      iex> get_tag(current_user, 456)
+      nil
+
+  """
+  @spec get_tag(current_user :: User.t(), pos_integer(), Keyword.t()) :: Tag.t() | nil
+  def get_tag(%User{current_profile: current_profile}, id, opts \\ []) do
+    from(t in Tag, where: t.school_id == ^current_profile.school_id)
+    |> Repo.get(id)
+    |> maybe_preload(opts)
+  end
+
+  @doc """
+  Gets a single tag scoped to the current user's school.
+
+  Same as `get_tag/3`, but raises `Ecto.NoResultsError` if the `Tag` does not exist.
+
+  """
+  @spec get_tag!(current_user :: User.t(), pos_integer(), Keyword.t()) :: Tag.t()
+  def get_tag!(%User{current_profile: current_profile}, id, opts \\ []) do
+    from(t in Tag, where: t.school_id == ^current_profile.school_id)
+    |> Repo.get!(id)
+    |> maybe_preload(opts)
+  end
+
+  @doc """
+  Creates a tag with the current user's school.
+
+  ## Examples
+
+      iex> create_tag(current_user, %{name: "Important", bg_color: "#ff0000", text_color: "#ffffff"})
+      {:ok, %Tag{}}
+
+      iex> create_tag(current_user, %{name: nil})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  @spec create_tag(User.t(), map()) ::
+          {:ok, Tag.t()} | {:error, Ecto.Changeset.t()}
+  def create_tag(%User{current_profile: current_profile} = _current_user, attrs \\ %{}) do
+    attrs =
+      attrs
+      |> Utils.normalize_attrs_to_atom_keys()
+      |> Map.put(:school_id, current_profile.school_id)
+
+    %Tag{}
+    |> Tag.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a tag.
+
+  Only allows updates if the tag belongs to the current user's school.
+
+  ## Examples
+
+      iex> update_tag(current_user, tag, %{name: "Updated name"})
+      {:ok, %Tag{}}
+
+      iex> update_tag(current_user, other_school_tag, %{name: "Hack attempt"})
+      {:error, :unauthorized}
+
+  """
+  @spec update_tag(User.t(), Tag.t(), map()) ::
+          {:ok, Tag.t()} | {:error, Ecto.Changeset.t()} | {:error, :unauthorized}
+  def update_tag(
+        %User{current_profile: current_profile},
+        %Tag{school_id: tag_school_id} = tag,
+        attrs
+      ) do
+    if tag_school_id == current_profile.school_id do
+      tag
+      |> Tag.changeset(Utils.normalize_attrs_to_atom_keys(attrs))
+      |> Repo.update()
+    else
+      {:error, :unauthorized}
+    end
+  end
+
+  @doc """
+  Deletes a tag.
+
+  Only allows deletion if the tag belongs to the current user's school.
+
+  ## Examples
+
+      iex> delete_tag(current_user, tag)
+      {:ok, %Tag{}}
+
+      iex> delete_tag(current_user, other_school_tag)
+      {:error, :unauthorized}
+
+  """
+  @spec delete_tag(User.t(), Tag.t()) ::
+          {:ok, Tag.t()} | {:error, Ecto.Changeset.t()} | {:error, :unauthorized}
+  def delete_tag(%User{current_profile: current_profile}, %Tag{school_id: tag_school_id} = tag) do
+    if tag_school_id == current_profile.school_id do
+      Repo.delete(tag)
+    else
+      {:error, :unauthorized}
+    end
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking tag changes.
+
+  ## Examples
+
+      iex> change_tag(current_user, tag)
+      %Ecto.Changeset{data: %Tag{}}
+
+  """
+  @spec change_tag(User.t(), Tag.t(), map()) :: Ecto.Changeset.t()
+  def change_tag(%User{} = _current_user, %Tag{} = tag, attrs \\ %{}) do
+    Tag.changeset(tag, Utils.normalize_attrs_to_atom_keys(attrs))
+  end
+
+  # Gets a tag by ID ensuring it belongs to the current user's school.
+  # Returns `{:ok, tag}` if the tag ID is valid and belongs to the school.
+  # Returns `{:error, :invalid_tag}` if the tag doesn't exist or belongs to a different school.
+  @spec get_tag_for_school(User.t(), pos_integer()) ::
+          {:ok, Tag.t()} | {:error, :invalid_tag}
+  defp get_tag_for_school(%User{current_profile: current_profile}, tag_id) do
+    tag =
+      from(t in Tag,
+        where: t.id == ^tag_id and t.school_id == ^current_profile.school_id
+      )
+      |> Repo.one()
+
+    case tag do
+      %Tag{} = tag -> {:ok, tag}
+      nil -> {:error, :invalid_tag}
     end
   end
 end
