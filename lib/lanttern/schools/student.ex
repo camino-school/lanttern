@@ -36,7 +36,7 @@ defmodule Lanttern.Schools.Student do
           grades_report_entries: [StudentGradesReportEntry.t()],
           ilps: [StudentILP.t()],
           tags: [Tag.t()],
-          student_insights: [StudentInsight.t()],
+          student_insights: [StudentInsight.t()] | Ecto.Association.NotLoaded.t(),
           profile: Profile.t(),
           inserted_at: DateTime.t(),
           updated_at: DateTime.t()
@@ -74,9 +74,7 @@ defmodule Lanttern.Schools.Student do
     has_many :ilps, StudentILP
     has_many :student_tag_relationships, StudentTagRelationship, on_replace: :delete
 
-    many_to_many :student_insights, StudentInsight,
-      join_through: "students_students_insights",
-      on_replace: :delete
+    has_many :student_insights, StudentInsight
 
     has_one :profile, Profile
 

@@ -154,7 +154,7 @@ defmodule Lanttern.StudentsInsightsTest do
 
       valid_attrs = %{
         description: "This student learns better with visual learning techniques",
-        student_ids: [student.id]
+        student_id: student.id
       }
 
       assert {:ok, %StudentInsight{} = insight} =
@@ -285,7 +285,7 @@ defmodule Lanttern.StudentsInsightsTest do
       # Use string keys like Phoenix forms would provide
       attrs_with_string_keys = %{
         "description" => "This student learns better with visual learning techniques",
-        "student_ids" => [student.id]
+        "student_id" => student.id
       }
 
       assert {:ok, %StudentInsight{} = insight} =
@@ -308,7 +308,7 @@ defmodule Lanttern.StudentsInsightsTest do
       # Mix of atom and string keys
       mixed_attrs = %{
         "description" => "Mixed keys test",
-        "student_ids" => [student.id],
+        "student_id" => student.id,
         extra_field: "atom key value"
       }
 
@@ -395,28 +395,23 @@ defmodule Lanttern.StudentsInsightsTest do
       assert third.id == insight1.id
     end
 
-    test "create_student_insight/2 with student_ids creates insight with student relationships" do
+    test "create_student_insight/2 with student_id creates insight with student relationship" do
       {current_user, school, _staff_member, _profile} = create_user_with_profile()
 
       student1 = insert(:student, school: school, name: "Student 1")
-      student2 = insert(:student, school: school, name: "Student 2")
 
       attrs = %{
-        description: "Great insight about these students",
-        student_ids: [student1.id, student2.id]
+        description: "Great insight about this student",
+        student_id: student1.id
       }
 
       assert {:ok, %StudentInsight{} = insight} =
                StudentsInsights.create_student_insight(current_user, attrs)
 
-      insight_with_students = Lanttern.Repo.preload(insight, :students)
+      insight_with_student = Lanttern.Repo.preload(insight, :student)
 
-      assert insight.description == "Great insight about these students"
-      assert length(insight_with_students.students) == 2
-
-      student_ids = Enum.map(insight_with_students.students, & &1.id)
-      assert student1.id in student_ids
-      assert student2.id in student_ids
+      assert insight.description == "Great insight about this student"
+      assert insight_with_student.student.id == student1.id
     end
 
     test "create_student_insight/2 with string student_ids works correctly" do
@@ -430,27 +425,20 @@ defmodule Lanttern.StudentsInsightsTest do
 
       attrs = %{
         "description" => "String keys test",
-        "student_ids" => [student.id]
+        "student_id" => student.id
       }
 
       assert {:ok, %StudentInsight{} = insight} =
                StudentsInsights.create_student_insight(current_user, attrs)
 
-      insight_with_students = Lanttern.Repo.preload(insight, :students)
+      insight_with_student = Lanttern.Repo.preload(insight, :student)
 
       assert insight.description == "String keys test"
-      assert length(insight_with_students.students) == 1
-      assert hd(insight_with_students.students).id == student.id
+      assert insight_with_student.student.id == student.id
     end
 
-    test "create_student_insight/2 fails when student_ids contains cross-school students" do
-      {current_user, school, _staff_member, _profile} = create_user_with_profile()
-
-      student_same_school =
-        insert(:student,
-          school: school,
-          name: "Same School Student #{System.unique_integer([:positive])}"
-        )
+    test "create_student_insight/2 fails when student_id contains cross-school student" do
+      {current_user, _school, _staff_member, _profile} = create_user_with_profile()
 
       other_school = insert(:school)
 
@@ -462,13 +450,13 @@ defmodule Lanttern.StudentsInsightsTest do
 
       attrs = %{
         description: "This should fail",
-        student_ids: [student_same_school.id, student_other_school.id]
+        student_id: student_other_school.id
       }
 
       assert {:error, %Ecto.Changeset{} = changeset} =
                StudentsInsights.create_student_insight(current_user, attrs)
 
-      assert "contain invalid or cross-school students" in errors_on(changeset).student_ids
+      assert "student is invalid or from different school" in errors_on(changeset).student_id
     end
 
     test "create_student_insight/2 fails when student_ids is empty" do
@@ -476,13 +464,13 @@ defmodule Lanttern.StudentsInsightsTest do
 
       attrs = %{
         description: "This should fail",
-        student_ids: []
+        student_id: nil
       }
 
       assert {:error, %Ecto.Changeset{} = changeset} =
                StudentsInsights.create_student_insight(current_user, attrs)
 
-      assert "at least one student must be provided" in errors_on(changeset).student_ids
+      assert "student is required" in errors_on(changeset).student_id
     end
 
     test "create_student_insight/2 fails when no student_ids provided but student_ids key exists" do
@@ -490,63 +478,57 @@ defmodule Lanttern.StudentsInsightsTest do
 
       attrs = %{
         description: "This should fail",
-        student_ids: nil
+        student_id: nil
       }
 
       assert {:error, %Ecto.Changeset{} = changeset} =
                StudentsInsights.create_student_insight(current_user, attrs)
 
-      assert "at least one student must be provided" in errors_on(changeset).student_ids
+      assert "student is required" in errors_on(changeset).student_id
     end
 
-    test "create_student_insight/2 fails when no students are linked" do
+    test "create_student_insight/2 fails when no student is provided" do
       {current_user, _school, _staff_member, _profile} = create_user_with_profile()
 
       attrs = %{
-        description: "This should fail without students"
+        description: "This should fail without student"
       }
 
-      # This should fail because at least one student must be linked
+      # This should fail because student_id is required
       assert {:error, %Ecto.Changeset{} = changeset} =
                StudentsInsights.create_student_insight(current_user, attrs)
 
-      assert "at least one student must be linked" in errors_on(changeset).students
+      assert "can't be blank" in errors_on(changeset).student_id
     end
 
-    test "update_student_insight/3 can update student relationships" do
+    test "update_student_insight/3 can update student relationship" do
       {current_user, school, staff_member, _profile} = create_user_with_profile()
 
       student1 = insert(:student, school: school, name: "Student 1")
       student2 = insert(:student, school: school, name: "Student 2")
-      student3 = insert(:student, school: school, name: "Student 3")
 
       insight =
         insert(:student_insight,
           school: school,
           author: staff_member,
-          students: [student1, student2]
+          student: student1
         )
 
       update_attrs = %{
         description: "Updated description",
-        student_ids: [student2.id, student3.id]
+        student_id: student2.id
       }
 
       assert {:ok, %StudentInsight{} = updated_insight} =
                StudentsInsights.update_student_insight(current_user, insight, update_attrs)
 
-      updated_insight_with_students = Lanttern.Repo.preload(updated_insight, :students)
+      updated_insight_with_student = Lanttern.Repo.preload(updated_insight, :student)
 
       assert updated_insight.description == "Updated description"
-      assert length(updated_insight_with_students.students) == 2
-
-      student_ids = Enum.map(updated_insight_with_students.students, & &1.id)
-      assert student2.id in student_ids
-      assert student3.id in student_ids
-      refute student1.id in student_ids
+      assert updated_insight_with_student.student.id == student2.id
     end
 
-    test "update_student_insight/3 fails with cross-school students" do
+    test "update_student_insight/3 fails with cross-school student" do
       {current_user, school, staff_member, _profile} = create_user_with_profile()
 
       student_same_school =
@@ -567,17 +549,17 @@ defmodule Lanttern.StudentsInsightsTest do
         insert(:student_insight,
           school: school,
           author: staff_member,
-          students: [student_same_school]
+          student: student_same_school
         )
 
       update_attrs = %{
-        student_ids: [student_same_school.id, student_other_school.id]
+        student_id: student_other_school.id
       }
 
       assert {:error, %Ecto.Changeset{} = changeset} =
                StudentsInsights.update_student_insight(current_user, insight, update_attrs)
 
-      assert "contain invalid or cross-school students" in errors_on(changeset).student_ids
+      assert "student is invalid or from different school" in errors_on(changeset).student_id
     end
   end
 end

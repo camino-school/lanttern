@@ -18,7 +18,7 @@
           patch={~p"/sparks/new"}
           icon_name="hero-plus-circle-mini"
         >
-          {gettext("New sparkle")}
+          {gettext("New spark")}
         </.action>
       </div>
     </div>
@@ -34,7 +34,7 @@
   <% end %>
   <.modal
     :if={@form && @selected_classes != []}
-    id="sparkle-form-modal"
+    id="spark-form-modal"
     show
     on_cancel={JS.patch(~p"/sparks")}
   >
@@ -58,12 +58,13 @@
       <.error_block :if={@form.source.action in [:insert, :update]} class="mb-6">
         {gettext("Oops, something went wrong! Please check the errors above.")}
       </.error_block>
+      {inspect(@form.source.errors)}
       <div class="flex items-center justify-end gap-6">
         <.action
           type="button"
           theme="subtle"
           size="md"
-          phx-click={JS.exec("data-cancel", to: "#sparkle-form-modal")}
+          phx-click={JS.exec("data-cancel", to: "#spark-form-modal")}
         >
           {gettext("Cancel")}
         </.action>

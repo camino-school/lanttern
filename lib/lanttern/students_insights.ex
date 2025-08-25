@@ -114,41 +114,34 @@ defmodule Lanttern.StudentsInsights do
   def create_student_insight(%User{} = current_user, attrs \\ %{}) do
     attrs = Utils.normalize_attrs_to_atom_keys(attrs)
 
-    with {:ok, attrs} <- prepare_attrs_with_students(current_user, attrs) do
+    with {:ok, attrs} <- prepare_attrs_with_student(current_user, attrs) do
       %StudentInsight{}
       |> StudentInsight.changeset(attrs, current_user)
-      |> StudentInsight.validate_students_required()
       |> Repo.insert()
     end
   end
 
-  defp prepare_attrs_with_students(current_user, %{student_ids: student_ids} = attrs)
-       when is_list(student_ids) and length(student_ids) > 0 do
-    case get_students_for_school(current_user, student_ids) do
-      {:ok, students} ->
-        {:ok, Map.put(attrs, :students, students)}
+  defp prepare_attrs_with_student(current_user, %{student_id: student_id} = attrs)
+       when is_integer(student_id) do
+    case get_student_for_school(current_user, student_id) do
+      {:ok, _student} ->
+        {:ok, attrs}
 
-      {:error, :invalid_students} ->
+      {:error, :invalid_student} ->
         {:error,
          %Ecto.Changeset{}
          |> Ecto.Changeset.add_error(
-           :student_ids,
-           gettext("contain invalid or cross-school students")
+           :student_id,
+           gettext("student is invalid or from different school")
          )}
     end
   end
 
-  defp prepare_attrs_with_students(_current_user, %{student_ids: []} = _attrs) do
-    {:error,
-     %Ecto.Changeset{}
-     |> Ecto.Changeset.add_error(:student_ids, gettext("at least one student must be provided"))}
-  end
-
-  defp prepare_attrs_with_students(_current_user, attrs) do
-    if Map.has_key?(attrs, :student_ids) do
+  defp prepare_attrs_with_student(_current_user, attrs) do
+    if Map.has_key?(attrs, :student_id) do
       {:error,
        %Ecto.Changeset{}
-       |> Ecto.Changeset.add_error(:student_ids, gettext("at least one student must be provided"))}
+       |> Ecto.Changeset.add_error(:student_id, gettext("student is required"))}
     else
       {:ok, attrs}
     end
@@ -177,10 +170,9 @@ defmodule Lanttern.StudentsInsights do
       ) do
     with :ok <- StudentInsight.validate_ownership(current_user, student_insight),
          attrs <- Utils.normalize_attrs_to_atom_keys(attrs),
-         {:ok, attrs} <- prepare_attrs_with_students(current_user, attrs) do
+         {:ok, attrs} <- prepare_attrs_with_student(current_user, attrs) do
       student_insight
       |> StudentInsight.changeset(attrs, current_user)
-      |> StudentInsight.validate_students_required()
       |> Repo.update()
     end
   end
@@ -227,22 +219,21 @@ defmodule Lanttern.StudentsInsights do
     StudentInsight.changeset(student_insight, attrs, current_user)
   end
 
-  # Gets students by their IDs ensuring they belong to the current user's school.
-  # Returns `{:ok, students}` if all student IDs are valid and belong to the school.
-  # Returns `{:error, :invalid_students}` if any student doesn't exist or belongs to a different school.
-  @spec get_students_for_school(User.t(), [pos_integer()]) ::
-          {:ok, [Student.t()]} | {:error, :invalid_students}
-  defp get_students_for_school(%User{current_profile: current_profile}, student_ids) do
-    students =
+  # Gets a student by ID ensuring it belongs to the current user's school.
+  # Returns `{:ok, student}` if the student ID is valid and belongs to the school.
+  # Returns `{:error, :invalid_student}` if the student doesn't exist or belongs to a different school.
+  @spec get_student_for_school(User.t(), pos_integer()) ::
+          {:ok, Student.t()} | {:error, :invalid_student}
+  defp get_student_for_school(%User{current_profile: current_profile}, student_id) do
+    student =
       from(s in Student,
-        where: s.id in ^student_ids and s.school_id == ^current_profile.school_id
+        where: s.id == ^student_id and s.school_id == ^current_profile.school_id
       )
-      |> Repo.all()
+      |> Repo.one()
 
-    if length(students) == length(student_ids) do
-      {:ok, students}
-    else
-      {:error, :invalid_students}
+    case student do
+      %Student{} = student -> {:ok, student}
+      nil -> {:error, :invalid_student}
     end
   end
 end
