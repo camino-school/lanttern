@@ -22,12 +22,83 @@ defmodule LantternWeb.Layouts do
   #   doc: "the current [scope](https://hexdocs.pm/phoenix/scopes.html)"
   attr :current_path, :string, required: true
   attr :no_bg, :boolean, default: false
+  attr :class, :any, default: nil
   slot :inner_block, required: true
 
   def app_logged_in(assigns) do
     ~H"""
-    <main class={["min-h-screen", if(!@no_bg, do: "ltrn-bg-main")]}>
+    <main class={["min-h-screen", if(!@no_bg, do: "ltrn-bg-main"), @class]}>
       {render_slot(@inner_block)}
+    </main>
+    <.live_component
+      module={LantternWeb.MenuComponent}
+      id="menu"
+      current_user={@current_user}
+      current_path={@current_path}
+    />
+    <.flash_group flash={@flash} />
+    """
+  end
+
+  @doc """
+  Renders the settings layout.
+  """
+  attr :flash, :map, required: true, doc: "the map of flash messages"
+  attr :current_user, :map, required: true
+  # todo: migrate current_user to current_scope
+  # attr :current_scope, :map,
+  #   default: nil,
+  #   doc: "the current [scope](https://hexdocs.pm/phoenix/scopes.html)"
+  attr :current_path, :string, required: true
+  attr :live_action, :any, required: true
+
+  slot :inner_block, required: true
+
+  def settings(assigns) do
+    live_action = assigns.live_action
+
+    nav_items = [
+      %{
+        navigate: ~p"/settings",
+        text: gettext("General"),
+        is_active: live_action == :index
+      },
+      %{
+        navigate: ~p"/settings/sparks",
+        text: "Sparks",
+        is_active: live_action == :sparks
+      }
+    ]
+
+    assigns = assign(assigns, :nav_items, nav_items)
+
+    ~H"""
+    <main class="flex flex-col h-screen ltrn-bg-main">
+      <.header_nav current_user={@current_user}>
+        <:title>{gettext("Settings")}</:title>
+      </.header_nav>
+      <div class="flex-1 flex items-stretch min-h-0">
+        <nav class="min-w-48 py-8 border-r shadow-xl border-ltrn-lighter">
+          <ul class="flex flex-col gap-4 py-2">
+            <li :for={nav_item <- @nav_items} class="flex items-stretch gap-4 pr-6">
+              <span class={["block w-1 rounded-r-full", if(nav_item[:is_active], do: "bg-ltrn-dark")]}>
+              </span>
+              <.link
+                navigate={nav_item.navigate}
+                class={[
+                  "font-display font-bold hover:text-ltrn-dark",
+                  if(nav_item[:is_active], do: "text-ltrn-dark", else: "text-ltrn-subtle")
+                ]}
+              >
+                {nav_item.text}
+              </.link>
+            </li>
+          </ul>
+        </nav>
+        <div class="flex-1 p-10 overflow-y-auto">
+          {render_slot(@inner_block)}
+        </div>
+      </div>
     </main>
     <.live_component
       module={LantternWeb.MenuComponent}

@@ -2,6 +2,10 @@
 /* if you want dark mode via class: */
 /* @custom-variant dark (&:where(.dark, .dark *)); */
 
+@source "../css";
+@source "../js";
+@source "../../lib/lanttern_web";
+
 @custom-variant phx-no-feedback (.phx-no-feedback&, .phx-no-feedback &);
 @custom-variant phx-click-loading (.phx-click-loading&, .phx-click-loading &);
 @custom-variant group-phx-click-loading (&:where(.group.phx-click-loading *));

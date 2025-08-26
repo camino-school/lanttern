@@ -141,6 +141,11 @@ defmodule LantternWeb.Router do
 
       live "/grades_reports", GradesReportsLive
       live "/grades_reports/:id", GradesReportLive
+
+      # settings
+
+      live "/settings", SettingsLive, :index
+      live "/settings/sparks", SparksSettingsLive, :sparks
     end
 
     live_session :authenticated_guardian,

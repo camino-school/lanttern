@@ -371,6 +371,12 @@ defmodule LantternWeb.MenuComponent do
     LantternWeb.GradesReportsLive => :grades_reports,
     LantternWeb.GradesReportLive => :grades_reports,
 
+    # settings
+    LantternWeb.SettingsLive => :settings,
+    LantternWeb.SparksSettingsLive => :settings,
+
+    # guardian and student
+
     # guardian home
     LantternWeb.GuardianHomeLive => :home,
 
@@ -463,6 +469,12 @@ defmodule LantternWeb.MenuComponent do
         active: :grades_reports,
         path: ~p"/grades_reports",
         text: gettext("Grades reports")
+      },
+      %{
+        profile: "staff",
+        active: :settings,
+        path: ~p"/settings",
+        text: gettext("Settings")
       },
       # student
       %{
