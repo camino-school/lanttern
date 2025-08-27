@@ -4,5 +4,57 @@
   current_path={@current_path}
   live_action={@live_action}
 >
-  <p>{gettext("Sparks settings")}</p>
+  <div class="flex items-center justify-between gap-4 mb-10">
+    <h2 class="font-display font-black text-xl">
+      {gettext("Sparks tags management")}
+    </h2>
+    <.action
+      type="link"
+      patch={~p"/settings/sparks?new=true"}
+      icon_name="hero-plus-circle-mini"
+    >
+      {gettext("Add new tag")}
+    </.action>
+  </div>
+  <%= if @tags_count == 0 do %>
+    <.card_base class="p-10">
+      <.empty_state>{gettext("No sparks tags created yet")}</.empty_state>
+    </.card_base>
+  <% else %>
+    <div id="sparks-tags" phx-update="stream" class="grid grid-cols-3 gap-4">
+      <.card_base :for={{dom_id, tag} <- @streams.tags} id={dom_id} class="p-6">
+        <div class="flex items-center justify-between mb-4">
+          <.badge
+            color_map={%{bg_color: tag.bg_color, text_color: tag.text_color}}
+            class="text-sm font-medium"
+          >
+            {tag.name}
+          </.badge>
+          <.action
+            type="link"
+            patch={~p"/settings/sparks?tag_id=#{tag.id}"}
+            icon_name="hero-pencil-mini"
+            theme="subtle"
+          >
+            {gettext("Edit")}
+          </.action>
+        </div>
+        <div class="text-ltrn-subtle">
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+          Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+          Ut enim ad minim veniam, quis nostrud exercitation.
+        </div>
+      </.card_base>
+    </div>
+  <% end %>
+  <.live_component
+    :if={@tag}
+    module={SparksTagFormOverlayComponent}
+    tag={@tag}
+    id="sparks-tag-form-overlay"
+    title={if(@tag.id, do: gettext("Edit Tag"), else: gettext("New Tag"))}
+    on_cancel={JS.patch(~p"/settings/sparks")}
+    current_user={@current_user}
+    notify_parent
+  />
 </Layouts.settings>

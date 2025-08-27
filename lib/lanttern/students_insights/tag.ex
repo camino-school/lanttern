@@ -8,6 +8,7 @@ defmodule Lanttern.StudentsInsights.Tag do
 
   use Gettext, backend: Lanttern.Gettext
 
+  alias Lanttern.Identity.User
   alias Lanttern.Schools.School
 
   @type t :: %__MODULE__{
@@ -32,9 +33,10 @@ defmodule Lanttern.StudentsInsights.Tag do
   end
 
   @doc false
-  def changeset(tag, attrs) do
+  def changeset(tag, attrs, %User{} = current_user) do
     tag
-    |> cast(attrs, [:name, :bg_color, :text_color, :school_id])
+    |> cast(attrs, [:name, :bg_color, :text_color])
+    |> put_change(:school_id, current_user.current_profile.school_id)
     |> validate_required([:name, :bg_color, :text_color, :school_id])
     |> validate_hex_color(:bg_color)
     |> validate_hex_color(:text_color)

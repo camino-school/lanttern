@@ -347,14 +347,11 @@ defmodule Lanttern.StudentsInsights do
   """
   @spec create_tag(User.t(), map()) ::
           {:ok, Tag.t()} | {:error, Ecto.Changeset.t()}
-  def create_tag(%User{current_profile: current_profile} = _current_user, attrs \\ %{}) do
-    attrs =
-      attrs
-      |> Utils.normalize_attrs_to_atom_keys()
-      |> Map.put(:school_id, current_profile.school_id)
+  def create_tag(%User{} = current_user, attrs \\ %{}) do
+    attrs = Utils.normalize_attrs_to_atom_keys(attrs)
 
     %Tag{}
-    |> Tag.changeset(attrs)
+    |> Tag.changeset(attrs, current_user)
     |> Repo.insert()
   end
 
@@ -375,13 +372,15 @@ defmodule Lanttern.StudentsInsights do
   @spec update_tag(User.t(), Tag.t(), map()) ::
           {:ok, Tag.t()} | {:error, Ecto.Changeset.t()} | {:error, :unauthorized}
   def update_tag(
-        %User{current_profile: current_profile},
+        %User{current_profile: current_profile} = current_user,
         %Tag{school_id: tag_school_id} = tag,
         attrs
       ) do
     if tag_school_id == current_profile.school_id do
+      attrs = Utils.normalize_attrs_to_atom_keys(attrs)
+
       tag
-      |> Tag.changeset(Utils.normalize_attrs_to_atom_keys(attrs))
+      |> Tag.changeset(attrs, current_user)
       |> Repo.update()
     else
       {:error, :unauthorized}
@@ -422,8 +421,9 @@ defmodule Lanttern.StudentsInsights do
 
   """
   @spec change_tag(User.t(), Tag.t(), map()) :: Ecto.Changeset.t()
-  def change_tag(%User{} = _current_user, %Tag{} = tag, attrs \\ %{}) do
-    Tag.changeset(tag, Utils.normalize_attrs_to_atom_keys(attrs))
+  def change_tag(%User{} = current_user, %Tag{} = tag, attrs \\ %{}) do
+    attrs = Utils.normalize_attrs_to_atom_keys(attrs)
+    Tag.changeset(tag, attrs, current_user)
   end
 
   # Gets a tag by ID ensuring it belongs to the current user's school.

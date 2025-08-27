@@ -14,9 +14,13 @@ Lanttern is a web application written using the Phoenix web framework for educat
 
 ## Testing
 
-### List assertions
-
+- When planning tests, focus on behavior (what) and not on implementation (how). For example: considering a form live component, we don't want to test the form in isolation, we want to test the user flow in the live view where this form is used
+- Avoid unit testing every detail of a feature, and focus on main user workflows. It doesn't cost much to develop lots and lots of tests, but it may be costly to maintain them
 - Prefer using pattern matching for assertions instead of checking with `length/1` and `hd/1`
+
+### Front end tests
+
+- When testing views, use `phoenix_test` (`conn |> visit("some/path") |> click_link...`). This is not the current project pattern because `phoenix_test` was implemented recently, but we want to use it as the default for front end tests from now on, and we will update old tests little by litte
 
 ### Test fixtures
 
