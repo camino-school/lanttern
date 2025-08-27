@@ -3,6 +3,8 @@ defmodule Lanttern.Utils do
   Collection of utils functions.
   """
 
+  alias Lanttern.Identity.User
+
   @doc """
   Swaps two items in a list, based on the given indexes.
 
@@ -40,5 +42,30 @@ defmodule Lanttern.Utils do
       {key, value} when is_binary(key) -> {String.to_atom(key), value}
       {key, value} -> {key, value}
     end)
+  end
+
+  @doc """
+  Checks if the current user has the specified permission.
+
+  Returns `:ok` if the user has the permission, `{:error, :unauthorized}` if not.
+
+  ## Examples
+
+      iex> user = %User{current_profile: %{permissions: ["school_management"]}}
+      iex> check_permission(user, "school_management")
+      :ok
+
+      iex> user = %User{current_profile: %{permissions: ["other_permission"]}}
+      iex> check_permission(user, "school_management")
+      {:error, :unauthorized}
+
+  """
+  @spec check_permission(User.t(), String.t()) :: :ok | {:error, :unauthorized}
+  def check_permission(%User{current_profile: current_profile}, permission) do
+    if permission in current_profile.permissions do
+      :ok
+    else
+      {:error, :unauthorized}
+    end
   end
 end

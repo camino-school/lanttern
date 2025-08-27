@@ -9,7 +9,9 @@ defmodule LantternWeb.SparksSettingsLiveTest do
   setup [:register_and_log_in_staff_member]
 
   describe "SparksSettings live view basic navigation" do
-    test "staff member can access sparks settings page and see basic elements", %{conn: conn} do
+    test "staff member can access sparks settings page and see basic elements", context do
+      %{conn: conn} = set_user_permissions(["school_management"], context)
+
       conn
       |> visit(@live_view_path)
       |> assert_has("h2")
@@ -18,7 +20,9 @@ defmodule LantternWeb.SparksSettingsLiveTest do
   end
 
   describe "Tag listing and management" do
-    test "lists tags from current user's school with edit links", %{conn: conn, user: user} do
+    test "lists tags from current user's school with edit links", context do
+      %{conn: conn, user: user} = set_user_permissions(["school_management"], context)
+
       school_id = user.current_profile.school_id
       school = Lanttern.Repo.get!(Lanttern.Schools.School, school_id)
 
@@ -39,7 +43,9 @@ defmodule LantternWeb.SparksSettingsLiveTest do
   end
 
   describe "Tag form workflows" do
-    test "user can create a new tag", %{conn: conn} do
+    test "user can create a new tag", context do
+      %{conn: conn} = set_user_permissions(["school_management"], context)
+
       conn
       |> visit(@live_view_path)
       |> click_link("Add new tag")
@@ -50,7 +56,9 @@ defmodule LantternWeb.SparksSettingsLiveTest do
       |> assert_has("input[name=\"tag[text_color]\"]")
     end
 
-    test "user can edit an existing tag", %{conn: conn, user: user} do
+    test "user can edit an existing tag", context do
+      %{conn: conn, user: user} = set_user_permissions(["school_management"], context)
+
       school_id = user.current_profile.school_id
       school = Lanttern.Repo.get!(Lanttern.Schools.School, school_id)
       tag = insert(:student_insight_tag, school: school, name: "Test Tag", bg_color: "#ff0000")
@@ -64,18 +72,61 @@ defmodule LantternWeb.SparksSettingsLiveTest do
       |> assert_has("button", text: "Delete")
     end
 
-    test "invalid tag ID does not show overlay", %{conn: conn} do
+    test "invalid tag ID does not show overlay", context do
+      %{conn: conn} = set_user_permissions(["school_management"], context)
+
       conn
       |> visit(@live_view_path <> "?tag_id=999999")
       |> refute_has("#sparks-tag-form-overlay")
     end
 
-    test "cross-school tag access is prevented", %{conn: conn} do
+    test "cross-school tag access is prevented", context do
+      %{conn: conn} = set_user_permissions(["school_management"], context)
+
       other_school = insert(:school)
       other_tag = insert(:student_insight_tag, school: other_school, name: "Other Tag")
 
       conn
       |> visit(@live_view_path <> "?tag_id=#{other_tag.id}")
+      |> refute_has("#sparks-tag-form-overlay")
+    end
+  end
+
+  describe "Permission-based access control" do
+    test "users with school_management permission can see management UI", context do
+      %{conn: conn} = set_user_permissions(["school_management"], context)
+
+      conn
+      |> visit(@live_view_path)
+      |> assert_has("a[href*=\"?new=true\"]", text: "Add new tag")
+    end
+
+    test "users without school_management permission cannot see management UI", context do
+      %{conn: conn, user: user} = set_user_permissions([], context)
+
+      school_id = user.current_profile.school_id
+      school = Lanttern.Repo.get!(Lanttern.Schools.School, school_id)
+      tag = insert(:student_insight_tag, school: school, name: "Test Tag")
+
+      conn
+      |> visit(@live_view_path)
+      |> refute_has("a[href*=\"?new=true\"]")
+      |> refute_has("a[href*=\"?tag_id=#{tag.id}\"]", text: "Edit")
+    end
+
+    test "users without school_management permission cannot access tag form overlay", context do
+      %{conn: conn, user: user} = set_user_permissions([], context)
+
+      school_id = user.current_profile.school_id
+      school = Lanttern.Repo.get!(Lanttern.Schools.School, school_id)
+      tag = insert(:student_insight_tag, school: school, name: "Test Tag")
+
+      conn
+      |> visit(@live_view_path <> "?new=true")
+      |> refute_has("#sparks-tag-form-overlay")
+
+      conn
+      |> visit(@live_view_path <> "?tag_id=#{tag.id}")
       |> refute_has("#sparks-tag-form-overlay")
     end
   end

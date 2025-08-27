@@ -175,6 +175,12 @@ defmodule LantternWeb.StudentsInsights.SparksTagFormOverlayComponent do
 
         {:noreply, socket}
 
+      {:error, :unauthorized} ->
+        {:noreply,
+         socket
+         |> put_flash(:error, gettext("You don't have permission to delete this tag"))
+         |> push_patch_return()}
+
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign(socket, :form, to_form(changeset))}
     end
@@ -199,6 +205,12 @@ defmodule LantternWeb.StudentsInsights.SparksTagFormOverlayComponent do
 
         {:noreply, socket}
 
+      {:error, :unauthorized} ->
+        {:noreply,
+         socket
+         |> put_flash(:error, gettext("You don't have permission to create tags"))
+         |> push_patch_return()}
+
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign(socket, :form, to_form(changeset))}
     end
@@ -218,6 +230,12 @@ defmodule LantternWeb.StudentsInsights.SparksTagFormOverlayComponent do
           |> push_patch_return()
 
         {:noreply, socket}
+
+      {:error, :unauthorized} ->
+        {:noreply,
+         socket
+         |> put_flash(:error, gettext("You don't have permission to update this tag"))
+         |> push_patch_return()}
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign(socket, :form, to_form(changeset))}

@@ -356,6 +356,8 @@ defmodule Lanttern.StudentsInsights do
   @doc """
   Creates a tag with the current user's school.
 
+  Only allows creation if the current user has "school_management" permission.
+
   ## Examples
 
       iex> create_tag(current_user, %{name: "Important", bg_color: "#ff0000", text_color: "#ffffff"})
@@ -364,13 +366,17 @@ defmodule Lanttern.StudentsInsights do
       iex> create_tag(current_user, %{name: nil})
       {:error, %Ecto.Changeset{}}
 
+      iex> create_tag(unauthorized_user, %{name: "Hack"})
+      {:error, :unauthorized}
+
   """
   @spec create_tag(User.t(), map()) ::
-          {:ok, Tag.t()} | {:error, Ecto.Changeset.t()}
+          {:ok, Tag.t()} | {:error, Ecto.Changeset.t()} | {:error, :unauthorized}
   def create_tag(%User{} = current_user, attrs \\ %{}) do
     attrs = Utils.normalize_attrs_to_atom_keys(attrs)
 
-    with {:ok, tag = %Tag{}} <-
+    with :ok <- Utils.check_permission(current_user, "school_management"),
+         {:ok, tag = %Tag{}} <-
            %Tag{}
            |> Tag.changeset(attrs, current_user)
            |> Repo.insert() do
@@ -382,7 +388,7 @@ defmodule Lanttern.StudentsInsights do
   @doc """
   Updates a tag.
 
-  Only allows updates if the tag belongs to the current user's school.
+  Only allows updates if the tag belongs to the current user's school and the user has "school_management" permission.
 
   ## Examples
 
@@ -390,6 +396,9 @@ defmodule Lanttern.StudentsInsights do
       {:ok, %Tag{}}
 
       iex> update_tag(current_user, other_school_tag, %{name: "Hack attempt"})
+      {:error, :unauthorized}
+
+      iex> update_tag(unauthorized_user, tag, %{name: "Unauthorized"})
       {:error, :unauthorized}
 
   """
@@ -400,25 +409,23 @@ defmodule Lanttern.StudentsInsights do
         %Tag{school_id: tag_school_id} = tag,
         attrs
       ) do
-    if tag_school_id == current_profile.school_id do
-      attrs = Utils.normalize_attrs_to_atom_keys(attrs)
+    attrs = Utils.normalize_attrs_to_atom_keys(attrs)
 
-      with {:ok, %Tag{} = tag} <-
-             tag
-             |> Tag.changeset(attrs, current_user)
-             |> Repo.update() do
-        broadcast_student_insight_tag(current_user, {:updated, tag})
-        {:ok, tag}
-      end
-    else
-      {:error, :unauthorized}
+    with :ok <- Utils.check_permission(current_user, "school_management"),
+         :ok <- validate_tag_belongs_to_user_school(tag_school_id, current_profile.school_id),
+         {:ok, %Tag{} = tag} <-
+           tag
+           |> Tag.changeset(attrs, current_user)
+           |> Repo.update() do
+      broadcast_student_insight_tag(current_user, {:updated, tag})
+      {:ok, tag}
     end
   end
 
   @doc """
   Deletes a tag.
 
-  Only allows deletion if the tag belongs to the current user's school.
+  Only allows deletion if the tag belongs to the current user's school and the user has "school_management" permission.
 
   ## Examples
 
@@ -428,18 +435,22 @@ defmodule Lanttern.StudentsInsights do
       iex> delete_tag(current_user, other_school_tag)
       {:error, :unauthorized}
 
+      iex> delete_tag(unauthorized_user, tag)
+      {:error, :unauthorized}
+
   """
   @spec delete_tag(User.t(), Tag.t()) ::
           {:ok, Tag.t()} | {:error, Ecto.Changeset.t()} | {:error, :unauthorized}
-  def delete_tag(%User{} = current_user, %Tag{school_id: tag_school_id} = tag) do
-    if tag_school_id == current_user.current_profile.school_id do
-      with {:ok, %Tag{} = tag} <-
-             Repo.delete(tag) do
-        broadcast_student_insight_tag(current_user, {:deleted, tag})
-        {:ok, tag}
-      end
-    else
-      {:error, :unauthorized}
+  def delete_tag(
+        %User{current_profile: current_profile} = current_user,
+        %Tag{school_id: tag_school_id} = tag
+      ) do
+    with :ok <- Utils.check_permission(current_user, "school_management"),
+         :ok <- validate_tag_belongs_to_user_school(tag_school_id, current_profile.school_id),
+         {:ok, %Tag{} = tag} <-
+           Repo.delete(tag) do
+      broadcast_student_insight_tag(current_user, {:deleted, tag})
+      {:ok, tag}
     end
   end
 
@@ -473,6 +484,18 @@ defmodule Lanttern.StudentsInsights do
     case tag do
       %Tag{} = tag -> {:ok, tag}
       nil -> {:error, :invalid_tag}
+    end
+  end
+
+  # Validates that a tag belongs to the user's school.
+  # Returns `:ok` if the tag belongs to the school, `{:error, :unauthorized}` if not.
+  @spec validate_tag_belongs_to_user_school(pos_integer(), pos_integer()) ::
+          :ok | {:error, :unauthorized}
+  defp validate_tag_belongs_to_user_school(tag_school_id, user_school_id) do
+    if tag_school_id == user_school_id do
+      :ok
+    else
+      {:error, :unauthorized}
     end
   end
 end

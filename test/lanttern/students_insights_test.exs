@@ -17,7 +17,23 @@ defmodule Lanttern.StudentsInsightsTest do
       user = %User{
         current_profile: %{
           school_id: school.id,
-          staff_member_id: staff_member.id
+          staff_member_id: staff_member.id,
+          permissions: ["school_management"]
+        }
+      }
+
+      {user, school, staff_member}
+    end
+
+    defp create_test_user_without_permissions do
+      school = insert(:school)
+      staff_member = insert(:staff_member, school: school)
+
+      user = %User{
+        current_profile: %{
+          school_id: school.id,
+          staff_member_id: staff_member.id,
+          permissions: []
         }
       }
 
@@ -467,6 +483,18 @@ defmodule Lanttern.StudentsInsightsTest do
                StudentsInsights.create_tag(current_user, %{name: nil})
     end
 
+    test "create_tag/2 requires school_management permission" do
+      {unauthorized_user, _school, _staff_member} = create_test_user_without_permissions()
+
+      valid_attrs = %{
+        name: "Should Fail",
+        bg_color: "#ff0000",
+        text_color: "#ffffff"
+      }
+
+      assert {:error, :unauthorized} = StudentsInsights.create_tag(unauthorized_user, valid_attrs)
+    end
+
     test "update_tag/3 workflow - authorization and validation" do
       {current_user, school, _staff_member} = create_test_user()
 
@@ -498,6 +526,19 @@ defmodule Lanttern.StudentsInsightsTest do
                StudentsInsights.update_tag(current_user, tag, %{name: nil})
     end
 
+    test "update_tag/3 requires school_management permission" do
+      {_authorized_user, school, _staff_member} = create_test_user()
+      {unauthorized_user, _other_school, _other_staff} = create_test_user_without_permissions()
+
+      # Create tag with authorized user
+      tag = insert(:student_insight_tag, school: school, name: "Test Tag")
+
+      update_attrs = %{name: "Should Fail"}
+
+      assert {:error, :unauthorized} =
+               StudentsInsights.update_tag(unauthorized_user, tag, update_attrs)
+    end
+
     test "delete_tag/2 workflow - authorization controls" do
       {current_user, school, _staff_member} = create_test_user()
 
@@ -515,6 +556,19 @@ defmodule Lanttern.StudentsInsightsTest do
       # Test unauthorized deletion
       assert {:error, :unauthorized} = StudentsInsights.delete_tag(current_user, other_tag)
       assert Lanttern.Repo.get(Tag, other_tag.id) != nil
+    end
+
+    test "delete_tag/2 requires school_management permission" do
+      {_authorized_user, school, _staff_member} = create_test_user()
+      {unauthorized_user, _other_school, _other_staff} = create_test_user_without_permissions()
+
+      # Create tag with authorized user
+      tag = insert(:student_insight_tag, school: school, name: "Test Tag")
+
+      assert {:error, :unauthorized} = StudentsInsights.delete_tag(unauthorized_user, tag)
+
+      # Verify tag still exists
+      assert Lanttern.Repo.get(Tag, tag.id) != nil
     end
 
     test "change_tag/3 returns changeset with optional attributes" do

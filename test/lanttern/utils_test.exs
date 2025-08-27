@@ -1,6 +1,7 @@
 defmodule Lanttern.UtilsTest do
   use ExUnit.Case, async: true
 
+  alias Lanttern.Identity.User
   alias Lanttern.Utils
 
   describe "normalize_attrs_to_atom_keys/1" do
@@ -58,6 +59,32 @@ defmodule Lanttern.UtilsTest do
       expected = %{name: nil, count: 0, active: false, data: ""}
 
       assert Utils.normalize_attrs_to_atom_keys(attrs) == expected
+    end
+  end
+
+  describe "check_permission/2" do
+    test "returns :ok when user has the required permission" do
+      user = %User{current_profile: %{permissions: ["school_management", "other_permission"]}}
+
+      assert Utils.check_permission(user, "school_management") == :ok
+    end
+
+    test "returns {:error, :unauthorized} when user does not have the required permission" do
+      user = %User{current_profile: %{permissions: ["other_permission"]}}
+
+      assert Utils.check_permission(user, "school_management") == {:error, :unauthorized}
+    end
+
+    test "returns {:error, :unauthorized} when user has no permissions" do
+      user = %User{current_profile: %{permissions: []}}
+
+      assert Utils.check_permission(user, "school_management") == {:error, :unauthorized}
+    end
+
+    test "is case sensitive for permission names" do
+      user = %User{current_profile: %{permissions: ["School_Management"]}}
+
+      assert Utils.check_permission(user, "school_management") == {:error, :unauthorized}
     end
   end
 end

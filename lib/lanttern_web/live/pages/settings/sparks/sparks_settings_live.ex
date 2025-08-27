@@ -3,6 +3,7 @@ defmodule LantternWeb.SparksSettingsLive do
 
   alias Lanttern.StudentsInsights
   alias Lanttern.StudentsInsights.Tag
+  alias LantternWeb.PersonalizationHelpers
 
   # shared components
   alias LantternWeb.StudentsInsights.SparksTagFormOverlayComponent
@@ -15,9 +16,20 @@ defmodule LantternWeb.SparksSettingsLive do
 
     socket =
       socket
+      |> assign_can_manage_tags()
       |> stream_tags()
 
     {:ok, socket}
+  end
+
+  defp assign_can_manage_tags(socket) do
+    can_manage_tags =
+      PersonalizationHelpers.profile_has_permission?(
+        socket.assigns.current_user.current_profile,
+        "school_management"
+      )
+
+    assign(socket, :can_manage_tags, can_manage_tags)
   end
 
   defp stream_tags(socket) do

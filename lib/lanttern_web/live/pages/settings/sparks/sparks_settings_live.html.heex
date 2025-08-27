@@ -9,6 +9,7 @@
       {gettext("Sparks tags management")}
     </h2>
     <.action
+      :if={@can_manage_tags}
       type="link"
       patch={~p"/settings/sparks?new=true"}
       icon_name="hero-plus-circle-mini"
@@ -31,6 +32,7 @@
             {tag.name}
           </.badge>
           <.action
+            :if={@can_manage_tags}
             type="link"
             patch={~p"/settings/sparks?tag_id=#{tag.id}"}
             icon_name="hero-pencil-mini"
@@ -48,7 +50,7 @@
     </div>
   <% end %>
   <.live_component
-    :if={@tag}
+    :if={@tag && @can_manage_tags}
     module={SparksTagFormOverlayComponent}
     tag={@tag}
     id="sparks-tag-form-overlay"
