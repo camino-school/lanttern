@@ -475,7 +475,11 @@ defmodule Lanttern.StudentsInsightsTest do
       other_tag = insert(:student_insight_tag, school: other_school, name: "Other Tag")
 
       # Test successful update
-      update_attrs = %{name: "Updated Name", description: "Updated description", bg_color: "#0000ff"}
+      update_attrs = %{
+        name: "Updated Name",
+        description: "Updated description",
+        bg_color: "#0000ff"
+      }
 
       assert {:ok, %Tag{} = updated_tag} =
                StudentsInsights.update_tag(current_user, tag, update_attrs)
@@ -520,7 +524,12 @@ defmodule Lanttern.StudentsInsightsTest do
 
       assert %Ecto.Changeset{} = StudentsInsights.change_tag(current_user, tag)
 
-      changeset = StudentsInsights.change_tag(current_user, tag, %{name: "Changed Name", description: "Changed description"})
+      changeset =
+        StudentsInsights.change_tag(current_user, tag, %{
+          name: "Changed Name",
+          description: "Changed description"
+        })
+
       assert %Ecto.Changeset{} = changeset
       assert changeset.changes.name == "Changed Name"
       assert changeset.changes.description == "Changed description"

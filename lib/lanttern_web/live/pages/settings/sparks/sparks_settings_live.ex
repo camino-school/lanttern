@@ -9,6 +9,10 @@ defmodule LantternWeb.SparksSettingsLive do
 
   @impl true
   def mount(_params, _session, socket) do
+    if connected?(socket) do
+      StudentsInsights.subscribe_student_insight_tags(socket.assigns.current_user)
+    end
+
     socket =
       socket
       |> stream_tags()
@@ -60,20 +64,11 @@ defmodule LantternWeb.SparksSettingsLive do
   # info handlers
 
   @impl true
-  def handle_info({SparksTagFormOverlayComponent, {action, tag}}, socket)
-      when action in [:created, :updated, :deleted] do
-    message =
-      case action do
-        :created -> gettext("Tag created successfully")
-        :updated -> gettext("Tag updated successfully")
-        :deleted -> gettext("Tag deleted successfully")
-      end
+  def handle_info({action, tag}, socket) when action in [:created, :updated] do
+    {:noreply, stream_insert(socket, :tags, tag)}
+  end
 
-    socket =
-      socket
-      |> push_navigate(to: ~p"/settings/sparks")
-      |> put_flash(:info, message)
-
-    {:noreply, socket}
+  def handle_info({action, tag}, socket) when action == :deleted do
+    {:noreply, stream_delete(socket, :tags, tag)}
   end
 end

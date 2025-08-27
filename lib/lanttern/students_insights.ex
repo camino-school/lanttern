@@ -273,6 +273,26 @@ defmodule Lanttern.StudentsInsights do
   # Tag-related functions
 
   @doc """
+  Subscribes to scoped notifications about any student insight tag changes.
+
+  The broadcasted messages match the pattern:
+
+    * {:created, %Tag{}}
+    * {:updated, %Tag{}}
+    * {:deleted, %Tag{}}
+
+  """
+  def subscribe_student_insight_tags(%User{} = user) do
+    key = user.id
+    Phoenix.PubSub.subscribe(Lanttern.PubSub, "user:#{key}:student_insight_tags")
+  end
+
+  defp broadcast_student_insight_tag(%User{} = user, tag) do
+    key = user.id
+    Phoenix.PubSub.broadcast(Lanttern.PubSub, "user:#{key}:student_insight_tags", tag)
+  end
+
+  @doc """
   Returns the list of tags for the current user's school.
 
   ## Options
@@ -350,9 +370,13 @@ defmodule Lanttern.StudentsInsights do
   def create_tag(%User{} = current_user, attrs \\ %{}) do
     attrs = Utils.normalize_attrs_to_atom_keys(attrs)
 
-    %Tag{}
-    |> Tag.changeset(attrs, current_user)
-    |> Repo.insert()
+    with {:ok, tag = %Tag{}} <-
+           %Tag{}
+           |> Tag.changeset(attrs, current_user)
+           |> Repo.insert() do
+      broadcast_student_insight_tag(current_user, {:created, tag})
+      {:ok, tag}
+    end
   end
 
   @doc """
@@ -379,9 +403,13 @@ defmodule Lanttern.StudentsInsights do
     if tag_school_id == current_profile.school_id do
       attrs = Utils.normalize_attrs_to_atom_keys(attrs)
 
-      tag
-      |> Tag.changeset(attrs, current_user)
-      |> Repo.update()
+      with {:ok, %Tag{} = tag} <-
+             tag
+             |> Tag.changeset(attrs, current_user)
+             |> Repo.update() do
+        broadcast_student_insight_tag(current_user, {:updated, tag})
+        {:ok, tag}
+      end
     else
       {:error, :unauthorized}
     end
@@ -403,9 +431,13 @@ defmodule Lanttern.StudentsInsights do
   """
   @spec delete_tag(User.t(), Tag.t()) ::
           {:ok, Tag.t()} | {:error, Ecto.Changeset.t()} | {:error, :unauthorized}
-  def delete_tag(%User{current_profile: current_profile}, %Tag{school_id: tag_school_id} = tag) do
-    if tag_school_id == current_profile.school_id do
-      Repo.delete(tag)
+  def delete_tag(%User{} = current_user, %Tag{school_id: tag_school_id} = tag) do
+    if tag_school_id == current_user.current_profile.school_id do
+      with {:ok, %Tag{} = tag} <-
+             Repo.delete(tag) do
+        broadcast_student_insight_tag(current_user, {:deleted, tag})
+        {:ok, tag}
+      end
     else
       {:error, :unauthorized}
     end

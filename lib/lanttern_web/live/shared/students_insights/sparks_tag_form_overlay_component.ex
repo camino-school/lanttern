@@ -6,21 +6,21 @@ defmodule LantternWeb.StudentsInsights.SparksTagFormOverlayComponent do
 
       attr :tag, Tag, required: true
       attr :title, :string, required: true
-      attr :on_cancel, :any, required: true, doc: "`<.slide_over>` `on_cancel` attr"
       attr :current_user, User, required: true
-      attr :notify_parent, :boolean, default: false
+      attr :return_path, :string, required: true
 
   """
 
   use LantternWeb, :live_component
 
   alias Lanttern.StudentsInsights
+  alias Lanttern.StudentsInsights.Tag
 
   @impl true
   def render(assigns) do
     ~H"""
     <div phx-remove={JS.exec("phx-remove", to: "##{@id}")}>
-      <.slide_over id={@id} show on_cancel={@on_cancel}>
+      <.slide_over id={@id} show on_cancel={JS.patch(@return_path)}>
         <:title>{@title}</:title>
         <.form
           id="sparks-tag-form"
@@ -167,8 +167,12 @@ defmodule LantternWeb.StudentsInsights.SparksTagFormOverlayComponent do
   def handle_event("delete", _, socket) do
     StudentsInsights.delete_tag(socket.assigns.current_user, socket.assigns.tag)
     |> case do
-      {:ok, tag} ->
-        notify(__MODULE__, {:deleted, tag}, socket.assigns)
+      {:ok, %Tag{}} ->
+        socket =
+          socket
+          |> put_flash(:info, gettext("Tag deleted successfully"))
+          |> push_patch_return()
+
         {:noreply, socket}
 
       {:error, %Ecto.Changeset{} = changeset} ->
@@ -187,8 +191,12 @@ defmodule LantternWeb.StudentsInsights.SparksTagFormOverlayComponent do
   defp save_tag(socket, nil, tag_params) do
     StudentsInsights.create_tag(socket.assigns.current_user, tag_params)
     |> case do
-      {:ok, tag} ->
-        notify(__MODULE__, {:created, tag}, socket.assigns)
+      {:ok, %Tag{}} ->
+        socket =
+          socket
+          |> put_flash(:info, gettext("Tag created successfully"))
+          |> push_patch_return()
+
         {:noreply, socket}
 
       {:error, %Ecto.Changeset{} = changeset} ->
@@ -203,12 +211,19 @@ defmodule LantternWeb.StudentsInsights.SparksTagFormOverlayComponent do
       tag_params
     )
     |> case do
-      {:ok, tag} ->
-        notify(__MODULE__, {:updated, tag}, socket.assigns)
+      {:ok, %Tag{}} ->
+        socket =
+          socket
+          |> put_flash(:info, gettext("Tag updated successfully"))
+          |> push_patch_return()
+
         {:noreply, socket}
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign(socket, :form, to_form(changeset))}
     end
   end
+
+  defp push_patch_return(socket),
+    do: push_patch(socket, to: socket.assigns.return_path)
 end

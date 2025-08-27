@@ -53,8 +53,7 @@
     tag={@tag}
     id="sparks-tag-form-overlay"
     title={if(@tag.id, do: gettext("Edit Tag"), else: gettext("New Tag"))}
-    on_cancel={JS.patch(~p"/settings/sparks")}
     current_user={@current_user}
-    notify_parent
+    return_path={~p"/settings/sparks"}
   />
 </Layouts.settings>
