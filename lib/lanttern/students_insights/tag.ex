@@ -14,6 +14,7 @@ defmodule Lanttern.StudentsInsights.Tag do
   @type t :: %__MODULE__{
           id: pos_integer(),
           name: String.t(),
+          description: String.t() | nil,
           bg_color: String.t(),
           text_color: String.t(),
           school: School.t() | Ecto.Association.NotLoaded.t() | nil,
@@ -24,6 +25,7 @@ defmodule Lanttern.StudentsInsights.Tag do
 
   schema "student_insight_tags" do
     field :name, :string
+    field :description, :string
     field :bg_color, :string
     field :text_color, :string
 
@@ -35,7 +37,7 @@ defmodule Lanttern.StudentsInsights.Tag do
   @doc false
   def changeset(tag, attrs, %User{} = current_user) do
     tag
-    |> cast(attrs, [:name, :bg_color, :text_color])
+    |> cast(attrs, [:name, :description, :bg_color, :text_color])
     |> put_change(:school_id, current_user.current_profile.school_id)
     |> validate_required([:name, :bg_color, :text_color, :school_id])
     |> validate_hex_color(:bg_color)

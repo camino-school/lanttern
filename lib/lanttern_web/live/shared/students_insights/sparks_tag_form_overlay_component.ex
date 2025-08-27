@@ -40,21 +40,31 @@ defmodule LantternWeb.StudentsInsights.SparksTagFormOverlayComponent do
             phx-debounce="1500"
           />
           <.input
-            field={@form[:bg_color]}
-            type="text"
-            label={gettext("Background color (hex)")}
-            placeholder="#3b82f6"
+            field={@form[:description]}
+            type="markdown"
+            label={gettext("Tag description")}
             class="mb-6"
             phx-debounce="1500"
+            show_optional
           />
-          <.input
-            field={@form[:text_color]}
-            type="text"
-            label={gettext("Text color (hex)")}
-            placeholder="#ffffff"
-            class="mb-6"
-            phx-debounce="1500"
-          />
+          <div class="flex items-start gap-4 mb-6">
+            <.input
+              field={@form[:bg_color]}
+              type="text"
+              label={gettext("Background color (hex)")}
+              placeholder="#000000"
+              phx-debounce="1500"
+              class="flex-1"
+            />
+            <.input
+              field={@form[:text_color]}
+              type="text"
+              label={gettext("Text color (hex)")}
+              placeholder="#ffffff"
+              phx-debounce="1500"
+              class="flex-1"
+            />
+          </div>
         </.form>
         <.card_base class="p-6">
           <p class="mb-4 text-ltrn-subtle">{gettext("Preview")}</p>

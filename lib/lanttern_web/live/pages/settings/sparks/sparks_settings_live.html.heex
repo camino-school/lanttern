@@ -39,11 +39,11 @@
             {gettext("Edit")}
           </.action>
         </div>
-        <div class="text-ltrn-subtle">
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-          Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-          Ut enim ad minim veniam, quis nostrud exercitation.
-        </div>
+        <%= if tag.description do %>
+          <.markdown text={tag.description} class="line-clamp-3" />
+        <% else %>
+          <p class="text-ltrn-subtle">{gettext("No description for this tag")}</p>
+        <% end %>
       </.card_base>
     </div>
   <% end %>

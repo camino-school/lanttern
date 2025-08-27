@@ -10,6 +10,7 @@ defmodule Lanttern.StudentInsightTagFactory do
 
         %Lanttern.StudentsInsights.Tag{
           name: "Important",
+          description: "Tag description for testing",
           bg_color: "#ff0000",
           text_color: "#ffffff",
           school: school

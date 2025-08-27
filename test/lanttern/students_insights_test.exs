@@ -418,12 +418,14 @@ defmodule Lanttern.StudentsInsightsTest do
       # Test successful creation
       valid_attrs = %{
         name: "Important",
+        description: "This is an important tag for testing",
         bg_color: "#ff0000",
         text_color: "#ffffff"
       }
 
       assert {:ok, %Tag{} = tag} = StudentsInsights.create_tag(current_user, valid_attrs)
       assert tag.name == "Important"
+      assert tag.description == "This is an important tag for testing"
       assert tag.bg_color == "#ff0000"
       assert tag.text_color == "#ffffff"
       assert tag.school_id == current_user.current_profile.school_id
@@ -431,6 +433,7 @@ defmodule Lanttern.StudentsInsightsTest do
       # Test string keys support
       attrs_with_string_keys = %{
         "name" => "String Keys Tag",
+        "description" => "String keys description test",
         "bg_color" => "#00ff00",
         "text_color" => "#000000"
       }
@@ -439,9 +442,25 @@ defmodule Lanttern.StudentsInsightsTest do
                StudentsInsights.create_tag(current_user, attrs_with_string_keys)
 
       assert tag2.name == "String Keys Tag"
+      assert tag2.description == "String keys description test"
       assert tag2.bg_color == "#00ff00"
       assert tag2.text_color == "#000000"
       assert tag2.school_id == current_user.current_profile.school_id
+
+      # Test creating tag without description (optional field)
+      attrs_without_description = %{
+        name: "No Description Tag",
+        bg_color: "#0000ff",
+        text_color: "#ffffff"
+      }
+
+      assert {:ok, %Tag{} = tag3} =
+               StudentsInsights.create_tag(current_user, attrs_without_description)
+
+      assert tag3.name == "No Description Tag"
+      assert tag3.description == nil
+      assert tag3.bg_color == "#0000ff"
+      assert tag3.text_color == "#ffffff"
 
       # Test validation failure
       assert {:error, %Ecto.Changeset{}} =
@@ -456,12 +475,13 @@ defmodule Lanttern.StudentsInsightsTest do
       other_tag = insert(:student_insight_tag, school: other_school, name: "Other Tag")
 
       # Test successful update
-      update_attrs = %{name: "Updated Name", bg_color: "#0000ff"}
+      update_attrs = %{name: "Updated Name", description: "Updated description", bg_color: "#0000ff"}
 
       assert {:ok, %Tag{} = updated_tag} =
                StudentsInsights.update_tag(current_user, tag, update_attrs)
 
       assert updated_tag.name == "Updated Name"
+      assert updated_tag.description == "Updated description"
       assert updated_tag.bg_color == "#0000ff"
       assert updated_tag.id == tag.id
 
@@ -500,9 +520,10 @@ defmodule Lanttern.StudentsInsightsTest do
 
       assert %Ecto.Changeset{} = StudentsInsights.change_tag(current_user, tag)
 
-      changeset = StudentsInsights.change_tag(current_user, tag, %{name: "Changed Name"})
+      changeset = StudentsInsights.change_tag(current_user, tag, %{name: "Changed Name", description: "Changed description"})
       assert %Ecto.Changeset{} = changeset
       assert changeset.changes.name == "Changed Name"
+      assert changeset.changes.description == "Changed description"
     end
 
     test "tags cross-school protection, ordering and empty results" do
