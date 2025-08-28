@@ -15,88 +15,60 @@ defmodule LantternWeb.MessageBoard.CardMessageOverlayComponent do
 
   attr :tz, :string, default: nil
   attr :admin, :string, default: nil
+  attr :full_w, :boolean, default: true
 
   @impl true
   def render(assigns) do
     ~H"""
     <div phx-remove={JS.exec("phx-remove", to: "##{@id}")}>
-      <.slide_over :if={@card_message} id={@id} show={true} on_cancel={@on_cancel}>
-        <div class="p-4">
-          <h1 class="font-display font-black text-4xl">{@card_message.name}</h1>
-
-          <div class="flex flex-row-reverse sm:flex-row items-center gap-2 mt-2 text-xs">
-            <.icon name="hero-calendar-mini" class="w-5 h-5 text-ltrn-subtle" />
-            <div class="flex-1 sm:flex sm:items-center sm:gap-2">
-              {format_by_locale(@card_message.inserted_at, @tz)}
-              <%= if @card_message.inserted_at != @card_message.updated_at do %>
-                <div class="mt-1 sm:mt-0 text-ltrn-subtle">
+      <.slide_over :if={@card_message} id={@id} show={true} on_cancel={@on_cancel} full_y={true} full_w={@full_w} bg_color={@card_message.color}>
+        <div>
+          <%!-- sm:-mx-6 --%>
+          <div id={"#{@id}-header"} class="sticky top-0 z-50 w-full shadow-lg">
+            <.action
+              type="button"
+              theme="subtle"
+              size="md"
+              class="p-4 pb-2"
+              phx-click={JS.exec("data-cancel", to: "##{@id}")}
+            >
+              <.icon name="hero-arrow-left-solid" class="h-6 w-6" />
+            </.action>
+            <div class="flex items-center gap-4 pl-4">
+              <h1 class="font-display font-black text-2xl">{@card_message.name}</h1>
+            </div>
+            <div class="flex sm:flex-row items-center gap-2 mt-1 ml-5 pb-5 text-xs">
+              <.icon name="hero-calendar-mini" class="w-5 h-5" />
+              <div class="flex-1 sm:flex sm:items-center sm:gap-2">
+                <div class="mt-1 sm:mt-0 gap-1">
                   {"(#{gettext("Updated")} #{format_by_locale(@card_message.updated_at, @tz)})"}
                 </div>
-              <% end %>
+              </div>
             </div>
           </div>
-          <%= if @card_message.cover &&  @card_message.cover != "" do %>
-            <img class="w-500 h-64" src={@card_message.cover} alt="message cover image" />
-            <%!-- <.cover_image
-              image_url={@card_message.cover}
-              alt_text={gettext("Message cover image")}
-              empty_state_text={gettext("Message without cover image")}
-              size="sm"
-            /> --%>
-          <% end %>
-          <.responsive_container class="mt-10">
-            <h4 class="font-display font-black text-2xl">{@card_message.subtitle}</h4>
-            <p class="mt-2 font-display font-black text-2xl text-ltrn-subtle">
-              <%!-- <%= gettext("card_message of %{strand}", strand: @strand.subtitle) %> --%>
-            </p>
-            <%!-- <div class="flex flex-wrap gap-2 mt-4">
-                <.badge :for={subject <- @card_message.subjects} theme="dark">
-                  <%= Gettext.dgettext(Lanttern.Gettext, "taxonomy", subject.name) %>
-                </.badge>
-              </div> --%>
-
-            <%!-- <h3 class="mt-16 font-display font-black text-3xl"><%= gettext("Attachments") %></h3> --%>
-            <%!-- <div id="card_message-curriculum-items" phx-update="stream">
-                <div :for={{dom_id, curriculum_item} <- @streams.curriculum_items} id={dom_id} class="mt-6">
-                  <.badge theme="dark"><%= curriculum_item.curriculum_component.name %></.badge>
-                  <p class="mt-4"><%= curriculum_item.name %></p>
-                </div>
-              </div> --%>
-          </.responsive_container>
-          <.markdown text={@card_message.description} class="mt-10" />
         </div>
-        <:actions_left :if={@card_message.id && @admin != nil}>
-          <.action
-            type="button"
-            theme="subtle"
-            size="md"
-            phx-click="delete"
-            phx-target={@myself}
-            data-confirm={gettext("Are you sure?")}
-          >
-            {gettext("Delete")}
-          </.action>
-        </:actions_left>
-        <:actions :if={@admin != nil}>
-          <.action
-            type="button"
-            theme="subtle"
-            size="md"
-            phx-click={JS.exec("data-cancel", to: "##{@id}")}
-          >
-            {gettext("Cancel")}
-          </.action>
-          <.action
-            type="submit"
-            theme="primary"
-            size="md"
-            icon_name="hero-check"
-            form="ilp-comment-form"
-            id="save-action-ilp-comment"
-          >
-            {gettext("Save")}
-          </.action>
-        </:actions>
+        <div class="relative">
+          <%= if @card_message.cover &&  @card_message.cover != "" do %>
+            <img class="w-full h-64 object-cover shadow-xl" src={@card_message.cover} alt="message cover image" />
+          <% end %>
+          <div class="mt-10 m-4 px-4">
+            <%!-- <div class={"mt-10 px-4 sm:px-6"}>
+              <h4 class="font-display font-bold text-base">{@card_message.subtitle}</h4>
+              <p class="mt-2 font-display font-bold text-base text-ltrn-subtle">
+              </p>
+            </div> --%>
+            <.markdown text={@card_message.description} />
+            <hr style={"color: #CBD5E1"} class="my-4">
+            <h4 class="font-display font-bold text-base">{gettext("Category")}</h4>
+            <.badge
+              color_map={@card_message.color}
+              id={"category-#{@card_message.section_id}-#{@card_message.id}"}
+            >
+              {"##{@card_message.section_id}"}
+            </.badge>
+          </div>
+
+        </div>
       </.slide_over>
     </div>
     """

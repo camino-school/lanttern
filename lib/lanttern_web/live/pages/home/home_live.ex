@@ -233,7 +233,7 @@ defmodule LantternWeb.HomeLive do
       <.responsive_container class="mt-16">
         <div class="space-y-8">
           <div>
-            <h2 class="text-2xl font-bold text-gray-800 mb-2">
+            <h2 class="font-display font-black text-2xl mb-2">
               {gettext("Message board")}
             </h2>
           </div>
@@ -241,12 +241,12 @@ defmodule LantternWeb.HomeLive do
           <%= for section <- @sections do %>
             <div class="space-y-4">
               <div>
-                <h3 class="text-xl font-semibold text-gray-700 mb-1">
+                <h3 class="text-lg font-bold text-gray-700 mb-1">
                   {section.name}
                 </h3>
               </div>
 
-              <div id={"section-#{section.id}-messages-wrapper"} class="relative">
+              <div id={"section-#{section.id}-messages-wrapper"} class="relative" style="overflow: visible;">
                 <!-- Carousel - horizontal scroll with snap on mobile, grid fallback on md+ -->
                 <div
                   id={"section-#{section.id}-messages"}
@@ -256,26 +256,29 @@ defmodule LantternWeb.HomeLive do
                     <div
                       id={"section-#{section.id}-message-#{message.id}"}
                       class="snap-center flex-shrink-0 w-80 md:w-auto md:static"
+                      style="overflow: visible;"
                     >
-                      <.message_card message={message} />
+                      <div class="overflow-visible mt-1 mb-9 md:mb-1"> <!-- mobile bottom gutter so shadow is visible (mb-9 ~=36px) -->
+                        <.message_card message={message} />
+                      </div>
                     </div>
                   <% end %>
                 </div>
-                
-    <!-- Indicators (anchors to each snap item) - hidden on md+ -->
-                <div class="mt-3 flex items-center justify-center space-x-2 md:hidden indicators">
+
+                <!-- Indicators (anchors to each snap item) - hidden on md+ -->
+                <div class="mt-0 flex items-center justify-center space-x-2 md:hidden indicators">
                   <%= for message <- section.messages do %>
                     <a
                       href={"#section-#{section.id}-message-#{message.id}"}
-                      class="block w-2 h-2 rounded-full bg-white focus:outline-none indicator-dot"
-                      style="border: 1px solid #94A3B8;"
+          class="block w-2 h-2 rounded-full bg-white focus:outline-none indicator-dot"
+          style="border: 1px solid #94A3B8;"
                       aria-label={gettext("Go to message %{id}", id: message.id)}
                     >
                     </a>
                   <% end %>
                 </div>
-                
-    <!-- per-message CSS to color the indicator when the corresponding card is targeted -->
+
+                <!-- per-message CSS to color the indicator when the corresponding card is targeted -->
                 <style>
                   <%= for message <- section.messages do %>
                     #section-<%= section.id %>-messages-wrapper:has(#section-<%= section.id %>-message-<%= message.id %>:target) .indicators a[href="#section-<%= section.id %>-message-<%= message.id %>"] {
@@ -333,6 +336,7 @@ defmodule LantternWeb.HomeLive do
       card_message={@card_message}
       id={"card-message-overlay-#{@card_message.id}"}
       on_cancel={JS.patch(if @profile_type == "guardian", do: ~p"/guardian", else: ~p"/student")}
+      full_w={true}
       base_path={if @profile_type == "guardian", do: ~p"/guardian", else: ~p"/student"}
       current_user={@current_user}
       tz={@current_user.tz}

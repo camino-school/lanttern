@@ -162,6 +162,9 @@ defmodule LantternWeb.OverlayComponents do
   attr :show, :boolean, default: false
   attr :on_cancel, JS, default: %JS{}
   attr :prevent_close_on_click_away, :boolean, default: false
+  attr :full_y, :boolean, default: false
+  attr :full_w, :boolean, default: false
+  attr :bg_color, :string, default: ""
 
   slot :title
   slot :inner_block, required: true
@@ -169,6 +172,18 @@ defmodule LantternWeb.OverlayComponents do
   slot :actions_left
 
   def slide_over(assigns) do
+    bg_style =
+      if Map.get(assigns, :bg_color, "") != "" and not is_nil(assigns.bg_color) do
+        color = assigns.bg_color || "#FFE4E6"
+        "background-image: radial-gradient(circle at 100% 160px, #{color}33 240px, transparent 360px), " <>
+          "radial-gradient(circle at 85% -200px, #{color}44 360px, transparent 480px), " <>
+          "radial-gradient(circle at 15% 96px, #{color}22 360px, transparent 480px);"
+      else
+        nil
+      end
+
+    assigns = assign(assigns, :bg_style, bg_style)
+
     ~H"""
     <div
       id={@id}
@@ -189,7 +204,7 @@ defmodule LantternWeb.OverlayComponents do
       >
         <div class="absolute inset-0 overflow-hidden">
           <div class={[
-            "pointer-events-none fixed top-20 bottom-0 flex max-w-full",
+            "#{if @full_y, do: "top-0", else: "top-20"} pointer-events-none fixed bottom-0 flex max-w-full",
             "md:inset-y-0 md:right-0"
           ]}>
             <.focus_wrap
@@ -199,18 +214,18 @@ defmodule LantternWeb.OverlayComponents do
               phx-click-away={
                 if not @prevent_close_on_click_away, do: JS.exec("data-cancel", to: "##{@id}")
               }
-              class="pointer-events-auto w-screen md:max-w-xl transition-translate"
+              class={"pointer-events-auto w-screen md:max-w-xl transition-translate"}
             >
               <div class="flex flex-col h-full divide-y divide-ltrn-lighter bg-white shadow-xl rounded-l">
-                <div class="flex-1 min-h-0 overflow-y-scroll ltrn-bg-slide-over">
+                <div class="flex-1 min-h-0 overflow-y-scroll ltrn-bg-slide-over" style={@bg_style}>
                   <h2
                     :if={@title != []}
-                    class="px-4 sm:px-6 py-6 font-display font-black text-3xl"
+                    class={"px-4 sm:px-6 py-6 font-display font-black text-3xl"}
                     id={"#{@id}-title"}
                   >
                     {render_slot(@title)}
                   </h2>
-                  <div id={"#{@id}-content"} class="p-4 sm:px-6">
+                  <div id={"#{@id}-content"} class={if @full_w, do: "p-0", else: "p-4 sm:px-6"}>
                     {render_slot(@inner_block)}
                   </div>
                 </div>
