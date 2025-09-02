@@ -233,7 +233,7 @@ defmodule LantternWeb.HomeLive do
       <.responsive_container class="mt-16">
         <div class="space-y-8">
           <div>
-            <h2 class="font-display font-black text-2xl mb-2 px-6 md:px-0">
+            <h2 class="flex items-center gap-2 font-display font-black text-2xl">
               {gettext("Message board")}
             </h2>
           </div>
@@ -301,7 +301,7 @@ defmodule LantternWeb.HomeLive do
                   </style>
                 </div>
               </div>
-              
+
     <!-- Desktop/tablet: use existing grid within responsive container -->
               <div class="hidden md:block">
                 <div>

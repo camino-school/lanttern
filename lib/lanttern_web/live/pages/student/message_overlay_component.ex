@@ -32,9 +32,8 @@ defmodule LantternWeb.MessageBoard.CardMessageOverlayComponent do
         full_w={@full_w}
         bg_color={@card_message.color}
       >
-        <div>
-          <%!-- sm:-mx-6 --%>
-          <div id={"#{@id}-header"} class="sticky top-0 z-50 w-full shadow-lg">
+        <div class="flex flex-col h-full">
+          <div id={"#{@id}-header"} class="sticky top-0 z-50 w-full shadow-lg bg-white" style={"background-image: radial-gradient(circle at 100% 160px, #{@card_message.color}1f 140px, transparent 360px)"}>
             <.action
               type="button"
               theme="subtle"
@@ -44,9 +43,11 @@ defmodule LantternWeb.MessageBoard.CardMessageOverlayComponent do
             >
               <.icon name="hero-arrow-left-solid" class="h-6 w-6" />
             </.action>
+
             <div class="flex items-center gap-4 pl-4">
               <h1 class="font-display font-black text-2xl">{@card_message.name}</h1>
             </div>
+
             <div class="flex sm:flex-row items-center gap-2 mt-1 ml-5 pb-5 text-xs">
               <.icon name="hero-calendar-mini" class="w-5 h-5" />
               <div class="flex-1 sm:flex sm:items-center sm:gap-2">
@@ -56,36 +57,38 @@ defmodule LantternWeb.MessageBoard.CardMessageOverlayComponent do
               </div>
             </div>
           </div>
-        </div>
-        <div class="relative">
-          <%= if @card_message.cover &&  @card_message.cover != "" do %>
-            <img class="w-full h-64 object-cover" src={@card_message.cover} alt="message cover image" />
-          <% end %>
-          <div class="m-6 sm:px-2">
-            <h4 class="font-display font-bold text-base">{@card_message.subtitle}</h4>
-            <.markdown text={@card_message.description} theme="overlay" class="mt-4" />
 
-            <.live_component
-              :if={@card_message.id}
-              module={AttachmentRenderComponent}
-              id="message-attachments"
-              title={gettext("Attachments")}
-              notify_parent
-              class="mt-10"
-              current_profile={@current_user.current_profile}
-              message_id={@card_message.id}
-            />
+          <div class="flex-1 overflow-y-auto relative">
+            <%= if @card_message.cover && @card_message.cover != "" do %>
+              <img class="w-full h-64 object-cover" src={@card_message.cover} alt="message cover image" />
+            <% end %>
 
-            <hr style="color: #CBD5E1" class="my-6" />
-            <div class="m-4">
-              <h4 class="font-display font-bold text-base ">{gettext("Category")}</h4>
-              <.badge
-                class="rounded-lg"
-                color_map={@card_message.color}
-                id={"category-#{@card_message.section_id}-#{@card_message.id}"}
-              >
-                {"##{gettext("Geral")}"}
-              </.badge>
+            <div class="m-6 sm:px-2">
+              <h4 class="font-display font-bold text-base">{@card_message.subtitle}</h4>
+              <.markdown text={@card_message.description} theme="overlay" class="mt-4" />
+
+              <.live_component
+                :if={@card_message.id}
+                module={AttachmentRenderComponent}
+                id="message-attachments"
+                title={gettext("Attachments")}
+                notify_parent
+                class="mt-10"
+                current_profile={@current_user.current_profile}
+                message_id={@card_message.id}
+              />
+
+              <hr style="color: #CBD5E1" class="my-6" />
+              <div class="m-4">
+                <h4 class="font-display font-bold text-base ">{gettext("Category")}</h4>
+                <.badge
+                  class="rounded-lg"
+                  color_map={@card_message.color}
+                  id={"category-#{@card_message.section_id}-#{@card_message.id}"}
+                >
+                  {"##{gettext("Geral")}"}
+                </.badge>
+              </div>
             </div>
           </div>
         </div>
