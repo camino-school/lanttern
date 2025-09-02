@@ -23,7 +23,15 @@ defmodule LantternWeb.MessageBoard.CardMessageOverlayComponent do
   def render(assigns) do
     ~H"""
     <div phx-remove={JS.exec("phx-remove", to: "##{@id}")}>
-      <.slide_over :if={@card_message} id={@id} show={true} on_cancel={@on_cancel} full_y={true} full_w={@full_w} bg_color={@card_message.color}>
+      <.slide_over
+        :if={@card_message}
+        id={@id}
+        show={true}
+        on_cancel={@on_cancel}
+        full_y={true}
+        full_w={@full_w}
+        bg_color={@card_message.color}
+      >
         <div>
           <%!-- sm:-mx-6 --%>
           <div id={"#{@id}-header"} class="sticky top-0 z-50 w-full shadow-lg">
@@ -55,7 +63,7 @@ defmodule LantternWeb.MessageBoard.CardMessageOverlayComponent do
           <% end %>
           <div class="m-6 sm:px-2">
             <h4 class="font-display font-bold text-base">{@card_message.subtitle}</h4>
-            <.markdown text={@card_message.description} theme="overlay" class="mt-4"/>
+            <.markdown text={@card_message.description} theme="overlay" class="mt-4" />
 
             <.live_component
               :if={@card_message.id}
@@ -68,7 +76,7 @@ defmodule LantternWeb.MessageBoard.CardMessageOverlayComponent do
               message_id={@card_message.id}
             />
 
-            <hr style={"color: #CBD5E1"} class="my-6">
+            <hr style="color: #CBD5E1" class="my-6" />
             <div class="m-4">
               <h4 class="font-display font-bold text-base ">{gettext("Category")}</h4>
               <.badge
@@ -80,7 +88,6 @@ defmodule LantternWeb.MessageBoard.CardMessageOverlayComponent do
               </.badge>
             </div>
           </div>
-
         </div>
       </.slide_over>
     </div>

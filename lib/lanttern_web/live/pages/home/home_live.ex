@@ -233,60 +233,109 @@ defmodule LantternWeb.HomeLive do
       <.responsive_container class="mt-16">
         <div class="space-y-8">
           <div>
-            <h2 class="font-display font-black text-2xl mb-2">
+            <h2 class="font-display font-black text-2xl mb-2 px-6 md:px-0">
               {gettext("Message board")}
             </h2>
           </div>
 
           <%= for section <- @sections do %>
             <div class="space-y-4 px-0">
-              <div>
-                <h3 class="text-lg font-bold mb-1">
-                  {section.name}
-                </h3>
-              </div>
+              <!-- Mobile-only full-bleed carousel -->
+              <div class="md:hidden -mx-6">
+                <div>
+                  <h3 class="text-lg font-bold mb-1 pl-6">
+                    {section.name}
+                  </h3>
+                </div>
 
-              <div id={"section-#{section.id}-messages-wrapper"} class="relative" style="overflow: visible;">
-                <!-- Carousel - horizontal scroll with snap on mobile, grid fallback on md+ -->
                 <div
-                  id={"section-#{section.id}-messages"}
-                  class="hide-scrollbar snap-x snap-mandatory overflow-x-auto md:overflow-visible md:snap-none flex md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-4 gap-4"
+                  id={"section-#{section.id}-messages-wrapper-mobile"}
+                  class="relative"
+                  style="overflow: visible;"
                 >
-                  <%= for message <- section.messages do %>
-                    <div
-                      id={"section-#{section.id}-message-#{message.id}"}
-                      class="snap-center flex-shrink-0 w-80 md:w-auto md:static"
-                      style="overflow: visible;"
-                    >
-                      <div class="overflow-auto-x mt-1 mb-9 md:mb-1"> <!-- mobile bottom gutter so shadow is visible (mb-9 ~=36px) -->
-                        <.message_card message={message} />
+                  <div
+                    id={"section-#{section.id}-messages-mobile"}
+                    class="hide-scrollbar snap-x snap-mandatory overflow-x-auto flex gap-4 pl-0"
+                  >
+                    <!-- spacer to offset first card by 16px on mobile -->
+                    <div class="flex-shrink-0" style="width:10px;" aria-hidden="true"></div>
+                    <%= for message <- section.messages do %>
+                      <div
+                        id={"section-#{section.id}-message-#{message.id}-mobile"}
+                        class="snap-center flex-shrink-0 w-[80vw] max-w-[320px]"
+                        style="overflow: visible;"
+                      >
+                        <div class="mt-1 mb-9">
+                          <!-- mobile bottom gutter so shadow is visible -->
+                          <.message_card
+                            id={"section-#{section.id}-message-#{message.id}-card-mobile"}
+                            message={message}
+                            class="mx-0"
+                          />
+                        </div>
                       </div>
-                    </div>
-                  <% end %>
+                    <% end %>
+                    <!-- trailing spacer to balance the initial offset -->
+                    <div class="flex-shrink-0" style="width:10px;" aria-hidden="true"></div>
+                  </div>
+
+                  <div class="mt-0 flex items-center justify-center space-x-2 indicators">
+                    <%= for message <- section.messages do %>
+                      <a
+                        href={"#section-#{section.id}-message-#{message.id}-mobile"}
+                        class="block w-2 h-2 rounded-full bg-white focus:outline-none indicator-dot"
+                        style="border: 1px solid #94A3B8;"
+                        aria-label={gettext("Go to message %{id}", id: message.id)}
+                      >
+                      </a>
+                    <% end %>
+                  </div>
+
+                  <style>
+                    <%= for message <- section.messages do %>
+                      #section-<%= section.id %>-messages-wrapper-mobile:has(#section-<%= section.id %>-message-<%= message.id %>-mobile:target) .indicators a[href="#section-<%= section.id %>-message-<%= message.id %>-mobile"] {
+                        background: #94A3B8;
+                        border-color: #94A3B8;
+                      }
+                    <% end %>
+                  </style>
+                </div>
+              </div>
+              
+    <!-- Desktop/tablet: use existing grid within responsive container -->
+              <div class="hidden md:block">
+                <div>
+                  <h3 class="text-lg font-bold mb-1 px-6 md:px-0">
+                    {section.name}
+                  </h3>
                 </div>
 
-                <!-- Indicators (anchors to each snap item) - hidden on md+ -->
-                <div class="mt-0 flex items-center justify-center space-x-2 md:hidden indicators">
-                  <%= for message <- section.messages do %>
-                    <a
-                      href={"#section-#{section.id}-message-#{message.id}"}
-          class="block w-2 h-2 rounded-full bg-white focus:outline-none indicator-dot"
-          style="border: 1px solid #94A3B8;"
-                      aria-label={gettext("Go to message %{id}", id: message.id)}
-                    >
-                    </a>
-                  <% end %>
+                <div
+                  id={"section-#{section.id}-messages-wrapper"}
+                  class="relative"
+                  style="overflow: visible;"
+                >
+                  <div
+                    id={"section-#{section.id}-messages"}
+                    class="hide-scrollbar ml-0 snap-none md:overflow-visible md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-4 gap-4 md:px-0"
+                  >
+                    <%= for message <- section.messages do %>
+                      <div
+                        id={"section-#{section.id}-message-#{message.id}"}
+                        class="md:static md:w-auto md:max-w-none"
+                        style="overflow: visible;"
+                      >
+                        <div class="mt-0 mb-1">
+                          <.message_card
+                            id={"section-#{section.id}-message-#{message.id}-card"}
+                            message={message}
+                            class="mx-0"
+                          />
+                        </div>
+                      </div>
+                    <% end %>
+                  </div>
                 </div>
-
-                <!-- per-message CSS to color the indicator when the corresponding card is targeted -->
-                <style>
-                  <%= for message <- section.messages do %>
-                    #section-<%= section.id %>-messages-wrapper:has(#section-<%= section.id %>-message-<%= message.id %>:target) .indicators a[href="#section-<%= section.id %>-message-<%= message.id %>"] {
-                      background: #94A3B8;
-                      border-color: #94A3B8;
-                    }
-                  <% end %>
-                </style>
               </div>
             </div>
           <% end %>

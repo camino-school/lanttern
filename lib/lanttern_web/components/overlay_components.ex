@@ -175,9 +175,10 @@ defmodule LantternWeb.OverlayComponents do
     bg_style =
       if Map.get(assigns, :bg_color, "") != "" and not is_nil(assigns.bg_color) do
         color = assigns.bg_color || "#FFE4E6"
+
         "background-image: radial-gradient(circle at 100% 160px, #{color}1f 240px, transparent 360px), " <>
-        "radial-gradient(circle at 85% -200px, #{color}14 360px, transparent 480px), " <>
-        "radial-gradient(circle at 15% 96px, #{color}10 360px, transparent 480px);"
+          "radial-gradient(circle at 85% -200px, #{color}14 360px, transparent 480px), " <>
+          "radial-gradient(circle at 15% 96px, #{color}10 360px, transparent 480px);"
       else
         nil
       end
@@ -214,13 +215,13 @@ defmodule LantternWeb.OverlayComponents do
               phx-click-away={
                 if not @prevent_close_on_click_away, do: JS.exec("data-cancel", to: "##{@id}")
               }
-              class={"pointer-events-auto w-screen md:max-w-xl transition-translate"}
+              class="pointer-events-auto w-screen md:max-w-xl transition-translate"
             >
               <div class="flex flex-col h-full divide-y divide-ltrn-lighter bg-white shadow-xl rounded-l">
                 <div class="flex-1 min-h-0 overflow-y-scroll ltrn-bg-slide-over" style={@bg_style}>
                   <h2
                     :if={@title != []}
-                    class={"px-4 sm:px-6 py-6 font-display font-black text-3xl"}
+                    class="px-4 sm:px-6 py-6 font-display font-black text-3xl"
                     id={"#{@id}-title"}
                   >
                     {render_slot(@title)}
@@ -398,6 +399,7 @@ defmodule LantternWeb.OverlayComponents do
   # convert hex color like "#RRGGBB" or "RRGGBB" to "r, g, b"
   defp hex_to_rgb(<<"#", hex::binary-size(6)>>) do
     <<r::binary-size(2), g::binary-size(2), b::binary-size(2)>> = hex
+
     [r, g, b]
     |> Enum.map(fn h -> String.to_integer(h, 16) end)
     |> Enum.join(", ")

@@ -33,7 +33,7 @@ defmodule LantternWeb.Attachments.AttachmentRenderComponent do
   def render(assigns) do
     ~H"""
     <div class={[@class, if(@attachments_length == 0, do: "hidden")]}>
-      <div :if={@attachments_length > 0} >
+      <div :if={@attachments_length > 0}>
         <ul id={@id} phx-update="stream" class={@class}>
           <li
             :for={{dom_id, {attachment, i}} <- @streams.attachments}
@@ -42,32 +42,34 @@ defmodule LantternWeb.Attachments.AttachmentRenderComponent do
           >
             <div class="flex-1 min-w-0 bg-white shadow-lg rounded">
               <%= if(attachment.is_external) do %>
-              <div class= "m-4 rounded">
-                <div class="text-sm text-gray-500 mb-2">
-                  {gettext("External link")}
+                <div class="m-4 rounded">
+                  <div class="text-sm text-gray-500 mb-2">
+                    {gettext("External link")}
+                  </div>
+                  <a
+                    href={attachment.link}
+                    target="_blank"
+                    class="inline-flex items-center space-x-2 text-sm font-semibold underline hover:text-ltrn-subtle"
+                  >
+                    <%!-- <img src="/images/icons/google-drive.png" alt="Google Drive Icon" class="h-5 w-5" /> --%>
+                    <.icon name="hero-link" class="w-6 h-6" />
+                    <span>{attachment.name}</span>
+                  </a>
                 </div>
-                <a
-                  href={attachment.link}
-                  target="_blank"
-                  class="inline-flex items-center space-x-2 text-sm font-semibold underline hover:text-ltrn-subtle"
-                >
-                  <%!-- <img src="/images/icons/google-drive.png" alt="Google Drive Icon" class="h-5 w-5" /> --%>
-                  <.icon name="hero-link" class="w-6 h-6" />
-                  <span><%= attachment.name %></span>
-                </a>
-              </div>
               <% else %>
                 <.link
-                  phx-click={JS.push("signed_url", value: %{"url" => attachment.link}, target: @myself)}
+                  phx-click={
+                    JS.push("signed_url", value: %{"url" => attachment.link}, target: @myself)
+                  }
                   class="flex items-center w-full bg-white gap-4 rounded"
                   target="_blank"
                 >
                   <div class="flex flex-col flex-grow min-w-0 m-4">
                     <strong class="font-semibold hover:text-ltrn-subtle truncate">
-                      <%= Path.basename(attachment.name) %>
+                      {Path.basename(attachment.name)}
                     </strong>
                     <span class="text-sm text-gray-500">
-                      <%= file_type_label(attachment.name) %>
+                      {file_type_label(attachment.name)}
                     </span>
                   </div>
                   <%= if is_image_url?(attachment.link) do %>
@@ -80,7 +82,6 @@ defmodule LantternWeb.Attachments.AttachmentRenderComponent do
                 </.link>
               <% end %>
             </div>
-
           </li>
         </ul>
       </div>
@@ -167,8 +168,7 @@ defmodule LantternWeb.Attachments.AttachmentRenderComponent do
   defp is_image_url?(_), do: false
 
   defp file_type_label(url) do
-  ext = url |> Path.extname() |> String.trim_leading(".") |> String.upcase()
-  "#{ext} image"
-end
-
+    ext = url |> Path.extname() |> String.trim_leading(".") |> String.upcase()
+    "#{ext} image"
+  end
 end
