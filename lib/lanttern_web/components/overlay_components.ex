@@ -175,9 +175,9 @@ defmodule LantternWeb.OverlayComponents do
     bg_style =
       if Map.get(assigns, :bg_color, "") != "" and not is_nil(assigns.bg_color) do
         color = assigns.bg_color || "#FFE4E6"
-        "background-image: radial-gradient(circle at 100% 160px, #{color}33 240px, transparent 360px), " <>
-          "radial-gradient(circle at 85% -200px, #{color}44 360px, transparent 480px), " <>
-          "radial-gradient(circle at 15% 96px, #{color}22 360px, transparent 480px);"
+        "background-image: radial-gradient(circle at 100% 160px, #{color}1f 240px, transparent 360px), " <>
+        "radial-gradient(circle at 85% -200px, #{color}14 360px, transparent 480px), " <>
+        "radial-gradient(circle at 15% 96px, #{color}10 360px, transparent 480px);"
       else
         nil
       end
@@ -394,6 +394,20 @@ defmodule LantternWeb.OverlayComponents do
     |> JS.remove_class("overflow-hidden", to: "body")
     |> JS.pop_focus()
   end
+
+  # convert hex color like "#RRGGBB" or "RRGGBB" to "r, g, b"
+  defp hex_to_rgb(<<"#", hex::binary-size(6)>>) do
+    <<r::binary-size(2), g::binary-size(2), b::binary-size(2)>> = hex
+    [r, g, b]
+    |> Enum.map(fn h -> String.to_integer(h, 16) end)
+    |> Enum.join(", ")
+  end
+
+  defp hex_to_rgb(<<hex::binary-size(6)>>) do
+    hex_to_rgb("#" <> hex)
+  end
+
+  defp hex_to_rgb(_), do: "238, 228, 230"
 
   @doc """
   Renders a menu button.

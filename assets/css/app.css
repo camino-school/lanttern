@@ -327,3 +327,29 @@ button {
 .indicator-dot {
   transition: background-color 200ms ease, border-color 200ms ease;
 }
+
+/* Prose overlay explicit rules as a fallback / guaranteed mapping
+   Use by calling <.markdown theme="overlay" ...> which outputs
+   class="prose prose-overlay ..." via CoreComponents.markdown
+*/
+.prose-overlay {
+  /* component wrapper for prose-overlay - rules inside @layer components */
+}
+
+@layer components {
+  .prose-overlay :where(h1) {
+    @apply font-display font-bold text-3xl;
+  }
+
+  .prose-overlay :where(h2) {
+    @apply font-display font-bold text-base;
+  }
+
+  .prose-overlay :where(h3) {
+    @apply font-display font-bold text-sm;
+  }
+
+  .prose-overlay :where(h4) {
+    @apply font-display font-bold text-xs;
+  }
+}

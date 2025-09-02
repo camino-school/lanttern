@@ -127,7 +127,7 @@ defmodule LantternWeb.MessageBoard.Components do
         <div class="flex items-start gap-4">
           <div class="flex-1 min-w-0">
             <div class="flex items-center gap-2 mb-2">
-              <h3 class={"font-display font-black text-xl text-gray-800 " <> (if @message.cover && @message.cover != "", do: "truncate", else: "")} title={@message.name}>
+              <h3 class={"font-display font-black text-xl" <> (if @message.cover && @message.cover != "", do: " truncate", else: "")} title={@message.name}>
                 {@message.name}
               </h3>
             </div>
@@ -138,7 +138,7 @@ defmodule LantternWeb.MessageBoard.Components do
             <.action
               :if={@edit_patch}
               id={"message-#{@message.id}-edit"}
-              class="inline-flex hover:text-gray-600 group-hover:text-gray-900"
+              class="inline-flex hover:text-gray-600 group-hover:text-slate-700"
               type="link"
               patch={@edit_patch}
               theme="subtle"
@@ -151,7 +151,7 @@ defmodule LantternWeb.MessageBoard.Components do
             {@message.subtitle}
           </p>
           <div class="absolute bottom-3 right-4">
-            <button class="w-full flex items-center justify-between gap-[14px] text-gray-900 hover:text-gray-900 transition-colors group-hover:text-blue-600">
+            <button class="w-full flex items-center justify-between gap-[14px] transition-colors group-hover:text-blue-600">
               <span class="font-display font-bold text-base" phx-click="card_lookout" phx-value-id={@message.id}>
                 {gettext("Find out more")}&nbsp
               </span>
@@ -170,7 +170,7 @@ defmodule LantternWeb.MessageBoard.Components do
   def message_card(assigns) do
     ~H"""
     <div
-      class="aspect-square max-w-312 bg-white/90 backdrop-blur-sm rounded-sm border border-l-12 border-ltrn-lightest group cursor-pointer shadow-xl z-20"
+      class="overflow-auto-x aspect-square max-w-80 bg-white/90 backdrop-blur-sm rounded-sm border border-l-12 border-ltrn-lightest group cursor-pointer shadow-xl z-20"
       style={"border-color: var(--color-ltrn-lightest); border-left-color: #{@message.color};"}
     >
       <%= if @message.cover && @message.cover != "" do %>
@@ -185,7 +185,7 @@ defmodule LantternWeb.MessageBoard.Components do
         <div class="flex items-start">
           <div class="flex-1 min-w-0">
             <div class="flex items-center gap-2 mb-2">
-              <h3 class={"font-display font-black text-xl text-gray-800 " <> (if @message.cover && @message.cover != "", do: "truncate", else: "")} title={@message.name}>
+              <h3 class={"font-display font-black text-xl" <> (if @message.cover && @message.cover != "", do: " truncate", else: "")} title={@message.name}>
                 {@message.name}
               </h3>
             </div>
@@ -195,8 +195,8 @@ defmodule LantternWeb.MessageBoard.Components do
           </div>
         </div>
         <div class="absolute bottom-3 right-4">
-          <button class="w-full flex items-center justify-between gap-[14px] text-gray-900 hover:text-gray-900 transition-colors group-hover:text-slate-400">
-            <span class="font-display font-bold text-base" phx-click="card_lookout" phx-value-id={@message.id}>
+          <button class="w-full flex items-center justify-between gap-[14px] hover:text-slate-700 transition-colors group-hover:text-slate-400">
+            <span class="font-display font-bold  text-sm" phx-click="card_lookout" phx-value-id={@message.id}>
               {gettext("See more")}
             </span>
             <.icon

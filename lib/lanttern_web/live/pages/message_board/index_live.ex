@@ -310,7 +310,7 @@ defmodule LantternWeb.MessageBoard.IndexLive do
                 <div class="flex items-center justify-between p-4 border-gray-200">
                   <div class="flex items-center space-x-3">
                     <%!-- <.icon name="hero-bars-2" class="w-5 h-5 text-gray-400 cursor-move" /> --%>
-                    <h2 class="text-lg font-bold text-gray-800">{section.name}</h2>
+                    <h2 class="text-lg font-bold">{section.name}</h2>
                   </div>
                   <div class="flex items-center space-x-2">
                     <.action

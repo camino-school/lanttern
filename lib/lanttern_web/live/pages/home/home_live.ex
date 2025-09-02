@@ -239,9 +239,9 @@ defmodule LantternWeb.HomeLive do
           </div>
 
           <%= for section <- @sections do %>
-            <div class="space-y-4">
+            <div class="space-y-4 px-0">
               <div>
-                <h3 class="text-lg font-bold text-gray-700 mb-1">
+                <h3 class="text-lg font-bold mb-1">
                   {section.name}
                 </h3>
               </div>
@@ -258,7 +258,7 @@ defmodule LantternWeb.HomeLive do
                       class="snap-center flex-shrink-0 w-80 md:w-auto md:static"
                       style="overflow: visible;"
                     >
-                      <div class="overflow-visible mt-1 mb-9 md:mb-1"> <!-- mobile bottom gutter so shadow is visible (mb-9 ~=36px) -->
+                      <div class="overflow-auto-x mt-1 mb-9 md:mb-1"> <!-- mobile bottom gutter so shadow is visible (mb-9 ~=36px) -->
                         <.message_card message={message} />
                       </div>
                     </div>

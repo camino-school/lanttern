@@ -68,7 +68,7 @@ defmodule LantternWeb.MessageBoard.ReorderComponent do
             id={"sortable-#{section.id}"}
             class="mb-4"
           >
-            <h2 class="text-lg font-semibold text-gray-800">{section.name}</h2>
+            <h2 class="text-lg font-semibold">{section.name}</h2>
           </.dragable_card>
         </div>
       <% end %>
