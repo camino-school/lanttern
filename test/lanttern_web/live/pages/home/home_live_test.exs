@@ -12,11 +12,11 @@ defmodule LantternWeb.HomeLiveTest do
       section = insert(:section, %{school: school})
       message = insert(:message, %{school: school, section: section})
 
-      ctx.conn
+    ctx.conn
       |> visit("/student")
       |> assert_has("h3", text: message.section.name)
       |> assert_has("h3", text: message.name)
-      |> click_button("span[phx-click='card_lookout']", "See more")
+      |> click_button("button#sect-#{section.id}-msg-#{message.id}-card-lookout", "See more")
       |> tap(fn %{current_path: path} -> assert path == "/student?message=#{message.id}" end)
       |> assert_has("#card-message-overlay-#{message.id}")
       |> assert_has("h1", text: message.name)
@@ -32,11 +32,11 @@ defmodule LantternWeb.HomeLiveTest do
       section = insert(:section, %{school: school})
       message = insert(:message, %{section: section, school: school})
 
-      ctx.conn
+    ctx.conn
       |> visit("/guardian")
       |> assert_has("h3", text: message.section.name)
       |> assert_has("h3", text: message.name)
-      |> click_button("span[phx-click='card_lookout']", "See more")
+      |> click_button("button#sect-#{section.id}-msg-#{message.id}-card-lookout", "See more")
       |> tap(fn %{current_path: path} -> assert path == "/guardian?message=#{message.id}" end)
       |> assert_has("#card-message-overlay-#{message.id}")
       |> assert_has("h1", text: message.name)

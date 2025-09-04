@@ -396,21 +396,6 @@ defmodule LantternWeb.OverlayComponents do
     |> JS.pop_focus()
   end
 
-  # convert hex color like "#RRGGBB" or "RRGGBB" to "r, g, b"
-  defp hex_to_rgb(<<"#", hex::binary-size(6)>>) do
-    <<r::binary-size(2), g::binary-size(2), b::binary-size(2)>> = hex
-
-    [r, g, b]
-    |> Enum.map(fn h -> String.to_integer(h, 16) end)
-    |> Enum.join(", ")
-  end
-
-  defp hex_to_rgb(<<hex::binary-size(6)>>) do
-    hex_to_rgb("#" <> hex)
-  end
-
-  defp hex_to_rgb(_), do: "238, 228, 230"
-
   @doc """
   Renders a menu button.
 

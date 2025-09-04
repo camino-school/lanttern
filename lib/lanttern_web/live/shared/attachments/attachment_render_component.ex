@@ -17,17 +17,8 @@ defmodule LantternWeb.Attachments.AttachmentRenderComponent do
 
   use LantternWeb, :live_component
 
-  import Lanttern.Utils, only: [swap: 3]
-
-  alias Lanttern.Assessments
   alias Lanttern.Attachments
-  alias Lanttern.Attachments.Attachment
-  alias Lanttern.MessageBoard
   alias Lanttern.SupabaseHelpers
-
-  # shared
-
-  import LantternWeb.AttachmentsComponents
 
   @impl true
   def render(assigns) do
@@ -140,6 +131,7 @@ defmodule LantternWeb.Attachments.AttachmentRenderComponent do
     |> assign(:attachments_ids, attachments_ids)
   end
 
+  @impl true
   def handle_event("signed_url", %{"url" => url}, socket) do
     case SupabaseHelpers.create_signed_url(url) do
       {:ok, external} ->

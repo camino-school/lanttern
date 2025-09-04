@@ -262,13 +262,13 @@ defmodule LantternWeb.HomeLive do
                     <%= for message <- section.messages do %>
                       <div
                         id={"section-#{section.id}-message-#{message.id}-mobile"}
-                        class="snap-center flex-shrink-0 w-[80vw] max-w-[320px]"
+                        class="snap-center flex-shrink-0 w-[80vw] max-w-[320px] scroll-smooth"
                         style="overflow: visible;"
                       >
                         <div class="mt-1 mb-9">
                           <!-- mobile bottom gutter so shadow is visible -->
                           <.message_card
-                            id={"section-#{section.id}-message-#{message.id}-card-mobile"}
+                            id={"sect-#{section.id}-msg-#{message.id}-card"}
                             message={message}
                             class="mx-0"
                           />
@@ -327,7 +327,7 @@ defmodule LantternWeb.HomeLive do
                       >
                         <div class="mt-0 mb-1">
                           <.message_card
-                            id={"section-#{section.id}-message-#{message.id}-card"}
+                            id={"sect-#{section.id}-msg-#{message.id}-responsive-card"}
                             message={message}
                             class="mx-0"
                           />

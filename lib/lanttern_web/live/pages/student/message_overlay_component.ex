@@ -13,7 +13,6 @@ defmodule LantternWeb.MessageBoard.CardMessageOverlayComponent do
   # live components
   # alias LantternWeb.Form.MultiSelectComponent
   alias LantternWeb.Attachments.AttachmentRenderComponent
-  import LantternWeb.AttachmentsComponents
 
   attr :tz, :string, default: nil
   attr :admin, :string, default: nil
@@ -33,7 +32,11 @@ defmodule LantternWeb.MessageBoard.CardMessageOverlayComponent do
         bg_color={@card_message.color}
       >
         <div class="flex flex-col h-full">
-          <div id={"#{@id}-header"} class="sticky top-0 z-50 w-full shadow-lg bg-white" style={"background-image: radial-gradient(circle at 100% 160px, #{@card_message.color}1f 140px, transparent 360px)"}>
+          <div
+            id={"#{@id}-header"}
+            class="sticky top-0 z-50 w-full shadow-lg bg-white"
+            style={"background-image: radial-gradient(circle at 100% 160px, #{@card_message.color}34 140px, transparent 360px)"}
+          >
             <.action
               type="button"
               theme="subtle"
@@ -60,7 +63,11 @@ defmodule LantternWeb.MessageBoard.CardMessageOverlayComponent do
 
           <div class="flex-1 overflow-y-auto relative">
             <%= if @card_message.cover && @card_message.cover != "" do %>
-              <img class="w-full h-64 object-cover" src={@card_message.cover} alt="message cover image" />
+              <img
+                class="w-full h-64 object-cover"
+                src={@card_message.cover}
+                alt="message cover image"
+              />
             <% end %>
 
             <div class="m-6 sm:px-2">

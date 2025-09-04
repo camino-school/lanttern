@@ -1,3 +1,4 @@
+import LantternWeb.CoreComponents
 defmodule LantternWeb.MessageBoard.Components do
   @moduledoc """
   Shared function components related to `MessageBoard` context
@@ -67,17 +68,7 @@ defmodule LantternWeb.MessageBoard.Components do
           <.icon name="hero-pin-mini" class="text-ltrn-primary" />
         </div>
       </div>
-      <%!-- <div class="flex flex-row-reverse sm:flex-row items-center gap-2 mt-2 text-xs">
-        <.icon name="hero-calendar-mini" class="w-5 h-5 text-ltrn-subtle" />
-        <div class="flex-1 sm:flex sm:items-center sm:gap-2">
-          <%= format_by_locale(@message.inserted_at, @tz) %>
-          <%= if @message.inserted_at != @message.updated_at do %>
-            <div class="mt-1 sm:mt-0 text-ltrn-subtle">
-              <%= "(#{gettext("Updated")} #{format_by_locale(@message.updated_at, @tz)})" %>
-            </div>
-          <% end %>
-        </div>
-      </div> --%>
+
       <div
         :if={@show_sent_to}
         class="flex flex-row-reverse sm:flex-row items-center gap-2 mt-2 text-xs"
@@ -90,13 +81,14 @@ defmodule LantternWeb.MessageBoard.Components do
           <.badge>{gettext("Sent to all school")}</.badge>
         <% end %>
       </div>
+
       <.markdown text={@message.content} class="mt-10" />
     </.card_base>
     """
   end
 
   @doc """
-  Renders message board cards.
+  Renders message board cards for admin/student variants.
   """
   attr :message, Message, required: true
   attr :on_delete, JS, default: nil
@@ -110,7 +102,7 @@ defmodule LantternWeb.MessageBoard.Components do
     ~H"""
     <div
       id={"message-#{@message.id}"}
-      class="aspect-square relative bg-white/90 backdrop-blur-sm rounded-md border border-l-12 border-ltrn-lightest shadow-xl z-20 cursor-pointer"
+      class="aspect-square relative bg-white/90 backdrop-blur-sm rounded-md border border-l-12 border-ltrn-lightest shadow-xl z-20"
       style={"
        border-color: var(--color-ltrn-lightest);
        border-left-color: #{@message.color};
@@ -127,6 +119,7 @@ defmodule LantternWeb.MessageBoard.Components do
           />
         </div>
       <% end %>
+
       <div class="p-6 pl-4">
         <div class="flex items-start gap-4">
           <div class="flex-1 min-w-0">
@@ -140,12 +133,13 @@ defmodule LantternWeb.MessageBoard.Components do
             </div>
           </div>
         </div>
+
         <%= if @mode == "admin" do %>
           <div class="absolute bottom-6 right-6">
             <.action
               :if={@edit_patch}
               id={"message-#{@message.id}-edit"}
-              class="inline-flex hover:text-gray-600 group-hover:text-slate-700"
+              class="inline-flex hover:text-gray-600"
               type="link"
               patch={@edit_patch}
               theme="subtle"
@@ -160,8 +154,9 @@ defmodule LantternWeb.MessageBoard.Components do
           >
             {@message.subtitle}
           </p>
+
           <div class="absolute bottom-3 right-4">
-            <button class="w-full flex items-center justify-between gap-[14px] transition-colors group-hover:text-blue-600">
+            <button class="w-full flex items-center justify-between gap-[14px] transition-colors hover:text-blue-600 group">
               <span
                 class="font-display font-bold text-base"
                 phx-click="card_lookout"
@@ -183,12 +178,14 @@ defmodule LantternWeb.MessageBoard.Components do
 
   attr :message, Message, required: true
   attr :class, :any, default: nil
+  attr :id, :any, default: nil
 
   def message_card(assigns) do
     ~H"""
+    <%!-- <%= dbg(assigns) %> --%>
     <div
       class={[
-        "overflow-auto-x aspect-square w-full bg-white/90 backdrop-blur-sm rounded-sm border border-l-12 border-ltrn-lightest group cursor-pointer shadow-xl z-20",
+        "overflow-auto-x aspect-square w-full bg-white/90 backdrop-blur-sm rounded-sm border border-l-12 border-ltrn-lightest shadow-xl z-20",
         @class
       ]}
       style={"border-color: var(--color-ltrn-lightest); border-left-color: #{@message.color};"}
@@ -201,37 +198,44 @@ defmodule LantternWeb.MessageBoard.Components do
           />
         </div>
       <% end %>
+
       <div class="p-6 pl-4">
         <div class="flex items-start">
           <div class="flex-1 min-w-0">
             <div class="flex items-center gap-2 mb-2">
               <h3
-                class={"font-display font-black text-xl" <> (if @message.cover && @message.cover != "", do: " truncate", else: "")}
+                class={"font-display font-black text-xl" <> (if @message.cover && @message.cover != "", do: " line-clamp-2", else: "")}
                 title={@message.name}
               >
                 {@message.name}
               </h3>
             </div>
+
             <p
-              class={"text-gray-600 text-sm mb-4 " <> (if @message.cover && @message.cover != "", do: "line-clamp-2 truncate", else: "") }
+              :if={!@message.cover || @message.cover == ""}
+              class="text-gray-600 text-sm mb-4"
               title={@message.subtitle}
             >
               {@message.subtitle}
             </p>
           </div>
         </div>
+
         <div class="absolute bottom-3 right-4">
-          <button class="w-full flex items-center justify-between gap-[14px] hover:text-slate-700 transition-colors group-hover:text-slate-400">
+        <%!-- section-#{section.id}-message-#{message.id}-responsive-card-lookout --%>
+          <button class="w-full flex items-center justify-between gap-[14px] transition-colors group"
+            phx-click="card_lookout"
+            phx-value-id={@message.id}
+            id={"#{assigns.id}-lookout"}
+            >
             <span
-              class="font-display font-bold  text-sm"
-              phx-click="card_lookout"
-              phx-value-id={@message.id}
+              class="font-display font-bold text-sm hover:text-ltrn-subtle"
             >
               {gettext("See more")}
             </span>
             <.icon
               name="hero-arrow-right"
-              class="w-6 h-6 mapping-3"
+              class="w-6 h-6 mapping-3 transition-transform group-hover:translate-x-1"
             />
           </button>
         </div>
