@@ -282,21 +282,21 @@ defmodule LantternWeb.HomeLive do
                   <div class="mt-0 flex items-center justify-center space-x-2 indicators">
                     <%= for message <- section.messages do %>
                       <a
-                        href={"#section-#{section.id}-message-#{message.id}-mobile"}
-                        class="block w-2 h-2 rounded-full bg-white focus:outline-none indicator-dot"
-                        style="border: 1px solid #94A3B8;"
-                        aria-label={gettext("Go to message %{id}", id: message.id)}
-                      >
-                      </a>
+                          href={"#section-#{section.id}-message-#{message.id}-mobile"}
+                          class="block w-2 h-2 rounded-full bg-white focus:outline-none indicator-dot"
+                          style={"border: 1px solid #94A3B8;"}
+                          aria-label={gettext("Go to message %{id}", id: message.id)}
+                        >
+                        </a>
                     <% end %>
                   </div>
 
                   <style>
                     <%= for message <- section.messages do %>
                       #section-<%= section.id %>-messages-wrapper-mobile:has(#section-<%= section.id %>-message-<%= message.id %>-mobile:target) .indicators a[href="#section-<%= section.id %>-message-<%= message.id %>-mobile"] {
-                        background: #94A3B8;
-                        border-color: #94A3B8;
-                      }
+                          background: <%= message.color || "#94A3B8" %>;
+                          border-color: <%= message.color || "#94A3B8" %>;
+                        }
                     <% end %>
                   </style>
                 </div>
@@ -385,6 +385,7 @@ defmodule LantternWeb.HomeLive do
       card_message={@card_message}
       id={"card-message-overlay-#{@card_message.id}"}
       on_cancel={JS.patch(if @profile_type == "guardian", do: ~p"/guardian", else: ~p"/student")}
+      sticky_header={true}
       full_w={true}
       base_path={if @profile_type == "guardian", do: ~p"/guardian", else: ~p"/student"}
       current_user={@current_user}

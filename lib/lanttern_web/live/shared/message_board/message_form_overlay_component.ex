@@ -142,6 +142,26 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponent do
         />
         <:actions_left :if={@message.id}>
           <.action
+            :if={is_nil(@message.archived_at)}
+            type="button"
+            theme="subtle"
+            size="md"
+            phx-click="archive"
+            phx-target={@myself}
+          >
+            {gettext("Archive")}
+          </.action>
+          <.action
+            :if={!is_nil(@message.archived_at)}
+            type="button"
+            theme="subtle"
+            size="md"
+            phx-click="unarchive"
+            phx-target={@myself}
+          >
+            {gettext("Unarchive")}
+          </.action>
+          <.action
             type="button"
             theme="subtle"
             size="md"
@@ -283,6 +303,30 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponent do
     |> case do
       {:ok, message} ->
         notify(__MODULE__, {:deleted, message}, socket.assigns)
+        {:noreply, socket}
+
+      {:error, %Ecto.Changeset{} = changeset} ->
+        {:noreply, assign(socket, :form, to_form(changeset))}
+    end
+  end
+
+  def handle_event("archive", _, socket) do
+    MessageBoard.archive_message(socket.assigns.message)
+    |> case do
+      {:ok, message} ->
+        notify(__MODULE__, {:archived, message}, socket.assigns)
+        {:noreply, socket}
+
+      {:error, %Ecto.Changeset{} = changeset} ->
+        {:noreply, assign(socket, :form, to_form(changeset))}
+    end
+  end
+
+  def handle_event("unarchive", _, socket) do
+    MessageBoard.unarchive_message(socket.assigns.message)
+    |> case do
+      {:ok, message} ->
+        notify(__MODULE__, {:unarchived, message}, socket.assigns)
         {:noreply, socket}
 
       {:error, %Ecto.Changeset{} = changeset} ->

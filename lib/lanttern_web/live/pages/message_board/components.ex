@@ -42,7 +42,7 @@ defmodule LantternWeb.MessageBoard.Components do
           type="button"
           phx-click={@on_unarchive}
           icon_name="hero-arrow-up-tray-mini"
-          data-confirm={gettext("Are you sure?")}
+          data-confirm={gettext("Are you sure, this will unarchive the message?")}
         >
           {gettext("Unarchive")}
         </.action>
@@ -93,6 +93,7 @@ defmodule LantternWeb.MessageBoard.Components do
   attr :message, Message, required: true
   attr :on_delete, JS, default: nil
   attr :edit_patch, :string, default: nil
+  attr :on_unarchive, JS, default: nil
 
   attr :mode, :string,
     required: true,
@@ -135,7 +136,17 @@ defmodule LantternWeb.MessageBoard.Components do
         </div>
 
         <%= if @mode == "admin" do %>
-          <div class="absolute bottom-6 right-6">
+          <div class="absolute bottom-6 right-6 flex items-center gap-2">
+            <.action
+              :if={@on_unarchive}
+              type="button"
+              phx-click={@on_unarchive}
+              icon_name="hero-arrow-up-tray-mini"
+              data-confirm={gettext("Are you sure?")}
+            >
+              {gettext("Unarchive")}
+            </.action>
+
             <.action
               :if={@edit_patch}
               id={"message-#{@message.id}-edit"}

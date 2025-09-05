@@ -37,20 +37,30 @@
         </.empty_state>
       </.card_base>
     <% else %>
-      <div id="archived-messages-board" phx-update="stream">
-        <.message_board_card
-          :for={{dom_id, message} <- @streams.messages}
-          message={message}
-          id={dom_id}
-          show_sent_to
-          class="mt-4"
-          on_unarchive={
-            if @is_communication_manager, do: JS.push("unarchive", value: %{"id" => message.id})
-          }
-          on_delete={
-            if @is_communication_manager, do: JS.push("delete", value: %{"id" => message.id})
-          }
-        />
+      <div
+        id="archived-messages-board"
+        phx-update="stream"
+        class="mt-4 hide-scrollbar snap-x snap-mandatory overflow-x-auto flex gap-4 pl-4 md:overflow-visible md:grid md:grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 md:gap-4"
+      >
+        <div class="flex-shrink-0" style="width:10px;" aria-hidden="true"></div>
+        <%= for {dom_id, message} <- @streams.messages do %>
+          <div
+            id={dom_id}
+            class="snap-center flex-shrink-0 w-[80vw] max-w-[320px] scroll-smooth md:static md:w-auto md:max-w-none"
+          >
+            <div class="mt-1 mb-9 md:mt-0 md:mb-1">
+              <.message_card_admin
+                message={message}
+                id={dom_id}
+                mode="admin"
+                edit_patch={~p"/school/message_board/archive?card=#{message.id}"}
+                on_unarchive={if @is_communication_manager, do: JS.push("unarchive", value: %{"id" => message.id})}
+                on_delete={if @is_communication_manager, do: JS.push("delete", value: %{"id" => message.id})}
+              />
+            </div>
+          </div>
+        <% end %>
+        <div class="flex-shrink-0" style="width:10px;" aria-hidden="true"></div>
       </div>
     <% end %>
   </.responsive_container>
@@ -62,5 +72,18 @@
     navigate={~p"/school/message_board/archive"}
     classes={@classes}
     selected_classes_ids={@selected_classes_ids}
+  />
+  <.live_component
+    :if={@card_message}
+    module={LantternWeb.MessageBoard.CardMessageOverlayComponent}
+    id={"card-message-overlay-#{@card_message.id}"
+    }
+    card_message={@card_message}
+    on_cancel={JS.patch(~p"/school/message_board/archive")}
+  on_unarchive={if @is_communication_manager, do: JS.push("unarchive", value: %{"id" => @card_message.id})}
+  on_delete={if @is_communication_manager, do: JS.push("delete", value: %{"id" => @card_message.id})}
+  sticky_header={true}
+    current_user={@current_user}
+    tz={@current_user.tz}
   />
 </Layouts.app_logged_in>

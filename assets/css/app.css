@@ -338,7 +338,7 @@ button {
 
 @layer components {
   .prose-overlay :where(h1) {
-    @apply font-display font-bold text-3xl;
+    @apply font-display font-bold text-xl;
   }
 
   .prose-overlay :where(h2) {

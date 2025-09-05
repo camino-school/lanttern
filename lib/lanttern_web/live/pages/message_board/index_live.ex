@@ -153,6 +153,26 @@ defmodule LantternWeb.MessageBoard.IndexLive do
     |> then(&{:noreply, &1})
   end
 
+  def handle_info({MessageFormOverlayComponent, {:archived, _message}}, socket) do
+    socket =
+      socket
+      |> put_flash(:info, gettext("Message archived"))
+      |> push_patch(to: ~p"/school/message_board")
+      |> assign_sections()
+
+    {:noreply, socket}
+  end
+
+  def handle_info({MessageFormOverlayComponent, {:unarchived, _message}}, socket) do
+    socket =
+      socket
+      |> put_flash(:info, gettext("Message restored"))
+      |> push_patch(to: ~p"/school/message_board")
+      |> assign_sections()
+
+    {:noreply, socket}
+  end
+
   def handle_info({AttachmentAreaComponent, {_action, _attachment}}, socket) do
     {:noreply, socket}
   end
@@ -269,6 +289,13 @@ defmodule LantternWeb.MessageBoard.IndexLive do
             >
               {format_action_items_text(@selected_classes, gettext("All years"))}
             </.action>
+            <.action
+              type="link"
+              patch={~p"/school/message_board/archive"}
+              icon_name="hero-archive-box-solid"
+            >
+              {gettext("View archived messages")}
+            </.action>
           </div>
           <div class="flex items-center gap-4">
             <.action
@@ -340,7 +367,7 @@ defmodule LantternWeb.MessageBoard.IndexLive do
                     <.link
                       :if={@communication_manager?}
                       patch={~p"/school/message_board?new=true&section_id=#{section.id}"}
-                      class="aspect-square w-full h-full bg-white border-1 border-dashed border-gray-300 rounded-lg p-6 h-48 flex flex-col items-center justify-center text-gray-400 hover:text-gray-600 hover:border-gray-400 transition-colors group shadow-lg"
+                      class="aspect-square w-full bg-white border-1 border-dashed border-gray-300 rounded-lg p-6 h-48 flex flex-col items-center justify-center text-gray-400 hover:text-gray-600 hover:border-gray-400 transition-colors group shadow-lg"
                     >
                       <.icon
                         name="hero-plus"

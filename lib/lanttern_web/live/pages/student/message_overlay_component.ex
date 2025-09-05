@@ -17,6 +17,9 @@ defmodule LantternWeb.MessageBoard.CardMessageOverlayComponent do
   attr :tz, :string, default: nil
   attr :admin, :string, default: nil
   attr :full_w, :boolean, default: true
+  attr :on_unarchive, JS, default: nil
+  attr :on_delete, JS, default: nil
+  attr :sticky_header, :boolean, default: false
 
   @impl true
   def render(assigns) do
@@ -27,6 +30,7 @@ defmodule LantternWeb.MessageBoard.CardMessageOverlayComponent do
         id={@id}
         show={true}
         on_cancel={@on_cancel}
+        sticky_header={@sticky_header}
         full_y={true}
         full_w={@full_w}
         bg_color={@card_message.color}
@@ -46,6 +50,34 @@ defmodule LantternWeb.MessageBoard.CardMessageOverlayComponent do
             >
               <.icon name="hero-arrow-left-solid" class="h-6 w-6" />
             </.action>
+
+            <div class="absolute right-4 top-4 flex items-center gap-2">
+              <.action
+                :if={@on_unarchive}
+                type="button"
+                theme="subtle"
+                size="md"
+                phx-click={@on_unarchive}
+                class="px-3 py-2"
+                icon_name="hero-arrow-up-tray-mini"
+                data-confirm={gettext("Are you sure?")}
+              >
+                {gettext("Unarchive")}
+              </.action>
+              <.action
+                :if={@on_delete}
+                type="button"
+                size="md"
+                phx-click={@on_delete}
+                class="px-1 py-1 text-ltrn-subtle inline-block"
+                icon_name="hero-x-mark-mini"
+                theme="alert"
+                data-confirm={gettext("Are you sure? This will permanently delete the message.")}
+                style="background-image: linear-gradient(#FEE2E2, #FEE2E2); background-repeat: no-repeat; background-size: 100% 15%; background-position: 0 65%;"
+              >
+                  <span class="align-middle">{gettext("Delete")}</span>
+              </.action>
+            </div>
 
             <div class="flex items-center gap-4 pl-4">
               <h1 class="font-display font-black text-2xl">{@card_message.name}</h1>

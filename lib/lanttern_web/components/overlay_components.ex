@@ -161,6 +161,7 @@ defmodule LantternWeb.OverlayComponents do
   attr :id, :string, required: true
   attr :show, :boolean, default: false
   attr :on_cancel, JS, default: %JS{}
+  attr :sticky_header, :boolean, default: false
   attr :prevent_close_on_click_away, :boolean, default: false
   attr :full_y, :boolean, default: false
   attr :full_w, :boolean, default: false
@@ -198,7 +199,7 @@ defmodule LantternWeb.OverlayComponents do
       <div
         class="fixed inset-0 overflow-hidden"
         tabindex="0"
-        aria-labelledby={"#{@id}-title"}
+        aria-labelledby={"#{@id}-header"}
         aria-describedby={"#{@id}-description"}
         role="dialog"
         aria-modal="true"
@@ -221,8 +222,8 @@ defmodule LantternWeb.OverlayComponents do
                 <div class="flex-1 min-h-0 overflow-y-scroll ltrn-bg-slide-over" style={@bg_style}>
                   <h2
                     :if={@title != []}
-                    class="px-4 sm:px-6 py-6 font-display font-black text-3xl"
-                    id={"#{@id}-title"}
+                    class={if @sticky_header, do: "sticky top-0 z-10 px-4 sm:px-6 py-6 font-display font-black text-3xl bg-white/60 backdrop-blur", else: "px-4 sm:px-6 py-6 font-display font-black text-3xl"}
+                    id={"#{@id}-header"}
                   >
                     {render_slot(@title)}
                   </h2>

@@ -4,6 +4,7 @@ defmodule LantternWeb.ArchivedMessagesLive do
   alias Lanttern.MessageBoard
 
   import LantternWeb.MessageBoardComponents
+  import LantternWeb.MessageBoard.Components
 
   import LantternWeb.FiltersHelpers, only: [assign_classes_filter: 2]
 
@@ -108,5 +109,15 @@ defmodule LantternWeb.ArchivedMessagesLive do
     else
       {:noreply, put_flash(socket, :error, gettext("Invalid message"))}
     end
+  end
+
+  @impl true
+  def handle_params(%{"card" => card_id}, _uri, socket) do
+    card_message = MessageBoard.get_message!(card_id)
+    {:noreply, assign(socket, :card_message, card_message)}
+  end
+
+  def handle_params(_params, _uri, socket) do
+    {:noreply, assign(socket, :card_message, nil)}
   end
 end
