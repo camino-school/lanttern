@@ -3,7 +3,6 @@ defmodule LantternWeb.ArchivedMessagesLive do
 
   alias Lanttern.MessageBoard
 
-  import LantternWeb.MessageBoardComponents
   import LantternWeb.MessageBoard.Components
 
   import LantternWeb.FiltersHelpers, only: [assign_classes_filter: 2]

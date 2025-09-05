@@ -65,6 +65,23 @@ defmodule LantternWeb.MessageBoard.IndexLive do
     end
   end
 
+  def handle_event("unarchive", %{"message_id" => id}, socket) do
+    message = MessageBoard.get_message!(id)
+
+    case MessageBoard.unarchive_message(message) do
+      {:ok, _} ->
+        socket =
+          socket
+          |> put_flash(:info, gettext("Message restored"))
+          |> assign_sections()
+
+        {:noreply, socket}
+
+      {:error, _} ->
+        {:noreply, put_flash(socket, :error, gettext("Failed to unarchive message"))}
+    end
+  end
+
   def handle_event("validate_section", %{"section" => section_params}, socket) do
     changeset =
       socket.assigns.section
@@ -131,9 +148,10 @@ defmodule LantternWeb.MessageBoard.IndexLive do
   end
 
   def handle_event("sortable_update", %{"oldIndex" => old, "newIndex" => new}, socket) do
-    {changed_id, rest} = List.pop_at(socket.assigns.section.messages, old)
-    new_messages = List.insert_at(rest, new, changed_id)
-    MessageBoard.update_messages_position(new_messages)
+  non_archived = Enum.filter(socket.assigns.section.messages, fn m -> is_nil(m.archived_at) end)
+  {changed_id, rest} = List.pop_at(non_archived, old)
+  new_messages = List.insert_at(rest, new, changed_id)
+  MessageBoard.update_messages_position(new_messages)
 
     {:noreply, assign_sections(socket)}
   end
@@ -427,13 +445,14 @@ defmodule LantternWeb.MessageBoard.IndexLive do
             phx-update="ignore"
           >
             <.dragable_card
-              :for={message <- @section.messages}
+              :for={message <- (if is_list(@section.messages), do: Enum.filter(@section.messages, fn m -> is_nil(m.archived_at) end), else: [])}
               id={"sortable-#{message.id}"}
-              class={"border-[#{message.color}] mb-4 border-l-5 border-1"}
+              class={"mb-4"}
             >
               {message.name}
             </.dragable_card>
           </div>
+           <%!-- Render archived messages after the sortable non-archived list --%>
           <:actions_left :if={@section.id}>
             <.action
               type="button"

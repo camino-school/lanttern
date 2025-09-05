@@ -213,9 +213,10 @@ defmodule Lanttern.MessageBoard do
   @spec archive_message(Message.t()) ::
           {:ok, Message.t()} | {:error, Ecto.Changeset.t()}
   def archive_message(%Message{} = message) do
-    message
-    |> Message.archive_changeset()
-    |> Repo.update()
+  message
+  |> Message.archive_changeset()
+  |> Ecto.Changeset.put_change(:position, 999)
+  |> Repo.update()
   end
 
   @doc """
@@ -235,9 +236,10 @@ defmodule Lanttern.MessageBoard do
   @spec unarchive_message(Message.t()) ::
           {:ok, Message.t()} | {:error, Ecto.Changeset.t()}
   def unarchive_message(%Message{} = message) do
-    message
-    |> Message.unarchive_changeset()
-    |> Repo.update()
+  message
+  |> Message.unarchive_changeset()
+  |> Ecto.Changeset.put_change(:position, 0)
+  |> Repo.update()
   end
 
   @doc """
@@ -413,6 +415,7 @@ defmodule Lanttern.MessageBoard do
 
   def update_messages_position(messages) do
     messages
+    |> Enum.filter(fn m -> is_nil(m.archived_at) end)
     |> Enum.with_index()
     |> Enum.reduce(Ecto.Multi.new(), fn {message, i}, multi ->
       query = from(m in Message, where: m.id == ^message.id)

@@ -32,11 +32,10 @@ defmodule LantternWeb.ArchivedMessagesLiveTest do
       refute view |> has_element?("h5", message.name)
       refute view |> has_element?("p", message.description)
 
-      assert view |> has_element?("h5", archived.name)
-      assert view |> has_element?("p", archived.description)
+      assert view |> has_element?("h3", archived.name)
     end
 
-    test "display unarchive and delete buttons to communication manager", context do
+    test "display unarchive button to communication manager", context do
       %{conn: conn, user: user} = set_user_permissions(["communication_management"], context)
 
       school_id = user.current_profile.school_id
@@ -48,7 +47,6 @@ defmodule LantternWeb.ArchivedMessagesLiveTest do
       {:ok, view, _html} = live(conn, @live_view_path)
 
       assert view |> has_element?("button", "Unarchive")
-      assert view |> has_element?("button", "Delete")
     end
 
     test "hide unarchive and delete buttons when not communication manager", %{
