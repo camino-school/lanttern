@@ -94,6 +94,7 @@ defmodule LantternWeb.MessageBoard.Components do
   attr :on_delete, JS, default: nil
   attr :edit_patch, :string, default: nil
   attr :on_unarchive, JS, default: nil
+  attr :id, :any, default: nil
 
   attr :mode, :string,
     required: true,

@@ -2,7 +2,9 @@ defmodule LantternWeb.ArchivedMessagesLiveTest do
   use LantternWeb.ConnCase
 
   alias Lanttern.MessageBoard
-  alias Lanttern.MessageBoardFixtures
+  alias Lanttern.Schools
+
+  import Lanttern.Factory
 
   @live_view_path "/school/message_board/archive"
 
@@ -11,17 +13,20 @@ defmodule LantternWeb.ArchivedMessagesLiveTest do
   describe "Archived message board" do
     test "list archived messages", %{conn: conn, user: user} do
       school_id = user.current_profile.school_id
+      school = Schools.get_school!(school_id)
+      section = insert(:section, %{school: school})
 
-      message =
-        MessageBoardFixtures.message_fixture(%{
-          school_id: school_id,
+      message = insert(:message, %{
+          school: school,
+          section: section,
           name: "not archived message abc",
           description: "not archived message desc abc"
         })
 
       {:ok, archived} =
-        MessageBoardFixtures.message_fixture(%{
-          school_id: school_id,
+        insert(:message, %{
+          school: school,
+          section: section,
           name: "archived message abc",
           description: "archived message desc abc"
         })
@@ -29,9 +34,7 @@ defmodule LantternWeb.ArchivedMessagesLiveTest do
 
       {:ok, view, _html} = live(conn, @live_view_path)
 
-      refute view |> has_element?("h5", message.name)
-      refute view |> has_element?("p", message.description)
-
+      refute view |> has_element?("h3", message.name)
       assert view |> has_element?("h3", archived.name)
     end
 
@@ -39,9 +42,10 @@ defmodule LantternWeb.ArchivedMessagesLiveTest do
       %{conn: conn, user: user} = set_user_permissions(["communication_management"], context)
 
       school_id = user.current_profile.school_id
+      school = Schools.get_school!(school_id)
+      section = insert(:section, %{school: school})
 
-      {:ok, _message} =
-        MessageBoardFixtures.message_fixture(%{school_id: school_id})
+      {:ok, _message} = insert(:message, %{school: school, section: section})
         |> MessageBoard.archive_message()
 
       {:ok, view, _html} = live(conn, @live_view_path)
@@ -54,9 +58,11 @@ defmodule LantternWeb.ArchivedMessagesLiveTest do
       user: user
     } do
       school_id = user.current_profile.school_id
+      school = Schools.get_school!(school_id)
+      section = insert(:section, %{school: school})
 
       {:ok, _message} =
-        MessageBoardFixtures.message_fixture(%{school_id: school_id})
+        insert(:message, %{school: school, section: section})
         |> MessageBoard.archive_message()
 
       {:ok, view, _html} = live(conn, @live_view_path)

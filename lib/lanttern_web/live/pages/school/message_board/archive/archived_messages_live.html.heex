@@ -1,7 +1,7 @@
 <Layouts.app_logged_in flash={@flash} current_user={@current_user} current_path={@current_path}>
   <.header_nav current_user={@current_user}>
     <:breadcrumb navigate={~p"/school/message_board"}>
-      {@current_user.current_profile.school_name}
+      {gettext("Message board admin")}
     </:breadcrumb>
     <:title>{gettext("Archived messages")}</:title>
   </.header_nav>
@@ -28,7 +28,7 @@
   <.responsive_container class="p-4">
     <p class="flex items-center gap-2">
       <.icon name="hero-information-circle-mini" class="text-ltrn-subtle" />
-      {gettext("Archived messages are not visible to students and guardians.")}
+      {gettext("Sections can have archived messages inside them. Archived messages are not visible to students and guardians. Once a message is unarchived, it appears in the bottom of its section’s message list order.")}
     </p>
     <%= if @messages_count == 0 do %>
       <.card_base class="p-10 mt-4">
@@ -37,27 +37,46 @@
         </.empty_state>
       </.card_base>
     <% else %>
-      <div class="mt-4 hide-scrollbar snap-x snap-mandatory overflow-x-auto flex gap-4 pl-4 md:overflow-visible md:grid md:grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 md:gap-4">
-        <div class="flex-shrink-0" style="width:10px;" aria-hidden="true"></div>
-      </div>
-      <div
-        id="archived-messages-board"
-        phx-update="stream"
-        class="mt-4 hide-scrollbar snap-x snap-mandatory overflow-x-auto flex gap-4 pl-4 md:overflow-visible md:grid md:grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 md:gap-4"
-      >
-        <%= for {dom_id, message} <- @streams.messages do %>
-          <div
-            id={dom_id}
-            class="snap-center flex-shrink-0 w-[80vw] max-w-[320px] scroll-smooth md:static md:w-auto md:max-w-none"
-          >
-            <div class="mt-1 mb-9 md:mt-0 md:mb-1">
-              <.message_card_admin
-                message={message}
-                mode="admin"
-                edit_patch={~p"/school/message_board/archive?card=#{message.id}"}
-                on_unarchive={if @is_communication_manager, do: JS.push("unarchive", value: %{"id" => message.id})}
-                on_delete={if @is_communication_manager, do: JS.push("delete", value: %{"id" => message.id})}
-              />
+      <div class="space-y-8 mt-4">
+        <%= if @unsectioned_messages && @unsectioned_messages != [] do %>
+          <div class="bg-white rounded-lg shadow-lg">
+            <div class="p-4">
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <%= for message <- @unsectioned_messages do %>
+                  <.message_card_admin
+                    id={"archived-#{message.id}"
+                    }
+                    message={message}
+                    mode="admin"
+                    edit_patch={~p"/school/message_board/archive?card=#{message.id}"}
+                    on_unarchive={if @is_communication_manager, do: JS.push("unarchive", value: %{"id" => message.id})}
+                    on_delete={if @is_communication_manager, do: JS.push("delete", value: %{"id" => message.id})}
+                  />
+                <% end %>
+              </div>
+            </div>
+          </div>
+        <% end %>
+
+        <%= for section <- @sections do %>
+          <div class="bg-white rounded-lg shadow-lg">
+            <div class="flex items-center justify-between p-4 border-gray-200">
+              <div class="flex items-center space-x-3">
+                <h2 class="text-lg font-bold"><%= section.name %></h2>
+              </div>
+            </div>
+            <div class="p-4">
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <%= for message <- section.messages do %>
+                  <.message_card_admin
+                    message={message}
+                    mode="admin"
+                    edit_patch={~p"/school/message_board/archive?card=#{message.id}"}
+                    on_unarchive={if @is_communication_manager, do: JS.push("unarchive", value: %{"id" => message.id})}
+                    on_delete={if @is_communication_manager, do: JS.push("delete", value: %{"id" => message.id})}
+                  />
+                <% end %>
+              </div>
             </div>
           </div>
         <% end %>
