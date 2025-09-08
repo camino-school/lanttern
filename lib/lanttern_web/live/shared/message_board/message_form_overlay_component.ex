@@ -102,11 +102,14 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponent do
               phx-debounce="1500"
             >
               <:custom_label>
-                <span class="font-bold">{gettext("Message subtitle")}</span><br />
-                <span class="font-normal"> ({gettext("what appears in the card preview when there is no cover image.")})</span>
+                <span class="font-bold">{gettext("Message subtitle")}</span>
+                <span class="font-normal"> ({gettext("what appears in the card preview")})</span>
               </:custom_label>
             </.input>
-            <div class="flex justify-end mt-1">
+            <div class="flex justify-between items-center mt-1">
+              <span :if={!is_nil(@message.cover)} class="text-xs text-red-500">
+                {gettext("When using a cover image, subtitles will not be displayed in the message card.")}
+              </span>
               <span class="text-xs text-ltrn-subtle">
                 {String.length(@form[:subtitle].value || "")} / 160
               </span>
@@ -115,7 +118,7 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponent do
           <.input
             field={@form[:description]}
             type="markdown"
-            label={gettext("Description")}
+            label={gettext("Contents")}
             class="mb-6"
             phx-debounce="1500"
           />
