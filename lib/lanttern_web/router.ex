@@ -83,7 +83,7 @@ defmodule LantternWeb.Router do
       live "/school/staff/:id/students_records", StaffMemberLive, :students_records
 
       live "/school/message_board/archive", ArchivedMessagesLive, :index
-      live "/school/message_board/view", MessageBoard.ViewLive, :index
+      live "/school/message_board/preview", MessageBoard.PreviewLive, :index
 
       live "/strands", StrandsLive, :index
       live "/strands/library", StrandsLibraryLive, :index

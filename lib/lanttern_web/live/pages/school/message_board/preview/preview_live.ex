@@ -1,4 +1,4 @@
-defmodule LantternWeb.MessageBoard.ViewLive do
+defmodule LantternWeb.MessageBoard.PreviewLive do
   use LantternWeb, :live_view
 
   alias Lanttern.MessageBoard
@@ -57,7 +57,7 @@ defmodule LantternWeb.MessageBoard.ViewLive do
   def handle_event("card_lookout", %{"id" => id}, socket) do
     socket =
       socket
-      |> push_patch(to: ~p"/school/message_board/view?message=#{id}")
+      |> push_patch(to: ~p"/school/message_board/preview?message=#{id}")
 
     {:noreply, socket}
   end
@@ -83,7 +83,7 @@ defmodule LantternWeb.MessageBoard.ViewLive do
         <:breadcrumb navigate={~p"/school/message_board"}>
           {gettext("Message board admin")}
         </:breadcrumb>
-        <:title>{gettext("View messages")}</:title>
+        <:title>{gettext("Guardian Preview")}</:title>
         <div class="flex items-center justify-between gap-4 p-4">
           <div class="flex items-center gap-4">
             <.action
@@ -99,8 +99,8 @@ defmodule LantternWeb.MessageBoard.ViewLive do
 
       <.responsive_container class="p-4">
         <p class="flex items-center gap-2 mb-6">
-          <.icon name="hero-eye-mini" class="text-ltrn-subtle" />
-          {gettext("This is how the message board appears to students and guardians.")}
+          <%!-- <.icon name="hero-eye-mini" class="text-ltrn-subtle" /> --%>
+          <%!-- {gettext("This is how the message board appears to students and guardians.")} --%>
         </p>
 
         <%= if @sections == [] do %>
@@ -125,10 +125,10 @@ defmodule LantternWeb.MessageBoard.ViewLive do
         module={CardMessageOverlayComponent}
         card_message={@card_message}
         id={"card-message-overlay-#{@card_message.id}"}
-        on_cancel={JS.patch(~p"/school/message_board/view")}
+        on_cancel={JS.patch(~p"/school/message_board/preview")}
         sticky_header={true}
         full_w={true}
-        base_path={~p"/school/message_board/view"}
+        base_path={~p"/school/message_board/preview"}
         current_user={@current_user}
         tz={@current_user.tz}
       />
@@ -138,7 +138,7 @@ defmodule LantternWeb.MessageBoard.ViewLive do
         id="message-board-classes-filters-overlay"
         current_user={@current_user}
         title={gettext("Filter messages by class")}
-        navigate={~p"/school/message_board/view"}
+        navigate={~p"/school/message_board/preview"}
         classes={@classes}
         selected_classes_ids={@selected_classes_ids}
       />

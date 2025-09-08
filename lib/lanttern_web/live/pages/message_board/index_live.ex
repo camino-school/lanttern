@@ -309,7 +309,7 @@ defmodule LantternWeb.MessageBoard.IndexLive do
             </.action>
             <.action
               type="link"
-              patch={~p"/school/message_board/view"}
+              patch={~p"/school/message_board/preview"}
               icon_name="hero-eye-mini"
             >
               {gettext("View as guardian")}
