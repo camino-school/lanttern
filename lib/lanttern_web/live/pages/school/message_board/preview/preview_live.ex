@@ -2,12 +2,8 @@ defmodule LantternWeb.MessageBoard.PreviewLive do
   use LantternWeb, :live_view
 
   alias Lanttern.MessageBoard
-  alias Lanttern.Repo
   alias Lanttern.Schools.Cycle
   alias LantternWeb.MessageBoard.CardMessageOverlayComponent
-  alias LantternWeb.MessageBoard.MessageBoardGridComponent
-  import Ecto.Query
-  import LantternWeb.MessageBoard.Components
   import LantternWeb.FiltersHelpers, only: [assign_classes_filter: 2]
 
   @impl true
@@ -26,6 +22,7 @@ defmodule LantternWeb.MessageBoard.PreviewLive do
     {:ok, socket}
   end
 
+  @impl true
   def handle_info(:initialized, socket) do
     socket =
       socket
@@ -62,6 +59,7 @@ defmodule LantternWeb.MessageBoard.PreviewLive do
     {:noreply, socket}
   end
 
+  @impl true
   def handle_params(%{"message" => message_id}, _uri, socket) do
     card_message = MessageBoard.get_message!(message_id)
     socket = assign(socket, :card_message, card_message)
@@ -69,6 +67,7 @@ defmodule LantternWeb.MessageBoard.PreviewLive do
     {:noreply, socket}
   end
 
+  @impl true
   def handle_params(_params, _uri, socket) do
     socket = assign(socket, :card_message, nil)
 
@@ -83,7 +82,7 @@ defmodule LantternWeb.MessageBoard.PreviewLive do
         <:breadcrumb navigate={~p"/school/message_board"}>
           {gettext("Message board admin")}
         </:breadcrumb>
-        <:title>{gettext("Guardian Preview")}</:title>
+        <:title>{gettext("Guardian preview")}</:title>
         <div class="flex items-center justify-between gap-4 p-4">
           <div class="flex items-center gap-4">
             <.action

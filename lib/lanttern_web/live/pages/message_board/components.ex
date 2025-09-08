@@ -191,6 +191,7 @@ defmodule LantternWeb.MessageBoard.Components do
   attr :message, Message, required: true
   attr :class, :any, default: nil
   attr :id, :any, default: nil
+  slot :inner_block
 
   def message_card(assigns) do
     ~H"""

@@ -16,10 +16,7 @@ defmodule LantternWeb.HomeLive do
   # shared components
   alias LantternWeb.Attachments.AttachmentAreaComponent
   alias LantternWeb.MessageBoard.CardMessageOverlayComponent
-  alias LantternWeb.MessageBoard.MessageBoardGridComponent
   alias LantternWeb.Schools.StudentHeaderComponent
-
-  import LantternWeb.MessageBoard.Components
 
   @impl true
   def mount(_params, _session, socket) do
