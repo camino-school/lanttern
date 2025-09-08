@@ -19,10 +19,28 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponent do
   alias Lanttern.MessageBoard.Message
   alias Lanttern.SupabaseHelpers
 
+  attr :field, Phoenix.HTML.FormField
+  attr :label, :string
+  attr :help_text, :string
+  attr :class, :string, default: nil
+
+  def input_with_help_text(assigns) do
+    ~H"""
+    <div class={@class}>
+      <.label>
+        <%= @label %>
+        <span class="font-normal">(<%= @help_text %>)</span>
+      </.label>
+      <.input field={@field} type="text" class="mt-2" phx-debounce="1500" />
+    </div>
+    """
+  end
+
   # shared
 
   alias LantternWeb.Attachments.AttachmentAreaComponent
   alias LantternWeb.Schools.ClassesFieldComponent
+  alias Phoenix.HTML.Tag
   import LantternWeb.FormComponents
 
   @impl true
@@ -50,27 +68,50 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponent do
             on_replace={JS.push("replace-cover", target: @myself)}
             class="mb-6"
           />
-          <.input
-            field={@form[:name]}
-            type="text"
-            label={gettext("Message title")}
-            class="mb-6"
-            phx-debounce="1500"
-          />
-          <.input
-            field={@form[:subtitle]}
-            type="text"
-            label={gettext("Message subtitle")}
-            class="mb-6"
-            phx-debounce="1500"
-          />
-          <.input
-            field={@form[:color]}
-            type="color"
-            label={gettext("Card color")}
-            class="mb-6 w-20"
-            phx-debounce="1500"
-          />
+          <div class="mb-6 flex items-center gap-4">
+            <.label for={@form[:color].id}>{gettext("Card color")}</.label>
+            <div class="p-1 border-2 border-white rounded-md shadow-lg bg-white -mt-2">
+              <.input
+                field={@form[:color]}
+                type="color"
+                class="w-[52px]"
+                phx-debounce="1500"
+              />
+            </div>
+          </div>
+          <div class="mb-6">
+            <.input
+              field={@form[:name]}
+              type="text"
+              label={gettext("Message title")}
+              maxlength="30"
+              phx-debounce="1500"
+            />
+            <div class="flex justify-end mt-1">
+              <span class="text-xs text-ltrn-subtle">
+                {String.length(@form[:name].value || "")} / 30
+              </span>
+            </div>
+          </div>
+
+          <div class="mb-6">
+            <.input
+              field={@form[:subtitle]}
+              type="text"
+              maxlength="160"
+              phx-debounce="1500"
+            >
+              <:custom_label>
+                <span class="font-bold">{gettext("Message subtitle")}</span><br />
+                <span class="font-normal"> ({gettext("what appears in the card preview when there is no cover image.")})</span>
+              </:custom_label>
+            </.input>
+            <div class="flex justify-end mt-1">
+              <span class="text-xs text-ltrn-subtle">
+                {String.length(@form[:subtitle].value || "")} / 160
+              </span>
+            </div>
+          </div>
           <.input
             field={@form[:description]}
             type="markdown"
