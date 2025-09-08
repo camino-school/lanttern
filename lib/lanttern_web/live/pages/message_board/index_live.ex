@@ -307,13 +307,13 @@ defmodule LantternWeb.MessageBoard.IndexLive do
             >
               {format_action_items_text(@selected_classes, gettext("All years"))}
             </.action>
-            <%!-- <.action
+            <.action
               type="link"
               patch={~p"/school/message_board/view"}
               icon_name="hero-eye-mini"
             >
               {gettext("View as guardian")}
-            </.action> --%>
+            </.action>
             <.action
               type="link"
               patch={~p"/school/message_board/archive"}

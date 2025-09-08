@@ -16,6 +16,7 @@ defmodule LantternWeb.HomeLive do
   # shared components
   alias LantternWeb.Attachments.AttachmentAreaComponent
   alias LantternWeb.MessageBoard.CardMessageOverlayComponent
+  alias LantternWeb.MessageBoard.MessageBoardGridComponent
   alias LantternWeb.Schools.StudentHeaderComponent
 
   import LantternWeb.MessageBoard.Components
@@ -231,115 +232,13 @@ defmodule LantternWeb.HomeLive do
       </.responsive_container>
 
       <.responsive_container class="mt-16">
-        <div class="space-y-8">
-          <div>
-            <h2 class="flex items-center gap-2 font-display font-black text-2xl">
-              {gettext("Message board")}
-            </h2>
-          </div>
-
-          <%= for section <- @sections do %>
-            <div class="space-y-4 px-0">
-              <!-- Mobile-only full-bleed carousel -->
-              <div class="md:hidden -mx-6">
-                <div>
-                  <h3 class="text-lg font-bold mb-1 pl-6">
-                    {section.name}
-                  </h3>
-                </div>
-
-                <div
-                  id={"section-#{section.id}-messages-wrapper-mobile"}
-                  class="relative"
-                  style="overflow: visible;"
-                >
-                  <div
-                    id={"section-#{section.id}-messages-mobile"}
-                    class="hide-scrollbar snap-x snap-mandatory overflow-x-auto flex gap-4 pl-0"
-                  >
-                    <!-- spacer to offset first card by 16px on mobile -->
-                    <div class="flex-shrink-0" style="width:10px;" aria-hidden="true"></div>
-                    <%= for message <- section.messages do %>
-                      <div
-                        id={"section-#{section.id}-message-#{message.id}-mobile"}
-                        class="snap-center flex-shrink-0 w-[80vw] max-w-[320px] scroll-smooth"
-                        style="overflow: visible;"
-                      >
-                        <div class="mt-1 mb-9">
-                          <!-- mobile bottom gutter so shadow is visible -->
-                          <.message_card
-                            id={"sect-#{section.id}-msg-#{message.id}-card"}
-                            message={message}
-                            class="mx-0"
-                          />
-                        </div>
-                      </div>
-                    <% end %>
-                    <!-- trailing spacer to balance the initial offset -->
-                    <div class="flex-shrink-0" style="width:10px;" aria-hidden="true"></div>
-                  </div>
-
-                  <div class="mt-0 flex items-center justify-center space-x-2 indicators">
-                    <%= for message <- section.messages do %>
-                      <a
-                          href={"#section-#{section.id}-message-#{message.id}-mobile"}
-                          class="block w-2 h-2 rounded-full bg-white focus:outline-none indicator-dot"
-                          style={"border: 1px solid #94A3B8;"}
-                          aria-label={gettext("Go to message %{id}", id: message.id)}
-                        >
-                        </a>
-                    <% end %>
-                  </div>
-
-                  <style>
-                    <%= for message <- section.messages do %>
-                      #section-<%= section.id %>-messages-wrapper-mobile:has(#section-<%= section.id %>-message-<%= message.id %>-mobile:target) .indicators a[href="#section-<%= section.id %>-message-<%= message.id %>-mobile"] {
-                          background: <%= message.color || "#94A3B8" %>;
-                          border-color: <%= message.color || "#94A3B8" %>;
-                        }
-                    <% end %>
-                  </style>
-                </div>
-              </div>
-
-    <!-- Desktop/tablet: use existing grid within responsive container -->
-              <div class="hidden md:block">
-                <div>
-                  <h3 class="text-lg font-bold mb-1 px-6 md:px-0">
-                    {section.name}
-                  </h3>
-                </div>
-
-                <div
-                  id={"section-#{section.id}-messages-wrapper"}
-                  class="relative"
-                  style="overflow: visible;"
-                >
-                  <div
-                    id={"section-#{section.id}-messages"}
-                    class="hide-scrollbar ml-0 snap-none md:overflow-visible md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-4 gap-4 md:px-0"
-                  >
-                    <%= for message <- section.messages do %>
-                      <div
-                        id={"section-#{section.id}-message-#{message.id}"}
-                        class="md:static md:w-auto md:max-w-none"
-                        style="overflow: visible;"
-                      >
-                        <div class="mt-0 mb-1">
-                          <.message_card
-                            id={"sect-#{section.id}-msg-#{message.id}-responsive-card"}
-                            message={message}
-                            class="mx-0"
-                          />
-                        </div>
-                      </div>
-                    <% end %>
-                  </div>
-                </div>
-              </div>
-            </div>
-          <% end %>
-        </div>
+        <.live_component
+          module={LantternWeb.MessageBoard.MessageBoardGridComponent}
+          id="message-board-grid"
+          sections={@sections}
+          show_title={true}
+          show_see_more={false}
+        />
       </.responsive_container>
 
       <.responsive_container
