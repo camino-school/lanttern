@@ -55,8 +55,8 @@ defmodule LantternWeb.MessageBoard.CardMessageOverlayComponent do
               <.action
                 :if={@on_unarchive}
                 type="button"
-                theme="subtle"
-                size="md"
+                theme="dark"
+                size="3xs"
                 phx-click={@on_unarchive}
                 class="px-3 py-2"
                 icon_name="hero-arrow-up-tray-mini"
@@ -67,11 +67,11 @@ defmodule LantternWeb.MessageBoard.CardMessageOverlayComponent do
               <.action
                 :if={@on_delete}
                 type="button"
-                size="md"
+                size="sm"
                 phx-click={@on_delete}
                 class="px-1 py-1 text-ltrn-subtle inline-block"
                 icon_name="hero-x-mark-mini"
-                theme="alert"
+                theme="subtle"
                 data-confirm={gettext("Are you sure? This will permanently delete the message.")}
                 style="background-image: linear-gradient(#FEE2E2, #FEE2E2); background-repeat: no-repeat; background-size: 100% 15%; background-position: 0 65%;"
               >

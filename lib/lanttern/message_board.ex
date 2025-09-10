@@ -382,6 +382,20 @@ defmodule Lanttern.MessageBoard do
   def get_section!(id), do: Repo.get!(Section, id)
 
   @doc """
+  Gets a single section with messages preloaded and ordered.
+
+  Messages are ordered by position (ascending) and then by updated_at (descending).
+  Raises `Ecto.NoResultsError` if the Section does not exist.
+  """
+  def get_section_with_ordered_messages!(id) do
+    Section
+    |> Repo.get!(id)
+    |> Repo.preload([
+      messages: from(m in Message, order_by: [asc: m.position, desc: m.updated_at])
+    ])
+  end
+
+  @doc """
   Creates a section.
   """
   def create_section(attrs) do

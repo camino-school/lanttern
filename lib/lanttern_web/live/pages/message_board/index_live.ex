@@ -82,6 +82,38 @@ defmodule LantternWeb.MessageBoard.IndexLive do
     end
   end
 
+  def handle_event("unarchive_message", %{"id" => id}, socket) do
+    message = MessageBoard.get_message!(id)
+
+    case MessageBoard.unarchive_message(message) do
+      {:ok, unarchived_message} ->
+        # Get current active messages in the section to determine position
+        if socket.assigns.section && socket.assigns.section.messages do
+          non_archived_messages =
+            Enum.filter(socket.assigns.section.messages, fn m ->
+              is_nil(m.archived_at) and m.id != unarchived_message.id
+            end)
+
+          # Add the unarchived message at the end
+          new_messages_order = non_archived_messages ++ [unarchived_message]
+
+          # Update positions
+          MessageBoard.update_messages_position(new_messages_order)
+        end
+
+        socket =
+          socket
+          |> put_flash(:info, gettext("Message restored"))
+          |> assign_sections()
+          |> push_patch(to: ~p"/school/message_board")
+
+        {:noreply, socket}
+
+      {:error, _} ->
+        {:noreply, put_flash(socket, :error, gettext("Failed to unarchive message"))}
+    end
+  end
+
   def handle_event("validate_section", %{"section" => section_params}, socket) do
     changeset =
       socket.assigns.section
@@ -238,7 +270,7 @@ defmodule LantternWeb.MessageBoard.IndexLive do
   end
 
   defp assign_section(%{assigns: %{params: %{"edit_section" => id}}} = socket) do
-    section = MessageBoard.get_section!(id) |> Lanttern.Repo.preload(:messages)
+    section = MessageBoard.get_section_with_ordered_messages!(id)
     changeset = MessageBoard.change_section(section)
 
     socket
@@ -359,7 +391,7 @@ defmodule LantternWeb.MessageBoard.IndexLive do
           <div class="space-y-8">
             <%= for section <- @sections do %>
               <div class="bg-white rounded-lg shadow-lg">
-                <div class="flex items-center justify-between p-4 border-gray-200">
+                <div class="flex items-center justify-between p-4 border-gray-200 -mb-4">
                   <div class="flex items-center space-x-3">
                     <%!-- <.icon name="hero-bars-2" class="w-5 h-5 text-gray-400 cursor-move" /> --%>
                     <h2 class="text-lg font-bold">{section.name}</h2>
@@ -371,6 +403,7 @@ defmodule LantternWeb.MessageBoard.IndexLive do
                       theme="subtle"
                       icon_name="hero-cog-6-tooth-mini"
                       id={"section-#{section.id}-settings"}
+                      title={gettext("Configure section")}
                     >
                     </.action>
                   </div>
@@ -392,7 +425,7 @@ defmodule LantternWeb.MessageBoard.IndexLive do
                     <.link
                       :if={@communication_manager?}
                       patch={~p"/school/message_board?new=true&section_id=#{section.id}"}
-                      class="aspect-square w-full bg-white border-1 border-dashed border-gray-300 rounded-lg p-6 h-48 flex flex-col items-center justify-center text-gray-400 hover:text-gray-600 hover:border-gray-400 transition-colors group shadow-lg"
+                      class="aspect-square w-full bg-white border-1 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center text-gray-400 hover:text-gray-600 hover:border-gray-400 transition-colors group shadow-lg"
                     >
                       <.icon
                         name="hero-plus"
@@ -454,12 +487,44 @@ defmodule LantternWeb.MessageBoard.IndexLive do
             <.dragable_card
               :for={message <- (if is_list(@section.messages), do: Enum.filter(@section.messages, fn m -> is_nil(m.archived_at) end), else: [])}
               id={"sortable-#{message.id}"}
-              class={"mb-4"}
+              class="mb-4 border-l-12"
+              style={"border-left-color: #{message.color};"}
             >
-              {message.name}
+              <h3 class="font-display font-black text-xl" title={message.name}>
+                {message.name}
+              </h3>
             </.dragable_card>
           </div>
-           <%!-- Render archived messages after the sortable non-archived list --%>
+
+          <%!-- Render archived messages after the sortable non-archived list --%>
+          <div :if={@form_action == :edit && length(Enum.filter(@section.messages || [], fn m -> !is_nil(m.archived_at) end)) > 0} class="mt-6">
+            <label class="block text-sm font-medium leading-6 text-zinc-800">{gettext("Archived messages")}</label>
+            <div class="space-y-2 mt-2">
+              <.card_base
+                :for={message <- Enum.filter(@section.messages || [], fn m -> !is_nil(m.archived_at) end)}
+                class="p-4 opacity-60 bg-ltrn-lightest border-l-12"
+                style={"border-left-color: #{message.color};"}
+              >
+                <div class="flex items-center justify-between">
+                  <h3 class="font-display font-black text-xl" title={message.name}>
+                    {message.name}
+                  </h3>
+                  <div class="flex items-center gap-2">
+                    <.action
+                      type="button"
+                      phx-click="unarchive_message"
+                      phx-value-id={message.id}
+                      icon_name="hero-arrow-up-tray-mini"
+                      theme="dark"
+                      size="md"
+                      title={gettext("Unarchive")}
+                    >
+                    </.action>
+                  </div>
+                </div>
+              </.card_base>
+            </div>
+          </div>
           <:actions_left :if={@section.id}>
             <.action
               type="button"

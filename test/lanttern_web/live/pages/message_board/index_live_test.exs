@@ -48,8 +48,8 @@ defmodule LantternWeb.MessageBoard.IndexLiveTest do
       |> assert_has("h1", text: "Message board admin")
       |> click_link("Add new message")
       |> fill_in("Message title", with: attr.name)
-      |> fill_in("Description", with: attr.description)
       |> fill_in("Card color", with: attr.color)
+      |> fill_in("Contents", with: attr.description)
       |> click_button("Save")
 
       conn

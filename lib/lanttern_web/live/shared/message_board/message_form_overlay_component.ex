@@ -40,8 +40,88 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponent do
 
   alias LantternWeb.Attachments.AttachmentAreaComponent
   alias LantternWeb.Schools.ClassesFieldComponent
-  alias Phoenix.HTML.Tag
   import LantternWeb.FormComponents
+
+  # Custom image field component for message form with aspect ratio recommendation
+  attr :current_image_url, :string, required: true
+  attr :is_removing, :boolean, required: true
+  attr :upload, :any, required: true, doc: "use it to pass `@uploads.something`"
+  attr :on_cancel_replace, Phoenix.LiveView.JS, required: true
+  attr :on_cancel_upload, Phoenix.LiveView.JS, required: true
+  attr :on_replace, Phoenix.LiveView.JS, required: true
+  attr :class, :any, default: nil
+
+  defp message_image_field(assigns) do
+    ~H"""
+    <div
+      :if={!@current_image_url || @is_removing}
+      class={[
+        "p-4 border border-dashed border-ltrn-subtle rounded-md text-center text-ltrn-subtle bg-white shadow-lg",
+        if(@upload.entries != [], do: "hidden"),
+        @class
+      ]}
+      phx-drop-target={@upload.ref}
+    >
+      <div>
+        <.icon name="hero-photo" class="h-10 w-10 mx-auto mb-6" />
+        <div>
+          <label
+            for={@upload.ref}
+            class="cursor-pointer text-ltrn-primary hover:text-ltrn-dark focus-within:outline-hidden focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-ltrn-dark"
+          >
+            <span>{gettext("Upload a cover image file")}</span>
+            <.live_file_input upload={@upload} class="sr-only" />
+          </label>
+          <span>{gettext("or drag and drop here")}</span>
+          <div class="mt-2 text-sm">
+            <span>{gettext("Recommended aspect ratio of 16:9 (landscape orientation)")}</span>
+          </div>
+          <button :if={@is_removing} type="button" phx-click={@on_cancel_replace} class="mt-4">
+            {gettext("Cancel cover removal")}
+          </button>
+        </div>
+      </div>
+    </div>
+    <div :if={@current_image_url && !@is_removing} class={["relative", @class]}>
+      <div class="flex items-center justify-center w-full h-60 bg-ltrn-subtle overflow-hidden">
+        <img src={@current_image_url} alt="Cover image" class="w-full" />
+      </div>
+      <.icon_button
+        type="button"
+        name="hero-x-mark"
+        theme="white"
+        rounded
+        phx-click={@on_replace}
+        sr_text={gettext("Replace image")}
+        class="absolute top-2 right-2"
+      />
+    </div>
+    <div :for={entry <- @upload.entries} class={["relative", @class]}>
+      <div
+        :if={entry.valid?}
+        class="flex items-center justify-center w-full h-60 bg-ltrn-subtle overflow-hidden"
+      >
+        <.live_img_preview entry={entry} class="w-full" />
+      </div>
+      <.error_block :if={!entry.valid?} class="p-6 border border-red-500 rounded-sm">
+        <p>{gettext("File \"%{file}\" is invalid.", file: entry.client_name)}</p>
+        <%= for err <- upload_errors(@upload, entry) do %>
+          {LantternWeb.FormComponents.upload_error_to_string(@upload, err)}
+        <% end %>
+      </.error_block>
+      <.icon_button
+        type="button"
+        name="hero-x-mark"
+        theme="white"
+        rounded
+        phx-click={@on_cancel_upload}
+        phx-value-ref={entry.ref}
+        sr_text={gettext("cancel")}
+        class="absolute top-2 right-2"
+      />
+    </div>
+    """
+  end
 
   @impl true
   def render(assigns) do
@@ -59,7 +139,7 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponent do
           <.error_block :if={@form.source.action in [:insert, :update]} class="mb-6">
             {gettext("Oops, something went wrong! Please check the errors below.")}
           </.error_block>
-          <.image_field
+          <.message_image_field
             current_image_url={@message.cover}
             is_removing={@is_removing_cover}
             upload={@uploads.cover}
@@ -107,7 +187,7 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponent do
               </:custom_label>
             </.input>
             <div class="flex justify-between items-center mt-1">
-              <span :if={!is_nil(@message.cover)} class="text-xs text-red-500">
+              <span :if={!is_nil(@message.cover) or @uploads.cover.entries != []} class="text-xs text-red-500">
                 {gettext("When using a cover image, subtitles will not be displayed in the message card.")}
               </span>
               <span class="text-xs text-ltrn-subtle">

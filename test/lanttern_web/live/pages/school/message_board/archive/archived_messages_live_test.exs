@@ -50,7 +50,7 @@ defmodule LantternWeb.ArchivedMessagesLiveTest do
 
       {:ok, view, _html} = live(conn, @live_view_path)
 
-      assert view |> has_element?("button", "Unarchive")
+      assert view |> has_element?("button[title='Unarchive']")
     end
 
     test "hide unarchive and delete buttons when not communication manager", %{

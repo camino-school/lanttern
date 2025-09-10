@@ -112,7 +112,7 @@ defmodule LantternWeb.MessageBoard.Components do
        border-opacity: 0.5;
       "}
     >
-      <%= if @message.cover && @message.cover != "" do %>
+      <%= if @message.cover && @message.cover != "" && !@message.archived_at do %>
         <div class="w-full h-9/16 overflow-hidden rounded-tr-md">
           <img
             src={@message.cover || "/placeholder.svg"}
@@ -127,7 +127,10 @@ defmodule LantternWeb.MessageBoard.Components do
           <div class="flex-1 min-w-0">
             <div class="flex items-center gap-2 mb-2">
               <h3
-                class={"font-display font-black text-xl" <> (if @message.cover && @message.cover != "", do: " truncate", else: "")}
+                class={
+                  "font-display font-black text-xl" <>
+                    if(@message.cover && @message.cover != "" && !@message.archived_at, do: " truncate", else: "")
+                }
                 title={@message.name}
               >
                 {@message.name}
@@ -143,19 +146,45 @@ defmodule LantternWeb.MessageBoard.Components do
               type="button"
               phx-click={@on_unarchive}
               icon_name="hero-arrow-up-tray-mini"
+              theme="dark"
+              size="sm"
               data-confirm={gettext("Are you sure?")}
+              title={gettext("Unarchive")}
             >
-              {gettext("Unarchive")}
             </.action>
 
+              <.action
+                :if={@on_delete && @message.archived_at}
+                type="button"
+                phx-click={@on_delete}
+                icon_name="hero-x-mark-mini"
+                theme="subtle"
+                size="sm"
+                data-confirm={gettext("Are you sure? This action cannot be undone.")}
+                title={gettext("Delete")}
+              >
+              </.action>
+
             <.action
-              :if={@edit_patch}
+              :if={@edit_patch && !@message.archived_at}
               id={"message-#{@message.id}-edit"}
               class="inline-flex hover:text-gray-600"
               type="link"
               patch={@edit_patch}
               theme="subtle"
               icon_name="hero-pencil-mini"
+            >
+            </.action>
+
+            <.action
+              :if={@edit_patch && @message.archived_at}
+              id={"message-#{@message.id}-view"}
+              class="inline-flex hover:text-gray-600"
+              type="link"
+              patch={@edit_patch}
+              theme="subtle"
+              icon_name="hero-eye-mini"
+              title={gettext("Preview")}
             >
             </.action>
           </div>
