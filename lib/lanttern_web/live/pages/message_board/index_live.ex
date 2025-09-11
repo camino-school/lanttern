@@ -563,7 +563,6 @@ defmodule LantternWeb.MessageBoard.IndexLive do
         show={true}
         on_cancel={JS.patch(~p"/school/message_board")}
         full_w={true}
-        class="pt-6"
       >
         <:title>{gettext("Reorder sections")}</:title>
         <.live_component

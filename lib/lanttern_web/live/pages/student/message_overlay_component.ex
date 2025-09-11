@@ -79,7 +79,7 @@ defmodule LantternWeb.MessageBoard.CardMessageOverlayComponent do
               </.action>
             </div>
 
-            <div class="flex items-center gap-4 pl-4">
+            <div class="flex items-center gap-4 px-4">
               <h1 class="font-display font-black text-2xl">{@card_message.name}</h1>
             </div>
 
