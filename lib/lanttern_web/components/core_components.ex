@@ -1020,7 +1020,7 @@ defmodule LantternWeb.CoreComponents do
     ~H"""
     <.card_base
       id={@id}
-      class={["flex items-center gap-4 py-4 pl-2 pr-4", @class]}
+      class={["flex items-center py-4 pl-2 pr-4", @class]}
       bg_class={@bg_class}
       {@html_attrs}
     >

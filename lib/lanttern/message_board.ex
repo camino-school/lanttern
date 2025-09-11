@@ -37,7 +37,7 @@ defmodule Lanttern.MessageBoard do
       group_by: m.id,
       order_by: [
         desc: fragment("CASE WHEN ? THEN 1 ELSE 0 END", m.is_pinned),
-        desc: m.inserted_at
+        asc: m.updated_at
       ]
     )
     |> apply_list_messages_opts(opts)
@@ -73,14 +73,16 @@ defmodule Lanttern.MessageBoard do
   defp filter_archived(queryable, true) do
     from(
       m in queryable,
-      where: not is_nil(m.archived_at)
+      where: not is_nil(m.archived_at),
+      order_by: [asc: m.position, desc: m.updated_at]
     )
   end
 
   defp filter_archived(queryable, _) do
     from(
       m in queryable,
-      where: is_nil(m.archived_at)
+      where: is_nil(m.archived_at),
+      order_by: [asc: m.position, desc: m.updated_at]
     )
   end
 
@@ -213,10 +215,28 @@ defmodule Lanttern.MessageBoard do
   @spec archive_message(Message.t()) ::
           {:ok, Message.t()} | {:error, Ecto.Changeset.t()}
   def archive_message(%Message{} = message) do
-  message
-  |> Message.archive_changeset()
-  |> Ecto.Changeset.put_change(:position, 999)
-  |> Repo.update()
+    # Get total messages count in the section
+    total_messages = from(m in Message,
+      where: m.section_id == ^message.section_id,
+      select: count(m.id)
+    ) |> Repo.one()
+
+    # Get the highest position of archived messages in the section
+    max_archived_position = from(m in Message,
+      where: m.section_id == ^message.section_id and not is_nil(m.archived_at),
+      select: max(m.position)
+    ) |> Repo.one()
+
+    # Set position based on whether there are already archived messages
+    new_position = case max_archived_position do
+      nil -> total_messages  # No archived messages yet, use total count
+      max_pos -> max_pos + 1  # Add after the last archived message
+    end
+
+    message
+    |> Message.archive_changeset()
+    |> Ecto.Changeset.put_change(:position, new_position)
+    |> Repo.update()
   end
 
   @doc """
@@ -391,7 +411,13 @@ defmodule Lanttern.MessageBoard do
     Section
     |> Repo.get!(id)
     |> Repo.preload([
-      messages: from(m in Message, order_by: [asc: m.position, desc: m.updated_at])
+      messages: from(m in Message,
+        order_by: [
+          asc: m.position,
+          desc: m.updated_at,
+          asc: m.archived_at
+        ]
+      )
     ])
   end
 

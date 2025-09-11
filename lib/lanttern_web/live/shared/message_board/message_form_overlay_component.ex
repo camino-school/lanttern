@@ -73,8 +73,8 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponent do
             <.live_file_input upload={@upload} class="sr-only" />
           </label>
           <span>{gettext("or drag and drop here")}</span>
-          <div class="mt-2 text-sm">
-            <span>{gettext("Recommended aspect ratio of 16:9 (landscape orientation)")}</span>
+          <div class="mt-2">
+            <span  class="text-xs">{gettext("Recommended aspect ratio of 16:9 (landscape orientation)")}</span>
           </div>
           <button :if={@is_removing} type="button" phx-click={@on_cancel_replace} class="mt-4">
             {gettext("Cancel cover removal")}

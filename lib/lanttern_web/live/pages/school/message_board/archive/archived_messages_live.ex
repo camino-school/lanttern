@@ -60,6 +60,7 @@ defmodule LantternWeb.ArchivedMessagesLive do
       from(s in Section, where: s.school_id == ^school_id, order_by: s.position)
       |> Repo.all()
       |> Repo.preload(messages: messages_query)
+      |> Enum.filter(fn section -> length(section.messages) > 0 end)
 
     messages = Enum.flat_map(sections, & &1.messages)
 

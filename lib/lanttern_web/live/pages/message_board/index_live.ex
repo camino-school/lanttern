@@ -393,7 +393,6 @@ defmodule LantternWeb.MessageBoard.IndexLive do
               <div class="bg-white rounded-lg shadow-lg">
                 <div class="flex items-center justify-between p-4 border-gray-200 -mb-4">
                   <div class="flex items-center space-x-3">
-                    <%!-- <.icon name="hero-bars-2" class="w-5 h-5 text-gray-400 cursor-move" /> --%>
                     <h2 class="text-lg font-bold">{section.name}</h2>
                   </div>
                   <div class="flex items-center space-x-2">
@@ -473,7 +472,7 @@ defmodule LantternWeb.MessageBoard.IndexLive do
               field={@form[:name]}
               type="text"
               label={gettext("Section name")}
-              class="mb-6"
+              class="mb-6 -mt-6"
               phx-debounce="1500"
             />
           </.form>
@@ -487,10 +486,10 @@ defmodule LantternWeb.MessageBoard.IndexLive do
             <.dragable_card
               :for={message <- (if is_list(@section.messages), do: Enum.filter(@section.messages, fn m -> is_nil(m.archived_at) end), else: [])}
               id={"sortable-#{message.id}"}
-              class="mb-4 border-l-12"
+              class="mb-4 border-l-12 gap-2"
               style={"border-left-color: #{message.color};"}
             >
-              <h3 class="font-display font-black text-xl" title={message.name}>
+              <h3 class="font-display font-black text-lg" title={message.name}>
                 {message.name}
               </h3>
             </.dragable_card>
@@ -506,7 +505,7 @@ defmodule LantternWeb.MessageBoard.IndexLive do
                 style={"border-left-color: #{message.color};"}
               >
                 <div class="flex items-center justify-between">
-                  <h3 class="font-display font-black text-xl" title={message.name}>
+                  <h3 class="font-display font-black text-lg" title={message.name}>
                     {message.name}
                   </h3>
                   <div class="flex items-center gap-2">
@@ -563,6 +562,8 @@ defmodule LantternWeb.MessageBoard.IndexLive do
         id="reorder-sections-overlay"
         show={true}
         on_cancel={JS.patch(~p"/school/message_board")}
+        full_w={true}
+        class="pt-6"
       >
         <:title>{gettext("Reorder sections")}</:title>
         <.live_component

@@ -35,7 +35,7 @@ defmodule LantternWeb.StudentsSettingsLive.TagsComponent do
           <.dragable_card
             :for={{dom_id, tag} <- @streams.student_tags}
             id={"sortable-#{dom_id}"}
-            class="mt-4 first:mt-0"
+            class="mt-4 first:mt-0 gap-4"
           >
             <div class="flex items-center gap-4 p-6">
               <.badge color_map={tag}>
