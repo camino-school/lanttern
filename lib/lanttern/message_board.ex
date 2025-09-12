@@ -37,7 +37,8 @@ defmodule Lanttern.MessageBoard do
       group_by: m.id,
       order_by: [
         desc: fragment("CASE WHEN ? THEN 1 ELSE 0 END", m.is_pinned),
-        asc: m.updated_at
+        asc: m.updated_at,
+        asc: m.position
       ]
     )
     |> apply_list_messages_opts(opts)
@@ -256,10 +257,26 @@ defmodule Lanttern.MessageBoard do
   @spec unarchive_message(Message.t()) ::
           {:ok, Message.t()} | {:error, Ecto.Changeset.t()}
   def unarchive_message(%Message{} = message) do
-  message
-  |> Message.unarchive_changeset()
-  |> Ecto.Changeset.put_change(:position, 0)
-  |> Repo.update()
+    # Count non-archived messages in the same section to set proper position
+    non_archived_count = count_non_archived_messages_in_section(message.section_id)
+
+    message
+    |> Message.unarchive_changeset()
+    |> Ecto.Changeset.put_change(:position, non_archived_count + 1)
+    |> Repo.update()
+  end
+
+  @doc """
+  Counts non-archived messages in a section.
+  Returns 0 if section_id is nil.
+  """
+  def count_non_archived_messages_in_section(nil), do: 0
+  def count_non_archived_messages_in_section(section_id) do
+    from(m in Message,
+      where: m.section_id == ^section_id and is_nil(m.archived_at),
+      select: count(m.id)
+    )
+    |> Repo.one()
   end
 
   @doc """

@@ -7,11 +7,6 @@ defmodule LantternWeb.MessageBoard.CardMessageOverlayComponent do
   import LantternWeb.DateTimeHelpers
 
   alias Lanttern.MessageBoard
-  # alias Lanttern.SupabaseHelpers
-  # import LantternWeb.TaxonomyHelpers
-
-  # live components
-  # alias LantternWeb.Form.MultiSelectComponent
   alias LantternWeb.Attachments.AttachmentRenderComponent
 
   attr :tz, :string, default: nil
