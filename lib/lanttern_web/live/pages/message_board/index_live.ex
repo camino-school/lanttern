@@ -180,10 +180,10 @@ defmodule LantternWeb.MessageBoard.IndexLive do
   end
 
   def handle_event("sortable_update", %{"oldIndex" => old, "newIndex" => new}, socket) do
-  non_archived = Enum.filter(socket.assigns.section.messages, fn m -> is_nil(m.archived_at) end)
-  {changed_id, rest} = List.pop_at(non_archived, old)
-  new_messages = List.insert_at(rest, new, changed_id)
-  MessageBoard.update_messages_position(new_messages)
+    non_archived = Enum.filter(socket.assigns.section.messages, fn m -> is_nil(m.archived_at) end)
+    {changed_id, rest} = List.pop_at(non_archived, old)
+    new_messages = List.insert_at(rest, new, changed_id)
+    MessageBoard.update_messages_position(new_messages)
 
     {:noreply, assign_sections(socket)}
   end
@@ -484,7 +484,12 @@ defmodule LantternWeb.MessageBoard.IndexLive do
             phx-update="ignore"
           >
             <.dragable_card
-              :for={message <- (if is_list(@section.messages), do: Enum.filter(@section.messages, fn m -> is_nil(m.archived_at) end), else: [])}
+              :for={
+                message <-
+                  if is_list(@section.messages),
+                    do: Enum.filter(@section.messages, fn m -> is_nil(m.archived_at) end),
+                    else: []
+              }
               id={"sortable-#{message.id}"}
               class="mb-4 border-l-12 gap-2"
               style={"border-left-color: #{message.color};"}
@@ -496,11 +501,21 @@ defmodule LantternWeb.MessageBoard.IndexLive do
           </div>
 
           <%!-- Render archived messages after the sortable non-archived list --%>
-          <div :if={@form_action == :edit && length(Enum.filter(@section.messages || [], fn m -> !is_nil(m.archived_at) end)) > 0} class="mt-6">
-            <label class="block text-sm font-medium leading-6 text-zinc-800">{gettext("Archived messages")}</label>
+          <div
+            :if={
+              @form_action == :edit &&
+                length(Enum.filter(@section.messages || [], fn m -> !is_nil(m.archived_at) end)) > 0
+            }
+            class="mt-6"
+          >
+            <label class="block text-sm font-medium leading-6 text-zinc-800">
+              {gettext("Archived messages")}
+            </label>
             <div class="space-y-2 mt-2">
               <.card_base
-                :for={message <- Enum.filter(@section.messages || [], fn m -> !is_nil(m.archived_at) end)}
+                :for={
+                  message <- Enum.filter(@section.messages || [], fn m -> !is_nil(m.archived_at) end)
+                }
                 class="p-4 opacity-60 bg-ltrn-lightest border-l-12"
                 style={"border-left-color: #{message.color};"}
               >

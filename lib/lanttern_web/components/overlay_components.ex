@@ -222,7 +222,12 @@ defmodule LantternWeb.OverlayComponents do
                 <div class="flex-1 min-h-0 overflow-y-scroll ltrn-bg-slide-over" style={@bg_style}>
                   <h2
                     :if={@title != []}
-                    class={if @sticky_header, do: "sticky top-0 z-10 px-4 sm:px-6 py-6 font-display font-black text-3xl bg-white/60 backdrop-blur", else: "px-4 sm:px-6 py-6 font-display font-black text-3xl"}
+                    class={
+                      if @sticky_header,
+                        do:
+                          "sticky top-0 z-10 px-4 sm:px-6 py-6 font-display font-black text-3xl bg-white/60 backdrop-blur",
+                        else: "px-4 sm:px-6 py-6 font-display font-black text-3xl"
+                    }
                     id={"#{@id}-header"}
                   >
                     {render_slot(@title)}

@@ -47,36 +47,36 @@ defmodule LantternWeb.MessageBoard.ReorderComponent do
 
   def render(assigns) do
     ~H"""
-      <div class="px-6">
-        <%= if @sections == [] do %>
-          <.card_base class="p-10 mt-4">
-            <.empty_state>
-              {gettext("No sections created yet")}
-            </.empty_state>
-          </.card_base>
-        <% else %>
+    <div class="px-6">
+      <%= if @sections == [] do %>
+        <.card_base class="p-10 mt-4">
+          <.empty_state>
+            {gettext("No sections created yet")}
+          </.empty_state>
+        </.card_base>
+      <% else %>
         <div class="-mb-6"></div>
-          <div
-            class="space-y-8"
-            phx-hook="Sortable"
-            phx-target={@myself}
-            id="sortable-section-cards"
-            data-sortable-handle=".sortable-handle"
-            phx-update="ignore"
+        <div
+          class="space-y-8"
+          phx-hook="Sortable"
+          phx-target={@myself}
+          id="sortable-section-cards"
+          data-sortable-handle=".sortable-handle"
+          phx-update="ignore"
+        >
+          <.dragable_card
+            :for={section <- @sections}
+            id={"sortable-#{section.id}"}
+            class="w-full bg-white rounded-lg shadow-lg my-4 border-l-12 gap-2"
+            style="border-left-color: #fff;"
           >
-            <.dragable_card
-              :for={section <- @sections}
-              id={"sortable-#{section.id}"}
-              class="w-full bg-white rounded-lg shadow-lg my-4 border-l-12 gap-2"
-              style="border-left-color: #fff;"
-            >
-              <h3 class="font-display font-black text-lg truncate" title={section.name}>
-                {section.name}
-              </h3>
-            </.dragable_card>
-          </div>
-        <% end %>
-      </div>
+            <h3 class="font-display font-black text-lg truncate" title={section.name}>
+              {section.name}
+            </h3>
+          </.dragable_card>
+        </div>
+      <% end %>
+    </div>
     """
   end
 end

@@ -81,7 +81,9 @@ defmodule LantternWeb.ArchivedMessagesLive do
     |> assign(:messages_count, length(all_messages))
     |> assign(:messages_ids, Enum.map(all_messages, & &1.id))
     |> tap(fn s ->
-      Logger.debug("[ArchivedMessagesLive] messages_count=#{inspect(s.assigns.messages_count)} messages_ids=#{inspect(s.assigns.messages_ids)} is_comm=#{inspect(s.assigns.is_communication_manager)}")
+      Logger.debug(
+        "[ArchivedMessagesLive] messages_count=#{inspect(s.assigns.messages_count)} messages_ids=#{inspect(s.assigns.messages_ids)} is_comm=#{inspect(s.assigns.is_communication_manager)}"
+      )
     end)
   end
 

@@ -28,8 +28,8 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponent do
     ~H"""
     <div class={@class}>
       <.label>
-        <%= @label %>
-        <span class="font-normal">(<%= @help_text %>)</span>
+        {@label}
+        <span class="font-normal">({@help_text})</span>
       </.label>
       <.input field={@field} type="text" class="mt-2" phx-debounce="1500" />
     </div>
@@ -74,7 +74,9 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponent do
           </label>
           <span>{gettext("or drag and drop here")}</span>
           <div class="mt-2">
-            <span  class="text-xs">{gettext("Recommended aspect ratio of 16:9 (landscape orientation)")}</span>
+            <span class="text-xs">
+              {gettext("Recommended aspect ratio of 16:9 (landscape orientation)")}
+            </span>
           </div>
           <button :if={@is_removing} type="button" phx-click={@on_cancel_replace} class="mt-4">
             {gettext("Cancel cover removal")}
@@ -187,8 +189,13 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponent do
               </:custom_label>
             </.input>
             <div class="flex justify-between items-center mt-1">
-              <span :if={!is_nil(@message.cover) or @uploads.cover.entries != []} class="text-xs text-red-500">
-                {gettext("When using a cover image, subtitles will not be displayed in the message card.")}
+              <span
+                :if={!is_nil(@message.cover) or @uploads.cover.entries != []}
+                class="text-xs text-red-500"
+              >
+                {gettext(
+                  "When using a cover image, subtitles will not be displayed in the message card."
+                )}
               </span>
               <span class="text-xs text-ltrn-subtle">
                 {String.length(@form[:subtitle].value || "")} / 160

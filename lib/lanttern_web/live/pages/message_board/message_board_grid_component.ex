@@ -79,12 +79,12 @@ defmodule LantternWeb.MessageBoard.MessageBoardGridComponent do
               <div class="mt-0 flex items-center justify-center space-x-2 indicators">
                 <%= for message <- section.messages do %>
                   <a
-                      href={"#section-#{section.id}-message-#{message.id}-mobile"}
-                      class="block w-2 h-2 rounded-full bg-white focus:outline-none indicator-dot"
-                      style={"border: 1px solid #94A3B8;"}
-                      aria-label={gettext("Go to message %{id}", id: message.id)}
-                    >
-                    </a>
+                    href={"#section-#{section.id}-message-#{message.id}-mobile"}
+                    class="block w-2 h-2 rounded-full bg-white focus:outline-none indicator-dot"
+                    style="border: 1px solid #94A3B8;"
+                    aria-label={gettext("Go to message %{id}", id: message.id)}
+                  >
+                  </a>
                 <% end %>
               </div>
 
@@ -98,8 +98,8 @@ defmodule LantternWeb.MessageBoard.MessageBoardGridComponent do
               </style>
             </div>
           </div>
-
-          <!-- Desktop/tablet: use existing grid within responsive container -->
+          
+    <!-- Desktop/tablet: use existing grid within responsive container -->
           <div class="hidden md:block">
             <div>
               <h3 class="text-lg font-bold mb-1 px-6 md:px-0">

@@ -16,7 +16,8 @@ defmodule LantternWeb.ArchivedMessagesLiveTest do
       school = Schools.get_school!(school_id)
       section = insert(:section, %{school: school})
 
-      message = insert(:message, %{
+      message =
+        insert(:message, %{
           school: school,
           section: section,
           name: "not archived message abc",
@@ -45,7 +46,8 @@ defmodule LantternWeb.ArchivedMessagesLiveTest do
       school = Schools.get_school!(school_id)
       section = insert(:section, %{school: school})
 
-      {:ok, _message} = insert(:message, %{school: school, section: section})
+      {:ok, _message} =
+        insert(:message, %{school: school, section: section})
         |> MessageBoard.archive_message()
 
       {:ok, view, _html} = live(conn, @live_view_path)

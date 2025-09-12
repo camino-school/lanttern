@@ -217,22 +217,29 @@ defmodule Lanttern.MessageBoard do
           {:ok, Message.t()} | {:error, Ecto.Changeset.t()}
   def archive_message(%Message{} = message) do
     # Get total messages count in the section
-    total_messages = from(m in Message,
-      where: m.section_id == ^message.section_id,
-      select: count(m.id)
-    ) |> Repo.one()
+    total_messages =
+      from(m in Message,
+        where: m.section_id == ^message.section_id,
+        select: count(m.id)
+      )
+      |> Repo.one()
 
     # Get the highest position of archived messages in the section
-    max_archived_position = from(m in Message,
-      where: m.section_id == ^message.section_id and not is_nil(m.archived_at),
-      select: max(m.position)
-    ) |> Repo.one()
+    max_archived_position =
+      from(m in Message,
+        where: m.section_id == ^message.section_id and not is_nil(m.archived_at),
+        select: max(m.position)
+      )
+      |> Repo.one()
 
     # Set position based on whether there are already archived messages
-    new_position = case max_archived_position do
-      nil -> total_messages  # No archived messages yet, use total count
-      max_pos -> max_pos + 1  # Add after the last archived message
-    end
+    new_position =
+      case max_archived_position do
+        # No archived messages yet, use total count
+        nil -> total_messages
+        # Add after the last archived message
+        max_pos -> max_pos + 1
+      end
 
     message
     |> Message.archive_changeset()
@@ -271,6 +278,7 @@ defmodule Lanttern.MessageBoard do
   Returns 0 if section_id is nil.
   """
   def count_non_archived_messages_in_section(nil), do: 0
+
   def count_non_archived_messages_in_section(section_id) do
     from(m in Message,
       where: m.section_id == ^section_id and is_nil(m.archived_at),
@@ -427,15 +435,16 @@ defmodule Lanttern.MessageBoard do
   def get_section_with_ordered_messages!(id) do
     Section
     |> Repo.get!(id)
-    |> Repo.preload([
-      messages: from(m in Message,
-        order_by: [
-          asc: m.position,
-          desc: m.updated_at,
-          asc: m.archived_at
-        ]
-      )
-    ])
+    |> Repo.preload(
+      messages:
+        from(m in Message,
+          order_by: [
+            asc: m.position,
+            desc: m.updated_at,
+            asc: m.archived_at
+          ]
+        )
+    )
   end
 
   @doc """

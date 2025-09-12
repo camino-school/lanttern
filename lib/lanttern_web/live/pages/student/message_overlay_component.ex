@@ -70,7 +70,7 @@ defmodule LantternWeb.MessageBoard.CardMessageOverlayComponent do
                 data-confirm={gettext("Are you sure? This will permanently delete the message.")}
                 style="background-image: linear-gradient(#FEE2E2, #FEE2E2); background-repeat: no-repeat; background-size: 100% 15%; background-position: 0 65%;"
               >
-                  <span class="align-middle">{gettext("Delete")}</span>
+                <span class="align-middle">{gettext("Delete")}</span>
               </.action>
             </div>
 
@@ -99,7 +99,11 @@ defmodule LantternWeb.MessageBoard.CardMessageOverlayComponent do
 
             <div class="m-6 sm:px-2">
               <h4 class="font-display font-bold text-base">{@card_message.subtitle}</h4>
-              <.markdown text={@card_message.description} theme="overlay" class="mt-4" />
+              <.markdown
+                text={@card_message.description}
+                theme="overlay"
+                class="mt-4 prose-a:break-words prose-a:break-all"
+              />
 
               <.live_component
                 :if={@card_message.id}

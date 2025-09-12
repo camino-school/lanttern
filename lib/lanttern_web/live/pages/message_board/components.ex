@@ -1,4 +1,5 @@
 import LantternWeb.CoreComponents
+
 defmodule LantternWeb.MessageBoard.Components do
   @moduledoc """
   Shared function components related to `MessageBoard` context
@@ -153,17 +154,17 @@ defmodule LantternWeb.MessageBoard.Components do
             >
             </.action>
 
-              <.action
-                :if={@on_delete && @message.archived_at}
-                type="button"
-                phx-click={@on_delete}
-                icon_name="hero-x-mark-mini"
-                theme="subtle"
-                size="sm"
-                data-confirm={gettext("Are you sure? This action cannot be undone.")}
-                title={gettext("Delete")}
-              >
-              </.action>
+            <.action
+              :if={@on_delete && @message.archived_at}
+              type="button"
+              phx-click={@on_delete}
+              icon_name="hero-x-mark-mini"
+              theme="subtle"
+              size="sm"
+              data-confirm={gettext("Are you sure? This action cannot be undone.")}
+              title={gettext("Delete")}
+            >
+            </.action>
 
             <.action
               :if={@edit_patch && !@message.archived_at}
@@ -264,15 +265,14 @@ defmodule LantternWeb.MessageBoard.Components do
         </div>
 
         <div class="absolute bottom-3 right-4">
-        <%!-- section-#{section.id}-message-#{message.id}-responsive-card-lookout --%>
-          <button class="w-full flex items-center justify-between gap-[14px] transition-colors group"
+          <%!-- section-#{section.id}-message-#{message.id}-responsive-card-lookout --%>
+          <button
+            class="w-full flex items-center justify-between gap-[14px] transition-colors group"
             phx-click="card_lookout"
             phx-value-id={@message.id}
             id={"#{assigns.id}-lookout"}
-            >
-            <span
-              class="font-display font-bold text-sm hover:text-ltrn-subtle"
-            >
+          >
+            <span class="font-display font-bold text-sm hover:text-ltrn-subtle">
               {gettext("See more")}
             </span>
             <.icon
