@@ -9,7 +9,9 @@ defmodule Lanttern.Factory do
   use Lanttern.ILPCommentAttachmentFactory
   use Lanttern.ILPCommentFactory
   use Lanttern.ILPTemplateFactory
+  use Lanttern.MessageAttachmentFactory
   use Lanttern.MessageFactory
+  use Lanttern.MessageClassFactory
   use Lanttern.NoteFactory
   use Lanttern.ProfileFactory
   use Lanttern.SchoolFactory
@@ -22,5 +24,4 @@ defmodule Lanttern.Factory do
   use Lanttern.StudentRecordRelationshipFactory
   use Lanttern.StudentRecordStatusFactory
   use Lanttern.UserFactory
-  use Lanttern.MessageAttachmentFactory
 end

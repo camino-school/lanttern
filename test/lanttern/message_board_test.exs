@@ -43,41 +43,45 @@ defmodule Lanttern.MessageBoardTest do
     end
 
     test "list_messages/1 with classes_ids opt returns all board_messages filtered by given classes" do
-      class = SchoolsFixtures.class_fixture()
+      school = insert(:school)
+      cycle = insert(:cycle, %{school: school})
+      class = insert(:class, %{school: school, cycle: cycle, name: "Class 1"})
+      section = insert(:section, %{school: school})
 
-      message =
-        message_fixture(%{
-          send_to: "classes",
-          school_id: class.school_id,
-          classes_ids: [class.id]
-        })
+      message = insert(:message, %{school: school, send_to: "classes"})
+
+      insert(:message_class, %{message: message, class: class, school: school})
 
       # wait 1 second to test ordering by inserted_at
       Process.sleep(1000)
 
       # school messages should be included in the list
-      school_message =
-        message_fixture(%{
-          send_to: "school",
-          school_id: class.school_id
-        })
+      school_message = insert(:message, %{name: "School message", section: section, school: school, send_to: "school"})
 
-      # other fixtures for filtering assertion
-      another_class = SchoolsFixtures.class_fixture(%{school_id: class.school_id})
+      Process.sleep(1000)
 
-      message_fixture(%{
-        send_to: "classes",
-        school_id: class.school_id,
-        classes_ids: [another_class.id]
-      })
+      # other messages for filtering assertion
+      another_class = insert(:class, %{school: school, cycle: cycle})
+      attrs = %{name: "another message", section: section, school: school, send_to: "classes"}
+      another_message = insert(:message, attrs)
+      insert(:message_class, %{message: another_message, class: another_class, school: school})
 
-      message_fixture()
-
-      assert [expected_school_message, expected_message] =
-               MessageBoard.list_messages(school_id: class.school_id, classes_ids: [class.id])
+      assert [expected_message, expected_school_message, expected_another_message] =
+             MessageBoard.list_messages(school_id: school.id)
 
       assert expected_message.id == message.id
       assert expected_school_message.id == school_message.id
+      assert expected_another_message.id == another_message.id
+
+      assert [expected_message, expected_school] =
+              MessageBoard.list_messages([school_id: school.id, classes_ids: [class.id]])
+      assert expected_school.id == school_message.id
+      assert expected_message.id == message.id
+
+      assert [expected_school, expected_another] =
+              MessageBoard.list_messages([school_id: school.id, classes_ids: [another_class.id]])
+      assert expected_school.id == school_message.id
+      assert expected_another.id == another_message.id
     end
 
     test "list_student_messages/1 returns all messages relevant to the student" do
