@@ -35,6 +35,7 @@ defmodule LantternWeb.MessageBoard.IndexLive do
       |> assign(:communication_manager?, communication_manager?)
       |> assign(:section_overlay_title, nil)
       |> assign(:form_action, nil)
+      |> assign(:page_title, gettext("Message board"))
 
     {:ok, socket}
   end

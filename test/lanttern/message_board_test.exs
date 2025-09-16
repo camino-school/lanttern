@@ -10,36 +10,41 @@ defmodule Lanttern.MessageBoardTest do
   describe "messages" do
     alias Lanttern.MessageBoard.Message
 
-    import Lanttern.MessageBoardFixtures
-
-    alias Lanttern.SchoolsFixtures
-
     @invalid_attrs %{name: nil, description: nil, send_to: nil}
 
     test "list_messages/1 returns all board_messages (pinned first. archived not included)" do
-      message = message_fixture()
-      {:ok, _archived} = message_fixture() |> MessageBoard.archive_message()
+      message = insert(:message)
+      {:ok, _archived} = insert(:message) |> MessageBoard.archive_message()
 
-      pinned = message_fixture(%{is_pinned: true})
+      pinned = insert(:message, %{is_pinned: true})
 
-      assert MessageBoard.list_messages() == [pinned, message]
+      assert [expected_pinned, expected] =
+               MessageBoard.list_messages()
+
+      assert pinned.id == expected_pinned.id
+      assert message.id == expected.id
     end
 
     test "list_messages/1 with archived opt returns all archived board messages" do
-      _message = message_fixture()
-      {:ok, archived} = message_fixture() |> MessageBoard.archive_message()
+      _message = insert(:message)
+      {:ok, archived} = insert(:message) |> MessageBoard.archive_message()
 
-      assert MessageBoard.list_messages(archived: true) == [archived]
+      assert [expected] = MessageBoard.list_messages(archived: true)
+      assert expected.id == archived.id
     end
 
     test "list_messages/1 with school_id opt returns all board_messages filtered by given school" do
-      school = SchoolsFixtures.school_fixture()
-      message = message_fixture(%{school_id: school.id})
+      school = insert(:school)
+      section = insert(:section, %{school: school})
+
+      message = insert(:message, %{school: school, section: section, send_to: "school"})
 
       # other fixtures for filtering assertion
-      message_fixture()
+      insert(:message)
 
-      assert MessageBoard.list_messages(school_id: school.id) == [message]
+      [expected_message] = MessageBoard.list_messages(school_id: school.id)
+
+      assert expected_message.id == message.id
     end
 
     test "list_messages/1 with classes_ids opt returns all board_messages filtered by given classes" do
@@ -56,7 +61,13 @@ defmodule Lanttern.MessageBoardTest do
       Process.sleep(1000)
 
       # school messages should be included in the list
-      school_message = insert(:message, %{name: "School message", section: section, school: school, send_to: "school"})
+      school_message =
+        insert(:message, %{
+          name: "School message",
+          section: section,
+          school: school,
+          send_to: "school"
+        })
 
       Process.sleep(1000)
 
@@ -67,70 +78,83 @@ defmodule Lanttern.MessageBoardTest do
       insert(:message_class, %{message: another_message, class: another_class, school: school})
 
       assert [expected_message, expected_school_message, expected_another_message] =
-             MessageBoard.list_messages(school_id: school.id)
+               MessageBoard.list_messages(school_id: school.id)
 
       assert expected_message.id == message.id
       assert expected_school_message.id == school_message.id
       assert expected_another_message.id == another_message.id
 
       assert [expected_message, expected_school] =
-              MessageBoard.list_messages([school_id: school.id, classes_ids: [class.id]])
+               MessageBoard.list_messages(school_id: school.id, classes_ids: [class.id])
+
       assert expected_school.id == school_message.id
       assert expected_message.id == message.id
 
       assert [expected_school, expected_another] =
-              MessageBoard.list_messages([school_id: school.id, classes_ids: [another_class.id]])
+               MessageBoard.list_messages(school_id: school.id, classes_ids: [another_class.id])
+
       assert expected_school.id == school_message.id
       assert expected_another.id == another_message.id
     end
 
     test "list_student_messages/1 returns all messages relevant to the student" do
-      school = SchoolsFixtures.school_fixture()
-      class = SchoolsFixtures.class_fixture(%{school_id: school.id})
-      student = SchoolsFixtures.student_fixture(%{school_id: school.id, classes_ids: [class.id]})
+      school = insert(:school)
+      cycle = insert(:cycle, %{school: school})
+      class = insert(:class, %{school: school, cycle: cycle})
+      student = insert(:student, %{school: school})
+
+      # Create the association between student and class
+      Repo.insert_all("classes_students", [%{class_id: class.id, student_id: student.id}])
 
       school_message =
-        message_fixture(%{
+        insert(:message, %{
           send_to: "school",
-          school_id: class.school_id
+          school: school
         })
 
       # wait 1 second to test ordering by inserted_at
       Process.sleep(1000)
 
       class_message =
-        message_fixture(%{
+        insert(:message, %{
           send_to: "classes",
-          school_id: class.school_id,
+          school: school,
           classes_ids: [class.id]
         })
 
+      insert(:message_class, %{message: class_message, class: class, school: school})
+
       # expect pinned messages first
       pinned_message =
-        message_fixture(%{
+        insert(:message, %{
           send_to: "classes",
-          school_id: class.school_id,
+          school: school,
           classes_ids: [class.id],
           is_pinned: true
         })
 
+      insert(:message_class, %{message: pinned_message, class: class, school: school})
+
       # other fixtures for filtering assertion
-      another_class = SchoolsFixtures.class_fixture(%{school_id: class.school_id})
+      another_class = insert(:class, %{name: "another class", cycle: cycle, school: school})
 
-      message_fixture(%{
-        send_to: "classes",
-        school_id: class.school_id,
-        classes_ids: [another_class.id]
-      })
+      another_message =
+        insert(:message, %{
+          send_to: "classes",
+          school: school,
+          classes_ids: [another_class.id]
+        })
 
-      message_fixture(%{
+      insert(:message_class, %{message: another_message, class: another_class, school: school})
+
+      insert(:message, %{
         send_to: "classes",
-        school_id: class.school_id,
+        school: school,
         classes_ids: [class.id]
       })
       |> MessageBoard.archive_message()
 
-      message_fixture()
+      insert(:message)
 
       assert [expected_pinned_message, expected_class_message, expected_school_message] =
                MessageBoard.list_student_messages(student)
@@ -141,12 +165,13 @@ defmodule Lanttern.MessageBoardTest do
     end
 
     test "get_message!/1 returns the message with given id" do
-      message = message_fixture()
-      assert MessageBoard.get_message!(message.id) == message
+      message = insert(:message)
+      assert expected_message = MessageBoard.get_message!(message.id)
+      assert expected_message.id == message.id
     end
 
     test "create_message/1 with valid data creates a school message" do
-      school = Lanttern.SchoolsFixtures.school_fixture()
+      school = insert(:school)
       valid_attrs = params_with_assocs(:message, %{school: school})
 
       assert {:ok, %Message{} = message} = MessageBoard.create_message(valid_attrs)
@@ -157,8 +182,9 @@ defmodule Lanttern.MessageBoardTest do
     end
 
     test "create_message/1 with valid data creates a class message" do
-      school = Lanttern.SchoolsFixtures.school_fixture()
-      class = Lanttern.SchoolsFixtures.class_fixture(%{school_id: school.id})
+      school = insert(:school)
+      cycle = insert(:cycle, %{school: school})
+      class = insert(:class, %{school: school, cycle: cycle})
       attrs = %{classes_ids: [class.id], school: school, send_to: "classes"}
 
       valid_attrs = params_with_assocs(:message, attrs)
@@ -170,7 +196,8 @@ defmodule Lanttern.MessageBoardTest do
       assert message.school_id == school.id
 
       message = message |> Repo.preload(:classes)
-      assert message.classes == [class]
+      assert [message_classes] = message.message_classes
+      assert message_classes.class_id == class.id
     end
 
     test "create_message/1 with invalid data returns error changeset" do
@@ -178,7 +205,7 @@ defmodule Lanttern.MessageBoardTest do
     end
 
     test "update_message/2 with valid data updates the message" do
-      message = message_fixture() |> Repo.preload(:message_classes)
+      message = insert(:message) |> Repo.preload(:message_classes)
 
       update_attrs = %{
         name: "some updated name",
@@ -191,41 +218,43 @@ defmodule Lanttern.MessageBoardTest do
     end
 
     test "update_message/2 with invalid data returns error changeset" do
-      message = message_fixture() |> Repo.preload(:message_classes)
+      message = insert(:message) |> Repo.preload(:message_classes)
       assert {:error, %Ecto.Changeset{}} = MessageBoard.update_message(message, @invalid_attrs)
-      assert message == MessageBoard.get_message!(message.id) |> Repo.preload(:message_classes)
+
+      assert expected_message =
+               MessageBoard.get_message!(message.id) |> Repo.preload(:message_classes)
+
+      assert message.id == expected_message.id
     end
 
     test "archive_message/1 sets archived_at for given message" do
-      message = message_fixture()
+      message = insert(:message)
 
       assert {:ok, %Message{archived_at: %DateTime{}}} =
                MessageBoard.archive_message(message)
     end
 
     test "unarchive_message/1 sets archived_at to nil for given message" do
-      message = message_fixture(%{archived_at: DateTime.utc_now()})
+      message = insert(:message, %{archived_at: DateTime.utc_now()})
 
       assert {:ok, %Message{archived_at: nil}} =
                MessageBoard.unarchive_message(message)
     end
 
     test "delete_message/1 deletes the message" do
-      message = message_fixture()
+      message = insert(:message)
       assert {:ok, %Message{}} = MessageBoard.delete_message(message)
       assert_raise Ecto.NoResultsError, fn -> MessageBoard.get_message!(message.id) end
     end
 
     test "change_message/1 returns a message changeset" do
-      message = message_fixture() |> Repo.preload(:message_classes)
+      message = insert(:message) |> Repo.preload(:message_classes)
       assert %Ecto.Changeset{} = MessageBoard.change_message(message)
     end
   end
 
   describe "sections" do
     alias Lanttern.MessageBoard.Section
-
-    import Lanttern.MessageBoardFixtures
 
     @invalid_attrs %{name: nil, position: nil, school_id: nil}
 

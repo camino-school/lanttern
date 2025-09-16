@@ -1,4 +1,9 @@
 defmodule LantternWeb.MessageBoard.MessageBoardGridComponent do
+  @moduledoc """
+  LiveComponent for rendering a grid of message board cards.
+
+  Displays messages in a responsive grid layout and handles card interactions.
+  """
   use LantternWeb, :live_component
 
   import LantternWeb.MessageBoard.Components
@@ -98,7 +103,7 @@ defmodule LantternWeb.MessageBoard.MessageBoardGridComponent do
               </style>
             </div>
           </div>
-          
+
     <!-- Desktop/tablet: use existing grid within responsive container -->
           <div class="hidden md:block">
             <div>

@@ -1,5 +1,3 @@
-import LantternWeb.CoreComponents
-
 defmodule LantternWeb.MessageBoard.Components do
   @moduledoc """
   Shared function components related to `MessageBoard` context
@@ -65,7 +63,6 @@ defmodule LantternWeb.MessageBoard.Components do
           class="flex items-center justify-center w-6 h-6 rounded-full bg-ltrn-mesh-cyan"
           title={gettext("Pinned message")}
         >
-          <%!-- there's no pin in Hero Icons. I imported one from https://tabler.io/icons --%>
           <.icon name="hero-pin-mini" class="text-ltrn-primary" />
         </div>
       </div>
@@ -225,7 +222,6 @@ defmodule LantternWeb.MessageBoard.Components do
 
   def message_card(assigns) do
     ~H"""
-    <%!-- <%= dbg(assigns) %> --%>
     <div
       class={[
         "overflow-auto-x aspect-square w-full bg-white/90 backdrop-blur-sm rounded-sm border border-l-12 border-ltrn-lightest shadow-xl z-20",
@@ -265,7 +261,6 @@ defmodule LantternWeb.MessageBoard.Components do
         </div>
 
         <div class="absolute bottom-3 right-4">
-          <%!-- section-#{section.id}-message-#{message.id}-responsive-card-lookout --%>
           <button
             class="w-full flex items-center justify-between gap-[14px] transition-colors group"
             phx-click="card_lookout"

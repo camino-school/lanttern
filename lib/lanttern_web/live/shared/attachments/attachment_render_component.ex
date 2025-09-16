@@ -63,7 +63,7 @@ defmodule LantternWeb.Attachments.AttachmentRenderComponent do
                       {file_type_label(attachment.name)}
                     </span>
                   </div>
-                  <%= if is_image_url?(attachment.link) do %>
+                  <%= if image_url?(attachment.link) do %>
                     <img
                       src={get_thumbnail(attachment.link)}
                       alt="Imagem"
@@ -149,7 +149,7 @@ defmodule LantternWeb.Attachments.AttachmentRenderComponent do
     end
   end
 
-  defp is_image_url?(url) when is_binary(url) do
+  defp image_url?(url) when is_binary(url) do
     image_extensions = ~w(.png .jpg .jpeg .gif .bmp .webp .svg)
 
     Enum.any?(image_extensions, fn ext ->
@@ -157,7 +157,7 @@ defmodule LantternWeb.Attachments.AttachmentRenderComponent do
     end)
   end
 
-  defp is_image_url?(_), do: false
+  defp image_url?(_), do: false
 
   defp file_type_label(url) do
     ext = url |> Path.extname() |> String.trim_leading(".") |> String.upcase()

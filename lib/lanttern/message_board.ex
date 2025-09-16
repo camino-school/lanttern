@@ -13,7 +13,6 @@ defmodule Lanttern.MessageBoard do
   alias Lanttern.MessageBoard.MessageAttachment
   alias Lanttern.MessageBoard.Section
   alias Lanttern.Schools.Class
-  # alias Lanttern.Schools.Student*
 
   @doc """
   Returns the list of messages.
@@ -216,7 +215,6 @@ defmodule Lanttern.MessageBoard do
   @spec archive_message(Message.t()) ::
           {:ok, Message.t()} | {:error, Ecto.Changeset.t()}
   def archive_message(%Message{} = message) do
-    # Get total messages count in the section
     total_messages =
       from(m in Message,
         where: m.section_id == ^message.section_id,
@@ -224,7 +222,6 @@ defmodule Lanttern.MessageBoard do
       )
       |> Repo.one()
 
-    # Get the highest position of archived messages in the section
     max_archived_position =
       from(m in Message,
         where: m.section_id == ^message.section_id and not is_nil(m.archived_at),
@@ -232,12 +229,9 @@ defmodule Lanttern.MessageBoard do
       )
       |> Repo.one()
 
-    # Set position based on whether there are already archived messages
     new_position =
       case max_archived_position do
-        # No archived messages yet, use total count
         nil -> total_messages
-        # Add after the last archived message
         max_pos -> max_pos + 1
       end
 
@@ -264,7 +258,6 @@ defmodule Lanttern.MessageBoard do
   @spec unarchive_message(Message.t()) ::
           {:ok, Message.t()} | {:error, Ecto.Changeset.t()}
   def unarchive_message(%Message{} = message) do
-    # Count non-archived messages in the same section to set proper position
     non_archived_count = count_non_archived_messages_in_section(message.section_id)
 
     message
