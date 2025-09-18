@@ -10,12 +10,20 @@ Now you can visit [`localhost:4000`](http://localhost:4000) from your browser.
 
 Ready to run in production? Please [check our deployment guides](https://hexdocs.pm/phoenix/deployment.html).
 
-## `.env` expected variables
+## Development `.env` expected variables
+
+The local `.env` file follows what is described in the "Deployment" section.
+
+The only dev only env var is
 
 ```bash
-export GOOGLE_CLIENT_ID="********"
 export ROOT_ADMIN_EMAIL="some.email@example.com"
 ```
+
+which is used once, when running seeds.
+
+In remote dev environments where seeds are not executed, the root admin user
+should be inserted directly in the database.
 
 ### To enable automatic environment reloading, you can
 
@@ -74,6 +82,11 @@ The main secrets/env vars that we need for this are the following:
 
 - `OPENAI_API_KEY`
 - `OPENAI_ORGANIZATION_KEY`
+
+#### Mailgun
+
+- `MAILGUN_API_KEY`
+- `MAILGUN_DOMAIN`
 
 #### Others
 
