@@ -4,7 +4,7 @@ defmodule Lanttern.MixProject do
   def project do
     [
       app: :lanttern,
-      version: "2025.7.22-alpha.69",
+      version: "2025.8.22-alpha.72",
       elixir: "~> 1.18",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
@@ -34,6 +34,12 @@ defmodule Lanttern.MixProject do
     ]
   end
 
+  def cli do
+    [
+      preferred_envs: [precommit: :test]
+    ]
+  end
+
   # Specifies which paths to compile per environment.
   defp elixirc_paths(:test), do: ["lib", "test/support"]
   defp elixirc_paths(_), do: ["lib"]
@@ -44,16 +50,16 @@ defmodule Lanttern.MixProject do
   defp deps do
     [
       {:bcrypt_elixir, "~> 3.0"},
-      {:phoenix, "~> 1.8.0-rc.4"},
+      {:phoenix, "~> 1.8.0"},
       {:phoenix_ecto, "~> 4.4"},
       {:ecto_sql, "~> 3.12"},
       {:postgrex, ">= 0.0.0"},
       {:phoenix_html, "~> 3.3"},
       {:phoenix_live_reload, "~> 1.2", only: :dev},
       {:phoenix_live_view, "~> 1.1.3"},
-      {:floki, ">= 0.30.0", only: :test},
+      {:lazy_html, ">= 0.1.0", only: :test},
       {:phoenix_live_dashboard, "~> 0.8.2"},
-      {:esbuild, "~> 0.7", runtime: Mix.env() == :dev},
+      {:esbuild, "~> 0.10", runtime: Mix.env() == :dev},
       {:tailwind, "~> 0.3.0", runtime: Mix.env() == :dev},
       {:swoosh, "~> 1.19"},
       {:finch, "~> 0.20"},
@@ -61,8 +67,8 @@ defmodule Lanttern.MixProject do
       {:telemetry_poller, "~> 1.0"},
       {:gettext, "~> 0.26"},
       {:jason, "~> 1.2"},
-      {:plug_cowboy, "~> 2.7"},
-      {:git_hooks, "~> 0.8.0", only: [:dev], runtime: false},
+      {:dns_cluster, "~> 0.2.0"},
+      {:bandit, "~> 1.5"},
       {:timex, "~> 3.0"},
       {:joken, "~> 2.5"},
       {:joken_jwks, "~> 1.6.0"},
@@ -79,18 +85,14 @@ defmodule Lanttern.MixProject do
       {:ex_openai, "~> 1.8.0-beta"},
       {:tidewave, "~> 0.1.10", only: :dev},
       {:excoveralls, "~> 0.18", only: :test},
-      # {:phoenix_test, "~> 0.7.0", only: :test, runtime: false},
-      {:phoenix_test,
-       git: "https://github.com/germsvel/phoenix_test",
-       ref: "03fb6611f28ee5272bff340a05e34587bd10a114",
-       only: :test,
-       runtime: false},
+      {:phoenix_test, "~> 0.7.1", only: :test, runtime: false},
       {:ex_machina, "~> 2.8.0", only: :test},
       {:ex_cldr, "~> 2.37"},
       {:ex_cldr_dates_times, "~> 2.0"},
       {:mimic, "~> 1.12", only: :test},
-      {:lazy_html, ">= 0.1.0", only: :test},
-      {:multipart, "~> 0.4.0"}
+      {:multipart, "~> 0.4.0"},
+      {:usage_rules, "~> 0.1", only: [:dev]},
+      {:igniter, "~> 0.6", only: [:dev]}
     ]
   end
 
@@ -109,18 +111,19 @@ defmodule Lanttern.MixProject do
       test: ["ecto.create --quiet", "ecto.migrate --quiet", "test --cover"],
       "test.drop": ["ecto.drop", "test"],
       "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],
-      "assets.build": ["cmd --cd assets npm i", "tailwind default", "esbuild default"],
+      "assets.build": ["cmd --cd assets npm i", "tailwind lanttern", "esbuild lanttern"],
       "assets.deploy": [
         "cmd --cd assets npm ci --only=prod",
-        "tailwind default --minify",
-        "esbuild default --minify",
+        "tailwind lanttern --minify",
+        "esbuild lanttern --minify",
         "phx.digest"
       ],
-      check: [
-        "format --check-formatted",
-        "deps.unlock --check-unused",
-        "compile --warnings-as-errors",
-        "credo --strict"
+      precommit: [
+        "compile --warning-as-errors",
+        "deps.unlock --unused",
+        "format",
+        "credo --strict",
+        "test"
       ]
     ]
   end

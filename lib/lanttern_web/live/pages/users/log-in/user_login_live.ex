@@ -93,6 +93,7 @@ defmodule LantternWeb.UserLoginLive do
         </:actions>
       </.simple_form>
        --%>
+      <LantternWeb.Layouts.flash_group flash={@flash} />
     </div>
     """
   end

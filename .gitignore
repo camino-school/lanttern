@@ -40,7 +40,8 @@ npm-debug.log
 .env
 .envrc
 
-# windsurf rules
+# LLMs
+CLAUDE.md
 .windsurfrules
 
 # Elixir LS

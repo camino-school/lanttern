@@ -1,19 +1,21 @@
-<.header>
-  Curriculum relationship {@curriculum_relationship.id}
-  <:subtitle>This is a curriculum_relationship record from your database.</:subtitle>
-  <:actions>
-    <.link href={~p"/admin/curriculum_relationships/#{@curriculum_relationship}/edit"}>
-      <.button>Edit curriculum_relationship</.button>
-    </.link>
-  </:actions>
-</.header>
+<Layouts.admin flash={@flash}>
+  <.header>
+    Curriculum relationship {@curriculum_relationship.id}
+    <:subtitle>This is a curriculum_relationship record from your database.</:subtitle>
+    <:actions>
+      <.link href={~p"/admin/curriculum_relationships/#{@curriculum_relationship}/edit"}>
+        <.button>Edit curriculum_relationship</.button>
+      </.link>
+    </:actions>
+  </.header>
 
-<.list>
-  <:item title="Item A">{@curriculum_relationship.curriculum_item_a.name}</:item>
-  <:item title="Item B">{@curriculum_relationship.curriculum_item_b.name}</:item>
-  <:item title="Type">{@curriculum_relationship.type}</:item>
-</.list>
+  <.list>
+    <:item title="Item A">{@curriculum_relationship.curriculum_item_a.name}</:item>
+    <:item title="Item B">{@curriculum_relationship.curriculum_item_b.name}</:item>
+    <:item title="Type">{@curriculum_relationship.type}</:item>
+  </.list>
 
-<.back navigate={~p"/admin/curriculum_relationships"}>
-  Back to curriculum_relationships
-</.back>
+  <.back navigate={~p"/admin/curriculum_relationships"}>
+    Back to curriculum_relationships
+  </.back>
+</Layouts.admin>

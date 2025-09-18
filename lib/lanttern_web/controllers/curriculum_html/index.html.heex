@@ -1,25 +1,31 @@
-<.header>
-  Listing Curricula
-  <:actions>
-    <.link href={~p"/admin/curricula/new"}>
-      <.button>New Curriculum</.button>
-    </.link>
-  </:actions>
-</.header>
+<Layouts.admin flash={@flash}>
+  <.header>
+    Listing Curricula
+    <:actions>
+      <.link href={~p"/admin/curricula/new"}>
+        <.button>New Curriculum</.button>
+      </.link>
+    </:actions>
+  </.header>
 
-<.table id="curricula" rows={@curricula} row_click={&JS.navigate(~p"/admin/curricula/#{&1}")}>
-  <:col :let={curriculum} label="Code">{curriculum.code}</:col>
-  <:col :let={curriculum} label="Name">{curriculum.name}</:col>
-  <:col :let={curriculum} label="Description">{curriculum.description}</:col>
-  <:action :let={curriculum}>
-    <div class="sr-only">
-      <.link navigate={~p"/admin/curricula/#{curriculum}"}>Show</.link>
-    </div>
-    <.link navigate={~p"/admin/curricula/#{curriculum}/edit"}>Edit</.link>
-  </:action>
-  <:action :let={curriculum}>
-    <.link href={~p"/admin/curricula/#{curriculum}"} method="delete" data-confirm="Are you sure?">
-      Delete
-    </.link>
-  </:action>
-</.table>
+  <.table id="curricula" rows={@curricula} row_click={&JS.navigate(~p"/admin/curricula/#{&1}")}>
+    <:col :let={curriculum} label="Code">{curriculum.code}</:col>
+    <:col :let={curriculum} label="Name">{curriculum.name}</:col>
+    <:col :let={curriculum} label="Description">{curriculum.description}</:col>
+    <:action :let={curriculum}>
+      <div class="sr-only">
+        <.link navigate={~p"/admin/curricula/#{curriculum}"}>Show</.link>
+      </div>
+      <.link navigate={~p"/admin/curricula/#{curriculum}/edit"}>Edit</.link>
+    </:action>
+    <:action :let={curriculum}>
+      <.link
+        href={~p"/admin/curricula/#{curriculum}"}
+        method="delete"
+        data-confirm="Are you sure?"
+      >
+        Delete
+      </.link>
+    </:action>
+  </.table>
+</Layouts.admin>

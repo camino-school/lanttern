@@ -1,8 +1,10 @@
-<.header>
-  Edit Year {@year.id}
-  <:subtitle>Use this form to manage year records in your database.</:subtitle>
-</.header>
+<Layouts.admin flash={@flash}>
+  <.header>
+    Edit Year {@year.id}
+    <:subtitle>Use this form to manage year records in your database.</:subtitle>
+  </.header>
 
-<.year_form changeset={@changeset} action={~p"/admin/years/#{@year}"} />
+  <.year_form changeset={@changeset} action={~p"/admin/years/#{@year}"} />
 
-<.back navigate={~p"/admin/years"}>Back to years</.back>
+  <.back navigate={~p"/admin/years"}>Back to years</.back>
+</Layouts.admin>

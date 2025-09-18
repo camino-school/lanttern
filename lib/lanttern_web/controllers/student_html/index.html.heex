@@ -1,29 +1,31 @@
-<.header>
-  Listing Students
-  <:actions>
-    <.link href={~p"/admin/students/new"}>
-      <.button>New Student</.button>
-    </.link>
-  </:actions>
-</.header>
+<Layouts.admin flash={@flash}>
+  <.header>
+    Listing Students
+    <:actions>
+      <.link href={~p"/admin/students/new"}>
+        <.button>New Student</.button>
+      </.link>
+    </:actions>
+  </.header>
 
-<.table id="students" rows={@students} row_click={&JS.navigate(~p"/admin/students/#{&1}")}>
-  <:col :let={student} label="Name">{student.name}</:col>
-  <:col :let={student} label="School">{student.school.name}</:col>
-  <:col :let={student} label="Classes">
-    {student.classes
-    |> Enum.map(& &1.name)
-    |> Enum.join(", ")}
-  </:col>
-  <:action :let={student}>
-    <div class="sr-only">
-      <.link navigate={~p"/admin/students/#{student}"}>Show</.link>
-    </div>
-    <.link navigate={~p"/admin/students/#{student}/edit"}>Edit</.link>
-  </:action>
-  <:action :let={student}>
-    <.link href={~p"/admin/students/#{student}"} method="delete" data-confirm="Are you sure?">
-      Delete
-    </.link>
-  </:action>
-</.table>
+  <.table id="students" rows={@students} row_click={&JS.navigate(~p"/admin/students/#{&1}")}>
+    <:col :let={student} label="Name">{student.name}</:col>
+    <:col :let={student} label="School">{student.school.name}</:col>
+    <:col :let={student} label="Classes">
+      {student.classes
+      |> Enum.map(& &1.name)
+      |> Enum.join(", ")}
+    </:col>
+    <:action :let={student}>
+      <div class="sr-only">
+        <.link navigate={~p"/admin/students/#{student}"}>Show</.link>
+      </div>
+      <.link navigate={~p"/admin/students/#{student}/edit"}>Edit</.link>
+    </:action>
+    <:action :let={student}>
+      <.link href={~p"/admin/students/#{student}"} method="delete" data-confirm="Are you sure?">
+        Delete
+      </.link>
+    </:action>
+  </.table>
+</Layouts.admin>

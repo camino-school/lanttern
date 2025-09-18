@@ -1,29 +1,31 @@
-<.header>
-  Listing Classes
-  <:actions>
-    <.link href={~p"/admin/classes/new"}>
-      <.button>New Class</.button>
-    </.link>
-  </:actions>
-</.header>
+<Layouts.admin flash={@flash}>
+  <.header>
+    Listing Classes
+    <:actions>
+      <.link href={~p"/admin/classes/new"}>
+        <.button>New Class</.button>
+      </.link>
+    </:actions>
+  </.header>
 
-<.table id="classes" rows={@classes} row_click={&JS.navigate(~p"/admin/classes/#{&1}")}>
-  <:col :let={class} label="Name">{class.name}</:col>
-  <:col :let={class} label="School">{class.school.name}</:col>
-  <:col :let={class} label="Cycle">{class.cycle.name}</:col>
-  <:col :let={class} label="Years">
-    {class.years |> Enum.map(& &1.name) |> Enum.join(", ")}
-  </:col>
-  <:col :let={class} label="Students">{length(class.students)}</:col>
-  <:action :let={class}>
-    <div class="sr-only">
-      <.link navigate={~p"/admin/classes/#{class}"}>Show</.link>
-    </div>
-    <.link navigate={~p"/admin/classes/#{class}/edit"}>Edit</.link>
-  </:action>
-  <:action :let={class}>
-    <.link href={~p"/admin/classes/#{class}"} method="delete" data-confirm="Are you sure?">
-      Delete
-    </.link>
-  </:action>
-</.table>
+  <.table id="classes" rows={@classes} row_click={&JS.navigate(~p"/admin/classes/#{&1}")}>
+    <:col :let={class} label="Name">{class.name}</:col>
+    <:col :let={class} label="School">{class.school.name}</:col>
+    <:col :let={class} label="Cycle">{class.cycle.name}</:col>
+    <:col :let={class} label="Years">
+      {class.years |> Enum.map(& &1.name) |> Enum.join(", ")}
+    </:col>
+    <:col :let={class} label="Students">{length(class.students)}</:col>
+    <:action :let={class}>
+      <div class="sr-only">
+        <.link navigate={~p"/admin/classes/#{class}"}>Show</.link>
+      </div>
+      <.link navigate={~p"/admin/classes/#{class}/edit"}>Edit</.link>
+    </:action>
+    <:action :let={class}>
+      <.link href={~p"/admin/classes/#{class}"} method="delete" data-confirm="Are you sure?">
+        Delete
+      </.link>
+    </:action>
+  </.table>
+</Layouts.admin>

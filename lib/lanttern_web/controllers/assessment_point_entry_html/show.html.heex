@@ -1,18 +1,20 @@
-<.header>
-  Assessment point entry {@assessment_point_entry.id}
-  <:subtitle>This is a assessment_point_entry record from your database.</:subtitle>
-  <:actions>
-    <.link href={~p"/admin/assessment_point_entries/#{@assessment_point_entry}/edit"}>
-      <.button>Edit assessment_point_entry</.button>
-    </.link>
-  </:actions>
-</.header>
+<Layouts.admin flash={@flash}>
+  <.header>
+    Assessment point entry {@assessment_point_entry.id}
+    <:subtitle>This is a assessment_point_entry record from your database.</:subtitle>
+    <:actions>
+      <.link href={~p"/admin/assessment_point_entries/#{@assessment_point_entry}/edit"}>
+        <.button>Edit assessment_point_entry</.button>
+      </.link>
+    </:actions>
+  </.header>
 
-<.list>
-  <:item title="Observation">{@assessment_point_entry.observation}</:item>
-  <:item title="Score">{@assessment_point_entry.score}</:item>
-</.list>
+  <.list>
+    <:item title="Observation">{@assessment_point_entry.observation}</:item>
+    <:item title="Score">{@assessment_point_entry.score}</:item>
+  </.list>
 
-<.back navigate={~p"/admin/assessment_point_entries"}>
-  Back to assessment_point_entries
-</.back>
+  <.back navigate={~p"/admin/assessment_point_entries"}>
+    Back to assessment_point_entries
+  </.back>
+</Layouts.admin>

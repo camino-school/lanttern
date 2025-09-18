@@ -54,11 +54,6 @@ mix gettext.merge priv/gettext # to update all locale-specific .po
 
 Currently supported locales are `en` (default) and `pt_BR`.
 
-## `git_hooks` issue
-
-We need to run `mix git_hooks.install` before commiting for the first time.
-See [this issue](https://github.com/qgadrian/elixir_git_hooks/issues/133)
-
 ## Deployment
 
 We're currently running Lanttern on [fly.io](https://fly.io), connected to a managed [Supabase](https://supabase.com/) Postgresql database, and we use [GitHub Actions](https://docs.github.com/en/actions) for automation.
@@ -111,6 +106,10 @@ and view it in the `cover/` folder. Source: [excoveralls](https://github.com/par
 ### Tips
 
 To investigate the perfomance process run `mix test --slowest 10`
+
+## LLM Agents
+
+Use the versioned `AGENTS.md` as reference for setting your own LLM agent instruction (e.g. copy and paste the content into a `CLAUDE.md` file for working with Claude Code).
 
 ## Restoring a PostgreSQL Backup
 

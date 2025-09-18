@@ -1,126 +1,135 @@
-<.header_nav current_user={@current_user}>
-  <:breadcrumb navigate={~p"/ilp"}>
-    {gettext("ILP")}
-  </:breadcrumb>
-  <:title>{gettext("Settings")}</:title>
-</.header_nav>
-<.responsive_container class="py-10 px-4">
-  <p class="flex items-center gap-2">
-    <.icon name="hero-information-circle-mini" class="text-ltrn-subtle" />
-    {gettext("List of created ILP templates")}
-  </p>
-  <.empty_state :if={!@has_templates && !@template} class="mt-10">
-    {gettext("No templates created yet")}
-  </.empty_state>
-  <div id="templates-list" phx-update="stream" class={["group", if(@template, do: "is-editing")]}>
-    <.card_base :for={{dom_id, template} <- @streams.templates} id={dom_id} class="p-6 mt-10">
-      <div :if={!template.is_editing}>
-        <div class="flex items-center gap-4">
-          <h3 class="flex-1 font-display font-black text-xl">{template.name}</h3>
-          <.action
-            :if={!@template}
-            type="button"
-            icon_name="hero-pencil-mini"
-            phx-click={JS.push("edit", value: %{"id" => template.id})}
-            class="group-[.is-editing]:hidden"
-          >
-            {gettext("Edit")}
-          </.action>
-        </div>
-        <div
-          phx-hook="Sortable"
-          id={"template-#{template.id}-sections"}
-          data-sortable-handle=".sortable-handle"
-          data-group-name="template"
-          data-group-id={template.id}
-        >
-          <.card_base
-            :for={section <- template.sections}
-            class="p-4 border border-ltrn-lightest mt-4"
-          >
-            <div class="flex items-start gap-4">
-              <.drag_handle class="sortable-handle" />
-              <div class="font-display font-black text-base">
-                {section.name}
-              </div>
-            </div>
-            <div
-              phx-hook="Sortable"
-              id={"template-#{template.id}-section-#{section.id}-components"}
-              data-sortable-handle=".sortable-handle"
-              data-group-name="section"
-              data-group-id={section.id}
+<Layouts.app_logged_in flash={@flash} current_user={@current_user} current_path={@current_path}>
+  <.header_nav current_user={@current_user}>
+    <:breadcrumb navigate={~p"/ilp"}>
+      {gettext("ILP")}
+    </:breadcrumb>
+    <:title>{gettext("Settings")}</:title>
+  </.header_nav>
+  <.responsive_container class="py-10 px-4">
+    <p class="flex items-center gap-2">
+      <.icon name="hero-information-circle-mini" class="text-ltrn-subtle" />
+      {gettext("List of created ILP templates")}
+    </p>
+    <.empty_state :if={!@has_templates && !@template} class="mt-10">
+      {gettext("No templates created yet")}
+    </.empty_state>
+    <div
+      id="templates-list"
+      phx-update="stream"
+      class={["group", if(@template, do: "is-editing")]}
+    >
+      <.card_base :for={{dom_id, template} <- @streams.templates} id={dom_id} class="p-6 mt-10">
+        <div :if={!template.is_editing}>
+          <div class="flex items-center gap-4">
+            <h3 class="flex-1 font-display font-black text-xl">{template.name}</h3>
+            <.action
+              :if={!@template}
+              type="button"
+              icon_name="hero-pencil-mini"
+              phx-click={JS.push("edit", value: %{"id" => template.id})}
+              class="group-[.is-editing]:hidden"
             >
-              <div
-                :for={component <- section.components}
-                class="flex items-center gap-4 p-4 rounded-sm mt-2 bg-ltrn-lightest"
-              >
-                <.drag_handle class="sortable-handle" />
-                <div class="font-bold">{component.name}</div>
-              </div>
-            </div>
-          </.card_base>
-        </div>
-        <div :if={template.description} class="mt-6">
-          <p class="mb-2 font-bold">{gettext("About this template")}</p>
-          <.markdown text={template.description} />
-        </div>
-        <div :if={template.teacher_description} class="p-4 rounded-sm mt-6 bg-ltrn-staff-lightest">
-          <p class="mb-2 font-bold text-ltrn-staff-dark">
-            {gettext("Template instructions (visible to staff only)")}
-          </p>
-          <.markdown text={template.teacher_description} />
-        </div>
-        <.ai_box
-          :if={template.ai_layer && template.ai_layer.revision_instructions}
-          title={gettext("LantternAI ILP revision instructions")}
-          class="mt-6"
-        >
-          <div class="pb-6 border-b border-ltrn-ai-accent mb-6">
-            <div class="flex items-center gap-4 mt-4">
-              <div class="flex items-center gap-2">
-                {gettext("Current model:")}
-                <%= if template.ai_layer.model do %>
-                  <.badge theme="ai">{template.ai_layer.model}</.badge>
-                <% else %>
-                  <.badge>{gettext("No model selected")}</.badge>
-                <% end %>
-              </div>
-              <div class="flex items-center gap-2">
-                {gettext("AI request cooldown (in minutes):")}
-                <.badge theme="ai">{template.ai_layer.cooldown_minutes}</.badge>
-              </div>
-            </div>
+              {gettext("Edit")}
+            </.action>
           </div>
-          <.markdown text={template.ai_layer.revision_instructions} />
-        </.ai_box>
-      </div>
+          <div
+            phx-hook="Sortable"
+            id={"template-#{template.id}-sections"}
+            data-sortable-handle=".sortable-handle"
+            data-group-name="template"
+            data-group-id={template.id}
+          >
+            <.card_base
+              :for={section <- template.sections}
+              class="p-4 border border-ltrn-lightest mt-4"
+            >
+              <div class="flex items-start gap-4">
+                <.drag_handle class="sortable-handle" />
+                <div class="font-display font-black text-base">
+                  {section.name}
+                </div>
+              </div>
+              <div
+                phx-hook="Sortable"
+                id={"template-#{template.id}-section-#{section.id}-components"}
+                data-sortable-handle=".sortable-handle"
+                data-group-name="section"
+                data-group-id={section.id}
+              >
+                <div
+                  :for={component <- section.components}
+                  class="flex items-center gap-4 p-4 rounded-sm mt-2 bg-ltrn-lightest"
+                >
+                  <.drag_handle class="sortable-handle" />
+                  <div class="font-bold">{component.name}</div>
+                </div>
+              </div>
+            </.card_base>
+          </div>
+          <div :if={template.description} class="mt-6">
+            <p class="mb-2 font-bold">{gettext("About this template")}</p>
+            <.markdown text={template.description} />
+          </div>
+          <div
+            :if={template.teacher_description}
+            class="p-4 rounded-sm mt-6 bg-ltrn-staff-lightest"
+          >
+            <p class="mb-2 font-bold text-ltrn-staff-dark">
+              {gettext("Template instructions (visible to staff only)")}
+            </p>
+            <.markdown text={template.teacher_description} />
+          </div>
+          <.ai_box
+            :if={template.ai_layer && template.ai_layer.revision_instructions}
+            title={gettext("LantternAI ILP revision instructions")}
+            class="mt-6"
+          >
+            <div class="pb-6 border-b border-ltrn-ai-accent mb-6">
+              <div class="flex items-center gap-4 mt-4">
+                <div class="flex items-center gap-2">
+                  {gettext("Current model:")}
+                  <%= if template.ai_layer.model do %>
+                    <.badge theme="ai">{template.ai_layer.model}</.badge>
+                  <% else %>
+                    <.badge>{gettext("No model selected")}</.badge>
+                  <% end %>
+                </div>
+                <div class="flex items-center gap-2">
+                  {gettext("AI request cooldown (in minutes):")}
+                  <.badge theme="ai">{template.ai_layer.cooldown_minutes}</.badge>
+                </div>
+              </div>
+            </div>
+            <.markdown text={template.ai_layer.revision_instructions} />
+          </.ai_box>
+        </div>
+        <.live_component
+          :if={@template && @template.id == template.id}
+          module={ILPTemplateFormComponent}
+          id={"#{template.id}-ilp-template-form"}
+          template={@template}
+          notify_parent
+        />
+      </.card_base>
+    </div>
+    <div :if={!@template} class="flex justify-center mt-10">
+      <.action
+        type="button"
+        icon_name="hero-plus-circle-mini"
+        theme="primary"
+        size="md"
+        phx-click="new"
+      >
+        {gettext("Create new ILP template")}
+      </.action>
+    </div>
+    <.card_base :if={@template && is_nil(@template.id)} class="p-6 mt-10">
       <.live_component
-        :if={@template && @template.id == template.id}
         module={ILPTemplateFormComponent}
-        id={"#{template.id}-ilp-template-form"}
+        id="new-ilp-template-form"
         template={@template}
         notify_parent
       />
     </.card_base>
-  </div>
-  <div :if={!@template} class="flex justify-center mt-10">
-    <.action
-      type="button"
-      icon_name="hero-plus-circle-mini"
-      theme="primary"
-      size="md"
-      phx-click="new"
-    >
-      {gettext("Create new ILP template")}
-    </.action>
-  </div>
-  <.card_base :if={@template && is_nil(@template.id)} class="p-6 mt-10">
-    <.live_component
-      module={ILPTemplateFormComponent}
-      id="new-ilp-template-form"
-      template={@template}
-      notify_parent
-    />
-  </.card_base>
-</.responsive_container>
+  </.responsive_container>
+</Layouts.app_logged_in>

@@ -1104,7 +1104,7 @@ defmodule LantternWeb.CoreComponents do
     <div
       :if={msg = render_slot(@inner_block) || Phoenix.Flash.get(@flash, @kind)}
       id={@id}
-      phx-click={JS.push("lv:clear-flash", value: %{key: @kind}) |> hide_alert("##{@id}")}
+      phx-click={JS.push("lv:clear-flash", value: %{key: @kind}) |> hide("##{@id}")}
       role="alert"
       class={[
         "pointer-events-auto w-full max-w-sm overflow-hidden rounded-lg bg-white shadow-lg ring-1",
@@ -1141,72 +1141,6 @@ defmodule LantternWeb.CoreComponents do
       </div>
     </div>
     """
-  end
-
-  @doc """
-  Shows the flash group with standard titles and content.
-
-  ## Examples
-
-      <.flash_group flash={@flash} />
-  """
-  attr :flash, :map, required: true, doc: "the map of flash messages"
-
-  def flash_group(assigns) do
-    ~H"""
-    <!-- Global notification live region, render this permanently at the end of the document -->
-    <div
-      aria-live="assertive"
-      class="z-40 pointer-events-none fixed inset-0 flex items-end px-4 py-6 sm:items-start sm:p-6"
-    >
-      <div class="flex w-full flex-col items-center space-y-4 sm:items-end">
-        <.flash kind={:info} title={gettext("Success!")} flash={@flash} />
-        <.flash kind={:error} title={gettext("Error!")} flash={@flash} />
-        <.flash
-          id="client-error"
-          kind={:error}
-          title={gettext("We can't find the internet")}
-          phx-disconnected={show_alert(".phx-client-error #client-error")}
-          phx-connected={hide_alert("#client-error")}
-          hidden
-        >
-          {gettext("Attempting to reconnect")}
-          <.icon name="hero-arrow-path" class="ml-1 h-3 w-3 animate-spin" />
-        </.flash>
-
-        <.flash
-          id="server-error"
-          kind={:error}
-          title={gettext("Something went wrong!")}
-          phx-disconnected={show_alert(".phx-server-error #server-error")}
-          phx-connected={hide_alert("#server-error")}
-          hidden
-        >
-          {gettext("Hang in there while we get back on track")}
-          <.icon name="hero-arrow-path" class="ml-1 h-3 w-3 animate-spin" />
-        </.flash>
-      </div>
-    </div>
-    """
-  end
-
-  defp show_alert(js \\ %JS{}, selector) do
-    JS.show(js,
-      to: selector,
-      time: 300,
-      transition:
-        {"transform ease-out duration-300 transition-all",
-         "translate-y-2 opacity-0 sm:translate-y-0 sm:translate-x-2",
-         "translate-y-0 opacity-100 sm:translate-x-0"}
-    )
-  end
-
-  defp hide_alert(js \\ %JS{}, selector) do
-    JS.hide(js,
-      to: selector,
-      time: 100,
-      transition: {"transition-all ease-in duration-100", "opacity-100", "opacity-0"}
-    )
   end
 
   @doc """
@@ -2408,5 +2342,15 @@ defmodule LantternWeb.CoreComponents do
       </div>
     </div>
     """
+  end
+
+  # JS commands
+
+  defp hide(js, selector) do
+    JS.hide(js,
+      to: selector,
+      time: 100,
+      transition: {"transition-all ease-in duration-100", "opacity-100", "opacity-0"}
+    )
   end
 end

@@ -1188,15 +1188,34 @@ defmodule Lanttern.Reporting do
       left_join: sc in assoc(e, :scale),
       left_join: ov in assoc(e, :ordinal_value),
       left_join: dr in assoc(e, :differentiation_rubric),
-      select: {%{ap | rubric: r}, e, sc, ov, dr},
+      left_join: apee in assoc(e, :assessment_point_entry_evidences),
+      left_join: ev in assoc(apee, :attachment),
+      select: {%{ap | rubric: r}, e, sc, ov, dr, ev},
       where: ap.moment_id == ^moment_id,
       where: e.has_marking,
-      order_by: ap.position
+      order_by: [ap.position, apee.position]
     )
     |> Repo.all()
-    |> Enum.map(fn {ap, e, sc, ov, dr} ->
-      {ap, e && %{e | scale: sc, ordinal_value: ov, differentiation_rubric: dr}}
+    |> Enum.group_by(
+      fn {ap, e, sc, ov, dr, _ev} -> {ap, e, sc, ov, dr} end,
+      fn {_ap, _e, _sc, _ov, _dr, ev} -> ev end
+    )
+    |> Enum.map(fn {{ap, e, sc, ov, dr}, evidences} ->
+      evidences = Enum.reject(evidences, &is_nil/1)
+
+      entry =
+        e &&
+          %{
+            e
+            | scale: sc,
+              ordinal_value: ov,
+              differentiation_rubric: dr,
+              evidences: evidences
+          }
+
+      {ap, entry}
     end)
+    |> Enum.sort_by(fn {ap, _e} -> ap.position end)
   end
 
   @doc """
