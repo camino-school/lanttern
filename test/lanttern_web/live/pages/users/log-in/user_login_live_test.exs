@@ -24,8 +24,8 @@ defmodule LantternWeb.UserLive.LoginTest do
         |> render_submit()
         |> follow_redirect(conn, ~p"/users/log-in/code?email=#{URI.encode(user.email)}")
 
-      # If your email user.email is in our system...
-      assert html =~ "If your email"
+      # We've sent a sign-in link to...
+      assert html =~ "sent a sign-in link to"
 
       assert Lanttern.Repo.get_by!(Lanttern.Identity.UserToken, user_id: user.id).context ==
                "login"
@@ -42,8 +42,8 @@ defmodule LantternWeb.UserLive.LoginTest do
           ~p"/users/log-in/code?email=#{URI.encode("idonotexist@example.com")}"
         )
 
-      # If your email idonotexist@example.com is in our system...
-      assert html =~ "If your email"
+      # We've sent a sign-in link to...
+      assert html =~ "sent a sign-in link to"
     end
   end
 end

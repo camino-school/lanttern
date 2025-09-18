@@ -5,7 +5,7 @@ defmodule Lanttern.Identity.UserNotifier do
 
   import Swoosh.Email
 
-  alias Lanttern.Identity.User
+  # alias Lanttern.Identity.User
   alias Lanttern.Mailer
 
   # Delivers the email using the application mailer.
@@ -71,10 +71,15 @@ defmodule Lanttern.Identity.UserNotifier do
   Deliver instructions to log in with a magic link.
   """
   def deliver_login_instructions(user, url) do
-    case user do
-      %User{confirmed_at: nil} -> deliver_confirmation_instructions(user, url)
-      _ -> deliver_magic_link_instructions(user, url)
-    end
+    deliver_magic_link_instructions(user, url)
+
+    # disable confirmation email, as we currently don't have any
+    # difference between confirmed and unconfirmed users
+
+    # case user do
+    #   %User{confirmed_at: nil} -> deliver_confirmation_instructions(user, url)
+    #   _ -> deliver_magic_link_instructions(user, url)
+    # end
   end
 
   defp deliver_magic_link_instructions(user, url) do
@@ -216,20 +221,20 @@ defmodule Lanttern.Identity.UserNotifier do
     # """)
   end
 
-  defp deliver_confirmation_instructions(user, url) do
-    deliver(user.email, "Confirmation instructions", """
+  # defp deliver_confirmation_instructions(user, url) do
+  #   deliver(user.email, "Confirmation instructions", """
 
-    ==============================
+  #   ==============================
 
-    Hi #{user.email},
+  #   Hi #{user.email},
 
-    You can confirm your account by visiting the URL below:
+  #   You can confirm your account by visiting the URL below:
 
-    #{url}
+  #   #{url}
 
-    If you didn't create an account with us, please ignore this.
+  #   If you didn't create an account with us, please ignore this.
 
-    ==============================
-    """)
-  end
+  #   ==============================
+  #   """)
+  # end
 end

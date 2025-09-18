@@ -5244,11 +5244,6 @@ msgstr ""
 msgid "Hello %{email}!"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/users/log-in/code/user_code_login_live.ex:11
-#, elixir-autogen, elixir-format
-msgid "If your email %{email} is in our system, you will receive instructions for signing in shortly."
-msgstr ""
-
 #: lib/lanttern_web/live/pages/users/log-in/confirmation_live.ex:79
 #, elixir-autogen, elixir-format
 msgid "Keep me signed in on this device"
@@ -5264,7 +5259,7 @@ msgstr ""
 msgid "Sign in only this time"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/users/log-in/code/user_code_login_live.ex:18
+#: lib/lanttern_web/live/pages/users/log-in/code/user_code_login_live.ex:23
 #, elixir-autogen, elixir-format
 msgid "Sign in using a different method"
 msgstr ""
@@ -5272,4 +5267,14 @@ msgstr ""
 #: lib/lanttern_web/controllers/user_session_controller.ex:19
 #, elixir-autogen, elixir-format
 msgid "Welcome back!"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/users/log-in/code/user_code_login_live.ex:17
+#, elixir-autogen, elixir-format
+msgid "Don't see it? Check your spam folder or ensure there's a Lanttern account for the provided email."
+msgstr ""
+
+#: lib/lanttern_web/live/pages/users/log-in/code/user_code_login_live.ex:11
+#, elixir-autogen, elixir-format
+msgid "We've sent a sign-in link to %{email}."
 msgstr ""

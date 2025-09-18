@@ -9,8 +9,13 @@ defmodule LantternWeb.UserCodeLoginLive do
       </h1>
       <p class="mt-10 text-lg">
         {gettext(
-          ~s'If your email %{email} is in our system, you will receive instructions for signing in shortly.',
-          email: @email && ~s'"#{@email}"'
+          "We've sent a sign-in link to %{email}.",
+          email: @email
+        )}
+      </p>
+      <p class="mt-4 text-base text-ltrn-subtle">
+        {gettext(
+          "Don't see it? Check your spam folder and ensure there's a Lanttern account for the provided email."
         )}
       </p>
       <p class="mt-10">

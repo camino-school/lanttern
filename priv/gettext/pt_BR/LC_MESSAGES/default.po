@@ -5244,11 +5244,6 @@ msgstr "Email"
 msgid "Hello %{email}!"
 msgstr "Olá %{email}!"
 
-#: lib/lanttern_web/live/pages/users/log-in/code/user_code_login_live.ex:11
-#, elixir-autogen, elixir-format
-msgid "If your email %{email} is in our system, you will receive instructions for signing in shortly."
-msgstr "Se o seu email %{email} estiver em nosso sistema, você receberá instruções de acesso em breve."
-
 #: lib/lanttern_web/live/pages/users/log-in/confirmation_live.ex:79
 #, elixir-autogen, elixir-format
 msgid "Keep me signed in on this device"
@@ -5264,7 +5259,7 @@ msgstr "Link de acesso inválido ou expirado"
 msgid "Sign in only this time"
 msgstr "Acessar somente esta vez"
 
-#: lib/lanttern_web/live/pages/users/log-in/code/user_code_login_live.ex:18
+#: lib/lanttern_web/live/pages/users/log-in/code/user_code_login_live.ex:23
 #, elixir-autogen, elixir-format
 msgid "Sign in using a different method"
 msgstr "Acessar utilizando um método diferente"
@@ -5273,3 +5268,13 @@ msgstr "Acessar utilizando um método diferente"
 #, elixir-autogen, elixir-format
 msgid "Welcome back!"
 msgstr "Bem-vinda de volta!"
+
+#: lib/lanttern_web/live/pages/users/log-in/code/user_code_login_live.ex:17
+#, elixir-autogen, elixir-format
+msgid "Don't see it? Check your spam folder and ensure there's a Lanttern account for the provided email."
+msgstr "Não encontrou? Verifique a pasta de spam e assegure-se de que existe uma conta Lanttern para este email."
+
+#: lib/lanttern_web/live/pages/users/log-in/code/user_code_login_live.ex:11
+#, elixir-autogen, elixir-format
+msgid "We've sent a sign-in link to %{email}."
+msgstr "Enviamos um link de acesso para %{email}."
