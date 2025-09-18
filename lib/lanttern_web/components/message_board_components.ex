@@ -55,14 +55,6 @@ defmodule LantternWeb.MessageBoardComponents do
         <.action :if={@edit_patch} type="link" patch={@edit_patch} icon_name="hero-pencil-mini">
           {gettext("Edit")}
         </.action>
-        <div
-          :if={@message.is_pinned && is_nil(@message.archived_at)}
-          class="flex items-center justify-center w-6 h-6 rounded-full bg-ltrn-mesh-cyan"
-          title={gettext("Pinned message")}
-        >
-          <%!-- there's no pin in Hero Icons. I imported one from https://tabler.io/icons --%>
-          <.icon name="hero-pin-mini" class="text-ltrn-primary" />
-        </div>
       </div>
       <div class="flex flex-row-reverse sm:flex-row items-center gap-2 mt-2 text-xs">
         <.icon name="hero-calendar-mini" class="w-5 h-5 text-ltrn-subtle" />

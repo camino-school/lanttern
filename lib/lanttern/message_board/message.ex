@@ -21,7 +21,6 @@ defmodule Lanttern.MessageBoard.Message do
           cover: String.t() | nil,
           send_to: String.t(),
           archived_at: DateTime.t() | nil,
-          is_pinned: boolean(),
           school_id: pos_integer() | nil,
           section_id: pos_integer() | nil,
           school: School.t() | nil,
@@ -36,7 +35,6 @@ defmodule Lanttern.MessageBoard.Message do
     field :description, :string
     field :send_to, :string
     field :archived_at, :utc_datetime
-    field :is_pinned, :boolean, default: false
     field :subtitle, :string
     field :color, :string
     field :cover, :string
@@ -62,7 +60,6 @@ defmodule Lanttern.MessageBoard.Message do
         :description,
         :school_id,
         :send_to,
-        :is_pinned,
         :section_id,
         :subtitle,
         :color,

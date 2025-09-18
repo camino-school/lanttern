@@ -35,7 +35,6 @@ defmodule Lanttern.MessageBoard do
       m in Message,
       group_by: m.id,
       order_by: [
-        desc: fragment("CASE WHEN ? THEN 1 ELSE 0 END", m.is_pinned),
         asc: m.updated_at,
         asc: m.position
       ]
@@ -121,7 +120,6 @@ defmodule Lanttern.MessageBoard do
           (m.send_to == "school" and m.school_id == ^school_id),
       group_by: m.id,
       order_by: [
-        desc: fragment("CASE WHEN ? THEN 1 ELSE 0 END", m.is_pinned),
         desc: m.inserted_at
       ]
     )

@@ -12,7 +12,6 @@ defmodule Lanttern.Repo.Migrations.CreateMessages do
       add :color, :string
       add :cover, :string
       add :position, :integer, default: 0, null: false
-      add :is_pinned, :boolean, default: false, null: false
 
       add :section_id, references(:sections, on_delete: :delete_all), null: false
 

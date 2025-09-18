@@ -58,13 +58,6 @@ defmodule LantternWeb.MessageBoard.Components do
         <.action :if={@edit_patch} type="link" patch={@edit_patch} icon_name="hero-pencil-mini">
           {gettext("Edit")}
         </.action>
-        <div
-          :if={@message.is_pinned && is_nil(@message.archived_at)}
-          class="flex items-center justify-center w-6 h-6 rounded-full bg-ltrn-mesh-cyan"
-          title={gettext("Pinned message")}
-        >
-          <.icon name="hero-pin-mini" class="text-ltrn-primary" />
-        </div>
       </div>
 
       <div

@@ -12,19 +12,6 @@ defmodule Lanttern.MessageBoardTest do
 
     @invalid_attrs %{name: nil, description: nil, send_to: nil}
 
-    test "list_messages/1 returns all messages (pinned first. archived not included)" do
-      message = insert(:message)
-      {:ok, _archived} = insert(:message) |> MessageBoard.archive_message()
-
-      pinned = insert(:message, %{is_pinned: true})
-
-      assert [expected_pinned, expected] =
-               MessageBoard.list_messages()
-
-      assert pinned.id == expected_pinned.id
-      assert message.id == expected.id
-    end
-
     test "list_messages/1 with archived opt returns all archived board messages" do
       _message = insert(:message)
       {:ok, archived} = insert(:message) |> MessageBoard.archive_message()
@@ -123,18 +110,6 @@ defmodule Lanttern.MessageBoardTest do
         })
 
       insert(:message_class, %{message: class_message, class: class, school: school})
-
-      # expect pinned messages first
-      pinned_message =
-        insert(:message, %{
-          send_to: "classes",
-          school: school,
-          classes_ids: [class.id],
-          is_pinned: true
-        })
-
-      insert(:message_class, %{message: pinned_message, class: class, school: school})
-
       # other fixtures for filtering assertion
       another_class = insert(:class, %{name: "another class", cycle: cycle, school: school})
 
@@ -156,10 +131,9 @@ defmodule Lanttern.MessageBoardTest do
 
       insert(:message)
 
-      assert [expected_pinned_message, expected_class_message, expected_school_message] =
+      assert [expected_class_message, expected_school_message] =
                MessageBoard.list_student_messages(student)
 
-      assert expected_pinned_message.id == pinned_message.id
       assert expected_class_message.id == class_message.id
       assert expected_school_message.id == school_message.id
     end
