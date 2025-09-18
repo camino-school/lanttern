@@ -6,7 +6,7 @@ defmodule Lanttern.Repo.Migrations.CreateMessageAttachments do
       add :position, :integer, default: 0, null: false
 
       add :owner_id, references(:profiles, on_delete: :delete_all), null: false
-      add :message_id, references(:board_messages, on_delete: :delete_all), null: false
+      add :message_id, references(:messages, on_delete: :delete_all), null: false
 
       add :attachment_id,
           references(:attachments, with: [owner_id: :owner_id], on_delete: :delete_all),

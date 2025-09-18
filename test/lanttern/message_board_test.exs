@@ -12,7 +12,7 @@ defmodule Lanttern.MessageBoardTest do
 
     @invalid_attrs %{name: nil, description: nil, send_to: nil}
 
-    test "list_messages/1 returns all board_messages (pinned first. archived not included)" do
+    test "list_messages/1 returns all messages (pinned first. archived not included)" do
       message = insert(:message)
       {:ok, _archived} = insert(:message) |> MessageBoard.archive_message()
 
@@ -33,7 +33,7 @@ defmodule Lanttern.MessageBoardTest do
       assert expected.id == archived.id
     end
 
-    test "list_messages/1 with school_id opt returns all board_messages filtered by given school" do
+    test "list_messages/1 with school_id opt returns all messages filtered by given school" do
       school = insert(:school)
       section = insert(:section, %{school: school})
 
@@ -47,7 +47,7 @@ defmodule Lanttern.MessageBoardTest do
       assert expected_message.id == message.id
     end
 
-    test "list_messages/1 with classes_ids opt returns all board_messages filtered by given classes" do
+    test "list_messages/1 with classes_ids opt returns all messages filtered by given classes" do
       school = insert(:school)
       cycle = insert(:cycle, %{school: school})
       class = insert(:class, %{school: school, cycle: cycle, name: "Class 1"})

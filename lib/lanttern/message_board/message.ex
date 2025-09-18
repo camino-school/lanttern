@@ -31,7 +31,7 @@ defmodule Lanttern.MessageBoard.Message do
           updated_at: DateTime.t() | nil
         }
 
-  schema "board_messages" do
+  schema "messages" do
     field :name, :string
     field :description, :string
     field :send_to, :string

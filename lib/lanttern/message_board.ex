@@ -544,25 +544,21 @@ defmodule Lanttern.MessageBoard do
 
     Ecto.Multi.new()
     |> Ecto.Multi.insert(:insert_attachment, insert_query)
-    |> Ecto.Multi.run(
-      :link_message,
-      fn _repo, %{insert_attachment: attachment} ->
-        attrs =
-          from(
-            ma in MessageAttachment,
-            where: ma.message_id == ^message_id
-          )
-          |> set_position_in_attrs(%{
-            message_id: message_id,
-            attachment_id: attachment.id,
-            owner_id: profile_id
-          })
-
-        %MessageAttachment{}
-        |> MessageAttachment.changeset(attrs)
-        |> Repo.insert()
-      end
-    )
+    |> Ecto.Multi.run(:set_position, fn _repo, %{insert_attachment: attachment} ->
+      from(
+        ma in MessageAttachment,
+        where: ma.message_id == ^message_id
+      )
+      |> set_position_in_attrs(%{
+        message_id: message_id,
+        attachment_id: attachment.id,
+        owner_id: profile_id
+      })
+      |> then(&{:ok, &1})
+    end)
+    |> Ecto.Multi.insert(:link_message, fn %{set_position: attrs} ->
+      MessageAttachment.changeset(%MessageAttachment{}, attrs)
+    end)
     |> Repo.transaction()
     |> case do
       {:error, _multi, changeset, _changes} -> {:error, changeset}

@@ -103,7 +103,7 @@ defmodule LantternWeb.MessageBoard.MessageBoardGridComponent do
               </style>
             </div>
           </div>
-
+          
     <!-- Desktop/tablet: use existing grid within responsive container -->
           <div class="hidden md:block">
             <div>
