@@ -4,7 +4,7 @@ defmodule Lanttern.IdentityTest do
   alias Lanttern.Identity
 
   import Lanttern.IdentityFixtures
-  alias Lanttern.Identity.{User, UserToken}
+  alias Lanttern.Identity.{LoginCode, User, UserToken}
 
   describe "get_user_by_email/1" do
     test "does not return the user if the email does not exist" do
@@ -261,63 +261,6 @@ defmodule Lanttern.IdentityTest do
     end
   end
 
-  describe "get_user_by_magic_link_token/1" do
-    setup do
-      user = user_fixture()
-      {encoded_token, _hashed_token} = generate_user_magic_link_token(user)
-      %{user: user, token: encoded_token}
-    end
-
-    test "returns user by token", %{user: user, token: token} do
-      assert session_user = Identity.get_user_by_magic_link_token(token)
-      assert session_user.id == user.id
-    end
-
-    test "does not return user for invalid token" do
-      refute Identity.get_user_by_magic_link_token("oops")
-    end
-
-    test "does not return user for expired token", %{token: token} do
-      {1, nil} = Repo.update_all(UserToken, set: [inserted_at: ~N[2020-01-01 00:00:00]])
-      refute Identity.get_user_by_magic_link_token(token)
-    end
-  end
-
-  describe "login_user_by_magic_link/1" do
-    test "confirms user and expires tokens" do
-      user = unconfirmed_user_fixture()
-      refute user.confirmed_at
-      {encoded_token, hashed_token} = generate_user_magic_link_token(user)
-
-      assert {:ok, {user, [%{token: ^hashed_token}]}} =
-               Identity.login_user_by_magic_link(encoded_token)
-
-      assert user.confirmed_at
-    end
-
-    test "returns user and (deleted) token for confirmed user" do
-      user = user_fixture()
-      assert user.confirmed_at
-      {encoded_token, _hashed_token} = generate_user_magic_link_token(user)
-      assert {:ok, {^user, []}} = Identity.login_user_by_magic_link(encoded_token)
-      # one time use only
-      assert {:error, :not_found} = Identity.login_user_by_magic_link(encoded_token)
-    end
-
-    # passsword disabled in favor of magic link
-    # (keep code for future reimplementation)
-
-    # test "raises when unconfirmed user has password set" do
-    #   user = unconfirmed_user_fixture()
-    #   {1, nil} = Repo.update_all(User, set: [hashed_password: "hashed"])
-    #   {encoded_token, _hashed_token} = generate_user_magic_link_token(user)
-
-    #   assert_raise RuntimeError, ~r/magic link log in is not allowed/, fn ->
-    #     Identity.login_user_by_magic_link(encoded_token)
-    #   end
-    # end
-  end
-
   describe "delete_user_session_token/1" do
     test "deletes the token" do
       user = user_fixture()
@@ -490,7 +433,85 @@ defmodule Lanttern.IdentityTest do
     end
   end
 
-  # passsword disabled in favor of magic link
+  describe "login codes" do
+    alias Lanttern.Identity.LoginCode
+
+    test "generate_login_code/1 creates a login code and sends email" do
+      user = user_fixture()
+
+      assert {:ok, %LoginCode{} = login_code} = Identity.generate_login_code(user)
+      assert login_code.email == user.email
+      assert login_code.code_hash
+      assert login_code.inserted_at
+    end
+
+    test "generate_login_code/1 deletes existing login codes for the same email" do
+      user = user_fixture()
+
+      # Create first login code
+      {:ok, first_code} = Identity.generate_login_code(user)
+
+      # Create second login code for same user
+      {:ok, second_code} = Identity.generate_login_code(user)
+
+      # First code should be deleted
+      refute Repo.get(LoginCode, first_code.id)
+      assert Repo.get(LoginCode, second_code.id)
+    end
+
+    test "verify_login_code/2 returns user for valid code" do
+      user = user_fixture()
+
+      # Generate a code directly to test verification
+      {plain_code, hashed_code} = LoginCode.generate_code()
+      login_code = LoginCode.build(user.email, hashed_code)
+      {:ok, login_code} = Repo.insert(login_code)
+      login_code_id = login_code.id
+
+      assert {:ok, returned_user} = Identity.verify_login_code(user.email, plain_code)
+      assert returned_user.id == user.id
+
+      # Code should be deleted after use
+      refute Repo.get(LoginCode, login_code_id)
+    end
+
+    test "verify_login_code/2 returns error for invalid code" do
+      user = user_fixture()
+
+      assert {:error, :invalid_code} = Identity.verify_login_code(user.email, "123456")
+    end
+
+    test "verify_login_code/2 returns error for expired code" do
+      user = user_fixture()
+
+      # Generate and insert expired code
+      {plain_code, hashed_code} = LoginCode.generate_code()
+      login_code = LoginCode.build(user.email, hashed_code)
+      {:ok, login_code} = Repo.insert(login_code)
+
+      # Make the code expired by updating inserted_at to naive datetime
+      expired_time =
+        NaiveDateTime.utc_now()
+        |> NaiveDateTime.add(-10, :minute)
+        |> NaiveDateTime.truncate(:second)
+
+      Repo.update!(Ecto.Changeset.change(login_code, inserted_at: expired_time))
+
+      assert {:error, :invalid_code} = Identity.verify_login_code(user.email, plain_code)
+    end
+
+    test "verify_login_code/2 returns error when user not found" do
+      # Generate a code for non-existent user
+      {plain_code, hashed_code} = LoginCode.generate_code()
+      login_code = LoginCode.build("nonexistent@example.com", hashed_code)
+      Repo.insert!(login_code)
+
+      assert {:error, :user_not_found} =
+               Identity.verify_login_code("nonexistent@example.com", plain_code)
+    end
+  end
+
+  # passsword disabled in favor of access code login
   # (keep code for future reimplementation)
 
   # describe "get_user_by_email_and_password/2" do

@@ -37,9 +37,23 @@ defmodule LantternWeb.CoreComponents do
   attr :patch, :string, default: nil, doc: "use with type=\"link\""
   attr :navigate, :string, default: nil, doc: "use with type=\"link\""
   attr :replace, :boolean, default: false, doc: "use with type=\"link\""
-  attr :rest, :global, include: ~w(disabled form name value)
+  attr :rest, :global, include: ~w(disabled form name value href)
 
   slot :inner_block, required: true
+
+  def action(%{type: "link", href: href} = assigns) when is_binary(href) do
+    ~H"""
+    <a
+      href={@href}
+      class={[action_styles(@theme, @size), @class]}
+      {@rest}
+    >
+      <div class={action_bg_styles(@theme, @size)}></div>
+      <span class="relative truncate">{render_slot(@inner_block)}</span>
+      <.icon :if={@icon_name} name={@icon_name} class={action_child_icon_styles(@size)} />
+    </a>
+    """
+  end
 
   def action(%{type: "link"} = assigns) do
     ~H"""

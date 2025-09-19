@@ -68,32 +68,22 @@ defmodule Lanttern.Identity.UserNotifier do
   end
 
   @doc """
-  Deliver instructions to log in with a magic link.
+  Deliver login code to user's email.
   """
-  def deliver_login_instructions(user, url) do
-    deliver_magic_link_instructions(user, url)
-
-    # disable confirmation email, as we currently don't have any
-    # difference between confirmed and unconfirmed users
-
-    # case user do
-    #   %User{confirmed_at: nil} -> deliver_confirmation_instructions(user, url)
-    #   _ -> deliver_magic_link_instructions(user, url)
-    # end
-  end
-
-  defp deliver_magic_link_instructions(user, url) do
+  def deliver_login_code(user, code) do
     body = """
 
     ==============================
 
     Hi #{user.email},
 
-    You can sign into your account by clicking the link below:
+    Your Lanttern sign in code is:
 
-    #{url}
+    #{code}
 
-    If you didn't request this email, please ignore this.
+    This code expires in 5 minutes.
+
+    If you didn't request this code, please ignore this email.
 
     ==============================
 
@@ -106,7 +96,7 @@ defmodule Lanttern.Identity.UserNotifier do
           <meta charset="UTF-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <meta http-equiv="X-UA-Compatible" content="IE=edge">
-          <title>Lanttern sign in link</title>
+          <title>Lanttern sign in code</title>
 
           <!-- Web Font Import with fallback -->
           <style>
@@ -169,7 +159,6 @@ defmodule Lanttern.Identity.UserNotifier do
                                 <h1 style="margin: 0 0 20px 0; font-family: 'Montserrat', Helvetica, sans-serif; font-size: 36px; font-weight: 900; color: #314158; line-height: 1; text-align: center">
                                     Lanttern
                                 </h1>
-                                <!-- <img src="https://via.placeholder.com/150x50/ffffff/1a1a1a?text=LOGO" alt="Your Company Logo" width="150" height="50" style="display: block; margin: 0 auto;"> -->
                               </td>
                           </tr>
 
@@ -179,7 +168,7 @@ defmodule Lanttern.Identity.UserNotifier do
 
                                   <!-- Greeting -->
                                   <h2 style="margin: 0 0 20px 0; font-family: 'Montserrat', Helvetica, sans-serif; font-size: 28px; font-weight: 900; color: #314158; line-height: 1.2;">
-                                      Sign in link
+                                      Your sign in code
                                   </h2>
 
                                   <p style="margin: 0 0 20px 0; font-family: 'Open Sans', Helvetica, sans-serif; font-size: 16px; line-height: 1.5; color: #314158;">
@@ -187,11 +176,19 @@ defmodule Lanttern.Identity.UserNotifier do
                                   </p>
 
                                   <p style="margin: 0 0 30px 0; font-family: 'Open Sans', Helvetica, sans-serif; font-size: 16px; line-height: 1.5; color: #314158;">
-                                      You can sign into your account by <a href="#{url}" target="_blank" style="font-weight: 600; border-bottom: 4px solid #a2f4fd; color: #314158; text-decoration: none;">clicking this link</a>.
+                                      Enter this code to sign into your account:
                                   </p>
 
-                                  <p style="margin: 30px 0 0 0; font-family: 'Open Sans', Helvetica, sans-serif; font-size: 12px; line-height: 1.5; color: #314158;">
-                                      If you didn't request this email, please ignore this.
+                                  <!-- Code display -->
+                                  <div style="text-align: center; margin: 30px 0;">
+                                      <span style="background-color: #f1f5f9; border: 2px solid #e2e8f0; border-radius: 8px; display: inline-block; font-family: 'Montserrat', monospace; font-size: 32px; font-weight: 900; letter-spacing: 0.25em; padding: 20px 30px; color: #314158;">
+                                          #{code}
+                                      </span>
+                                  </div>
+
+                                  <p style="margin: 30px 0 0 0; font-family: 'Open Sans', Helvetica, sans-serif; font-size: 14px; line-height: 1.5; color: #64748b; text-align: center;">
+                                      This code expires in 5 minutes.<br />
+                                      If you didn't request this code, please ignore this email.
                                   </p>
                               </td>
                           </tr>
@@ -203,38 +200,6 @@ defmodule Lanttern.Identity.UserNotifier do
     </html>
     """
 
-    deliver(user.email, "Sign in instructions", body, html)
-
-    # deliver(user.email, "Log in instructions", """
-
-    # ==============================
-
-    # Hi #{user.email},
-
-    # You can log into your account by visiting the URL below:
-
-    # #{url}
-
-    # If you didn't request this email, please ignore this.
-
-    # ==============================
-    # """)
+    deliver(user.email, "Sign in code", body, html)
   end
-
-  # defp deliver_confirmation_instructions(user, url) do
-  #   deliver(user.email, "Confirmation instructions", """
-
-  #   ==============================
-
-  #   Hi #{user.email},
-
-  #   You can confirm your account by visiting the URL below:
-
-  #   #{url}
-
-  #   If you didn't create an account with us, please ignore this.
-
-  #   ==============================
-  #   """)
-  # end
 end

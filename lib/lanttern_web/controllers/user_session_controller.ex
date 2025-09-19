@@ -19,19 +19,22 @@ defmodule LantternWeb.UserSessionController do
     create(conn, params, gettext("Welcome back!"))
   end
 
-  # magic link login
-  defp create(conn, %{"user" => %{"token" => token} = user_params}, info) do
-    case Identity.login_user_by_magic_link(token) do
-      {:ok, {user, tokens_to_disconnect}} ->
-        UserAuth.disconnect_sessions(tokens_to_disconnect)
-
+  # access code login
+  defp create(conn, %{"access_code" => %{"email" => email, "code" => code} = params}, info) do
+    case Identity.verify_login_code(email, code) do
+      {:ok, user} ->
         conn
         |> put_flash(:info, info)
-        |> UserAuth.log_in_user(user, user_params)
+        |> UserAuth.log_in_user(user, params)
 
-      _ ->
+      {:error, :invalid_code} ->
         conn
-        |> put_flash(:error, "The link is invalid or it has expired.")
+        |> put_flash(:error, "The code is invalid or has expired.")
+        |> redirect(to: ~p"/users/log-in/code?email=#{URI.encode(email)}")
+
+      {:error, :user_not_found} ->
+        conn
+        |> put_flash(:error, "User not found.")
         |> redirect(to: ~p"/users/log-in")
     end
   end

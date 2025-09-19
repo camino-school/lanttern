@@ -335,7 +335,6 @@ defmodule LantternWeb.Router do
       # live "/users/register", UserRegistrationLive, :new
       live "/users/log-in", UserLoginLive, :new
       live "/users/log-in/code", UserCodeLoginLive, :show
-      live "/users/log-in/:token", UserLoginLive.Confirmation, :new
       # live "/users/reset_password", UserForgotPasswordLive, :new
       # live "/users/reset_password/:token", UserResetPasswordLive, :edit
     end
