@@ -4,7 +4,7 @@ defmodule Lanttern.MixProject do
   def project do
     [
       app: :lanttern,
-      version: "2025.8.22-alpha.72",
+      version: "2025.9.18-alpha.73",
       elixir: "~> 1.18",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
@@ -61,9 +61,9 @@ defmodule Lanttern.MixProject do
       {:phoenix_live_dashboard, "~> 0.8.2"},
       {:esbuild, "~> 0.10", runtime: Mix.env() == :dev},
       {:tailwind, "~> 0.3.0", runtime: Mix.env() == :dev},
-      {:swoosh, "~> 1.3"},
-      {:req, "~> 0.5"},
-      {:telemetry_metrics, "~> 1.0"},
+      {:swoosh, "~> 1.19"},
+      {:finch, "~> 0.20"},
+      {:telemetry_metrics, "~> 0.6"},
       {:telemetry_poller, "~> 1.0"},
       {:gettext, "~> 0.26"},
       {:jason, "~> 1.2"},
@@ -90,6 +90,7 @@ defmodule Lanttern.MixProject do
       {:ex_cldr, "~> 2.37"},
       {:ex_cldr_dates_times, "~> 2.0"},
       {:mimic, "~> 1.12", only: :test},
+      {:multipart, "~> 0.4.0"},
       {:usage_rules, "~> 0.1", only: [:dev]},
       {:igniter, "~> 0.6", only: [:dev]}
     ]

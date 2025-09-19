@@ -1,6 +1,8 @@
 defmodule LantternWeb.UserLoginLive do
   use LantternWeb, :live_view
 
+  alias Lanttern.Identity
+
   def render(assigns) do
     ~H"""
     <div class="mx-auto max-w-sm py-20">
@@ -10,9 +12,36 @@ defmodule LantternWeb.UserLoginLive do
       <p class="mt-10 text-lg">
         Check if your school is using
         <a href={~p"/"} class="font-display font-bold underline hover:text-ltrn-subtle">Lanttern</a>
-        and your Google Account is registered before signing in.
+        and your email is registered before signing in.
       </p>
-      <div id="g_id_signin_container" class="mt-20" phx-update="ignore">
+      <.form
+        for={@form}
+        id="login_form_magic"
+        phx-update="ignore"
+        phx-submit="submit_magic"
+        class="flex gap-2 mt-10"
+      >
+        <.input field={@form[:email]} type="email" label={gettext("Email")} required class="flex-1" />
+        <.icon_button
+          type="submit"
+          name="hero-arrow-right-mini"
+          sr_text="Sign in"
+          rounded
+          theme="ghost"
+          class="mt-7"
+        />
+        <%!-- <div class="flex justify-end mt-6">
+          <.action type="submit" theme="primary" size="md" icon_name="hero-arrow-right">
+            {gettext("Send login code")}
+          </.action>
+        </div> --%>
+      </.form>
+      <div class="flex items-center gap-2 my-10">
+        <hr class="flex-1 border-ltrn-light" />
+        {gettext("or")}
+        <hr class="flex-1 border-ltrn-light" />
+      </div>
+      <div id="g_id_signin_container" phx-update="ignore">
         <script src="https://accounts.google.com/gsi/client" async>
         </script>
         <div
@@ -47,7 +76,7 @@ defmodule LantternWeb.UserLoginLive do
         </:subtitle>
       </.header>
 
-      <.simple_form for={@form} id="login_form" action={~p"/users/log_in"} phx-update="ignore">
+      <.simple_form for={@form} id="login_form" action={~p"/users/log-in"} phx-update="ignore">
         <.input field={@form[:email]} type="email" label="Email" required />
         <.input field={@form[:password]} type="password" label="Password" required />
 
@@ -64,6 +93,7 @@ defmodule LantternWeb.UserLoginLive do
         </:actions>
       </.simple_form>
        --%>
+      <LantternWeb.Layouts.flash_group flash={@flash} />
     </div>
     """
   end
@@ -82,5 +112,20 @@ defmodule LantternWeb.UserLoginLive do
       |> assign(google_client_id: google_client_id)
 
     {:ok, socket, temporary_assigns: [form: form]}
+  end
+
+  def handle_event("submit_magic", %{"user" => %{"email" => email}}, socket) do
+    if user = Identity.get_user_by_email(email) do
+      Identity.deliver_login_instructions(
+        user,
+        &url(~p"/users/log-in/#{&1}")
+      )
+    end
+
+    socket =
+      socket
+      |> push_navigate(to: ~p"/users/log-in/code?email=#{URI.encode(email)}")
+
+    {:noreply, socket}
   end
 end

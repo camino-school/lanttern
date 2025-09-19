@@ -12,8 +12,8 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n>1);\n"
 
 #: lib/lanttern_web/components/core_components.ex:961
-#: lib/lanttern_web/components/core_components.ex:2158
-#: lib/lanttern_web/components/core_components.ex:2220
+#: lib/lanttern_web/components/core_components.ex:2159
+#: lib/lanttern_web/components/core_components.ex:2221
 #, elixir-autogen, elixir-format
 msgid "Actions"
 msgstr "Ações"
@@ -523,7 +523,7 @@ msgid "Differentiation"
 msgstr "Diferenciação"
 
 #: lib/lanttern_web/components/attachments_components.ex:97
-#: lib/lanttern_web/components/core_components.ex:1467
+#: lib/lanttern_web/components/core_components.ex:1468
 #: lib/lanttern_web/components/form_components.ex:271
 #: lib/lanttern_web/components/ilp_components.ex:124
 #: lib/lanttern_web/components/learning_context_components.ex:81
@@ -789,7 +789,7 @@ msgstr "Momento atualizado com sucesso"
 msgid "Moments"
 msgstr "Momentos"
 
-#: lib/lanttern_web/components/core_components.ex:2108
+#: lib/lanttern_web/components/core_components.ex:2109
 #, elixir-autogen, elixir-format
 msgid "Move moment down"
 msgstr "Mover momento para baixo"
@@ -1025,7 +1025,7 @@ msgstr "Ciclo"
 msgid "Cycle already added to this grade report"
 msgstr "Ciclo já adicionado à este relatório de nota"
 
-#: lib/lanttern_web/components/reporting_components.ex:357
+#: lib/lanttern_web/components/reporting_components.ex:376
 #: lib/lanttern_web/live/shared/assessments/assessments_grid_component.ex:267
 #: lib/lanttern_web/live/shared/assessments/assessments_grid_component.ex:322
 #: lib/lanttern_web/live/shared/assessments/assessments_grid_component.ex:352
@@ -1251,7 +1251,7 @@ msgstr "Lista de report cards vinculados a esta trilha"
 msgid "Move down"
 msgstr "Mover para baixo"
 
-#: lib/lanttern_web/components/core_components.ex:2098
+#: lib/lanttern_web/components/core_components.ex:2099
 #: lib/lanttern_web/live/shared/grading/grade_composition_overlay_component.ex:167
 #, elixir-autogen, elixir-format
 msgid "Move up"
@@ -1306,7 +1306,7 @@ msgstr "Nenhuma trilha vinculada a este relatório ainda"
 
 #: lib/lanttern_web/components/grades_reports_components.ex:629
 #: lib/lanttern_web/components/grades_reports_components.ex:857
-#: lib/lanttern_web/components/reporting_components.ex:496
+#: lib/lanttern_web/components/reporting_components.ex:515
 #, elixir-autogen, elixir-format
 msgid "No students linked to this grades report"
 msgstr "Nenhum estudante vinculado a este relatório de notas"
@@ -1364,7 +1364,7 @@ msgstr "Recalcular nota"
 
 #: lib/lanttern_web/components/attachments_components.ex:102
 #: lib/lanttern_web/components/core_components.ex:342
-#: lib/lanttern_web/components/core_components.ex:1555
+#: lib/lanttern_web/components/core_components.ex:1556
 #: lib/lanttern_web/components/form_components.ex:811
 #: lib/lanttern_web/live/shared/grading/grade_composition_overlay_component.ex:196
 #, elixir-autogen, elixir-format
@@ -1638,13 +1638,14 @@ msgstr "Erro interno do servidor"
 msgid "Ooops, page not found"
 msgstr "Ooops, página não encontrada"
 
+#: lib/lanttern_web/controllers/user_session_controller.ex:9
 #: lib/lanttern_web/live/pages/student/student_home_live.html.heex:3
 #, elixir-autogen, elixir-format
 msgid "Welcome!"
 msgstr "Bem-vinda!"
 
-#: lib/lanttern_web/user_auth.ex:304
-#: lib/lanttern_web/user_auth.ex:361
+#: lib/lanttern_web/user_auth.ex:315
+#: lib/lanttern_web/user_auth.ex:372
 #, elixir-autogen, elixir-format
 msgid "You must log in to access this page."
 msgstr "Você precisa estar logado para acessar esta página."
@@ -1715,8 +1716,8 @@ msgstr "Limpar seleção"
 msgid "Hey!"
 msgstr "Olá!"
 
-#: lib/lanttern_web/components/core_components.ex:1620
-#: lib/lanttern_web/components/core_components.ex:1642
+#: lib/lanttern_web/components/core_components.ex:1621
+#: lib/lanttern_web/components/core_components.ex:1643
 #, elixir-autogen, elixir-format
 msgid "Selected"
 msgstr "Selecionado"
@@ -2344,6 +2345,8 @@ msgstr "Avaliação de professor"
 msgid "discard changes"
 msgstr "descartar mudanças"
 
+#: lib/lanttern_web/live/pages/users/log-in/confirmation_live.ex:81
+#: lib/lanttern_web/live/pages/users/log-in/user_login_live.ex:41
 #: lib/lanttern_web/live/shared/assessments/entry_details_overlay_component.ex:77
 #: lib/lanttern_web/live/shared/assessments/entry_details_overlay_component.ex:322
 #, elixir-autogen, elixir-format
@@ -2478,7 +2481,7 @@ msgstr "Rubrica de diferenciação"
 msgid "Add students to report card to track entries"
 msgstr "Adicione estudantes ao report card para acompanhar os registros"
 
-#: lib/lanttern_web/components/reporting_components.ex:452
+#: lib/lanttern_web/components/reporting_components.ex:471
 #, elixir-autogen, elixir-format
 msgid "No strands with moments assessment linked to this report card"
 msgstr "Nenhuma trilha com avaliações nos momentos vinculada a este report card"
@@ -4176,8 +4179,8 @@ msgstr "%{student} deletado"
 msgid "%{student} reactivated"
 msgstr "%{student} reativado"
 
-#: lib/lanttern_web/components/core_components.ex:1878
-#: lib/lanttern_web/components/core_components.ex:1886
+#: lib/lanttern_web/components/core_components.ex:1879
+#: lib/lanttern_web/components/core_components.ex:1887
 #, elixir-autogen, elixir-format
 msgid "(Deactivated)"
 msgstr "(Desativado)"
@@ -5230,3 +5233,48 @@ msgstr "Carregando %{attachment}"
 #, elixir-autogen, elixir-format
 msgid "Something went wrong while fetching the attachment"
 msgstr "Algo deu errado ao carregar o anexo"
+
+#: lib/lanttern_web/live/pages/users/log-in/user_login_live.ex:24
+#, elixir-autogen, elixir-format
+msgid "Email"
+msgstr "Email"
+
+#: lib/lanttern_web/live/pages/users/log-in/confirmation_live.ex:13
+#, elixir-autogen, elixir-format
+msgid "Hello %{email}!"
+msgstr "Olá %{email}!"
+
+#: lib/lanttern_web/live/pages/users/log-in/confirmation_live.ex:79
+#, elixir-autogen, elixir-format
+msgid "Keep me signed in on this device"
+msgstr "Mantenha-me conectado neste aparelho"
+
+#: lib/lanttern_web/live/pages/users/log-in/confirmation_live.ex:107
+#, elixir-autogen, elixir-format
+msgid "Sign in link is invalid or it has expired."
+msgstr "Link de acesso inválido ou expirado"
+
+#: lib/lanttern_web/live/pages/users/log-in/confirmation_live.ex:89
+#, elixir-autogen, elixir-format
+msgid "Sign in only this time"
+msgstr "Acessar somente esta vez"
+
+#: lib/lanttern_web/live/pages/users/log-in/code/user_code_login_live.ex:23
+#, elixir-autogen, elixir-format
+msgid "Sign in using a different method"
+msgstr "Acessar utilizando um método diferente"
+
+#: lib/lanttern_web/controllers/user_session_controller.ex:19
+#, elixir-autogen, elixir-format
+msgid "Welcome back!"
+msgstr "Bem-vinda de volta!"
+
+#: lib/lanttern_web/live/pages/users/log-in/code/user_code_login_live.ex:17
+#, elixir-autogen, elixir-format
+msgid "Don't see it? Check your spam folder and ensure there's a Lanttern account for the provided email."
+msgstr "Não encontrou? Verifique a pasta de spam e assegure-se de que existe uma conta Lanttern para este email."
+
+#: lib/lanttern_web/live/pages/users/log-in/code/user_code_login_live.ex:11
+#, elixir-autogen, elixir-format
+msgid "We've sent a sign-in link to %{email}."
+msgstr "Enviamos um link de acesso para %{email}."

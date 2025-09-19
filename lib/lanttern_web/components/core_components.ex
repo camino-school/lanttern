@@ -1327,6 +1327,7 @@ defmodule LantternWeb.CoreComponents do
     <button
       type={@type}
       class={[
+        "shrink-0",
         get_button_styles(@theme, @size, @rounded),
         @class
       ]}
