@@ -8,6 +8,7 @@ defmodule Lanttern.Identity do
   alias Lanttern.Repo
   import Lanttern.RepoHelpers
 
+  alias Lanttern.Identity.LoginCode
   alias Lanttern.Identity.Profile
   alias Lanttern.Identity.User
   alias Lanttern.Identity.UserNotifier
@@ -260,32 +261,6 @@ defmodule Lanttern.Identity do
     end
   end
 
-  @doc """
-  Gets the user with the given magic link token.
-  """
-  def get_user_by_magic_link_token(token) do
-    with {:ok, query} <- UserToken.verify_magic_link_token_query(token),
-         {user, _token} <- Repo.one(query) do
-      profile_settings =
-        case user do
-          %User{current_profile: %Profile{id: profile_id}} ->
-            Personalization.get_profile_settings(profile_id, preloads: :current_school_cycle) ||
-              %{}
-
-          _ ->
-            %{}
-        end
-
-      user
-      |> Map.update!(:current_profile, &put_permissions(&1, profile_settings))
-      |> Map.update!(:current_profile, &build_flat_profile/1)
-      |> Map.update!(:current_profile, &ensure_current_school_cycle(&1, profile_settings))
-      |> Map.update!(:current_profile, &put_student_cycle_info_picture(&1))
-    else
-      _ -> nil
-    end
-  end
-
   defp put_permissions(%Profile{} = profile, profile_settings) do
     permissions = Map.get(profile_settings, :permissions, [])
     Map.put(profile, :permissions, permissions)
@@ -386,64 +361,79 @@ defmodule Lanttern.Identity do
   defp put_student_cycle_info_picture(profile), do: profile
 
   @doc """
-  Logs the user in by magic link.
+  Generates a login code for the given user and sends it via email.
 
-  There are two cases to consider:
+  This function deletes any existing login code for the user's email
+  before creating a new one to ensure only one valid code exists per email.
 
-  1. The user has already confirmed their email. They are logged in
-     and the magic link is expired.
+  ## Examples
 
-  2. The user has not confirmed their email.
-     In this case, the user gets confirmed, logged in, and all tokens -
-     including session ones - are expired. In theory, no other tokens
-     exist but we delete all of them for best security practices.
-
-  As we're not supporting password login, the third case does not apply
-  (but it's worth keeping the documentation and code here for reference)
-
-  3. The user has not confirmed their email but a password is set.
-     This cannot happen in the default implementation but may be the
-     source of security pitfalls. See the "Mixing magic link and password registration" section of
-     `mix help phx.gen.auth`.
+      iex> generate_login_code(user)
+      {:ok, %LoginCode{}}
   """
-  def login_user_by_magic_link(token) do
-    {:ok, query} = UserToken.verify_magic_link_token_query(token)
+  def generate_login_code(%User{} = user) do
+    {plain_code, hashed_code} = LoginCode.generate_code()
 
-    case Repo.one(query) do
-      # password login not supported, credential pre-stuffing is not an issue
+    Repo.transact(fn ->
+      # Delete any existing login code for this email
+      Repo.delete_all(LoginCode.by_email_query(user.email))
 
-      # # Prevent session fixation attacks by disallowing magic links for unconfirmed users with password
-      # {%User{confirmed_at: nil, hashed_password: hash}, _token} when not is_nil(hash) ->
-      #   raise """
-      #   magic link log in is not allowed for unconfirmed users with a password set!
+      # Create new login code
+      login_code = LoginCode.build(user.email, hashed_code)
 
-      #   This cannot happen with the default implementation, which indicates that you
-      #   might have adapted the code to a different use case. Please make sure to read the
-      #   "Mixing magic link and password registration" section of `mix help phx.gen.auth`.
-      #   """
-
-      {%User{confirmed_at: nil} = user, _token} ->
-        user
-        |> User.confirm_changeset()
-        |> update_user_and_delete_all_tokens()
-
-      {user, token} ->
-        Repo.delete!(token)
-        {:ok, {user, []}}
-
-      nil ->
-        {:error, :not_found}
-    end
+      with {:ok, login_code} <- Repo.insert(login_code),
+           {:ok, _email} <- UserNotifier.deliver_login_code(user, plain_code) do
+        {:ok, login_code}
+      else
+        error -> error
+      end
+    end)
   end
 
   @doc """
-  Delivers the magic link login instructions to the given user.
+  Verifies a login code for the given email and returns the associated user.
+
+  If the code is valid and not expired, the login code is deleted immediately
+  and the user is returned.
+
+  ## Examples
+
+      iex> verify_login_code("user@example.com", "123456")
+      {:ok, %User{}}
+
+      iex> verify_login_code("user@example.com", "invalid")
+      {:error, :invalid_code}
   """
-  def deliver_login_instructions(%User{} = user, magic_link_url_fun)
-      when is_function(magic_link_url_fun, 1) do
-    {encoded_token, user_token} = UserToken.build_email_token(user, "login")
-    Repo.insert!(user_token)
-    UserNotifier.deliver_login_instructions(user, magic_link_url_fun.(encoded_token))
+  def verify_login_code(email, code) when is_binary(email) and is_binary(code) do
+    query = LoginCode.verify_code_query(email, code)
+
+    case Repo.one(query) do
+      %LoginCode{} = login_code ->
+        verify_and_delete_login_code(login_code, email)
+
+      nil ->
+        {:error, :invalid_code}
+    end
+  end
+
+  defp verify_and_delete_login_code(login_code, email) do
+    Repo.transact(fn ->
+      # Delete the used login code immediately
+      Repo.delete!(login_code)
+
+      # Return the user
+      case get_user_by_email(email) do
+        %User{} = user -> {:ok, user}
+        nil -> {:error, :user_not_found}
+      end
+    end)
+  end
+
+  @doc """
+  Delivers the login code to the given user.
+  """
+  def deliver_login_instructions(%User{} = user) do
+    generate_login_code(user)
   end
 
   @doc """
@@ -679,19 +669,7 @@ defmodule Lanttern.Identity do
 
   ## Token helper
 
-  defp update_user_and_delete_all_tokens(changeset) do
-    Repo.transact(fn ->
-      with {:ok, user} <- Repo.update(changeset) do
-        tokens_to_expire = Repo.all_by(UserToken, user_id: user.id)
-
-        Repo.delete_all(from(t in UserToken, where: t.id in ^Enum.map(tokens_to_expire, & &1.id)))
-
-        {:ok, {user, tokens_to_expire}}
-      end
-    end)
-  end
-
-  # passsword disabled in favor of magic link
+  # passsword disabled in favor of access code login
   # (keep code for future reimplementation)
 
   # @doc """
