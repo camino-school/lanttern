@@ -76,8 +76,9 @@ defmodule LantternWeb.FormComponents do
 
   attr :type, :string,
     default: "text",
-    values: ~w(checkbox color date datetime-local email file hidden month number password
-               range radio search select tel text textarea time url week toggle markdown)
+    values:
+      ~w(checkbox color date datetime-local email file hidden month number password
+               range radio search select tel text textarea time url week toggle markdown access_code)
 
   attr :field, Phoenix.HTML.FormField,
     doc: "a form field struct retrieved from the form, for example: @form[:email]"
@@ -529,7 +530,7 @@ defmodule LantternWeb.FormComponents do
   attr :type, :string,
     default: "text",
     values: ~w(color date datetime-local email file hidden month number password
-               range radio search tel text time url week)
+               range radio search tel text time url week access_code)
 
   attr :errors, :list, default: []
   attr :class, :any, default: nil
@@ -537,6 +538,27 @@ defmodule LantternWeb.FormComponents do
   attr :rest, :global,
     include: ~w(accept autocomplete capture cols disabled form list max maxlength min minlength
                 multiple pattern placeholder readonly required rows size step)
+
+  def base_input(%{type: "access_code"} = assigns) do
+    ~H"""
+    <input
+      type="text"
+      name={@name}
+      id={@id}
+      value={Phoenix.HTML.Form.normalize_value(@type, @value)}
+      class={[
+        "block w-full rounded-xs border-0 shadow-xs ring-1",
+        "text-center text-2xl tracking-widest font-mono",
+        "focus:ring-2 focus:ring-inset",
+        "phx-no-feedback:ring-ltrn-lighter phx-no-feedback:focus:ring-ltrn-primary",
+        @errors == [] && "ring-ltrn-lighter focus:ring-ltrn-primary",
+        @errors != [] && "ring-rose-400 focus:ring-rose-400",
+        @class
+      ]}
+      {@rest}
+    />
+    """
+  end
 
   def base_input(assigns) do
     ~H"""

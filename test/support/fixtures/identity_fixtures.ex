@@ -31,13 +31,11 @@ defmodule Lanttern.IdentityFixtures do
   def user_fixture(attrs \\ %{}) do
     user = unconfirmed_user_fixture(attrs)
 
-    token =
-      extract_user_token(fn url ->
-        Identity.deliver_login_instructions(user, url)
-      end)
-
-    {:ok, {user, _expired_tokens}} =
-      Identity.login_user_by_magic_link(token)
+    # Directly confirm the user without going through magic link flow
+    {:ok, user} =
+      user
+      |> Lanttern.Identity.User.confirm_changeset()
+      |> Lanttern.Repo.update()
 
     user
   end
@@ -143,12 +141,6 @@ defmodule Lanttern.IdentityFixtures do
         permissions: permissions
       }
     )
-  end
-
-  def generate_user_magic_link_token(user) do
-    {encoded_token, user_token} = Identity.UserToken.build_email_token(user, "login")
-    Lanttern.Repo.insert!(user_token)
-    {encoded_token, user_token.token}
   end
 
   # helpers

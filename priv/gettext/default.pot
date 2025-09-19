@@ -11,9 +11,9 @@
 msgid ""
 msgstr ""
 
-#: lib/lanttern_web/components/core_components.ex:961
-#: lib/lanttern_web/components/core_components.ex:2159
-#: lib/lanttern_web/components/core_components.ex:2221
+#: lib/lanttern_web/components/core_components.ex:975
+#: lib/lanttern_web/components/core_components.ex:2173
+#: lib/lanttern_web/components/core_components.ex:2235
 #, elixir-autogen, elixir-format
 msgid "Actions"
 msgstr ""
@@ -57,7 +57,7 @@ msgstr ""
 msgid "Strands"
 msgstr ""
 
-#: lib/lanttern_web/components/core_components.ex:1134
+#: lib/lanttern_web/components/core_components.ex:1148
 #: lib/lanttern_web/components/overlay_components.ex:78
 #: lib/lanttern_web/components/overlay_components.ex:334
 #, elixir-autogen, elixir-format
@@ -95,7 +95,7 @@ msgstr ""
 msgid "Applying filters..."
 msgstr ""
 
-#: lib/lanttern_web/components/form_components.ex:783
+#: lib/lanttern_web/components/form_components.ex:805
 #: lib/lanttern_web/components/overlay_components.ex:576
 #: lib/lanttern_web/components/overlay_components.ex:639
 #: lib/lanttern_web/live/pages/curriculum/component/id/curriculum_component_live.html.heex:168
@@ -161,7 +161,7 @@ msgstr ""
 msgid "New strand"
 msgstr ""
 
-#: lib/lanttern_web/components/form_components.ex:792
+#: lib/lanttern_web/components/form_components.ex:814
 #: lib/lanttern_web/components/overlay_components.ex:579
 #: lib/lanttern_web/components/overlay_components.ex:642
 #: lib/lanttern_web/live/pages/curriculum/component/id/curriculum_component_live.html.heex:171
@@ -238,8 +238,8 @@ msgstr ""
 msgid "Description"
 msgstr ""
 
-#: lib/lanttern_web/components/form_components.ex:731
-#: lib/lanttern_web/components/form_components.ex:776
+#: lib/lanttern_web/components/form_components.ex:753
+#: lib/lanttern_web/components/form_components.ex:798
 #, elixir-autogen, elixir-format
 msgid "File \"%{file}\" is invalid."
 msgstr ""
@@ -297,7 +297,7 @@ msgstr ""
 msgid "Oops, something went wrong! Please check the errors below."
 msgstr ""
 
-#: lib/lanttern_web/components/form_components.ex:719
+#: lib/lanttern_web/components/form_components.ex:741
 #, elixir-autogen, elixir-format
 msgid "Replace image"
 msgstr ""
@@ -343,17 +343,17 @@ msgstr ""
 msgid "Strand updated successfully"
 msgstr ""
 
-#: lib/lanttern_web/components/form_components.ex:699
+#: lib/lanttern_web/components/form_components.ex:721
 #, elixir-autogen, elixir-format
 msgid "Upload a cover image file"
 msgstr ""
 
-#: lib/lanttern_web/components/form_components.ex:743
+#: lib/lanttern_web/components/form_components.ex:765
 #, elixir-autogen, elixir-format
 msgid "cancel"
 msgstr ""
 
-#: lib/lanttern_web/components/form_components.ex:702
+#: lib/lanttern_web/components/form_components.ex:724
 #: lib/lanttern_web/live/shared/attachments/attachment_area_component.ex:182
 #, elixir-autogen, elixir-format
 msgid "or drag and drop here"
@@ -365,7 +365,7 @@ msgstr ""
 msgid "Attempting to reconnect"
 msgstr ""
 
-#: lib/lanttern_web/components/form_components.ex:883
+#: lib/lanttern_web/components/form_components.ex:905
 #, elixir-autogen, elixir-format
 msgid "Markdown supported"
 msgstr ""
@@ -464,7 +464,7 @@ msgstr ""
 msgid "Add your notes..."
 msgstr ""
 
-#: lib/lanttern_web/components/form_components.ex:809
+#: lib/lanttern_web/components/form_components.ex:831
 #: lib/lanttern_web/components/message_board_components.ex:41
 #: lib/lanttern_web/components/schools_components.ex:197
 #: lib/lanttern_web/live/pages/curriculum/component/id/curriculum_component_live.html.heex:157
@@ -523,8 +523,8 @@ msgid "Differentiation"
 msgstr ""
 
 #: lib/lanttern_web/components/attachments_components.ex:97
-#: lib/lanttern_web/components/core_components.ex:1468
-#: lib/lanttern_web/components/form_components.ex:271
+#: lib/lanttern_web/components/core_components.ex:1482
+#: lib/lanttern_web/components/form_components.ex:272
 #: lib/lanttern_web/components/ilp_components.ex:124
 #: lib/lanttern_web/components/learning_context_components.ex:81
 #: lib/lanttern_web/components/message_board_components.ex:56
@@ -789,7 +789,7 @@ msgstr ""
 msgid "Moments"
 msgstr ""
 
-#: lib/lanttern_web/components/core_components.ex:2109
+#: lib/lanttern_web/components/core_components.ex:2123
 #, elixir-autogen, elixir-format
 msgid "Move moment down"
 msgstr ""
@@ -946,7 +946,7 @@ msgstr ""
 msgid "Calculate subject grades"
 msgstr ""
 
-#: lib/lanttern_web/components/form_components.ex:704
+#: lib/lanttern_web/components/form_components.ex:726
 #, elixir-autogen, elixir-format
 msgid "Cancel cover removal"
 msgstr ""
@@ -1251,7 +1251,7 @@ msgstr ""
 msgid "Move down"
 msgstr ""
 
-#: lib/lanttern_web/components/core_components.ex:2099
+#: lib/lanttern_web/components/core_components.ex:2113
 #: lib/lanttern_web/live/shared/grading/grade_composition_overlay_component.ex:167
 #, elixir-autogen, elixir-format
 msgid "Move up"
@@ -1348,7 +1348,7 @@ msgstr ""
 msgid "Partial results"
 msgstr ""
 
-#: lib/lanttern_web/components/form_components.ex:288
+#: lib/lanttern_web/components/form_components.ex:289
 #: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:309
 #: lib/lanttern_web/live/shared/students/student_tag_form_overlay_component.ex:58
 #: lib/lanttern_web/live/shared/students_records/student_record_status_form_overlay.ex:75
@@ -1363,9 +1363,9 @@ msgid "Recalculate grade"
 msgstr ""
 
 #: lib/lanttern_web/components/attachments_components.ex:102
-#: lib/lanttern_web/components/core_components.ex:342
-#: lib/lanttern_web/components/core_components.ex:1556
-#: lib/lanttern_web/components/form_components.ex:811
+#: lib/lanttern_web/components/core_components.ex:356
+#: lib/lanttern_web/components/core_components.ex:1570
+#: lib/lanttern_web/components/form_components.ex:833
 #: lib/lanttern_web/live/shared/grading/grade_composition_overlay_component.ex:196
 #, elixir-autogen, elixir-format
 msgid "Remove"
@@ -1716,8 +1716,8 @@ msgstr ""
 msgid "Hey!"
 msgstr ""
 
-#: lib/lanttern_web/components/core_components.ex:1621
-#: lib/lanttern_web/components/core_components.ex:1643
+#: lib/lanttern_web/components/core_components.ex:1635
+#: lib/lanttern_web/components/core_components.ex:1657
 #, elixir-autogen, elixir-format
 msgid "Selected"
 msgstr ""
@@ -1727,7 +1727,7 @@ msgstr ""
 msgid "About grades"
 msgstr ""
 
-#: lib/lanttern_web/components/form_components.ex:342
+#: lib/lanttern_web/components/form_components.ex:343
 #, elixir-autogen, elixir-format
 msgid "Optional"
 msgstr ""
@@ -2069,7 +2069,7 @@ msgstr ""
 msgid "Error deleting attachment"
 msgstr ""
 
-#: lib/lanttern_web/components/form_components.ex:848
+#: lib/lanttern_web/components/form_components.ex:870
 #, elixir-autogen, elixir-format
 msgid "File too large (max. %{file_size}MB)"
 msgstr ""
@@ -2089,7 +2089,7 @@ msgstr ""
 msgid "Note's attachments"
 msgstr ""
 
-#: lib/lanttern_web/components/form_components.ex:843
+#: lib/lanttern_web/components/form_components.ex:865
 #, elixir-autogen, elixir-format
 msgid "Only %{formats} files accepted"
 msgstr ""
@@ -2345,7 +2345,6 @@ msgstr ""
 msgid "discard changes"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/users/log-in/confirmation_live.ex:81
 #: lib/lanttern_web/live/pages/users/log-in/user_login_live.ex:41
 #: lib/lanttern_web/live/shared/assessments/entry_details_overlay_component.ex:77
 #: lib/lanttern_web/live/shared/assessments/entry_details_overlay_component.ex:322
@@ -3439,7 +3438,7 @@ msgstr ""
 msgid "School area attachments"
 msgstr ""
 
-#: lib/lanttern_web/components/form_components.ex:828
+#: lib/lanttern_web/components/form_components.ex:850
 #, elixir-autogen, elixir-format
 msgid "Upload profile picture"
 msgstr ""
@@ -3665,7 +3664,7 @@ msgstr ""
 msgid "Are you sure? You can reactive the staff member later."
 msgstr ""
 
-#: lib/lanttern_web/components/form_components.ex:819
+#: lib/lanttern_web/components/form_components.ex:841
 #, elixir-autogen, elixir-format
 msgid "Cancel remove"
 msgstr ""
@@ -4179,8 +4178,8 @@ msgstr ""
 msgid "%{student} reactivated"
 msgstr ""
 
-#: lib/lanttern_web/components/core_components.ex:1879
-#: lib/lanttern_web/components/core_components.ex:1887
+#: lib/lanttern_web/components/core_components.ex:1893
+#: lib/lanttern_web/components/core_components.ex:1901
 #, elixir-autogen, elixir-format
 msgid "(Deactivated)"
 msgstr ""
@@ -5204,7 +5203,7 @@ msgstr ""
 msgid "No comments in this ILP yet"
 msgstr ""
 
-#: lib/lanttern_web/components/core_components.ex:264
+#: lib/lanttern_web/components/core_components.ex:278
 #, elixir-autogen, elixir-format
 msgid "Remember that AI makes mistakes. Always double-check generated responses."
 msgstr ""
@@ -5239,42 +5238,52 @@ msgstr ""
 msgid "Email"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/users/log-in/confirmation_live.ex:13
-#, elixir-autogen, elixir-format
-msgid "Hello %{email}!"
-msgstr ""
-
-#: lib/lanttern_web/live/pages/users/log-in/confirmation_live.ex:79
-#, elixir-autogen, elixir-format
-msgid "Keep me signed in on this device"
-msgstr ""
-
-#: lib/lanttern_web/live/pages/users/log-in/confirmation_live.ex:107
-#, elixir-autogen, elixir-format
-msgid "Sign in link is invalid or it has expired."
-msgstr ""
-
-#: lib/lanttern_web/live/pages/users/log-in/confirmation_live.ex:89
-#, elixir-autogen, elixir-format
-msgid "Sign in only this time"
-msgstr ""
-
-#: lib/lanttern_web/live/pages/users/log-in/code/user_code_login_live.ex:23
-#, elixir-autogen, elixir-format
-msgid "Sign in using a different method"
-msgstr ""
-
 #: lib/lanttern_web/controllers/user_session_controller.ex:19
 #, elixir-autogen, elixir-format
 msgid "Welcome back!"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/users/log-in/code/user_code_login_live.ex:17
+#: lib/lanttern_web/live/pages/users/log-in/code/user_code_login_live.ex:52
 #, elixir-autogen, elixir-format
-msgid "Don't see it? Check your spam folder or ensure there's a Lanttern account for the provided email."
+msgid "Can't find the code? Check your spam folder and ensure there's a Lanttern account for the provided email."
 msgstr ""
 
-#: lib/lanttern_web/live/pages/users/log-in/code/user_code_login_live.ex:11
+#: lib/lanttern_web/live/pages/users/log-in/code/user_code_login_live.ex:13
 #, elixir-autogen, elixir-format
-msgid "We've sent a sign-in link to %{email}."
+msgid "Enter the 6-digit code sent to %{email}"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/users/log-in/code/user_code_login_live.ex:111
+#, elixir-autogen, elixir-format
+msgid "Failed to send code. Please try again."
+msgstr ""
+
+#: lib/lanttern_web/live/pages/users/log-in/code/user_code_login_live.ex:97
+#, elixir-autogen, elixir-format
+msgid "Invalid access to this page."
+msgstr ""
+
+#: lib/lanttern_web/live/pages/users/log-in/code/user_code_login_live.ex:39
+#, elixir-autogen, elixir-format
+msgid "Keep me signed in"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/users/log-in/code/user_code_login_live.ex:108
+#, elixir-autogen, elixir-format
+msgid "New code sent to your email."
+msgstr ""
+
+#: lib/lanttern_web/live/pages/users/log-in/code/user_code_login_live.ex:63
+#, elixir-autogen, elixir-format
+msgid "Resend code"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/users/log-in/code/user_code_login_live.ex:72
+#, elixir-autogen, elixir-format
+msgid "Sign in using a different email"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/users/log-in/code/user_code_login_live.ex:116
+#, elixir-autogen, elixir-format
+msgid "User not found."
 msgstr ""

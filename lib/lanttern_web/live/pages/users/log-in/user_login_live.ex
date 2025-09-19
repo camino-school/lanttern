@@ -16,9 +16,9 @@ defmodule LantternWeb.UserLoginLive do
       </p>
       <.form
         for={@form}
-        id="login_form_magic"
+        id="login_form_access_code"
         phx-update="ignore"
-        phx-submit="submit_magic"
+        phx-submit="submit_access_code"
         class="flex gap-2 mt-10"
       >
         <.input field={@form[:email]} type="email" label={gettext("Email")} required class="flex-1" />
@@ -114,12 +114,9 @@ defmodule LantternWeb.UserLoginLive do
     {:ok, socket, temporary_assigns: [form: form]}
   end
 
-  def handle_event("submit_magic", %{"user" => %{"email" => email}}, socket) do
+  def handle_event("submit_access_code", %{"user" => %{"email" => email}}, socket) do
     if user = Identity.get_user_by_email(email) do
-      Identity.deliver_login_instructions(
-        user,
-        &url(~p"/users/log-in/#{&1}")
-      )
+      Identity.deliver_login_instructions(user)
     end
 
     socket =
