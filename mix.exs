@@ -4,7 +4,7 @@ defmodule Lanttern.MixProject do
   def project do
     [
       app: :lanttern,
-      version: "2025.9.18-alpha.73",
+      version: "2025.9.19-alpha.74",
       elixir: "~> 1.18",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
@@ -20,7 +20,7 @@ defmodule Lanttern.MixProject do
         "test.drop": :test
       ],
       compilers: [:phoenix_live_view] ++ Mix.compilers(),
-      listeners: [Phoenix.CodeReloader]
+      listeners: if(Code.ensure_loaded?(Phoenix.CodeReloader), do: [Phoenix.CodeReloader], else: [])
     ]
   end
 
