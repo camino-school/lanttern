@@ -234,19 +234,18 @@ defmodule LantternWeb.MessageBoard.Components do
           />
         </div>
       <% end %>
-
       <div class="p-6 pl-4">
         <div class="flex items-start">
           <div class="flex-1 min-w-0">
             <div class="flex items-center gap-2 mb-2">
               <h3
-                class={"font-display font-black text-xl" <> (if @message.cover && @message.cover != "", do: " line-clamp-2", else: "")}
+                class={"font-display font-black text-xl" <>
+                  (if @message.cover && @message.cover != "", do: " line-clamp-2", else: "")}
                 title={@message.name}
               >
                 {@message.name}
               </h3>
             </div>
-
             <p
               :if={!@message.cover || @message.cover == ""}
               class="text-gray-600 text-sm mb-4"
@@ -256,7 +255,6 @@ defmodule LantternWeb.MessageBoard.Components do
             </p>
           </div>
         </div>
-
         <div class="absolute bottom-3 right-4">
           <button
             class="w-full flex items-center justify-between gap-[14px] transition-colors group"
