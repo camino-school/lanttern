@@ -20,7 +20,7 @@ defmodule Lanttern.MixProject do
         "test.drop": :test
       ],
       compilers: [:phoenix_live_view] ++ Mix.compilers(),
-      listeners: if(Code.ensure_loaded?(Phoenix.CodeReloader), do: [Phoenix.CodeReloader], else: [])
+      listeners: [Phoenix.CodeReloader]
     ]
   end
 
