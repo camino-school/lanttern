@@ -10,8 +10,6 @@ defmodule LantternWeb.MessageBoard.IndexLive do
   alias Lanttern.MessageBoard.Section
   alias Lanttern.Schools.Cycle
 
-  # shared
-  alias LantternWeb.Attachments.AttachmentAreaComponent
   alias LantternWeb.MessageBoard.MessageFormOverlayComponent
 
   def mount(_params, _session, socket) do
@@ -88,17 +86,14 @@ defmodule LantternWeb.MessageBoard.IndexLive do
 
     case MessageBoard.unarchive_message(message) do
       {:ok, unarchived_message} ->
-        # Get current active messages in the section to determine position
         if socket.assigns.section && socket.assigns.section.messages do
           non_archived_messages =
             Enum.filter(socket.assigns.section.messages, fn m ->
               is_nil(m.archived_at) and m.id != unarchived_message.id
             end)
 
-          # Add the unarchived message at the end
           new_messages_order = non_archived_messages ++ [unarchived_message]
 
-          # Update positions
           MessageBoard.update_messages_position(new_messages_order)
         end
 
@@ -221,10 +216,6 @@ defmodule LantternWeb.MessageBoard.IndexLive do
       |> push_patch(to: ~p"/school/message_board")
       |> assign_sections()
 
-    {:noreply, socket}
-  end
-
-  def handle_info({AttachmentAreaComponent, {_action, _attachment}}, socket) do
     {:noreply, socket}
   end
 
@@ -374,7 +365,6 @@ defmodule LantternWeb.MessageBoard.IndexLive do
             "Manage message board sections and messages. Messages are displayed in students and guardians home page."
           )}
         </p>
-
         <%= if @sections == [] do %>
           <.card_base class="p-10 mt-4">
             <.empty_state>
@@ -414,7 +404,6 @@ defmodule LantternWeb.MessageBoard.IndexLive do
                         on_delete={JS.push("delete_message", value: %{message_id: message.id})}
                       />
                     <% end %>
-
                     <.link
                       :if={@communication_manager?}
                       patch={~p"/school/message_board?new=true&section_id=#{section.id}"}
