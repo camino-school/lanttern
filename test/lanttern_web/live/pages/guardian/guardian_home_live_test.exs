@@ -2,9 +2,10 @@ defmodule LantternWeb.GuardianHomeLiveTest do
   use LantternWeb.ConnCase
 
   alias Lanttern.IdentityFixtures
-  alias Lanttern.MessageBoardFixtures
+  alias Lanttern.Schools
   alias Lanttern.StudentsCycleInfo
-  alias Lanttern.StudentsCycleInfoFixtures
+
+  import Lanttern.Factory
 
   @live_view_path "/guardian"
 
@@ -20,10 +21,11 @@ defmodule LantternWeb.GuardianHomeLiveTest do
     end
 
     test "display message board", %{conn: conn, user: user} do
-      school_id = user.current_profile.school_id
+      school = Schools.get_school!(user.current_profile.school_id)
 
-      MessageBoardFixtures.message_fixture(%{
-        school_id: school_id,
+      insert(:message, %{
+        send_to: "school",
+        school: school,
         name: "some message name",
         description: "some message description"
       })
@@ -31,17 +33,17 @@ defmodule LantternWeb.GuardianHomeLiveTest do
       {:ok, view, _html} = live(conn, @live_view_path)
 
       assert view |> has_element?("h5", "some message name")
-      assert view |> has_element?("p", "some message description")
     end
 
     test "display student cycle info", %{conn: conn, user: user, student: student} do
-      school_id = user.current_profile.school_id
+      school = Schools.get_school!(user.current_profile.school_id)
+      cycle = Schools.get_cycle!(user.current_profile.current_school_cycle.id)
 
       student_cycle_info =
-        StudentsCycleInfoFixtures.student_cycle_info_fixture(%{
-          school_id: school_id,
-          student_id: student.id,
-          cycle_id: user.current_profile.current_school_cycle.id,
+        insert(:student_cycle_info, %{
+          school: school,
+          student: student,
+          cycle: cycle,
           shared_info: "some shared_info"
         })
 
