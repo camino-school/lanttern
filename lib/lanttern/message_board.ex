@@ -8,9 +8,7 @@ defmodule Lanttern.MessageBoard do
   alias Lanttern.Repo
   import Lanttern.RepoHelpers
 
-  alias Lanttern.Attachments.Attachment
   alias Lanttern.MessageBoard.Message
-  alias Lanttern.MessageBoard.MessageAttachment
   alias Lanttern.MessageBoard.Section
   alias Lanttern.Schools.Class
 
@@ -500,77 +498,4 @@ defmodule Lanttern.MessageBoard do
       _ -> {:error, "Something went wrong"}
     end
   end
-
-  # @doc """
-  # Returns the list of message_attachments.
-
-  # ## Examples
-
-  #     iex> list_message_attachments()
-  #     [%MessageAttachment{}, ...]
-
-  # """
-  # def list_message_attachments do
-  #   Repo.all(MessageAttachment)
-  # end
-
-  # @doc """
-  # Gets a single message_attachment.
-
-  # Raises `Ecto.NoResultsError` if the Message attachment does not exist.
-
-  # ## Examples
-
-  #     iex> get_message_attachment!(123)
-  #     %MessageAttachment{}
-
-  #     iex> get_message_attachment!(456)
-  #     ** (Ecto.NoResultsError)
-
-  # """
-  # def get_message_attachment!(id), do: Repo.get!(MessageAttachment, id)
-
-  @doc """
-  Creates a message_attachment.
-  """
-  @spec create_message_attachment(pos_integer(), pos_integer(), map()) ::
-          {:ok, Attachment.t()} | {:error, Ecto.Changeset.t()}
-  def create_message_attachment(profile_id, message_id, attrs) do
-    insert_query =
-      %Attachment{}
-      |> Attachment.changeset(Map.put(attrs, "owner_id", profile_id))
-
-    Ecto.Multi.new()
-    |> Ecto.Multi.insert(:insert_attachment, insert_query)
-    |> Ecto.Multi.run(:set_position, fn _repo, %{insert_attachment: attachment} ->
-      from(
-        ma in MessageAttachment,
-        where: ma.message_id == ^message_id
-      )
-      |> set_position_in_attrs(%{
-        message_id: message_id,
-        attachment_id: attachment.id,
-        owner_id: profile_id
-      })
-      |> then(&{:ok, &1})
-    end)
-    |> Ecto.Multi.insert(:link_message, fn %{set_position: attrs} ->
-      MessageAttachment.changeset(%MessageAttachment{}, attrs)
-    end)
-    |> Repo.transaction()
-    |> case do
-      {:error, _multi, changeset, _changes} -> {:error, changeset}
-      {:ok, %{insert_attachment: attachment}} -> {:ok, attachment}
-    end
-  end
-
-  @doc """
-  Update message attachments positions based on ids list order.
-
-  Expects a list of attachment ids in the new order.
-  """
-  @spec update_message_attachments_positions(attachments_ids :: [pos_integer()]) ::
-          :ok | {:error, String.t()}
-  def update_message_attachments_positions(attachments_ids),
-    do: update_positions(MessageAttachment, attachments_ids, id_field: :attachment_id)
 end
