@@ -11,7 +11,7 @@ defmodule Lanttern.MessageBoard.MessageClass do
   alias Lanttern.Schools.School
 
   @primary_key false
-  schema "board_messages_classes" do
+  schema "messages_classes" do
     belongs_to :message, Message, primary_key: true
     belongs_to :class, Class, primary_key: true
     belongs_to :school, School
