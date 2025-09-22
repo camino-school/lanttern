@@ -375,40 +375,6 @@ defmodule Lanttern.MessageBoard do
   end
 
   @doc """
-  Lists sections with messages filtered by student.
-
-  A message is related to the student if it's sent to the student's classes or school.
-  Returns sections with their associated messages filtered by student access.
-  """
-  def list_sections_for_students(student_id, school_id) do
-    student_classes_ids =
-      from(
-        cl in Class,
-        join: cs in "classes_students",
-        on: cl.id == cs.class_id,
-        where: cs.student_id == ^student_id,
-        select: cl.id
-      )
-      |> Repo.all()
-
-    messages_query =
-      from(
-        m in Message,
-        left_join: mc in assoc(m, :message_classes),
-        where: is_nil(m.archived_at),
-        order_by: m.position
-      )
-      |> apply_sections_filter_opts(classes_ids: student_classes_ids, school_id: school_id)
-
-    from(s in Section,
-      where: s.school_id == ^school_id,
-      order_by: s.position
-    )
-    |> preload(messages: ^messages_query)
-    |> Repo.all()
-  end
-
-  @doc """
   Gets a single section.
 
   Raises `Ecto.NoResultsError` if the Section does not exist.
