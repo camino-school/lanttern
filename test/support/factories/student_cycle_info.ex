@@ -1,6 +1,6 @@
 defmodule Lanttern.StudentCycleInfoFactory do
   @moduledoc """
-  Factory for the Section schema.
+  Factory for the StudentCycleInfo schema.
   This factory is used to create instances of the StudentCycleInfo schema for testing purposes.
   It provides a default set of attributes for the StudentCycleInfo schema, which can be overridden
   when creating a new instance.

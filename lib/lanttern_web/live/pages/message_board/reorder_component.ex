@@ -1,6 +1,6 @@
 defmodule LantternWeb.MessageBoard.ReorderComponent do
   @moduledoc """
-    Reorder Componet for Message Board.
+    Reorder Component for Message Board.
   """
   use LantternWeb, :live_component
 
@@ -68,6 +68,7 @@ defmodule LantternWeb.MessageBoard.ReorderComponent do
             :for={section <- @sections}
             id={"sortable-#{section.id}"}
             class="w-full bg-white rounded-lg shadow-lg my-4 border-l-12 gap-2"
+            style="border-left-color: #fff;"
           >
             <h3 class="font-display font-black text-lg truncate" title={section.name}>
               {section.name}
