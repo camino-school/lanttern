@@ -55,12 +55,16 @@ defmodule LantternWeb.UserCodeLoginLive do
       </p>
       <.action
         type="button"
-        theme="subtle"
         phx-click="resend_code"
-        icon_name="hero-arrow-path-mini"
+        icon_name={if !@timer_active, do: "hero-arrow-path-mini"}
         class="mt-10"
+        disabled={@timer_active}
       >
-        {gettext("Resend code")}
+        <%= if @timer_active do %>
+          {gettext("Resend code in %{seconds} seconds", seconds: @countdown_seconds)}
+        <% else %>
+          {gettext("Resend code")}
+        <% end %>
       </.action>
       <.action
         type="link"
@@ -92,6 +96,10 @@ defmodule LantternWeb.UserCodeLoginLive do
         socket
         |> assign(:email, email)
         |> assign(:form, form)
+        |> assign(:countdown_seconds, 0)
+        |> assign(:timer_active, false)
+        |> assign(:timer_ref, nil)
+        |> check_existing_rate_limit()
       else
         socket
         |> put_flash(:error, gettext("Invalid access to this page."))
@@ -102,19 +110,108 @@ defmodule LantternWeb.UserCodeLoginLive do
   end
 
   def handle_event("resend_code", _params, socket) do
-    if user = Identity.get_user_by_email(socket.assigns.email) do
-      case Identity.deliver_login_instructions(user) do
-        {:ok, _} ->
-          {:noreply, put_flash(socket, :info, gettext("New code sent to your email."))}
+    email = socket.assigns.email
 
-        {:error, _} ->
-          {:noreply, put_flash(socket, :error, gettext("Failed to send code. Please try again."))}
+    socket =
+      case Identity.request_login_code(email) do
+        {:ok, :sent} ->
+          socket
+          |> put_flash(:info, gettext("New code sent to your email."))
+          |> start_rate_limit_timer()
+
+        {:error, :rate_limited} ->
+          case Identity.get_rate_limit_remaining(email) do
+            {:ok, remaining_seconds} when is_integer(remaining_seconds) ->
+              socket
+              |> put_flash(
+                :error,
+                gettext("Please wait %{seconds} seconds before requesting another code.",
+                  seconds: remaining_seconds
+                )
+              )
+              |> assign(:countdown_seconds, remaining_seconds)
+              |> assign(:timer_active, true)
+              |> start_countdown_timer()
+
+            _ ->
+              socket
+              |> put_flash(:error, gettext("Please wait before requesting another login code."))
+          end
+
+        {:error, _reason} ->
+          socket
+          |> put_flash(:error, gettext("Failed to send code. Please try again."))
       end
+
+    {:noreply, socket}
+  end
+
+  def handle_info(:countdown_tick, socket) do
+    countdown_seconds = socket.assigns.countdown_seconds
+
+    if countdown_seconds > 1 do
+      socket =
+        socket
+        |> assign(:countdown_seconds, countdown_seconds - 1)
+        |> schedule_countdown_tick()
+
+      {:noreply, socket}
     else
-      {:noreply,
-       socket
-       |> put_flash(:error, gettext("User not found."))
-       |> push_navigate(to: ~p"/users/log-in")}
+      socket =
+        socket
+        |> assign(:countdown_seconds, 0)
+        |> assign(:timer_active, false)
+        |> cancel_timer()
+
+      {:noreply, socket}
+    end
+  end
+
+  defp start_rate_limit_timer(socket) do
+    email = socket.assigns.email
+
+    case Identity.get_rate_limit_remaining(email) do
+      {:ok, remaining_seconds} when is_integer(remaining_seconds) and remaining_seconds > 0 ->
+        socket
+        |> assign(:countdown_seconds, remaining_seconds)
+        |> assign(:timer_active, true)
+        |> start_countdown_timer()
+
+      _ ->
+        socket
+    end
+  end
+
+  defp start_countdown_timer(socket) do
+    timer_ref = Process.send_after(self(), :countdown_tick, 1000)
+    assign(socket, :timer_ref, timer_ref)
+  end
+
+  defp schedule_countdown_tick(socket) do
+    timer_ref = Process.send_after(self(), :countdown_tick, 1000)
+    assign(socket, :timer_ref, timer_ref)
+  end
+
+  defp cancel_timer(socket) do
+    if timer_ref = socket.assigns.timer_ref do
+      Process.cancel_timer(timer_ref)
+    end
+
+    assign(socket, :timer_ref, nil)
+  end
+
+  defp check_existing_rate_limit(socket) do
+    email = socket.assigns.email
+
+    case Identity.get_rate_limit_remaining(email) do
+      {:ok, remaining_seconds} when is_integer(remaining_seconds) and remaining_seconds > 0 ->
+        socket
+        |> assign(:countdown_seconds, remaining_seconds)
+        |> assign(:timer_active, true)
+        |> start_countdown_timer()
+
+      _ ->
+        socket
     end
   end
 end

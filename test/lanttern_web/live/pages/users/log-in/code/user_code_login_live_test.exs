@@ -52,19 +52,23 @@ defmodule LantternWeb.UserCodeLoginLiveTest do
       assert html =~ "New code sent to your email."
     end
 
-    test "shows error for non-existent user", %{conn: conn} do
+    test "shows success message for non-existent user (security)", %{conn: conn} do
       email = unique_user_email()
 
       {:ok, lv, _html} = live(conn, ~p"/users/log-in/code?email=#{URI.encode(email)}")
 
-      # This should redirect when user is not found
-      lv
-      |> element("button", "Resend code")
-      |> render_click()
+      # For security: non-existent users get same behavior as existing users
+      html =
+        lv
+        |> element("button", "Resend code")
+        |> render_click()
 
-      # Check that we get redirected when user doesn't exist
-      # The actual implementation redirects to login page
-      assert_redirect(lv, ~p"/users/log-in")
+      # Should show success message (same as existing users)
+      assert html =~ "New code sent to your email."
+
+      # Should have timer active (preventing enumeration attack)
+      # Check that the button is disabled and shows countdown
+      assert has_element?(lv, "button[disabled]", "Resend code in")
     end
 
     # Note: Testing delivery failure would require mocking the email service

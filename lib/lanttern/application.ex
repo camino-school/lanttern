@@ -16,6 +16,8 @@ defmodule Lanttern.Application do
       {Phoenix.PubSub, name: Lanttern.PubSub},
       # Start Finch
       {Finch, name: Lanttern.Finch},
+      # Start Cachex for rate limiting
+      {Cachex, [:lanttern]},
       # Start the Endpoint (http/https)
       LantternWeb.Endpoint,
       # Start a worker by calling: Lanttern.Worker.start_link(arg)

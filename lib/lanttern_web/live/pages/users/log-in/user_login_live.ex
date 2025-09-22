@@ -115,13 +115,20 @@ defmodule LantternWeb.UserLoginLive do
   end
 
   def handle_event("submit_access_code", %{"user" => %{"email" => email}}, socket) do
-    if user = Identity.get_user_by_email(email) do
-      Identity.deliver_login_instructions(user)
-    end
-
     socket =
-      socket
-      |> push_navigate(to: ~p"/users/log-in/code?email=#{URI.encode(email)}")
+      case Identity.request_login_code(email) do
+        {:ok, :sent} ->
+          socket
+          |> push_navigate(to: ~p"/users/log-in/code?email=#{URI.encode(email)}")
+
+        {:error, :rate_limited} ->
+          socket
+          |> put_flash(:error, gettext("Please wait before requesting another login code."))
+
+        {:error, _reason} ->
+          socket
+          |> put_flash(:error, gettext("An error occurred. Please try again."))
+      end
 
     {:noreply, socket}
   end

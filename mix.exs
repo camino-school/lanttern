@@ -91,6 +91,7 @@ defmodule Lanttern.MixProject do
       {:ex_cldr_dates_times, "~> 2.0"},
       {:mimic, "~> 1.12", only: :test},
       {:multipart, "~> 0.4.0"},
+      {:cachex, "~> 4.1"},
       {:usage_rules, "~> 0.1", only: [:dev]},
       {:igniter, "~> 0.6", only: [:dev]}
     ]

@@ -21,6 +21,9 @@ defmodule Lanttern.Identity do
   alias Lanttern.Schools.Student
   alias Lanttern.StudentsCycleInfo
 
+  # seconds
+  @rate_limit_window 60
+
   ## Database getters
 
   @doc """
@@ -430,10 +433,93 @@ defmodule Lanttern.Identity do
   end
 
   @doc """
-  Delivers the login code to the given user.
+  Requests a login code for the given email with rate limiting.
+
+  This function checks if a login code request has been made recently
+  for the given email. If so, it returns an error. Otherwise, it
+  applies rate limiting to all emails (existing or not) to prevent
+  email enumeration attacks, then generates and sends a login code
+  if the user exists.
+
+  Returns:
+  - `{:ok, :sent}` if the request was processed (regardless of user existence)
+  - `{:error, :rate_limited}` if a request was made too recently
+  - `{:error, reason}` for other errors during code generation
+
+  ## Examples
+
+      iex> request_login_code("user@example.com")
+      {:ok, :sent}
+
+      iex> request_login_code("user@example.com")  # called again within rate limit
+      {:error, :rate_limited}
+
+      iex> request_login_code("nonexistent@example.com")
+      {:ok, :sent}  # same response for security
   """
-  def deliver_login_instructions(%User{} = user) do
-    generate_login_code(user)
+  def request_login_code(email) when is_binary(email) do
+    rate_limit_key = "login_code_rate_limit:#{email}"
+    rate_limit_ttl = :timer.seconds(@rate_limit_window)
+
+    case Cachex.get(:lanttern, rate_limit_key) do
+      {:ok, nil} ->
+        handle_new_login_request(email, rate_limit_key, rate_limit_ttl)
+
+      {:ok, _} ->
+        {:error, :rate_limited}
+
+      {:error, reason} ->
+        {:error, reason}
+    end
+  end
+
+  defp handle_new_login_request(email, rate_limit_key, rate_limit_ttl) do
+    # Set rate limit immediately for ALL emails to prevent enumeration
+    {:ok, true} = Cachex.put(:lanttern, rate_limit_key, :rate_limited, expire: rate_limit_ttl)
+
+    # Then check if user exists and send code
+    case get_user_by_email(email) do
+      %User{} = user ->
+        case generate_login_code(user) do
+          {:ok, _login_code} -> {:ok, :sent}
+          {:error, reason} -> {:error, reason}
+        end
+
+      nil ->
+        # For security: same response time and behavior as existing users
+        {:ok, :sent}
+    end
+  end
+
+  @doc """
+  Gets the remaining time in seconds until the rate limit expires for the given email.
+
+  Returns:
+  - `{:ok, remaining_seconds}` if rate limit is active
+  - `{:ok, nil}` if no rate limit is active for the email
+
+  ## Examples
+
+      iex> get_rate_limit_remaining("user@example.com")
+      {:ok, 45}
+
+      iex> get_rate_limit_remaining("user@example.com")  # no active rate limit
+      {:ok, nil}
+  """
+  def get_rate_limit_remaining(email) when is_binary(email) do
+    rate_limit_key = "login_code_rate_limit:#{email}"
+
+    case Cachex.ttl(:lanttern, rate_limit_key) do
+      {:ok, nil} ->
+        {:ok, nil}
+
+      {:ok, milliseconds} when is_integer(milliseconds) ->
+        seconds = div(milliseconds, 1000)
+        {:ok, max(seconds, 0)}
+
+      {:error, reason} ->
+        {:error, reason}
+    end
   end
 
   @doc """
