@@ -161,5 +161,139 @@ defmodule LantternWeb.UserCodeLoginLiveTest do
       assert redirected_to(conn) == ~p"/users/log-in"
       assert Phoenix.Flash.get(conn.assigns.flash, :error) =~ "User not found."
     end
+
+    test "invalidates code after 3 incorrect attempts", %{conn: conn} do
+      email = unique_user_email()
+      user = user_fixture(%{email: email})
+
+      # Generate a login code for the user
+      {:ok, _login_code} = Identity.generate_login_code(user)
+
+      # Make 3 incorrect attempts
+      for attempt <- 1..3 do
+        conn =
+          post(conn, ~p"/users/log-in", %{
+            access_code: %{email: email, code: "wrong#{attempt}", remember_me: false}
+          })
+
+        if attempt < 3 do
+          # First 2 attempts: should show invalid code error
+          assert redirected_to(conn) == ~p"/users/log-in/code?email=#{URI.encode(email)}"
+
+          assert Phoenix.Flash.get(conn.assigns.flash, :error) =~
+                   "The code is invalid or has expired."
+        else
+          # 3rd attempt: code should be invalidated
+          assert redirected_to(conn) == ~p"/users/log-in/code?email=#{URI.encode(email)}"
+
+          assert Phoenix.Flash.get(conn.assigns.flash, :error) =~
+                   "The code has been invalidated due to too many attempts."
+        end
+      end
+
+      # Verify the code still exists in database (not deleted)
+      login_code = Lanttern.Repo.one(Lanttern.Identity.LoginCode.by_email_query(email))
+      assert login_code != nil
+      assert login_code.attempts >= 3
+    end
+
+    test "tracks attempts independently per email", %{conn: conn} do
+      email1 = unique_user_email()
+      email2 = unique_user_email()
+      user1 = user_fixture(%{email: email1})
+      user2 = user_fixture(%{email: email2})
+
+      # Generate login codes for both users
+      {:ok, _login_code1} = Identity.generate_login_code(user1)
+      {:ok, _login_code2} = Identity.generate_login_code(user2)
+
+      # Make 2 incorrect attempts for first email
+      for attempt <- 1..2 do
+        conn =
+          post(conn, ~p"/users/log-in", %{
+            access_code: %{email: email1, code: "wrong#{attempt}", remember_me: false}
+          })
+
+        assert redirected_to(conn) == ~p"/users/log-in/code?email=#{URI.encode(email1)}"
+
+        assert Phoenix.Flash.get(conn.assigns.flash, :error) =~
+                 "The code is invalid or has expired."
+      end
+
+      # Make 1 incorrect attempt for second email
+      conn =
+        post(conn, ~p"/users/log-in", %{
+          access_code: %{email: email2, code: "wrong1", remember_me: false}
+        })
+
+      assert redirected_to(conn) == ~p"/users/log-in/code?email=#{URI.encode(email2)}"
+
+      assert Phoenix.Flash.get(conn.assigns.flash, :error) =~
+               "The code is invalid or has expired."
+
+      # Verify both codes still exist (neither has reached 3 attempts)
+      assert Lanttern.Repo.one(Lanttern.Identity.LoginCode.by_email_query(email1)) != nil
+      assert Lanttern.Repo.one(Lanttern.Identity.LoginCode.by_email_query(email2)) != nil
+    end
+
+    test "rate limiting persists after code invalidation", %{conn: conn} do
+      email = unique_user_email()
+      user = user_fixture(%{email: email})
+
+      # Generate a login code for the user
+      {:ok, _login_code} = Identity.generate_login_code(user)
+
+      # Make 3 incorrect attempts to invalidate the code
+      for attempt <- 1..3 do
+        post(conn, ~p"/users/log-in", %{
+          access_code: %{email: email, code: "wrong#{attempt}", remember_me: false}
+        })
+      end
+
+      # Verify the code is invalidated
+      login_code = Lanttern.Repo.one(Lanttern.Identity.LoginCode.by_email_query(email))
+      assert login_code.attempts >= 3
+
+      # Check that rate limiting is still active
+      assert {:error, :rate_limited} = Identity.request_login_code(email)
+
+      # Verify remaining rate limit time exists
+      {:ok, remaining_time} = Identity.get_rate_limit_remaining(email)
+      assert remaining_time != nil
+      assert remaining_time > 0
+    end
+
+    test "codes with 3+ attempts are permanently rejected even with correct code", %{conn: conn} do
+      email = unique_user_email()
+      _user = user_fixture(%{email: email})
+
+      # Generate a login code and get the plain code
+      {plain_code, hashed_code} = Lanttern.Identity.LoginCode.generate_code()
+      login_code = Lanttern.Identity.LoginCode.build(email, hashed_code)
+      {:ok, _} = Lanttern.Repo.insert(login_code)
+
+      # Make 3 incorrect attempts first
+      for attempt <- 1..3 do
+        post(conn, ~p"/users/log-in", %{
+          access_code: %{email: email, code: "wrong#{attempt}", remember_me: false}
+        })
+      end
+
+      # Verify the code has 3+ attempts
+      updated_login_code = Lanttern.Repo.one(Lanttern.Identity.LoginCode.by_email_query(email))
+      assert updated_login_code.attempts >= 3
+
+      # Now try with the CORRECT code - should still be rejected
+      conn =
+        post(conn, ~p"/users/log-in", %{
+          access_code: %{email: email, code: plain_code, remember_me: false}
+        })
+
+      # Should be rejected even with correct code
+      assert redirected_to(conn) == ~p"/users/log-in/code?email=#{URI.encode(email)}"
+
+      assert Phoenix.Flash.get(conn.assigns.flash, :error) =~
+               "The code has been invalidated due to too many attempts."
+    end
   end
 end

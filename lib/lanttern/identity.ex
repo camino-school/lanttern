@@ -21,9 +21,6 @@ defmodule Lanttern.Identity do
   alias Lanttern.Schools.Student
   alias Lanttern.StudentsCycleInfo
 
-  # seconds
-  @rate_limit_window 60
-
   ## Database getters
 
   @doc """
@@ -397,7 +394,8 @@ defmodule Lanttern.Identity do
   Verifies a login code for the given email and returns the associated user.
 
   If the code is valid and not expired, the login code is deleted immediately
-  and the user is returned.
+  and the user is returned. If the code is invalid, the attempt count is
+  incremented. After @max_attempts failed attempts, the code is invalidated.
 
   ## Examples
 
@@ -406,16 +404,19 @@ defmodule Lanttern.Identity do
 
       iex> verify_login_code("user@example.com", "invalid")
       {:error, :invalid_code}
+
+      iex> verify_login_code("user@example.com", "invalid")  # after @max_attempts
+      {:error, :code_invalidated}
   """
   def verify_login_code(email, code) when is_binary(email) and is_binary(code) do
-    query = LoginCode.verify_code_query(email, code)
-
-    case Repo.one(query) do
+    # First try to find a valid code
+    case Repo.one(LoginCode.verify_code_query(email, code)) do
       %LoginCode{} = login_code ->
         verify_and_delete_login_code(login_code, email)
 
       nil ->
-        {:error, :invalid_code}
+        # Code is invalid, increment attempts or check if already invalidated
+        handle_invalid_code_attempt(email, code)
     end
   end
 
@@ -432,14 +433,39 @@ defmodule Lanttern.Identity do
     end)
   end
 
+  defp handle_invalid_code_attempt(email, _code) do
+    attempts_limit = LoginCode.max_attempts() - 1
+
+    # Find any login code for this email to track attempts
+    case Repo.one(LoginCode.find_by_email_query(email)) do
+      %LoginCode{attempts: attempts} = login_code when attempts >= attempts_limit ->
+        # Increment attempts but return code_invalidated (this is the @max_attempts+ attempt)
+        login_code
+        |> Ecto.Changeset.change(attempts: login_code.attempts + 1)
+        |> Repo.update()
+
+        {:error, :code_invalidated}
+
+      %LoginCode{} = login_code ->
+        # Increment attempts (this is before @max_attempts)
+        login_code
+        |> Ecto.Changeset.change(attempts: login_code.attempts + 1)
+        |> Repo.update()
+
+        {:error, :invalid_code}
+
+      nil ->
+        # No login code found (expired or never existed)
+        {:error, :invalid_code}
+    end
+  end
+
   @doc """
   Requests a login code for the given email with rate limiting.
 
   This function checks if a login code request has been made recently
-  for the given email. If so, it returns an error. Otherwise, it
-  applies rate limiting to all emails (existing or not) to prevent
-  email enumeration attacks, then generates and sends a login code
-  if the user exists.
+  for the given email using the database. If so, it returns an error.
+  Otherwise, it generates and sends a login code if the user exists.
 
   Returns:
   - `{:ok, :sent}` if the request was processed (regardless of user existence)
@@ -458,26 +484,24 @@ defmodule Lanttern.Identity do
       {:ok, :sent}  # same response for security
   """
   def request_login_code(email) when is_binary(email) do
-    rate_limit_key = "login_code_rate_limit:#{email}"
-    rate_limit_ttl = :timer.seconds(@rate_limit_window)
-
-    case Cachex.get(:lanttern, rate_limit_key) do
+    case check_rate_limit(email) do
       {:ok, nil} ->
-        handle_new_login_request(email, rate_limit_key, rate_limit_ttl)
+        handle_new_login_request(email)
 
-      {:ok, _} ->
+      {:ok, _rate_limited_until} ->
         {:error, :rate_limited}
-
-      {:error, reason} ->
-        {:error, reason}
     end
   end
 
-  defp handle_new_login_request(email, rate_limit_key, rate_limit_ttl) do
-    # Set rate limit immediately for ALL emails to prevent enumeration
-    {:ok, true} = Cachex.put(:lanttern, rate_limit_key, :rate_limited, expire: rate_limit_ttl)
+  defp check_rate_limit(email) do
+    case Repo.one(LoginCode.rate_limited_query(email)) do
+      nil -> {:ok, nil}
+      %LoginCode{rate_limited_until: rate_limited_until} -> {:ok, rate_limited_until}
+    end
+  end
 
-    # Then check if user exists and send code
+  defp handle_new_login_request(email) do
+    # Check if user exists and send code
     case get_user_by_email(email) do
       %User{} = user ->
         case generate_login_code(user) do
@@ -487,8 +511,27 @@ defmodule Lanttern.Identity do
 
       nil ->
         # For security: same response time and behavior as existing users
+        # We still create a rate limiting entry to prevent enumeration
+        create_rate_limit_only_entry(email)
         {:ok, :sent}
     end
+  end
+
+  defp create_rate_limit_only_entry(email) do
+    # Create a dummy entry with placeholder code_hash for rate limiting purposes only
+    now = DateTime.utc_now() |> DateTime.truncate(:second)
+    rate_limited_until = DateTime.add(now, LoginCode.rate_limit_window_seconds(), :second)
+
+    # Use a placeholder hash that will never match any real code
+    placeholder_hash = :crypto.hash(:sha256, "invalid_placeholder_#{System.unique_integer()}")
+
+    %LoginCode{
+      email: email,
+      code_hash: placeholder_hash,
+      attempts: 0,
+      rate_limited_until: rate_limited_until
+    }
+    |> Repo.insert()
   end
 
   @doc """
@@ -507,18 +550,14 @@ defmodule Lanttern.Identity do
       {:ok, nil}
   """
   def get_rate_limit_remaining(email) when is_binary(email) do
-    rate_limit_key = "login_code_rate_limit:#{email}"
-
-    case Cachex.ttl(:lanttern, rate_limit_key) do
-      {:ok, nil} ->
+    case Repo.one(LoginCode.rate_limited_query(email)) do
+      nil ->
         {:ok, nil}
 
-      {:ok, milliseconds} when is_integer(milliseconds) ->
-        seconds = div(milliseconds, 1000)
-        {:ok, max(seconds, 0)}
-
-      {:error, reason} ->
-        {:error, reason}
+      %LoginCode{rate_limited_until: rate_limited_until} ->
+        now = DateTime.utc_now()
+        remaining_seconds = DateTime.diff(rate_limited_until, now, :second)
+        {:ok, max(remaining_seconds, 0)}
     end
   end
 
