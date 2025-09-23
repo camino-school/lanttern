@@ -107,6 +107,26 @@ and view it in the `cover/` folder. Source: [excoveralls](https://github.com/par
 
 To investigate the perfomance process run `mix test --slowest 10`
 
+## Login Code Cleanup
+
+The application automatically cleans up expired login codes to prevent database bloat while maintaining security through rate limiting.
+
+### How it works
+
+- Login codes are created for all email requests (both valid and invalid users) for security reasons
+- Cleanup removes codes that are both expired (>5 minutes) AND past their rate limit window (>60 seconds from `rate_limited_until`)
+- Cleanup runs automatically every hour via Oban's periodic jobs (cron: `0 * * * *`)
+- The cleanup process logs the number of records deleted
+
+### Database maintenance
+
+The cleanup is handled automatically, but you can manually trigger it if needed:
+
+```elixir
+# In an IEx session
+Lanttern.Identity.cleanup_expired_login_codes()
+```
+
 ## LLM Agents
 
 Use the versioned `AGENTS.md` as reference for setting your own LLM agent instruction (e.g. copy and paste the content into a `CLAUDE.md` file for working with Claude Code).

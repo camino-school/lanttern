@@ -57,3 +57,6 @@ config :logger, level: :warning
 config :phoenix, :plug_init_mode, :runtime
 
 config :phoenix_test, :endpoint, LantternWeb.Endpoint
+
+# prevent Oban from running jobs and plugins during test runs
+config :lanttern, Oban, testing: :manual

@@ -12,6 +12,8 @@ defmodule Lanttern.Application do
       LantternWeb.Telemetry,
       # Start the Ecto repository
       Lanttern.Repo,
+      # Start Oban job processing
+      {Oban, Application.fetch_env!(:lanttern, Oban)},
       # Start the PubSub system
       {Phoenix.PubSub, name: Lanttern.PubSub},
       # Start Finch

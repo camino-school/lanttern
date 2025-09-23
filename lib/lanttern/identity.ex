@@ -771,6 +771,32 @@ defmodule Lanttern.Identity do
   end
 
   @doc """
+  Cleans up expired login codes that are also past their rate limit window.
+
+  This function removes login codes that are both expired (older than 5 minutes)
+  AND past their rate limit window (older than 60 seconds from rate_limited_until).
+  These codes serve no functional purpose and can be safely deleted.
+
+  Returns the number of deleted records.
+
+  ## Examples
+
+      iex> cleanup_expired_login_codes()
+      {15, nil}  # 15 records deleted
+  """
+  def cleanup_expired_login_codes do
+    require Logger
+
+    {count, _} = Repo.delete_all(LoginCode.expired_and_past_rate_limit_query())
+
+    if count > 0 do
+      Logger.info("LoginCode cleanup: deleted #{count} expired login codes")
+    end
+
+    {count, nil}
+  end
+
+  @doc """
   Returns the name of the profile
   """
   def get_profile_name(profile) do

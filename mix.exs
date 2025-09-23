@@ -53,7 +53,7 @@ defmodule Lanttern.MixProject do
       {:phoenix, "~> 1.8.0"},
       {:phoenix_ecto, "~> 4.4"},
       {:ecto_sql, "~> 3.12"},
-      {:postgrex, ">= 0.0.0"},
+      {:postgrex, "~> 0.20"},
       {:phoenix_html, "~> 3.3"},
       {:phoenix_live_reload, "~> 1.2", only: :dev},
       {:phoenix_live_view, "~> 1.1.3"},
@@ -92,6 +92,7 @@ defmodule Lanttern.MixProject do
       {:mimic, "~> 1.12", only: :test},
       {:multipart, "~> 0.4.0"},
       {:cachex, "~> 4.1"},
+      {:oban, "~> 2.20"},
       {:usage_rules, "~> 0.1", only: [:dev]},
       {:igniter, "~> 0.6", only: [:dev]}
     ]

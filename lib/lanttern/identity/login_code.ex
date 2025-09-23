@@ -107,4 +107,16 @@ defmodule Lanttern.Identity.LoginCode do
   Returns the rate limit window in seconds.
   """
   def rate_limit_window_seconds, do: @rate_limit_window_seconds
+
+  @doc """
+  Returns a query to find login codes that are both expired and past their rate limit window.
+  These codes are safe to delete as they serve no functional purpose.
+  """
+  def expired_and_past_rate_limit_query do
+    now = DateTime.utc_now()
+
+    from lc in LoginCode,
+      where: lc.inserted_at <= ago(^@code_validity_in_minutes, "minute"),
+      where: lc.rate_limited_until <= ^now
+  end
 end
