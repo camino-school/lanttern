@@ -5,6 +5,8 @@ defmodule LantternWeb.UserCodeLoginLiveTest do
   import Lanttern.IdentityFixtures
 
   alias Lanttern.Identity
+  alias Lanttern.Identity.LoginCode
+  alias Lanttern.Repo
 
   describe "code login page" do
     test "renders code login page with valid email", %{conn: conn} do
@@ -192,7 +194,7 @@ defmodule LantternWeb.UserCodeLoginLiveTest do
       end
 
       # Verify the code still exists in database (not deleted)
-      login_code = Lanttern.Repo.one(Lanttern.Identity.LoginCode.by_email_query(email))
+      login_code = get_login_code_by_email_for_testing(email)
       assert login_code != nil
       assert login_code.attempts >= 3
     end
@@ -232,8 +234,8 @@ defmodule LantternWeb.UserCodeLoginLiveTest do
                "The code is invalid or has expired."
 
       # Verify both codes still exist (neither has reached 3 attempts)
-      assert Lanttern.Repo.one(Lanttern.Identity.LoginCode.by_email_query(email1)) != nil
-      assert Lanttern.Repo.one(Lanttern.Identity.LoginCode.by_email_query(email2)) != nil
+      assert get_login_code_by_email_for_testing(email1) != nil
+      assert get_login_code_by_email_for_testing(email2) != nil
     end
 
     test "rate limiting persists after code invalidation", %{conn: conn} do
@@ -251,7 +253,7 @@ defmodule LantternWeb.UserCodeLoginLiveTest do
       end
 
       # Verify the code is invalidated
-      login_code = Lanttern.Repo.one(Lanttern.Identity.LoginCode.by_email_query(email))
+      login_code = get_login_code_by_email_for_testing(email)
       assert login_code.attempts >= 3
 
       # Check that rate limiting is still active
@@ -280,7 +282,7 @@ defmodule LantternWeb.UserCodeLoginLiveTest do
       end
 
       # Verify the code has 3+ attempts
-      updated_login_code = Lanttern.Repo.one(Lanttern.Identity.LoginCode.by_email_query(email))
+      updated_login_code = get_login_code_by_email_for_testing(email)
       assert updated_login_code.attempts >= 3
 
       # Now try with the CORRECT code - should still be rejected
@@ -295,5 +297,17 @@ defmodule LantternWeb.UserCodeLoginLiveTest do
       assert Phoenix.Flash.get(conn.assigns.flash, :error) =~
                "The code has been invalidated due to too many attempts."
     end
+  end
+
+  # Test helper functions
+  defp get_login_code_by_email_for_testing(email) do
+    import Ecto.Query
+
+    from(lc in LoginCode,
+      where: lc.email == ^email,
+      order_by: [desc: lc.inserted_at],
+      limit: 1
+    )
+    |> Repo.one()
   end
 end

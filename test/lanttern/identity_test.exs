@@ -5,6 +5,7 @@ defmodule Lanttern.IdentityTest do
 
   import Lanttern.IdentityFixtures
   alias Lanttern.Identity.{LoginCode, User, UserToken}
+  alias Lanttern.Repo
 
   describe "get_user_by_email/1" do
     test "does not return the user if the email does not exist" do
@@ -625,7 +626,7 @@ defmodule Lanttern.IdentityTest do
       )
 
       # Query should only return the cleanup target
-      results = Repo.all(LoginCode.expired_and_past_rate_limit_query())
+      results = get_expired_and_past_rate_limit_codes_for_testing()
 
       assert length(results) == 1
       assert hd(results).id == cleanup_target.id
@@ -637,9 +638,22 @@ defmodule Lanttern.IdentityTest do
       fresh_code = LoginCode.build("fresh@example.com", hashed_code)
       Repo.insert!(fresh_code)
 
-      results = Repo.all(LoginCode.expired_and_past_rate_limit_query())
+      results = get_expired_and_past_rate_limit_codes_for_testing()
       assert results == []
     end
+  end
+
+  # Test helper functions
+  defp get_expired_and_past_rate_limit_codes_for_testing do
+    import Ecto.Query
+    now = DateTime.utc_now()
+    code_validity_minutes = LoginCode.code_validity_in_minutes()
+
+    from(lc in LoginCode,
+      where: lc.inserted_at <= ago(^code_validity_minutes, "minute"),
+      where: lc.rate_limited_until <= ^now
+    )
+    |> Repo.all()
   end
 
   # passsword disabled in favor of access code login

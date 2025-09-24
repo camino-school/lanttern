@@ -376,7 +376,7 @@ defmodule Lanttern.Identity do
 
     Repo.transact(fn ->
       # Delete any existing login code for this email
-      Repo.delete_all(LoginCode.by_email_query(user.email))
+      Repo.delete_all(by_email_query(user.email))
 
       # Create new login code
       login_code = LoginCode.build(user.email, hashed_code)
@@ -410,7 +410,7 @@ defmodule Lanttern.Identity do
   """
   def verify_login_code(email, code) when is_binary(email) and is_binary(code) do
     # First try to find a valid code
-    case Repo.one(LoginCode.verify_code_query(email, code)) do
+    case Repo.one(verify_code_query(email, code)) do
       %LoginCode{} = login_code ->
         verify_and_delete_login_code(login_code, email)
 
@@ -437,7 +437,7 @@ defmodule Lanttern.Identity do
     attempts_limit = LoginCode.max_attempts() - 1
 
     # Find any login code for this email to track attempts
-    case Repo.one(LoginCode.find_by_email_query(email)) do
+    case Repo.one(find_by_email_query(email)) do
       %LoginCode{attempts: attempts} = login_code when attempts >= attempts_limit ->
         # Increment attempts but return code_invalidated (this is the @max_attempts+ attempt)
         login_code
@@ -494,7 +494,7 @@ defmodule Lanttern.Identity do
   end
 
   defp check_rate_limit(email) do
-    case Repo.one(LoginCode.rate_limited_query(email)) do
+    case Repo.one(rate_limited_query(email)) do
       nil -> {:ok, nil}
       %LoginCode{rate_limited_until: rate_limited_until} -> {:ok, rate_limited_until}
     end
@@ -550,7 +550,7 @@ defmodule Lanttern.Identity do
       {:ok, nil}
   """
   def get_rate_limit_remaining(email) when is_binary(email) do
-    case Repo.one(LoginCode.rate_limited_query(email)) do
+    case Repo.one(rate_limited_query(email)) do
       nil ->
         {:ok, nil}
 
@@ -787,7 +787,7 @@ defmodule Lanttern.Identity do
   def cleanup_expired_login_codes do
     require Logger
 
-    {count, _} = Repo.delete_all(LoginCode.expired_and_past_rate_limit_query())
+    {count, _} = Repo.delete_all(expired_and_past_rate_limit_query())
 
     if count > 0 do
       Logger.info("LoginCode cleanup: deleted #{count} expired login codes")
@@ -943,4 +943,48 @@ defmodule Lanttern.Identity do
   #     {:error, :user, changeset, _} -> {:error, changeset}
   #   end
   # end
+
+  ## LoginCode queries
+
+  defp verify_code_query(email, code) do
+    hashed_code = :crypto.hash(LoginCode.hash_algorithm(), code)
+    max_attempts = LoginCode.max_attempts()
+    code_validity_minutes = LoginCode.code_validity_in_minutes()
+
+    from lc in LoginCode,
+      where: lc.email == ^email,
+      where: lc.code_hash == ^hashed_code,
+      where: lc.inserted_at > ago(^code_validity_minutes, "minute"),
+      where: lc.attempts < ^max_attempts
+  end
+
+  defp by_email_query(email) do
+    from LoginCode, where: [email: ^email]
+  end
+
+  defp rate_limited_query(email) do
+    now = DateTime.utc_now()
+
+    from lc in LoginCode,
+      where: lc.email == ^email,
+      where: lc.rate_limited_until > ^now,
+      order_by: [desc: lc.rate_limited_until],
+      limit: 1
+  end
+
+  defp find_by_email_query(email) do
+    from lc in LoginCode,
+      where: lc.email == ^email,
+      order_by: [desc: lc.inserted_at],
+      limit: 1
+  end
+
+  defp expired_and_past_rate_limit_query do
+    now = DateTime.utc_now()
+    code_validity_minutes = LoginCode.code_validity_in_minutes()
+
+    from lc in LoginCode,
+      where: lc.inserted_at <= ago(^code_validity_minutes, "minute"),
+      where: lc.rate_limited_until <= ^now
+  end
 end

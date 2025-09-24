@@ -7,10 +7,18 @@ Lanttern is a web application written using the Phoenix web framework for educat
 - Use Tidewave MCP for development tooling
 - use `mix credo` (also included in `mix precommit`) for code quality
 - use `mix sobelow` for security analysis when needed
+- do not alias the module in itself. prefer using `__MODULE__`
+- do not create test functions in contexts — create them in the test file itself
 - when requested to write commit messages, PR summaries, or PR reviews:
-  - use markdown, and write it to a `_transfer.md` file, so we can simply copy and paste it in GitHub
+  - use markdown, and write it to a `_transfer.md` file for copy/paste in GitHub
   - for PRs, remember that we can see all code changes through diff in the PR UI, so focus on giving information about the context, changes made, expected impacts — the idea is that the summary can complement the code changes. you can still reference the relevant files if needed.
   - for PRs, do not include a test plan
+
+## Design patterns
+
+### Schemas
+
+- avoid the creation of query functions in schema files — write them directly in the context file
 
 ## Testing
 
