@@ -1,44 +1,54 @@
-defmodule Lanttern.MessageBoard.Message do
+defmodule Lanttern.MessageBoard.MessageV2 do
   @moduledoc """
-  The `Message` schema - DEPRECATED
+  The `MessageV2` schema
 
-  @deprecated "Use Lanttern.MessageBoard.MessageV2 instead"
-
-  This module is deprecated. Use `Lanttern.MessageBoard.MessageV2` for new code.
+  Current version of the Message schema with additional fields:
+  subtitle, color, cover, position, and section_id.
   """
 
   use Ecto.Schema
   import Ecto.Changeset
   use Gettext, backend: Lanttern.Gettext
 
-  alias Lanttern.MessageBoard.MessageClass
+  alias Lanttern.MessageBoard.MessageClassV2, as: MessageClass
+  alias Lanttern.MessageBoard.Section
+  alias Lanttern.Schools.Class
   alias Lanttern.Schools.School
 
   @type t :: %__MODULE__{
           id: pos_integer(),
           name: String.t(),
           description: String.t(),
+          subtitle: String.t() | nil,
+          color: String.t() | nil,
+          cover: String.t() | nil,
           send_to: String.t(),
           archived_at: DateTime.t() | nil,
-          is_pinned: boolean(),
           school_id: pos_integer() | nil,
+          section_id: pos_integer() | nil,
           school: School.t() | nil,
+          classes_ids: [pos_integer()] | nil,
+          classes: [Class.t()] | nil,
           inserted_at: DateTime.t() | nil,
           updated_at: DateTime.t() | nil
         }
 
-  schema "board_messages" do
+  schema "messages" do
     field :name, :string
     field :description, :string
     field :send_to, :string
     field :archived_at, :utc_datetime
-    field :is_pinned, :boolean, default: false
+    field :subtitle, :string
+    field :color, :string
+    field :cover, :string
+    field :position, :integer, default: 0
 
     field :classes_ids, {:array, :id}, virtual: true
 
     belongs_to :school, School
+    belongs_to :section, Section
 
-    has_many :message_classes, MessageClass, on_replace: :delete
+    has_many :message_classes, MessageClass, on_replace: :delete, foreign_key: :message_id
     has_many :classes, through: [:message_classes, :class]
 
     timestamps()
@@ -48,8 +58,18 @@ defmodule Lanttern.MessageBoard.Message do
   def changeset(message, attrs) do
     changeset =
       message
-      |> cast(attrs, [:name, :description, :school_id, :send_to, :is_pinned])
-      |> validate_required([:name, :description, :school_id, :send_to])
+      |> cast(attrs, [
+        :name,
+        :description,
+        :school_id,
+        :send_to,
+        :section_id,
+        :subtitle,
+        :color,
+        :cover,
+        :position
+      ])
+      |> validate_required([:name, :description, :school_id, :send_to, :section_id])
       |> check_constraint(
         :send_to,
         name: :valid_send_to,
