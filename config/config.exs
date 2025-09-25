@@ -85,6 +85,20 @@ config :ex_openai,
     recv_timeout: 60_000
   ]
 
+# Oban config
+config :lanttern, Oban,
+  engine: Oban.Engines.Basic,
+  queues: [cleanup: 1],
+  repo: Lanttern.Repo,
+  plugins: [
+    Oban.Plugins.Pruner,
+    {Oban.Plugins.Cron,
+     crontab: [
+       # Run login code cleanup every hour
+       {"0 * * * *", Lanttern.Workers.LoginCodeCleanupWorker}
+     ]}
+  ]
+
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{config_env()}.exs"

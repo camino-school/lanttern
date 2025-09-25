@@ -29,12 +29,17 @@ defmodule LantternWeb.UserSessionController do
 
       {:error, :invalid_code} ->
         conn
-        |> put_flash(:error, "The code is invalid or has expired.")
+        |> put_flash(:error, gettext("The code is invalid or has expired."))
+        |> redirect(to: ~p"/users/log-in/code?email=#{URI.encode(email)}")
+
+      {:error, :code_invalidated} ->
+        conn
+        |> put_flash(:error, gettext("The code has been invalidated due to too many attempts."))
         |> redirect(to: ~p"/users/log-in/code?email=#{URI.encode(email)}")
 
       {:error, :user_not_found} ->
         conn
-        |> put_flash(:error, "User not found.")
+        |> put_flash(:error, gettext("User not found."))
         |> redirect(to: ~p"/users/log-in")
     end
   end
