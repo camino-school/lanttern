@@ -64,6 +64,55 @@ defmodule LantternWeb.MessageBoard.IndexLive do
     end
   end
 
+  def handle_event("unarchive", %{"message_id" => id}, socket) do
+    message = MessageBoard.get_message!(id)
+
+    case MessageBoard.unarchive_message(message) do
+      {:ok, _} ->
+        socket =
+          socket
+          |> put_flash(:info, gettext("Message restored"))
+          |> assign_sections()
+
+        {:noreply, socket}
+
+      {:error, _} ->
+        {:noreply, put_flash(socket, :error, gettext("Failed to unarchive message"))}
+    end
+  end
+
+  def handle_event("unarchive_message", %{"id" => id}, socket) do
+    message = MessageBoard.get_message!(id)
+
+    case MessageBoard.unarchive_message(message) do
+      {:ok, unarchived_message} ->
+        # Get current active messages in the section to determine position
+        if socket.assigns.section && socket.assigns.section.messages do
+          non_archived_messages =
+            Enum.filter(socket.assigns.section.messages, fn m ->
+              is_nil(m.archived_at) and m.id != unarchived_message.id
+            end)
+
+          # Add the unarchived message at the end
+          new_messages_order = non_archived_messages ++ [unarchived_message]
+
+          # Update positions
+          MessageBoard.update_messages_position(new_messages_order)
+        end
+
+        socket =
+          socket
+          |> put_flash(:info, gettext("Message restored"))
+          |> assign_sections()
+          |> push_patch(to: ~p"/school/message_board_v2")
+
+        {:noreply, socket}
+
+      {:error, _} ->
+        {:noreply, put_flash(socket, :error, gettext("Failed to unarchive message"))}
+    end
+  end
+
   def handle_event("validate_section", %{"section" => section_params}, socket) do
     changeset =
       socket.assigns.section
@@ -130,8 +179,8 @@ defmodule LantternWeb.MessageBoard.IndexLive do
   end
 
   def handle_event("sortable_update", %{"oldIndex" => old, "newIndex" => new}, socket) do
-    messages = socket.assigns.section.messages
-    {changed_id, rest} = List.pop_at(messages, old)
+    non_archived = Enum.filter(socket.assigns.section.messages, fn m -> is_nil(m.archived_at) end)
+    {changed_id, rest} = List.pop_at(non_archived, old)
     new_messages = List.insert_at(rest, new, changed_id)
     MessageBoard.update_messages_position(new_messages)
 
@@ -151,6 +200,26 @@ defmodule LantternWeb.MessageBoard.IndexLive do
     |> push_patch(to: ~p"/school/message_board_v2")
     |> assign_sections()
     |> then(&{:noreply, &1})
+  end
+
+  def handle_info({MessageFormOverlayComponent, {:archived, _message}}, socket) do
+    socket =
+      socket
+      |> put_flash(:info, gettext("Message archived"))
+      |> push_patch(to: ~p"/school/message_board_v2")
+      |> assign_sections()
+
+    {:noreply, socket}
+  end
+
+  def handle_info({MessageFormOverlayComponent, {:unarchived, _message}}, socket) do
+    socket =
+      socket
+      |> put_flash(:info, gettext("Message restored"))
+      |> push_patch(to: ~p"/school/message_board_v2")
+      |> assign_sections()
+
+    {:noreply, socket}
   end
 
   def handle_info({LantternWeb.MessageBoard.ReorderComponent, :reordered}, socket) do
@@ -250,4 +319,234 @@ defmodule LantternWeb.MessageBoard.IndexLive do
   end
 
   defp assign_reorder(socket), do: assign(socket, :show_reorder, false)
+
+  def render(assigns) do
+    ~H"""
+    <Layouts.app_logged_in flash={@flash} current_user={@current_user} current_path={@current_path}>
+      <.header_nav current_user={@current_user}>
+        <:title>{gettext("Message board admin")}</:title>
+        <div class="flex items-center justify-between gap-4 p-4">
+          <div class="flex items-center gap-4">
+            <.action
+              type="button"
+              phx-click={JS.exec("data-show", to: "#message-board-classes-filters-overlay")}
+              icon_name="hero-chevron-down-mini"
+            >
+              {format_action_items_text(@selected_classes, gettext("All years"))}
+            </.action>
+          </div>
+          <div class="flex items-center gap-4">
+            <.action
+              type="link"
+              patch={~p"/school/message_board_v2?reorder=true"}
+              icon_name="hero-arrows-up-down-mini"
+            >
+              {gettext("Reorder sections")}
+            </.action>
+            <.action
+              type="link"
+              patch={~p"/school/message_board_v2?new_section=true"}
+              icon_name="hero-plus-circle-mini"
+            >
+              {gettext("Create section")}
+            </.action>
+          </div>
+        </div>
+      </.header_nav>
+
+      <.responsive_container class="p-4">
+        <p class="flex items-center gap-2 mb-6">
+          <.icon name="hero-information-circle-mini" class="text-ltrn-subtle" />
+          {gettext(
+            "Manage message board sections and messages. Messages are displayed in students and guardians home page."
+          )}
+        </p>
+
+        <%= if @sections == [] do %>
+          <.card_base class="p-10 mt-4">
+            <.empty_state>
+              {gettext("No sections created yet")}
+            </.empty_state>
+          </.card_base>
+        <% else %>
+          <div class="space-y-8">
+            <%= for section <- @sections do %>
+              <div class="bg-white rounded-lg shadow-lg">
+                <div class="flex items-center justify-between p-4 border-gray-200 -mb-4">
+                  <div class="flex items-center space-x-3">
+                    <h2 class="text-lg font-bold">{section.name}</h2>
+                  </div>
+                  <div class="flex items-center space-x-2">
+                    <.action
+                      type="link"
+                      patch={~p"/school/message_board_v2?edit_section=#{section.id}"}
+                      theme="subtle"
+                      icon_name="hero-cog-6-tooth-mini"
+                      id={"section-#{section.id}-settings"}
+                      title={gettext("Configure section")}
+                    >
+                    </.action>
+                  </div>
+                </div>
+                <div class="p-4">
+                  <div
+                    class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-4"
+                    id={"section-#{section.id}-messages"}
+                  >
+                    <%= for message <- section.messages do %>
+                      <.message_card_admin
+                        message={message}
+                        mode="admin"
+                        edit_patch={~p"/school/message_board_v2?edit=#{message.id}"}
+                        on_delete={JS.push("delete_message", value: %{message_id: message.id})}
+                      />
+                    <% end %>
+
+                    <.link
+                      :if={@communication_manager?}
+                      patch={~p"/school/message_board_v2?new=true&section_id=#{section.id}"}
+                      class="aspect-square w-full bg-white border-1 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center text-gray-400 hover:text-gray-600 hover:border-gray-400 transition-colors group shadow-lg"
+                    >
+                      <.icon
+                        name="hero-plus"
+                        class="w-12 h-12 aspect-square mb-4 group-hover:scale-110 transition-transform"
+                      />
+                      <span class="text-sm font-medium">Add new message</span>
+                    </.link>
+                  </div>
+                </div>
+              </div>
+            <% end %>
+          </div>
+        <% end %>
+      </.responsive_container>
+
+      <.live_component
+        :if={@message}
+        module={MessageFormOverlayComponent}
+        id="message-form-overlay"
+        message={@message}
+        section_id={@section_id}
+        title={@message_overlay_title}
+        current_profile={@current_user.current_profile}
+        on_cancel={JS.patch(~p"/school/message_board_v2")}
+        notify_parent
+      />
+
+      <div :if={@section} phx-remove={JS.exec("phx-remove", to: "#section-form-overlay")}>
+        <.slide_over
+          id="section-form-overlay"
+          show={true}
+          on_cancel={JS.patch(~p"/school/message_board_v2")}
+        >
+          <:title>{@section_overlay_title}</:title>
+          <.form
+            id="message-form"
+            for={@form}
+            phx-change="validate_section"
+            phx-submit="save_section"
+          >
+            <.error_block :if={@form.source.action in [:insert, :update]} class="mb-6">
+              {gettext("Oops, something went wrong! Please check the errors below.")}
+            </.error_block>
+            <.input
+              field={@form[:name]}
+              type="text"
+              label={gettext("Section name")}
+              class="mb-6 -mt-6"
+              phx-debounce="1500"
+            />
+          </.form>
+          <div
+            :if={@form_action == :edit}
+            phx-hook="Sortable"
+            id="sortable-section-cards"
+            data-sortable-handle=".sortable-handle"
+            phx-update="ignore"
+          >
+            <.dragable_card
+              :for={
+                message <-
+                  if is_list(@section.messages),
+                    do: Enum.filter(@section.messages, fn m -> is_nil(m.archived_at) end),
+                    else: []
+              }
+              id={"sortable-#{message.id}"}
+              class="mb-4 border-l-12 gap-2"
+              style={"border-left-color: #{message.color};"}
+            >
+              <h3 class="font-display font-black text-lg" title={message.name}>
+                {message.name}
+              </h3>
+            </.dragable_card>
+          </div>
+
+          <%!-- Render archived messages after the sortable non-archived list --%>
+          <:actions>
+            <.action
+              type="button"
+              theme="subtle"
+              size="md"
+              phx-click={JS.exec("data-cancel", to: "#section-form-overlay")}
+            >
+              {gettext("Cancel")}
+            </.action>
+            <.action
+              type="submit"
+              theme="primary"
+              size="md"
+              icon_name="hero-check"
+              form="message-form"
+            >
+              {gettext("Save")}
+            </.action>
+          </:actions>
+        </.slide_over>
+      </div>
+
+      <.slide_over
+        :if={@show_reorder}
+        id="reorder-sections-overlay"
+        show={true}
+        on_cancel={JS.patch(~p"/school/message_board_v2")}
+        full_w={true}
+      >
+        <:title>{gettext("Reorder sections")}</:title>
+        <.live_component
+          module={LantternWeb.MessageBoard.ReorderComponent}
+          id="reorder-sections-component"
+          current_user={@current_user}
+        />
+        <:actions>
+          <.action
+            type="button"
+            theme="subtle"
+            size="md"
+            phx-click={JS.exec("data-cancel", to: "#reorder-sections-overlay")}
+          >
+            {gettext("Cancel")}
+          </.action>
+          <.action
+            type="button"
+            theme="primary"
+            size="md"
+            phx-click={JS.patch(~p"/school/message_board_v2")}
+          >
+            {gettext("Done")}
+          </.action>
+        </:actions>
+      </.slide_over>
+
+      <.live_component
+        module={LantternWeb.Filters.ClassesFilterOverlayComponent}
+        id="message-board-classes-filters-overlay"
+        current_user={@current_user}
+        title={gettext("Filter messages by class")}
+        navigate={~p"/school/message_board_v2"}
+        classes={@classes}
+        selected_classes_ids={@selected_classes_ids}
+      />
+    </Layouts.app_logged_in>
+    """
+  end
 end

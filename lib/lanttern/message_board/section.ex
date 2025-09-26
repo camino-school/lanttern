@@ -9,11 +9,8 @@ defmodule Lanttern.MessageBoard.Section do
   schema "sections" do
     field :name, :string
     field :position, :integer, default: 0
-
     belongs_to :school, Lanttern.Schools.School
-    # V2 relationship
     has_many :messages, Lanttern.MessageBoard.MessageV2
-
     timestamps()
   end
 
@@ -22,8 +19,6 @@ defmodule Lanttern.MessageBoard.Section do
     section
     |> cast(attrs, [:name, :position, :school_id])
     |> validate_required([:name, :position, :school_id])
-    |> unique_constraint([:name, :school_id],
-      message: "section name must be unique within a school"
-    )
+    |> unique_constraint([:name, :school_id], message: "section name must be unique within a school")
   end
 end

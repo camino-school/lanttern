@@ -1,9 +1,8 @@
 defmodule LantternWeb.MessageBoard.ReorderComponent do
   @moduledoc """
-    Reorder Component for Message Board.
+  Reorder Component for Message Board.
   """
   use LantternWeb, :live_component
-
   alias Lanttern.MessageBoardV2, as: MessageBoard
 
   def mount(socket) do
@@ -11,11 +10,7 @@ defmodule LantternWeb.MessageBoard.ReorderComponent do
   end
 
   def update(assigns, socket) do
-    socket =
-      socket
-      |> assign(assigns)
-      |> initialize()
-
+    socket = socket |> assign(assigns) |> initialize()
     {:ok, socket}
   end
 
@@ -24,7 +19,6 @@ defmodule LantternWeb.MessageBoard.ReorderComponent do
     new_sections = List.insert_at(rest, new, changed_id)
     MessageBoard.update_section_position(new_sections)
     send(self(), {__MODULE__, :reordered})
-
     {:noreply, assign_sections(socket)}
   end
 
@@ -33,14 +27,11 @@ defmodule LantternWeb.MessageBoard.ReorderComponent do
   defp assign_sections(socket) do
     school_id = socket.assigns.current_user.current_profile.school_id
     sections = MessageBoard.list_sections(school_id)
-
     assign(socket, :sections, sections)
   end
 
   defp initialize(%{assigns: %{initialized: false}} = socket) do
-    socket
-    |> assign_sections()
-    |> assign(:initialized, true)
+    socket |> assign_sections() |> assign(:initialized, true)
   end
 
   defp initialize(socket), do: socket

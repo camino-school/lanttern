@@ -1,8 +1,6 @@
 defmodule Lanttern.MessageBoard.MessageClassV2 do
   @moduledoc """
   The `MessageClassV2` schema (join table)
-
-  Current version of the MessageClass schema. Connects messages with classes.
   """
 
   use Ecto.Schema
