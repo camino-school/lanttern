@@ -2,9 +2,7 @@ defmodule Lanttern.MessageBoard.MessageClass do
   @moduledoc """
   The `MessageClass` schema (join table) - DEPRECATED
 
-  @deprecated "Use Lanttern.MessageBoard.MessageClassV2 instead"
-
-  This module is deprecated. Use `Lanttern.MessageBoard.MessageClassV2` for new code.
+  @deprecated "Will be replaced by Lanttern.MessageBoard.MessageClassV2"
   """
 
   use Ecto.Schema

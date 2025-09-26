@@ -103,7 +103,7 @@
     section_id={@section_id}
     title={@message_overlay_title}
     current_profile={@current_user.current_profile}
-    on_cancel={JS.patch(~p"/school/message_board")}
+    on_cancel={JS.patch(~p"/school/message_board_v2")}
     notify_parent
   />
 
@@ -111,7 +111,7 @@
     <.slide_over
       id="section-form-overlay"
       show={true}
-      on_cancel={JS.patch(~p"/school/message_board")}
+      on_cancel={JS.patch(~p"/school/message_board_v2")}
     >
       <:title>{@section_overlay_title}</:title>
       <.form
@@ -191,7 +191,7 @@
     :if={@show_reorder}
     id="reorder-sections-overlay"
     show={true}
-    on_cancel={JS.patch(~p"/school/message_board")}
+    on_cancel={JS.patch(~p"/school/message_board_v2")}
   >
     <:title>{gettext("Reorder sections")}</:title>
     <.live_component
@@ -212,7 +212,7 @@
         type="button"
         theme="primary"
         size="md"
-        phx-click={JS.patch(~p"/school/message_board")}
+        phx-click={JS.patch(~p"/school/message_board_v2")}
       >
         {gettext("Done")}
       </.action>
@@ -224,7 +224,7 @@
     id="message-board-classes-filters-overlay"
     current_user={@current_user}
     title={gettext("Filter messages by class")}
-    navigate={~p"/school/message_board"}
+    navigate={~p"/school/message_board_v2"}
     classes={@classes}
     selected_classes_ids={@selected_classes_ids}
   />

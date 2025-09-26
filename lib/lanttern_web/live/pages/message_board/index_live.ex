@@ -2,7 +2,7 @@ defmodule LantternWeb.MessageBoard.IndexLive do
   use LantternWeb, :live_view
 
   import LantternWeb.CoreComponents
-  import LantternWeb.MessageBoard.ComponentsV2
+  import LantternWeb.MessageBoard.Components
   import LantternWeb.FiltersHelpers, only: [assign_classes_filter: 2]
 
   alias Lanttern.MessageBoardV2, as: MessageBoard
@@ -82,7 +82,7 @@ defmodule LantternWeb.MessageBoard.IndexLive do
       {:ok, _section} ->
         socket
         |> put_flash(:info, "Section updated successfully")
-        |> push_patch(to: ~p"/school/message_board")
+        |> push_patch(to: ~p"/school/message_board_v2")
         |> assign_sections()
         |> assign(:form_action, nil)
         |> then(&{:noreply, &1})
@@ -104,7 +104,7 @@ defmodule LantternWeb.MessageBoard.IndexLive do
       {:ok, _section} ->
         socket
         |> put_flash(:info, "Section created successfully")
-        |> push_patch(to: ~p"/school/message_board")
+        |> push_patch(to: ~p"/school/message_board_v2")
         |> assign_sections()
         |> assign(:form_action, nil)
         |> then(&{:noreply, &1})
@@ -119,7 +119,7 @@ defmodule LantternWeb.MessageBoard.IndexLive do
       {:ok, _section} ->
         socket
         |> put_flash(:info, gettext("Section deleted successfully"))
-        |> push_patch(to: ~p"/school/message_board")
+        |> push_patch(to: ~p"/school/message_board_v2")
         |> assign_sections()
         |> assign(:form_action, nil)
         |> then(&{:noreply, &1})
@@ -148,7 +148,7 @@ defmodule LantternWeb.MessageBoard.IndexLive do
 
     socket
     |> put_flash(elem(flash_message, 0), elem(flash_message, 1))
-    |> push_patch(to: ~p"/school/message_board")
+    |> push_patch(to: ~p"/school/message_board_v2")
     |> assign_sections()
     |> then(&{:noreply, &1})
   end

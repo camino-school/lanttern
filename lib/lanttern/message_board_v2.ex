@@ -1,9 +1,6 @@
 defmodule Lanttern.MessageBoardV2 do
   @moduledoc """
   The MessageBoardV2 context - Version 2
-
-  This module uses the new MessageV2 schema and messages_classes_v2 relationships.
-  It's designed to work alongside the original MessageBoard during the migration period.
   """
 
   import Ecto.Query, warn: false
@@ -16,19 +13,6 @@ defmodule Lanttern.MessageBoardV2 do
 
   @doc """
   Returns the list of messages.
-
-  ## Options
-
-  - `:archived` - boolean, if true, returns only archived messages
-  - `:school_id` - filters messages by school id
-  - `:classes_ids` - filters messages sent to given classes OR to the school. Requires `school_id`.
-  - `:preloads` - preloads associated data
-
-  ## Examples
-
-      iex> list_messages()
-      [%Message{}, ...]
-
   """
   def list_messages(opts \\ []) do
     from(
@@ -70,21 +54,6 @@ defmodule Lanttern.MessageBoardV2 do
 
   @doc """
   Gets a single message.
-
-  Returns `nil` if the Message does not exist.
-
-  ## Options
-
-  - `:preloads` – preloads associated data
-
-  ## Examples
-
-      iex> get_message(123)
-      %Message{}
-
-      iex> get_message(456)
-      nil
-
   """
   def get_message(id, opts \\ []) do
     Repo.get(Message, id)
@@ -92,10 +61,7 @@ defmodule Lanttern.MessageBoardV2 do
   end
 
   @doc """
-  Gets a single message.
-
-  Same as get_message/1, but raises `Ecto.NoResultsError` if the Message does not exist.
-
+  Gets a single message or raises.
   """
   def get_message!(id, opts \\ []) do
     Repo.get!(Message, id)
@@ -104,15 +70,6 @@ defmodule Lanttern.MessageBoardV2 do
 
   @doc """
   Creates a message.
-
-  ## Examples
-
-      iex> create_message(%{field: value})
-      {:ok, %Message{}}
-
-      iex> create_message(%{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
   """
   def create_message(attrs \\ %{}) do
     %Message{}
@@ -122,15 +79,6 @@ defmodule Lanttern.MessageBoardV2 do
 
   @doc """
   Updates a message.
-
-  ## Examples
-
-      iex> update_message(message, %{field: new_value})
-      {:ok, %Message{}}
-
-      iex> update_message(message, %{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
   """
   def update_message(%Message{} = message, attrs) do
     message
@@ -140,28 +88,13 @@ defmodule Lanttern.MessageBoardV2 do
 
   @doc """
   Deletes a message.
-
-  ## Examples
-
-      iex> delete_message(message)
-      {:ok, %Message{}}
-
-      iex> delete_message(message)
-      {:error, %Ecto.Changeset{}}
-
   """
   def delete_message(%Message{} = message) do
     Repo.delete(message)
   end
 
   @doc """
-  Returns an `%Ecto.Changeset{}` for tracking message changes.
-
-  ## Examples
-
-      iex> change_message(message)
-      %Ecto.Changeset{data: %Message{}}
-
+  Returns a changeset for tracking message changes.
   """
   def change_message(%Message{} = message, attrs \\ %{}) do
     Message.changeset(message, attrs)
@@ -178,7 +111,7 @@ defmodule Lanttern.MessageBoardV2 do
   end
 
   @doc """
-  Returns the list of sections ordered by position for a specific school.
+  Returns sections ordered by position for a school.
   """
   def list_sections(school_id) do
     from(s in Section,
@@ -189,12 +122,7 @@ defmodule Lanttern.MessageBoardV2 do
   end
 
   @doc """
-  Returns the list of sections ordered by position with messages preloaded and filtered.
-
-  ## Parameters
-
-  - `school_id` - the school id for filtering messages
-  - `classes_ids` - list of class ids for filtering messages
+  Returns sections with filtered messages.
   """
   def list_sections(school_id, classes_ids) when is_list(classes_ids) do
     messages_query =
@@ -237,17 +165,12 @@ defmodule Lanttern.MessageBoardV2 do
   end
 
   @doc """
-  Gets a single section.
-
-  Raises `Ecto.NoResultsError` if the Section does not exist.
+  Gets a section or raises.
   """
   def get_section!(id), do: Repo.get!(Section, id)
 
   @doc """
-  Gets a single section with messages preloaded and ordered.
-
-  Messages are ordered by position (ascending) and then by updated_at (descending).
-  Raises `Ecto.NoResultsError` if the Section does not exist.
+  Gets a section with ordered messages.
   """
   def get_section_with_ordered_messages!(id) do
     Section
@@ -290,7 +213,7 @@ defmodule Lanttern.MessageBoardV2 do
   end
 
   @doc """
-  Returns an `%Ecto.Changeset{}` for tracking section changes.
+  Returns a changeset for tracking section changes.
   """
   def change_section(%Section{} = section, attrs \\ %{}) do
     Section.changeset(section, attrs)
