@@ -510,9 +510,9 @@ defmodule Lanttern.MessageBoard do
   #     [%MessageAttachment{}, ...]
 
   # """
-  # def list_message_attachments do
-  #   Repo.all(MessageAttachment)
-  # end
+  def list_message_attachments do
+    Repo.all(MessageAttachment)
+  end
 
   # @doc """
   # Gets a single message_attachment.
@@ -528,7 +528,7 @@ defmodule Lanttern.MessageBoard do
   #     ** (Ecto.NoResultsError)
 
   # """
-  # def get_message_attachment!(id), do: Repo.get!(MessageAttachment, id)
+  def get_message_attachment!(id), do: Repo.get!(MessageAttachment, id)
 
   @doc """
   Creates a message_attachment.
