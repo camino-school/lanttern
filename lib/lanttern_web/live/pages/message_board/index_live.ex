@@ -64,55 +64,6 @@ defmodule LantternWeb.MessageBoard.IndexLive do
     end
   end
 
-  def handle_event("unarchive", %{"message_id" => id}, socket) do
-    message = MessageBoard.get_message!(id)
-
-    case MessageBoard.unarchive_message(message) do
-      {:ok, _} ->
-        socket =
-          socket
-          |> put_flash(:info, gettext("Message restored"))
-          |> assign_sections()
-
-        {:noreply, socket}
-
-      {:error, _} ->
-        {:noreply, put_flash(socket, :error, gettext("Failed to unarchive message"))}
-    end
-  end
-
-  def handle_event("unarchive_message", %{"id" => id}, socket) do
-    message = MessageBoard.get_message!(id)
-
-    case MessageBoard.unarchive_message(message) do
-      {:ok, unarchived_message} ->
-        # Get current active messages in the section to determine position
-        if socket.assigns.section && socket.assigns.section.messages do
-          non_archived_messages =
-            Enum.filter(socket.assigns.section.messages, fn m ->
-              is_nil(m.archived_at) and m.id != unarchived_message.id
-            end)
-
-          # Add the unarchived message at the end
-          new_messages_order = non_archived_messages ++ [unarchived_message]
-
-          # Update positions
-          MessageBoard.update_messages_position(new_messages_order)
-        end
-
-        socket =
-          socket
-          |> put_flash(:info, gettext("Message restored"))
-          |> assign_sections()
-          |> push_patch(to: ~p"/school/message_board_v2")
-
-        {:noreply, socket}
-
-      {:error, _} ->
-        {:noreply, put_flash(socket, :error, gettext("Failed to unarchive message"))}
-    end
-  end
-
   def handle_event("validate_section", %{"section" => section_params}, socket) do
     changeset =
       socket.assigns.section
@@ -200,26 +151,6 @@ defmodule LantternWeb.MessageBoard.IndexLive do
     |> push_patch(to: ~p"/school/message_board_v2")
     |> assign_sections()
     |> then(&{:noreply, &1})
-  end
-
-  def handle_info({MessageFormOverlayComponent, {:archived, _message}}, socket) do
-    socket =
-      socket
-      |> put_flash(:info, gettext("Message archived"))
-      |> push_patch(to: ~p"/school/message_board_v2")
-      |> assign_sections()
-
-    {:noreply, socket}
-  end
-
-  def handle_info({MessageFormOverlayComponent, {:unarchived, _message}}, socket) do
-    socket =
-      socket
-      |> put_flash(:info, gettext("Message restored"))
-      |> push_patch(to: ~p"/school/message_board_v2")
-      |> assign_sections()
-
-    {:noreply, socket}
   end
 
   def handle_info({LantternWeb.MessageBoard.ReorderComponent, :reordered}, socket) do
@@ -480,8 +411,6 @@ defmodule LantternWeb.MessageBoard.IndexLive do
               </h3>
             </.dragable_card>
           </div>
-
-          <%!-- Render archived messages after the sortable non-archived list --%>
           <:actions>
             <.action
               type="button"
