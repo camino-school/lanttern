@@ -5,9 +5,7 @@ defmodule LantternWeb.MessageBoard.ReorderComponent do
   use LantternWeb, :live_component
   alias Lanttern.MessageBoardV2, as: MessageBoard
 
-  def mount(socket) do
-    {:ok, assign(socket, :initialized, false)}
-  end
+  def mount(socket), do: {:ok, assign(socket, :initialized, false)}
 
   def update(assigns, socket) do
     socket = socket |> assign(assigns) |> initialize()
@@ -26,14 +24,10 @@ defmodule LantternWeb.MessageBoard.ReorderComponent do
 
   defp assign_sections(socket) do
     school_id = socket.assigns.current_user.current_profile.school_id
-    sections = MessageBoard.list_sections(school_id)
-    assign(socket, :sections, sections)
+    assign(socket, :sections, MessageBoard.list_sections(school_id))
   end
 
-  defp initialize(%{assigns: %{initialized: false}} = socket) do
-    socket |> assign_sections() |> assign(:initialized, true)
-  end
-
+  defp initialize(%{assigns: %{initialized: false}} = socket), do: socket |> assign_sections() |> assign(:initialized, true)
   defp initialize(socket), do: socket
 
   def render(assigns) do
@@ -41,29 +35,13 @@ defmodule LantternWeb.MessageBoard.ReorderComponent do
     <div class="px-6">
       <%= if @sections == [] do %>
         <.card_base class="p-10 mt-4">
-          <.empty_state>
-            {gettext("No sections created yet")}
-          </.empty_state>
+          <.empty_state>{gettext("No sections created yet")}</.empty_state>
         </.card_base>
       <% else %>
         <div class="-mb-6"></div>
-        <div
-          class="space-y-8"
-          phx-hook="Sortable"
-          phx-target={@myself}
-          id="sortable-section-cards"
-          data-sortable-handle=".sortable-handle"
-          phx-update="ignore"
-        >
-          <.dragable_card
-            :for={section <- @sections}
-            id={"sortable-#{section.id}"}
-            class="w-full bg-white rounded-lg shadow-lg my-4 border-l-12 gap-2"
-            style="border-left-color: #fff;"
-          >
-            <h3 class="font-display font-black text-lg truncate" title={section.name}>
-              {section.name}
-            </h3>
+        <div class="space-y-8" phx-hook="Sortable" phx-target={@myself} id="sortable-section-cards" data-sortable-handle=".sortable-handle" phx-update="ignore">
+          <.dragable_card :for={section <- @sections} id={"sortable-#{section.id}"} class="w-full bg-white rounded-lg shadow-lg my-4 border-l-12 gap-2" style="border-left-color: #fff;">
+            <h3 class="font-display font-black text-lg truncate" title={section.name}>{section.name}</h3>
           </.dragable_card>
         </div>
       <% end %>

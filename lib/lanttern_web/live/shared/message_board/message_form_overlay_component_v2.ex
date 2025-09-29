@@ -15,13 +15,10 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponentV2 do
 
   use LantternWeb, :live_component
 
-  alias Lanttern.MessageBoardV2, as: MessageBoard
-  alias Lanttern.MessageBoard.MessageV2, as: Message
-
-  # shared
-
-  alias LantternWeb.Schools.ClassesFieldComponent
   import LantternWeb.FormComponents
+  alias Lanttern.MessageBoard.MessageV2, as: Message
+  alias Lanttern.MessageBoardV2, as: MessageBoard
+  alias LantternWeb.Schools.ClassesFieldComponent
 
   @impl true
   def render(assigns) do
@@ -29,77 +26,37 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponentV2 do
     <div phx-remove={JS.exec("phx-remove", to: "##{@id}")}>
       <.slide_over id={@id} show={true} on_cancel={@on_cancel}>
         <:title>{@title}</:title>
-        <.form
-          id="message-form"
-          for={@form}
-          phx-change="validate"
-          phx-submit="save"
-          phx-target={@myself}
-        >
+        <.form id="message-form" for={@form} phx-change="validate" phx-submit="save" phx-target={@myself}>
           <.error_block :if={@form.source.action in [:insert, :update]} class="mb-6">
             {gettext("Oops, something went wrong! Please check the errors below.")}
           </.error_block>
           <div class="mb-6 flex items-center gap-4">
             <.label for={@form[:color].id}>{gettext("Card color")}</.label>
             <div class="p-1 border-2 border-white rounded-md shadow-lg bg-white -mt-2">
-              <input
-                type="color"
-                name={@form[:color].name}
-                id={@form[:color].id}
-                value={@form[:color].value || @message.color || "#94A3B8"}
-                class="w-10 h-8 p-0 border-0 rounded cursor-pointer"
-                phx-debounce="1500"
-              />
+              <input type="color" name={@form[:color].name} id={@form[:color].id} value={@form[:color].value || @message.color || "#94A3B8"} class="w-10 h-8 p-0 border-0 rounded cursor-pointer" phx-debounce="1500" />
             </div>
           </div>
           <div class="mb-6">
-            <.input
-              field={@form[:name]}
-              type="text"
-              label={gettext("Message title")}
-              maxlength="30"
-              phx-debounce="1500"
-            />
+            <.input field={@form[:name]} type="text" label={gettext("Message title")} maxlength="30" phx-debounce="1500" />
             <div class="flex justify-end mt-1">
-              <span class="text-xs text-ltrn-subtle">
-                {String.length(@form[:name].value || "")} / 30
-              </span>
+              <span class="text-xs text-ltrn-subtle">{String.length(@form[:name].value || "")} / 30</span>
             </div>
           </div>
-
           <div class="mb-6">
-            <.input
-              field={@form[:subtitle]}
-              type="text"
-              maxlength="160"
-              phx-debounce="1500"
-            >
+            <.input field={@form[:subtitle]} type="text" maxlength="160" phx-debounce="1500">
               <:custom_label>
                 <span class="font-bold">{gettext("Message subtitle")}</span>
                 <span class="font-normal"> ({gettext("what appears in the card preview")})</span>
               </:custom_label>
             </.input>
             <div class="flex justify-between items-center mt-1">
-              <span
-                :if={!is_nil(@message.cover) or @uploads.cover.entries != []}
-                class="text-xs text-red-500"
-              >
-                {gettext(
-                  "When using a cover image, subtitles will not be displayed in the message card."
-                )}
+              <span :if={!is_nil(@message.cover) or @uploads.cover.entries != []} class="text-xs text-red-500">
+                {gettext("When using a cover image, subtitles will not be displayed in the message card.")}
               </span>
-              <span class="text-xs text-ltrn-subtle">
-                {String.length(@form[:subtitle].value || "")} / 160
-              </span>
+              <span class="text-xs text-ltrn-subtle">{String.length(@form[:subtitle].value || "")} / 160</span>
             </div>
           </div>
-          <.input
-            field={@form[:description]}
-            type="markdown"
-            label={gettext("Contents")}
-            class="mb-6"
-            phx-debounce="1500"
-          />
+          <.input field={@form[:description]} type="markdown" label={gettext("Contents")} class="mb-6" phx-debounce="1500" />
           <%= if @message.id do %>
             <div :if={@message.send_to == "school"} class="flex items-center gap-2 mb-6">
               <.icon name="hero-user-group" class="w-6 h-6" />
@@ -114,62 +71,23 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponentV2 do
               <legend class="font-bold">{gettext("Send to")}</legend>
               <div class="mt-4 flex items-center gap-4">
                 <.radio_input field={@form[:send_to]} value="school" label={gettext("All school")} />
-                <.radio_input
-                  field={@form[:send_to]}
-                  value="classes"
-                  label={gettext("Selected classes")}
-                />
+                <.radio_input field={@form[:send_to]} value="classes" label={gettext("Selected classes")} />
               </div>
-              <.error :for={msg <- Enum.map(@form[:send_to].errors, &translate_error(&1))}>
-                {msg}
-              </.error>
+              <.error :for={msg <- Enum.map(@form[:send_to].errors, &translate_error(&1))}>{msg}</.error>
             </fieldset>
           <% end %>
-
-          <.live_component
-            module={ClassesFieldComponent}
-            id="message-form-classes-picker"
-            label={gettext("Classes")}
-            school_id={@message.school_id}
-            current_cycle={@current_profile.current_school_cycle}
-            selected_classes_ids={@selected_classes_ids}
-            notify_component={@myself}
-            class={[
-              if(@form[:classes_ids].errors == [] && @form.source.action not in [:insert, :update],
-                do: "mb-6"
-              ),
-              if(@form[:send_to].value != "classes", do: "hidden")
-            ]}
-          />
-
-          <div
-            :if={@form[:classes_ids].errors != [] && @form.source.action in [:insert, :update]}
-            class="mb-6"
-          >
-            <.error :for={msg <- Enum.map(@form[:classes_ids].errors, &translate_error(&1))}>
-              {msg}
-            </.error>
+          <.live_component module={ClassesFieldComponent} id="message-form-classes-picker" label={gettext("Classes")} school_id={@message.school_id} current_cycle={@current_profile.current_school_cycle} selected_classes_ids={@selected_classes_ids} notify_component={@myself} class={[if(@form[:classes_ids].errors == [] && @form.source.action not in [:insert, :update], do: "mb-6"), if(@form[:send_to].value != "classes", do: "hidden")]} />
+          <div :if={@form[:classes_ids].errors != [] && @form.source.action in [:insert, :update]} class="mb-6">
+            <.error :for={msg <- Enum.map(@form[:classes_ids].errors, &translate_error(&1))}>{msg}</.error>
           </div>
         </.form>
         <:actions_left :if={@message.id}>
-          <.action
-            type="button"
-            theme="subtle"
-            size="md"
-            phx-click="delete"
-            phx-target={@myself}
-            data-confirm={gettext("Are you sure?")}
-          >
+          <.action type="button" theme="subtle" size="md" phx-click="delete" phx-target={@myself} data-confirm={gettext("Are you sure?")}>
             {gettext("Delete")}
           </.action>
         </:actions_left>
         <:actions>
-          <.action
-            type="button"
-            theme="subtle"
-            size="md"
-            phx-click={JS.exec("data-cancel", to: "##{@id}")}
-          >
+          <.action type="button" theme="subtle" size="md" phx-click={JS.exec("data-cancel", to: "##{@id}")}>
             {gettext("Cancel")}
           </.action>
           <.action type="submit" theme="primary" size="md" icon_name="hero-check" form="message-form">
@@ -188,56 +106,33 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponentV2 do
       |> assign(:initialized, false)
       |> assign(:is_removing_cover, false)
       |> assign(:section_id, nil)
-      |> allow_upload(:cover,
-        accept: ~w(.jpg .jpeg .png .webp),
-        max_file_size: 5_000_000,
-        max_entries: 1
-      )
+      |> allow_upload(:cover, accept: ~w(.jpg .jpeg .png .webp), max_file_size: 5_000_000, max_entries: 1)
 
     {:ok, socket}
   end
 
   @impl true
   def update(%{action: {ClassesFieldComponent, {:changed, selected_classes_ids}}}, socket) do
-    socket =
-      socket
-      |> assign(:selected_classes_ids, selected_classes_ids)
-      |> assign_validated_form(socket.assigns.form.params)
-
+    socket = socket |> assign(:selected_classes_ids, selected_classes_ids) |> assign_validated_form(socket.assigns.form.params)
     {:ok, socket}
   end
 
   def update(%{message: %Message{}} = assigns, socket) do
-    socket =
-      socket
-      |> assign(assigns)
-      |> initialize()
-
+    socket = socket |> assign(assigns) |> initialize()
     {:ok, socket}
   end
 
-  defp initialize(%{assigns: %{initialized: false}} = socket) do
-    socket
-    |> assign_form()
-    |> assign(:initialized, true)
-  end
-
+  defp initialize(%{assigns: %{initialized: false}} = socket), do: socket |> assign_form() |> assign(:initialized, true)
   defp initialize(socket), do: socket
 
   defp assign_form(socket) do
     message = socket.assigns.message
     changeset = MessageBoard.change_message(message)
-
-    socket
-    |> assign(:form, to_form(changeset))
-    |> assign_selected_classes_ids()
+    socket |> assign(:form, to_form(changeset)) |> assign_selected_classes_ids()
   end
 
   defp assign_selected_classes_ids(socket) do
-    selected_classes_ids =
-      socket.assigns.message.classes
-      |> Enum.map(& &1.id)
-
+    selected_classes_ids = socket.assigns.message.classes |> Enum.map(& &1.id)
     assign(socket, :selected_classes_ids, selected_classes_ids)
   end
 
@@ -254,53 +149,35 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponentV2 do
   end
 
   def handle_event("delete", _, socket) do
-    MessageBoard.delete_message(socket.assigns.message)
-    |> case do
+    case MessageBoard.delete_message(socket.assigns.message) do
       {:ok, message} ->
         notify(__MODULE__, {:deleted, message}, socket.assigns)
         {:noreply, socket}
-
-      {:error, %Ecto.Changeset{} = changeset} ->
-        {:noreply, assign(socket, :form, to_form(changeset))}
+      {:error, %Ecto.Changeset{} = changeset} -> {:noreply, assign(socket, :form, to_form(changeset))}
     end
   end
 
   defp save_message(socket, nil, message_params) do
-    message_params
-    |> MessageBoard.create_message()
-    |> case do
+    case MessageBoard.create_message(message_params) do
       {:ok, message} ->
         notify(__MODULE__, {:created, message}, socket.assigns)
         {:noreply, socket}
-
-      {:error, %Ecto.Changeset{} = changeset} ->
-        {:noreply, assign(socket, :form, to_form(changeset))}
+      {:error, %Ecto.Changeset{} = changeset} -> {:noreply, assign(socket, :form, to_form(changeset))}
     end
   end
 
   defp save_message(socket, _id, message_params) do
-    MessageBoard.update_message(
-      socket.assigns.message,
-      message_params
-    )
-    |> case do
+    case MessageBoard.update_message(socket.assigns.message, message_params) do
       {:ok, message} ->
         notify(__MODULE__, {:updated, message}, socket.assigns)
         {:noreply, socket}
-
-      {:error, %Ecto.Changeset{} = changeset} ->
-        {:noreply, assign(socket, :form, to_form(changeset))}
+      {:error, %Ecto.Changeset{} = changeset} -> {:noreply, assign(socket, :form, to_form(changeset))}
     end
   end
 
   defp assign_validated_form(socket, params) do
     params = inject_extra_params(socket.assigns, params)
-
-    changeset =
-      socket.assigns.message
-      |> MessageBoard.change_message(params)
-      |> Map.put(:action, :validate)
-
+    changeset = socket.assigns.message |> MessageBoard.change_message(params) |> Map.put(:action, :validate)
     assign(socket, :form, to_form(changeset))
   end
 

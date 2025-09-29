@@ -41,10 +41,7 @@ defmodule LantternWeb.MessageBoard.IndexLive do
   def handle_params(params, _url, socket) do
     socket =
       socket
-      |> assign(:params, params)
-      |> assign_message()
-      |> assign_section()
-      |> assign_reorder()
+      |> assign(:params, params) |> assign_message() |> assign_section() |> assign_reorder()
 
     {:noreply, socket}
   end
@@ -159,10 +156,7 @@ defmodule LantternWeb.MessageBoard.IndexLive do
 
   def handle_info(:initialized, socket) do
     socket =
-      socket
-      |> apply_assign_classes_filter()
-      |> assign_sections()
-      |> assign(:initialized, true)
+      socket |> apply_assign_classes_filter() |> assign_sections() |> assign(:initialized, true)
 
     {:noreply, socket}
   end
@@ -219,10 +213,7 @@ defmodule LantternWeb.MessageBoard.IndexLive do
 
   defp assign_message(%{assigns: %{params: %{"new" => "true", "section_id" => id}}} = socket) do
     message = %Message{
-      school_id: socket.assigns.current_user.current_profile.school_id,
-      classes: [],
-      send_to: "school",
-      section_id: id
+      school_id: socket.assigns.current_user.current_profile.school_id, classes: [], send_to: "school", section_id: id
     }
 
     socket
@@ -258,46 +249,28 @@ defmodule LantternWeb.MessageBoard.IndexLive do
         <:title>{gettext("Message board admin")}</:title>
         <div class="flex items-center justify-between gap-4 p-4">
           <div class="flex items-center gap-4">
-            <.action
-              type="button"
-              phx-click={JS.exec("data-show", to: "#message-board-classes-filters-overlay")}
-              icon_name="hero-chevron-down-mini"
-            >
+            <.action type="button" phx-click={JS.exec("data-show", to: "#message-board-classes-filters-overlay")} icon_name="hero-chevron-down-mini">
               {format_action_items_text(@selected_classes, gettext("All years"))}
             </.action>
           </div>
           <div class="flex items-center gap-4">
-            <.action
-              type="link"
-              patch={~p"/school/message_board_v2?reorder=true"}
-              icon_name="hero-arrows-up-down-mini"
-            >
+            <.action type="link" patch={~p"/school/message_board_v2?reorder=true"} icon_name="hero-arrows-up-down-mini">
               {gettext("Reorder sections")}
             </.action>
-            <.action
-              type="link"
-              patch={~p"/school/message_board_v2?new_section=true"}
-              icon_name="hero-plus-circle-mini"
-            >
+            <.action type="link" patch={~p"/school/message_board_v2?new_section=true"} icon_name="hero-plus-circle-mini">
               {gettext("Create section")}
             </.action>
           </div>
         </div>
       </.header_nav>
-
       <.responsive_container class="p-4">
         <p class="flex items-center gap-2 mb-6">
           <.icon name="hero-information-circle-mini" class="text-ltrn-subtle" />
-          {gettext(
-            "Manage message board sections and messages. Messages are displayed in students and guardians home page."
-          )}
+          {gettext("Manage message board sections and messages. Messages are displayed in students and guardians home page.")}
         </p>
-
         <%= if @sections == [] do %>
           <.card_base class="p-10 mt-4">
-            <.empty_state>
-              {gettext("No sections created yet")}
-            </.empty_state>
+            <.empty_state> {gettext("No sections created yet")}</.empty_state>
           </.card_base>
         <% else %>
           <div class="space-y-8">
@@ -308,40 +281,16 @@ defmodule LantternWeb.MessageBoard.IndexLive do
                     <h2 class="text-lg font-bold">{section.name}</h2>
                   </div>
                   <div class="flex items-center space-x-2">
-                    <.action
-                      type="link"
-                      patch={~p"/school/message_board_v2?edit_section=#{section.id}"}
-                      theme="subtle"
-                      icon_name="hero-cog-6-tooth-mini"
-                      id={"section-#{section.id}-settings"}
-                      title={gettext("Configure section")}
-                    >
-                    </.action>
+                    <.action type="link" patch={~p"/school/message_board_v2?edit_section=#{section.id}"} theme="subtle" icon_name="hero-cog-6-tooth-mini" id={"section-#{section.id}-settings"} title={gettext("Configure section")}></.action>
                   </div>
                 </div>
                 <div class="p-4">
-                  <div
-                    class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-4"
-                    id={"section-#{section.id}-messages"}
-                  >
+                  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-4" id={"section-#{section.id}-messages"}>
                     <%= for message <- section.messages do %>
-                      <.message_card_admin
-                        message={message}
-                        mode="admin"
-                        edit_patch={~p"/school/message_board_v2?edit=#{message.id}"}
-                        on_delete={JS.push("delete_message", value: %{message_id: message.id})}
-                      />
+                      <.message_card_admin message={message} mode="admin" edit_patch={~p"/school/message_board_v2?edit=#{message.id}"} on_delete={JS.push("delete_message", value: %{message_id: message.id})}/>
                     <% end %>
-
-                    <.link
-                      :if={@communication_manager?}
-                      patch={~p"/school/message_board_v2?new=true&section_id=#{section.id}"}
-                      class="aspect-square w-full bg-white border-1 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center text-gray-400 hover:text-gray-600 hover:border-gray-400 transition-colors group shadow-lg"
-                    >
-                      <.icon
-                        name="hero-plus"
-                        class="w-12 h-12 aspect-square mb-4 group-hover:scale-110 transition-transform"
-                      />
+                    <.link :if={@communication_manager?} patch={~p"/school/message_board_v2?new=true&section_id=#{section.id}"} class="aspect-square w-full bg-white border-1 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center text-gray-400 hover:text-gray-600 hover:border-gray-400 transition-colors group shadow-lg">
+                      <.icon name="hero-plus" class="w-12 h-12 aspect-square mb-4 group-hover:scale-110 transition-transform"/>
                       <span class="text-sm font-medium">Add new message</span>
                     </.link>
                   </div>
@@ -351,130 +300,44 @@ defmodule LantternWeb.MessageBoard.IndexLive do
           </div>
         <% end %>
       </.responsive_container>
-
-      <.live_component
-        :if={@message}
-        module={MessageFormOverlayComponent}
-        id="message-form-overlay"
-        message={@message}
-        section_id={@section_id}
-        title={@message_overlay_title}
-        current_profile={@current_user.current_profile}
-        on_cancel={JS.patch(~p"/school/message_board_v2")}
-        notify_parent
-      />
-
+      <.live_component :if={@message} module={MessageFormOverlayComponent} id="message-form-overlay" message={@message} section_id={@section_id} title={@message_overlay_title} current_profile={@current_user.current_profile} on_cancel={JS.patch(~p"/school/message_board_v2")} notify_parent />
       <div :if={@section} phx-remove={JS.exec("phx-remove", to: "#section-form-overlay")}>
-        <.slide_over
-          id="section-form-overlay"
-          show={true}
-          on_cancel={JS.patch(~p"/school/message_board_v2")}
-        >
+        <.slide_over id="section-form-overlay" show={true} on_cancel={JS.patch(~p"/school/message_board_v2")}>
           <:title>{@section_overlay_title}</:title>
-          <.form
-            id="message-form"
-            for={@form}
-            phx-change="validate_section"
-            phx-submit="save_section"
-          >
+          <.form id="message-form" for={@form} phx-change="validate_section" phx-submit="save_section">
             <.error_block :if={@form.source.action in [:insert, :update]} class="mb-6">
               {gettext("Oops, something went wrong! Please check the errors below.")}
             </.error_block>
-            <.input
-              field={@form[:name]}
-              type="text"
-              label={gettext("Section name")}
-              class="mb-6 -mt-6"
-              phx-debounce="1500"
-            />
+            <.input field={@form[:name]} type="text" label={gettext("Section name")} class="mb-6 -mt-6" phx-debounce="1500"/>
           </.form>
-          <div
-            :if={@form_action == :edit}
-            phx-hook="Sortable"
-            id="sortable-section-cards"
-            data-sortable-handle=".sortable-handle"
-            phx-update="ignore"
-          >
-            <.dragable_card
-              :for={
-                message <-
-                  if is_list(@section.messages),
-                    do: Enum.filter(@section.messages, fn m -> is_nil(m.archived_at) end),
-                    else: []
-              }
-              id={"sortable-#{message.id}"}
-              class="mb-4 border-l-12 gap-2"
-              style={"border-left-color: #{message.color};"}
-            >
-              <h3 class="font-display font-black text-lg" title={message.name}>
-                {message.name}
-              </h3>
+          <div :if={@form_action == :edit} phx-hook="Sortable" id="sortable-section-cards" data-sortable-handle=".sortable-handle" phx-update="ignore" >
+            <.dragable_card :for={ message <- if is_list(@section.messages), do: Enum.filter(@section.messages, fn m -> is_nil(m.archived_at) end), else: []} id={"sortable-#{message.id}"} class="mb-4 border-l-12 gap-2" style={"border-left-color: #{message.color};"}>
+              <h3 class="font-display font-black text-lg" title={message.name}>{message.name}</h3>
             </.dragable_card>
           </div>
           <:actions>
-            <.action
-              type="button"
-              theme="subtle"
-              size="md"
-              phx-click={JS.exec("data-cancel", to: "#section-form-overlay")}
-            >
+            <.action type="button" theme="subtle" size="md" phx-click={JS.exec("data-cancel", to: "#section-form-overlay")}>
               {gettext("Cancel")}
             </.action>
-            <.action
-              type="submit"
-              theme="primary"
-              size="md"
-              icon_name="hero-check"
-              form="message-form"
-            >
+            <.action type="submit" theme="primary" size="md" icon_name="hero-check" form="message-form">
               {gettext("Save")}
             </.action>
           </:actions>
         </.slide_over>
       </div>
-
-      <.slide_over
-        :if={@show_reorder}
-        id="reorder-sections-overlay"
-        show={true}
-        on_cancel={JS.patch(~p"/school/message_board_v2")}
-        full_w={true}
-      >
+      <.slide_over :if={@show_reorder} id="reorder-sections-overlay" show={true} on_cancel={JS.patch(~p"/school/message_board_v2")} full_w={true}>
         <:title>{gettext("Reorder sections")}</:title>
-        <.live_component
-          module={LantternWeb.MessageBoard.ReorderComponent}
-          id="reorder-sections-component"
-          current_user={@current_user}
-        />
+        <.live_component module={LantternWeb.MessageBoard.ReorderComponent} id="reorder-sections-component" current_user={@current_user}/>
         <:actions>
-          <.action
-            type="button"
-            theme="subtle"
-            size="md"
-            phx-click={JS.exec("data-cancel", to: "#reorder-sections-overlay")}
-          >
+          <.action type="button" theme="subtle" size="md" phx-click={JS.exec("data-cancel", to: "#reorder-sections-overlay")}>
             {gettext("Cancel")}
           </.action>
-          <.action
-            type="button"
-            theme="primary"
-            size="md"
-            phx-click={JS.patch(~p"/school/message_board_v2")}
-          >
+          <.action type="button" theme="primary" size="md" phx-click={JS.patch(~p"/school/message_board_v2")}>
             {gettext("Done")}
           </.action>
         </:actions>
       </.slide_over>
-
-      <.live_component
-        module={LantternWeb.Filters.ClassesFilterOverlayComponent}
-        id="message-board-classes-filters-overlay"
-        current_user={@current_user}
-        title={gettext("Filter messages by class")}
-        navigate={~p"/school/message_board_v2"}
-        classes={@classes}
-        selected_classes_ids={@selected_classes_ids}
-      />
+      <.live_component module={LantternWeb.Filters.ClassesFilterOverlayComponent} id="message-board-classes-filters-overlay" current_user={@current_user} title={gettext("Filter messages by class")} navigate={~p"/school/message_board_v2"} classes={@classes} selected_classes_ids={@selected_classes_ids}/>
     </Layouts.app_logged_in>
     """
   end
