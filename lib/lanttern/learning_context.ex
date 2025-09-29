@@ -55,7 +55,8 @@ defmodule Lanttern.LearningContext do
   def list_strands(opts \\ []) do
     from(
       s in Strand,
-      distinct: [asc: s.name, asc: s.id]
+      distinct: [asc: s.name, asc: s.id],
+      order_by: [asc: s.name]
     )
     |> apply_list_strands_opts(opts)
     |> Repo.all()
