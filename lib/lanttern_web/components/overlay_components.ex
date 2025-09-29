@@ -162,6 +162,7 @@ defmodule LantternWeb.OverlayComponents do
   attr :show, :boolean, default: false
   attr :on_cancel, JS, default: %JS{}
   attr :prevent_close_on_click_away, :boolean, default: false
+  attr :full_w, :boolean, default: false
 
   slot :title
   slot :inner_block, required: true
@@ -210,7 +211,7 @@ defmodule LantternWeb.OverlayComponents do
                   >
                     {render_slot(@title)}
                   </h2>
-                  <div id={"#{@id}-content"} class="p-4 sm:px-6">
+                  <div id={"#{@id}-content"} class={if @full_w, do: "p-0", else: "p-4 sm:px-6"}>
                     {render_slot(@inner_block)}
                   </div>
                 </div>
