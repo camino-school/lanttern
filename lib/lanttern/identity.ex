@@ -376,7 +376,7 @@ defmodule Lanttern.Identity do
 
     Repo.transact(fn ->
       # Delete any existing login code for this email
-      Repo.delete_all(LoginCode.by_email_query(user.email))
+      Repo.delete_all(by_email_query(user.email))
 
       # Create new login code
       login_code = LoginCode.build(user.email, hashed_code)
@@ -394,7 +394,8 @@ defmodule Lanttern.Identity do
   Verifies a login code for the given email and returns the associated user.
 
   If the code is valid and not expired, the login code is deleted immediately
-  and the user is returned.
+  and the user is returned. If the code is invalid, the attempt count is
+  incremented. After @max_attempts failed attempts, the code is invalidated.
 
   ## Examples
 
@@ -403,16 +404,19 @@ defmodule Lanttern.Identity do
 
       iex> verify_login_code("user@example.com", "invalid")
       {:error, :invalid_code}
+
+      iex> verify_login_code("user@example.com", "invalid")  # after @max_attempts
+      {:error, :code_invalidated}
   """
   def verify_login_code(email, code) when is_binary(email) and is_binary(code) do
-    query = LoginCode.verify_code_query(email, code)
-
-    case Repo.one(query) do
+    # First try to find a valid code
+    case Repo.one(verify_code_query(email, code)) do
       %LoginCode{} = login_code ->
         verify_and_delete_login_code(login_code, email)
 
       nil ->
-        {:error, :invalid_code}
+        # Code is invalid, increment attempts or check if already invalidated
+        handle_invalid_code_attempt(email, code)
     end
   end
 
@@ -429,11 +433,132 @@ defmodule Lanttern.Identity do
     end)
   end
 
+  defp handle_invalid_code_attempt(email, _code) do
+    attempts_limit = LoginCode.max_attempts() - 1
+
+    # Find any login code for this email to track attempts
+    case Repo.one(find_by_email_query(email)) do
+      %LoginCode{attempts: attempts} = login_code when attempts >= attempts_limit ->
+        # Increment attempts but return code_invalidated (this is the @max_attempts+ attempt)
+        login_code
+        |> Ecto.Changeset.change(attempts: login_code.attempts + 1)
+        |> Repo.update()
+
+        {:error, :code_invalidated}
+
+      %LoginCode{} = login_code ->
+        # Increment attempts (this is before @max_attempts)
+        login_code
+        |> Ecto.Changeset.change(attempts: login_code.attempts + 1)
+        |> Repo.update()
+
+        {:error, :invalid_code}
+
+      nil ->
+        # No login code found (expired or never existed)
+        {:error, :invalid_code}
+    end
+  end
+
   @doc """
-  Delivers the login code to the given user.
+  Requests a login code for the given email with rate limiting.
+
+  This function checks if a login code request has been made recently
+  for the given email using the database. If so, it returns an error.
+  Otherwise, it generates and sends a login code if the user exists.
+
+  Returns:
+  - `{:ok, :sent}` if the request was processed (regardless of user existence)
+  - `{:error, :rate_limited}` if a request was made too recently
+  - `{:error, reason}` for other errors during code generation
+
+  ## Examples
+
+      iex> request_login_code("user@example.com")
+      {:ok, :sent}
+
+      iex> request_login_code("user@example.com")  # called again within rate limit
+      {:error, :rate_limited}
+
+      iex> request_login_code("nonexistent@example.com")
+      {:ok, :sent}  # same response for security
   """
-  def deliver_login_instructions(%User{} = user) do
-    generate_login_code(user)
+  def request_login_code(email) when is_binary(email) do
+    case check_rate_limit(email) do
+      {:ok, nil} ->
+        handle_new_login_request(email)
+
+      {:ok, _rate_limited_until} ->
+        {:error, :rate_limited}
+    end
+  end
+
+  defp check_rate_limit(email) do
+    case Repo.one(rate_limited_query(email)) do
+      nil -> {:ok, nil}
+      %LoginCode{rate_limited_until: rate_limited_until} -> {:ok, rate_limited_until}
+    end
+  end
+
+  defp handle_new_login_request(email) do
+    # Check if user exists and send code
+    case get_user_by_email(email) do
+      %User{} = user ->
+        case generate_login_code(user) do
+          {:ok, _login_code} -> {:ok, :sent}
+          {:error, reason} -> {:error, reason}
+        end
+
+      nil ->
+        # For security: same response time and behavior as existing users
+        # We still create a rate limiting entry to prevent enumeration
+        create_rate_limit_only_entry(email)
+        {:ok, :sent}
+    end
+  end
+
+  defp create_rate_limit_only_entry(email) do
+    # Create a dummy entry with placeholder code_hash for rate limiting purposes only
+    now = DateTime.utc_now() |> DateTime.truncate(:second)
+    rate_limited_until = DateTime.add(now, LoginCode.rate_limit_window_seconds(), :second)
+
+    # Use a placeholder hash that will never match any real code
+    placeholder_hash = :crypto.hash(:sha256, "invalid_placeholder_#{System.unique_integer()}")
+
+    %LoginCode{
+      email: email,
+      code_hash: placeholder_hash,
+      attempts: 0,
+      rate_limited_until: rate_limited_until
+    }
+    |> Repo.insert()
+  end
+
+  @doc """
+  Gets the remaining time in seconds until the rate limit expires for the given email.
+
+  Returns:
+  - `{:ok, remaining_seconds}` if rate limit is active
+  - `{:ok, nil}` if no rate limit is active for the email
+
+  ## Examples
+
+      iex> get_rate_limit_remaining("user@example.com")
+      {:ok, 45}
+
+      iex> get_rate_limit_remaining("user@example.com")  # no active rate limit
+      {:ok, nil}
+  """
+  def get_rate_limit_remaining(email) when is_binary(email) do
+    case Repo.one(rate_limited_query(email)) do
+      nil ->
+        {:ok, nil}
+
+      %LoginCode{rate_limited_until: rate_limited_until} ->
+        now = DateTime.utc_now()
+        remaining_seconds = DateTime.diff(rate_limited_until, now, :second)
+        {:ok, max(remaining_seconds, 0)}
+    end
   end
 
   @doc """
@@ -646,6 +771,32 @@ defmodule Lanttern.Identity do
   end
 
   @doc """
+  Cleans up expired login codes that are also past their rate limit window.
+
+  This function removes login codes that are both expired (older than 5 minutes)
+  AND past their rate limit window (older than 60 seconds from rate_limited_until).
+  These codes serve no functional purpose and can be safely deleted.
+
+  Returns the number of deleted records.
+
+  ## Examples
+
+      iex> cleanup_expired_login_codes()
+      {15, nil}  # 15 records deleted
+  """
+  def cleanup_expired_login_codes do
+    require Logger
+
+    {count, _} = Repo.delete_all(expired_and_past_rate_limit_query())
+
+    if count > 0 do
+      Logger.info("LoginCode cleanup: deleted #{count} expired login codes")
+    end
+
+    {count, nil}
+  end
+
+  @doc """
   Returns the name of the profile
   """
   def get_profile_name(profile) do
@@ -792,4 +943,48 @@ defmodule Lanttern.Identity do
   #     {:error, :user, changeset, _} -> {:error, changeset}
   #   end
   # end
+
+  ## LoginCode queries
+
+  defp verify_code_query(email, code) do
+    hashed_code = :crypto.hash(LoginCode.hash_algorithm(), code)
+    max_attempts = LoginCode.max_attempts()
+    code_validity_minutes = LoginCode.code_validity_in_minutes()
+
+    from lc in LoginCode,
+      where: lc.email == ^email,
+      where: lc.code_hash == ^hashed_code,
+      where: lc.inserted_at > ago(^code_validity_minutes, "minute"),
+      where: lc.attempts < ^max_attempts
+  end
+
+  defp by_email_query(email) do
+    from LoginCode, where: [email: ^email]
+  end
+
+  defp rate_limited_query(email) do
+    now = DateTime.utc_now()
+
+    from lc in LoginCode,
+      where: lc.email == ^email,
+      where: lc.rate_limited_until > ^now,
+      order_by: [desc: lc.rate_limited_until],
+      limit: 1
+  end
+
+  defp find_by_email_query(email) do
+    from lc in LoginCode,
+      where: lc.email == ^email,
+      order_by: [desc: lc.inserted_at],
+      limit: 1
+  end
+
+  defp expired_and_past_rate_limit_query do
+    now = DateTime.utc_now()
+    code_validity_minutes = LoginCode.code_validity_in_minutes()
+
+    from lc in LoginCode,
+      where: lc.inserted_at <= ago(^code_validity_minutes, "minute"),
+      where: lc.rate_limited_until <= ^now
+  end
 end

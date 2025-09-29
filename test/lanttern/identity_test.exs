@@ -5,6 +5,7 @@ defmodule Lanttern.IdentityTest do
 
   import Lanttern.IdentityFixtures
   alias Lanttern.Identity.{LoginCode, User, UserToken}
+  alias Lanttern.Repo
 
   describe "get_user_by_email/1" do
     test "does not return the user if the email does not exist" do
@@ -509,6 +510,150 @@ defmodule Lanttern.IdentityTest do
       assert {:error, :user_not_found} =
                Identity.verify_login_code("nonexistent@example.com", plain_code)
     end
+
+    test "cleanup_expired_login_codes/0 removes only expired and past rate limit codes" do
+      user = user_fixture()
+
+      # Create a fresh login code (should not be deleted)
+      {_plain_code1, hashed_code1} = LoginCode.generate_code()
+      fresh_code = LoginCode.build(user.email, hashed_code1)
+      {:ok, fresh_code} = Repo.insert(fresh_code)
+
+      # Create an expired code that's still within rate limit window (should not be deleted)
+      {_plain_code2, hashed_code2} = LoginCode.generate_code()
+      expired_but_rate_limited = LoginCode.build("expired@example.com", hashed_code2)
+      {:ok, expired_but_rate_limited} = Repo.insert(expired_but_rate_limited)
+
+      # Make it expired but keep rate limit active
+      expired_time = NaiveDateTime.utc_now(:second) |> NaiveDateTime.add(-10, :minute)
+      Repo.update!(Ecto.Changeset.change(expired_but_rate_limited, inserted_at: expired_time))
+
+      # Create an expired code that's past rate limit window (should be deleted)
+      {_plain_code3, hashed_code3} = LoginCode.generate_code()
+      expired_and_past_rate_limit = LoginCode.build("cleanup@example.com", hashed_code3)
+      {:ok, expired_and_past_rate_limit} = Repo.insert(expired_and_past_rate_limit)
+
+      # Make it both expired and past rate limit
+      old_time = NaiveDateTime.utc_now(:second) |> NaiveDateTime.add(-10, :minute)
+      old_rate_limit = DateTime.utc_now(:second) |> DateTime.add(-5, :minute)
+
+      Repo.update!(
+        Ecto.Changeset.change(expired_and_past_rate_limit,
+          inserted_at: old_time,
+          rate_limited_until: old_rate_limit
+        )
+      )
+
+      # Perform cleanup
+      {count, _} = Identity.cleanup_expired_login_codes()
+
+      # Assert correct number deleted
+      assert count == 1
+
+      # Assert correct codes remain
+      assert Repo.get(LoginCode, fresh_code.id)
+      assert Repo.get(LoginCode, expired_but_rate_limited.id)
+      refute Repo.get(LoginCode, expired_and_past_rate_limit.id)
+    end
+
+    test "cleanup_expired_login_codes/0 returns zero when no codes to clean" do
+      {count, _} = Identity.cleanup_expired_login_codes()
+      assert count == 0
+    end
+
+    test "cleanup_expired_login_codes/0 handles multiple cleanable codes" do
+      # Create multiple expired and past rate limit codes
+      old_time = NaiveDateTime.utc_now(:second) |> NaiveDateTime.add(-10, :minute)
+      old_rate_limit = DateTime.utc_now(:second) |> DateTime.add(-5, :minute)
+
+      codes =
+        for i <- 1..3 do
+          {_plain_code, hashed_code} = LoginCode.generate_code()
+          code = LoginCode.build("cleanup#{i}@example.com", hashed_code)
+          {:ok, code} = Repo.insert(code)
+
+          Repo.update!(
+            Ecto.Changeset.change(code,
+              inserted_at: old_time,
+              rate_limited_until: old_rate_limit
+            )
+          )
+
+          code
+        end
+
+      {count, _} = Identity.cleanup_expired_login_codes()
+
+      assert count == 3
+
+      # Verify all codes were deleted
+      for code <- codes do
+        refute Repo.get(LoginCode, code.id)
+      end
+    end
+  end
+
+  describe "login code cleanup queries" do
+    alias Lanttern.Identity.LoginCode
+
+    test "expired_and_past_rate_limit_query/0 finds only codes that meet both criteria" do
+      # Create a fresh code
+      {_plain_code1, hashed_code1} = LoginCode.generate_code()
+      fresh_code = LoginCode.build("fresh@example.com", hashed_code1)
+      {:ok, _fresh_code} = Repo.insert(fresh_code)
+
+      # Create expired but still rate limited
+      {_plain_code2, hashed_code2} = LoginCode.generate_code()
+      expired_rate_limited = LoginCode.build("expired_limited@example.com", hashed_code2)
+      {:ok, expired_rate_limited} = Repo.insert(expired_rate_limited)
+
+      expired_time = NaiveDateTime.utc_now(:second) |> NaiveDateTime.add(-10, :minute)
+      Repo.update!(Ecto.Changeset.change(expired_rate_limited, inserted_at: expired_time))
+
+      # Create expired and past rate limit
+      {_plain_code3, hashed_code3} = LoginCode.generate_code()
+      cleanup_target = LoginCode.build("cleanup@example.com", hashed_code3)
+      {:ok, cleanup_target} = Repo.insert(cleanup_target)
+
+      old_time = NaiveDateTime.utc_now(:second) |> NaiveDateTime.add(-10, :minute)
+      old_rate_limit = DateTime.utc_now(:second) |> DateTime.add(-5, :minute)
+
+      Repo.update!(
+        Ecto.Changeset.change(cleanup_target,
+          inserted_at: old_time,
+          rate_limited_until: old_rate_limit
+        )
+      )
+
+      # Query should only return the cleanup target
+      results = get_expired_and_past_rate_limit_codes_for_testing()
+
+      assert length(results) == 1
+      assert hd(results).id == cleanup_target.id
+    end
+
+    test "expired_and_past_rate_limit_query/0 returns empty when no codes match" do
+      # Create only fresh codes
+      {_plain_code, hashed_code} = LoginCode.generate_code()
+      fresh_code = LoginCode.build("fresh@example.com", hashed_code)
+      Repo.insert!(fresh_code)
+
+      results = get_expired_and_past_rate_limit_codes_for_testing()
+      assert results == []
+    end
+  end
+
+  # Test helper functions
+  defp get_expired_and_past_rate_limit_codes_for_testing do
+    import Ecto.Query
+    now = DateTime.utc_now()
+    code_validity_minutes = LoginCode.code_validity_in_minutes()
+
+    from(lc in LoginCode,
+      where: lc.inserted_at <= ago(^code_validity_minutes, "minute"),
+      where: lc.rate_limited_until <= ^now
+    )
+    |> Repo.all()
   end
 
   # passsword disabled in favor of access code login

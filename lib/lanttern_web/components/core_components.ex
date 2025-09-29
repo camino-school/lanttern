@@ -90,7 +90,7 @@ defmodule LantternWeb.CoreComponents do
   end
 
   @action_themes %{
-    "default" => "text-ltrn-dark hover:text-ltrn-subtle",
+    "default" => "text-ltrn-dark hover:text-ltrn-subtle disabled:text-ltrn-subtle",
     "subtle" => "text-ltrn-subtle hover:text-ltrn-dark",
     "primary" => "text-ltrn-dark hover:text-ltrn-subtle",
     "ai" => "text-ltrn-ai-dark hover:text-ltrn-ai-dark/60",
@@ -129,7 +129,7 @@ defmodule LantternWeb.CoreComponents do
 
   defp action_styles(theme, size),
     do:
-      "group relative flex items-center gap-2 min-w-0 #{Map.get(@action_themes, theme)} #{Map.get(@action_sizes, size)}"
+      "group relative flex items-center gap-2 min-w-0 #{Map.get(@action_themes, theme)} #{Map.get(@action_sizes, size)} disabled:cursor-not-allowed"
 
   defp action_bg_styles(theme, size),
     do:

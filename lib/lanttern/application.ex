@@ -12,10 +12,14 @@ defmodule Lanttern.Application do
       LantternWeb.Telemetry,
       # Start the Ecto repository
       Lanttern.Repo,
+      # Start Oban job processing
+      {Oban, Application.fetch_env!(:lanttern, Oban)},
       # Start the PubSub system
       {Phoenix.PubSub, name: Lanttern.PubSub},
       # Start Finch
       {Finch, name: Lanttern.Finch},
+      # Start Cachex for rate limiting
+      {Cachex, [:lanttern]},
       # Start the Endpoint (http/https)
       LantternWeb.Endpoint,
       # Start a worker by calling: Lanttern.Worker.start_link(arg)
