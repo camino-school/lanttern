@@ -2,15 +2,11 @@ defmodule LantternWeb.MessageBoard.IndexLive do
   use LantternWeb, :live_view
 
   import LantternWeb.CoreComponents
-  import LantternWeb.MessageBoard.Components
   import LantternWeb.FiltersHelpers, only: [assign_classes_filter: 2]
 
-  alias Lanttern.MessageBoardV2, as: MessageBoard
-  alias Lanttern.MessageBoard.MessageV2, as: Message
   alias Lanttern.MessageBoard.Section
+  alias Lanttern.MessageBoardV2, as: MessageBoard
   alias Lanttern.Schools.Cycle
-
-  alias LantternWeb.MessageBoard.MessageFormOverlayComponentV2, as: MessageFormOverlayComponent
 
   def mount(_params, _session, socket) do
     if connected?(socket), do: send(self(), :initialized)
@@ -25,8 +21,6 @@ defmodule LantternWeb.MessageBoard.IndexLive do
       |> assign(:classes, [])
       |> assign(:selected_classes, [])
       |> assign(:selected_classes_ids, [])
-      |> assign(:message, nil)
-      |> assign(:messages, [])
       |> assign(:section, nil)
       |> assign(:section_id, nil)
       |> assign(:sections, [])
@@ -41,24 +35,9 @@ defmodule LantternWeb.MessageBoard.IndexLive do
   def handle_params(params, _url, socket) do
     socket =
       socket
-      |> assign(:params, params) |> assign_message() |> assign_section() |> assign_reorder()
+      |> assign(:params, params) |> assign_section() |> assign_reorder()
 
     {:noreply, socket}
-  end
-
-  def handle_event("delete_message", %{"message_id" => id}, socket) do
-    message = MessageBoard.get_message!(id)
-
-    case MessageBoard.delete_message(message) do
-      {:ok, _message} ->
-        socket
-        |> put_flash(:info, gettext("Message deleted successfully"))
-        |> assign_sections()
-        |> then(&{:noreply, &1})
-
-      {:error, _changeset} ->
-        {:noreply, put_flash(socket, :error, gettext("Failed to delete message"))}
-    end
   end
 
   def handle_event("validate_section", %{"section" => section_params}, socket) do
@@ -126,30 +105,6 @@ defmodule LantternWeb.MessageBoard.IndexLive do
     end
   end
 
-  def handle_event("sortable_update", %{"oldIndex" => old, "newIndex" => new}, socket) do
-    non_archived = Enum.filter(socket.assigns.section.messages, fn m -> is_nil(m.archived_at) end)
-    {changed_id, rest} = List.pop_at(non_archived, old)
-    new_messages = List.insert_at(rest, new, changed_id)
-    MessageBoard.update_messages_position(new_messages)
-
-    {:noreply, assign_sections(socket)}
-  end
-
-  def handle_info({MessageFormOverlayComponent, {action, _message}}, socket)
-      when action in [:created, :updated] do
-    flash_message =
-      case action do
-        :created -> {:info, gettext("Message created successfully")}
-        :updated -> {:info, gettext("Message updated successfully")}
-      end
-
-    socket
-    |> put_flash(elem(flash_message, 0), elem(flash_message, 1))
-    |> push_patch(to: ~p"/school/message_board_v2")
-    |> assign_sections()
-    |> then(&{:noreply, &1})
-  end
-
   def handle_info({LantternWeb.MessageBoard.ReorderComponent, :reordered}, socket) do
     {:noreply, assign_sections(socket)}
   end
@@ -208,34 +163,6 @@ defmodule LantternWeb.MessageBoard.IndexLive do
 
   defp assign_section(socket), do: assign(socket, :section, nil)
 
-  defp assign_message(%{assigns: %{communication_manager?: false}} = socket),
-    do: assign(socket, :message, nil)
-
-  defp assign_message(%{assigns: %{params: %{"new" => "true", "section_id" => id}}} = socket) do
-    message = %Message{
-      school_id: socket.assigns.current_user.current_profile.school_id, classes: [], send_to: "school", section_id: id
-    }
-
-    socket
-    |> assign(:message, message)
-    |> assign(:message_overlay_title, gettext("New message"))
-  end
-
-  defp assign_message(%{assigns: %{params: %{"edit" => message_id}}} = socket) do
-    school_id = socket.assigns.current_user.current_profile.school_id
-
-    with true <- socket.assigns.communication_manager?,
-         {:ok, message} <- MessageBoard.get_message_per_school(message_id, school_id) do
-      socket
-      |> assign(:message, message)
-      |> assign(:message_overlay_title, gettext("Edit message"))
-    else
-      _ -> assign(socket, :message, nil)
-    end
-  end
-
-  defp assign_message(socket), do: assign(socket, :message, nil)
-
   defp assign_reorder(%{assigns: %{params: %{"reorder" => "true"}}} = socket) do
     assign(socket, :show_reorder, true)
   end
@@ -286,13 +213,6 @@ defmodule LantternWeb.MessageBoard.IndexLive do
                 </div>
                 <div class="p-4">
                   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-4" id={"section-#{section.id}-messages"}>
-                    <%= for message <- section.messages do %>
-                      <.message_card_admin message={message} mode="admin" edit_patch={~p"/school/message_board_v2?edit=#{message.id}"} on_delete={JS.push("delete_message", value: %{message_id: message.id})}/>
-                    <% end %>
-                    <.link :if={@communication_manager?} patch={~p"/school/message_board_v2?new=true&section_id=#{section.id}"} class="aspect-square w-full bg-white border-1 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center text-gray-400 hover:text-gray-600 hover:border-gray-400 transition-colors group shadow-lg">
-                      <.icon name="hero-plus" class="w-12 h-12 aspect-square mb-4 group-hover:scale-110 transition-transform"/>
-                      <span class="text-sm font-medium">Add new message</span>
-                    </.link>
                   </div>
                 </div>
               </div>
@@ -300,7 +220,6 @@ defmodule LantternWeb.MessageBoard.IndexLive do
           </div>
         <% end %>
       </.responsive_container>
-      <.live_component :if={@message} module={MessageFormOverlayComponent} id="message-form-overlay" message={@message} section_id={@section_id} title={@message_overlay_title} current_profile={@current_user.current_profile} on_cancel={JS.patch(~p"/school/message_board_v2")} notify_parent />
       <div :if={@section} phx-remove={JS.exec("phx-remove", to: "#section-form-overlay")}>
         <.slide_over id="section-form-overlay" show={true} on_cancel={JS.patch(~p"/school/message_board_v2")}>
           <:title>{@section_overlay_title}</:title>
@@ -310,11 +229,6 @@ defmodule LantternWeb.MessageBoard.IndexLive do
             </.error_block>
             <.input field={@form[:name]} type="text" label={gettext("Section name")} class="mb-6 -mt-6" phx-debounce="1500"/>
           </.form>
-          <div :if={@form_action == :edit} phx-hook="Sortable" id="sortable-section-cards" data-sortable-handle=".sortable-handle" phx-update="ignore" >
-            <.dragable_card :for={ message <- if is_list(@section.messages), do: Enum.filter(@section.messages, fn m -> is_nil(m.archived_at) end), else: []} id={"sortable-#{message.id}"} class="mb-4 border-l-12 gap-2" style={"border-left-color: #{message.color};"}>
-              <h3 class="font-display font-black text-lg" title={message.name}>{message.name}</h3>
-            </.dragable_card>
-          </div>
           <:actions>
             <.action type="button" theme="subtle" size="md" phx-click={JS.exec("data-cancel", to: "#section-form-overlay")}>
               {gettext("Cancel")}
