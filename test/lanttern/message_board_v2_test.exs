@@ -254,7 +254,9 @@ defmodule Lanttern.MessageBoardV2Test do
       section2 = insert(:section, school: school2)
 
       message1 = insert(:message_v2, school: school1, section: section1, name: "School 1 Message")
-      _message2 = insert(:message_v2, school: school2, section: section2, name: "School 2 Message")
+
+      _message2 =
+        insert(:message_v2, school: school2, section: section2, name: "School 2 Message")
 
       messages = MessageBoardV2.list_messages(school_id: school1.id)
 
@@ -273,18 +275,32 @@ defmodule Lanttern.MessageBoardV2Test do
 
       # Message sent to specific class (should be included when class is in filter)
       class_message =
-        insert(:message_v2, school: school, section: section, send_to: "classes", classes_ids: [class1.id])
+        insert(:message_v2,
+          school: school,
+          section: section,
+          send_to: "classes",
+          classes_ids: [class1.id]
+        )
         |> then(fn message ->
-          message_with_preloads = MessageBoardV2.get_message!(message.id, preloads: [:message_classes])
+          message_with_preloads =
+            MessageBoardV2.get_message!(message.id, preloads: [:message_classes])
+
           MessageBoardV2.update_message(message_with_preloads, %{classes_ids: [class1.id]})
           |> elem(1)
         end)
 
       # Message sent to different class (should not be included)
       _other_class_message =
-        insert(:message_v2, school: school, section: section, send_to: "classes", classes_ids: [class2.id])
+        insert(:message_v2,
+          school: school,
+          section: section,
+          send_to: "classes",
+          classes_ids: [class2.id]
+        )
         |> then(fn message ->
-          message_with_preloads = MessageBoardV2.get_message!(message.id, preloads: [:message_classes])
+          message_with_preloads =
+            MessageBoardV2.get_message!(message.id, preloads: [:message_classes])
+
           MessageBoardV2.update_message(message_with_preloads, %{classes_ids: [class2.id]})
           |> elem(1)
         end)
@@ -485,7 +501,9 @@ defmodule Lanttern.MessageBoardV2Test do
     test "update_messages_position/1 ignores archived messages" do
       section = insert(:section)
       active_message = insert(:message_v2, section: section, position: 0)
-      archived_message = insert(:message_v2, section: section, archived_at: DateTime.utc_now(), position: 1)
+
+      archived_message =
+        insert(:message_v2, section: section, archived_at: DateTime.utc_now(), position: 1)
 
       # Try to reorder including archived message
       messages_with_archived = [archived_message, active_message]

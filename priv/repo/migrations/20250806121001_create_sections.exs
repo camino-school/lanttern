@@ -5,7 +5,7 @@ defmodule Lanttern.Repo.Migrations.CreateSections do
     create table(:sections) do
       add :name, :string
       add :position, :integer, default: 0, null: false
-      add :school_id, references(:schools, on_delete: :delete_all), null: false
+      add :school_id, references(:schools, on_delete: :nothing), null: false
 
       timestamps()
     end

@@ -19,6 +19,8 @@ defmodule Lanttern.MessageBoard.Section do
     section
     |> cast(attrs, [:name, :position, :school_id])
     |> validate_required([:name, :position, :school_id])
-    |> unique_constraint([:name, :school_id], message: "section name must be unique within a school")
+    |> unique_constraint([:name, :school_id],
+      message: "section name must be unique within a school"
+    )
   end
 end

@@ -34,8 +34,7 @@ defmodule LantternWeb.MessageBoard.IndexLive do
 
   def handle_params(params, _url, socket) do
     socket =
-      socket
-      |> assign(:params, params) |> assign_section() |> assign_reorder()
+      socket |> assign(:params, params) |> assign_section() |> assign_reorder()
 
     {:noreply, socket}
   end
@@ -176,15 +175,27 @@ defmodule LantternWeb.MessageBoard.IndexLive do
         <:title>{gettext("Message board admin")}</:title>
         <div class="flex items-center justify-between gap-4 p-4">
           <div class="flex items-center gap-4">
-            <.action type="button" phx-click={JS.exec("data-show", to: "#message-board-classes-filters-overlay")} icon_name="hero-chevron-down-mini">
+            <.action
+              type="button"
+              phx-click={JS.exec("data-show", to: "#message-board-classes-filters-overlay")}
+              icon_name="hero-chevron-down-mini"
+            >
               {format_action_items_text(@selected_classes, gettext("All years"))}
             </.action>
           </div>
           <div class="flex items-center gap-4">
-            <.action type="link" patch={~p"/school/message_board_v2?reorder=true"} icon_name="hero-arrows-up-down-mini">
+            <.action
+              type="link"
+              patch={~p"/school/message_board_v2?reorder=true"}
+              icon_name="hero-arrows-up-down-mini"
+            >
               {gettext("Reorder sections")}
             </.action>
-            <.action type="link" patch={~p"/school/message_board_v2?new_section=true"} icon_name="hero-plus-circle-mini">
+            <.action
+              type="link"
+              patch={~p"/school/message_board_v2?new_section=true"}
+              icon_name="hero-plus-circle-mini"
+            >
               {gettext("Create section")}
             </.action>
           </div>
@@ -193,11 +204,13 @@ defmodule LantternWeb.MessageBoard.IndexLive do
       <.responsive_container class="p-4">
         <p class="flex items-center gap-2 mb-6">
           <.icon name="hero-information-circle-mini" class="text-ltrn-subtle" />
-          {gettext("Manage message board sections and messages. Messages are displayed in students and guardians home page.")}
+          {gettext(
+            "Manage message board sections and messages. Messages are displayed in students and guardians home page."
+          )}
         </p>
         <%= if @sections == [] do %>
           <.card_base class="p-10 mt-4">
-            <.empty_state> {gettext("No sections created yet")}</.empty_state>
+            <.empty_state>{gettext("No sections created yet")}</.empty_state>
           </.card_base>
         <% else %>
           <div class="space-y-8">
@@ -208,11 +221,22 @@ defmodule LantternWeb.MessageBoard.IndexLive do
                     <h2 class="text-lg font-bold">{section.name}</h2>
                   </div>
                   <div class="flex items-center space-x-2">
-                    <.action type="link" patch={~p"/school/message_board_v2?edit_section=#{section.id}"} theme="subtle" icon_name="hero-cog-6-tooth-mini" id={"section-#{section.id}-settings"} title={gettext("Configure section")}></.action>
+                    <.action
+                      type="link"
+                      patch={~p"/school/message_board_v2?edit_section=#{section.id}"}
+                      theme="subtle"
+                      icon_name="hero-cog-6-tooth-mini"
+                      id={"section-#{section.id}-settings"}
+                      title={gettext("Configure section")}
+                    >
+                    </.action>
                   </div>
                 </div>
                 <div class="p-4">
-                  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-4" id={"section-#{section.id}-messages"}>
+                  <div
+                    class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-4"
+                    id={"section-#{section.id}-messages"}
+                  >
                   </div>
                 </div>
               </div>
@@ -221,37 +245,86 @@ defmodule LantternWeb.MessageBoard.IndexLive do
         <% end %>
       </.responsive_container>
       <div :if={@section} phx-remove={JS.exec("phx-remove", to: "#section-form-overlay")}>
-        <.slide_over id="section-form-overlay" show={true} on_cancel={JS.patch(~p"/school/message_board_v2")}>
+        <.slide_over
+          id="section-form-overlay"
+          show={true}
+          on_cancel={JS.patch(~p"/school/message_board_v2")}
+        >
           <:title>{@section_overlay_title}</:title>
           <.form id="message-form" for={@form} phx-change="validate_section" phx-submit="save_section">
             <.error_block :if={@form.source.action in [:insert, :update]} class="mb-6">
               {gettext("Oops, something went wrong! Please check the errors below.")}
             </.error_block>
-            <.input field={@form[:name]} type="text" label={gettext("Section name")} class="mb-6 -mt-6" phx-debounce="1500"/>
+            <.input
+              field={@form[:name]}
+              type="text"
+              label={gettext("Section name")}
+              class="mb-6 -mt-6"
+              phx-debounce="1500"
+            />
           </.form>
           <:actions>
-            <.action type="button" theme="subtle" size="md" phx-click={JS.exec("data-cancel", to: "#section-form-overlay")}>
+            <.action
+              type="button"
+              theme="subtle"
+              size="md"
+              phx-click={JS.exec("data-cancel", to: "#section-form-overlay")}
+            >
               {gettext("Cancel")}
             </.action>
-            <.action type="submit" theme="primary" size="md" icon_name="hero-check" form="message-form">
+            <.action
+              type="submit"
+              theme="primary"
+              size="md"
+              icon_name="hero-check"
+              form="message-form"
+            >
               {gettext("Save")}
             </.action>
           </:actions>
         </.slide_over>
       </div>
-      <.slide_over :if={@show_reorder} id="reorder-sections-overlay" show={true} on_cancel={JS.patch(~p"/school/message_board_v2")} full_w={true}>
+      <.slide_over
+        :if={@show_reorder}
+        id="reorder-sections-overlay"
+        show={true}
+        on_cancel={JS.patch(~p"/school/message_board_v2")}
+        full_w={true}
+      >
         <:title>{gettext("Reorder sections")}</:title>
-        <.live_component module={LantternWeb.MessageBoard.ReorderComponent} id="reorder-sections-component" current_user={@current_user}/>
+        <.live_component
+          module={LantternWeb.MessageBoard.ReorderComponent}
+          id="reorder-sections-component"
+          current_user={@current_user}
+        />
         <:actions>
-          <.action type="button" theme="subtle" size="md" phx-click={JS.exec("data-cancel", to: "#reorder-sections-overlay")}>
+          <.action
+            type="button"
+            theme="subtle"
+            size="md"
+            phx-click={JS.exec("data-cancel", to: "#reorder-sections-overlay")}
+          >
             {gettext("Cancel")}
           </.action>
-          <.action type="button" theme="primary" size="md" phx-click={JS.patch(~p"/school/message_board_v2")}>
+          <.action
+            type="button"
+            theme="primary"
+            size="md"
+            phx-click={JS.patch(~p"/school/message_board_v2")}
+          >
             {gettext("Done")}
           </.action>
         </:actions>
       </.slide_over>
-      <.live_component module={LantternWeb.Filters.ClassesFilterOverlayComponent} id="message-board-classes-filters-overlay" current_user={@current_user} title={gettext("Filter messages by class")} navigate={~p"/school/message_board_v2"} classes={@classes} selected_classes_ids={@selected_classes_ids}/>
+      <.live_component
+        module={LantternWeb.Filters.ClassesFilterOverlayComponent}
+        id="message-board-classes-filters-overlay"
+        current_user={@current_user}
+        title={gettext("Filter messages by class")}
+        navigate={~p"/school/message_board_v2"}
+        classes={@classes}
+        selected_classes_ids={@selected_classes_ids}
+      />
     </Layouts.app_logged_in>
     """
   end
