@@ -11,7 +11,7 @@ defmodule LantternWeb.MessageBoard.IndexLive do
   def mount(_params, _session, socket) do
     if connected?(socket), do: send(self(), :initialized)
 
-    communication_manager? =
+    is_communication_manager =
       "communication_management" in socket.assigns.current_user.current_profile.permissions
 
     socket =
@@ -24,7 +24,7 @@ defmodule LantternWeb.MessageBoard.IndexLive do
       |> assign(:section, nil)
       |> assign(:section_id, nil)
       |> stream(:sections, [])
-      |> assign(:communication_manager?, communication_manager?)
+      |> assign(:communication_manager?, is_communication_manager)
       |> assign(:section_overlay_title, nil)
       |> assign(:form_action, nil)
       |> assign(:page_title, gettext("Message board"))
