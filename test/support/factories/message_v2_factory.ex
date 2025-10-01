@@ -10,7 +10,7 @@ defmodule Lanttern.MessageV2Factory do
           %Lanttern.MessageBoard.MessageV2{
             name: "Message Name",
             description: "Message Description",
-            send_to: "school",
+            send_to: :school,
             school: school,
             section: section,
             subtitle: "Subtitle",

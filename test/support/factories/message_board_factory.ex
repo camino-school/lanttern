@@ -11,7 +11,7 @@ defmodule Lanttern.MessageBoardFactory do
         %Lanttern.MessageBoard.Message{
           description: "some description",
           name: "some name",
-          send_to: "school",
+          send_to: :school,
           school: build(:school)
         }
       end

@@ -386,7 +386,7 @@ defmodule Lanttern.MessageBoardV2Test do
       assert {:ok, %Message{} = message} = MessageBoardV2.create_message(valid_attrs)
       assert message.name == "Test Message"
       assert message.description == "Test Description"
-      assert message.send_to == "school"
+      assert message.send_to == :school
       assert message.school_id == school.id
       assert message.section_id == section.id
       assert message.subtitle == "Test Subtitle"

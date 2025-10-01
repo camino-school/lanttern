@@ -29,7 +29,7 @@ defmodule Lanttern.MessageBoardV2 do
         from(m in queryable,
           left_join: mc in assoc(m, :message_classes),
           where:
-            (m.send_to == "school" and m.school_id == ^school_id) or mc.class_id in ^classes_ids
+            (m.send_to == :school and m.school_id == ^school_id) or mc.class_id in ^classes_ids
         )
 
       _ ->
@@ -133,7 +133,7 @@ defmodule Lanttern.MessageBoardV2 do
             from(m in queryable,
               left_join: mc in assoc(m, :message_classes),
               where:
-                (m.send_to == "school" and m.school_id == ^school_id) or
+                (m.send_to == :school and m.school_id == ^school_id) or
                   mc.class_id in ^classes_ids
             )
 
