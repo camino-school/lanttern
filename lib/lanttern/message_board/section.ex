@@ -6,6 +6,20 @@ defmodule Lanttern.MessageBoard.Section do
   use Ecto.Schema
   import Ecto.Changeset
 
+  alias Lanttern.MessageBoard.MessageV2
+  alias Lanttern.Schools.School
+
+  @type t :: %__MODULE__{
+          id: pos_integer(),
+          name: String.t(),
+          position: non_neg_integer(),
+          school_id: pos_integer(),
+          school: School.t() | Ecto.Association.NotLoaded.t(),
+          messages: [MessageV2.t()] | Ecto.Association.NotLoaded.t(),
+          inserted_at: DateTime.t(),
+          updated_at: DateTime.t()
+        }
+
   schema "sections" do
     field :name, :string
     field :position, :integer, default: 0

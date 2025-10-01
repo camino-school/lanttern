@@ -23,7 +23,7 @@ defmodule LantternWeb.MessageBoard.IndexLive do
       |> assign(:selected_classes_ids, [])
       |> assign(:section, nil)
       |> assign(:section_id, nil)
-      |> assign(:sections, [])
+      |> stream(:sections, [])
       |> assign(:communication_manager?, communication_manager?)
       |> assign(:section_overlay_title, nil)
       |> assign(:form_action, nil)
@@ -31,142 +31,6 @@ defmodule LantternWeb.MessageBoard.IndexLive do
 
     {:ok, socket}
   end
-
-  def handle_params(params, _url, socket) do
-    socket =
-      socket |> assign(:params, params) |> assign_section() |> assign_reorder()
-
-    {:noreply, socket}
-  end
-
-  def handle_event("validate_section", %{"section" => section_params}, socket) do
-    changeset =
-      socket.assigns.section
-      |> MessageBoard.change_section(section_params)
-      |> Map.put(:action, :validate)
-
-    {:noreply, assign(socket, :form, to_form(changeset))}
-  end
-
-  def handle_event("save_section", params, %{assigns: %{form_action: :edit}} = socket) do
-    section_params = Map.get(params, "section")
-
-    socket.assigns.section
-    |> MessageBoard.update_section(section_params)
-    |> case do
-      {:ok, _section} ->
-        socket
-        |> put_flash(:info, "Section updated successfully")
-        |> push_patch(to: ~p"/school/message_board_v2")
-        |> assign_sections()
-        |> assign(:form_action, nil)
-        |> then(&{:noreply, &1})
-
-      {:error, %Ecto.Changeset{} = changeset} ->
-        {:noreply, assign(socket, :form, to_form(changeset))}
-    end
-  end
-
-  def handle_event("save_section", params, %{assigns: %{form_action: :create}} = socket) do
-    section_params =
-      params
-      |> Map.get("section")
-      |> Map.put("school_id", socket.assigns.current_user.current_profile.school_id)
-
-    section_params
-    |> MessageBoard.create_section()
-    |> case do
-      {:ok, _section} ->
-        socket
-        |> put_flash(:info, "Section created successfully")
-        |> push_patch(to: ~p"/school/message_board_v2")
-        |> assign_sections()
-        |> assign(:form_action, nil)
-        |> then(&{:noreply, &1})
-
-      {:error, %Ecto.Changeset{} = changeset} ->
-        {:noreply, assign(socket, :form, to_form(changeset))}
-    end
-  end
-
-  def handle_event("delete_section", _params, %{assigns: %{section: section}} = socket) do
-    case MessageBoard.delete_section(section) do
-      {:ok, _section} ->
-        socket
-        |> put_flash(:info, gettext("Section deleted successfully"))
-        |> push_patch(to: ~p"/school/message_board_v2")
-        |> assign_sections()
-        |> assign(:form_action, nil)
-        |> then(&{:noreply, &1})
-
-      {:error, _changeset} ->
-        {:noreply, put_flash(socket, :error, gettext("Failed to delete section"))}
-    end
-  end
-
-  def handle_info({LantternWeb.MessageBoard.ReorderComponent, :reordered}, socket) do
-    {:noreply, assign_sections(socket)}
-  end
-
-  def handle_info(:initialized, socket) do
-    socket =
-      socket |> apply_assign_classes_filter() |> assign_sections() |> assign(:initialized, true)
-
-    {:noreply, socket}
-  end
-
-  defp apply_assign_classes_filter(socket) do
-    assign_classes_filter_opts =
-      case socket.assigns.current_user.current_profile do
-        %{current_school_cycle: %Cycle{} = cycle} -> [cycles_ids: [cycle.id]]
-        _ -> []
-      end
-
-    assign_classes_filter(socket, assign_classes_filter_opts)
-  end
-
-  defp assign_sections(socket) do
-    school_id = socket.assigns.current_user.current_profile.school_id
-    sections = MessageBoard.list_sections(school_id, socket.assigns.selected_classes_ids)
-
-    assign(socket, :sections, sections)
-  end
-
-  defp assign_section(%{assigns: %{params: %{"new_section" => "true"}}} = socket) do
-    section = %Section{}
-    changeset = MessageBoard.change_section(section)
-
-    socket
-    |> assign(:section, section)
-    |> assign(:section_overlay_title, gettext("New section"))
-    |> assign(:form_action, :create)
-    |> assign(:form, to_form(changeset))
-  end
-
-  defp assign_section(%{assigns: %{params: %{"edit_section" => id}}} = socket) do
-    section = MessageBoard.get_section_with_ordered_messages!(id)
-    changeset = MessageBoard.change_section(section)
-
-    socket
-    |> assign(:section, section)
-    |> assign(:section_overlay_title, gettext("Edit section"))
-    |> assign(:form_action, :edit)
-    |> assign(:form, to_form(changeset))
-  end
-
-  defp assign_section(%{assigns: %{params: %{"section_id" => section_id}}} = socket) do
-    section = MessageBoard.get_section!(section_id)
-
-    assign(socket, :section_id, section.id)
-  end
-
-  defp assign_section(socket), do: assign(socket, :section, nil)
-
-  defp assign_reorder(%{assigns: %{params: %{"reorder" => "true"}}} = socket) do
-    assign(socket, :show_reorder, true)
-  end
-
-  defp assign_reorder(socket), do: assign(socket, :show_reorder, false)
 
   def render(assigns) do
     ~H"""
@@ -208,14 +72,14 @@ defmodule LantternWeb.MessageBoard.IndexLive do
             "Manage message board sections and messages. Messages are displayed in students and guardians home page."
           )}
         </p>
-        <%= if @sections == [] do %>
+        <%= if @streams.sections.inserts == [] do %>
           <.card_base class="p-10 mt-4">
             <.empty_state>{gettext("No sections created yet")}</.empty_state>
           </.card_base>
         <% else %>
-          <div class="space-y-8">
-            <%= for section <- @sections do %>
-              <div class="bg-white rounded-lg shadow-lg">
+          <div class="space-y-8" id="sections" phx-update="stream">
+            <%= for {dom_id, section} <- @streams.sections do %>
+              <div id={dom_id} class="bg-white rounded-lg shadow-lg">
                 <div class="flex items-center justify-between p-4 border-gray-200 -mb-4">
                   <div class="flex items-center space-x-3">
                     <h2 class="text-lg font-bold">{section.name}</h2>
@@ -328,4 +192,140 @@ defmodule LantternWeb.MessageBoard.IndexLive do
     </Layouts.app_logged_in>
     """
   end
+
+  def handle_params(params, _url, socket) do
+    socket =
+      socket |> assign(:params, params) |> assign_section() |> assign_reorder()
+
+    {:noreply, socket}
+  end
+
+  def handle_event("validate_section", %{"section" => section_params}, socket) do
+    changeset =
+      socket.assigns.section
+      |> MessageBoard.change_section(section_params)
+      |> Map.put(:action, :validate)
+
+    {:noreply, assign(socket, :form, to_form(changeset))}
+  end
+
+  def handle_event("save_section", params, %{assigns: %{form_action: :edit}} = socket) do
+    section_params = Map.get(params, "section")
+
+    socket.assigns.section
+    |> MessageBoard.update_section(section_params)
+    |> case do
+      {:ok, _section} ->
+        socket
+        |> put_flash(:info, "Section updated successfully")
+        |> push_patch(to: ~p"/school/message_board_v2")
+        |> assign_sections()
+        |> assign(:form_action, nil)
+        |> then(&{:noreply, &1})
+
+      {:error, %Ecto.Changeset{} = changeset} ->
+        {:noreply, assign(socket, :form, to_form(changeset))}
+    end
+  end
+
+  def handle_event("save_section", params, %{assigns: %{form_action: :create}} = socket) do
+    section_params =
+      params
+      |> Map.get("section")
+      |> Map.put("school_id", socket.assigns.current_user.current_profile.school_id)
+
+    section_params
+    |> MessageBoard.create_section()
+    |> case do
+      {:ok, _section} ->
+        socket
+        |> put_flash(:info, "Section created successfully")
+        |> push_patch(to: ~p"/school/message_board_v2")
+        |> assign_sections()
+        |> assign(:form_action, nil)
+        |> then(&{:noreply, &1})
+
+      {:error, %Ecto.Changeset{} = changeset} ->
+        {:noreply, assign(socket, :form, to_form(changeset))}
+    end
+  end
+
+  def handle_event("delete_section", _params, %{assigns: %{section: section}} = socket) do
+    case MessageBoard.delete_section(section) do
+      {:ok, _section} ->
+        socket
+        |> put_flash(:info, gettext("Section deleted successfully"))
+        |> push_patch(to: ~p"/school/message_board_v2")
+        |> assign_sections()
+        |> assign(:form_action, nil)
+        |> then(&{:noreply, &1})
+
+      {:error, _changeset} ->
+        {:noreply, put_flash(socket, :error, gettext("Failed to delete section"))}
+    end
+  end
+
+  def handle_info({LantternWeb.MessageBoard.ReorderComponent, :reordered}, socket) do
+    {:noreply, assign_sections(socket)}
+  end
+
+  def handle_info(:initialized, socket) do
+    socket =
+      socket |> apply_assign_classes_filter() |> assign_sections() |> assign(:initialized, true)
+
+    {:noreply, socket}
+  end
+
+  defp apply_assign_classes_filter(socket) do
+    assign_classes_filter_opts =
+      case socket.assigns.current_user.current_profile do
+        %{current_school_cycle: %Cycle{} = cycle} -> [cycles_ids: [cycle.id]]
+        _ -> []
+      end
+
+    assign_classes_filter(socket, assign_classes_filter_opts)
+  end
+
+  defp assign_sections(socket) do
+    school_id = socket.assigns.current_user.current_profile.school_id
+    sections = MessageBoard.list_sections(school_id: school_id, classes_ids: socket.assigns.selected_classes_ids)
+
+    stream(socket, :sections, sections, reset: true)
+  end
+
+  defp assign_section(%{assigns: %{params: %{"new_section" => "true"}}} = socket) do
+    section = %Section{}
+    changeset = MessageBoard.change_section(section)
+
+    socket
+    |> assign(:section, section)
+    |> assign(:section_overlay_title, gettext("New section"))
+    |> assign(:form_action, :create)
+    |> assign(:form, to_form(changeset))
+  end
+
+  defp assign_section(%{assigns: %{params: %{"edit_section" => id}}} = socket) do
+    section = MessageBoard.get_section_with_ordered_messages!(id)
+    changeset = MessageBoard.change_section(section)
+
+    socket
+    |> assign(:section, section)
+    |> assign(:section_overlay_title, gettext("Edit section"))
+    |> assign(:form_action, :edit)
+    |> assign(:form, to_form(changeset))
+  end
+
+  defp assign_section(%{assigns: %{params: %{"section_id" => section_id}}} = socket) do
+    section = MessageBoard.get_section!(section_id)
+
+    assign(socket, :section_id, section.id)
+  end
+
+  defp assign_section(socket), do: assign(socket, :section, nil)
+
+  defp assign_reorder(%{assigns: %{params: %{"reorder" => "true"}}} = socket) do
+    assign(socket, :show_reorder, true)
+  end
+
+  defp assign_reorder(socket), do: assign(socket, :show_reorder, false)
 end

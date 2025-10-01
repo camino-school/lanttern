@@ -21,13 +21,16 @@ defmodule Lanttern.MessageBoard.MessageV2 do
           cover: String.t() | nil,
           send_to: String.t(),
           archived_at: DateTime.t() | nil,
-          school_id: pos_integer() | nil,
-          section_id: pos_integer() | nil,
-          school: School.t() | nil,
+          position: non_neg_integer(),
+          school_id: pos_integer(),
+          section_id: pos_integer(),
+          school: School.t() | Ecto.Association.NotLoaded.t(),
+          section: Section.t() | Ecto.Association.NotLoaded.t(),
           classes_ids: [pos_integer()] | nil,
-          classes: [Class.t()] | nil,
-          inserted_at: DateTime.t() | nil,
-          updated_at: DateTime.t() | nil
+          message_classes: [MessageClass.t()] | Ecto.Association.NotLoaded.t(),
+          classes: [Class.t()] | Ecto.Association.NotLoaded.t(),
+          inserted_at: DateTime.t(),
+          updated_at: DateTime.t()
         }
 
   schema "messages" do

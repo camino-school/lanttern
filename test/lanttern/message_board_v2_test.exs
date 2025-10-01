@@ -20,7 +20,7 @@ defmodule Lanttern.MessageBoardV2Test do
       other_school = insert(:school)
       _other_section = insert(:section, school: other_school, name: "Other Section", position: 0)
 
-      sections = MessageBoardV2.list_sections(school.id)
+      sections = MessageBoardV2.list_sections(school_id: school.id)
 
       assert length(sections) == 3
       # Should be ordered by position
@@ -68,7 +68,7 @@ defmodule Lanttern.MessageBoardV2Test do
           archived_at: DateTime.utc_now()
         )
 
-      sections = MessageBoardV2.list_sections(school.id, [class1.id])
+      sections = MessageBoardV2.list_sections(school_id: school.id, classes_ids: [class1.id])
       section = List.first(sections)
 
       # Should preload only non-archived messages

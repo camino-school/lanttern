@@ -24,7 +24,7 @@ defmodule LantternWeb.MessageBoard.ReorderComponent do
 
   defp assign_sections(socket) do
     school_id = socket.assigns.current_user.current_profile.school_id
-    assign(socket, :sections, MessageBoard.list_sections(school_id))
+    assign(socket, :sections, MessageBoard.list_sections(school_id: school_id))
   end
 
   defp initialize(%{assigns: %{initialized: false}} = socket),

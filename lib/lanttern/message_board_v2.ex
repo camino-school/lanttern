@@ -94,24 +94,33 @@ defmodule Lanttern.MessageBoardV2 do
   @doc """
   Returns sections ordered by position for a school.
   """
-  def list_sections(school_id) do
-    from(s in Section, where: s.school_id == ^school_id, order_by: s.position)
+  def list_sections(opts \\ []) do
+    from(s in Section, order_by: s.position)
+    |> apply_list_sections_opts(opts)
     |> Repo.all()
   end
 
-  @doc """
-  Returns sections with filtered messages.
-  """
-  def list_sections(school_id, classes_ids) when is_list(classes_ids) do
-    messages_query =
-      from(m in Message, where: is_nil(m.archived_at), order_by: m.position)
-      |> apply_sections_filter_opts(classes_ids: classes_ids, school_id: school_id)
-      |> preload([:classes])
+  defp apply_list_sections_opts(queryable, []), do: queryable
 
-    from(s in Section, where: s.school_id == ^school_id, order_by: s.position)
-    |> preload(messages: ^messages_query)
-    |> Repo.all()
+  defp apply_list_sections_opts(queryable, [{:school_id, school_id} | opts]) do
+    case Keyword.get(opts, :classes_ids) do
+      classes_ids when is_list(classes_ids) and classes_ids != [] ->
+        messages_query =
+          from(m in Message, where: is_nil(m.archived_at), order_by: m.position)
+          |> apply_sections_filter_opts(classes_ids: classes_ids, school_id: school_id)
+          |> preload([:classes])
+
+        from(s in queryable, where: s.school_id == ^school_id)
+        |> preload(messages: ^messages_query)
+
+      _ ->
+        from(s in queryable, where: s.school_id == ^school_id)
+    end
+    |> apply_list_sections_opts(opts)
   end
+
+  defp apply_list_sections_opts(queryable, [_ | opts]),
+    do: apply_list_sections_opts(queryable, opts)
 
   defp apply_sections_filter_opts(queryable, opts) do
     case Keyword.get(opts, :school_id) do
@@ -143,12 +152,19 @@ defmodule Lanttern.MessageBoardV2 do
   Gets a section with ordered messages.
   """
   def get_section_with_ordered_messages!(id) do
+    messages_query =
+      from(
+        m in Message,
+        order_by: [
+          asc: m.position,
+          desc: m.updated_at,
+          asc: m.archived_at
+        ]
+      )
+
     Section
     |> Repo.get!(id)
-    |> Repo.preload(
-      messages:
-        from(m in Message, order_by: [asc: m.position, desc: m.updated_at, asc: m.archived_at])
-    )
+    |> Repo.preload(messages: messages_query)
   end
 
   @doc """
@@ -178,31 +194,19 @@ defmodule Lanttern.MessageBoardV2 do
   end
 
   def update_messages_position(messages) do
-    messages
-    |> Enum.filter(fn m -> is_nil(m.archived_at) end)
-    |> Enum.with_index()
-    |> Enum.reduce(Ecto.Multi.new(), fn {message, i}, multi ->
-      query = from(m in Message, where: m.id == ^message.id)
-      Ecto.Multi.update_all(multi, "update-#{message.id}", query, set: [position: i])
-    end)
-    |> Repo.transaction()
-    |> case do
-      {:ok, _data} -> :ok
-      _ -> {:error, "Something went wrong"}
-    end
+    messages_ids =
+      messages
+      |> Enum.filter(fn m -> is_nil(m.archived_at) end)
+      |> Enum.map(& &1.id)
+
+    update_positions(Message, messages_ids)
   end
 
-  def update_section_position(sections) do
-    sections
-    |> Enum.with_index()
-    |> Enum.reduce(Ecto.Multi.new(), fn {section, i}, multi ->
-      query = from(m in Section, where: m.id == ^section.id)
-      Ecto.Multi.update_all(multi, "update-#{section.id}", query, set: [position: i])
-    end)
-    |> Repo.transaction()
-    |> case do
-      {:ok, _data} -> :ok
-      _ -> {:error, "Something went wrong"}
-    end
+  def update_section_position(sections) when is_list(sections) do
+    sections_ids = Enum.map(sections, & &1.id)
+    update_positions(Section, sections_ids)
   end
+
+  def update_sections_positions(sections_ids) when is_list(sections_ids),
+    do: update_positions(Section, sections_ids)
 end
