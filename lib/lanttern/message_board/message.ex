@@ -1,6 +1,8 @@
 defmodule Lanttern.MessageBoard.Message do
   @moduledoc """
-  The `Message` schema
+  The `Message` schema - DEPRECATED
+
+  @deprecated "Will be replaced by Lanttern.MessageBoard.MessageV2 in the future"
   """
 
   use Ecto.Schema

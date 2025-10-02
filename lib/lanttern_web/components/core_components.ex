@@ -1026,6 +1026,7 @@ defmodule LantternWeb.CoreComponents do
   attr :id, :string, default: nil
   attr :class, :any, default: nil
   attr :bg_class, :any, default: nil, doc: "view `<.card_base>` docs"
+  attr :rest, :global
 
   slot :inner_block, required: true
 
@@ -1035,6 +1036,7 @@ defmodule LantternWeb.CoreComponents do
       id={@id}
       class={["flex items-center gap-4 py-4 pl-2 pr-4", @class]}
       bg_class={@bg_class}
+      {@rest}
     >
       <.drag_handle class="sortable-handle" />
       <div class="flex-1 min-w-0">

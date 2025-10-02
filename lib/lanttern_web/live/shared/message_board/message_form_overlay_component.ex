@@ -65,11 +65,11 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponent do
           </div>
           <%!-- allow send to selection only when creating message --%>
           <%= if @message.id do %>
-            <div :if={@message.send_to == "school"} class="flex items-center gap-2 mb-6">
+            <div :if={@message.send_to == :school} class="flex items-center gap-2 mb-6">
               <.icon name="hero-user-group" class="w-6 h-6" />
               <p class="font-bold">{gettext("Sending to all school")}</p>
             </div>
-            <div :if={@message.send_to == "classes"} class="flex items-center gap-2 mb-6">
+            <div :if={@message.send_to == :classes} class="flex items-center gap-2 mb-6">
               <.icon name="hero-users" class="w-6 h-6" />
               <p class="font-bold">{gettext("Sending to selected classes")}</p>
             </div>

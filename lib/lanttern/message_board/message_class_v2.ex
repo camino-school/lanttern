@@ -1,20 +1,18 @@
-defmodule Lanttern.MessageBoard.MessageClass do
+defmodule Lanttern.MessageBoard.MessageClassV2 do
   @moduledoc """
-  The `MessageClass` schema (join table) - DEPRECATED
-
-  @deprecated "Will be replaced by Lanttern.MessageBoard.MessageClassV2"
+  The `MessageClassV2` schema (join table)
   """
 
   use Ecto.Schema
   import Ecto.Changeset
 
-  alias Lanttern.MessageBoard.Message
+  alias Lanttern.MessageBoard.MessageV2, as: Message
   alias Lanttern.Schools.Class
   alias Lanttern.Schools.School
 
   @primary_key false
-  schema "board_messages_classes" do
-    belongs_to :message, Message, primary_key: true
+  schema "messages_classes" do
+    belongs_to :message, Message, primary_key: true, foreign_key: :message_id
     belongs_to :class, Class, primary_key: true
     belongs_to :school, School
   end
