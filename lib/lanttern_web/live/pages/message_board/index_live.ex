@@ -82,30 +82,30 @@ defmodule LantternWeb.MessageBoard.IndexLive do
         <div class="space-y-8" id="sections" phx-update="stream">
           <%= for {dom_id, section} <- @streams.sections do %>
             <div id={dom_id} class="bg-white rounded-lg shadow-lg">
-                <div class="flex items-center justify-between p-4 border-gray-200 -mb-4">
-                  <div class="flex items-center space-x-3">
-                    <h2 class="text-lg font-bold">{section.name}</h2>
-                  </div>
-                  <div class="flex items-center space-x-2">
-                    <.action
-                      type="link"
-                      patch={~p"/school/message_board_v2?edit_section=#{section.id}"}
-                      theme="subtle"
-                      icon_name="hero-cog-6-tooth-mini"
-                      id={"section-#{section.id}-settings"}
-                      title={gettext("Configure section")}
-                    >
-                    </.action>
-                  </div>
+              <div class="flex items-center justify-between p-4 border-gray-200 -mb-4">
+                <div class="flex items-center space-x-3">
+                  <h2 class="text-lg font-bold">{section.name}</h2>
                 </div>
-                <div class="p-4">
-                  <div
-                    class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-4"
-                    id={"section-#{section.id}-messages"}
+                <div class="flex items-center space-x-2">
+                  <.action
+                    type="link"
+                    patch={~p"/school/message_board_v2?edit_section=#{section.id}"}
+                    theme="subtle"
+                    icon_name="hero-cog-6-tooth-mini"
+                    id={"section-#{section.id}-settings"}
+                    title={gettext("Configure section")}
                   >
-                  </div>
+                  </.action>
                 </div>
               </div>
+              <div class="p-4">
+                <div
+                  class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-4"
+                  id={"section-#{section.id}-messages"}
+                >
+                </div>
+              </div>
+            </div>
           <% end %>
         </div>
       </.responsive_container>
