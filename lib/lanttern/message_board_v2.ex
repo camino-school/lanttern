@@ -114,29 +114,6 @@ defmodule Lanttern.MessageBoardV2 do
     |> Repo.all()
   end
 
-  @doc """
-  Returns sections with their filtered messages for a school.
-
-  This function preloads messages filtered by classes and excludes archived messages.
-  Use this when you need sections with their related messages for display purposes.
-
-  ## Examples
-
-      # Get sections with messages filtered by specific classes
-      list_sections_with_filtered_messages(1, [2, 3])
-
-  """
-  def list_sections_with_filtered_messages(school_id, classes_ids) when is_list(classes_ids) do
-    messages_query =
-      from(m in Message, where: is_nil(m.archived_at), order_by: m.position)
-      |> apply_message_filter_by_classes(classes_ids: classes_ids, school_id: school_id)
-      |> preload([:classes])
-
-    from(s in Section, where: s.school_id == ^school_id, order_by: s.position)
-    |> preload(messages: ^messages_query)
-    |> Repo.all()
-  end
-
   defp apply_list_sections_opts(queryable, []), do: queryable
 
   defp apply_list_sections_opts(queryable, [{:school_id, school_id} | opts]) do
@@ -155,10 +132,30 @@ defmodule Lanttern.MessageBoardV2 do
   defp apply_list_sections_opts(queryable, [_ | opts]),
     do: apply_list_sections_opts(queryable, opts)
 
-  defp apply_message_filter_by_classes(queryable, opts) do
-    school_id = Keyword.fetch!(opts, :school_id)
-    classes_ids = Keyword.fetch!(opts, :classes_ids)
+  @doc """
+  Returns sections with their filtered messages for a school.
 
+  This function preloads messages filtered by classes and excludes archived messages.
+  Use this when you need sections with their related messages for display purposes.
+
+  ## Examples
+
+      # Get sections with messages filtered by specific classes
+      list_sections_with_filtered_messages(1, [2, 3])
+
+  """
+  def list_sections_with_filtered_messages(school_id, classes_ids) when is_list(classes_ids) do
+    messages_query =
+      from(m in Message, where: is_nil(m.archived_at), order_by: m.position)
+      |> apply_message_filter_by_classes(school_id, classes_ids)
+      |> preload([:classes])
+
+    from(s in Section, where: s.school_id == ^school_id, order_by: s.position)
+    |> preload(messages: ^messages_query)
+    |> Repo.all()
+  end
+
+  defp apply_message_filter_by_classes(queryable, school_id, classes_ids) do
     case classes_ids do
       [] ->
         from(m in queryable, where: m.school_id == ^school_id)
