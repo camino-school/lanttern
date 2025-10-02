@@ -23,7 +23,7 @@ defmodule LantternWeb.MessageBoard.IndexLive do
       |> assign(:selected_classes_ids, [])
       |> assign(:section, nil)
       |> assign(:section_id, nil)
-      |> assign(:section_list, [])
+      |> assign(:sections_count, 0)
       |> stream(:sections, [])
       |> assign(:communication_manager?, is_communication_manager)
       |> assign(:section_overlay_title, nil)
@@ -50,7 +50,7 @@ defmodule LantternWeb.MessageBoard.IndexLive do
           </div>
           <div class="flex items-center gap-4">
             <.action
-              :if={length(@section_list) > 1}
+              :if={@sections_count > 1}
               type="link"
               patch={~p"/school/message_board_v2?reorder=true"}
               icon_name="hero-arrows-up-down-mini"
@@ -74,12 +74,12 @@ defmodule LantternWeb.MessageBoard.IndexLive do
             "Manage message board sections and messages. Messages are displayed in students and guardians home page."
           )}
         </p>
+        <div :if={@sections_count == 0} class="p-10 mt-4">
+          <.card_base>
+            <.empty_state>{gettext("No sections created yet")}</.empty_state>
+          </.card_base>
+        </div>
         <div class="space-y-8" id="sections" phx-update="stream">
-          <div :if={@section_list == []} class="p-10 mt-4">
-            <.card_base>
-              <.empty_state>{gettext("No sections created yet")}</.empty_state>
-            </.card_base>
-          </div>
           <%= for {dom_id, section} <- @streams.sections do %>
             <div id={dom_id} class="bg-white rounded-lg shadow-lg">
                 <div class="flex items-center justify-between p-4 border-gray-200 -mb-4">
@@ -300,8 +300,10 @@ defmodule LantternWeb.MessageBoard.IndexLive do
           MessageBoard.list_sections_with_filtered_messages(school_id, classes_ids)
       end
 
+    sections_count = length(sections)
+
     socket
-    |> assign(:section_list, sections)
+    |> assign(:sections_count, sections_count)
     |> stream(:sections, sections, reset: true)
   end
 
