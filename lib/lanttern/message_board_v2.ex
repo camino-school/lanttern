@@ -92,7 +92,21 @@ defmodule Lanttern.MessageBoardV2 do
   end
 
   @doc """
-  Returns sections ordered by position for a school.
+  Returns sections ordered by position.
+
+  ## Options
+
+    * `:school_id` - filters sections by school
+    * `:archived` - includes archived sections if true
+
+  ## Examples
+
+      # Get all sections for a school
+      list_sections(school_id: 1)
+
+      # Get sections including archived ones
+      list_sections(school_id: 1, archived: true)
+
   """
   def list_sections(opts \\ []) do
     from(s in Section, order_by: s.position)
@@ -100,21 +114,40 @@ defmodule Lanttern.MessageBoardV2 do
     |> Repo.all()
   end
 
+  @doc """
+  Returns sections with their filtered messages for a school.
+
+  This function preloads messages filtered by classes and excludes archived messages.
+  Use this when you need sections with their related messages for display purposes.
+
+  ## Examples
+
+      # Get sections with messages filtered by specific classes
+      list_sections_with_filtered_messages(1, [2, 3])
+
+  """
+  def list_sections_with_filtered_messages(school_id, classes_ids) when is_list(classes_ids) do
+    messages_query =
+      from(m in Message, where: is_nil(m.archived_at), order_by: m.position)
+      |> apply_message_filter_by_classes(classes_ids: classes_ids, school_id: school_id)
+      |> preload([:classes])
+
+    from(s in Section, where: s.school_id == ^school_id, order_by: s.position)
+    |> preload(messages: ^messages_query)
+    |> Repo.all()
+  end
+
   defp apply_list_sections_opts(queryable, []), do: queryable
 
   defp apply_list_sections_opts(queryable, [{:school_id, school_id} | opts]) do
-    case Keyword.get(opts, :classes_ids) do
-      classes_ids when is_list(classes_ids) and classes_ids != [] ->
-        messages_query =
-          from(m in Message, where: is_nil(m.archived_at), order_by: m.position)
-          |> apply_sections_filter_opts(classes_ids: classes_ids, school_id: school_id)
-          |> preload([:classes])
+    from(s in queryable, where: s.school_id == ^school_id)
+    |> apply_list_sections_opts(opts)
+  end
 
-        from(s in queryable, where: s.school_id == ^school_id)
-        |> preload(messages: ^messages_query)
-
-      _ ->
-        from(s in queryable, where: s.school_id == ^school_id)
+  defp apply_list_sections_opts(queryable, [{:archived, include_archived?} | opts]) do
+    case include_archived? do
+      true -> queryable
+      _ -> from(s in queryable, where: is_nil(s.archived_at))
     end
     |> apply_list_sections_opts(opts)
   end
@@ -122,24 +155,21 @@ defmodule Lanttern.MessageBoardV2 do
   defp apply_list_sections_opts(queryable, [_ | opts]),
     do: apply_list_sections_opts(queryable, opts)
 
-  defp apply_sections_filter_opts(queryable, opts) do
-    case Keyword.get(opts, :school_id) do
-      nil ->
-        queryable
+  defp apply_message_filter_by_classes(queryable, opts) do
+    school_id = Keyword.fetch!(opts, :school_id)
+    classes_ids = Keyword.fetch!(opts, :classes_ids)
 
-      school_id ->
-        case Keyword.get(opts, :classes_ids) do
-          classes_ids when is_list(classes_ids) and classes_ids != [] ->
-            from(m in queryable,
-              left_join: mc in assoc(m, :message_classes),
-              where:
-                (m.send_to == :school and m.school_id == ^school_id) or
-                  mc.class_id in ^classes_ids
-            )
+    case classes_ids do
+      [] ->
+        from(m in queryable, where: m.school_id == ^school_id)
 
-          _ ->
-            from(m in queryable, where: m.school_id == ^school_id)
-        end
+      classes_ids when is_list(classes_ids) ->
+        from(m in queryable,
+          left_join: mc in assoc(m, :message_classes),
+          where:
+            (m.send_to == :school and m.school_id == ^school_id) or
+              mc.class_id in ^classes_ids
+        )
     end
   end
 

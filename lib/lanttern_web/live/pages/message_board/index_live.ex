@@ -23,6 +23,7 @@ defmodule LantternWeb.MessageBoard.IndexLive do
       |> assign(:selected_classes_ids, [])
       |> assign(:section, nil)
       |> assign(:section_id, nil)
+      |> assign(:section_list, [])
       |> stream(:sections, [])
       |> assign(:communication_manager?, is_communication_manager)
       |> assign(:section_overlay_title, nil)
@@ -49,6 +50,7 @@ defmodule LantternWeb.MessageBoard.IndexLive do
           </div>
           <div class="flex items-center gap-4">
             <.action
+              :if={length(@section_list) > 1}
               type="link"
               patch={~p"/school/message_board_v2?reorder=true"}
               icon_name="hero-arrows-up-down-mini"
@@ -72,14 +74,14 @@ defmodule LantternWeb.MessageBoard.IndexLive do
             "Manage message board sections and messages. Messages are displayed in students and guardians home page."
           )}
         </p>
-        <%= if @streams.sections.inserts == [] do %>
-          <.card_base class="p-10 mt-4">
-            <.empty_state>{gettext("No sections created yet")}</.empty_state>
-          </.card_base>
-        <% else %>
-          <div class="space-y-8" id="sections" phx-update="stream">
-            <%= for {dom_id, section} <- @streams.sections do %>
-              <div id={dom_id} class="bg-white rounded-lg shadow-lg">
+        <div class="space-y-8" id="sections" phx-update="stream">
+          <div :if={@section_list == []} class="p-10 mt-4">
+            <.card_base>
+              <.empty_state>{gettext("No sections created yet")}</.empty_state>
+            </.card_base>
+          </div>
+          <%= for {dom_id, section} <- @streams.sections do %>
+            <div id={dom_id} class="bg-white rounded-lg shadow-lg">
                 <div class="flex items-center justify-between p-4 border-gray-200 -mb-4">
                   <div class="flex items-center space-x-3">
                     <h2 class="text-lg font-bold">{section.name}</h2>
@@ -104,9 +106,8 @@ defmodule LantternWeb.MessageBoard.IndexLive do
                   </div>
                 </div>
               </div>
-            <% end %>
-          </div>
-        <% end %>
+          <% end %>
+        </div>
       </.responsive_container>
       <div :if={@section} phx-remove={JS.exec("phx-remove", to: "#section-form-overlay")}>
         <.slide_over
@@ -288,9 +289,20 @@ defmodule LantternWeb.MessageBoard.IndexLive do
 
   defp assign_sections(socket) do
     school_id = socket.assigns.current_user.current_profile.school_id
-    sections = MessageBoard.list_sections(school_id: school_id, classes_ids: socket.assigns.selected_classes_ids)
+    classes_ids = socket.assigns.selected_classes_ids
 
-    stream(socket, :sections, sections, reset: true)
+    sections =
+      case classes_ids do
+        [] ->
+          MessageBoard.list_sections(school_id: school_id)
+
+        classes_ids when is_list(classes_ids) ->
+          MessageBoard.list_sections_with_filtered_messages(school_id, classes_ids)
+      end
+
+    socket
+    |> assign(:section_list, sections)
+    |> stream(:sections, sections, reset: true)
   end
 
   defp assign_section(%{assigns: %{params: %{"new_section" => "true"}}} = socket) do

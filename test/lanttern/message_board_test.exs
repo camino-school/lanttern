@@ -62,6 +62,9 @@ defmodule Lanttern.MessageBoardTest do
           school_id: class.school_id
         })
 
+      # wait 1 second to test ordering by inserted_at
+      Process.sleep(1000)
+
       # other fixtures for filtering assertion
       another_class = SchoolsFixtures.class_fixture(%{school_id: class.school_id})
 
@@ -70,6 +73,9 @@ defmodule Lanttern.MessageBoardTest do
         school_id: class.school_id,
         classes_ids: [another_class.id]
       })
+
+      # wait 1 second to test ordering by inserted_at
+      Process.sleep(1000)
 
       message_fixture()
 

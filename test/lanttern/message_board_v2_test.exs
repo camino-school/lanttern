@@ -68,7 +68,7 @@ defmodule Lanttern.MessageBoardV2Test do
           archived_at: DateTime.utc_now()
         )
 
-      sections = MessageBoardV2.list_sections(school_id: school.id, classes_ids: [class1.id])
+      sections = MessageBoardV2.list_sections_with_filtered_messages(school.id, [class1.id])
       section = List.first(sections)
 
       # Should preload only non-archived messages
