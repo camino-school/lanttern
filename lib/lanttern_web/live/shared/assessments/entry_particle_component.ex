@@ -118,7 +118,9 @@ defmodule LantternWeb.Assessments.EntryParticleComponent do
   end
 
   defp get_particle_styles_and_text(score, _, _) when is_float(score),
-    do: {"text-ltrn-dark bg-ltrn-lighter", nil, "•", score}
+    do:
+      {"text-ltrn-dark bg-ltrn-lighter",
+       "width: auto; max-width: fit-content; padding: 0 var(--spacing)", "#{score}", score}
 
   defp get_particle_styles_and_text(_, entry, is_student) do
     full_text =
