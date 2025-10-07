@@ -27,7 +27,7 @@ defmodule Lanttern.MessageBoardV2 do
     case Keyword.get(opts, :classes_ids) do
       classes_ids when is_list(classes_ids) and classes_ids != [] ->
         from(m in queryable,
-          left_join: mc in assoc(m, :message_classes),
+          left_join: mc in assoc(m, :message_classes_v2),
           where:
             (m.send_to == :school and m.school_id == ^school_id) or mc.class_id in ^classes_ids
         )
@@ -59,14 +59,14 @@ defmodule Lanttern.MessageBoardV2 do
   Creates a message.
   """
   def create_message(attrs \\ %{}) do
-    %Message{} |> Message.changeset(attrs) |> Repo.insert()
+    %Message{} |> Message.save_changeset(attrs) |> Repo.insert()
   end
 
   @doc """
   Updates a message.
   """
   def update_message(%Message{} = message, attrs) do
-    message |> Message.changeset(attrs) |> Repo.update()
+    message |> Message.save_changeset(attrs) |> Repo.update()
   end
 
   @doc """
@@ -83,7 +83,7 @@ defmodule Lanttern.MessageBoardV2 do
 
   def get_message_per_school(id, school_id) do
     from(m in Message, where: m.id == ^id and m.school_id == ^school_id)
-    |> preload([:classes])
+    |> preload([:classes, message_classes_v2: :class])
     |> Repo.one()
     |> case do
       nil -> {:error, :not_found}
@@ -162,7 +162,7 @@ defmodule Lanttern.MessageBoardV2 do
 
       classes_ids when is_list(classes_ids) ->
         from(m in queryable,
-          left_join: mc in assoc(m, :message_classes),
+          left_join: mc in assoc(m, :message_classes_v2),
           where:
             (m.send_to == :school and m.school_id == ^school_id) or
               mc.class_id in ^classes_ids
