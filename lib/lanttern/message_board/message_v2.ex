@@ -37,6 +37,7 @@ defmodule Lanttern.MessageBoard.MessageV2 do
     field :name, :string
     field :description, :string
     field :send_to, Ecto.Enum, values: [school: "school", classes: "classes"]
+    field :send_to_form, :string, virtual: true
     field :archived_at, :utc_datetime
     field :subtitle, :string
     field :color, :string
@@ -52,6 +53,8 @@ defmodule Lanttern.MessageBoard.MessageV2 do
 
   @doc false
   def changeset(message, attrs) do
+    attrs = convert_send_to_form_to_send_to(attrs)
+
     changeset =
       message
       |> cast(attrs, [
@@ -59,12 +62,14 @@ defmodule Lanttern.MessageBoard.MessageV2 do
         :description,
         :school_id,
         :send_to,
+        :send_to_form,
         :section_id,
         :subtitle,
         :color,
         :cover,
         :position
       ])
+      |> set_send_to_form_from_send_to()
       |> validate_required([:name, :description, :school_id, :section_id])
       |> validate_send_to_when_present()
 
@@ -81,9 +86,26 @@ defmodule Lanttern.MessageBoard.MessageV2 do
     |> validate_required([:send_to])
   end
 
+  defp convert_send_to_form_to_send_to(attrs) do
+    case attrs["send_to_form"] do
+      value when value in ["school", "classes"] -> Map.put(attrs, "send_to", value)
+      _ -> attrs
+    end
+  end
+
+  defp set_send_to_form_from_send_to(changeset) do
+    send_to = get_field(changeset, :send_to)
+    send_to_string = if send_to in [:school, :classes], do: Atom.to_string(send_to), else: send_to
+
+    if send_to_string in ["school", "classes"] do
+      put_change(changeset, :send_to_form, send_to_string)
+    else
+      changeset
+    end
+  end
+
   defp validate_send_to_when_present(changeset) do
     case get_field(changeset, :send_to) do
-      # Don't validate if not present (during interactive validation)
       nil ->
         changeset
 

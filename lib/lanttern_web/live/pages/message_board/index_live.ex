@@ -59,6 +59,7 @@ defmodule LantternWeb.MessageBoard.IndexLive do
           </div>
           <div class="flex items-center gap-4">
             <.action
+              :if={@sections_count > 1}
               type="link"
               patch={~p"/school/message_board_v2?reorder=true"}
               icon_name="hero-arrows-up-down-mini"

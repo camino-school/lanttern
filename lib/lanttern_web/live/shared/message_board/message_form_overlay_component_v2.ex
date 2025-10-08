@@ -218,14 +218,18 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponentV2 do
             <fieldset class="mb-6">
               <legend class="font-bold">{gettext("Send to")}</legend>
               <div class="mt-4 flex items-center gap-4">
-                <.radio_input field={@form[:send_to]} value="school" label={gettext("All school")} />
                 <.radio_input
-                  field={@form[:send_to]}
+                  field={@form[:send_to_form]}
+                  value="school"
+                  label={gettext("All school")}
+                />
+                <.radio_input
+                  field={@form[:send_to_form]}
                   value="classes"
                   label={gettext("Selected classes")}
                 />
               </div>
-              <.error :for={msg <- Enum.map(@form[:send_to].errors, &translate_error(&1))}>
+              <.error :for={msg <- Enum.map(@form[:send_to_form].errors, &translate_error(&1))}>
                 {msg}
               </.error>
             </fieldset>
@@ -242,7 +246,7 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponentV2 do
               if(@form[:classes_ids].errors == [] && @form.source.action not in [:insert, :update],
                 do: "mb-6"
               ),
-              if(@form[:send_to].value not in [:classes, "classes"], do: "hidden")
+              if(@form[:send_to_form].value != "classes", do: "hidden")
             ]}
           />
           <div
@@ -324,8 +328,7 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponentV2 do
   defp assign_form(socket) do
     message = socket.assigns.message
 
-    # Set default send_to value for new messages
-    default_attrs = if is_nil(message.id), do: %{"send_to" => "school"}, else: %{}
+    default_attrs = if is_nil(message.id), do: %{"send_to_form" => "school"}, else: %{}
 
     changeset = MessageBoard.change_message(message, default_attrs)
     socket |> assign(:form, to_form(changeset)) |> assign_selected_classes_ids()
