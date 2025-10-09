@@ -59,14 +59,14 @@ defmodule Lanttern.MessageBoardV2 do
   Creates a message.
   """
   def create_message(attrs \\ %{}) do
-    %Message{} |> Message.save_changeset(attrs) |> Repo.insert()
+    %Message{} |> Message.changeset(attrs) |> Repo.insert()
   end
 
   @doc """
   Updates a message.
   """
   def update_message(%Message{} = message, attrs) do
-    message |> Message.save_changeset(attrs) |> Repo.update()
+    message |> Message.changeset(attrs) |> Repo.update()
   end
 
   @doc """
