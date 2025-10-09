@@ -43,7 +43,7 @@ defmodule Lanttern.MessageBoardV2Test do
         insert(:message_v2,
           school: school,
           section: section,
-          send_to: "school",
+          send_to: :school,
           name: "School message"
         )
 
@@ -52,7 +52,7 @@ defmodule Lanttern.MessageBoardV2Test do
         MessageBoardV2.create_message(%{
           school_id: school.id,
           section_id: section.id,
-          send_to: "classes",
+          send_to: :classes,
           name: "Class message",
           description: "Class message description",
           classes_ids: [class1.id]
@@ -63,7 +63,7 @@ defmodule Lanttern.MessageBoardV2Test do
         insert(:message_v2,
           school: school,
           section: section,
-          send_to: "school",
+          send_to: :school,
           name: "Archived message",
           archived_at: DateTime.utc_now()
         )
@@ -283,7 +283,7 @@ defmodule Lanttern.MessageBoardV2Test do
         )
         |> then(fn message ->
           message_with_preloads =
-            MessageBoardV2.get_message!(message.id, preloads: [:message_classes])
+            MessageBoardV2.get_message!(message.id, preloads: [:message_classes_v2])
 
           MessageBoardV2.update_message(message_with_preloads, %{classes_ids: [class1.id]})
           |> elem(1)
@@ -299,7 +299,7 @@ defmodule Lanttern.MessageBoardV2Test do
         )
         |> then(fn message ->
           message_with_preloads =
-            MessageBoardV2.get_message!(message.id, preloads: [:message_classes])
+            MessageBoardV2.get_message!(message.id, preloads: [:message_classes_v2])
 
           MessageBoardV2.update_message(message_with_preloads, %{classes_ids: [class2.id]})
           |> elem(1)
