@@ -10,7 +10,7 @@ defmodule Lanttern.Factory do
   use Lanttern.ILPCommentFactory
   use Lanttern.ILPTemplateFactory
   use Lanttern.MessageBoardFactory
-  use Lanttern.MessageV2Factory
+  use Lanttern.MessageFactory
   use Lanttern.NoteFactory
   use Lanttern.ProfileFactory
   use Lanttern.SchoolFactory

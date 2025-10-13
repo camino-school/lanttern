@@ -27,7 +27,7 @@ defmodule Lanttern.MessageBoardV2 do
     case Keyword.get(opts, :classes_ids) do
       classes_ids when is_list(classes_ids) and classes_ids != [] ->
         from(m in queryable,
-          left_join: mc in assoc(m, :message_classes_v2),
+          left_join: mc in assoc(m, :message_classes),
           where:
             (m.send_to == :school and m.school_id == ^school_id) or mc.class_id in ^classes_ids
         )
@@ -83,7 +83,7 @@ defmodule Lanttern.MessageBoardV2 do
 
   def get_message_per_school(id, school_id) do
     from(m in Message, where: m.id == ^id and m.school_id == ^school_id)
-    |> preload([:classes, message_classes_v2: :class])
+    |> preload([:classes])
     |> Repo.one()
     |> case do
       nil -> {:error, :not_found}
@@ -162,7 +162,7 @@ defmodule Lanttern.MessageBoardV2 do
 
       classes_ids when is_list(classes_ids) ->
         from(m in queryable,
-          left_join: mc in assoc(m, :message_classes_v2),
+          left_join: mc in assoc(m, :message_classes),
           where:
             (m.send_to == :school and m.school_id == ^school_id) or
               mc.class_id in ^classes_ids

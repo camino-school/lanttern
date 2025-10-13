@@ -16,10 +16,6 @@ defmodule LantternWeb.MessageBoard.Components do
   attr :edit_patch, :string, default: nil
   attr :id, :any, default: nil
 
-  attr :mode, :string,
-    required: true,
-    doc: "expects `mode` to show in admin and student/guardian view."
-
   def message_card_admin(assigns) do
     ~H"""
     <div
@@ -51,10 +47,7 @@ defmodule LantternWeb.MessageBoard.Components do
           <div class="flex-1 min-w-0">
             <div class="flex items-center gap-2 mb-2">
               <h3
-                class={
-                  "font-display font-black text-xl" <>
-                    if(@message.cover && @message.cover != "" && !@message.archived_at, do: " line-clamp-4", else: " line-clamp-4")
-                }
+                class="font-display font-black text-xl line-clamp-4"
                 title={@message.name}
               >
                 {@message.name}
@@ -62,53 +55,29 @@ defmodule LantternWeb.MessageBoard.Components do
             </div>
           </div>
         </div>
-        <%= if @mode == "admin" do %>
-          <div class="absolute bottom-6 right-6 flex items-center gap-2">
-            <.action
-              :if={@on_delete && @message.archived_at}
-              type="button"
-              phx-click={@on_delete}
-              icon_name="hero-x-mark-mini"
-              theme="subtle"
-              size="sm"
-              data-confirm={gettext("Are you sure? This action cannot be undone.")}
-              title={gettext("Delete")}
-            >
-            </.action>
-            <.action
-              :if={@edit_patch && !@message.archived_at}
-              id={"message-#{@message.id}-edit"}
-              class="inline-flex hover:text-gray-600"
-              type="link"
-              patch={@edit_patch}
-              theme="subtle"
-              icon_name="hero-pencil-mini"
-            >
-            </.action>
-          </div>
-        <% else %>
-          <p
-            class={"text-gray-600 text-sm mb-4 " <> (if @message.cover && @message.cover != "", do: "line-clamp-2 truncate", else: "") }
-            title={@message.subtitle}
+        <div class="absolute bottom-6 right-6 flex items-center gap-2">
+          <.action
+            :if={@on_delete && @message.archived_at}
+            type="button"
+            phx-click={@on_delete}
+            icon_name="hero-x-mark-mini"
+            theme="subtle"
+            size="sm"
+            data-confirm={gettext("Are you sure? This action cannot be undone.")}
+            title={gettext("Delete")}
           >
-            {@message.subtitle}
-          </p>
-          <div class="absolute bottom-3 right-4">
-            <button class="w-full flex items-center justify-between gap-[14px] transition-colors hover:text-blue-600 group">
-              <span
-                class="font-display font-bold text-base"
-                phx-click="card_lookout"
-                phx-value-id={@message.id}
-              >
-                {gettext("Find out more")}&nbsp
-              </span>
-              <.icon
-                name="hero-arrow-right"
-                class="w-6 h-6 mapping-3 transition-transform group-hover:translate-x-1"
-              />
-            </button>
-          </div>
-        <% end %>
+          </.action>
+          <.action
+            :if={@edit_patch && !@message.archived_at}
+            id={"message-#{@message.id}-edit"}
+            class="inline-flex hover:text-gray-600"
+            type="link"
+            patch={@edit_patch}
+            theme="subtle"
+            icon_name="hero-pencil-mini"
+          >
+          </.action>
+        </div>
       </div>
     </div>
     """

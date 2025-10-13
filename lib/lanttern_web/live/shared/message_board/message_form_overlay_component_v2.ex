@@ -19,110 +19,10 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponentV2 do
   alias Lanttern.MessageBoardV2, as: MessageBoard
   alias Lanttern.SupabaseHelpers
 
-  attr :field, Phoenix.HTML.FormField
-  attr :label, :string
-  attr :help_text, :string
-  attr :class, :string, default: nil
-
-  def input_with_help_text(assigns) do
-    ~H"""
-    <div class={@class}>
-      <.label>
-        {@label}
-        <span class="font-normal">({@help_text})</span>
-      </.label>
-      <.input field={@field} type="text" class="mt-2" phx-debounce="1500" />
-    </div>
-    """
-  end
-
   # shared
 
   alias LantternWeb.Schools.ClassesFieldComponent
   import LantternWeb.FormComponents
-
-  # Custom image field component for message form with aspect ratio recommendation
-  attr :current_image_url, :string, required: true
-  attr :is_removing, :boolean, required: true
-  attr :upload, :any, required: true, doc: "use it to pass `@uploads.something`"
-  attr :on_cancel_replace, Phoenix.LiveView.JS, required: true
-  attr :on_cancel_upload, Phoenix.LiveView.JS, required: true
-  attr :on_replace, Phoenix.LiveView.JS, required: true
-  attr :class, :any, default: nil
-
-  defp message_image_field(assigns) do
-    ~H"""
-    <div
-      :if={!@current_image_url || @is_removing}
-      class={[
-        "p-4 border border-dashed border-ltrn-subtle rounded-md text-center text-ltrn-subtle bg-white shadow-lg",
-        if(@upload.entries != [], do: "hidden"),
-        @class
-      ]}
-      phx-drop-target={@upload.ref}
-    >
-      <div>
-        <.icon name="hero-photo" class="h-10 w-10 mx-auto mb-6" />
-        <div>
-          <label
-            for={@upload.ref}
-            class="cursor-pointer text-ltrn-primary hover:text-ltrn-dark focus-within:outline-hidden focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-ltrn-dark"
-          >
-            <span>{gettext("Upload a cover image file")}</span>
-            <.live_file_input upload={@upload} class="sr-only" />
-          </label>
-          <span>{gettext("or drag and drop here")}</span>
-          <div class="mt-2">
-            <span class="text-xs">
-              {gettext("Recommended aspect ratio of 16:9 (landscape orientation)")}
-            </span>
-          </div>
-          <button :if={@is_removing} type="button" phx-click={@on_cancel_replace} class="mt-4">
-            {gettext("Cancel cover removal")}
-          </button>
-        </div>
-      </div>
-    </div>
-    <div :if={@current_image_url && !@is_removing} class={["relative", @class]}>
-      <div class="flex items-center justify-center w-full h-60 bg-ltrn-subtle overflow-hidden">
-        <img src={@current_image_url} alt="Cover image" class="w-full" />
-      </div>
-      <.icon_button
-        type="button"
-        name="hero-x-mark"
-        theme="white"
-        rounded
-        phx-click={@on_replace}
-        sr_text={gettext("Replace image")}
-        class="absolute top-2 right-2"
-      />
-    </div>
-    <div :for={entry <- @upload.entries} class={["relative", @class]}>
-      <div
-        :if={entry.valid?}
-        class="flex items-center justify-center w-full h-60 bg-ltrn-subtle overflow-hidden"
-      >
-        <.live_img_preview entry={entry} class="w-full" />
-      </div>
-      <.error_block :if={!entry.valid?} class="p-6 border border-red-500 rounded-sm">
-        <p>{gettext("File \"%{file}\" is invalid.", file: entry.client_name)}</p>
-        <%= for err <- upload_errors(@upload, entry) do %>
-          {LantternWeb.FormComponents.upload_error_to_string(@upload, err)}
-        <% end %>
-      </.error_block>
-      <.icon_button
-        type="button"
-        name="hero-x-mark"
-        theme="white"
-        rounded
-        phx-click={@on_cancel_upload}
-        phx-value-ref={entry.ref}
-        sr_text={gettext("cancel")}
-        class="absolute top-2 right-2"
-      />
-    </div>
-    """
-  end
 
   @impl true
   def render(assigns) do
@@ -157,7 +57,7 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponentV2 do
                 name={@form[:color].name}
                 id={@form[:color].id}
                 value={@form[:color].value}
-                class="w-[40px] h-[24px] p-0 border-0 rounded-sm cursor-pointer block"
+                class="h-7 w-11 p-0 border-0 rounded-sm cursor-pointer block"
                 phx-debounce="1500"
               />
             </div>
@@ -288,6 +188,89 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponentV2 do
     """
   end
 
+  # Custom image field component for message form with aspect ratio recommendation
+  attr :current_image_url, :string, required: true
+  attr :is_removing, :boolean, required: true
+  attr :upload, :any, required: true, doc: "use it to pass `@uploads.something`"
+  attr :on_cancel_replace, Phoenix.LiveView.JS, required: true
+  attr :on_cancel_upload, Phoenix.LiveView.JS, required: true
+  attr :on_replace, Phoenix.LiveView.JS, required: true
+  attr :class, :any, default: nil
+
+  defp message_image_field(assigns) do
+    ~H"""
+    <div
+      :if={!@current_image_url || @is_removing}
+      class={[
+        "p-4 border border-dashed border-ltrn-subtle rounded-md text-center text-ltrn-subtle bg-white shadow-lg",
+        if(@upload.entries != [], do: "hidden"),
+        @class
+      ]}
+      phx-drop-target={@upload.ref}
+    >
+      <div>
+        <.icon name="hero-photo" class="h-10 w-10 mx-auto mb-6" />
+        <div>
+          <label
+            for={@upload.ref}
+            class="cursor-pointer text-ltrn-primary hover:text-ltrn-dark focus-within:outline-hidden focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-ltrn-dark"
+          >
+            <span>{gettext("Upload a cover image file")}</span>
+            <.live_file_input upload={@upload} class="sr-only" />
+          </label>
+          <span>{gettext("or drag and drop here")}</span>
+          <div class="mt-2">
+            <span class="text-xs">
+              {gettext("Recommended aspect ratio of 16:9 (landscape orientation)")}
+            </span>
+          </div>
+          <button :if={@is_removing} type="button" phx-click={@on_cancel_replace} class="mt-4">
+            {gettext("Cancel cover removal")}
+          </button>
+        </div>
+      </div>
+    </div>
+    <div :if={@current_image_url && !@is_removing} class={["relative", @class]}>
+      <div class="flex items-center justify-center w-full h-60 bg-ltrn-subtle overflow-hidden">
+        <img src={@current_image_url} alt="Cover image" class="w-full" />
+      </div>
+      <.icon_button
+        type="button"
+        name="hero-x-mark"
+        theme="white"
+        rounded
+        phx-click={@on_replace}
+        sr_text={gettext("Replace image")}
+        class="absolute top-2 right-2"
+      />
+    </div>
+    <div :for={entry <- @upload.entries} class={["relative", @class]}>
+      <div
+        :if={entry.valid?}
+        class="flex items-center justify-center w-full h-60 bg-ltrn-subtle overflow-hidden"
+      >
+        <.live_img_preview entry={entry} class="w-full" />
+      </div>
+      <.error_block :if={!entry.valid?} class="p-6 border border-red-500 rounded-sm">
+        <p>{gettext("File \"%{file}\" is invalid.", file: entry.client_name)}</p>
+        <%= for err <- upload_errors(@upload, entry) do %>
+          {LantternWeb.FormComponents.upload_error_to_string(@upload, err)}
+        <% end %>
+      </.error_block>
+      <.icon_button
+        type="button"
+        name="hero-x-mark"
+        theme="white"
+        rounded
+        phx-click={@on_cancel_upload}
+        phx-value-ref={entry.ref}
+        sr_text={gettext("cancel")}
+        class="absolute top-2 right-2"
+      />
+    </div>
+    """
+  end
+
   @impl true
   def mount(socket) do
     socket =
@@ -343,10 +326,6 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponentV2 do
 
   def handle_event("save", %{"message_v2" => message_params}, socket) do
     params = inject_extra_params(socket.assigns, message_params)
-
-    if socket.assigns.is_removing_cover == true do
-      SupabaseHelpers.remove_object("covers", socket.assigns.message.cover)
-    end
 
     cover_image_url =
       consume_uploaded_entries(socket, :cover, fn %{path: file_path}, entry ->
@@ -407,6 +386,7 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponentV2 do
     |> case do
       {:ok, message} ->
         notify(__MODULE__, {:created, message}, socket.assigns)
+        update_cover(socket)
         {:noreply, socket}
 
       {:error, %Ecto.Changeset{} = changeset} ->
@@ -422,10 +402,17 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponentV2 do
     |> case do
       {:ok, message} ->
         notify(__MODULE__, {:updated, message}, socket.assigns)
+        update_cover(socket)
         {:noreply, socket}
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign(socket, :form, to_form(changeset))}
+    end
+  end
+
+  defp update_cover(socket) do
+    if socket.assigns.is_removing_cover == true do
+      SupabaseHelpers.remove_object("covers", socket.assigns.message.cover)
     end
   end
 

@@ -14,34 +14,6 @@ defmodule LantternWeb.MessageBoard.IndexLive do
   alias LantternWeb.Attachments.AttachmentAreaComponent
   alias LantternWeb.MessageBoard.MessageFormOverlayComponentV2, as: MessageFormOverlayComponent
 
-  def mount(_params, _session, socket) do
-    if connected?(socket), do: send(self(), :initialized)
-
-    is_communication_manager =
-      "communication_management" in socket.assigns.current_user.current_profile.permissions
-
-    socket =
-      socket
-      |> assign(:initialized, false)
-      |> assign(:show_reorder, false)
-      |> assign(:classes, [])
-      |> assign(:selected_classes, [])
-      |> assign(:selected_classes_ids, [])
-      |> assign(:message, nil)
-      |> assign(:message_overlay_title, nil)
-      |> assign(:messages, [])
-      |> assign(:section, nil)
-      |> assign(:section_id, nil)
-      |> assign(:sections_count, 0)
-      |> stream(:sections, [])
-      |> assign(:is_communication_manager, is_communication_manager)
-      |> assign(:section_overlay_title, nil)
-      |> assign(:form_action, nil)
-      |> assign(:page_title, gettext("Message board"))
-
-    {:ok, socket}
-  end
-
   def render(assigns) do
     ~H"""
     <Layouts.app_logged_in flash={@flash} current_user={@current_user} current_path={@current_path}>
@@ -115,7 +87,6 @@ defmodule LantternWeb.MessageBoard.IndexLive do
                   <%= for message <- section.messages do %>
                     <.message_card_admin
                       message={message}
-                      mode="admin"
                       edit_patch={~p"/school/message_board_v2?edit=#{message.id}"}
                       on_delete={JS.push("delete_message", value: %{message_id: message.id})}
                     />
@@ -266,6 +237,33 @@ defmodule LantternWeb.MessageBoard.IndexLive do
       />
     </Layouts.app_logged_in>
     """
+  end
+
+  def mount(_params, _session, socket) do
+    if connected?(socket), do: send(self(), :initialized)
+
+    is_communication_manager =
+      "communication_management" in socket.assigns.current_user.current_profile.permissions
+
+    socket =
+      socket
+      |> assign(:initialized, false)
+      |> assign(:show_reorder, false)
+      |> assign(:classes, [])
+      |> assign(:selected_classes, [])
+      |> assign(:selected_classes_ids, [])
+      |> assign(:message, nil)
+      |> assign(:message_overlay_title, nil)
+      |> assign(:section, nil)
+      |> assign(:section_id, nil)
+      |> assign(:sections_count, 0)
+      |> stream(:sections, [])
+      |> assign(:is_communication_manager, is_communication_manager)
+      |> assign(:section_overlay_title, nil)
+      |> assign(:form_action, nil)
+      |> assign(:page_title, gettext("Message board"))
+
+    {:ok, socket}
   end
 
   def handle_params(params, _url, socket) do

@@ -27,7 +27,7 @@ defmodule Lanttern.MessageBoard.MessageV2 do
           school: School.t() | Ecto.Association.NotLoaded.t(),
           section: Section.t() | Ecto.Association.NotLoaded.t(),
           classes_ids: [pos_integer()] | nil,
-          message_classes_v2: [MessageClass.t()] | Ecto.Association.NotLoaded.t(),
+          message_classes: [MessageClass.t()] | Ecto.Association.NotLoaded.t(),
           classes: [Class.t()] | Ecto.Association.NotLoaded.t(),
           inserted_at: DateTime.t(),
           updated_at: DateTime.t()
@@ -45,8 +45,8 @@ defmodule Lanttern.MessageBoard.MessageV2 do
     field :classes_ids, {:array, :id}, virtual: true
     belongs_to :school, School
     belongs_to :section, Section
-    has_many :message_classes_v2, MessageClass, on_replace: :delete, foreign_key: :message_id
-    has_many :classes, through: [:message_classes_v2, :class]
+    has_many :message_classes, MessageClass, on_replace: :delete, foreign_key: :message_id
+    has_many :classes, through: [:message_classes, :class]
     timestamps()
   end
 
@@ -66,7 +66,9 @@ defmodule Lanttern.MessageBoard.MessageV2 do
         :position
       ])
       |> validate_required([:name, :description, :school_id, :send_to, :section_id])
-      |> validate_send_to_when_present()
+      |> validate_inclusion(:send_to, [:school, :classes],
+        message: gettext("Send to must be 'school' or 'classes'")
+      )
 
     case get_field(changeset, :send_to) do
       :classes -> changeset |> cast(attrs, [:classes_ids]) |> cast_and_validate_classes()
@@ -74,25 +76,10 @@ defmodule Lanttern.MessageBoard.MessageV2 do
     end
   end
 
-  @doc false
-  defp validate_send_to_when_present(changeset) do
-    case get_field(changeset, :send_to) do
-      nil ->
-        changeset
-
-      _send_to ->
-        changeset
-        |> validate_required([:send_to])
-        |> validate_inclusion(:send_to, [:school, :classes],
-          message: gettext("Send to must be 'school' or 'classes'")
-        )
-    end
-  end
-
   defp cast_and_validate_classes(changeset) do
     changeset = cast_classes(changeset, get_change(changeset, :classes_ids))
 
-    case get_field(changeset, :message_classes_v2) do
+    case get_field(changeset, :message_classes) do
       [] -> add_error(changeset, :classes_ids, gettext("At least 1 class is required"))
       _ -> changeset
     end
@@ -103,8 +90,8 @@ defmodule Lanttern.MessageBoard.MessageV2 do
     message_classes_params = Enum.map(classes_ids, &%{class_id: &1, school_id: school_id})
 
     changeset
-    |> put_change(:message_classes_v2, message_classes_params)
-    |> cast_assoc(:message_classes_v2)
+    |> put_change(:message_classes, message_classes_params)
+    |> cast_assoc(:message_classes)
   end
 
   defp cast_classes(changeset, _), do: changeset
