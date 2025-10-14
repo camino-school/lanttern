@@ -9,7 +9,7 @@ defmodule LantternWeb.MessageBoard.Components do
   alias Lanttern.MessageBoard.MessageV2, as: Message
 
   @doc """
-  Renders message board cards for admin/student variants.
+  Renders message board cards for admin
   """
   attr :message, Message, required: true
   attr :on_delete, JS, default: nil

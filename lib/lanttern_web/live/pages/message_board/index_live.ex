@@ -55,8 +55,8 @@ defmodule LantternWeb.MessageBoard.IndexLive do
             "Manage message board sections and messages. Messages are displayed in students and guardians home page."
           )}
         </p>
-        <div :if={@sections_count == 0} class="p-10 mt-4">
-          <.card_base>
+        <div :if={@sections_count == 0}>
+          <.card_base class="p-10">
             <.empty_state>{gettext("No sections created yet")}</.empty_state>
           </.card_base>
         </div>
@@ -363,7 +363,17 @@ defmodule LantternWeb.MessageBoard.IndexLive do
     new_messages = List.insert_at(rest, new, changed_id)
     MessageBoard.update_messages_position(new_messages)
 
-    {:noreply, assign_sections(socket)}
+    # Atualizar socket.assigns.section com dados atualizados do banco
+    updated_section = MessageBoard.get_section_with_ordered_messages!(socket.assigns.section.id)
+    
+    # Usar push_event para notificar o JavaScript que precisa reinicializar o sortable
+    socket = 
+      socket
+      |> assign(:section, updated_section)
+      |> push_event("reinit-sortable", %{})
+      |> assign_sections()
+    
+    {:noreply, socket}
   end
 
   def handle_info({MessageFormOverlayComponent, {action, _message}}, socket)

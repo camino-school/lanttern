@@ -59,7 +59,8 @@ defmodule Lanttern.MessageBoardV2 do
   Creates a message.
   """
   def create_message(attrs \\ %{}) do
-    %Message{} |> Message.changeset(attrs) |> Repo.insert()
+    attrs_with_position = set_position(attrs)
+    %Message{} |> Message.changeset(attrs_with_position) |> Repo.insert()
   end
 
   @doc """
@@ -146,7 +147,14 @@ defmodule Lanttern.MessageBoardV2 do
   """
   def list_sections_with_filtered_messages(school_id, classes_ids) when is_list(classes_ids) do
     messages_query =
-      from(m in Message, where: is_nil(m.archived_at), order_by: m.position)
+      from(m in Message,
+        where: is_nil(m.archived_at),
+        order_by: [
+          asc: m.position,
+          desc: m.updated_at,
+          asc: m.archived_at
+        ]
+      )
       |> apply_message_filter_by_classes(school_id, classes_ids)
       |> preload([:classes])
 
@@ -236,4 +244,41 @@ defmodule Lanttern.MessageBoardV2 do
 
   def update_sections_positions(sections_ids) when is_list(sections_ids),
     do: update_positions(Section, sections_ids)
+
+  defp set_position(attrs) do
+    position_key = if is_map_key(attrs, "position") or is_map_key(attrs, :position), do: get_position_key(attrs), else: nil
+
+    case position_key && Map.get(attrs, position_key) do
+      nil ->
+        section_id = Map.get(attrs, "section_id") || Map.get(attrs, :section_id)
+        next_position = get_next_position_for_section(section_id)
+        key = get_consistent_key(attrs)
+        Map.put(attrs, key, next_position)
+
+      _position ->
+        attrs
+    end
+  end
+
+  defp get_position_key(attrs) do
+    cond do
+      Map.has_key?(attrs, "position") -> "position"
+      Map.has_key?(attrs, :position) -> :position
+      true -> nil
+    end
+  end
+
+  defp get_consistent_key(attrs) do
+    if Enum.any?(Map.keys(attrs), &is_binary/1), do: "position", else: :position
+  end
+
+  defp get_next_position_for_section(section_id) when is_nil(section_id), do: 0
+
+  defp get_next_position_for_section(section_id) do
+    from(m in Message,
+      where: m.section_id == ^section_id and is_nil(m.archived_at),
+      select: count()
+    )
+    |> Repo.one()
+  end
 end
