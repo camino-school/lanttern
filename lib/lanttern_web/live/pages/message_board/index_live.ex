@@ -363,16 +363,14 @@ defmodule LantternWeb.MessageBoard.IndexLive do
     new_messages = List.insert_at(rest, new, changed_id)
     MessageBoard.update_messages_position(new_messages)
 
-    # Atualizar socket.assigns.section com dados atualizados do banco
     updated_section = MessageBoard.get_section_with_ordered_messages!(socket.assigns.section.id)
-    
-    # Usar push_event para notificar o JavaScript que precisa reinicializar o sortable
-    socket = 
+
+    socket =
       socket
       |> assign(:section, updated_section)
       |> push_event("reinit-sortable", %{})
       |> assign_sections()
-    
+
     {:noreply, socket}
   end
 

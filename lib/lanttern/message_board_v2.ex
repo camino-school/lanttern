@@ -246,7 +246,10 @@ defmodule Lanttern.MessageBoardV2 do
     do: update_positions(Section, sections_ids)
 
   defp set_position(attrs) do
-    position_key = if is_map_key(attrs, "position") or is_map_key(attrs, :position), do: get_position_key(attrs), else: nil
+    position_key =
+      if is_map_key(attrs, "position") or is_map_key(attrs, :position),
+        do: get_position_key(attrs),
+        else: nil
 
     case position_key && Map.get(attrs, position_key) do
       nil ->
