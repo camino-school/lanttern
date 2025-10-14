@@ -254,7 +254,7 @@ defmodule Lanttern.MessageBoardV2 do
     case position_key && Map.get(attrs, position_key) do
       nil ->
         section_id = Map.get(attrs, "section_id") || Map.get(attrs, :section_id)
-        next_position = get_next_position_for_section(section_id)
+        next_position = get_next_message_position(section_id)
         key = get_consistent_key(attrs)
         Map.put(attrs, key, next_position)
 
@@ -275,9 +275,9 @@ defmodule Lanttern.MessageBoardV2 do
     if Enum.any?(Map.keys(attrs), &is_binary/1), do: "position", else: :position
   end
 
-  defp get_next_position_for_section(section_id) when is_nil(section_id), do: 0
+  defp get_next_message_position(section_id) when is_nil(section_id), do: 0
 
-  defp get_next_position_for_section(section_id) do
+  defp get_next_message_position(section_id) do
     from(m in Message,
       where: m.section_id == ^section_id and is_nil(m.archived_at),
       select: count()
