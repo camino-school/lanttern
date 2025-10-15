@@ -262,17 +262,28 @@ defmodule LantternWeb.MessageBoard.IndexLive do
       |> assign(:section_overlay_title, nil)
       |> assign(:form_action, nil)
       |> assign(:page_title, gettext("Message board"))
+      |> assign(:pending_message_order, nil)
 
     {:ok, socket}
   end
 
   def handle_params(params, _url, socket) do
+    had_pending_changes = not is_nil(socket.assigns.pending_message_order)
+
     socket =
       socket
+      |> save_pending_order_changes()
       |> assign(:params, params)
       |> assign_section()
       |> assign_message()
       |> assign_reorder()
+
+    socket =
+      if had_pending_changes do
+        assign_sections(socket)
+      else
+        socket
+      end
 
     {:noreply, socket}
   end
@@ -361,15 +372,11 @@ defmodule LantternWeb.MessageBoard.IndexLive do
     non_archived = Enum.filter(socket.assigns.section.messages, fn m -> is_nil(m.archived_at) end)
     {changed_id, rest} = List.pop_at(non_archived, old)
     new_messages = List.insert_at(rest, new, changed_id)
-    MessageBoard.update_messages_position(new_messages)
-
-    updated_section = MessageBoard.get_section_with_ordered_messages!(socket.assigns.section.id)
 
     socket =
       socket
-      |> assign(:section, updated_section)
+      |> assign(:pending_message_order, new_messages)
       |> push_event("reinit-sortable", %{})
-      |> assign_sections()
 
     {:noreply, socket}
   end
@@ -382,11 +389,14 @@ defmodule LantternWeb.MessageBoard.IndexLive do
         :updated -> {:info, gettext("Message updated successfully")}
       end
 
-    socket
-    |> put_flash(elem(flash_message, 0), elem(flash_message, 1))
-    |> push_patch(to: ~p"/school/message_board_v2")
-    |> assign_sections()
-    |> then(&{:noreply, &1})
+    socket =
+      socket
+      |> save_pending_order_changes()
+      |> put_flash(elem(flash_message, 0), elem(flash_message, 1))
+      |> push_patch(to: ~p"/school/message_board_v2")
+      |> assign_sections()
+
+    {:noreply, socket}
   end
 
   def handle_info({AttachmentAreaComponent, {_action, _attachment}}, socket) do
@@ -394,7 +404,12 @@ defmodule LantternWeb.MessageBoard.IndexLive do
   end
 
   def handle_info({LantternWeb.MessageBoard.ReorderComponent, :reordered}, socket) do
-    {:noreply, assign_sections(socket)}
+    socket =
+      socket
+      |> save_pending_order_changes()
+      |> assign_sections()
+
+    {:noreply, socket}
   end
 
   def handle_info(:initialized, socket) do
@@ -494,4 +509,12 @@ defmodule LantternWeb.MessageBoard.IndexLive do
   end
 
   defp assign_reorder(socket), do: assign(socket, :show_reorder, false)
+
+  defp save_pending_order_changes(%{assigns: %{pending_message_order: nil}} = socket), do: socket
+
+  defp save_pending_order_changes(%{assigns: %{pending_message_order: new_messages}} = socket) do
+    MessageBoard.update_messages_position(new_messages)
+
+    assign(socket, :pending_message_order, nil)
+  end
 end
