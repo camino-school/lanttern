@@ -372,10 +372,11 @@ defmodule LantternWeb.MessageBoard.IndexLive do
     non_archived = Enum.filter(socket.assigns.section.messages, fn m -> is_nil(m.archived_at) end)
     {changed_id, rest} = List.pop_at(non_archived, old)
     new_messages = List.insert_at(rest, new, changed_id)
+    message_ids = Enum.map(new_messages, & &1.id)
 
     socket =
       socket
-      |> assign(:pending_message_order, new_messages)
+      |> assign(:pending_message_order, message_ids)
       |> push_event("reinit-sortable", %{})
 
     {:noreply, socket}
@@ -512,8 +513,8 @@ defmodule LantternWeb.MessageBoard.IndexLive do
 
   defp save_pending_order_changes(%{assigns: %{pending_message_order: nil}} = socket), do: socket
 
-  defp save_pending_order_changes(%{assigns: %{pending_message_order: new_messages}} = socket) do
-    MessageBoard.update_messages_position(new_messages)
+  defp save_pending_order_changes(%{assigns: %{pending_message_order: message_ids}} = socket) do
+    MessageBoard.update_messages_position(message_ids)
 
     assign(socket, :pending_message_order, nil)
   end

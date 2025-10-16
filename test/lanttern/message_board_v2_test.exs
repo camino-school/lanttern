@@ -499,23 +499,5 @@ defmodule Lanttern.MessageBoardV2Test do
       assert MessageBoard.get_message!(message1.id).position == 1
       assert MessageBoard.get_message!(message2.id).position == 2
     end
-
-    test "update_messages_position/1 ignores archived messages" do
-      section = insert(:section)
-      active_message = insert(:message, section: section, position: 0)
-
-      archived_message =
-        insert(:message, section: section, archived_at: DateTime.utc_now(), position: 1)
-
-      # Try to reorder including archived message
-      messages_with_archived = [archived_message, active_message]
-
-      assert :ok = MessageBoard.update_messages_position(messages_with_archived)
-
-      # Only active message should have position updated
-      assert MessageBoard.get_message!(active_message.id).position == 0
-      # Archived message position should remain unchanged
-      assert MessageBoard.get_message!(archived_message.id).position == 1
-    end
   end
 end

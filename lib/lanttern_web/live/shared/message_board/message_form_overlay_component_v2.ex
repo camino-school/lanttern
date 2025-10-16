@@ -303,21 +303,17 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponentV2 do
   end
 
   defp initialize(%{assigns: %{initialized: false}} = socket) do
-    socket |> assign_form() |> assign(:initialized, true)
+    message = socket.assigns.message
+    changeset = MessageBoard.change_message(message, %{})
+    selected_classes_ids = Enum.map(message.classes, & &1.id)
+
+    socket
+    |> assign(:form, to_form(changeset))
+    |> assign(:selected_classes_ids, selected_classes_ids)
+    |> assign(:initialized, true)
   end
 
   defp initialize(socket), do: socket
-
-  defp assign_form(socket) do
-    message = socket.assigns.message
-    changeset = MessageBoard.change_message(message, %{})
-    socket |> assign(:form, to_form(changeset)) |> assign_selected_classes_ids()
-  end
-
-  defp assign_selected_classes_ids(socket) do
-    selected_classes_ids = socket.assigns.message.classes |> Enum.map(& &1.id)
-    assign(socket, :selected_classes_ids, selected_classes_ids)
-  end
 
   @impl true
   def handle_event("validate", %{"message_v2" => message_params}, socket) do
@@ -410,11 +406,11 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponentV2 do
     end
   end
 
-  defp update_cover(socket) do
-    if socket.assigns.is_removing_cover == true do
-      SupabaseHelpers.remove_object("covers", socket.assigns.message.cover)
-    end
+  defp update_cover(%{assigns: %{is_removing_cover: true, message: %{cover: cover}}}) do
+    SupabaseHelpers.remove_object("covers", cover)
   end
+
+  defp update_cover(_socket), do: :ok
 
   defp assign_validated_form(socket, params) do
     params = inject_extra_params(socket.assigns, params)
@@ -423,18 +419,28 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponentV2 do
       socket.assigns.message
       |> MessageBoard.change_message(params)
       |> Map.put(:action, :validate)
-
-    # force send_to change to avoid string/atom inconsistency
-    send_to = Ecto.Changeset.get_field(changeset, :send_to)
-    changeset = Ecto.Changeset.force_change(changeset, :send_to, send_to)
+      |> then(fn cs ->
+        send_to = Ecto.Changeset.get_field(cs, :send_to)
+        Ecto.Changeset.force_change(cs, :send_to, send_to)
+      end)
 
     assign(socket, :form, to_form(changeset))
   end
 
   defp inject_extra_params(assigns, params) do
+    section_id = assigns.message.section_id || assigns.section_id
+
     params
     |> Map.put("school_id", assigns.message.school_id)
     |> Map.put("classes_ids", assigns.selected_classes_ids)
-    |> Map.put("section_id", assigns.message.section_id || assigns.section_id)
+    |> Map.put("section_id", section_id)
+    |> then(fn p ->
+      if assigns.message.id do
+        p
+      else
+        section = MessageBoard.get_section_with_ordered_messages!(section_id)
+        Map.put(p, "position", length(section.messages))
+      end
+    end)
   end
 end
