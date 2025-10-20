@@ -125,6 +125,7 @@ defmodule LantternWeb.MessageBoard.IndexLive do
           id="section-form-overlay"
           show={true}
           on_cancel={JS.patch(~p"/school/message_board_v2")}
+          prevent_close_on_click_away={@show_delete_confirmation}
         >
           <:title>{@section_overlay_title}</:title>
           <.form id="section-form" for={@form} phx-change="validate_section" phx-submit="save_section">
@@ -167,8 +168,7 @@ defmodule LantternWeb.MessageBoard.IndexLive do
               type="button"
               theme="subtle"
               size="md"
-              phx-click="delete_section"
-              data-confirm={gettext("Are you sure? All messages in this section will be deleted.")}
+              phx-click="show_delete_confirmation"
             >
               {gettext("Delete")}
             </.action>
@@ -235,6 +235,93 @@ defmodule LantternWeb.MessageBoard.IndexLive do
         classes={@classes}
         selected_classes_ids={@selected_classes_ids}
       />
+      <div
+        :if={@show_delete_confirmation}
+        id="delete-confirmation-modal"
+        class="relative z-50"
+        aria-labelledby="delete-confirmation-title"
+        role="dialog"
+        aria-modal="true"
+      >
+        <div class="fixed inset-0 bg-ltrn-dark/75 transition-opacity"></div>
+        <div class="fixed inset-0 z-50 overflow-y-auto">
+          <div class="flex min-h-full items-center justify-center p-4">
+            <div class="relative transform overflow-hidden rounded-lg bg-white shadow-xl transition-all w-full max-w-lg">
+              <div class="bg-white px-6 py-6">
+                <div class="flex items-start">
+                  <div class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-100">
+                    <.icon name="hero-exclamation-triangle" class="h-6 w-6 text-red-600" />
+                  </div>
+                  <div class="ml-4 mt-0 text-left flex-1">
+                    <h3
+                      class="text-lg font-semibold leading-6 text-gray-900"
+                      id="delete-confirmation-title"
+                    >
+                      {gettext("Delete section?")}
+                    </h3>
+                  </div>
+                </div>
+                <div class="mt-4 space-y-4">
+                  <.error_block>
+                    <p class="font-bold">{gettext("This action cannot be undone!")}</p>
+                    <p class="mt-2">
+                      {gettext("All messages in this section will be permanently deleted.")}
+                    </p>
+                  </.error_block>
+                  <p class="text-sm text-gray-500">
+                    {gettext("To confirm, please type the section name below:")}
+                  </p>
+                  <p class="font-bold text-lg">{@section.name}</p>
+                  <.form
+                    id="delete-confirmation-form"
+                    for={%{}}
+                    phx-change="validate_delete_confirmation"
+                    phx-submit="confirm_delete_section"
+                  >
+                    <div class="mb-4">
+                      <input
+                        type="text"
+                        name="section_name_confirmation"
+                        value={@delete_confirmation_input}
+                        placeholder={gettext("Type section name here")}
+                        autocomplete="off"
+                        phx-debounce="300"
+                        class="block w-full rounded-xs border-0 shadow-xs ring-1 sm:text-sm sm:leading-6 focus:ring-2 focus:ring-inset phx-no-feedback:ring-ltrn-lighter phx-no-feedback:focus:ring-ltrn-primary ring-ltrn-lighter focus:ring-ltrn-primary"
+                      />
+                    </div>
+                    <p
+                      :if={@delete_confirmation_error}
+                      class="text-sm text-ltrn-secondary mb-4"
+                    >
+                      {gettext("Section name doesn't match (case sensitive)")}
+                    </p>
+                  </.form>
+                </div>
+              </div>
+              <div class="bg-gray-50 px-6 py-4 flex flex-row-reverse gap-2">
+                <.action
+                  type="submit"
+                  theme="ghost"
+                  size="md"
+                  icon_name="hero-trash"
+                  form="delete-confirmation-form"
+                  disabled={!@delete_confirmation_valid}
+                >
+                  {gettext("Delete section")}
+                </.action>
+                <.action
+                  type="button"
+                  theme="subtle"
+                  size="md"
+                  phx-click="cancel_delete_confirmation"
+                >
+                  {gettext("Cancel")}
+                </.action>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </Layouts.app_logged_in>
     """
   end
@@ -263,6 +350,10 @@ defmodule LantternWeb.MessageBoard.IndexLive do
       |> assign(:form_action, nil)
       |> assign(:page_title, gettext("Message board"))
       |> assign(:pending_message_order, nil)
+      |> assign(:show_delete_confirmation, false)
+      |> assign(:delete_confirmation_input, "")
+      |> assign(:delete_confirmation_valid, false)
+      |> assign(:delete_confirmation_error, false)
 
     {:ok, socket}
   end
@@ -330,7 +421,47 @@ defmodule LantternWeb.MessageBoard.IndexLive do
     end
   end
 
-  def handle_event("delete_section", _params, %{assigns: %{section: section}} = socket) do
+  def handle_event("show_delete_confirmation", _params, socket) do
+    socket =
+      socket
+      |> assign(:show_delete_confirmation, true)
+      |> assign(:delete_confirmation_input, "")
+      |> assign(:delete_confirmation_valid, false)
+      |> assign(:delete_confirmation_error, false)
+
+    {:noreply, socket}
+  end
+
+  def handle_event("cancel_delete_confirmation", _params, socket) do
+    socket =
+      socket
+      |> assign(:show_delete_confirmation, false)
+      |> assign(:delete_confirmation_input, "")
+      |> assign(:delete_confirmation_valid, false)
+      |> assign(:delete_confirmation_error, false)
+
+    {:noreply, socket}
+  end
+
+  def handle_event(
+        "validate_delete_confirmation",
+        %{"section_name_confirmation" => input},
+        socket
+      ) do
+    section_name = socket.assigns.section.name
+    is_valid = input == section_name
+    has_error = input != "" && !is_valid
+
+    socket =
+      socket
+      |> assign(:delete_confirmation_input, input)
+      |> assign(:delete_confirmation_valid, is_valid)
+      |> assign(:delete_confirmation_error, has_error)
+
+    {:noreply, socket}
+  end
+
+  def handle_event("confirm_delete_section", _params, %{assigns: %{section: section}} = socket) do
     case MessageBoard.delete_section(section) do
       {:ok, _section} ->
         socket
@@ -338,6 +469,10 @@ defmodule LantternWeb.MessageBoard.IndexLive do
         |> push_patch(to: ~p"/school/message_board_v2")
         |> assign_sections()
         |> assign(:form_action, nil)
+        |> assign(:show_delete_confirmation, false)
+        |> assign(:delete_confirmation_input, "")
+        |> assign(:delete_confirmation_valid, false)
+        |> assign(:delete_confirmation_error, false)
         |> then(&{:noreply, &1})
 
       {:error, _changeset} ->
@@ -443,6 +578,7 @@ defmodule LantternWeb.MessageBoard.IndexLive do
     |> assign(:section_overlay_title, gettext("New section"))
     |> assign(:form_action, :create)
     |> assign(:form, to_form(changeset))
+    |> assign(:show_delete_confirmation, false)
   end
 
   defp assign_section(%{assigns: %{params: %{"edit_section" => id}}} = socket) do
@@ -454,6 +590,7 @@ defmodule LantternWeb.MessageBoard.IndexLive do
     |> assign(:section_overlay_title, gettext("Edit section"))
     |> assign(:form_action, :edit)
     |> assign(:form, to_form(changeset))
+    |> assign(:show_delete_confirmation, false)
   rescue
     Ecto.NoResultsError ->
       socket
@@ -471,7 +608,11 @@ defmodule LantternWeb.MessageBoard.IndexLive do
       |> push_navigate(to: ~p"/school/message_board_v2")
   end
 
-  defp assign_section(socket), do: assign(socket, :section, nil)
+  defp assign_section(socket) do
+    socket
+    |> assign(:section, nil)
+    |> assign(:show_delete_confirmation, false)
+  end
 
   defp assign_message(%{assigns: %{is_communication_manager: false}} = socket),
     do: assign(socket, :message, nil)
