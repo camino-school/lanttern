@@ -127,7 +127,7 @@ defmodule LantternWeb.MessageBoard.IndexLive do
           on_cancel={JS.patch(~p"/school/message_board_v2")}
         >
           <:title>{@section_overlay_title}</:title>
-          <.form id="message-form" for={@form} phx-change="validate_section" phx-submit="save_section">
+          <.form id="section-form" for={@form} phx-change="validate_section" phx-submit="save_section">
             <.error_block :if={@form.source.action in [:insert, :update]} class="mb-6">
               {gettext("Oops, something went wrong! Please check the errors below.")}
             </.error_block>
@@ -187,7 +187,7 @@ defmodule LantternWeb.MessageBoard.IndexLive do
               theme="primary"
               size="md"
               icon_name="hero-check"
-              form="message-form"
+              form="section-form"
             >
               {gettext("Save")}
             </.action>
@@ -268,8 +268,6 @@ defmodule LantternWeb.MessageBoard.IndexLive do
   end
 
   def handle_params(params, _url, socket) do
-    had_pending_changes = not is_nil(socket.assigns.pending_message_order)
-
     socket =
       socket
       |> save_pending_order_changes()
@@ -277,13 +275,6 @@ defmodule LantternWeb.MessageBoard.IndexLive do
       |> assign_section()
       |> assign_message()
       |> assign_reorder()
-
-    socket =
-      if had_pending_changes do
-        assign_sections(socket)
-      else
-        socket
-      end
 
     {:noreply, socket}
   end
@@ -321,6 +312,7 @@ defmodule LantternWeb.MessageBoard.IndexLive do
       params
       |> Map.get("section")
       |> Map.put("school_id", socket.assigns.current_user.current_profile.school_id)
+      |> Map.put("position", socket.assigns.sections_count)
 
     section_params
     |> MessageBoard.create_section()
@@ -377,7 +369,6 @@ defmodule LantternWeb.MessageBoard.IndexLive do
     socket =
       socket
       |> assign(:pending_message_order, message_ids)
-      |> push_event("reinit-sortable", %{})
 
     {:noreply, socket}
   end
@@ -392,7 +383,6 @@ defmodule LantternWeb.MessageBoard.IndexLive do
 
     socket =
       socket
-      |> save_pending_order_changes()
       |> put_flash(elem(flash_message, 0), elem(flash_message, 1))
       |> push_patch(to: ~p"/school/message_board_v2")
       |> assign_sections()
@@ -464,12 +454,21 @@ defmodule LantternWeb.MessageBoard.IndexLive do
     |> assign(:section_overlay_title, gettext("Edit section"))
     |> assign(:form_action, :edit)
     |> assign(:form, to_form(changeset))
+  rescue
+    Ecto.NoResultsError ->
+      socket
+      |> put_flash(:error, gettext("Section not found"))
+      |> push_navigate(to: ~p"/school/message_board_v2")
   end
 
   defp assign_section(%{assigns: %{params: %{"section_id" => section_id}}} = socket) do
     section = MessageBoard.get_section!(section_id)
-
     assign(socket, :section_id, section.id)
+  rescue
+    Ecto.NoResultsError ->
+      socket
+      |> put_flash(:error, gettext("Section not found"))
+      |> push_navigate(to: ~p"/school/message_board_v2")
   end
 
   defp assign_section(socket), do: assign(socket, :section, nil)
@@ -516,6 +515,8 @@ defmodule LantternWeb.MessageBoard.IndexLive do
   defp save_pending_order_changes(%{assigns: %{pending_message_order: message_ids}} = socket) do
     MessageBoard.update_messages_position(message_ids)
 
-    assign(socket, :pending_message_order, nil)
+    socket
+    |> assign(:pending_message_order, nil)
+    |> assign_sections()
   end
 end

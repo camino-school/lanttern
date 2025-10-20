@@ -377,7 +377,13 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponentV2 do
     do: {:noreply, assign(socket, :is_removing_cover, false)}
 
   defp save_message(socket, nil, message_params) do
+    section_id = message_params["section_id"]
+    section = MessageBoard.get_section_with_ordered_messages!(section_id)
+
+    position = length(section.messages)
+
     message_params
+    |> Map.put("position", position)
     |> MessageBoard.create_message()
     |> case do
       {:ok, message} ->
@@ -434,13 +440,5 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponentV2 do
     |> Map.put("school_id", assigns.message.school_id)
     |> Map.put("classes_ids", assigns.selected_classes_ids)
     |> Map.put("section_id", section_id)
-    |> then(fn p ->
-      if assigns.message.id do
-        p
-      else
-        section = MessageBoard.get_section_with_ordered_messages!(section_id)
-        Map.put(p, "position", length(section.messages))
-      end
-    end)
   end
 end
