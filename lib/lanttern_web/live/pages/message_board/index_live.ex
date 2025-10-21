@@ -634,15 +634,23 @@ defmodule LantternWeb.MessageBoard.IndexLive do
   end
 
   defp assign_message(%{assigns: %{params: %{"edit" => message_id}}} = socket) do
-    school_id = socket.assigns.current_user.current_profile.school_id
+    if socket.assigns.is_communication_manager do
+      school_id = socket.assigns.current_user.current_profile.school_id
 
-    with true <- socket.assigns.is_communication_manager,
-         {:ok, message} <- MessageBoard.get_message_per_school(message_id, school_id) do
-      socket
-      |> assign(:message, message)
-      |> assign(:message_overlay_title, gettext("Edit message"))
+      case MessageBoard.get_message_per_school(message_id, school_id) do
+        {:ok, message} ->
+          socket
+          |> assign(:message, message)
+          |> assign(:message_overlay_title, gettext("Edit message"))
+
+        {:error, :not_found} ->
+          socket
+          |> put_flash(:error, gettext("Message not found"))
+          |> push_navigate(to: ~p"/school/message_board_v2")
+          |> assign(:message, nil)
+      end
     else
-      _ -> assign(socket, :message, nil)
+      assign(socket, :message, nil)
     end
   end
 
