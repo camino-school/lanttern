@@ -403,7 +403,6 @@ defmodule LantternWeb.MessageBoard.IndexLive do
       params
       |> Map.get("section")
       |> Map.put("school_id", socket.assigns.current_user.current_profile.school_id)
-      |> Map.put("position", socket.assigns.sections_count)
 
     section_params
     |> MessageBoard.create_section()
@@ -582,30 +581,34 @@ defmodule LantternWeb.MessageBoard.IndexLive do
   end
 
   defp assign_section(%{assigns: %{params: %{"edit_section" => id}}} = socket) do
-    section = MessageBoard.get_section_with_ordered_messages!(id)
-    changeset = MessageBoard.change_section(section)
+    case MessageBoard.get_section_with_ordered_messages(id) do
+      {:error, :section_not_found} ->
+        socket
+        |> put_flash(:error, gettext("Section not found"))
+        |> push_navigate(to: ~p"/school/message_board_v2")
 
-    socket
-    |> assign(:section, section)
-    |> assign(:section_overlay_title, gettext("Edit section"))
-    |> assign(:form_action, :edit)
-    |> assign(:form, to_form(changeset))
-    |> assign(:show_delete_confirmation, false)
-  rescue
-    Ecto.NoResultsError ->
-      socket
-      |> put_flash(:error, gettext("Section not found"))
-      |> push_navigate(to: ~p"/school/message_board_v2")
+      {:ok, section} ->
+        changeset = MessageBoard.change_section(section)
+
+        socket
+        |> assign(:section, section)
+        |> assign(:section_overlay_title, gettext("Edit section"))
+        |> assign(:form_action, :edit)
+        |> assign(:form, to_form(changeset))
+        |> assign(:show_delete_confirmation, false)
+    end
   end
 
   defp assign_section(%{assigns: %{params: %{"section_id" => section_id}}} = socket) do
-    section = MessageBoard.get_section!(section_id)
-    assign(socket, :section_id, section.id)
-  rescue
-    Ecto.NoResultsError ->
-      socket
-      |> put_flash(:error, gettext("Section not found"))
-      |> push_navigate(to: ~p"/school/message_board_v2")
+    case MessageBoard.get_section(section_id) do
+      {:error, :section_not_found} ->
+        socket
+        |> put_flash(:error, gettext("Section not found"))
+        |> push_navigate(to: ~p"/school/message_board_v2")
+
+      {:ok, section} ->
+        assign(socket, :section_id, section.id)
+    end
   end
 
   defp assign_section(socket) do
