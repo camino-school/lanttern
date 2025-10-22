@@ -142,7 +142,10 @@ defmodule Lanttern.MessageBoardV2Test do
     end
 
     test "create_section/1 with invalid data returns error changeset" do
-      assert {:error, %Ecto.Changeset{}} = MessageBoard.create_section(@invalid_section_attrs)
+      school = insert(:school)
+      invalid_attrs = %{name: nil, position: nil, school_id: school.id}
+
+      assert {:error, %Ecto.Changeset{}} = MessageBoard.create_section(invalid_attrs)
     end
 
     test "create_section/1 enforces unique constraint on name per school" do
@@ -397,7 +400,18 @@ defmodule Lanttern.MessageBoardV2Test do
     end
 
     test "create_message/1 with invalid data returns error changeset" do
-      assert {:error, %Ecto.Changeset{}} = MessageBoard.create_message(@invalid_message_attrs)
+      school = insert(:school)
+      section = insert(:section, school: school)
+
+      invalid_attrs = %{
+        name: nil,
+        description: nil,
+        send_to: nil,
+        school_id: school.id,
+        section_id: section.id
+      }
+
+      assert {:error, %Ecto.Changeset{}} = MessageBoard.create_message(invalid_attrs)
     end
 
     test "create_message/1 with send_to classes requires classes_ids" do

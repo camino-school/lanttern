@@ -121,12 +121,8 @@ defmodule Lanttern.MessageBoardV2 do
     section_id = attrs[:section_id] || attrs["section_id"]
 
     attrs =
-      if section_id do
-        from(m in Message, where: m.section_id == ^section_id)
-        |> set_position_in_attrs(attrs)
-      else
-        attrs
-      end
+      from(m in Message, where: m.section_id == ^section_id)
+      |> set_position_in_attrs(attrs)
 
     %Message{} |> Message.changeset(attrs) |> Repo.insert()
   end
@@ -349,12 +345,8 @@ defmodule Lanttern.MessageBoardV2 do
     school_id = attrs[:school_id] || attrs["school_id"]
 
     attrs =
-      if school_id do
-        from(s in Section, where: s.school_id == ^school_id)
-        |> set_position_in_attrs(attrs)
-      else
-        attrs
-      end
+      from(s in Section, where: s.school_id == ^school_id)
+      |> set_position_in_attrs(attrs)
 
     %Section{} |> Section.changeset(attrs) |> Repo.insert()
   end
