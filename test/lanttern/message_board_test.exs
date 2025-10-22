@@ -79,6 +79,9 @@ defmodule Lanttern.MessageBoardTest do
 
       message_fixture()
 
+      # wait 1 second to test ordering by inserted_at
+      Process.sleep(1000)
+
       assert [expected_school_message, expected_message] =
                MessageBoard.list_messages(school_id: class.school_id, classes_ids: [class.id])
 

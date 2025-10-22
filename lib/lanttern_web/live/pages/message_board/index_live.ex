@@ -2,36 +2,17 @@ defmodule LantternWeb.MessageBoard.IndexLive do
   use LantternWeb, :live_view
 
   import LantternWeb.CoreComponents
+  import LantternWeb.MessageBoard.Components
   import LantternWeb.FiltersHelpers, only: [assign_classes_filter: 2]
 
+  alias Lanttern.MessageBoard.MessageV2, as: Message
   alias Lanttern.MessageBoard.Section
   alias Lanttern.MessageBoardV2, as: MessageBoard
   alias Lanttern.Schools.Cycle
 
-  def mount(_params, _session, socket) do
-    if connected?(socket), do: send(self(), :initialized)
-
-    is_communication_manager =
-      "communication_management" in socket.assigns.current_user.current_profile.permissions
-
-    socket =
-      socket
-      |> assign(:initialized, false)
-      |> assign(:show_reorder, false)
-      |> assign(:classes, [])
-      |> assign(:selected_classes, [])
-      |> assign(:selected_classes_ids, [])
-      |> assign(:section, nil)
-      |> assign(:section_id, nil)
-      |> assign(:sections_count, 0)
-      |> stream(:sections, [])
-      |> assign(:communication_manager?, is_communication_manager)
-      |> assign(:section_overlay_title, nil)
-      |> assign(:form_action, nil)
-      |> assign(:page_title, gettext("Message board"))
-
-    {:ok, socket}
-  end
+  # shared
+  alias LantternWeb.Attachments.AttachmentAreaComponent
+  alias LantternWeb.MessageBoard.MessageFormOverlayComponentV2, as: MessageFormOverlayComponent
 
   def render(assigns) do
     ~H"""
@@ -74,8 +55,8 @@ defmodule LantternWeb.MessageBoard.IndexLive do
             "Manage message board sections and messages. Messages are displayed in students and guardians home page."
           )}
         </p>
-        <div :if={@sections_count == 0} class="p-10 mt-4">
-          <.card_base>
+        <div :if={@sections_count == 0}>
+          <.card_base class="p-10">
             <.empty_state>{gettext("No sections created yet")}</.empty_state>
           </.card_base>
         </div>
@@ -103,12 +84,42 @@ defmodule LantternWeb.MessageBoard.IndexLive do
                   class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-4 gap-4"
                   id={"section-#{section.id}-messages"}
                 >
+                  <%= for message <- section.messages do %>
+                    <.message_card_admin
+                      message={message}
+                      edit_patch={~p"/school/message_board_v2?edit=#{message.id}"}
+                      on_delete={JS.push("delete_message", value: %{message_id: message.id})}
+                    />
+                  <% end %>
+
+                  <.link
+                    :if={@is_communication_manager}
+                    patch={~p"/school/message_board_v2?new=true&section_id=#{section.id}"}
+                    class="aspect-square w-full bg-white border-1 border-dashed border-gray-300 rounded-lg p-6 flex flex-col items-center justify-center text-gray-400 hover:text-gray-600 hover:border-gray-400 transition-colors group shadow-lg"
+                  >
+                    <.icon
+                      name="hero-plus"
+                      class="w-12 h-12 aspect-square mb-4 group-hover:scale-110 transition-transform"
+                    />
+                    <span class="text-sm font-medium">Add new message</span>
+                  </.link>
                 </div>
               </div>
             </div>
           <% end %>
         </div>
       </.responsive_container>
+      <.live_component
+        :if={@message}
+        module={MessageFormOverlayComponent}
+        id="message-form-overlay"
+        message={@message}
+        section_id={@section_id}
+        title={@message_overlay_title}
+        current_profile={@current_user.current_profile}
+        on_cancel={JS.patch(~p"/school/message_board_v2")}
+        notify_parent
+      />
       <div :if={@section} phx-remove={JS.exec("phx-remove", to: "#section-form-overlay")}>
         <.slide_over
           id="section-form-overlay"
@@ -116,7 +127,7 @@ defmodule LantternWeb.MessageBoard.IndexLive do
           on_cancel={JS.patch(~p"/school/message_board_v2")}
         >
           <:title>{@section_overlay_title}</:title>
-          <.form id="message-form" for={@form} phx-change="validate_section" phx-submit="save_section">
+          <.form id="section-form" for={@form} phx-change="validate_section" phx-submit="save_section">
             <.error_block :if={@form.source.action in [:insert, :update]} class="mb-6">
               {gettext("Oops, something went wrong! Please check the errors below.")}
             </.error_block>
@@ -128,6 +139,40 @@ defmodule LantternWeb.MessageBoard.IndexLive do
               phx-debounce="1500"
             />
           </.form>
+          <div
+            :if={@form_action == :edit}
+            phx-hook="Sortable"
+            id="sortable-section-cards"
+            data-sortable-handle=".sortable-handle"
+            phx-update="ignore"
+          >
+            <.dragable_card
+              :for={
+                message <-
+                  if is_list(@section.messages),
+                    do: Enum.filter(@section.messages, fn m -> is_nil(m.archived_at) end),
+                    else: []
+              }
+              id={"sortable-#{message.id}"}
+              class="mb-4 border-l-12 gap-2"
+              style={"border-left-color: #{message.color};"}
+            >
+              <h3 class="font-display font-black text-lg" title={message.name}>
+                {message.name}
+              </h3>
+            </.dragable_card>
+          </div>
+          <:actions_left :if={@section.id}>
+            <.action
+              type="button"
+              theme="subtle"
+              size="md"
+              phx-click="delete_section"
+              data-confirm={gettext("Are you sure? All messages in this section will be deleted.")}
+            >
+              {gettext("Delete")}
+            </.action>
+          </:actions_left>
           <:actions>
             <.action
               type="button"
@@ -142,7 +187,7 @@ defmodule LantternWeb.MessageBoard.IndexLive do
               theme="primary"
               size="md"
               icon_name="hero-check"
-              form="message-form"
+              form="section-form"
             >
               {gettext("Save")}
             </.action>
@@ -194,9 +239,42 @@ defmodule LantternWeb.MessageBoard.IndexLive do
     """
   end
 
+  def mount(_params, _session, socket) do
+    if connected?(socket), do: send(self(), :initialized)
+
+    is_communication_manager =
+      "communication_management" in socket.assigns.current_user.current_profile.permissions
+
+    socket =
+      socket
+      |> assign(:initialized, false)
+      |> assign(:show_reorder, false)
+      |> assign(:classes, [])
+      |> assign(:selected_classes, [])
+      |> assign(:selected_classes_ids, [])
+      |> assign(:message, nil)
+      |> assign(:message_overlay_title, nil)
+      |> assign(:section, nil)
+      |> assign(:section_id, nil)
+      |> assign(:sections_count, 0)
+      |> stream(:sections, [])
+      |> assign(:is_communication_manager, is_communication_manager)
+      |> assign(:section_overlay_title, nil)
+      |> assign(:form_action, nil)
+      |> assign(:page_title, gettext("Message board"))
+      |> assign(:pending_message_order, nil)
+
+    {:ok, socket}
+  end
+
   def handle_params(params, _url, socket) do
     socket =
-      socket |> assign(:params, params) |> assign_section() |> assign_reorder()
+      socket
+      |> save_pending_order_changes()
+      |> assign(:params, params)
+      |> assign_section()
+      |> assign_message()
+      |> assign_reorder()
 
     {:noreply, socket}
   end
@@ -266,8 +344,62 @@ defmodule LantternWeb.MessageBoard.IndexLive do
     end
   end
 
+  def handle_event("delete_message", %{"message_id" => id}, socket) do
+    message = MessageBoard.get_message!(id)
+
+    case MessageBoard.delete_message(message) do
+      {:ok, _message} ->
+        socket
+        |> put_flash(:info, gettext("Message deleted successfully"))
+        |> assign_sections()
+        |> then(&{:noreply, &1})
+
+      {:error, _changeset} ->
+        {:noreply, put_flash(socket, :error, gettext("Failed to delete message"))}
+    end
+  end
+
+  def handle_event("sortable_update", %{"oldIndex" => old, "newIndex" => new}, socket) do
+    non_archived = Enum.filter(socket.assigns.section.messages, fn m -> is_nil(m.archived_at) end)
+    {changed_id, rest} = List.pop_at(non_archived, old)
+    new_messages = List.insert_at(rest, new, changed_id)
+    message_ids = Enum.map(new_messages, & &1.id)
+
+    socket =
+      socket
+      |> assign(:pending_message_order, message_ids)
+
+    {:noreply, socket}
+  end
+
+  def handle_info({MessageFormOverlayComponent, {action, _message}}, socket)
+      when action in [:created, :updated] do
+    flash_message =
+      case action do
+        :created -> {:info, gettext("Message created successfully")}
+        :updated -> {:info, gettext("Message updated successfully")}
+      end
+
+    socket =
+      socket
+      |> put_flash(elem(flash_message, 0), elem(flash_message, 1))
+      |> push_patch(to: ~p"/school/message_board_v2")
+      |> assign_sections()
+
+    {:noreply, socket}
+  end
+
+  def handle_info({AttachmentAreaComponent, {_action, _attachment}}, socket) do
+    {:noreply, socket}
+  end
+
   def handle_info({LantternWeb.MessageBoard.ReorderComponent, :reordered}, socket) do
-    {:noreply, assign_sections(socket)}
+    socket =
+      socket
+      |> save_pending_order_changes()
+      |> assign_sections()
+
+    {:noreply, socket}
   end
 
   def handle_info(:initialized, socket) do
@@ -292,13 +424,7 @@ defmodule LantternWeb.MessageBoard.IndexLive do
     classes_ids = socket.assigns.selected_classes_ids
 
     sections =
-      case classes_ids do
-        [] ->
-          MessageBoard.list_sections(school_id: school_id)
-
-        classes_ids when is_list(classes_ids) ->
-          MessageBoard.list_sections_with_filtered_messages(school_id, classes_ids)
-      end
+      MessageBoard.list_sections_with_filtered_messages(school_id, classes_ids)
 
     sections_count = length(sections)
 
@@ -319,27 +445,81 @@ defmodule LantternWeb.MessageBoard.IndexLive do
   end
 
   defp assign_section(%{assigns: %{params: %{"edit_section" => id}}} = socket) do
-    section = MessageBoard.get_section_with_ordered_messages!(id)
-    changeset = MessageBoard.change_section(section)
+    case MessageBoard.get_section(id, preloads: :messages) do
+      nil ->
+        socket
+        |> put_flash(:error, gettext("Section not found"))
+        |> push_navigate(to: ~p"/school/message_board_v2")
 
-    socket
-    |> assign(:section, section)
-    |> assign(:section_overlay_title, gettext("Edit section"))
-    |> assign(:form_action, :edit)
-    |> assign(:form, to_form(changeset))
+      section ->
+        changeset = MessageBoard.change_section(section)
+
+        socket
+        |> assign(:section, section)
+        |> assign(:section_overlay_title, gettext("Edit section"))
+        |> assign(:form_action, :edit)
+        |> assign(:form, to_form(changeset))
+    end
   end
 
   defp assign_section(%{assigns: %{params: %{"section_id" => section_id}}} = socket) do
-    section = MessageBoard.get_section!(section_id)
+    case MessageBoard.get_section(section_id) do
+      nil ->
+        socket
+        |> put_flash(:error, gettext("Section not found"))
+        |> push_navigate(to: ~p"/school/message_board_v2")
 
-    assign(socket, :section_id, section.id)
+      section ->
+        assign(socket, :section_id, section.id)
+    end
   end
 
   defp assign_section(socket), do: assign(socket, :section, nil)
+
+  defp assign_message(%{assigns: %{is_communication_manager: false}} = socket),
+    do: assign(socket, :message, nil)
+
+  defp assign_message(%{assigns: %{params: %{"new" => "true", "section_id" => id}}} = socket) do
+    message = %Message{
+      school_id: socket.assigns.current_user.current_profile.school_id,
+      classes: [],
+      send_to: :school,
+      section_id: id
+    }
+
+    socket
+    |> assign(:message, message)
+    |> assign(:message_overlay_title, gettext("New message"))
+  end
+
+  defp assign_message(%{assigns: %{params: %{"edit" => message_id}}} = socket) do
+    school_id = socket.assigns.current_user.current_profile.school_id
+
+    with true <- socket.assigns.is_communication_manager,
+         {:ok, message} <- MessageBoard.get_message_per_school(message_id, school_id) do
+      socket
+      |> assign(:message, message)
+      |> assign(:message_overlay_title, gettext("Edit message"))
+    else
+      _ -> assign(socket, :message, nil)
+    end
+  end
+
+  defp assign_message(socket), do: assign(socket, :message, nil)
 
   defp assign_reorder(%{assigns: %{params: %{"reorder" => "true"}}} = socket) do
     assign(socket, :show_reorder, true)
   end
 
   defp assign_reorder(socket), do: assign(socket, :show_reorder, false)
+
+  defp save_pending_order_changes(%{assigns: %{pending_message_order: nil}} = socket), do: socket
+
+  defp save_pending_order_changes(%{assigns: %{pending_message_order: message_ids}} = socket) do
+    MessageBoard.update_messages_position(message_ids)
+
+    socket
+    |> assign(:pending_message_order, nil)
+    |> assign_sections()
+  end
 end

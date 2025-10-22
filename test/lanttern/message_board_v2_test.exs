@@ -5,7 +5,7 @@ defmodule Lanttern.MessageBoardV2Test do
 
   alias Lanttern.MessageBoard.MessageV2, as: Message
   alias Lanttern.MessageBoard.Section
-  alias Lanttern.MessageBoardV2
+  alias Lanttern.MessageBoardV2, as: MessageBoard
 
   describe "sections" do
     @invalid_section_attrs %{name: nil, position: nil, school_id: nil}
@@ -20,7 +20,7 @@ defmodule Lanttern.MessageBoardV2Test do
       other_school = insert(:school)
       _other_section = insert(:section, school: other_school, name: "Other Section", position: 0)
 
-      sections = MessageBoardV2.list_sections(school_id: school.id)
+      sections = MessageBoard.list_sections(school_id: school.id)
 
       assert length(sections) == 3
       # Should be ordered by position
@@ -40,19 +40,19 @@ defmodule Lanttern.MessageBoardV2Test do
 
       # Message sent to school (should be included)
       _message1 =
-        insert(:message_v2,
+        insert(:message,
           school: school,
           section: section,
-          send_to: "school",
+          send_to: :school,
           name: "School message"
         )
 
       # Message sent to specific classes (should be included when class is filtered)
       {:ok, _message2} =
-        MessageBoardV2.create_message(%{
+        MessageBoard.create_message(%{
           school_id: school.id,
           section_id: section.id,
-          send_to: "classes",
+          send_to: :classes,
           name: "Class message",
           description: "Class message description",
           classes_ids: [class1.id]
@@ -60,15 +60,15 @@ defmodule Lanttern.MessageBoardV2Test do
 
       # Archived message (should not be included)
       _archived_message =
-        insert(:message_v2,
+        insert(:message,
           school: school,
           section: section,
-          send_to: "school",
+          send_to: :school,
           name: "Archived message",
           archived_at: DateTime.utc_now()
         )
 
-      sections = MessageBoardV2.list_sections_with_filtered_messages(school.id, [class1.id])
+      sections = MessageBoard.list_sections_with_filtered_messages(school.id, [class1.id])
       section = List.first(sections)
 
       # Should preload only non-archived messages
@@ -81,21 +81,21 @@ defmodule Lanttern.MessageBoardV2Test do
 
     test "get_section!/1 returns the section with given id" do
       section = insert(:section)
-      assert MessageBoardV2.get_section!(section.id).id == section.id
+      assert MessageBoard.get_section!(section.id).id == section.id
     end
 
     test "get_section!/1 raises when section does not exist" do
       assert_raise Ecto.NoResultsError, fn ->
-        MessageBoardV2.get_section!(999)
+        MessageBoard.get_section!(999)
       end
     end
 
-    test "get_section_with_ordered_messages!/1 returns section with ordered messages" do
+    test "get_section/2 with preloads: :messages returns section with ordered messages" do
       section = insert(:section)
 
       # Create messages with different positions and timestamps
       _message1 =
-        insert(:message_v2,
+        insert(:message,
           section: section,
           position: 2,
           name: "Message 1",
@@ -103,7 +103,7 @@ defmodule Lanttern.MessageBoardV2Test do
         )
 
       _message2 =
-        insert(:message_v2,
+        insert(:message,
           section: section,
           position: 1,
           name: "Message 2",
@@ -111,14 +111,14 @@ defmodule Lanttern.MessageBoardV2Test do
         )
 
       _message3 =
-        insert(:message_v2,
+        insert(:message,
           section: section,
           position: 1,
           name: "Message 3",
           updated_at: ~N[2025-01-01 11:00:00]
         )
 
-      result = MessageBoardV2.get_section_with_ordered_messages!(section.id)
+      result = MessageBoard.get_section(section.id, preloads: :messages)
 
       # Should be ordered by position (asc), then updated_at (desc), then archived_at (asc)
       assert length(result.messages) == 3
@@ -135,14 +135,17 @@ defmodule Lanttern.MessageBoardV2Test do
         school_id: school.id
       }
 
-      assert {:ok, %Section{} = section} = MessageBoardV2.create_section(valid_attrs)
+      assert {:ok, %Section{} = section} = MessageBoard.create_section(valid_attrs)
       assert section.name == "Test Section"
       assert section.position == 0
       assert section.school_id == school.id
     end
 
     test "create_section/1 with invalid data returns error changeset" do
-      assert {:error, %Ecto.Changeset{}} = MessageBoardV2.create_section(@invalid_section_attrs)
+      school = insert(:school)
+      invalid_attrs = %{name: nil, position: nil, school_id: school.id}
+
+      assert {:error, %Ecto.Changeset{}} = MessageBoard.create_section(invalid_attrs)
     end
 
     test "create_section/1 enforces unique constraint on name per school" do
@@ -155,7 +158,7 @@ defmodule Lanttern.MessageBoardV2Test do
         school_id: school.id
       }
 
-      assert {:error, %Ecto.Changeset{} = changeset} = MessageBoardV2.create_section(attrs)
+      assert {:error, %Ecto.Changeset{} = changeset} = MessageBoard.create_section(attrs)
       assert %{name: ["section name must be unique within a school"]} = errors_on(changeset)
     end
 
@@ -165,7 +168,7 @@ defmodule Lanttern.MessageBoardV2Test do
       update_attrs = %{name: "Updated Name", position: 5}
 
       assert {:ok, %Section{} = updated_section} =
-               MessageBoardV2.update_section(section, update_attrs)
+               MessageBoard.update_section(section, update_attrs)
 
       assert updated_section.name == "Updated Name"
       assert updated_section.position == 5
@@ -175,23 +178,23 @@ defmodule Lanttern.MessageBoardV2Test do
       section = insert(:section)
 
       assert {:error, %Ecto.Changeset{}} =
-               MessageBoardV2.update_section(section, @invalid_section_attrs)
+               MessageBoard.update_section(section, @invalid_section_attrs)
 
       # Section should remain unchanged
-      reloaded_section = MessageBoardV2.get_section!(section.id)
+      reloaded_section = MessageBoard.get_section!(section.id)
       assert section.name == reloaded_section.name
       assert section.position == reloaded_section.position
     end
 
     test "delete_section/1 deletes the section" do
       section = insert(:section)
-      assert {:ok, %Section{}} = MessageBoardV2.delete_section(section)
-      assert_raise Ecto.NoResultsError, fn -> MessageBoardV2.get_section!(section.id) end
+      assert {:ok, %Section{}} = MessageBoard.delete_section(section)
+      assert_raise Ecto.NoResultsError, fn -> MessageBoard.get_section!(section.id) end
     end
 
     test "change_section/2 returns a section changeset" do
       section = insert(:section)
-      assert %Ecto.Changeset{} = MessageBoardV2.change_section(section)
+      assert %Ecto.Changeset{} = MessageBoard.change_section(section)
     end
 
     test "update_section_position/1 updates positions of multiple sections" do
@@ -203,12 +206,12 @@ defmodule Lanttern.MessageBoardV2Test do
       # Reorder sections
       reordered_sections = [section3, section1, section2]
 
-      assert :ok = MessageBoardV2.update_section_position(reordered_sections)
+      assert :ok = MessageBoard.update_section_position(reordered_sections)
 
       # Verify positions were updated
-      assert MessageBoardV2.get_section!(section3.id).position == 0
-      assert MessageBoardV2.get_section!(section1.id).position == 1
-      assert MessageBoardV2.get_section!(section2.id).position == 2
+      assert MessageBoard.get_section!(section3.id).position == 0
+      assert MessageBoard.get_section!(section1.id).position == 1
+      assert MessageBoard.get_section!(section2.id).position == 2
     end
   end
 
@@ -220,7 +223,7 @@ defmodule Lanttern.MessageBoardV2Test do
       section = insert(:section, school: school)
 
       message1 =
-        insert(:message_v2,
+        insert(:message,
           school: school,
           section: section,
           name: "First Message",
@@ -230,7 +233,7 @@ defmodule Lanttern.MessageBoardV2Test do
         )
 
       message2 =
-        insert(:message_v2,
+        insert(:message,
           school: school,
           section: section,
           name: "Second Message",
@@ -239,7 +242,7 @@ defmodule Lanttern.MessageBoardV2Test do
           updated_at: ~N[2025-01-01 11:00:00]
         )
 
-      messages = MessageBoardV2.list_messages()
+      messages = MessageBoard.list_messages()
 
       # Should be ordered by updated_at first, then position
       assert length(messages) == 2
@@ -253,12 +256,12 @@ defmodule Lanttern.MessageBoardV2Test do
       section1 = insert(:section, school: school1)
       section2 = insert(:section, school: school2)
 
-      message1 = insert(:message_v2, school: school1, section: section1, name: "School 1 Message")
+      message1 = insert(:message, school: school1, section: section1, name: "School 1 Message")
 
       _message2 =
-        insert(:message_v2, school: school2, section: section2, name: "School 2 Message")
+        insert(:message, school: school2, section: section2, name: "School 2 Message")
 
-      messages = MessageBoardV2.list_messages(school_id: school1.id)
+      messages = MessageBoard.list_messages(school_id: school1.id)
 
       assert length(messages) == 1
       assert List.first(messages).id == message1.id
@@ -271,41 +274,43 @@ defmodule Lanttern.MessageBoardV2Test do
       section = insert(:section, school: school)
 
       # Message sent to school (should be included)
-      school_message = insert(:message_v2, school: school, section: section, send_to: "school")
+      school_message = insert(:message, school: school, section: section, send_to: :school)
 
       # Message sent to specific class (should be included when class is in filter)
       class_message =
-        insert(:message_v2,
+        insert(:message,
           school: school,
           section: section,
-          send_to: "classes",
-          classes_ids: [class1.id]
+          send_to: :classes
         )
         |> then(fn message ->
-          message_with_preloads =
-            MessageBoardV2.get_message!(message.id, preloads: [:message_classes])
+          insert(:message_class, message: message, school: school, class: class1)
 
-          MessageBoardV2.update_message(message_with_preloads, %{classes_ids: [class1.id]})
+          message_with_preloads =
+            MessageBoard.get_message!(message.id, preloads: [:classes])
+
+          MessageBoard.update_message(message_with_preloads, %{classes_ids: [class1.id]})
           |> elem(1)
         end)
 
       # Message sent to different class (should not be included)
       _other_class_message =
-        insert(:message_v2,
+        insert(:message,
           school: school,
           section: section,
-          send_to: "classes",
-          classes_ids: [class2.id]
+          send_to: :classes
         )
         |> then(fn message ->
-          message_with_preloads =
-            MessageBoardV2.get_message!(message.id, preloads: [:message_classes])
+          insert(:message_class, message: message, school: school, class: class2)
 
-          MessageBoardV2.update_message(message_with_preloads, %{classes_ids: [class2.id]})
+          message_with_preloads =
+            MessageBoard.get_message!(message.id, preloads: [:classes])
+
+          MessageBoard.update_message(message_with_preloads, %{classes_ids: [class2.id]})
           |> elem(1)
         end)
 
-      messages = MessageBoardV2.list_messages(school_id: school.id, classes_ids: [class1.id])
+      messages = MessageBoard.list_messages(school_id: school.id, classes_ids: [class1.id])
 
       assert length(messages) == 2
       message_ids = Enum.map(messages, & &1.id)
@@ -316,9 +321,9 @@ defmodule Lanttern.MessageBoardV2Test do
     test "get_message_per_school/2 returns message when it belongs to the school" do
       school = insert(:school)
       section = insert(:section, school: school)
-      message = insert(:message_v2, school: school, section: section)
+      message = insert(:message, school: school, section: section)
 
-      assert {:ok, found_message} = MessageBoardV2.get_message_per_school(message.id, school.id)
+      assert {:ok, found_message} = MessageBoard.get_message_per_school(message.id, school.id)
       assert found_message.id == message.id
     end
 
@@ -326,42 +331,42 @@ defmodule Lanttern.MessageBoardV2Test do
       school1 = insert(:school)
       school2 = insert(:school)
       section1 = insert(:section, school: school1)
-      message = insert(:message_v2, school: school1, section: section1)
+      message = insert(:message, school: school1, section: section1)
 
-      assert {:error, :not_found} = MessageBoardV2.get_message_per_school(message.id, school2.id)
+      assert {:error, :not_found} = MessageBoard.get_message_per_school(message.id, school2.id)
     end
 
     test "get_message_per_school/2 returns error when message doesn't exist" do
       school = insert(:school)
-      assert {:error, :not_found} = MessageBoardV2.get_message_per_school(999, school.id)
+      assert {:error, :not_found} = MessageBoard.get_message_per_school(999, school.id)
     end
 
     test "get_message/1 returns the message with given id" do
-      message = insert(:message_v2)
-      assert MessageBoardV2.get_message(message.id).id == message.id
+      message = insert(:message)
+      assert MessageBoard.get_message(message.id).id == message.id
     end
 
     test "get_message/1 returns nil when message does not exist" do
-      assert MessageBoardV2.get_message(999) == nil
+      assert MessageBoard.get_message(999) == nil
     end
 
     test "get_message!/1 returns the message with given id" do
-      message = insert(:message_v2)
-      assert MessageBoardV2.get_message!(message.id).id == message.id
+      message = insert(:message)
+      assert MessageBoard.get_message!(message.id).id == message.id
     end
 
     test "get_message!/1 raises when message does not exist" do
       assert_raise Ecto.NoResultsError, fn ->
-        MessageBoardV2.get_message!(999)
+        MessageBoard.get_message!(999)
       end
     end
 
     test "get_message/2 with preloads option preloads associations" do
       school = insert(:school)
       section = insert(:section, school: school)
-      message = insert(:message_v2, school: school, section: section)
+      message = insert(:message, school: school, section: section)
 
-      result = MessageBoardV2.get_message(message.id, preloads: [:school, :section])
+      result = MessageBoard.get_message(message.id, preloads: [:school, :section])
 
       assert result.school.id == school.id
       assert result.section.id == section.id
@@ -376,14 +381,14 @@ defmodule Lanttern.MessageBoardV2Test do
       valid_attrs = %{
         name: "Test Message",
         description: "Test Description",
-        send_to: "school",
+        send_to: :school,
         school_id: school.id,
         section_id: section.id,
         subtitle: "Test Subtitle",
         color: "#FF0000"
       }
 
-      assert {:ok, %Message{} = message} = MessageBoardV2.create_message(valid_attrs)
+      assert {:ok, %Message{} = message} = MessageBoard.create_message(valid_attrs)
       assert message.name == "Test Message"
       assert message.description == "Test Description"
       assert message.send_to == :school
@@ -395,7 +400,18 @@ defmodule Lanttern.MessageBoardV2Test do
     end
 
     test "create_message/1 with invalid data returns error changeset" do
-      assert {:error, %Ecto.Changeset{}} = MessageBoardV2.create_message(@invalid_message_attrs)
+      school = insert(:school)
+      section = insert(:section, school: school)
+
+      invalid_attrs = %{
+        name: nil,
+        description: nil,
+        send_to: nil,
+        school_id: school.id,
+        section_id: section.id
+      }
+
+      assert {:error, %Ecto.Changeset{}} = MessageBoard.create_message(invalid_attrs)
     end
 
     test "create_message/1 with send_to classes requires classes_ids" do
@@ -405,13 +421,13 @@ defmodule Lanttern.MessageBoardV2Test do
       attrs_without_classes = %{
         name: "Test Message",
         description: "Test Description",
-        send_to: "classes",
+        send_to: :classes,
         school_id: school.id,
         section_id: section.id
       }
 
       assert {:error, %Ecto.Changeset{} = changeset} =
-               MessageBoardV2.create_message(attrs_without_classes)
+               MessageBoard.create_message(attrs_without_classes)
 
       assert %{classes_ids: ["At least 1 class is required"]} = errors_on(changeset)
     end
@@ -425,23 +441,23 @@ defmodule Lanttern.MessageBoardV2Test do
       attrs_with_classes = %{
         name: "Test Message",
         description: "Test Description",
-        send_to: "classes",
+        send_to: :classes,
         school_id: school.id,
         section_id: section.id,
         classes_ids: [class1.id, class2.id]
       }
 
-      assert {:ok, %Message{} = message} = MessageBoardV2.create_message(attrs_with_classes)
+      assert {:ok, %Message{} = message} = MessageBoard.create_message(attrs_with_classes)
 
       # Verify message was created with class associations
-      message_with_classes = MessageBoardV2.get_message(message.id, preloads: [:classes])
+      message_with_classes = MessageBoard.get_message(message.id, preloads: [:classes])
       class_ids = Enum.map(message_with_classes.classes, & &1.id)
       assert class1.id in class_ids
       assert class2.id in class_ids
     end
 
     test "update_message/2 with valid data updates the message" do
-      message = insert(:message_v2, name: "Original Name")
+      message = insert(:message, name: "Original Name")
 
       update_attrs = %{
         name: "Updated Name",
@@ -450,7 +466,7 @@ defmodule Lanttern.MessageBoardV2Test do
       }
 
       assert {:ok, %Message{} = updated_message} =
-               MessageBoardV2.update_message(message, update_attrs)
+               MessageBoard.update_message(message, update_attrs)
 
       assert updated_message.name == "Updated Name"
       assert updated_message.description == "Updated Description"
@@ -458,62 +474,44 @@ defmodule Lanttern.MessageBoardV2Test do
     end
 
     test "update_message/2 with invalid data returns error changeset" do
-      message = insert(:message_v2)
+      message = insert(:message)
 
       assert {:error, %Ecto.Changeset{}} =
-               MessageBoardV2.update_message(message, @invalid_message_attrs)
+               MessageBoard.update_message(message, @invalid_message_attrs)
 
       # Message should remain unchanged
-      assert message.name == MessageBoardV2.get_message!(message.id).name
+      assert message.name == MessageBoard.get_message!(message.id).name
     end
 
     test "delete_message/1 deletes the message" do
-      message = insert(:message_v2)
-      assert {:ok, %Message{}} = MessageBoardV2.delete_message(message)
-      assert MessageBoardV2.get_message(message.id) == nil
+      message = insert(:message)
+      assert {:ok, %Message{}} = MessageBoard.delete_message(message)
+      assert MessageBoard.get_message(message.id) == nil
     end
 
     test "change_message/1 returns a message changeset" do
-      message = insert(:message_v2)
-      assert %Ecto.Changeset{} = MessageBoardV2.change_message(message)
+      message = insert(:message)
+      assert %Ecto.Changeset{} = MessageBoard.change_message(message)
     end
 
     test "update_messages_position/1 updates positions of multiple messages" do
       section = insert(:section)
-      message1 = insert(:message_v2, section: section, position: 0)
-      message2 = insert(:message_v2, section: section, position: 1)
-      message3 = insert(:message_v2, section: section, position: 2)
+      message1 = insert(:message, section: section, position: 0)
+      message2 = insert(:message, section: section, position: 1)
+      message3 = insert(:message, section: section, position: 2)
 
       # Create an archived message that should be filtered out
-      _archived_message = insert(:message_v2, section: section, archived_at: DateTime.utc_now())
+      _archived_message = insert(:message, section: section, archived_at: DateTime.utc_now())
 
       # Reorder messages
       reordered_messages = [message3, message1, message2]
 
-      assert :ok = MessageBoardV2.update_messages_position(reordered_messages)
+      assert :ok = MessageBoard.update_messages_position(reordered_messages)
 
       # Verify positions were updated
-      assert MessageBoardV2.get_message!(message3.id).position == 0
-      assert MessageBoardV2.get_message!(message1.id).position == 1
-      assert MessageBoardV2.get_message!(message2.id).position == 2
-    end
-
-    test "update_messages_position/1 ignores archived messages" do
-      section = insert(:section)
-      active_message = insert(:message_v2, section: section, position: 0)
-
-      archived_message =
-        insert(:message_v2, section: section, archived_at: DateTime.utc_now(), position: 1)
-
-      # Try to reorder including archived message
-      messages_with_archived = [archived_message, active_message]
-
-      assert :ok = MessageBoardV2.update_messages_position(messages_with_archived)
-
-      # Only active message should have position updated
-      assert MessageBoardV2.get_message!(active_message.id).position == 0
-      # Archived message position should remain unchanged
-      assert MessageBoardV2.get_message!(archived_message.id).position == 1
+      assert MessageBoard.get_message!(message3.id).position == 0
+      assert MessageBoard.get_message!(message1.id).position == 1
+      assert MessageBoard.get_message!(message2.id).position == 2
     end
   end
 end

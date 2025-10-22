@@ -1,0 +1,438 @@
+defmodule LantternWeb.MessageBoard.MessageFormOverlayComponentV2 do
+  @moduledoc """
+  Renders an overlay with a `Message` form
+
+  ### Attrs
+
+    attr :message, Message, required: true
+    attr :title, :string, required: true
+    attr :current_profile, Profile, required: true
+    attr :section_id, :integer
+    attr :on_cancel, :any, required: true, doc: "`<.slide_over>` `on_cancel` attr"
+    attr :notify_parent, :boolean
+    attr :notify_component, Phoenix.LiveComponent.CID
+  """
+
+  use LantternWeb, :live_component
+
+  alias Lanttern.MessageBoard.MessageV2, as: Message
+  alias Lanttern.MessageBoardV2, as: MessageBoard
+  alias Lanttern.SupabaseHelpers
+
+  # shared
+
+  alias LantternWeb.Schools.ClassesFieldComponent
+  import LantternWeb.FormComponents
+
+  @impl true
+  def render(assigns) do
+    ~H"""
+    <div phx-remove={JS.exec("phx-remove", to: "##{@id}")}>
+      <.slide_over id={@id} show={true} on_cancel={@on_cancel}>
+        <:title>{@title}</:title>
+        <.form
+          id="message-form"
+          for={@form}
+          phx-change="validate"
+          phx-submit="save"
+          phx-target={@myself}
+        >
+          <.error_block :if={@form.source.action in [:insert, :update]} class="mb-6">
+            {gettext("Oops, something went wrong! Please check the errors below.")}
+          </.error_block>
+          <.message_image_field
+            current_image_url={@message.cover}
+            is_removing={@is_removing_cover}
+            upload={@uploads.cover}
+            on_cancel_replace={JS.push("cancel-replace-cover", target: @myself)}
+            on_cancel_upload={JS.push("cancel-upload", target: @myself)}
+            on_replace={JS.push("replace-cover", target: @myself)}
+            class="mb-6"
+          />
+          <div class="mb-6 flex items-center gap-4">
+            <.label for={@form[:color].id}>{gettext("Card color")}</.label>
+            <div class="p-1 border-2 border-white rounded-md shadow-lg bg-white -mt-2">
+              <input
+                type="color"
+                name={@form[:color].name}
+                id={@form[:color].id}
+                value={@form[:color].value}
+                class="h-7 w-11 p-0 border-0 rounded-sm cursor-pointer block"
+                phx-debounce="1500"
+              />
+            </div>
+          </div>
+          <div class="mb-6">
+            <.input
+              field={@form[:name]}
+              type="text"
+              label={gettext("Message title")}
+              maxlength="30"
+              phx-debounce="1500"
+            />
+            <div class="flex justify-end mt-1">
+              <span class="text-xs text-ltrn-subtle">
+                {String.length(@form[:name].value || "")} / 30
+              </span>
+            </div>
+          </div>
+
+          <div class="mb-6">
+            <.input field={@form[:subtitle]} type="text" maxlength="160" phx-debounce="1500">
+              <:custom_label>
+                <span class="font-bold">{gettext("Message subtitle")}</span>
+                <span class="font-normal"> ({gettext("what appears in the card preview")})</span>
+              </:custom_label>
+            </.input>
+            <div class="flex justify-between items-center mt-1">
+              <span
+                :if={!is_nil(@message.cover) or @uploads.cover.entries != []}
+                class="text-xs text-red-500"
+              >
+                {gettext(
+                  "When using a cover image, subtitles will not be displayed in the message card."
+                )}
+              </span>
+              <span class="text-xs text-ltrn-subtle">
+                {String.length(@form[:subtitle].value || "")} / 160
+              </span>
+            </div>
+          </div>
+          <.input
+            field={@form[:description]}
+            type="markdown"
+            label={gettext("Contents")}
+            class="mb-6"
+            phx-debounce="1500"
+          />
+          <%= if @message.id do %>
+            <div :if={@message.send_to == :school} class="flex items-center gap-2 mb-6">
+              <.icon name="hero-user-group" class="w-6 h-6" />
+              <p class="font-bold">{gettext("Sending to all school")}</p>
+            </div>
+            <div :if={@message.send_to == :classes} class="flex items-center gap-2 mb-6">
+              <.icon name="hero-users" class="w-6 h-6" />
+              <p class="font-bold">{gettext("Sending to selected classes")}</p>
+            </div>
+          <% else %>
+            <fieldset class="mb-6">
+              <legend class="font-bold">{gettext("Send to")}</legend>
+              <div class="mt-4 flex items-center gap-4">
+                <.radio_input
+                  field={@form[:send_to]}
+                  value={:school}
+                  label={gettext("All school")}
+                />
+                <.radio_input
+                  field={@form[:send_to]}
+                  value={:classes}
+                  label={gettext("Selected classes")}
+                />
+              </div>
+              <.error :for={msg <- Enum.map(@form[:send_to].errors, &translate_error(&1))}>
+                {msg}
+              </.error>
+            </fieldset>
+          <% end %>
+          <.live_component
+            module={ClassesFieldComponent}
+            id="message-form-classes-picker"
+            label={gettext("Classes")}
+            school_id={@message.school_id}
+            current_cycle={@current_profile.current_school_cycle}
+            selected_classes_ids={@selected_classes_ids}
+            notify_component={@myself}
+            class={[
+              if(@form[:classes_ids].errors == [] && @form.source.action not in [:insert, :update],
+                do: "mb-6"
+              ),
+              if(@form[:send_to].value != :classes, do: "hidden")
+            ]}
+          />
+          <div
+            :if={@form[:classes_ids].errors != [] && @form.source.action in [:insert, :update]}
+            class="mb-6"
+          >
+            <.error :for={msg <- Enum.map(@form[:classes_ids].errors, &translate_error(&1))}>
+              {msg}
+            </.error>
+          </div>
+        </.form>
+        <:actions_left :if={@message.id}>
+          <.action
+            type="button"
+            theme="subtle"
+            size="md"
+            phx-click="delete"
+            phx-target={@myself}
+            data-confirm={gettext("Are you sure?")}
+          >
+            {gettext("Delete")}
+          </.action>
+        </:actions_left>
+        <:actions>
+          <.action
+            type="button"
+            theme="subtle"
+            size="md"
+            phx-click={JS.exec("data-cancel", to: "##{@id}")}
+          >
+            {gettext("Cancel")}
+          </.action>
+          <.action type="submit" theme="primary" size="md" icon_name="hero-check" form="message-form">
+            {gettext("Save")}
+          </.action>
+        </:actions>
+      </.slide_over>
+    </div>
+    """
+  end
+
+  # Custom image field component for message form with aspect ratio recommendation
+  attr :current_image_url, :string, required: true
+  attr :is_removing, :boolean, required: true
+  attr :upload, :any, required: true, doc: "use it to pass `@uploads.something`"
+  attr :on_cancel_replace, Phoenix.LiveView.JS, required: true
+  attr :on_cancel_upload, Phoenix.LiveView.JS, required: true
+  attr :on_replace, Phoenix.LiveView.JS, required: true
+  attr :class, :any, default: nil
+
+  defp message_image_field(assigns) do
+    ~H"""
+    <div
+      :if={!@current_image_url || @is_removing}
+      class={[
+        "p-4 border border-dashed border-ltrn-subtle rounded-md text-center text-ltrn-subtle bg-white shadow-lg",
+        if(@upload.entries != [], do: "hidden"),
+        @class
+      ]}
+      phx-drop-target={@upload.ref}
+    >
+      <div>
+        <.icon name="hero-photo" class="h-10 w-10 mx-auto mb-6" />
+        <div>
+          <label
+            for={@upload.ref}
+            class="cursor-pointer text-ltrn-primary hover:text-ltrn-dark focus-within:outline-hidden focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-ltrn-dark"
+          >
+            <span>{gettext("Upload a cover image file")}</span>
+            <.live_file_input upload={@upload} class="sr-only" />
+          </label>
+          <span>{gettext("or drag and drop here")}</span>
+          <div class="mt-2">
+            <span class="text-xs">
+              {gettext("Recommended aspect ratio of 16:9 (landscape orientation)")}
+            </span>
+          </div>
+          <button :if={@is_removing} type="button" phx-click={@on_cancel_replace} class="mt-4">
+            {gettext("Cancel cover removal")}
+          </button>
+        </div>
+      </div>
+    </div>
+    <div :if={@current_image_url && !@is_removing} class={["relative", @class]}>
+      <div class="flex items-center justify-center w-full h-60 bg-ltrn-subtle overflow-hidden">
+        <img src={@current_image_url} alt="Cover image" class="w-full" />
+      </div>
+      <.icon_button
+        type="button"
+        name="hero-x-mark"
+        theme="white"
+        rounded
+        phx-click={@on_replace}
+        sr_text={gettext("Replace image")}
+        class="absolute top-2 right-2"
+      />
+    </div>
+    <div :for={entry <- @upload.entries} class={["relative", @class]}>
+      <div
+        :if={entry.valid?}
+        class="flex items-center justify-center w-full h-60 bg-ltrn-subtle overflow-hidden"
+      >
+        <.live_img_preview entry={entry} class="w-full" />
+      </div>
+      <.error_block :if={!entry.valid?} class="p-6 border border-red-500 rounded-sm">
+        <p>{gettext("File \"%{file}\" is invalid.", file: entry.client_name)}</p>
+        <%= for err <- upload_errors(@upload, entry) do %>
+          {LantternWeb.FormComponents.upload_error_to_string(@upload, err)}
+        <% end %>
+      </.error_block>
+      <.icon_button
+        type="button"
+        name="hero-x-mark"
+        theme="white"
+        rounded
+        phx-click={@on_cancel_upload}
+        phx-value-ref={entry.ref}
+        sr_text={gettext("cancel")}
+        class="absolute top-2 right-2"
+      />
+    </div>
+    """
+  end
+
+  @impl true
+  def mount(socket) do
+    socket =
+      socket
+      |> assign(:initialized, false)
+      |> assign(:is_removing_cover, false)
+      |> assign(:section_id, nil)
+      |> allow_upload(:cover,
+        accept: ~w(.jpg .jpeg .png .webp),
+        max_file_size: 5_000_000,
+        max_entries: 1
+      )
+
+    {:ok, socket}
+  end
+
+  @impl true
+  def update(%{action: {ClassesFieldComponent, {:changed, selected_classes_ids}}}, socket) do
+    socket =
+      socket
+      |> assign(:selected_classes_ids, selected_classes_ids)
+      |> assign_validated_form(socket.assigns.form.params)
+
+    {:ok, socket}
+  end
+
+  def update(%{message: %Message{}} = assigns, socket) do
+    socket = socket |> assign(assigns) |> initialize()
+    {:ok, socket}
+  end
+
+  defp initialize(%{assigns: %{initialized: false}} = socket) do
+    message = socket.assigns.message
+    changeset = MessageBoard.change_message(message, %{})
+    selected_classes_ids = Enum.map(message.classes, & &1.id)
+
+    socket
+    |> assign(:form, to_form(changeset))
+    |> assign(:selected_classes_ids, selected_classes_ids)
+    |> assign(:initialized, true)
+  end
+
+  defp initialize(socket), do: socket
+
+  @impl true
+  def handle_event("validate", %{"message_v2" => message_params}, socket) do
+    {:noreply, assign_validated_form(socket, message_params)}
+  end
+
+  def handle_event("save", %{"message_v2" => message_params}, socket) do
+    params = inject_extra_params(socket.assigns, message_params)
+
+    cover_image_url =
+      consume_uploaded_entries(socket, :cover, fn %{path: file_path}, entry ->
+        {:ok, object} =
+          SupabaseHelpers.upload_object(
+            "covers",
+            entry.client_name,
+            file_path,
+            %{content_type: entry.client_type}
+          )
+
+        image_url =
+          "#{SupabaseHelpers.config().base_url}/storage/v1/object/public/#{URI.encode(object.key)}"
+
+        {:ok, image_url}
+      end)
+      |> case do
+        [] -> nil
+        [image_url] -> image_url
+      end
+
+    cover_image_url =
+      cond do
+        cover_image_url != nil -> cover_image_url
+        socket.assigns.is_removing_cover -> nil
+        true -> socket.assigns.message.cover
+      end
+
+    params = params |> Map.put("cover", cover_image_url)
+
+    save_message(socket, socket.assigns.message.id, params)
+  end
+
+  def handle_event("delete", _, socket) do
+    MessageBoard.delete_message(socket.assigns.message)
+    |> case do
+      {:ok, message} ->
+        notify(__MODULE__, {:deleted, message}, socket.assigns)
+        {:noreply, socket}
+
+      {:error, %Ecto.Changeset{} = changeset} ->
+        {:noreply, assign(socket, :form, to_form(changeset))}
+    end
+  end
+
+  def handle_event("cancel-upload", %{"ref" => ref}, socket),
+    do: {:noreply, cancel_upload(socket, :cover, ref)}
+
+  def handle_event("replace-cover", _, socket),
+    do: {:noreply, assign(socket, :is_removing_cover, true)}
+
+  def handle_event("cancel-replace-cover", _, socket),
+    do: {:noreply, assign(socket, :is_removing_cover, false)}
+
+  defp save_message(socket, nil, message_params) do
+    message_params
+    |> MessageBoard.create_message()
+    |> case do
+      {:ok, message} ->
+        notify(__MODULE__, {:created, message}, socket.assigns)
+        update_cover(socket)
+        {:noreply, socket}
+
+      {:error, %Ecto.Changeset{} = changeset} ->
+        {:noreply, assign(socket, :form, to_form(changeset))}
+    end
+  end
+
+  defp save_message(socket, _id, message_params) do
+    MessageBoard.update_message(
+      socket.assigns.message,
+      message_params
+    )
+    |> case do
+      {:ok, message} ->
+        notify(__MODULE__, {:updated, message}, socket.assigns)
+        update_cover(socket)
+        {:noreply, socket}
+
+      {:error, %Ecto.Changeset{} = changeset} ->
+        {:noreply, assign(socket, :form, to_form(changeset))}
+    end
+  end
+
+  defp update_cover(%{assigns: %{is_removing_cover: true, message: %{cover: cover}}}) do
+    SupabaseHelpers.remove_object("covers", cover)
+  end
+
+  defp update_cover(_socket), do: :ok
+
+  defp assign_validated_form(socket, params) do
+    params = inject_extra_params(socket.assigns, params)
+
+    changeset =
+      socket.assigns.message
+      |> MessageBoard.change_message(params)
+      |> Map.put(:action, :validate)
+      |> then(fn cs ->
+        send_to = Ecto.Changeset.get_field(cs, :send_to)
+        Ecto.Changeset.force_change(cs, :send_to, send_to)
+      end)
+
+    assign(socket, :form, to_form(changeset))
+  end
+
+  defp inject_extra_params(assigns, params) do
+    section_id = assigns.message.section_id || assigns.section_id
+
+    params
+    |> Map.put("school_id", assigns.message.school_id)
+    |> Map.put("classes_ids", assigns.selected_classes_ids)
+    |> Map.put("section_id", section_id)
+  end
+end
