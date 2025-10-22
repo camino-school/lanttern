@@ -90,7 +90,7 @@ defmodule Lanttern.MessageBoardV2Test do
       end
     end
 
-    test "get_section_with_ordered_messages!/1 returns section with ordered messages" do
+    test "get_section/2 with preloads: :messages returns section with ordered messages" do
       section = insert(:section)
 
       # Create messages with different positions and timestamps
@@ -118,7 +118,7 @@ defmodule Lanttern.MessageBoardV2Test do
           updated_at: ~N[2025-01-01 11:00:00]
         )
 
-      result = MessageBoard.get_section_with_ordered_messages!(section.id)
+      result = MessageBoard.get_section(section.id, preloads: :messages)
 
       # Should be ordered by position (asc), then updated_at (desc), then archived_at (asc)
       assert length(result.messages) == 3
@@ -142,7 +142,10 @@ defmodule Lanttern.MessageBoardV2Test do
     end
 
     test "create_section/1 with invalid data returns error changeset" do
-      assert {:error, %Ecto.Changeset{}} = MessageBoard.create_section(@invalid_section_attrs)
+      school = insert(:school)
+      invalid_attrs = %{name: nil, position: nil, school_id: school.id}
+
+      assert {:error, %Ecto.Changeset{}} = MessageBoard.create_section(invalid_attrs)
     end
 
     test "create_section/1 enforces unique constraint on name per school" do
@@ -397,7 +400,18 @@ defmodule Lanttern.MessageBoardV2Test do
     end
 
     test "create_message/1 with invalid data returns error changeset" do
-      assert {:error, %Ecto.Changeset{}} = MessageBoard.create_message(@invalid_message_attrs)
+      school = insert(:school)
+      section = insert(:section, school: school)
+
+      invalid_attrs = %{
+        name: nil,
+        description: nil,
+        send_to: nil,
+        school_id: school.id,
+        section_id: section.id
+      }
+
+      assert {:error, %Ecto.Changeset{}} = MessageBoard.create_message(invalid_attrs)
     end
 
     test "create_message/1 with send_to classes requires classes_ids" do

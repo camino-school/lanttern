@@ -24,7 +24,10 @@ defmodule Lanttern.MessageBoard.Section do
     field :name, :string
     field :position, :integer, default: 0
     belongs_to :school, Lanttern.Schools.School
-    has_many :messages, Lanttern.MessageBoard.MessageV2
+
+    has_many :messages, Lanttern.MessageBoard.MessageV2,
+      preload_order: [asc: :position, desc: :updated_at, asc: :archived_at]
+
     timestamps()
   end
 

@@ -121,12 +121,8 @@ defmodule Lanttern.MessageBoardV2 do
     section_id = attrs[:section_id] || attrs["section_id"]
 
     attrs =
-      if section_id do
-        from(m in Message, where: m.section_id == ^section_id)
-        |> set_position_in_attrs(attrs)
-      else
-        attrs
-      end
+      from(m in Message, where: m.section_id == ^section_id)
+      |> set_position_in_attrs(attrs)
 
     %Message{} |> Message.changeset(attrs) |> Repo.insert()
   end
@@ -308,82 +304,27 @@ defmodule Lanttern.MessageBoardV2 do
   @doc """
   Gets a section by ID.
 
-  Returns `{:ok, section}` if successful, `{:error, :section_not_found}` otherwise.
+  Returns the section or `nil` if not found.
+
+  ## Options
+
+    * `:preloads` - List of associations to preload
 
   ## Examples
 
       iex> get_section(1)
-      {:ok, %Section{}}
+      %Section{}
 
-      iex> get_section(999)
-      {:error, :section_not_found}
-
-  """
-  def get_section(id) do
-    case Repo.get(Section, id) do
-      nil -> {:error, :section_not_found}
-      section -> {:ok, section}
-    end
-  end
-
-  @doc """
-  Gets a section with its messages preloaded and ordered.
-
-  Messages are ordered by position, updated_at, and archived_at.
-
-  ## Examples
-
-      iex> get_section_with_ordered_messages!(1)
+      iex> get_section(1, preloads: :messages)
       %Section{messages: [%Message{}, ...]}
 
-  """
-  def get_section_with_ordered_messages!(id) do
-    messages_query =
-      from(
-        m in Message,
-        order_by: [
-          asc: m.position,
-          desc: m.updated_at,
-          asc: m.archived_at
-        ]
-      )
-
-    Section
-    |> Repo.get!(id)
-    |> Repo.preload(messages: messages_query)
-  end
-
-  @doc """
-  Gets a section with its messages preloaded and ordered.
-
-  Messages are ordered by position, updated_at, and archived_at.
-
-  Returns `{:ok, section}` if successful, `{:error, :section_not_found}` otherwise.
-
-  ## Examples
-
-      iex> get_section_with_ordered_messages(1)
-      {:ok, %Section{messages: [%Message{}, ...]}}
-
-      iex> get_section_with_ordered_messages(999)
-      {:error, :section_not_found}
+      iex> get_section(999)
+      nil
 
   """
-  def get_section_with_ordered_messages(id) do
-    messages_query =
-      from(
-        m in Message,
-        order_by: [
-          asc: m.position,
-          desc: m.updated_at,
-          asc: m.archived_at
-        ]
-      )
-
-    case Repo.get(Section, id) do
-      nil -> {:error, :section_not_found}
-      section -> {:ok, Repo.preload(section, messages: messages_query)}
-    end
+  def get_section(id, opts \\ []) do
+    Repo.get(Section, id)
+    |> maybe_preload(opts)
   end
 
   @doc """
@@ -404,12 +345,8 @@ defmodule Lanttern.MessageBoardV2 do
     school_id = attrs[:school_id] || attrs["school_id"]
 
     attrs =
-      if school_id do
-        from(s in Section, where: s.school_id == ^school_id)
-        |> set_position_in_attrs(attrs)
-      else
-        attrs
-      end
+      from(s in Section, where: s.school_id == ^school_id)
+      |> set_position_in_attrs(attrs)
 
     %Section{} |> Section.changeset(attrs) |> Repo.insert()
   end
