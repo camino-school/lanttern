@@ -332,27 +332,6 @@ defmodule Lanttern.MessageBoardV2 do
   end
 
   @doc """
-  Gets a section with its messages preloaded and ordered.
-
-  Messages are ordered by position, updated_at, and archived_at
-  as defined in the Section schema.
-
-  Returns the section or `nil` if not found.
-
-  ## Examples
-
-      iex> get_section_with_ordered_messages(1)
-      %Section{messages: [%Message{}, ...]}
-
-      iex> get_section_with_ordered_messages(999)
-      nil
-
-  """
-  def get_section_with_ordered_messages(id) do
-    get_section(id, preloads: :messages)
-  end
-
-  @doc """
   Creates a section with the given attributes.
 
   Returns `{:ok, section}` if successful, `{:error, changeset}` otherwise.
