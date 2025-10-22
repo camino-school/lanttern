@@ -446,12 +446,12 @@ defmodule LantternWeb.MessageBoard.IndexLive do
 
   defp assign_section(%{assigns: %{params: %{"edit_section" => id}}} = socket) do
     case MessageBoard.get_section_with_ordered_messages(id) do
-      {:error, :section_not_found} ->
+      nil ->
         socket
         |> put_flash(:error, gettext("Section not found"))
         |> push_navigate(to: ~p"/school/message_board_v2")
 
-      {:ok, section} ->
+      section ->
         changeset = MessageBoard.change_section(section)
 
         socket
@@ -464,12 +464,12 @@ defmodule LantternWeb.MessageBoard.IndexLive do
 
   defp assign_section(%{assigns: %{params: %{"section_id" => section_id}}} = socket) do
     case MessageBoard.get_section(section_id) do
-      {:error, :section_not_found} ->
+      nil ->
         socket
         |> put_flash(:error, gettext("Section not found"))
         |> push_navigate(to: ~p"/school/message_board_v2")
 
-      {:ok, section} ->
+      section ->
         assign(socket, :section_id, section.id)
     end
   end

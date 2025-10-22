@@ -308,82 +308,48 @@ defmodule Lanttern.MessageBoardV2 do
   @doc """
   Gets a section by ID.
 
-  Returns `{:ok, section}` if successful, `{:error, :section_not_found}` otherwise.
+  Returns the section or `nil` if not found.
+
+  ## Options
+
+    * `:preloads` - List of associations to preload
 
   ## Examples
 
       iex> get_section(1)
-      {:ok, %Section{}}
+      %Section{}
 
-      iex> get_section(999)
-      {:error, :section_not_found}
-
-  """
-  def get_section(id) do
-    case Repo.get(Section, id) do
-      nil -> {:error, :section_not_found}
-      section -> {:ok, section}
-    end
-  end
-
-  @doc """
-  Gets a section with its messages preloaded and ordered.
-
-  Messages are ordered by position, updated_at, and archived_at.
-
-  ## Examples
-
-      iex> get_section_with_ordered_messages!(1)
+      iex> get_section(1, preloads: :messages)
       %Section{messages: [%Message{}, ...]}
 
-  """
-  def get_section_with_ordered_messages!(id) do
-    messages_query =
-      from(
-        m in Message,
-        order_by: [
-          asc: m.position,
-          desc: m.updated_at,
-          asc: m.archived_at
-        ]
-      )
+      iex> get_section(999)
+      nil
 
-    Section
-    |> Repo.get!(id)
-    |> Repo.preload(messages: messages_query)
+  """
+  def get_section(id, opts \\ []) do
+    Repo.get(Section, id)
+    |> maybe_preload(opts)
   end
 
   @doc """
   Gets a section with its messages preloaded and ordered.
 
-  Messages are ordered by position, updated_at, and archived_at.
+  Messages are ordered by position, updated_at, and archived_at
+  as defined in the Section schema.
 
-  Returns `{:ok, section}` if successful, `{:error, :section_not_found}` otherwise.
+  Returns the section or `nil` if not found.
 
   ## Examples
 
       iex> get_section_with_ordered_messages(1)
-      {:ok, %Section{messages: [%Message{}, ...]}}
+      %Section{messages: [%Message{}, ...]}
 
       iex> get_section_with_ordered_messages(999)
-      {:error, :section_not_found}
+      nil
 
   """
   def get_section_with_ordered_messages(id) do
-    messages_query =
-      from(
-        m in Message,
-        order_by: [
-          asc: m.position,
-          desc: m.updated_at,
-          asc: m.archived_at
-        ]
-      )
-
-    case Repo.get(Section, id) do
-      nil -> {:error, :section_not_found}
-      section -> {:ok, Repo.preload(section, messages: messages_query)}
-    end
+    get_section(id, preloads: :messages)
   end
 
   @doc """

@@ -90,7 +90,7 @@ defmodule Lanttern.MessageBoardV2Test do
       end
     end
 
-    test "get_section_with_ordered_messages!/1 returns section with ordered messages" do
+    test "get_section_with_ordered_messages/1 returns section with ordered messages" do
       section = insert(:section)
 
       # Create messages with different positions and timestamps
@@ -118,7 +118,7 @@ defmodule Lanttern.MessageBoardV2Test do
           updated_at: ~N[2025-01-01 11:00:00]
         )
 
-      result = MessageBoard.get_section_with_ordered_messages!(section.id)
+      result = MessageBoard.get_section_with_ordered_messages(section.id)
 
       # Should be ordered by position (asc), then updated_at (desc), then archived_at (asc)
       assert length(result.messages) == 3
