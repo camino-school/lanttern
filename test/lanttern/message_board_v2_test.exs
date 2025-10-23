@@ -318,27 +318,27 @@ defmodule Lanttern.MessageBoardV2Test do
       assert class_message.id in message_ids
     end
 
-    test "get_message_per_school/2 returns message when it belongs to the school" do
+    test "get_message/2 with school_id option returns message when it belongs to the school" do
       school = insert(:school)
       section = insert(:section, school: school)
       message = insert(:message, school: school, section: section)
 
-      assert {:ok, found_message} = MessageBoard.get_message_per_school(message.id, school.id)
+      assert found_message = MessageBoard.get_message(message.id, school_id: school.id)
       assert found_message.id == message.id
     end
 
-    test "get_message_per_school/2 returns error when message doesn't belong to school" do
+    test "get_message/2 with school_id option returns nil when message doesn't belong to school" do
       school1 = insert(:school)
       school2 = insert(:school)
       section1 = insert(:section, school: school1)
       message = insert(:message, school: school1, section: section1)
 
-      assert {:error, :not_found} = MessageBoard.get_message_per_school(message.id, school2.id)
+      assert nil == MessageBoard.get_message(message.id, school_id: school2.id)
     end
 
-    test "get_message_per_school/2 returns error when message doesn't exist" do
+    test "get_message/2 with school_id option returns nil when message doesn't exist" do
       school = insert(:school)
-      assert {:error, :not_found} = MessageBoard.get_message_per_school(999, school.id)
+      assert nil == MessageBoard.get_message(999, school_id: school.id)
     end
 
     test "get_message/1 returns the message with given id" do
