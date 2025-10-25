@@ -290,7 +290,10 @@ defmodule LantternWeb.MessageBoard.IndexLive do
                       />
                     </div>
                     <p
-                      :if={@delete_confirmation_error}
+                      :if={
+                        @delete_confirmation_input != "" and
+                          @delete_confirmation_input != @section.name
+                      }
                       class="text-sm text-ltrn-secondary mb-4"
                     >
                       {gettext("Section name doesn't match (case sensitive)")}
@@ -305,7 +308,7 @@ defmodule LantternWeb.MessageBoard.IndexLive do
                   size="md"
                   icon_name="hero-trash"
                   form="delete-confirmation-form"
-                  disabled={!@delete_confirmation_valid}
+                  disabled={@delete_confirmation_input != @section.name}
                 >
                   {gettext("Delete section")}
                 </.action>
@@ -352,8 +355,6 @@ defmodule LantternWeb.MessageBoard.IndexLive do
       |> assign(:pending_message_order, nil)
       |> assign(:show_delete_confirmation, false)
       |> assign(:delete_confirmation_input, "")
-      |> assign(:delete_confirmation_valid, false)
-      |> assign(:delete_confirmation_error, false)
 
     {:ok, socket}
   end
@@ -425,8 +426,6 @@ defmodule LantternWeb.MessageBoard.IndexLive do
       socket
       |> assign(:show_delete_confirmation, true)
       |> assign(:delete_confirmation_input, "")
-      |> assign(:delete_confirmation_valid, false)
-      |> assign(:delete_confirmation_error, false)
 
     {:noreply, socket}
   end
@@ -436,8 +435,6 @@ defmodule LantternWeb.MessageBoard.IndexLive do
       socket
       |> assign(:show_delete_confirmation, false)
       |> assign(:delete_confirmation_input, "")
-      |> assign(:delete_confirmation_valid, false)
-      |> assign(:delete_confirmation_error, false)
 
     {:noreply, socket}
   end
@@ -447,17 +444,7 @@ defmodule LantternWeb.MessageBoard.IndexLive do
         %{"section_name_confirmation" => input},
         socket
       ) do
-    section_name = socket.assigns.section.name
-    is_valid = input == section_name
-    has_error = input != "" && !is_valid
-
-    socket =
-      socket
-      |> assign(:delete_confirmation_input, input)
-      |> assign(:delete_confirmation_valid, is_valid)
-      |> assign(:delete_confirmation_error, has_error)
-
-    {:noreply, socket}
+    {:noreply, assign(socket, :delete_confirmation_input, input)}
   end
 
   def handle_event("confirm_delete_section", _params, %{assigns: %{section: section}} = socket) do
@@ -470,8 +457,6 @@ defmodule LantternWeb.MessageBoard.IndexLive do
         |> assign(:form_action, nil)
         |> assign(:show_delete_confirmation, false)
         |> assign(:delete_confirmation_input, "")
-        |> assign(:delete_confirmation_valid, false)
-        |> assign(:delete_confirmation_error, false)
         |> then(&{:noreply, &1})
 
       {:error, _changeset} ->
