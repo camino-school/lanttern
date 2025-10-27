@@ -65,6 +65,7 @@ defmodule Lanttern.MessageBoardV2 do
 
   ## Options
 
+    * `:school_id` - filters message by school
     * `:preload` - list of associations to preload
 
   ## Examples
@@ -75,19 +76,39 @@ defmodule Lanttern.MessageBoardV2 do
       iex> get_message(1, preload: [:classes])
       %Message{classes: [%Class{}, ...]}
 
+      iex> get_message(1, school_id: 1)
+      %Message{}
+
+      iex> get_message(1, school_id: 999)
+      nil
+
       iex> get_message(999)
       nil
 
   """
   def get_message(id, opts \\ []) do
-    Repo.get(Message, id) |> maybe_preload(opts)
+    Message
+    |> apply_get_message_opts(opts)
+    |> Repo.get(id)
+    |> maybe_preload(opts)
   end
+
+  defp apply_get_message_opts(queryable, []), do: queryable
+
+  defp apply_get_message_opts(queryable, [{:school_id, school_id} | opts]) do
+    from(m in queryable, where: m.school_id == ^school_id)
+    |> apply_get_message_opts(opts)
+  end
+
+  defp apply_get_message_opts(queryable, [_ | opts]),
+    do: apply_get_message_opts(queryable, opts)
 
   @doc """
   Gets a single message by ID or raises if not found.
 
   ## Options
 
+    * `:school_id` - filters message by school
     * `:preload` - list of associations to preload
 
   ## Examples
@@ -100,7 +121,10 @@ defmodule Lanttern.MessageBoardV2 do
 
   """
   def get_message!(id, opts \\ []) do
-    Repo.get!(Message, id) |> maybe_preload(opts)
+    Message
+    |> apply_get_message_opts(opts)
+    |> Repo.get!(id)
+    |> maybe_preload(opts)
   end
 
   @doc """
@@ -174,31 +198,6 @@ defmodule Lanttern.MessageBoardV2 do
   """
   def change_message(%Message{} = message, attrs \\ %{}) do
     Message.changeset(message, attrs)
-  end
-
-  @doc """
-  Gets a message by ID and school ID.
-
-  Returns `{:ok, message}` if found, `{:error, :not_found}` otherwise.
-  Preloads classes association.
-
-  ## Examples
-
-      iex> get_message_per_school(1, 1)
-      {:ok, %Message{}}
-
-      iex> get_message_per_school(999, 1)
-      {:error, :not_found}
-
-  """
-  def get_message_per_school(id, school_id) do
-    from(m in Message, where: m.id == ^id and m.school_id == ^school_id)
-    |> preload([:classes])
-    |> Repo.one()
-    |> case do
-      nil -> {:error, :not_found}
-      message -> {:ok, message}
-    end
   end
 
   @doc """
