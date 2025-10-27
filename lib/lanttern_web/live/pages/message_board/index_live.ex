@@ -497,9 +497,11 @@ defmodule LantternWeb.MessageBoard.IndexLive do
 
     case socket.assigns.is_communication_manager do
       true ->
-        case MessageBoard.get_message(message_id, school_id: school_id, preload: [:classes]) do
+        case MessageBoard.get_message(message_id, school_id: school_id, preloads: [:classes]) do
           nil ->
-            assign(socket, :message, nil)
+            socket
+            |> put_flash(:error, gettext("Message not found"))
+            |> push_navigate(to: ~p"/school/message_board_v2")
 
           message ->
             socket
