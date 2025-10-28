@@ -493,11 +493,12 @@ defmodule LantternWeb.MessageBoard.IndexLive do
   end
 
   def handle_info({MessageFormOverlayComponent, {action, _message}}, socket)
-      when action in [:created, :updated] do
+      when action in [:created, :updated, :deleted] do
     flash_message =
       case action do
         :created -> {:info, gettext("Message created successfully")}
         :updated -> {:info, gettext("Message updated successfully")}
+        :deleted -> {:info, gettext("Message deleted successfully")}
       end
 
     socket =
@@ -565,8 +566,12 @@ defmodule LantternWeb.MessageBoard.IndexLive do
     |> assign(:show_delete_confirmation, false)
   end
 
-  defp assign_section(%{assigns: %{params: %{"edit_section" => id}}} = socket) do
-    case MessageBoard.get_section(id, preloads: :messages) do
+  defp assign_section(
+         %{assigns: %{params: %{"edit_section" => id}, current_user: current_user}} = socket
+       ) do
+    school_id = current_user.current_profile.school_id
+
+    case MessageBoard.get_section(id, school_id: school_id, preloads: :messages) do
       nil ->
         socket
         |> put_flash(:error, gettext("Section not found"))
@@ -584,8 +589,12 @@ defmodule LantternWeb.MessageBoard.IndexLive do
     end
   end
 
-  defp assign_section(%{assigns: %{params: %{"section_id" => section_id}}} = socket) do
-    case MessageBoard.get_section(section_id) do
+  defp assign_section(
+         %{assigns: %{params: %{"section_id" => section_id}, current_user: current_user}} = socket
+       ) do
+    school_id = current_user.current_profile.school_id
+
+    case MessageBoard.get_section(section_id, school_id: school_id) do
       nil ->
         socket
         |> put_flash(:error, gettext("Section not found"))

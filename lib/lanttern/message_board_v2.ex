@@ -302,6 +302,7 @@ defmodule Lanttern.MessageBoardV2 do
   ## Options
 
     * `:preloads` - List of associations to preload
+    * `:school_id` - Filter by school ID (for multi-tenant security)
 
   ## Examples
 
@@ -311,14 +312,41 @@ defmodule Lanttern.MessageBoardV2 do
       iex> get_section(1, preloads: :messages)
       %Section{messages: [%Message{}, ...]}
 
+      iex> get_section(1, school_id: 1)
+      %Section{}
+
+      iex> get_section(1, school_id: 1, preloads: :messages)
+      %Section{messages: [%Message{}, ...]}
+
       iex> get_section(999)
+      nil
+
+      # Returns nil if section doesn't belong to the specified school
+      iex> get_section(1, school_id: 999)
       nil
 
   """
   def get_section(id, opts \\ []) do
-    Repo.get(Section, id)
+    Section
+    |> apply_section_opts(opts)
+    |> Repo.get(id)
     |> maybe_preload(opts)
   end
+
+  defp apply_section_opts(queryable, []), do: queryable
+
+  defp apply_section_opts(queryable, [{:school_id, school_id} | opts]) do
+    from(s in queryable, where: s.school_id == ^school_id)
+    |> apply_section_opts(opts)
+  end
+
+  defp apply_section_opts(queryable, [{:preloads, _preloads} | opts]) do
+    # Skip preloads here, handled by maybe_preload
+    apply_section_opts(queryable, opts)
+  end
+
+  defp apply_section_opts(queryable, [_ | opts]),
+    do: apply_section_opts(queryable, opts)
 
   @doc """
   Creates a section with the given attributes.
