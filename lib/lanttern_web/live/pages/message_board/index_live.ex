@@ -246,72 +246,48 @@ defmodule LantternWeb.MessageBoard.IndexLive do
         <div class="fixed inset-0 bg-ltrn-dark/75 transition-opacity"></div>
         <div class="fixed inset-0 z-50 overflow-y-auto">
           <div class="flex min-h-full items-center justify-center p-4">
-            <div class="relative transform overflow-hidden rounded-lg bg-white shadow-xl transition-all w-full max-w-lg">
-              <div class="bg-white px-6 py-6">
-                <div class="flex items-start">
-                  <div class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-100">
-                    <.icon name="hero-exclamation-triangle" class="h-6 w-6 text-red-600" />
-                  </div>
-                  <div class="ml-4 mt-0 text-left flex-1">
-                    <h3
-                      class="text-lg font-semibold leading-6 text-gray-900"
-                      id="delete-confirmation-title"
-                    >
-                      {gettext("Delete section?")}
-                    </h3>
-                  </div>
-                </div>
-                <div class="mt-4 space-y-4">
-                  <.error_block>
-                    <p class="font-bold">{gettext("This action cannot be undone!")}</p>
-                    <p class="mt-2">
-                      {gettext("All messages in this section will be permanently deleted.")}
-                    </p>
-                  </.error_block>
-                  <p class="text-sm text-gray-500">
-                    {gettext("To confirm, please type the section name below:")}
-                  </p>
-                  <p class="font-bold text-lg">{@section.name}</p>
-                  <.form
-                    id="delete-confirmation-form"
-                    for={%{}}
-                    phx-change="validate_delete_confirmation"
-                    phx-submit="confirm_delete_section"
-                  >
-                    <div class="mb-4">
-                      <input
-                        type="text"
-                        name="section_name_confirmation"
-                        value={@delete_confirmation_input}
-                        placeholder={gettext("Type section name here")}
-                        autocomplete="off"
-                        phx-debounce="300"
-                        class="block w-full rounded-xs border-0 shadow-xs ring-1 sm:text-sm sm:leading-6 focus:ring-2 focus:ring-inset phx-no-feedback:ring-ltrn-lighter phx-no-feedback:focus:ring-ltrn-primary ring-ltrn-lighter focus:ring-ltrn-primary"
-                      />
-                    </div>
-                    <p
-                      :if={
-                        @delete_confirmation_input != "" and
-                          @delete_confirmation_input != @section.name
-                      }
-                      class="text-sm text-ltrn-secondary mb-4"
-                    >
-                      {gettext("Section name doesn't match (case sensitive)")}
-                    </p>
-                  </.form>
-                </div>
-              </div>
-              <div class="bg-gray-50 px-6 py-4 flex flex-row-reverse gap-2">
-                <.action
-                  type="submit"
-                  theme="ghost"
-                  size="md"
-                  icon_name="hero-trash"
-                  form="delete-confirmation-form"
-                  disabled={@delete_confirmation_input != @section.name}
+            <div class="relative transform overflow-hidden rounded-xl bg-white shadow-xl transition-all w-full max-w-lg p-10 space-y-4">
+              <div class="flex items-center justify-between">
+                <h3
+                  class="font-display font-black text-xl"
+                  id="delete-confirmation-title"
                 >
                   {gettext("Delete section")}
-                </.action>
+                </h3>
+                <button
+                  type="button"
+                  phx-click="cancel_delete_confirmation"
+                  class="text-gray-400 hover:text-gray-500"
+                >
+                  <.icon name="hero-x-mark" class="h-6 w-6" />
+                </button>
+              </div>
+
+              <p class="text-sm leading-5">
+                {gettext(
+                  "Are you sure you want to delete the section: \"%{name}\"? This action cannot be reversed. Type in \"%{name}\" to confirm.",
+                  name: @section.name
+                )}
+              </p>
+
+              <.form
+                id="delete-confirmation-form"
+                for={%{}}
+                phx-change="validate_delete_confirmation"
+                phx-submit="confirm_delete_section"
+              >
+                <input
+                  type="text"
+                  name="section_name_confirmation"
+                  value={@delete_confirmation_input}
+                  placeholder=""
+                  autocomplete="off"
+                  phx-debounce="300"
+                  class="block w-full rounded-none border border-gray-300 px-3 py-2 text-sm leading-5 focus:outline-none focus:ring-2 focus:ring-ltrn-primary focus:border-ltrn-primary"
+                />
+              </.form>
+
+              <div class="flex justify-end gap-2 pt-2">
                 <.action
                   type="button"
                   theme="subtle"
@@ -319,6 +295,15 @@ defmodule LantternWeb.MessageBoard.IndexLive do
                   phx-click="cancel_delete_confirmation"
                 >
                   {gettext("Cancel")}
+                </.action>
+                <.action
+                  type="submit"
+                  theme="alert"
+                  size="md"
+                  form="delete-confirmation-form"
+                  disabled={@delete_confirmation_input != @section.name}
+                >
+                  {gettext("Confirm")}
                 </.action>
               </div>
             </div>

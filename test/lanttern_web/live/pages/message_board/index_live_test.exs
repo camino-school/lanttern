@@ -195,15 +195,12 @@ defmodule LantternWeb.MessageBoard.IndexLiveTest do
 
       # Verify confirmation modal is shown
       assert has_element?(view, "#delete-confirmation-modal")
-      assert has_element?(view, "#delete-confirmation-title", "Delete section?")
+      assert has_element?(view, "#delete-confirmation-title", "Delete section")
 
-      # Try to submit with wrong name - should fail validation
+      # Try to submit with wrong name - button should be disabled
       view
       |> form("#delete-confirmation-form", %{"section_name_confirmation" => "Wrong Name"})
       |> render_change()
-
-      # Verify error message appears
-      assert has_element?(view, "p", "Section name doesn't match")
 
       # Type correct section name
       view
