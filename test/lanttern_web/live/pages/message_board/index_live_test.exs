@@ -26,7 +26,7 @@ defmodule LantternWeb.MessageBoard.IndexLiveTest do
       assert html =~ "Expected content"
 
   """
-  defp init_view(view) do
+  def init_view(view) do
     send(view.pid, :initialized)
     view
   end
@@ -174,6 +174,82 @@ defmodule LantternWeb.MessageBoard.IndexLiveTest do
 
       # Verify message is removed from stream
       refute has_element?(view, "#message-#{message.id}")
+    end
+
+    test "deletes section with typed confirmation", %{conn: conn, user: user} do
+      current_school = Lanttern.Repo.get!(Lanttern.Schools.School, user.current_profile.school_id)
+      section = insert(:section, school: current_school, name: "Section To Delete")
+
+      {:ok, view, _html} = live(conn, ~p"/school/message_board_v2")
+      view |> init_view()
+
+      # Open section settings
+      view
+      |> element("#section-#{section.id}-settings")
+      |> render_click()
+
+      # Click delete button to show confirmation modal
+      view
+      |> element("button", "Delete")
+      |> render_click()
+
+      # Verify confirmation modal is shown
+      assert has_element?(view, "#delete-confirmation-modal")
+      assert has_element?(view, "#delete-confirmation-title", "Delete section?")
+
+      # Try to submit with wrong name - should fail validation
+      view
+      |> form("#delete-confirmation-form", %{"section_name_confirmation" => "Wrong Name"})
+      |> render_change()
+
+      # Verify error message appears
+      assert has_element?(view, "p", "Section name doesn't match")
+
+      # Type correct section name
+      view
+      |> form("#delete-confirmation-form", %{"section_name_confirmation" => "Section To Delete"})
+      |> render_change()
+
+      # Submit deletion
+      view
+      |> form("#delete-confirmation-form")
+      |> render_submit()
+
+      # Verify section was deleted and redirect happened
+      html = render(view)
+      assert html =~ "Section deleted successfully"
+      refute has_element?(view, "#section-#{section.id}")
+    end
+
+    test "cancels section deletion", %{conn: conn, user: user} do
+      current_school = Lanttern.Repo.get!(Lanttern.Schools.School, user.current_profile.school_id)
+      section = insert(:section, school: current_school, name: "Section To Keep")
+
+      {:ok, view, _html} = live(conn, ~p"/school/message_board_v2")
+      view |> init_view()
+
+      # Open section settings
+      view
+      |> element("#section-#{section.id}-settings")
+      |> render_click()
+
+      # Click delete button to show confirmation modal
+      view
+      |> element("button", "Delete")
+      |> render_click()
+
+      # Verify confirmation modal is shown
+      assert has_element?(view, "#delete-confirmation-modal")
+
+      # Cancel deletion
+      view
+      |> element("#delete-confirmation-modal button", "Cancel")
+      |> render_click()
+
+      # Verify modal is hidden and section name still appears in the page
+      refute has_element?(view, "#delete-confirmation-modal")
+      html = render(view)
+      assert html =~ "Section To Keep"
     end
 
     test "reorders messages via sortable_update event", %{conn: conn, section: section} do
