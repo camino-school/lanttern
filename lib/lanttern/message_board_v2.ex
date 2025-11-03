@@ -65,7 +65,7 @@ defmodule Lanttern.MessageBoardV2 do
 
   ## Options
 
-    * `:preload` - list of associations to preload
+    * `:preloads` - list of associations to preload
     * `:school_id` - filter by school ID (for multi-tenant security)
 
   ## Examples
@@ -73,7 +73,7 @@ defmodule Lanttern.MessageBoardV2 do
       iex> get_message(1)
       %Message{}
 
-      iex> get_message(1, preload: [:classes])
+      iex> get_message(1, preloads: [:classes])
       %Message{classes: [%Class{}, ...]}
 
       iex> get_message(1, school_id: 1)
@@ -338,11 +338,6 @@ defmodule Lanttern.MessageBoardV2 do
   defp apply_section_opts(queryable, [{:school_id, school_id} | opts]) do
     from(s in queryable, where: s.school_id == ^school_id)
     |> apply_section_opts(opts)
-  end
-
-  defp apply_section_opts(queryable, [{:preloads, _preloads} | opts]) do
-    # Skip preloads here, handled by maybe_preload
-    apply_section_opts(queryable, opts)
   end
 
   defp apply_section_opts(queryable, [_ | opts]),

@@ -354,18 +354,42 @@ defmodule LantternWeb.MessageBoard.IndexLiveTest do
       refute has_element?(view, "a[href*='edit=']")
     end
 
-    test "preserves pending message order during navigation", %{conn: conn, section: section} do
-      message1 = insert(:message, %{section: section, position: 0})
-      message2 = insert(:message, %{section: section, position: 1})
+    test "preserves pending message order during navigation", %{
+      conn: conn,
+      section: section,
+      school: school
+    } do
+      # Create messages BEFORE opening the view so they're loaded with the section
+      message1 = insert(:message, %{section: section, position: 0, school: school})
+      message2 = insert(:message, %{section: section, position: 1, school: school})
 
+      # Open the edit section view - this loads the section with messages
       {:ok, view, _html} = live(conn, ~p"/school/message_board_v2?edit_section=#{section.id}")
+      view |> init_view()
 
-      # Reorder messages
+      # Initial state: message1 is first (position 0), message2 is second (position 1)
+      # Verify initial positions
+      assert message1.position == 0
+      assert message2.position == 1
+
+      # Reorder messages: move message1 from position 0 to position 1
+      # This should result in: [message2, message1]
       view |> render_hook("sortable_update", %{"oldIndex" => 0, "newIndex" => 1})
 
-      # Get the LiveView state to verify pending order was set with reordered message IDs
-      state = :sys.get_state(view.pid)
-      assert state.socket.assigns.pending_message_order == [message2.id, message1.id]
+      # Trigger save by submitting the section form (which will also navigate away)
+      view
+      |> form("#section-form")
+      |> render_submit()
+
+      view |> init_view()
+
+      # Verify the order was persisted to the database
+      updated_message1 = Lanttern.Repo.get!(Lanttern.MessageBoard.MessageV2, message1.id)
+      updated_message2 = Lanttern.Repo.get!(Lanttern.MessageBoard.MessageV2, message2.id)
+
+      # After reorder: message2 should be first (position 0), message1 should be second (position 1)
+      assert updated_message2.position == 0
+      assert updated_message1.position == 1
     end
 
     test "handles concurrent message creation", %{conn: conn, section: section, user: user} do
