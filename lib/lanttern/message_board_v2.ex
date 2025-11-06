@@ -65,22 +65,40 @@ defmodule Lanttern.MessageBoardV2 do
 
   ## Options
 
-    * `:preload` - list of associations to preload
+    * `:preloads` - list of associations to preload
+    * `:school_id` - filter by school ID (for multi-tenant security)
 
   ## Examples
 
       iex> get_message(1)
       %Message{}
 
-      iex> get_message(1, preload: [:classes])
+      iex> get_message(1, preloads: [:classes])
       %Message{classes: [%Class{}, ...]}
+
+      iex> get_message(1, school_id: 1)
+      %Message{}
 
       iex> get_message(999)
       nil
 
   """
   def get_message(id, opts \\ []) do
-    Repo.get(Message, id) |> maybe_preload(opts)
+    Message
+    |> apply_message_opts(opts)
+    |> Repo.get(id)
+    |> maybe_preload(opts)
+  end
+
+  defp apply_message_opts(queryable, []), do: queryable
+
+  defp apply_message_opts(queryable, [{:school_id, school_id} | opts]) do
+    from(m in queryable, where: m.school_id == ^school_id)
+    |> apply_message_opts(opts)
+  end
+
+  defp apply_message_opts(queryable, [_opt | opts]) do
+    apply_message_opts(queryable, opts)
   end
 
   @doc """
@@ -174,31 +192,6 @@ defmodule Lanttern.MessageBoardV2 do
   """
   def change_message(%Message{} = message, attrs \\ %{}) do
     Message.changeset(message, attrs)
-  end
-
-  @doc """
-  Gets a message by ID and school ID.
-
-  Returns `{:ok, message}` if found, `{:error, :not_found}` otherwise.
-  Preloads classes association.
-
-  ## Examples
-
-      iex> get_message_per_school(1, 1)
-      {:ok, %Message{}}
-
-      iex> get_message_per_school(999, 1)
-      {:error, :not_found}
-
-  """
-  def get_message_per_school(id, school_id) do
-    from(m in Message, where: m.id == ^id and m.school_id == ^school_id)
-    |> preload([:classes])
-    |> Repo.one()
-    |> case do
-      nil -> {:error, :not_found}
-      message -> {:ok, message}
-    end
   end
 
   @doc """
@@ -309,6 +302,7 @@ defmodule Lanttern.MessageBoardV2 do
   ## Options
 
     * `:preloads` - List of associations to preload
+    * `:school_id` - Filter by school ID (for multi-tenant security)
 
   ## Examples
 
@@ -318,14 +312,36 @@ defmodule Lanttern.MessageBoardV2 do
       iex> get_section(1, preloads: :messages)
       %Section{messages: [%Message{}, ...]}
 
+      iex> get_section(1, school_id: 1)
+      %Section{}
+
+      iex> get_section(1, school_id: 1, preloads: :messages)
+      %Section{messages: [%Message{}, ...]}
+
       iex> get_section(999)
+      nil
+
+      # Returns nil if section doesn't belong to the specified school
+      iex> get_section(1, school_id: 999)
       nil
 
   """
   def get_section(id, opts \\ []) do
-    Repo.get(Section, id)
+    Section
+    |> apply_section_opts(opts)
+    |> Repo.get(id)
     |> maybe_preload(opts)
   end
+
+  defp apply_section_opts(queryable, []), do: queryable
+
+  defp apply_section_opts(queryable, [{:school_id, school_id} | opts]) do
+    from(s in queryable, where: s.school_id == ^school_id)
+    |> apply_section_opts(opts)
+  end
+
+  defp apply_section_opts(queryable, [_ | opts]),
+    do: apply_section_opts(queryable, opts)
 
   @doc """
   Creates a section with the given attributes.

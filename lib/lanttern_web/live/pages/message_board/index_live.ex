@@ -125,6 +125,7 @@ defmodule LantternWeb.MessageBoard.IndexLive do
           id="section-form-overlay"
           show={true}
           on_cancel={JS.patch(~p"/school/message_board_v2")}
+          prevent_close_on_click_away={@show_delete_confirmation}
         >
           <:title>{@section_overlay_title}</:title>
           <.form id="section-form" for={@form} phx-change="validate_section" phx-submit="save_section">
@@ -167,8 +168,7 @@ defmodule LantternWeb.MessageBoard.IndexLive do
               type="button"
               theme="subtle"
               size="md"
-              phx-click="delete_section"
-              data-confirm={gettext("Are you sure? All messages in this section will be deleted.")}
+              phx-click="show_delete_confirmation"
             >
               {gettext("Delete")}
             </.action>
@@ -235,6 +235,81 @@ defmodule LantternWeb.MessageBoard.IndexLive do
         classes={@classes}
         selected_classes_ids={@selected_classes_ids}
       />
+      <div
+        :if={@show_delete_confirmation}
+        id="delete-confirmation-modal"
+        class="relative z-50"
+        aria-labelledby="delete-confirmation-title"
+        role="dialog"
+        aria-modal="true"
+      >
+        <div class="fixed inset-0 bg-ltrn-dark/75 transition-opacity"></div>
+        <div class="fixed inset-0 z-50 overflow-y-auto">
+          <div class="flex min-h-full items-center justify-center p-4">
+            <div class="relative transform overflow-hidden rounded-xl bg-white shadow-xl transition-all w-full max-w-lg p-10 space-y-4">
+              <div class="flex items-center justify-between">
+                <h3
+                  class="font-display font-black text-xl"
+                  id="delete-confirmation-title"
+                >
+                  {gettext("Delete section")}
+                </h3>
+                <button
+                  type="button"
+                  phx-click="cancel_delete_confirmation"
+                  class="text-gray-400 hover:text-gray-500"
+                >
+                  <.icon name="hero-x-mark" class="h-6 w-6" />
+                </button>
+              </div>
+
+              <p class="text-sm leading-5">
+                {gettext(
+                  "Are you sure you want to delete the section: \"%{name}\"? This action cannot be reversed. Type in \"%{name}\" to confirm.",
+                  name: @section.name
+                )}
+              </p>
+
+              <.form
+                id="delete-confirmation-form"
+                for={%{}}
+                phx-change="validate_delete_confirmation"
+                phx-submit="confirm_delete_section"
+              >
+                <input
+                  type="text"
+                  name="section_name_confirmation"
+                  value={@delete_confirmation_input}
+                  placeholder=""
+                  autocomplete="off"
+                  phx-debounce="300"
+                  class="block w-full rounded-none border border-gray-300 px-3 py-2 text-sm leading-5 focus:outline-none focus:ring-2 focus:ring-ltrn-primary focus:border-ltrn-primary"
+                />
+              </.form>
+
+              <div class="flex justify-end gap-2 pt-2">
+                <.action
+                  type="button"
+                  theme="subtle"
+                  size="md"
+                  phx-click="cancel_delete_confirmation"
+                >
+                  {gettext("Cancel")}
+                </.action>
+                <.action
+                  type="submit"
+                  theme="alert"
+                  size="md"
+                  form="delete-confirmation-form"
+                  disabled={@delete_confirmation_input != @section.name}
+                >
+                  {gettext("Confirm")}
+                </.action>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </Layouts.app_logged_in>
     """
   end
@@ -263,6 +338,8 @@ defmodule LantternWeb.MessageBoard.IndexLive do
       |> assign(:form_action, nil)
       |> assign(:page_title, gettext("Message board"))
       |> assign(:pending_message_order, nil)
+      |> assign(:show_delete_confirmation, false)
+      |> assign(:delete_confirmation_input, "")
 
     {:ok, socket}
   end
@@ -329,7 +406,33 @@ defmodule LantternWeb.MessageBoard.IndexLive do
     end
   end
 
-  def handle_event("delete_section", _params, %{assigns: %{section: section}} = socket) do
+  def handle_event("show_delete_confirmation", _params, socket) do
+    socket =
+      socket
+      |> assign(:show_delete_confirmation, true)
+      |> assign(:delete_confirmation_input, "")
+
+    {:noreply, socket}
+  end
+
+  def handle_event("cancel_delete_confirmation", _params, socket) do
+    socket =
+      socket
+      |> assign(:show_delete_confirmation, false)
+      |> assign(:delete_confirmation_input, "")
+
+    {:noreply, socket}
+  end
+
+  def handle_event(
+        "validate_delete_confirmation",
+        %{"section_name_confirmation" => input},
+        socket
+      ) do
+    {:noreply, assign(socket, :delete_confirmation_input, input)}
+  end
+
+  def handle_event("confirm_delete_section", _params, %{assigns: %{section: section}} = socket) do
     case MessageBoard.delete_section(section) do
       {:ok, _section} ->
         socket
@@ -337,6 +440,8 @@ defmodule LantternWeb.MessageBoard.IndexLive do
         |> push_patch(to: ~p"/school/message_board_v2")
         |> assign_sections()
         |> assign(:form_action, nil)
+        |> assign(:show_delete_confirmation, false)
+        |> assign(:delete_confirmation_input, "")
         |> then(&{:noreply, &1})
 
       {:error, _changeset} ->
@@ -373,11 +478,12 @@ defmodule LantternWeb.MessageBoard.IndexLive do
   end
 
   def handle_info({MessageFormOverlayComponent, {action, _message}}, socket)
-      when action in [:created, :updated] do
+      when action in [:created, :updated, :deleted] do
     flash_message =
       case action do
         :created -> {:info, gettext("Message created successfully")}
         :updated -> {:info, gettext("Message updated successfully")}
+        :deleted -> {:info, gettext("Message deleted successfully")}
       end
 
     socket =
@@ -442,10 +548,15 @@ defmodule LantternWeb.MessageBoard.IndexLive do
     |> assign(:section_overlay_title, gettext("New section"))
     |> assign(:form_action, :create)
     |> assign(:form, to_form(changeset))
+    |> assign(:show_delete_confirmation, false)
   end
 
-  defp assign_section(%{assigns: %{params: %{"edit_section" => id}}} = socket) do
-    case MessageBoard.get_section(id, preloads: :messages) do
+  defp assign_section(
+         %{assigns: %{params: %{"edit_section" => id}, current_user: current_user}} = socket
+       ) do
+    school_id = current_user.current_profile.school_id
+
+    case MessageBoard.get_section(id, school_id: school_id, preloads: :messages) do
       nil ->
         socket
         |> put_flash(:error, gettext("Section not found"))
@@ -459,11 +570,16 @@ defmodule LantternWeb.MessageBoard.IndexLive do
         |> assign(:section_overlay_title, gettext("Edit section"))
         |> assign(:form_action, :edit)
         |> assign(:form, to_form(changeset))
+        |> assign(:show_delete_confirmation, false)
     end
   end
 
-  defp assign_section(%{assigns: %{params: %{"section_id" => section_id}}} = socket) do
-    case MessageBoard.get_section(section_id) do
+  defp assign_section(
+         %{assigns: %{params: %{"section_id" => section_id}, current_user: current_user}} = socket
+       ) do
+    school_id = current_user.current_profile.school_id
+
+    case MessageBoard.get_section(section_id, school_id: school_id) do
       nil ->
         socket
         |> put_flash(:error, gettext("Section not found"))
@@ -474,7 +590,11 @@ defmodule LantternWeb.MessageBoard.IndexLive do
     end
   end
 
-  defp assign_section(socket), do: assign(socket, :section, nil)
+  defp assign_section(socket) do
+    socket
+    |> assign(:section, nil)
+    |> assign(:show_delete_confirmation, false)
+  end
 
   defp assign_message(%{assigns: %{is_communication_manager: false}} = socket),
     do: assign(socket, :message, nil)
@@ -493,15 +613,23 @@ defmodule LantternWeb.MessageBoard.IndexLive do
   end
 
   defp assign_message(%{assigns: %{params: %{"edit" => message_id}}} = socket) do
-    school_id = socket.assigns.current_user.current_profile.school_id
+    if socket.assigns.is_communication_manager do
+      school_id = socket.assigns.current_user.current_profile.school_id
 
-    with true <- socket.assigns.is_communication_manager,
-         {:ok, message} <- MessageBoard.get_message_per_school(message_id, school_id) do
-      socket
-      |> assign(:message, message)
-      |> assign(:message_overlay_title, gettext("Edit message"))
+      case MessageBoard.get_message(message_id, school_id: school_id, preloads: [:classes]) do
+        nil ->
+          socket
+          |> put_flash(:error, gettext("Message not found"))
+          |> push_navigate(to: ~p"/school/message_board_v2")
+          |> assign(:message, nil)
+
+        message ->
+          socket
+          |> assign(:message, message)
+          |> assign(:message_overlay_title, gettext("Edit message"))
+      end
     else
-      _ -> assign(socket, :message, nil)
+      assign(socket, :message, nil)
     end
   end
 
