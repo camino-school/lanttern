@@ -37,7 +37,7 @@ defmodule LantternWeb.MessageBoard.IndexLive do
             </.action>
             <.action
               type="link"
-              patch={~p"/school/message_board/archive"}
+              patch={~p"/school/message_board/archive_v2"}
               icon_name="hero-archive-box-solid"
             >
               {gettext("View archived messages")}
