@@ -5,12 +5,12 @@ defmodule Lanttern.Factory do
 
   use Lanttern.AttachmentFactory
   use Lanttern.ClassFactory
-  use Lanttern.ClassFactory
   use Lanttern.CycleFactory
   use Lanttern.ILPCommentAttachmentFactory
   use Lanttern.ILPCommentFactory
   use Lanttern.ILPTemplateFactory
   use Lanttern.MessageAttachmentFactory
+  use Lanttern.MessageBoardFactory
   use Lanttern.MessageFactory
   use Lanttern.MessageClassFactory
   use Lanttern.NoteFactory
