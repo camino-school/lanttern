@@ -50,7 +50,7 @@
                     }
                     message={message}
                     mode="admin"
-                    edit_patch={~p"/school/message_board/archive?card=#{message.id}"}
+                    edit_patch={~p"/school/message_board/archive_v2?card=#{message.id}"}
                     on_unarchive={
                       if @is_communication_manager,
                         do: JS.push("unarchive", value: %{"id" => message.id})
@@ -79,7 +79,7 @@
                   <.message_card_admin
                     message={message}
                     mode="admin"
-                    edit_patch={~p"/school/message_board/archive?card=#{message.id}"}
+                    edit_patch={~p"/school/message_board/archive_v2?card=#{message.id}"}
                     on_unarchive={
                       if @is_communication_manager,
                         do: JS.push("unarchive", value: %{"id" => message.id})
@@ -102,17 +102,17 @@
     id="message-board-classes-filters-overlay"
     current_user={@current_user}
     title={gettext("Filter messages by class")}
-    navigate={~p"/school/message_board/archive"}
+    navigate={~p"/school/message_board/archive_v2"}
     classes={@classes}
     selected_classes_ids={@selected_classes_ids}
   />
   <.live_component
     :if={@card_message}
-    module={LantternWeb.MessageBoard.CardMessageOverlayComponent}
+    module={LantternWeb.MessageBoard.CardMessageOverlayComponentV2}
     id={"card-message-overlay-#{@card_message.id}"
     }
     card_message={@card_message}
-    on_cancel={JS.patch(~p"/school/message_board/archive")}
+    on_cancel={JS.patch(~p"/school/message_board/archive_v2")}
     on_unarchive={
       if @is_communication_manager, do: JS.push("unarchive", value: %{"id" => @card_message.id})
     }
