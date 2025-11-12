@@ -186,7 +186,7 @@ defmodule LantternWeb.NavigationComponents do
       tabindex="-1"
       class={[
         "flex items-center gap-2 p-1 rounded-full focus:outline-ltrn-primary",
-        "aria-selected:outline aria-selected:outline-2 aria-selected:outline-ltrn-dark",
+        "aria-selected:outline-2 aria-selected:outline-ltrn-dark",
         person_tab_theme(@theme)
       ]}
       phx-click={

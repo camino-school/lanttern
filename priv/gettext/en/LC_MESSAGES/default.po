@@ -3591,7 +3591,7 @@ msgstr ""
 #, elixir-autogen, elixir-format
 msgid "Student area attachments"
 msgstr ""
-
+#: lib/lanttern_web/live/shared/grades_reports/final_grade_details_overlay_component.ex:50
 #: lib/lanttern_web/live/shared/learning_context/moment_card_overlay_component.ex:164
 #: lib/lanttern_web/live/shared/learning_context/moment_card_overlay_component.ex:219
 #, elixir-autogen, elixir-format, fuzzy
@@ -5286,4 +5286,9 @@ msgstr ""
 #: lib/lanttern_web/live/pages/users/log-in/code/user_code_login_live.ex:116
 #, elixir-autogen, elixir-format
 msgid "User not found."
+msgstr ""
+
+#: lib/lanttern_web/live/shared/message_board/message_form_overlay_component.ex:72
+#, elixir-autogen, elixir-format
+msgid "Recommended aspect ratio of 16:9 (landscape orientation)"
 msgstr ""

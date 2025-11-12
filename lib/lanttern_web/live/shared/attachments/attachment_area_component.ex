@@ -9,6 +9,7 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
   - student cycle info attachments (use `student_cycle_info_id` assign and `shared_with_student` assign)
   - moment card attachments (use `moment_card_id` assign and `shared_with_student` assign)
   - ILP comments attachments (use `ilp_comment_id` assign)
+  - message attachments (use `message_id` assign)
 
   ### Supported attrs/assigns
 
@@ -20,6 +21,7 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
   - `assessment_point_entry_id` (optional, integer) - view supported contexts above
   - `student_cycle_info_id` (optional, integer) - view supported contexts above
   - `moment_card_id` (optional, integer) - view supported contexts above
+  - `message_id` (optional, integer) - view supported contexts above
   - `shared_with_student` (optional, boolean) - used with student cycle info and moment card. View supported contexts above
 
   """
@@ -33,6 +35,7 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
   alias Lanttern.Attachments.Attachment
   alias Lanttern.ILP
   alias Lanttern.LearningContext
+  alias Lanttern.MessageBoardV2, as: MessageBoard
   alias Lanttern.Notes
   alias Lanttern.StudentsCycleInfo
   alias Lanttern.SupabaseHelpers
@@ -272,6 +275,9 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
   defp assign_type(%{assigns: %{ilp_comment_id: _}} = socket),
     do: assign(socket, :type, :ilp_comment_attachments)
 
+  defp assign_type(%{assigns: %{message_id: _}} = socket),
+    do: assign(socket, :type, :message_attachments)
+
   defp stream_attachments(%{assigns: %{type: :note_attachments, note_id: id}} = socket) do
     attachments = Attachments.list_attachments(note_id: id)
     handle_stream_attachments_socket_assigns(socket, attachments)
@@ -310,6 +316,16 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
 
   defp stream_attachments(%{assigns: %{type: :ilp_comment_attachments}} = socket) do
     attachments = Attachments.list_attachments(ilp_comment_id: socket.assigns.ilp_comment_id)
+    attachments_ids = Enum.map(attachments, & &1.id)
+
+    socket
+    |> stream(:attachments, Enum.with_index(attachments), reset: true)
+    |> assign(:attachments_length, length(attachments))
+    |> assign(:attachments_ids, attachments_ids)
+  end
+
+  defp stream_attachments(%{assigns: %{type: :message_attachments, message_id: id}} = socket) do
+    attachments = Attachments.list_attachments(message_id: id)
     attachments_ids = Enum.map(attachments, & &1.id)
 
     socket
@@ -430,6 +446,9 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
 
       :ilp_comment_attachments ->
         ILP.update_ilp_comment_attachments_positions(attachments_ids)
+
+      :message_attachments ->
+        MessageBoard.update_message_attachments_positions(attachments_ids)
     end
     |> case do
       :ok -> {:noreply, stream_attachments(socket)}
@@ -505,6 +524,16 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
 
   def handle_event("clear_upload_error", _, socket) do
     {:noreply, assign(socket, :upload_error, nil)}
+  end
+
+  def handle_event("signed_url", %{"url" => url}, socket) do
+    case SupabaseHelpers.create_signed_url(url) do
+      {:ok, external} ->
+        {:noreply, push_event(socket, "open_external", %{url: external})}
+
+      {:error, :invalid_object_key} ->
+        {:noreply, put_flash(socket, :error, gettext("Invalid URL"))}
+    end
   end
 
   # helpers
@@ -630,6 +659,28 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
            ilp_comment_id,
            params
          ) do
+      {:ok, attachment} ->
+        socket =
+          socket
+          |> assign(:is_adding_external, false)
+          |> stream_attachments()
+
+        notify(__MODULE__, {:created, attachment}, socket.assigns)
+
+        {:noreply, socket}
+
+      {:error, %Ecto.Changeset{} = changeset} ->
+        {:noreply, assign_form(socket, changeset)}
+    end
+  end
+
+  defp save_attachment(%{assigns: %{type: :message_attachments}} = socket, :new, params) do
+    %{
+      current_profile: current_profile,
+      message_id: message_id
+    } = socket.assigns
+
+    case MessageBoard.create_message_attachment(current_profile.id, message_id, params) do
       {:ok, attachment} ->
         socket =
           socket

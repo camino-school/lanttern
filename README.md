@@ -43,6 +43,29 @@ eval "$(direnv hook bash)"
 direnv allow
 ```
 
+## Live Debugger
+
+Live Debugger is a powerful tool for debugging Phoenix LiveView applications in real-time. It provides visual inspection of LiveView processes, state changes, and message flow.
+
+### Installation
+
+#### Browser Extensions
+- **Chrome**: [Live Debugger Extension](https://chromewebstore.google.com/detail/gmdfnfcigbfkmghbjeelmbkbiglbmbpe)
+- **Firefox**: [Live Debugger Extension](https://addons.mozilla.org/en-US/firefox/addon/livedebugger-devtools/)
+
+#### Setup Steps
+
+1. **Install the browser extension** from the links above
+2. **When start the project's phoenix server** with `mix phx.server`
+3. **Open the Live Debugger** at: http://localhost:4007/
+4. **Navigate to the LiveView pages** in another tab to start debugging
+
+### Configuration
+
+The Live Debugger runs automatically when you start your Phoenix server in development mode. No additional configuration is required.
+
+For advanced configuration and troubleshooting, visit: https://github.com/software-mansion/live-debugger
+
 ## Localization
 
 We use [Gettext](https://hexdocs.pm/gettext/Gettext.html) for localization.
@@ -136,7 +159,13 @@ Use the versioned `AGENTS.md` as reference for setting your own LLM agent instru
 ### Requirements
 
 - A backup file: `FILENAME.sql`
-- PostgreSQL client installed  
+- PostgreSQL client installed
+
+### Create Postgres container
+
+```bash
+docker run --name postgres15-container -e POSTGRES_PASSWORD=postgres -e POSTGRES_USER=postgres -e POSTGRES_DB=postgres -p 5432:5432 -d postgres:15
+```
 
 ### Create/Recreate the Database
 

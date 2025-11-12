@@ -21,6 +21,7 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponentV2 do
 
   # shared
 
+  alias LantternWeb.Attachments.AttachmentAreaComponent
   alias LantternWeb.Schools.ClassesFieldComponent
   import LantternWeb.FormComponents
 
@@ -52,12 +53,10 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponentV2 do
           <div class="mb-6 flex items-center gap-4">
             <.label for={@form[:color].id}>{gettext("Card color")}</.label>
             <div class="p-1 border-2 border-white rounded-md shadow-lg bg-white -mt-2">
-              <input
+              <.input
+                field={@form[:color]}
                 type="color"
-                name={@form[:color].name}
-                id={@form[:color].id}
-                value={@form[:color].value}
-                class="h-7 w-11 p-0 border-0 rounded-sm cursor-pointer block"
+                class="w-[52px]"
                 phx-debounce="1500"
               />
             </div>
@@ -78,7 +77,12 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponentV2 do
           </div>
 
           <div class="mb-6">
-            <.input field={@form[:subtitle]} type="text" maxlength="160" phx-debounce="1500">
+            <.input
+              field={@form[:subtitle]}
+              type="text"
+              maxlength="160"
+              phx-debounce="1500"
+            >
               <:custom_label>
                 <span class="font-bold">{gettext("Message subtitle")}</span>
                 <span class="font-normal"> ({gettext("what appears in the card preview")})</span>
@@ -106,11 +110,11 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponentV2 do
             phx-debounce="1500"
           />
           <%= if @message.id do %>
-            <div :if={@message.send_to == :school} class="flex items-center gap-2 mb-6">
+            <div :if={@message.send_to == "school"} class="flex items-center gap-2 mb-6">
               <.icon name="hero-user-group" class="w-6 h-6" />
               <p class="font-bold">{gettext("Sending to all school")}</p>
             </div>
-            <div :if={@message.send_to == :classes} class="flex items-center gap-2 mb-6">
+            <div :if={@message.send_to == "classes"} class="flex items-center gap-2 mb-6">
               <.icon name="hero-users" class="w-6 h-6" />
               <p class="font-bold">{gettext("Sending to selected classes")}</p>
             </div>
@@ -118,14 +122,10 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponentV2 do
             <fieldset class="mb-6">
               <legend class="font-bold">{gettext("Send to")}</legend>
               <div class="mt-4 flex items-center gap-4">
+                <.radio_input field={@form[:send_to]} value="school" label={gettext("All school")} />
                 <.radio_input
                   field={@form[:send_to]}
-                  value={:school}
-                  label={gettext("All school")}
-                />
-                <.radio_input
-                  field={@form[:send_to]}
-                  value={:classes}
+                  value="classes"
                   label={gettext("Selected classes")}
                 />
               </div>
@@ -134,6 +134,7 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponentV2 do
               </.error>
             </fieldset>
           <% end %>
+
           <.live_component
             module={ClassesFieldComponent}
             id="message-form-classes-picker"
@@ -146,9 +147,10 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponentV2 do
               if(@form[:classes_ids].errors == [] && @form.source.action not in [:insert, :update],
                 do: "mb-6"
               ),
-              if(@form[:send_to].value != :classes, do: "hidden")
+              if(@form[:send_to].value != "classes", do: "hidden")
             ]}
           />
+
           <div
             :if={@form[:classes_ids].errors != [] && @form.source.action in [:insert, :update]}
             class="mb-6"
@@ -158,7 +160,38 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponentV2 do
             </.error>
           </div>
         </.form>
+        <.live_component
+          :if={@message.id}
+          module={AttachmentAreaComponent}
+          id="message-attachments"
+          title={gettext("Attachments")}
+          allow_editing={true}
+          notify_parent
+          class="mt-10"
+          current_profile={@current_profile}
+          message_id={@message.id}
+        />
         <:actions_left :if={@message.id}>
+          <.action
+            :if={is_nil(@message.archived_at)}
+            type="button"
+            theme="subtle"
+            size="md"
+            phx-click="archive"
+            phx-target={@myself}
+          >
+            {gettext("Archive")}
+          </.action>
+          <.action
+            :if={!is_nil(@message.archived_at)}
+            type="button"
+            theme="subtle"
+            size="md"
+            phx-click="unarchive"
+            phx-target={@myself}
+          >
+            {gettext("Unarchive")}
+          </.action>
           <.action
             type="button"
             theme="subtle"
@@ -360,6 +393,30 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponentV2 do
     |> case do
       {:ok, message} ->
         notify(__MODULE__, {:deleted, message}, socket.assigns)
+        {:noreply, socket}
+
+      {:error, %Ecto.Changeset{} = changeset} ->
+        {:noreply, assign(socket, :form, to_form(changeset))}
+    end
+  end
+
+  def handle_event("archive", _, socket) do
+    MessageBoard.archive_message(socket.assigns.message)
+    |> case do
+      {:ok, message} ->
+        notify(__MODULE__, {:archived, message}, socket.assigns)
+        {:noreply, socket}
+
+      {:error, %Ecto.Changeset{} = changeset} ->
+        {:noreply, assign(socket, :form, to_form(changeset))}
+    end
+  end
+
+  def handle_event("unarchive", _, socket) do
+    MessageBoard.unarchive_message(socket.assigns.message)
+    |> case do
+      {:ok, message} ->
+        notify(__MODULE__, {:unarchived, message}, socket.assigns)
         {:noreply, socket}
 
       {:error, %Ecto.Changeset{} = changeset} ->
