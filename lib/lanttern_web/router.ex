@@ -84,6 +84,7 @@ defmodule LantternWeb.Router do
       live "/school/staff/:id/students_records", StaffMemberLive, :students_records
 
       live "/school/message_board/archive", ArchivedMessagesLive, :index
+      live "/school/message_board/preview", MessageBoard.PreviewLive, :index
 
       live "/strands", StrandsLive, :index
       live "/strands/library", StrandsLibraryLive, :index
@@ -138,6 +139,7 @@ defmodule LantternWeb.Router do
         {LantternWeb.LocalizationHelpers, :put_timezone}
       ] do
       live "/guardian", GuardianHomeLive
+      live "/guardian_v2", HomeLive
     end
 
     live_session :authenticated_student,
@@ -147,6 +149,7 @@ defmodule LantternWeb.Router do
         {LantternWeb.LocalizationHelpers, :put_timezone}
       ] do
       live "/student", StudentHomeLive
+      live "/student_v2", HomeLive
     end
 
     live_session :authenticated_student_or_guardian,
@@ -323,6 +326,8 @@ defmodule LantternWeb.Router do
 
       live_dashboard "/dashboard", metrics: LantternWeb.Telemetry
       forward "/mailbox", Plug.Swoosh.MailboxPreview
+
+      live "/login", LantternWeb.DevLoginLive
     end
   end
 

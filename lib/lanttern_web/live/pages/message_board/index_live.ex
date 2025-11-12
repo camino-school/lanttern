@@ -28,6 +28,20 @@ defmodule LantternWeb.MessageBoard.IndexLive do
             >
               {format_action_items_text(@selected_classes, gettext("All years"))}
             </.action>
+            <.action
+              type="link"
+              patch={~p"/school/message_board/preview"}
+              icon_name="hero-eye-mini"
+            >
+              {gettext("View as guardian")}
+            </.action>
+            <.action
+              type="link"
+              patch={~p"/school/message_board/archive"}
+              icon_name="hero-archive-box-solid"
+            >
+              {gettext("View archived messages")}
+            </.action>
           </div>
           <div class="flex items-center gap-4">
             <.action
@@ -87,6 +101,7 @@ defmodule LantternWeb.MessageBoard.IndexLive do
                   <%= for message <- section.messages do %>
                     <.message_card_admin
                       message={message}
+                      mode="admin"
                       edit_patch={~p"/school/message_board_v2?edit=#{message.id}"}
                       on_delete={JS.push("delete_message", value: %{message_id: message.id})}
                     />
@@ -162,6 +177,46 @@ defmodule LantternWeb.MessageBoard.IndexLive do
                 {message.name}
               </h3>
             </.dragable_card>
+          </div>
+
+          <%!-- Render archived messages after the sortable non-archived list --%>
+          <div
+            :if={
+              @form_action == :edit &&
+                length(Enum.filter(@section.messages || [], fn m -> !is_nil(m.archived_at) end)) > 0
+            }
+            class="mt-6"
+          >
+            <label class="block text-sm font-medium leading-6 text-zinc-800">
+              {gettext("Archived messages")}
+            </label>
+            <div class="space-y-2 mt-2">
+              <.card_base
+                :for={
+                  message <- Enum.filter(@section.messages || [], fn m -> !is_nil(m.archived_at) end)
+                }
+                class="p-4 opacity-60 bg-ltrn-lightest border-l-12"
+                style={"border-left-color: #{message.color};"}
+              >
+                <div class="flex items-center justify-between">
+                  <h3 class="font-display font-black text-lg" title={message.name}>
+                    {message.name}
+                  </h3>
+                  <div class="flex items-center gap-2">
+                    <.action
+                      type="button"
+                      phx-click="unarchive_message"
+                      phx-value-id={message.id}
+                      icon_name="hero-arrow-up-tray-mini"
+                      theme="dark"
+                      size="md"
+                      title={gettext("Unarchive")}
+                    >
+                    </.action>
+                  </div>
+                </div>
+              </.card_base>
+            </div>
           </div>
           <:actions_left :if={@section.id}>
             <.action
@@ -464,6 +519,29 @@ defmodule LantternWeb.MessageBoard.IndexLive do
     end
   end
 
+  def handle_event("unarchive_message", %{"id" => id}, socket) do
+    message = MessageBoard.get_message!(id)
+
+    case MessageBoard.unarchive_message(message) do
+      {:ok, _message} ->
+        school_id = socket.assigns.current_user.current_profile.school_id
+
+        updated_section =
+          MessageBoard.get_section(socket.assigns.section.id,
+            school_id: school_id,
+            preloads: :messages
+          )
+
+        socket
+        |> put_flash(:info, gettext("Message unarchived successfully"))
+        |> assign(:section, updated_section)
+        |> then(&{:noreply, &1})
+
+      {:error, _changeset} ->
+        {:noreply, put_flash(socket, :error, gettext("Failed to unarchive message"))}
+    end
+  end
+
   def handle_event("sortable_update", %{"oldIndex" => old, "newIndex" => new}, socket) do
     non_archived = Enum.filter(socket.assigns.section.messages, fn m -> is_nil(m.archived_at) end)
     {changed_id, rest} = List.pop_at(non_archived, old)
@@ -478,18 +556,28 @@ defmodule LantternWeb.MessageBoard.IndexLive do
   end
 
   def handle_info({MessageFormOverlayComponent, {action, _message}}, socket)
-      when action in [:created, :updated, :deleted] do
+      when action in [:created, :updated, :deleted, :archived] do
     flash_message =
       case action do
         :created -> {:info, gettext("Message created successfully")}
         :updated -> {:info, gettext("Message updated successfully")}
         :deleted -> {:info, gettext("Message deleted successfully")}
+        :archived -> {:info, gettext("Message archived successfully")}
       end
 
     socket =
       socket
       |> put_flash(elem(flash_message, 0), elem(flash_message, 1))
       |> push_patch(to: ~p"/school/message_board_v2")
+      |> assign_sections()
+
+    {:noreply, socket}
+  end
+
+  def handle_info({MessageFormOverlayComponent, {:unarchived, _message}}, socket) do
+    socket =
+      socket
+      |> put_flash(:info, gettext("Message unarchived successfully"))
       |> assign_sections()
 
     {:noreply, socket}
