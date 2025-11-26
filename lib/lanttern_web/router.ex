@@ -95,6 +95,8 @@ defmodule LantternWeb.Router do
       live "/strands/:id/moments", StrandLive, :moments
       live "/strands/:id/notes", StrandLive, :notes
 
+      live "/strands/:id/overview", StrandOverviewLive, :show
+
       live "/strands/moment/:id", MomentLive, :show
       live "/strands/moment/:id/assessment", MomentLive, :assessment
       live "/strands/moment/:id/cards", MomentLive, :cards

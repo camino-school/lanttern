@@ -94,13 +94,13 @@ defmodule LantternWeb.MomentLive.CardsComponent do
           data-sortable-handle=".sortable-handle"
           phx-update="ignore"
         >
-          <.dragable_card
+          <.draggable_card
             :for={{dom_id, moment_card} <- @streams.sortable_moment_cards}
             id={"sortable-#{dom_id}"}
             class="mb-4"
           >
             {moment_card.name}
-          </.dragable_card>
+          </.draggable_card>
         </div>
       </.slide_over>
     </div>

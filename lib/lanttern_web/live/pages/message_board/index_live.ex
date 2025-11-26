@@ -147,7 +147,7 @@ defmodule LantternWeb.MessageBoard.IndexLive do
             data-sortable-handle=".sortable-handle"
             phx-update="ignore"
           >
-            <.dragable_card
+            <.draggable_card
               :for={
                 message <-
                   if is_list(@section.messages),
@@ -161,7 +161,7 @@ defmodule LantternWeb.MessageBoard.IndexLive do
               <h3 class="font-display font-black text-lg" title={message.name}>
                 {message.name}
               </h3>
-            </.dragable_card>
+            </.draggable_card>
           </div>
           <:actions_left :if={@section.id}>
             <.action

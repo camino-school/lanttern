@@ -32,7 +32,7 @@ defmodule LantternWeb.StudentsSettingsLive.TagsComponent do
           data-sortable-handle=".sortable-handle"
           phx-update="ignore"
         >
-          <.dragable_card
+          <.draggable_card
             :for={{dom_id, tag} <- @streams.student_tags}
             id={"sortable-#{dom_id}"}
             class="mt-4 first:mt-0"
@@ -45,7 +45,7 @@ defmodule LantternWeb.StudentsSettingsLive.TagsComponent do
                 {gettext("Edit")}
               </.action>
             </div>
-          </.dragable_card>
+          </.draggable_card>
         </.responsive_container>
       <% else %>
         <div class="p-10">

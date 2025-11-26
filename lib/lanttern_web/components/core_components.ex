@@ -650,12 +650,12 @@ defmodule LantternWeb.CoreComponents do
 
       <.link patch={~p"/somepath"} class={[get_button_styles()]}>Link</.link>
   """
-  def get_button_styles(theme \\ "default", size \\ "normal", rounded \\ false) do
+  def get_button_styles(theme \\ "default", size \\ "normal", _rounded \\ false) do
     [
-      "inline-flex items-center justify-center font-display text-sm font-bold disabled:cursor-not-allowed shadow-sm",
+      "inline-flex items-center justify-center gap-2 py-2 px-4 rounded-full disabled:cursor-not-allowed",
       "disabled:shadow-none",
-      if(size == "sm", do: "gap-1 p-1", else: "gap-2 p-2"),
-      if(rounded, do: "rounded-full", else: "rounded-xs"),
+      if(size == "sm", do: "text-sm", else: "text-base"),
+      # if(rounded, do: "rounded-full", else: "rounded-xs"),
       "phx-submit-loading:opacity-50 phx-click-loading:opacity-50 phx-click-loading:pointer-events-none",
       button_theme(theme)
     ]
@@ -663,8 +663,8 @@ defmodule LantternWeb.CoreComponents do
 
   @button_themes %{
     "default" => [
-      "bg-ltrn-primary hover:bg-cyan-300",
-      "disabled:text-ltrn-subtle disabled:bg-ltrn-mesh-cyan"
+      "border border-ltrn-dark bg-transparent hover:bg-ltrn-dark/10",
+      "disabled:text-ltrn-subtle disabled:bg-ltrn-dark/10"
     ],
     "primary_light" => "bg-ltrn-mesh-cyan hover:bg-white text-ltrn-primary",
     "diff_light" => [
@@ -738,12 +738,12 @@ defmodule LantternWeb.CoreComponents do
     <div
       class={[
         "relative flex flex-col justify-between bg-cover bg-center bg-ltrn-lighter",
-        if(@size == "sm", do: "min-h-96", else: "min-h-[40rem]")
+        if(@size == "sm", do: "min-h-96", else: "min-h-160")
       ]}
       {@rest}
     >
       <div class={[
-        "absolute inset-x-0 bottom-0 bg-gradient-to-b",
+        "absolute inset-x-0 bottom-0 bg-linear-to-b",
         cover_overlay(@theme),
         if(@size == "sm", do: "top-0", else: "top-1/4")
       ]} />
@@ -794,7 +794,7 @@ defmodule LantternWeb.CoreComponents do
     >
       <p class="sr-only">{@alt_text}</p>
       <div class={[
-        "absolute inset-0 bg-gradient-to-b",
+        "absolute inset-0 bg-linear-to-b",
         cover_overlay(@theme)
       ]} />
     </div> --%>
@@ -820,7 +820,7 @@ defmodule LantternWeb.CoreComponents do
       </div>
       <p class="sr-only">{@alt_text}</p>
       <div class={[
-        "absolute inset-0 bg-gradient-to-b pointer-events-none",
+        "absolute inset-0 bg-linear-to-b pointer-events-none",
         cover_overlay(@theme)
       ]} />
       <div :if={@has_multiple_images} class="absolute bottom-2 flex justify-center w-full">
@@ -844,7 +844,7 @@ defmodule LantternWeb.CoreComponents do
         {@empty_state_text}
       </p>
       <div class={[
-        "absolute inset-0 bg-gradient-to-b",
+        "absolute inset-0 bg-linear-to-b",
         cover_overlay(@theme)
       ]} />
     </div>
@@ -1030,7 +1030,7 @@ defmodule LantternWeb.CoreComponents do
 
   slot :inner_block, required: true
 
-  def dragable_card(assigns) do
+  def draggable_card(assigns) do
     ~H"""
     <.card_base
       id={@id}
@@ -1131,7 +1131,7 @@ defmodule LantternWeb.CoreComponents do
     >
       <div class="p-4">
         <div class="flex items-start">
-          <div class="flex-shrink-0">
+          <div class="shrink-0">
             <.icon :if={@kind == :info} name="hero-information-circle" class="h-6 w-6 text-green-500" />
             <.icon
               :if={@kind == :error}
@@ -1143,7 +1143,7 @@ defmodule LantternWeb.CoreComponents do
             <p :if={@title} class="mb-1 text-sm font-bold">{@title}</p>
             <p class="text-sm text-ltrn-subtle">{msg}</p>
           </div>
-          <div class="ml-4 flex flex-shrink-0">
+          <div class="ml-4 flex shrink-0">
             <button
               type="button"
               class="inline-flex rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
@@ -1408,10 +1408,20 @@ defmodule LantternWeb.CoreComponents do
   attr :text, :string, required: true
   attr :theme, :string, default: "slate"
   attr :size, :string, default: "sm", doc: "sm | base"
+  attr :strip_tags, :boolean, default: false
   attr :class, :any, default: nil
   attr :rest, :global
 
-  def markdown(assigns) do
+  def markdown(%{text: text} = assigns) when is_binary(text) do
+    text = Earmark.as_html!(assigns.text)
+
+    text =
+      if assigns.strip_tags,
+        do: "<p>#{HtmlSanitizeEx.strip_tags(text)}</p>",
+        else: text
+
+    assigns = assign(assigns, :text, text)
+
     ~H"""
     <div
       :if={@text}
@@ -1421,10 +1431,12 @@ defmodule LantternWeb.CoreComponents do
       ]}
       {@rest}
     >
-      {raw(Earmark.as_html!(@text))}
+      {raw(@text)}
     </div>
     """
   end
+
+  def markdown(assigns), do: ~H""
 
   @doc """
   Renders metadata (basically icon + text).
@@ -2041,7 +2053,7 @@ defmodule LantternWeb.CoreComponents do
     <button
       type="button"
       class={[
-        "relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-hidden focus:ring-2 focus:ring-offset-2",
+        "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-hidden focus:ring-2 focus:ring-offset-2",
         toggle_theme(@theme),
         if(@enabled, do: toggle_enabled_theme(@theme), else: toggle_disabled_theme(@theme)),
         @class
@@ -2167,7 +2179,7 @@ defmodule LantternWeb.CoreComponents do
       end
 
     ~H"""
-    <table class="w-[40rem] sm:w-full">
+    <table class="w-160 sm:w-full">
       <thead class="text-sm text-left leading-6 text-zinc-500">
         <tr>
           <th :for={col <- @col} class="p-2 pr-6 pb-4 font-normal">{col[:label]}</th>
@@ -2229,7 +2241,7 @@ defmodule LantternWeb.CoreComponents do
 
   def stream_table(assigns) do
     ~H"""
-    <table class="w-[40rem] sm:w-full">
+    <table class="w-160 sm:w-full">
       <thead class="text-sm text-left text-ltrn-dark">
         <tr>
           <th :for={col <- @col} class="py-4 px-2 font-bold">{col[:label]}</th>
