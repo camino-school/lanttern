@@ -102,7 +102,7 @@ defmodule LantternWeb.MomentLive do
         {:noreply,
          socket
          |> put_flash(:info, gettext("Moment deleted"))
-         |> push_navigate(to: ~p"/strands/#{socket.assigns.strand}/moments")}
+         |> push_navigate(to: ~p"/strands/#{socket.assigns.strand}")}
 
       {:error, _changeset} ->
         {:noreply,

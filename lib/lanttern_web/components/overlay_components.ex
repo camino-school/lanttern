@@ -474,10 +474,15 @@ defmodule LantternWeb.OverlayComponents do
       "use any existing Tailwind z-index value, or \"custom\" to override it with the class attr (e.g. to use an arbitrary value, z-[15])"
 
   slot :item, required: true do
+    attr :type, :string, doc: "\"button\" | \"link\" (defaults to \"button\")"
     attr :text, :string, required: true
-    attr :on_click, JS, required: true
+    attr :on_click, JS, doc: "required when type is \"button\""
+    attr :navigate, :string, doc: "use with type \"link\" for <.link navigate={...}>"
+    attr :patch, :string, doc: "use with type \"link\" for <.link patch={...}>"
     attr :theme, :string
-    attr :confirm_msg, :string, doc: "use for adding a data-confirm attr"
+
+    attr :confirm_msg, :string,
+      doc: "use for adding a data-confirm attr (only for \"button\" type)"
   end
 
   def dropdown_menu(assigns) do
@@ -514,24 +519,48 @@ defmodule LantternWeb.OverlayComponents do
       data-open={open_dropdown_menu(@id)}
       phx-hook="DropdownMenu"
     >
-      <button
-        :for={item <- @item}
-        type="button"
-        class={[
-          "block w-full px-3 py-1 text-sm text-left focus:bg-ltrn-lighter",
-          menu_button_item_theme_classes(Map.get(item, :theme, "default"))
-        ]}
-        role="menuitem"
-        tabindex="-1"
-        phx-click={
-          item.on_click
-          |> JS.exec("data-close", to: "##{@id}")
-        }
-        data-confirm={Map.get(item, :confirm_msg)}
-      >
-        {item.text}
-      </button>
+      <.dropdown_menu_item :for={item <- @item} item={item} menu_id={@id} />
     </div>
+    """
+  end
+
+  # Private component for rendering dropdown menu items
+  defp dropdown_menu_item(%{item: %{type: "link"}} = assigns) do
+    ~H"""
+    <.link
+      navigate={Map.get(@item, :navigate)}
+      patch={Map.get(@item, :patch)}
+      phx-click={JS.exec("data-close", to: "##{@menu_id}")}
+      class={[
+        "block w-full px-3 py-1 text-sm text-left focus:bg-ltrn-lighter",
+        menu_button_item_theme_classes(Map.get(@item, :theme, "default"))
+      ]}
+      role="menuitem"
+      tabindex="-1"
+    >
+      {@item.text}
+    </.link>
+    """
+  end
+
+  defp dropdown_menu_item(assigns) do
+    ~H"""
+    <button
+      type="button"
+      class={[
+        "block w-full px-3 py-1 text-sm text-left focus:bg-ltrn-lighter",
+        menu_button_item_theme_classes(Map.get(@item, :theme, "default"))
+      ]}
+      role="menuitem"
+      tabindex="-1"
+      phx-click={
+        @item.on_click
+        |> JS.exec("data-close", to: "##{@menu_id}")
+      }
+      data-confirm={Map.get(@item, :confirm_msg)}
+    >
+      {@item.text}
+    </button>
     """
   end
 

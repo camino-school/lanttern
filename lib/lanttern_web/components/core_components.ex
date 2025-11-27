@@ -667,6 +667,7 @@ defmodule LantternWeb.CoreComponents do
       "disabled:text-ltrn-subtle disabled:bg-ltrn-dark/10"
     ],
     "primary_light" => "bg-ltrn-mesh-cyan hover:bg-white text-ltrn-primary",
+    "primary" => "bg-ltrn-dark hover:bg-ltrn-dark/90 text-white",
     "diff_light" => [
       "bg-ltrn-diff-lightest hover:bg-ltrn-diff-lighter text-ltrn-diff-dark",
       "disabled:opacity-40"
