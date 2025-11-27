@@ -89,13 +89,12 @@ defmodule LantternWeb.Router do
       live "/strands/library", StrandsLibraryLive, :index
       live "/strands/library/new", StrandsLibraryLive, :new
 
-      live "/strands/:id", StrandLive, :show
+      live "/strands/:id", StrandLive, :lessons
       live "/strands/:id/rubrics", StrandLive, :rubrics
       live "/strands/:id/assessment", StrandLive, :assessment
-      live "/strands/:id/moments", StrandLive, :moments
       live "/strands/:id/notes", StrandLive, :notes
 
-      live "/strands/:id/overview", StrandOverviewLive, :show
+      live "/strands/:id/overview", StrandOverviewLive, :overview
 
       live "/strands/moment/:id", MomentLive, :show
       live "/strands/moment/:id/assessment", MomentLive, :assessment

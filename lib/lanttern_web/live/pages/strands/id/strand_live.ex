@@ -4,9 +4,8 @@ defmodule LantternWeb.StrandLive do
   alias Lanttern.LearningContext
 
   # page components
-  alias __MODULE__.AboutComponent
   alias __MODULE__.AssessmentComponent
-  alias __MODULE__.MomentsComponent
+  alias __MODULE__.LessonsComponent
   alias __MODULE__.NotesComponent
   alias __MODULE__.StrandRubricsComponent
 
