@@ -68,6 +68,35 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
               </.dropdown_menu>
             </div>
           </div>
+          <div
+            :if={@has_unattached_lessons}
+            id="unattached-strand-lessons"
+            phx-update="stream"
+            class="mt-8"
+          >
+            <div
+              :for={{dom_id, lesson} <- @streams.unattached_lessons}
+              class="flex items-center gap-4 mt-4"
+              id={dom_id}
+            >
+              <div class="py-3 hover:cursor-move drag-handle">
+                <hr class="w-6 h-0.5 border-0 rounded-full bg-ltrn-subtle" />
+              </div>
+              <.card_base class="flex-1 p-4">
+                <div class="flex items-center gap-4">
+                  <h4 class="font-display font-bold text-base">{lesson.name}</h4>
+                  <.action
+                    type="link"
+                    patch={"?lesson=#{lesson.id}"}
+                    icon_name="hero-pencil-mini"
+                    theme="subtle"
+                  >
+                    {gettext("Edit")}
+                  </.action>
+                </div>
+              </.card_base>
+            </div>
+          </div>
           <%= if @moments_ids == [] do %>
             <.card_base class="p-10">
               <.empty_state>{gettext("No moments for this strand yet")}</.empty_state>
@@ -77,63 +106,102 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
               id="strand-moments"
               phx-hook="Sortable"
               data-sortable-handle=".drag-handle"
-              phx-update="ignore"
+              phx-update="stream"
             >
               <div
                 :for={{dom_id, moment} <- @streams.moments}
-                class="flex items-start gap-4 mt-12"
+                class="mt-12"
                 id={dom_id}
               >
-                <div class="py-3 hover:cursor-move drag-handle">
-                  <hr class="w-6 h-1 border-0 rounded-full bg-ltrn-dark" />
-                </div>
-                <div class="flex-1">
-                  <div class="flex items-center gap-4">
-                    <.link
-                      navigate={~p"/strands/moment/#{moment.id}"}
-                      class="font-display font-bold text-xl hover:text-ltrn-subtle"
-                    >
-                      {moment.name}
-                    </.link>
-                    <.action
-                      type="link"
-                      patch={"?moment=#{moment.id}"}
-                      icon_name="hero-pencil-mini"
-                      theme="subtle"
-                    >
-                      {gettext("Edit")}
-                    </.action>
+                <%!-- moment --%>
+                <div class="flex items-start gap-4">
+                  <div class="py-3 hover:cursor-move drag-handle">
+                    <hr class="w-6 h-1 border-0 rounded-full bg-ltrn-dark" />
                   </div>
-                  <.markdown text={moment.description} strip_tags class="mt-4 line-clamp-3" />
+                  <div class="flex-1">
+                    <div class="flex items-center gap-4">
+                      <.link
+                        navigate={~p"/strands/moment/#{moment.id}"}
+                        class="font-display font-bold text-xl hover:text-ltrn-subtle"
+                      >
+                        {moment.name}
+                      </.link>
+                      <.action
+                        type="link"
+                        patch={"?moment=#{moment.id}"}
+                        icon_name="hero-pencil-mini"
+                        theme="subtle"
+                      >
+                        {gettext("Edit")}
+                      </.action>
+                    </div>
+                    <.markdown text={moment.description} strip_tags class="mt-4 line-clamp-3" />
+                  </div>
+                </div>
+                <%!-- lessons --%>
+                <div id={"moment-#{moment.id}-lessons"}>
+                  <%= if moment.id in @moments_with_lessons do %>
+                    <div
+                      :for={{dom_id, lesson} <- @streams["moment_#{moment.id}_lessons"]}
+                      class="flex items-center gap-4 mt-4"
+                      id={dom_id}
+                    >
+                      <div class="py-3 hover:cursor-move drag-handle">
+                        <hr class="w-6 h-0.5 border-0 rounded-full bg-ltrn-subtle" />
+                      </div>
+                      <.card_base class="flex-1 p-4">
+                        <div class="flex items-center gap-4">
+                          <h4 class="font-display font-bold text-base">{lesson.name}</h4>
+                          <.action
+                            type="link"
+                            patch={"?lesson=#{lesson.id}"}
+                            icon_name="hero-pencil-mini"
+                            theme="subtle"
+                          >
+                            {gettext("Edit")}
+                          </.action>
+                        </div>
+                      </.card_base>
+                    </div>
+                  <% else %>
+                    <.empty_state_simple class="flex-1 p-4 mt-4 ml-10">
+                      {gettext("No lessons for this moment yet")}
+                    </.empty_state_simple>
+                  <% end %>
                 </div>
               </div>
             </div>
           <% end %>
-          <%!-- temp lesson listing (no moment grouping) --%>
-          <div
+
+          <%!-- <div
             id="strand-lessons"
             phx-update="stream"
           >
-            <.card_base
+            <div
               :for={{dom_id, lesson} <- @streams.lessons}
-              class="p-6 mt-6"
+              class="flex items-center gap-4 mt-4"
               id={dom_id}
             >
-              <div class="flex items-center gap-4">
-                <h4 class="font-display font-black text-xl">{lesson.name}</h4>
-                <.action
-                  type="link"
-                  patch={"?lesson=#{lesson.id}"}
-                  icon_name="hero-pencil-mini"
-                  theme="subtle"
-                >
-                  {gettext("Edit")}
-                </.action>
+              <div class="py-3 hover:cursor-move drag-handle">
+                <hr class="w-6 h-0.5 border-0 rounded-full bg-ltrn-subtle" />
               </div>
-              <p :if={lesson.moment}>moment: {lesson.moment.name}</p>
-              <p>pos: {lesson.position}</p>
-            </.card_base>
-          </div>
+              <.card_base class="flex-1 p-4">
+                <div class="flex items-center gap-4">
+                  <h4 class="font-display font-bold text-base">{lesson.name}</h4>
+                  <.action
+                    type="link"
+                    patch={"?lesson=#{lesson.id}"}
+                    icon_name="hero-pencil-mini"
+                    theme="subtle"
+                  >
+                    {gettext("Edit")}
+                  </.action>
+                </div>
+                <p :if={lesson.moment}>moment: {lesson.moment.name}</p>
+                <p>pos: {lesson.position}</p>
+              </.card_base>
+            </div>
+          </div> --%>
         </section>
       </.responsive_container>
       <.slide_over
@@ -249,9 +317,45 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
     lessons =
       Lessons.list_lessons(strand_id: socket.assigns.strand.id, preloads: :moment)
 
+    # group and stream lessons by moment
+    moment_lessons_map = Enum.group_by(lessons, &Map.get(&1, :moment_id))
+
+    moments_with_lessons =
+      moment_lessons_map
+      |> Map.keys()
+      |> MapSet.new()
+
     socket
+    |> assign(:moments_with_lessons, moments_with_lessons)
+    |> stream_unattached_lessons(moment_lessons_map[nil])
+    |> stream_moment_lessons(Map.delete(moment_lessons_map, nil))
     |> stream(:lessons, lessons)
     |> assign(:lessons_ids, Enum.map(lessons, &"#{&1.id}"))
+  end
+
+  defp stream_unattached_lessons(socket, nil) do
+    socket
+    |> stream(:unattached_lessons, [])
+    |> assign(:has_unattached_lessons, false)
+  end
+
+  defp stream_unattached_lessons(socket, lessons) do
+    socket
+    |> stream(:unattached_lessons, lessons)
+    |> assign(:has_unattached_lessons, true)
+  end
+
+  defp stream_moment_lessons(socket, moment_lessons_map) do
+    Map.keys(moment_lessons_map)
+    |> Enum.reduce(socket, fn moment_id, socket ->
+      moment_lessons =
+        case moment_lessons_map[moment_id] do
+          nil -> []
+          moment_lessons -> moment_lessons
+        end
+
+      stream(socket, "moment_#{moment_id}_lessons", moment_lessons)
+    end)
   end
 
   defp assign_moment(%{assigns: %{params: %{"moment" => "new"}}} = socket) do
