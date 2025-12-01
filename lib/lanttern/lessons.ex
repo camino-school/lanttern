@@ -4,6 +4,7 @@ defmodule Lanttern.Lessons do
   """
 
   import Ecto.Query, warn: false
+  import Lanttern.RepoHelpers, only: [maybe_preload: 2]
   alias Lanttern.Repo
 
   alias Lanttern.Lessons.Lesson
@@ -11,20 +12,60 @@ defmodule Lanttern.Lessons do
   @doc """
   Returns the list of lessons.
 
+  ## Options
+
+  - `:strand_id` – filter lessons by strand
+  - `:preloads` – preloads associated data
+
   ## Examples
 
       iex> list_lessons()
       [%Lesson{}, ...]
 
   """
-  def list_lessons do
-    Repo.all(Lesson)
+  def list_lessons(opts \\ []) do
+    from(
+      l in Lesson,
+      order_by: l.position
+    )
+    |> apply_list_lessons_opts(opts)
+    |> Repo.all()
+    |> maybe_preload(opts)
   end
+
+  defp apply_list_lessons_opts(queryable, []), do: queryable
+
+  defp apply_list_lessons_opts(queryable, [{:strand_id, strand_id} | opts]) do
+    from(
+      l in queryable,
+      where: l.strand_id == ^strand_id
+    )
+    |> apply_list_lessons_opts(opts)
+  end
+
+  defp apply_list_lessons_opts(queryable, [_ | opts]),
+    do: apply_list_lessons_opts(queryable, opts)
 
   @doc """
   Gets a single lesson.
 
-  Raises `Ecto.NoResultsError` if the Lesson does not exist.
+  Returns `nil` if the Lesson does not exist.
+
+  ## Examples
+
+      iex> get_lesson(123)
+      %Lesson{}
+
+      iex> get_lesson(456)
+      nil
+
+  """
+  def get_lesson(id), do: Repo.get(Lesson, id)
+
+  @doc """
+  Gets a single lesson.
+
+  Same as `get_lesson/1`, but raises `Ecto.NoResultsError` if the Lesson does not exist.
 
   ## Examples
 
@@ -40,6 +81,10 @@ defmodule Lanttern.Lessons do
   @doc """
   Creates a lesson.
 
+  ## Options
+
+  - `:preloads` – preloads associated data
+
   ## Examples
 
       iex> create_lesson(%{field: value})
@@ -49,11 +94,45 @@ defmodule Lanttern.Lessons do
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_lesson(attrs) do
+  def create_lesson(attrs, opts \\ []) do
     %Lesson{}
     |> Lesson.changeset(attrs)
+    |> set_lesson_position()
     |> Repo.insert()
+    |> maybe_preload(opts)
   end
+
+  # skip if not valid
+  defp set_lesson_position(%Ecto.Changeset{valid?: false} = changeset),
+    do: changeset
+
+  # skip if changeset already has position change
+  defp set_lesson_position(%Ecto.Changeset{changes: %{position: _position}} = changeset),
+    do: changeset
+
+  defp set_lesson_position(%Ecto.Changeset{} = changeset) do
+    strand_id = Ecto.Changeset.get_field(changeset, :strand_id)
+    moment_id = Ecto.Changeset.get_field(changeset, :moment_id)
+
+    position =
+      from(l in Lesson,
+        where: l.strand_id == ^strand_id,
+        select: l.position,
+        order_by: [desc: l.position],
+        limit: 1
+      )
+      |> where_moment_id(moment_id)
+      |> Repo.one()
+      |> case do
+        nil -> 0
+        pos -> pos + 1
+      end
+
+    Ecto.Changeset.put_change(changeset, :position, position)
+  end
+
+  defp where_moment_id(query, nil), do: where(query, [l], is_nil(l.moment_id))
+  defp where_moment_id(query, moment_id), do: where(query, [l], l.moment_id == ^moment_id)
 
   @doc """
   Updates a lesson.

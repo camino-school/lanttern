@@ -3,12 +3,15 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
 
   alias Lanttern.LearningContext
   alias Lanttern.LearningContext.Moment
+  alias Lanttern.Lessons
+  alias Lanttern.Lessons.Lesson
 
   import Lanttern.SupabaseHelpers, only: [object_url_to_render_url: 2]
   import Lanttern.Utils, only: [reorder: 3]
 
   # shared components
   alias LantternWeb.LearningContext.MomentFormComponent
+  alias LantternWeb.Lessons.LessonFormComponent
 
   @impl true
   def render(assigns) do
@@ -73,7 +76,6 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
             <div
               id="strand-moments"
               phx-hook="Sortable"
-              id="sortable-moments"
               data-sortable-handle=".drag-handle"
               phx-update="ignore"
             >
@@ -107,6 +109,31 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
               </div>
             </div>
           <% end %>
+          <%!-- temp lesson listing (no moment grouping) --%>
+          <div
+            id="strand-lessons"
+            phx-update="stream"
+          >
+            <.card_base
+              :for={{dom_id, lesson} <- @streams.lessons}
+              class="p-6 mt-6"
+              id={dom_id}
+            >
+              <div class="flex items-center gap-4">
+                <h4 class="font-display font-black text-xl">{lesson.name}</h4>
+                <.action
+                  type="link"
+                  patch={"?lesson=#{lesson.id}"}
+                  icon_name="hero-pencil-mini"
+                  theme="subtle"
+                >
+                  {gettext("Edit")}
+                </.action>
+              </div>
+              <p :if={lesson.moment}>moment: {lesson.moment.name}</p>
+              <p>pos: {lesson.position}</p>
+            </.card_base>
+          </div>
         </section>
       </.responsive_container>
       <.slide_over
@@ -149,6 +176,24 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
           </.button>
         </:actions>
       </.slide_over>
+      <.modal
+        :if={@lesson}
+        id="lesson-form-overlay"
+        show={true}
+        on_cancel={JS.patch(~p"/strands/#{@strand}")}
+      >
+        <:title>{@lesson_overlay_title}</:title>
+        <.live_component
+          module={LessonFormComponent}
+          id={:new}
+          lesson={@lesson}
+          moments={@moments}
+          strand_id={@strand.id}
+          action={:new}
+          navigate={fn _lesson -> ~p"/strands/#{@strand}" end}
+          on_cancel={JS.exec("data-cancel", to: "#lesson-form-overlay")}
+        />
+      </.modal>
     </div>
     """
   end
@@ -170,6 +215,7 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
       |> assign(assigns)
       |> initialize()
       |> assign_moment()
+      |> assign_lesson()
 
     {:ok, socket}
   end
@@ -183,6 +229,7 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
       object_url_to_render_url(strand.cover_image_url, width: 1280, height: 640)
     )
     |> stream_moments()
+    |> stream_lessons()
     |> assign(:initialized, true)
   end
 
@@ -195,6 +242,16 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
     socket
     |> stream(:moments, moments)
     |> assign(:moments_ids, Enum.map(moments, &"#{&1.id}"))
+    |> assign(:moments, moments)
+  end
+
+  defp stream_lessons(socket) do
+    lessons =
+      Lessons.list_lessons(strand_id: socket.assigns.strand.id, preloads: :moment)
+
+    socket
+    |> stream(:lessons, lessons)
+    |> assign(:lessons_ids, Enum.map(lessons, &"#{&1.id}"))
   end
 
   defp assign_moment(%{assigns: %{params: %{"moment" => "new"}}} = socket) do
@@ -219,30 +276,53 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
 
   defp assign_moment(socket), do: assign(socket, :moment, nil)
 
+  defp assign_lesson(%{assigns: %{params: %{"lesson" => "new"}}} = socket) do
+    lesson = %Lesson{strand_id: socket.assigns.strand.id}
+
+    socket
+    |> assign(:lesson, lesson)
+    |> assign(:lesson_overlay_title, gettext("New lesson"))
+  end
+
+  defp assign_lesson(%{assigns: %{params: %{"lesson" => lesson_id}}} = socket) do
+    if lesson_id in socket.assigns.lessons_ids do
+      lesson = Lessons.get_lesson(lesson_id)
+
+      socket
+      |> assign(:lesson, lesson)
+      |> assign(:lesson_overlay_title, gettext("Edit lesson"))
+    else
+      assign(socket, :lesson, nil)
+    end
+  end
+
+  defp assign_lesson(socket), do: assign(socket, :lesson, nil)
+
   # event handlers
 
   @impl true
   def handle_event("delete_moment", _params, socket) do
     case LearningContext.delete_moment(socket.assigns.moment) do
       {:ok, _moment} ->
-        nav_opts = [
-          put_flash: {:info, gettext("Moment deleted")},
-          push_navigate: [to: ~p"/strands/#{socket.assigns.strand}"]
-        ]
+        socket =
+          socket
+          |> put_flash(:info, gettext("Moment deleted"))
+          |> push_navigate(to: ~p"/strands/#{socket.assigns.strand}")
 
-        {:noreply, delegate_navigation(socket, nav_opts)}
+        {:noreply, socket}
 
       {:error, _changeset} ->
-        nav_opts = [
-          put_flash:
-            {:error,
-             gettext("Moment has linked assessments. Deleting it would cause some data loss.")},
-          push_patch: [
+        socket =
+          socket
+          |> put_flash(
+            :error,
+            gettext("Moment has linked assessments. Deleting it would cause some data loss.")
+          )
+          |> push_patch(
             to: ~p"/strands/#{socket.assigns.strand}?moment=#{socket.assigns.moment.id}"
-          ]
-        ]
+          )
 
-        {:noreply, delegate_navigation(socket, nav_opts)}
+        {:noreply, socket}
     end
   end
 
@@ -259,5 +339,10 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
     LearningContext.update_strand_moments_positions(socket.assigns.strand.id, moments_ids)
 
     {:noreply, assign(socket, :moments_ids, moments_ids)}
+  end
+
+  def handle_info({LessonFormComponent, {:saved, _lesson}}, socket) do
+    # Refresh moments list when a lesson is created
+    {:noreply, stream_moments(socket)}
   end
 end
