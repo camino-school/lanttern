@@ -69,7 +69,6 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
             </div>
           </div>
           <div
-            :if={@moments_lessons_ids_map[nil] != []}
             id="unattached-strand-lessons"
             phx-update="stream"
             class="mt-8"
@@ -78,28 +77,12 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
             data-moment-id="unattached"
             data-sortable-group="lessons"
           >
-            <div
+            <.lesson_entry
               :for={{dom_id, lesson} <- @streams.unattached_lessons}
-              class="flex items-center gap-4 mt-4"
+              class="mt-4"
+              lesson={lesson}
               id={dom_id}
-            >
-              <div class="py-3 hover:cursor-move drag-handle">
-                <hr class="w-6 h-0.5 border-0 rounded-full bg-ltrn-subtle" />
-              </div>
-              <.card_base class="flex-1 p-4">
-                <div class="flex items-center gap-4">
-                  <h4 class="font-display font-bold text-base">{lesson.name}</h4>
-                  <.action
-                    type="link"
-                    patch={"?lesson=#{lesson.id}"}
-                    icon_name="hero-pencil-mini"
-                    theme="subtle"
-                  >
-                    {gettext("Edit")}
-                  </.action>
-                </div>
-              </.card_base>
-            </div>
+            />
           </div>
           <%= if @moments_ids == [] do %>
             <.card_base class="p-10">
@@ -152,71 +135,22 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
                   data-moment-id={moment.id}
                   data-sortable-group="lessons"
                 >
-                  <%= if @moments_lessons_ids_map[moment.id] != [] do %>
-                    <div
-                      :for={{dom_id, lesson} <- @streams["moment_#{moment.id}_lessons"]}
-                      class="flex items-center gap-4 mt-4"
-                      id={dom_id}
-                    >
-                      <div class="py-3 hover:cursor-move drag-handle">
-                        <hr class="w-6 h-0.5 border-0 rounded-full bg-ltrn-subtle" />
-                      </div>
-                      <.card_base class="flex-1 p-4">
-                        <div class="flex items-center gap-4">
-                          <h4 class="font-display font-bold text-base">{lesson.name}</h4>
-                          <.action
-                            type="link"
-                            patch={"?lesson=#{lesson.id}"}
-                            icon_name="hero-pencil-mini"
-                            theme="subtle"
-                          >
-                            {gettext("Edit")}
-                          </.action>
-                        </div>
-                      </.card_base>
-                    </div>
-                  <% else %>
-                    <.empty_state_simple
-                      class="flex-1 p-4 mt-4 ml-10"
-                      id={"moment-#{moment.id}-lessons-empty"}
-                    >
-                      {gettext("No lessons for this moment yet")}
-                    </.empty_state_simple>
-                  <% end %>
+                  <.lesson_entry
+                    :for={{dom_id, lesson} <- @streams["moment_#{moment.id}_lessons"] || []}
+                    class="mt-4"
+                    lesson={lesson}
+                    id={dom_id}
+                  />
+                  <.empty_state_simple
+                    class="flex-1 p-4 mt-4 ml-10 hidden only:block"
+                    id={"moment-#{moment.id}-lessons-empty"}
+                  >
+                    {gettext("No lessons for this moment yet")}
+                  </.empty_state_simple>
                 </div>
               </div>
             </div>
           <% end %>
-
-          <%!-- <div
-            id="strand-lessons"
-            phx-update="stream"
-          >
-            <div
-              :for={{dom_id, lesson} <- @streams.lessons}
-              class="flex items-center gap-4 mt-4"
-              id={dom_id}
-            >
-              <div class="py-3 hover:cursor-move drag-handle">
-                <hr class="w-6 h-0.5 border-0 rounded-full bg-ltrn-subtle" />
-              </div>
-              <.card_base class="flex-1 p-4">
-                <div class="flex items-center gap-4">
-                  <h4 class="font-display font-bold text-base">{lesson.name}</h4>
-                  <.action
-                    type="link"
-                    patch={"?lesson=#{lesson.id}"}
-                    icon_name="hero-pencil-mini"
-                    theme="subtle"
-                  >
-                    {gettext("Edit")}
-                  </.action>
-                </div>
-                <p :if={lesson.moment}>moment: {lesson.moment.name}</p>
-                <p>pos: {lesson.position}</p>
-              </.card_base>
-            </div>
-          </div> --%>
         </section>
       </.responsive_container>
       <.slide_over
@@ -277,6 +211,36 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
           on_cancel={JS.exec("data-cancel", to: "#lesson-form-overlay")}
         />
       </.modal>
+    </div>
+    """
+  end
+
+  attr :id, :string, required: true
+  attr :lesson, :map, required: true
+  attr :class, :any, default: nil
+
+  defp lesson_entry(assigns) do
+    ~H"""
+    <div
+      class={["flex items-center gap-4", @class]}
+      id={@id}
+    >
+      <div class="py-3 hover:cursor-move drag-handle">
+        <hr class="w-6 h-0.5 border-0 rounded-full bg-ltrn-subtle" />
+      </div>
+      <.card_base class="flex-1 p-4">
+        <div class="flex items-center gap-4">
+          <h4 class="font-display font-bold text-base">{@lesson.name}</h4>
+          <.action
+            type="link"
+            patch={"?lesson=#{@lesson.id}"}
+            icon_name="hero-pencil-mini"
+            theme="subtle"
+          >
+            {gettext("Edit")}
+          </.action>
+        </div>
+      </.card_base>
     </div>
     """
   end
