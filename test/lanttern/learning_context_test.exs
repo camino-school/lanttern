@@ -726,7 +726,7 @@ defmodule Lanttern.LearningContextTest do
       assert moment == LearningContext.get_moment!(moment.id)
     end
 
-    test "update_strand_moments_positions/2 update strand moments position based on list order" do
+    test "update_moments_positions/1 update moments position based on list order" do
       strand = strand_fixture()
       moment_1 = moment_fixture(%{strand_id: strand.id})
       moment_2 = moment_fixture(%{strand_id: strand.id})
@@ -741,17 +741,14 @@ defmodule Lanttern.LearningContextTest do
           moment_4.id
         ]
 
-      assert {:ok,
-              [
-                expected_2,
-                expected_3,
-                expected_1,
-                expected_4
-              ]} =
-               LearningContext.update_strand_moments_positions(
-                 strand.id,
-                 sorted_moments_ids
-               )
+      :ok = LearningContext.update_moments_positions(sorted_moments_ids)
+
+      [
+        expected_2,
+        expected_3,
+        expected_1,
+        expected_4
+      ] = LearningContext.list_moments(strands_ids: [strand.id])
 
       assert expected_1.id == moment_1.id
       assert expected_2.id == moment_2.id

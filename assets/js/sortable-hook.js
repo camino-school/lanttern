@@ -1,8 +1,12 @@
 import Sortable from 'sortablejs';
 
 /**
- * Requires `data-group-id` and `data-group-name`,
- * used to identify the group on sort.
+ * Will send the full dataset `onEnd` for implementation flexibility
+ * (e.g. use `data-section-name` for pattern matching).
+ * 
+ * The predefined data attributes are:
+ * - `data-sortable-handle` - for `handle` opt
+ * - `data-sortable-group` - for `group` opt
  */
 
 const sortableHook = {
@@ -11,24 +15,22 @@ const sortableHook = {
     const el = hook.el;
 
     let opts = {
+      group: el.dataset.sortableGroup,
+      handle: el.dataset.sortableHandle,
       chosenClass: 'opacity-50',
-      onUpdate: function (evt) {
+      onEnd: function (evt) {
         const payload = {
-          groupId: el.getAttribute('data-group-id'),
-          groupName: el.getAttribute('data-group-name'),
           oldIndex: evt.oldIndex,
-          newIndex: evt.newIndex
+          newIndex: evt.newIndex,
+          from: evt.from.dataset,
+          to: evt.to.dataset
         };
 
         hook.pushEventTo(el, "sortable_update", payload);
       },
     };
 
-    if (el.getAttribute('data-sortable-handle')) {
-      opts.handle = el.getAttribute('data-sortable-handle');
-    }
-
-    Sortable.create(el, opts);
+    new Sortable(el, opts);
   },
 };
 

@@ -36,8 +36,8 @@
             phx-hook="Sortable"
             id={"template-#{template.id}-sections"}
             data-sortable-handle=".sortable-handle"
-            data-group-name="template"
-            data-group-id={template.id}
+            data-group-name="sections"
+            data-template-id={template.id}
           >
             <.card_base
               :for={section <- template.sections}
@@ -53,8 +53,8 @@
                 phx-hook="Sortable"
                 id={"template-#{template.id}-section-#{section.id}-components"}
                 data-sortable-handle=".sortable-handle"
-                data-group-name="section"
-                data-group-id={section.id}
+                data-group-name="components"
+                data-section-id={section.id}
               >
                 <div
                   :for={component <- section.components}
