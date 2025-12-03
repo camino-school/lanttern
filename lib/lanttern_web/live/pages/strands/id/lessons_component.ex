@@ -69,10 +69,14 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
             </div>
           </div>
           <div
-            :if={@has_unattached_lessons}
+            :if={@moments_lessons_ids_map[nil] != []}
             id="unattached-strand-lessons"
             phx-update="stream"
             class="mt-8"
+            phx-hook="Sortable"
+            data-sortable-handle=".drag-handle"
+            data-moment-id="unattached"
+            data-sortable-group="lessons"
           >
             <div
               :for={{dom_id, lesson} <- @streams.unattached_lessons}
@@ -104,9 +108,10 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
           <% else %>
             <div
               id="strand-moments"
+              phx-update="stream"
               phx-hook="Sortable"
               data-sortable-handle=".drag-handle"
-              phx-update="stream"
+              data-sortable-group="moments"
             >
               <div
                 :for={{dom_id, moment} <- @streams.moments}
@@ -139,8 +144,15 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
                   </div>
                 </div>
                 <%!-- lessons --%>
-                <div id={"moment-#{moment.id}-lessons"}>
-                  <%= if moment.id in @moments_with_lessons do %>
+                <div
+                  id={"moment-#{moment.id}-lessons"}
+                  phx-hook="Sortable"
+                  data-sortable-handle=".drag-handle"
+                  phx-update="stream"
+                  data-moment-id={moment.id}
+                  data-sortable-group="lessons"
+                >
+                  <%= if @moments_lessons_ids_map[moment.id] != [] do %>
                     <div
                       :for={{dom_id, lesson} <- @streams["moment_#{moment.id}_lessons"]}
                       class="flex items-center gap-4 mt-4"
@@ -164,7 +176,10 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
                       </.card_base>
                     </div>
                   <% else %>
-                    <.empty_state_simple class="flex-1 p-4 mt-4 ml-10">
+                    <.empty_state_simple
+                      class="flex-1 p-4 mt-4 ml-10"
+                      id={"moment-#{moment.id}-lessons-empty"}
+                    >
                       {gettext("No lessons for this moment yet")}
                     </.empty_state_simple>
                   <% end %>
@@ -318,44 +333,62 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
       Lessons.list_lessons(strand_id: socket.assigns.strand.id, preloads: :moment)
 
     # group and stream lessons by moment
-    moment_lessons_map = Enum.group_by(lessons, &Map.get(&1, :moment_id))
-
-    moments_with_lessons =
-      moment_lessons_map
-      |> Map.keys()
-      |> MapSet.new()
+    moments_lessons_map = Enum.group_by(lessons, &Map.get(&1, :moment_id))
 
     socket
-    |> assign(:moments_with_lessons, moments_with_lessons)
-    |> stream_unattached_lessons(moment_lessons_map[nil])
-    |> stream_moment_lessons(Map.delete(moment_lessons_map, nil))
+    |> stream_moments_lessons(moments_lessons_map)
     |> stream(:lessons, lessons)
+    # we have a flat lessons ids list for security quick checks
+    # (`id in socket.assigns.lessons_ids`) but we also have
+    # a map of lessons ids per moment for sorting management
     |> assign(:lessons_ids, Enum.map(lessons, &"#{&1.id}"))
+    |> assign_moments_lessons_ids_map(moments_lessons_map)
   end
 
-  defp stream_unattached_lessons(socket, nil) do
-    socket
-    |> stream(:unattached_lessons, [])
-    |> assign(:has_unattached_lessons, false)
-  end
+  defp stream_moments_lessons(socket, moments_lessons_map) do
+    # stream unattached lessons first
+    unattached_lessons =
+      case moments_lessons_map[nil] do
+        nil -> []
+        lessons -> lessons
+      end
 
-  defp stream_unattached_lessons(socket, lessons) do
-    socket
-    |> stream(:unattached_lessons, lessons)
-    |> assign(:has_unattached_lessons, true)
-  end
+    socket = stream(socket, :unattached_lessons, unattached_lessons)
 
-  defp stream_moment_lessons(socket, moment_lessons_map) do
-    Map.keys(moment_lessons_map)
+    # then stream each moment lessons
+    moments_lessons_map
+    |> Map.delete(nil)
+    |> Map.keys()
     |> Enum.reduce(socket, fn moment_id, socket ->
       moment_lessons =
-        case moment_lessons_map[moment_id] do
+        case moments_lessons_map[moment_id] do
           nil -> []
           moment_lessons -> moment_lessons
         end
 
-      stream(socket, "moment_#{moment_id}_lessons", moment_lessons)
+      socket
+      |> stream("moment_#{moment_id}_lessons", moment_lessons)
     end)
+  end
+
+  defp assign_moments_lessons_ids_map(socket, moments_lessons_map) do
+    moments_lessons_ids_map =
+      moments_lessons_map
+      |> Enum.map(fn {moment_id, lessons} ->
+        {moment_id, Enum.map(lessons, & &1.id)}
+      end)
+      |> Enum.into(%{})
+
+    # moments without lessons will be missing from moments_lessons_map,
+    # that's why we iterate socket.assigns.moments + nil for unattached
+    all_moments_lessons_ids_map =
+      [%{id: nil} | socket.assigns.moments]
+      |> Enum.map(fn moment ->
+        {moment.id, Map.get(moments_lessons_ids_map, moment.id, [])}
+      end)
+      |> Enum.into(%{})
+
+    assign(socket, :moments_lessons_ids_map, all_moments_lessons_ids_map)
   end
 
   defp assign_moment(%{assigns: %{params: %{"moment" => "new"}}} = socket) do
@@ -430,20 +463,101 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
     end
   end
 
-  # view Sortable hook for payload info
-  def handle_event("sortable_update", payload, socket) do
-    %{
-      "oldIndex" => old_index,
-      "newIndex" => new_index
-    } = payload
-
+  def handle_event(
+        "sortable_update",
+        %{
+          "from" => %{"sortableGroup" => "moments"},
+          "oldIndex" => old_index,
+          "newIndex" => new_index
+        } =
+          _payload,
+        socket
+      )
+      when old_index != new_index do
     moments_ids = reorder(socket.assigns.moments_ids, old_index, new_index)
 
     # the inteface was already updated (optimistic update), just persist the new order
-    LearningContext.update_strand_moments_positions(socket.assigns.strand.id, moments_ids)
+    LearningContext.update_moments_positions(moments_ids)
 
     {:noreply, assign(socket, :moments_ids, moments_ids)}
   end
+
+  def handle_event(
+        "sortable_update",
+        %{
+          "from" => %{"sortableGroup" => "lessons", "momentId" => from_moment_id},
+          "to" => %{"momentId" => to_moment_id},
+          "oldIndex" => old_index,
+          "newIndex" => new_index
+        } =
+          _payload,
+        socket
+      )
+      when from_moment_id != to_moment_id do
+    from_moment_id =
+      if from_moment_id == "unattached", do: nil, else: String.to_integer(from_moment_id)
+
+    to_moment_id = if to_moment_id == "unattached", do: nil, else: String.to_integer(to_moment_id)
+
+    # find and remove the lesson id from the origin moment
+    {lesson_id, from_lessons_ids} =
+      socket.assigns.moments_lessons_ids_map[from_moment_id]
+      |> List.pop_at(old_index)
+
+    # insert the lesson in target moment
+    lessons_ids =
+      socket.assigns.moments_lessons_ids_map[to_moment_id]
+      |> List.insert_at(new_index, lesson_id)
+
+    # the inteface was already updated (optimistic update), just persist the new order
+    Lessons.update_lessons_positions(lessons_ids)
+
+    # update lesson's moment_id
+    lesson = Lessons.get_lesson!(lesson_id)
+    Lessons.update_lesson(lesson, %{moment_id: to_moment_id})
+
+    # and update ids list in assigns
+    moments_lessons_ids_map =
+      socket.assigns.moments_lessons_ids_map
+      |> Map.put(from_moment_id, from_lessons_ids)
+      |> Map.put(to_moment_id, lessons_ids)
+
+    {:noreply, assign(socket, :moments_lessons_ids_map, moments_lessons_ids_map)}
+  end
+
+  def handle_event(
+        "sortable_update",
+        %{
+          "from" => %{"sortableGroup" => "lessons", "momentId" => moment_id},
+          "oldIndex" => old_index,
+          "newIndex" => new_index
+        } =
+          _payload,
+        socket
+      )
+      when old_index != new_index do
+    moment_id = if moment_id == "unattached", do: nil, else: String.to_integer(moment_id)
+    lessons_ids = reorder(socket.assigns.moments_lessons_ids_map[moment_id], old_index, new_index)
+
+    # the inteface was already updated (optimistic update), just persist the new order
+    Lessons.update_lessons_positions(lessons_ids)
+
+    # and update ids list in assigns
+    moments_lessons_ids_map =
+      Map.put(
+        socket.assigns.moments_lessons_ids_map,
+        moment_id,
+        lessons_ids
+      )
+
+    {:noreply, assign(socket, :moments_lessons_ids_map, moments_lessons_ids_map)}
+  end
+
+  def handle_event("sortable_update", _payload, socket), do: {:noreply, socket}
+
+  # defp
+
+  # info handlers
 
   def handle_info({LessonFormComponent, {:saved, _lesson}}, socket) do
     # Refresh moments list when a lesson is created

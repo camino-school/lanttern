@@ -30,6 +30,8 @@ defmodule LantternWeb.ILPSettingsLive do
   alias Lanttern.ILP
   alias Lanttern.ILP.ILPTemplate
 
+  import Lanttern.Utils, only: [reorder: 3]
+
   # shared
 
   alias LantternWeb.ILP.ILPTemplateFormComponent
@@ -131,19 +133,21 @@ defmodule LantternWeb.ILPSettingsLive do
   end
 
   # view Sortable hook for payload info
-  def handle_event("sortable_update", %{"groupName" => "template"} = payload, socket) do
-    %{
-      "groupId" => template_id,
-      "oldIndex" => old_index,
-      "newIndex" => new_index
-    } = payload
-
+  def handle_event(
+        "sortable_update",
+        %{
+          "from" => %{"groupName" => "sections", "templateId" => template_id},
+          "oldIndex" => old_index,
+          "newIndex" => new_index
+        } = _payload,
+        socket
+      )
+      when old_index != new_index do
     sections_ids =
       socket.assigns.templates_sections_order_map
       |> Map.get(template_id)
 
-    {changed_id, rest} = List.pop_at(sections_ids, old_index)
-    sections_ids = List.insert_at(rest, new_index, changed_id)
+    sections_ids = reorder(sections_ids, old_index, new_index)
 
     # the inteface was already updated (optimistic update)
     # just persist the new order
@@ -156,20 +160,21 @@ defmodule LantternWeb.ILPSettingsLive do
     {:noreply, assign(socket, :templates_sections_order_map, templates_sections_order_map)}
   end
 
-  # view Sortable hook for payload info
-  def handle_event("sortable_update", %{"groupName" => "section"} = payload, socket) do
-    %{
-      "groupId" => section_id,
-      "oldIndex" => old_index,
-      "newIndex" => new_index
-    } = payload
-
+  def handle_event(
+        "sortable_update",
+        %{
+          "from" => %{"groupName" => "components", "sectionId" => section_id},
+          "oldIndex" => old_index,
+          "newIndex" => new_index
+        } = _payload,
+        socket
+      )
+      when old_index != new_index do
     components_ids =
       socket.assigns.sections_components_order_map
       |> Map.get(section_id)
 
-    {changed_id, rest} = List.pop_at(components_ids, old_index)
-    components_ids = List.insert_at(rest, new_index, changed_id)
+    components_ids = reorder(components_ids, old_index, new_index)
 
     # the inteface was already updated (optimistic update)
     # just persist the new order

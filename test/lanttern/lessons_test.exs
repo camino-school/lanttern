@@ -76,6 +76,32 @@ defmodule Lanttern.LessonsTest do
       assert expected.description == lesson.description
     end
 
+    test "update_lessons_positions/1 update lessons position based on list order" do
+      strand = insert(:strand)
+      lesson_1 = insert(:lesson, strand: strand)
+      lesson_2 = insert(:lesson, strand: strand)
+      lesson_3 = insert(:lesson, strand: strand)
+      lesson_4 = insert(:lesson, strand: strand)
+
+      sorted_lessons_ids =
+        [
+          lesson_2.id,
+          lesson_3.id,
+          lesson_1.id,
+          lesson_4.id
+        ]
+
+      :ok = Lessons.update_lessons_positions(sorted_lessons_ids)
+
+      [expected_2, expected_3, expected_1, expected_4] =
+        Lessons.list_lessons(strand_id: strand.id)
+
+      assert expected_1.id == lesson_1.id
+      assert expected_2.id == lesson_2.id
+      assert expected_3.id == lesson_3.id
+      assert expected_4.id == lesson_4.id
+    end
+
     test "delete_lesson/1 deletes the lesson" do
       lesson = insert(:lesson)
       assert {:ok, %Lesson{}} = Lessons.delete_lesson(lesson)

@@ -645,41 +645,16 @@ defmodule Lanttern.LearningContext do
   end
 
   @doc """
-  Update strand moments positions based on ids list order.
+  Update moments positions based on ids list order.
 
   ## Examples
 
-      iex> update_strand_moments_positions(strand_id, [3, 2, 1])
-      {:ok, [%Moment{}, ...]}
+      iex> update_moments_positions([3, 2, 1])
+      :ok
 
   """
-  def update_strand_moments_positions(strand_id, moments_ids) do
-    moments_ids
-    |> Enum.with_index()
-    |> Enum.reduce(
-      Ecto.Multi.new(),
-      fn {id, i}, multi ->
-        multi
-        |> Ecto.Multi.update_all(
-          "update-#{id}",
-          from(
-            m in Moment,
-            where: m.id == ^id,
-            where: m.strand_id == ^strand_id
-          ),
-          set: [position: i]
-        )
-      end
-    )
-    |> Repo.transaction()
-    |> case do
-      {:ok, _} ->
-        {:ok, list_moments(strands_ids: [strand_id])}
-
-      _ ->
-        {:error, gettext("Something went wrong")}
-    end
-  end
+  def update_moments_positions(moments_ids),
+    do: update_positions(Moment, moments_ids)
 
   @doc """
   Deletes a moment.
@@ -901,35 +876,11 @@ defmodule Lanttern.LearningContext do
   ## Examples
 
       iex> update_moment_cards_positions([3, 2, 1])
-      {:ok, [%AssessmentPoint{}, ...]}
+      :ok
 
   """
-  def update_moment_cards_positions(moment_cards_ids) do
-    moment_cards_ids
-    |> Enum.with_index()
-    |> Enum.reduce(
-      Ecto.Multi.new(),
-      fn {id, i}, multi ->
-        multi
-        |> Ecto.Multi.update_all(
-          "update-#{id}",
-          from(
-            c in MomentCard,
-            where: c.id == ^id
-          ),
-          set: [position: i]
-        )
-      end
-    )
-    |> Repo.transaction()
-    |> case do
-      {:ok, _} ->
-        {:ok, list_moment_cards(ids: moment_cards_ids)}
-
-      _ ->
-        {:error, "Something went wrong"}
-    end
-  end
+  def update_moment_cards_positions(moment_cards_ids),
+    do: update_positions(MomentCard, moment_cards_ids)
 
   @doc """
   Deletes a moment_card.

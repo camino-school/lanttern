@@ -4,7 +4,7 @@ defmodule Lanttern.Lessons do
   """
 
   import Ecto.Query, warn: false
-  import Lanttern.RepoHelpers, only: [maybe_preload: 2]
+  import Lanttern.RepoHelpers, only: [maybe_preload: 2, update_positions: 2]
   alias Lanttern.Repo
 
   alias Lanttern.Lessons.Lesson
@@ -151,6 +151,20 @@ defmodule Lanttern.Lessons do
     |> Lesson.changeset(attrs)
     |> Repo.update()
   end
+
+  @doc """
+  Update lessons positions based on ids list order.
+
+  ## Examples
+
+  iex> update_lessons_positions([3, 2, 1])
+  :ok
+
+  """
+  @spec update_lessons_positions(lessons_ids :: [pos_integer()]) ::
+          :ok | {:error, String.t()}
+  def update_lessons_positions(lessons_ids),
+    do: update_positions(Lesson, lessons_ids)
 
   @doc """
   Deletes a lesson.
