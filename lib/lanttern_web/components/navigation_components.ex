@@ -15,6 +15,7 @@ defmodule LantternWeb.NavigationComponents do
   attr :menu_style, :string, default: "basic", doc: "basic | legacy"
 
   slot :title, required: true
+  slot :action
   slot :inner_block
 
   slot :breadcrumb do
@@ -75,6 +76,7 @@ defmodule LantternWeb.NavigationComponents do
             <% end %>
           <% end %>
           <h1 class="font-display font-black text-lg truncate">{render_slot(@title)}</h1>
+          {render_slot(@action)}
         </div>
         <.nav_menu_button :if={@menu_style == "legacy"} />
         <button

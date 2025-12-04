@@ -72,7 +72,7 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
               id={"#{dom_id}-strand-rubrics"}
               data-sortable-handle=".sortable-handle"
               data-group-name="goal"
-              data-group-id={goal.id}
+              data-goal-id={goal.id}
             >
               <.rubric
                 :for={rubric <- rubrics}
@@ -145,7 +145,7 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
                 id={"#{dom_id}-strand-rubrics"}
                 data-sortable-handle=".sortable-handle"
                 data-group-name="goal-diff"
-                data-group-id={goal.id}
+                data-goal-id={goal.id}
               >
                 <.rubric
                   :for={rubric <- rubrics}
@@ -493,14 +493,16 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
 
   @impl true
   # view Sortable hook for payload info
-  def handle_event("sortable_update", payload, socket) do
-    %{
-      "groupName" => group,
-      "groupId" => goal_id,
-      "oldIndex" => old_index,
-      "newIndex" => new_index
-    } = payload
-
+  def handle_event(
+        "sortable_update",
+        %{
+          "from" => %{"groupName" => group, "goalId" => goal_id},
+          "oldIndex" => old_index,
+          "newIndex" => new_index
+        } = _payload,
+        socket
+      )
+      when old_index != new_index do
     goals_rubrics_order_map =
       case group do
         "goal" -> socket.assigns.goals_rubrics_order_map
@@ -530,6 +532,9 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
 
     {:noreply, assign(socket, goals_rubrics_order_map_assign, goals_rubrics_order_map)}
   end
+
+  def handle_event("sortable_update", _payload, socket),
+    do: {:noreply, socket}
 
   def handle_event("delete_rubric", _, socket) do
     case Rubrics.delete_rubric(socket.assigns.rubric) do

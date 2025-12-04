@@ -131,7 +131,7 @@ defmodule LantternWeb.MomentLiveTest do
       |> element("button#remove-moment-#{moment.id}")
       |> render_click()
 
-      assert_redirect(view, "/strands/#{moment.strand_id}/moments")
+      assert_redirect(view, "/strands/#{moment.strand_id}")
     end
   end
 end

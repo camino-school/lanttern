@@ -49,7 +49,7 @@ defmodule LantternWeb.MessageBoard.ReorderComponent do
           data-sortable-handle=".sortable-handle"
           phx-update="ignore"
         >
-          <.dragable_card
+          <.draggable_card
             :for={section <- @sections}
             id={"sortable-#{section.id}"}
             class="w-full bg-white rounded-lg shadow-lg my-4 border-l-12 gap-2"
@@ -58,7 +58,7 @@ defmodule LantternWeb.MessageBoard.ReorderComponent do
             <h3 class="font-display font-black text-lg truncate" title={section.name}>
               {section.name}
             </h3>
-          </.dragable_card>
+          </.draggable_card>
         </div>
       <% end %>
     </div>
