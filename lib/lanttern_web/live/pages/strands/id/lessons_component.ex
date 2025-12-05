@@ -205,6 +205,7 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
           id={:new}
           lesson={@lesson}
           moments={@moments}
+          subjects={@strand.subjects}
           strand_id={@strand.id}
           action={:new}
           navigate={fn _lesson -> ~p"/strands/#{@strand}" end}
@@ -240,7 +241,18 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
             {gettext("Edit")}
           </.action>
         </div>
+        <.lesson_subjects subjects={@lesson.subjects} />
       </.card_base>
+    </div>
+    """
+  end
+
+  defp lesson_subjects(%{subjects: []} = assigns), do: ~H""
+
+  defp lesson_subjects(assigns) do
+    ~H"""
+    <div class="mt-2 text-xs">
+      {@subjects |> Enum.map(& &1.name) |> Enum.join(", ")}
     </div>
     """
   end
@@ -294,7 +306,7 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
 
   defp stream_lessons(socket) do
     lessons =
-      Lessons.list_lessons(strand_id: socket.assigns.strand.id, preloads: :moment)
+      Lessons.list_lessons(strand_id: socket.assigns.strand.id, preloads: [:subjects])
 
     # group and stream lessons by moment
     moments_lessons_map = Enum.group_by(lessons, &Map.get(&1, :moment_id))
@@ -378,7 +390,7 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
   defp assign_moment(socket), do: assign(socket, :moment, nil)
 
   defp assign_lesson(%{assigns: %{params: %{"lesson" => "new"}}} = socket) do
-    lesson = %Lesson{strand_id: socket.assigns.strand.id}
+    lesson = %Lesson{strand_id: socket.assigns.strand.id, subjects: []}
 
     socket
     |> assign(:lesson, lesson)
@@ -387,7 +399,7 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
 
   defp assign_lesson(%{assigns: %{params: %{"lesson" => lesson_id}}} = socket) do
     if lesson_id in socket.assigns.lessons_ids do
-      lesson = Lessons.get_lesson(lesson_id)
+      lesson = Lessons.get_lesson(lesson_id, preloads: :subjects)
 
       socket
       |> assign(:lesson, lesson)

@@ -21,7 +21,6 @@ defmodule LantternWeb.Lessons.LessonFormComponent do
           class="mb-6"
           phx-debounce="1500"
         />
-
         <div class="mb-6">
           <.label>{gettext("Moment (optional)")}</.label>
           <p class="text-sm text-ltrn-subtle mb-2">
@@ -33,6 +32,17 @@ defmodule LantternWeb.Lessons.LessonFormComponent do
             items={@moments}
             selected_ids={if @selected_moment_id, do: [@selected_moment_id], else: []}
             on_select={&JS.push("select_moment", value: %{moment_id: &1}, target: @myself)}
+          />
+        </div>
+        <div class="mb-6">
+          <.label>{gettext("Subjects (optional)")}</.label>
+          <p class="text-sm text-ltrn-subtle mb-2">
+            {gettext("Select subjects for this lesson from the strand's subjects")}
+          </p>
+          <.badge_button_picker
+            items={@subjects}
+            selected_ids={@selected_subjects_ids}
+            on_select={&JS.push("toggle_subject", value: %{subject_id: &1}, target: @myself)}
           />
         </div>
         <.error_block
@@ -84,10 +94,17 @@ defmodule LantternWeb.Lessons.LessonFormComponent do
 
   @impl true
   def update(%{lesson: lesson} = assigns, socket) do
+    selected_subjects_ids =
+      case lesson.subjects do
+        %Ecto.Association.NotLoaded{} -> []
+        subjects -> Enum.map(subjects, & &1.id)
+      end
+
     socket =
       socket
       |> assign(assigns)
       |> assign(:selected_moment_id, lesson.moment_id)
+      |> assign(:selected_subjects_ids, selected_subjects_ids)
       |> assign_form(Lessons.change_lesson(lesson))
 
     {:ok, socket}
@@ -113,6 +130,15 @@ defmodule LantternWeb.Lessons.LessonFormComponent do
     {:noreply, assign(socket, :selected_moment_id, selected_moment_id)}
   end
 
+  def handle_event("toggle_subject", %{"subject_id" => subject_id}, socket) do
+    selected_subjects_ids =
+      if subject_id in socket.assigns.selected_subjects_ids,
+        do: List.delete(socket.assigns.selected_subjects_ids, subject_id),
+        else: [subject_id | socket.assigns.selected_subjects_ids]
+
+    {:noreply, assign(socket, :selected_subjects_ids, selected_subjects_ids)}
+  end
+
   def handle_event("delete", _params, socket) do
     socket =
       case Lessons.delete_lesson(socket.assigns.lesson) do
@@ -133,8 +159,11 @@ defmodule LantternWeb.Lessons.LessonFormComponent do
     do: {:noreply, assign(socket, :has_delete_error, false)}
 
   def handle_event("save", %{"lesson" => lesson_params}, socket) do
-    # Add selected moment_id to params
-    lesson_params = Map.put(lesson_params, "moment_id", socket.assigns.selected_moment_id)
+    # Add selected moment_id and subjects_ids to params
+    lesson_params =
+      lesson_params
+      |> Map.put("moment_id", socket.assigns.selected_moment_id)
+      |> Map.put("subjects_ids", socket.assigns.selected_subjects_ids)
 
     save_lesson(socket, socket.assigns.lesson.id, lesson_params)
   end
