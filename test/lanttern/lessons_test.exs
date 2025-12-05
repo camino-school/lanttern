@@ -47,6 +47,42 @@ defmodule Lanttern.LessonsTest do
       assert expected.id == lesson.id
     end
 
+    test "get_lesson/2 with preloads option returns lesson with preloaded subjects" do
+      subject_a = insert(:subject)
+      subject_b = insert(:subject)
+      lesson = insert(:lesson, subjects: [subject_a, subject_b])
+
+      result = Lessons.get_lesson(lesson.id, preloads: :subjects)
+
+      assert result.id == lesson.id
+      assert length(result.subjects) == 2
+      subject_ids = Enum.map(result.subjects, & &1.id)
+      assert subject_a.id in subject_ids
+      assert subject_b.id in subject_ids
+    end
+
+    test "get_lesson/2 returns nil when lesson does not exist" do
+      assert Lessons.get_lesson(0) == nil
+    end
+
+    test "get_lesson!/2 with preloads option returns lesson with preloaded subjects" do
+      subject_a = insert(:subject)
+      subject_b = insert(:subject)
+      lesson = insert(:lesson, subjects: [subject_a, subject_b])
+
+      result = Lessons.get_lesson!(lesson.id, preloads: :subjects)
+
+      assert result.id == lesson.id
+      assert length(result.subjects) == 2
+      subject_ids = Enum.map(result.subjects, & &1.id)
+      assert subject_a.id in subject_ids
+      assert subject_b.id in subject_ids
+    end
+
+    test "get_lesson!/2 raises when lesson does not exist" do
+      assert_raise Ecto.NoResultsError, fn -> Lessons.get_lesson!(0) end
+    end
+
     test "create_lesson/1 with valid data creates a lesson" do
       strand = insert(:strand)
       valid_attrs = %{name: "some name", description: "some description", strand_id: strand.id}

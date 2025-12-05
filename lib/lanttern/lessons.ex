@@ -51,6 +51,10 @@ defmodule Lanttern.Lessons do
 
   Returns `nil` if the Lesson does not exist.
 
+  ## Options
+
+  - `:preloads` – preloads associated data
+
   ## Examples
 
       iex> get_lesson(123)
@@ -60,12 +64,20 @@ defmodule Lanttern.Lessons do
       nil
 
   """
-  def get_lesson(id), do: Repo.get(Lesson, id)
+  def get_lesson(id, opts \\ []) do
+    Lesson
+    |> Repo.get(id)
+    |> maybe_preload(opts)
+  end
 
   @doc """
   Gets a single lesson.
 
-  Same as `get_lesson/1`, but raises `Ecto.NoResultsError` if the Lesson does not exist.
+  Same as `get_lesson/2`, but raises `Ecto.NoResultsError` if the Lesson does not exist.
+
+  ## Options
+
+  - `:preloads` – preloads associated data
 
   ## Examples
 
@@ -76,7 +88,11 @@ defmodule Lanttern.Lessons do
       ** (Ecto.NoResultsError)
 
   """
-  def get_lesson!(id), do: Repo.get!(Lesson, id)
+  def get_lesson!(id, opts \\ []) do
+    Lesson
+    |> Repo.get!(id)
+    |> maybe_preload(opts)
+  end
 
   @doc """
   Creates a lesson.
