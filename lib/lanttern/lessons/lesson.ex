@@ -5,9 +5,11 @@ defmodule Lanttern.Lessons.Lesson do
 
   use Ecto.Schema
   import Ecto.Changeset
+  import Lanttern.SchemaHelpers, only: [put_subjects: 1]
 
   alias Lanttern.LearningContext.Moment
   alias Lanttern.LearningContext.Strand
+  alias Lanttern.Taxonomy.Subject
 
   @type t :: %__MODULE__{
           id: pos_integer(),
@@ -18,6 +20,7 @@ defmodule Lanttern.Lessons.Lesson do
           strand_id: pos_integer(),
           moment: Moment.t() | Ecto.Association.NotLoaded.t(),
           moment_id: pos_integer() | nil,
+          subjects: [Subject.t()] | Ecto.Association.NotLoaded.t(),
           inserted_at: NaiveDateTime.t(),
           updated_at: NaiveDateTime.t()
         }
@@ -27,8 +30,12 @@ defmodule Lanttern.Lessons.Lesson do
     field :description, :string
     field :position, :integer, default: 0
 
+    field :subjects_ids, {:array, :id}, virtual: true
+
     belongs_to :strand, Strand
     belongs_to :moment, Moment
+
+    many_to_many :subjects, Subject, join_through: "lessons_subjects", on_replace: :delete
 
     timestamps()
   end
@@ -36,7 +43,8 @@ defmodule Lanttern.Lessons.Lesson do
   @doc false
   def changeset(lesson, attrs) do
     lesson
-    |> cast(attrs, [:name, :description, :position, :strand_id, :moment_id])
+    |> cast(attrs, [:name, :description, :position, :strand_id, :moment_id, :subjects_ids])
     |> validate_required([:name, :position, :strand_id])
+    |> put_subjects()
   end
 end

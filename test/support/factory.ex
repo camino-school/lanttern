@@ -25,5 +25,6 @@ defmodule Lanttern.Factory do
   use Lanttern.StudentRecordFactory
   use Lanttern.StudentRecordRelationshipFactory
   use Lanttern.StudentRecordStatusFactory
+  use Lanttern.SubjectFactory
   use Lanttern.UserFactory
 end
