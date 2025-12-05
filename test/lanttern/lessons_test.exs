@@ -3,6 +3,8 @@ defmodule Lanttern.LessonsTest do
 
   import Lanttern.Factory
 
+  alias Lanttern.Repo
+
   alias Lanttern.Lessons
 
   describe "lessons" do
@@ -208,6 +210,69 @@ defmodule Lanttern.LessonsTest do
                })
 
       assert lesson.position == 99
+    end
+
+    test "create_lesson/1 with subjects_ids creates lesson with subjects" do
+      strand = insert(:strand)
+      subject_a = insert(:subject)
+      subject_b = insert(:subject)
+
+      assert {:ok, %Lesson{} = lesson} =
+               Lessons.create_lesson(%{
+                 name: "Lesson with subjects",
+                 strand_id: strand.id,
+                 subjects_ids: [subject_a.id, subject_b.id]
+               })
+
+      lesson = Repo.preload(lesson, :subjects)
+      assert length(lesson.subjects) == 2
+      subject_ids = Enum.map(lesson.subjects, & &1.id)
+      assert subject_a.id in subject_ids
+      assert subject_b.id in subject_ids
+    end
+
+    test "update_lesson/2 with subjects_ids updates lesson subjects" do
+      lesson = insert(:lesson) |> Repo.preload(:subjects)
+      subject_a = insert(:subject)
+      subject_b = insert(:subject)
+      subject_c = insert(:subject)
+
+      # Add initial subjects
+      assert {:ok, lesson} =
+               Lessons.update_lesson(lesson, %{subjects_ids: [subject_a.id, subject_b.id]})
+
+      lesson = Repo.preload(lesson, :subjects, force: true)
+      assert length(lesson.subjects) == 2
+
+      # Update subjects (replace with different set)
+      assert {:ok, lesson} =
+               Lessons.update_lesson(lesson, %{subjects_ids: [subject_b.id, subject_c.id]})
+
+      lesson = Repo.preload(lesson, :subjects, force: true)
+      assert length(lesson.subjects) == 2
+      subject_ids = Enum.map(lesson.subjects, & &1.id)
+      assert subject_b.id in subject_ids
+      assert subject_c.id in subject_ids
+      refute subject_a.id in subject_ids
+    end
+
+    test "update_lesson/2 with empty subjects_ids removes all subjects" do
+      lesson = insert(:lesson) |> Repo.preload(:subjects)
+      subject_a = insert(:subject)
+      subject_b = insert(:subject)
+
+      # Add subjects
+      assert {:ok, lesson} =
+               Lessons.update_lesson(lesson, %{subjects_ids: [subject_a.id, subject_b.id]})
+
+      lesson = Repo.preload(lesson, :subjects, force: true)
+      assert length(lesson.subjects) == 2
+
+      # Remove all subjects
+      assert {:ok, lesson} = Lessons.update_lesson(lesson, %{subjects_ids: []})
+
+      lesson = Repo.preload(lesson, :subjects, force: true)
+      assert lesson.subjects == []
     end
   end
 end
