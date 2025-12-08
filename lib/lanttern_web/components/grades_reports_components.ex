@@ -63,8 +63,8 @@ defmodule LantternWeb.GradesReportsComponents do
       |> assign(:has_cycles, length(grades_report_cycles) > 0)
 
     ~H"""
-    <div class={["relative p-4 overflow-x-auto", @class]}>
-      <div id={@id} class="grid gap-1 text-sm" style={@grid_template_columns_style}>
+    <div class={["relative p-4 overflow-x-auto", @class]} id={@id}>
+      <div class="grid gap-1 text-sm" style={@grid_template_columns_style}>
         <%= if @on_configure do %>
           <.button
             type="button"
@@ -222,7 +222,7 @@ defmodule LantternWeb.GradesReportsComponents do
         module={StudentGradesReportEntryButtonComponent}
         id={"student-grades-report-entry-#{@student_grades_report_entry.id}"}
         student_grades_report_entry={@student_grades_report_entry}
-        class="flex-[2]"
+        class="flex-2"
         on_click={
           if(@on_student_grade_click, do: @on_student_grade_click.(@student_grades_report_entry.id))
         }
@@ -259,7 +259,7 @@ defmodule LantternWeb.GradesReportsComponents do
         phx-value-studentgradereportid={@student_grades_report_entry.id}
         phx-value-gradesreportsubjectid={@student_grades_report_entry.grades_report_subject_id}
         phx-value-gradesreportcycleid={@student_grades_report_entry.grades_report_cycle_id}
-        class="flex-[2] rounded-sm border border-ltrn-lighter text-base bg-ltrn-lightest"
+        class="flex-2 rounded-sm border border-ltrn-lighter text-base bg-ltrn-lightest"
       >
         {@student_grades_report_entry.score}
       </button>
@@ -322,7 +322,7 @@ defmodule LantternWeb.GradesReportsComponents do
         module={StudentGradesReportEntryButtonComponent}
         id={"student-grades-report-final-entry-#{@student_grades_report_final_entry.id}"}
         student_grades_report_entry={@student_grades_report_final_entry}
-        class="flex-[2]"
+        class="flex-2"
         on_click={
           if(@on_click,
             do: @on_click.(@student_grades_report_final_entry.id)
@@ -1022,7 +1022,7 @@ defmodule LantternWeb.GradesReportsComponents do
       module={StudentGradesReportEntryButtonComponent}
       id={@id}
       student_grades_report_entry={@entry}
-      class="flex-[2] self-stretch"
+      class="flex-2 self-stretch"
       on_click={if(@on_entry_click, do: @on_entry_click.(@entry.id))}
     />
     """
@@ -1091,7 +1091,7 @@ defmodule LantternWeb.GradesReportsComponents do
             </td>
             <td colspan="2" class="p-2 text-right">
               {:erlang.float_to_binary(
-                @student_grades_report_entry.composition_normalized_value,
+                Float.floor(@student_grades_report_entry.composition_normalized_value, 2),
                 decimals: 2
               )}
             </td>
@@ -1158,7 +1158,7 @@ defmodule LantternWeb.GradesReportsComponents do
             </td>
             <td class="p-2 text-right">
               {:erlang.float_to_binary(
-                @student_grades_report_final_entry.composition_normalized_value,
+                Float.floor(@student_grades_report_final_entry.composition_normalized_value, 2),
                 decimals: 2
               )}
             </td>

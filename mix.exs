@@ -4,7 +4,7 @@ defmodule Lanttern.MixProject do
   def project do
     [
       app: :lanttern,
-      version: "2025.10.3-alpha.75",
+      version: "2025.12.5-alpha.76",
       elixir: "~> 1.18",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
