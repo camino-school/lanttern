@@ -116,8 +116,8 @@ defmodule Lanttern.LessonsTest do
       result = Lessons.get_lesson(lesson.id, preloads: :subjects)
 
       assert result.id == lesson.id
-      assert length(result.subjects) == 2
-      subject_ids = Enum.map(result.subjects, & &1.id)
+      assert [subj1, subj2] = result.subjects
+      subject_ids = [subj1.id, subj2.id]
       assert subject_a.id in subject_ids
       assert subject_b.id in subject_ids
     end
@@ -134,8 +134,8 @@ defmodule Lanttern.LessonsTest do
       result = Lessons.get_lesson!(lesson.id, preloads: :subjects)
 
       assert result.id == lesson.id
-      assert length(result.subjects) == 2
-      subject_ids = Enum.map(result.subjects, & &1.id)
+      assert [subj1, subj2] = result.subjects
+      subject_ids = [subj1.id, subj2.id]
       assert subject_a.id in subject_ids
       assert subject_b.id in subject_ids
     end
@@ -322,8 +322,8 @@ defmodule Lanttern.LessonsTest do
                })
 
       lesson = Repo.preload(lesson, :subjects)
-      assert length(lesson.subjects) == 2
-      subject_ids = Enum.map(lesson.subjects, & &1.id)
+      assert [subj1, subj2] = lesson.subjects
+      subject_ids = [subj1.id, subj2.id]
       assert subject_a.id in subject_ids
       assert subject_b.id in subject_ids
     end
@@ -339,15 +339,15 @@ defmodule Lanttern.LessonsTest do
                Lessons.update_lesson(lesson, %{subjects_ids: [subject_a.id, subject_b.id]})
 
       lesson = Repo.preload(lesson, :subjects, force: true)
-      assert length(lesson.subjects) == 2
+      assert [_, _] = lesson.subjects
 
       # Update subjects (replace with different set)
       assert {:ok, lesson} =
                Lessons.update_lesson(lesson, %{subjects_ids: [subject_b.id, subject_c.id]})
 
       lesson = Repo.preload(lesson, :subjects, force: true)
-      assert length(lesson.subjects) == 2
-      subject_ids = Enum.map(lesson.subjects, & &1.id)
+      assert [subj1, subj2] = lesson.subjects
+      subject_ids = [subj1.id, subj2.id]
       assert subject_b.id in subject_ids
       assert subject_c.id in subject_ids
       refute subject_a.id in subject_ids
@@ -363,7 +363,7 @@ defmodule Lanttern.LessonsTest do
                Lessons.update_lesson(lesson, %{subjects_ids: [subject_a.id, subject_b.id]})
 
       lesson = Repo.preload(lesson, :subjects, force: true)
-      assert length(lesson.subjects) == 2
+      assert [_, _] = lesson.subjects
 
       # Remove all subjects
       assert {:ok, lesson} = Lessons.update_lesson(lesson, %{subjects_ids: []})
