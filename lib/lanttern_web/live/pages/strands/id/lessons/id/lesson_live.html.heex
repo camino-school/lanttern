@@ -1,0 +1,59 @@
+<Layouts.app_logged_in flash={@flash} current_user={@current_user} current_path={@current_path}>
+  <div>
+    <.header_nav current_user={@current_user}>
+      <:breadcrumb navigate={~p"/strands"}>{gettext("Strands")}</:breadcrumb>
+      <:breadcrumb is_info>
+        <.mini_strand_card strand={@strand} class="w-60" />
+      </:breadcrumb>
+      <:breadcrumb navigate={~p"/strands/#{@strand}"} title={@strand.name}>
+        {@strand.name}
+      </:breadcrumb>
+      <:title>{gettext("Lesson")}</:title>
+    </.header_nav>
+    <div class="p-4">
+      <.responsive_container class="pt-10">
+        <h1 class="font-display font-black text-2xl">{@lesson.name}</h1>
+        <div
+          :if={@lesson.moment || @lesson.subjects != []}
+          class="flex items-center gap-4 mt-2 text-ltrn-subtle"
+        >
+          <p :if={@lesson.moment} class="text-lg font-bold">
+            {@lesson.moment.name}
+          </p>
+          <p :if={@lesson.subjects != []}>
+            {@lesson.subjects
+            |> Enum.map(&Gettext.dgettext(Lanttern.Gettext, "taxonomy", &1.name))
+            |> Enum.join(", ")}
+          </p>
+        </div>
+        <div class="mt-10">
+          <%= if @lesson.description do %>
+            <.markdown text={@lesson.description} />
+          <% else %>
+            <.empty_state_simple>No description yet</.empty_state_simple>
+          <% end %>
+        </div>
+        <div class="p-4 rounded-xs mt-10 bg-ltrn-staff-lightest">
+          <p class="mb-4 font-bold text-ltrn-staff-dark">
+            {gettext("Teacher notes (never shared with students/guardians)")}
+          </p>
+          <%= if @lesson.teacher_notes do %>
+            <.markdown text={@lesson.teacher_notes} />
+          <% else %>
+            <.empty_state_simple>No teacher notes yet</.empty_state_simple>
+          <% end %>
+        </div>
+        <div class="p-4 rounded-xs mt-10 bg-ltrn-diff-lightest">
+          <p class="mb-4 font-bold text-ltrn-diff-dark">
+            {gettext("Differentiation notes (never shared with students/guardians)")}
+          </p>
+          <%= if @lesson.differentiation_notes do %>
+            <.markdown text={@lesson.differentiation_notes} />
+          <% else %>
+            <.empty_state_simple>No differentiation notes yet</.empty_state_simple>
+          <% end %>
+        </div>
+      </.responsive_container>
+    </div>
+  </div>
+</Layouts.app_logged_in>

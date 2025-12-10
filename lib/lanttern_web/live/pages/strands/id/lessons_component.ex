@@ -275,7 +275,14 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
       </div>
       <.card_base class="flex-1 p-4">
         <div class="flex items-center gap-4">
-          <h4 class="font-display font-bold text-base">{@lesson.name}</h4>
+          <h4 class="font-display font-bold text-base">
+            <.link
+              navigate={~p"/strands/lesson/#{@lesson.id}"}
+              class="hover:text-ltrn-subtle"
+            >
+              {@lesson.name}
+            </.link>
+          </h4>
           <.action
             type="button"
             phx-click={@on_edit}
