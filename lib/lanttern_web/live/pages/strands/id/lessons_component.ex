@@ -239,7 +239,7 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
         <:title>{@lesson_overlay_title}</:title>
         <.live_component
           module={LessonFormComponent}
-          id={:new}
+          id="lesson-form"
           lesson={@lesson}
           moments={@moments}
           subjects={@strand.subjects}
