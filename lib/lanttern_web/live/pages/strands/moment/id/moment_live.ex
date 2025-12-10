@@ -117,7 +117,8 @@ defmodule LantternWeb.MomentLive do
   # info handlers
 
   @impl true
-  def handle_info({MomentFormComponent, {:saved, moment}}, socket) do
+  def handle_info({MomentFormComponent, {action, moment}}, socket)
+      when action in [:created, :updated] do
     {:noreply, assign(socket, :moment, moment)}
   end
 end

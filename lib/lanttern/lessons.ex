@@ -15,6 +15,7 @@ defmodule Lanttern.Lessons do
   ## Options
 
   - `:strand_id` – filter lessons by strand
+  - `:subjects_ids` – filter lessons by subjects
   - `:preloads` – preloads associated data
 
   ## Examples
@@ -26,7 +27,8 @@ defmodule Lanttern.Lessons do
   def list_lessons(opts \\ []) do
     from(
       l in Lesson,
-      order_by: l.position
+      order_by: l.position,
+      distinct: true
     )
     |> apply_list_lessons_opts(opts)
     |> Repo.all()
@@ -39,6 +41,17 @@ defmodule Lanttern.Lessons do
     from(
       l in queryable,
       where: l.strand_id == ^strand_id
+    )
+    |> apply_list_lessons_opts(opts)
+  end
+
+  defp apply_list_lessons_opts(queryable, [{:subjects_ids, subjects_ids} | opts])
+       when is_list(subjects_ids) and subjects_ids != [] do
+    from(
+      l in queryable,
+      join: ls in "lessons_subjects",
+      on: ls.lesson_id == l.id,
+      where: ls.subject_id in ^subjects_ids
     )
     |> apply_list_lessons_opts(opts)
   end

@@ -49,7 +49,8 @@ defmodule LantternWeb.Admin.MomentLive.Index do
   end
 
   @impl true
-  def handle_info({LantternWeb.LearningContext.MomentFormComponent, {:saved, moment}}, socket) do
+  def handle_info({LantternWeb.LearningContext.MomentFormComponent, {action, moment}}, socket)
+      when action in [:created, :updated] do
     {:noreply, stream_insert(socket, :moments, moment)}
   end
 
