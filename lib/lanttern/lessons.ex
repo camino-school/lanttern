@@ -15,6 +15,7 @@ defmodule Lanttern.Lessons do
   ## Options
 
   - `:strand_id` – filter lessons by strand
+  - `:subjects_ids` – filter lessons by subjects
   - `:preloads` – preloads associated data
 
   ## Examples
@@ -26,7 +27,8 @@ defmodule Lanttern.Lessons do
   def list_lessons(opts \\ []) do
     from(
       l in Lesson,
-      order_by: l.position
+      order_by: l.position,
+      distinct: true
     )
     |> apply_list_lessons_opts(opts)
     |> Repo.all()
@@ -43,6 +45,17 @@ defmodule Lanttern.Lessons do
     |> apply_list_lessons_opts(opts)
   end
 
+  defp apply_list_lessons_opts(queryable, [{:subjects_ids, subjects_ids} | opts])
+       when is_list(subjects_ids) and subjects_ids != [] do
+    from(
+      l in queryable,
+      join: ls in "lessons_subjects",
+      on: ls.lesson_id == l.id,
+      where: ls.subject_id in ^subjects_ids
+    )
+    |> apply_list_lessons_opts(opts)
+  end
+
   defp apply_list_lessons_opts(queryable, [_ | opts]),
     do: apply_list_lessons_opts(queryable, opts)
 
@@ -50,6 +63,10 @@ defmodule Lanttern.Lessons do
   Gets a single lesson.
 
   Returns `nil` if the Lesson does not exist.
+
+  ## Options
+
+  - `:preloads` – preloads associated data
 
   ## Examples
 
@@ -60,12 +77,20 @@ defmodule Lanttern.Lessons do
       nil
 
   """
-  def get_lesson(id), do: Repo.get(Lesson, id)
+  def get_lesson(id, opts \\ []) do
+    Lesson
+    |> Repo.get(id)
+    |> maybe_preload(opts)
+  end
 
   @doc """
   Gets a single lesson.
 
-  Same as `get_lesson/1`, but raises `Ecto.NoResultsError` if the Lesson does not exist.
+  Same as `get_lesson/2`, but raises `Ecto.NoResultsError` if the Lesson does not exist.
+
+  ## Options
+
+  - `:preloads` – preloads associated data
 
   ## Examples
 
@@ -76,7 +101,11 @@ defmodule Lanttern.Lessons do
       ** (Ecto.NoResultsError)
 
   """
-  def get_lesson!(id), do: Repo.get!(Lesson, id)
+  def get_lesson!(id, opts \\ []) do
+    Lesson
+    |> Repo.get!(id)
+    |> maybe_preload(opts)
+  end
 
   @doc """
   Creates a lesson.

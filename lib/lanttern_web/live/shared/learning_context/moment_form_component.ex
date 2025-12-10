@@ -17,7 +17,7 @@ defmodule LantternWeb.LearningContext.MomentFormComponent do
   def render(assigns) do
     ~H"""
     <div class={@class}>
-      <.form for={@form} id="moment-form" phx-target={@myself} phx-change="validate" phx-submit="save">
+      <.form for={@form} id={@id} phx-target={@myself} phx-change="validate" phx-submit="save">
         <%= if @is_admin do %>
           <.input
             field={@form[:strand_id]}
@@ -140,7 +140,7 @@ defmodule LantternWeb.LearningContext.MomentFormComponent do
            preloads: socket.assigns.save_preloads
          ) do
       {:ok, moment} ->
-        notify_parent(__MODULE__, {:saved, moment}, socket.assigns)
+        notify(__MODULE__, {:created, moment}, socket.assigns)
 
         {:noreply,
          socket
@@ -157,7 +157,7 @@ defmodule LantternWeb.LearningContext.MomentFormComponent do
            preloads: socket.assigns.save_preloads
          ) do
       {:ok, moment} ->
-        notify_parent(__MODULE__, {:saved, moment}, socket.assigns)
+        notify(__MODULE__, {:updated, moment}, socket.assigns)
 
         {:noreply,
          socket

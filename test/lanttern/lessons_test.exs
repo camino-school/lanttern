@@ -3,6 +3,8 @@ defmodule Lanttern.LessonsTest do
 
   import Lanttern.Factory
 
+  alias Lanttern.Repo
+
   alias Lanttern.Lessons
 
   describe "lessons" do
@@ -39,10 +41,107 @@ defmodule Lanttern.LessonsTest do
       assert lesson.strand_id == strand_b.id
     end
 
+    test "list_lessons/1 with subjects_ids option filters lessons by subjects" do
+      subject_a = insert(:subject)
+      subject_b = insert(:subject)
+      subject_c = insert(:subject)
+
+      lesson_1 = insert(:lesson, subjects: [subject_a], name: "Lesson 1")
+      lesson_2 = insert(:lesson, subjects: [subject_a, subject_b], name: "Lesson 2")
+      lesson_3 = insert(:lesson, subjects: [subject_b, subject_c], name: "Lesson 3")
+      lesson_4 = insert(:lesson, subjects: [subject_c], name: "Lesson 4")
+
+      # Filter by subject A - should return lessons 1 and 2
+      assert [result_1, result_2] = Lessons.list_lessons(subjects_ids: [subject_a.id])
+      assert result_1.id == lesson_1.id
+      assert result_2.id == lesson_2.id
+
+      # Filter by subject B - should return lessons 2 and 3
+      assert [result_1, result_2] = Lessons.list_lessons(subjects_ids: [subject_b.id])
+      assert result_1.id == lesson_2.id
+      assert result_2.id == lesson_3.id
+
+      # Filter by subjects A and C - should return lessons 1, 2, 3, and 4
+      assert [result_1, result_2, result_3, result_4] =
+               Lessons.list_lessons(subjects_ids: [subject_a.id, subject_c.id])
+
+      assert result_1.id == lesson_1.id
+      assert result_2.id == lesson_2.id
+      assert result_3.id == lesson_3.id
+      assert result_4.id == lesson_4.id
+    end
+
+    test "list_lessons/1 with empty subjects_ids ignores filter" do
+      lesson_1 = insert(:lesson, subjects: [insert(:subject)])
+      lesson_2 = insert(:lesson, subjects: [insert(:subject)])
+
+      assert [result_1, result_2] = Lessons.list_lessons(subjects_ids: [])
+      assert result_1.id == lesson_1.id
+      assert result_2.id == lesson_2.id
+    end
+
+    test "list_lessons/1 with strand_id and subjects_ids filters by both" do
+      strand_a = insert(:strand)
+      strand_b = insert(:strand)
+      subject_a = insert(:subject)
+      subject_b = insert(:subject)
+
+      lesson_a_1 = insert(:lesson, strand: strand_a, subjects: [subject_a])
+      lesson_a_2 = insert(:lesson, strand: strand_a, subjects: [subject_b])
+      _lesson_b_1 = insert(:lesson, strand: strand_b, subjects: [subject_a])
+      _lesson_b_2 = insert(:lesson, strand: strand_b, subjects: [subject_b])
+
+      # Filter by strand A and subject A - should return only lesson_a_1
+      lessons = Lessons.list_lessons(strand_id: strand_a.id, subjects_ids: [subject_a.id])
+      assert [lesson] = lessons
+      assert lesson.id == lesson_a_1.id
+
+      # Filter by strand A and subject B - should return only lesson_a_2
+      lessons = Lessons.list_lessons(strand_id: strand_a.id, subjects_ids: [subject_b.id])
+      assert [lesson] = lessons
+      assert lesson.id == lesson_a_2.id
+    end
+
     test "get_lesson!/1 returns the lesson with given id" do
       lesson = insert(:lesson)
       expected = Lessons.get_lesson!(lesson.id)
       assert expected.id == lesson.id
+    end
+
+    test "get_lesson/2 with preloads option returns lesson with preloaded subjects" do
+      subject_a = insert(:subject)
+      subject_b = insert(:subject)
+      lesson = insert(:lesson, subjects: [subject_a, subject_b])
+
+      result = Lessons.get_lesson(lesson.id, preloads: :subjects)
+
+      assert result.id == lesson.id
+      assert [subj1, subj2] = result.subjects
+      subject_ids = [subj1.id, subj2.id]
+      assert subject_a.id in subject_ids
+      assert subject_b.id in subject_ids
+    end
+
+    test "get_lesson/2 returns nil when lesson does not exist" do
+      assert Lessons.get_lesson(0) == nil
+    end
+
+    test "get_lesson!/2 with preloads option returns lesson with preloaded subjects" do
+      subject_a = insert(:subject)
+      subject_b = insert(:subject)
+      lesson = insert(:lesson, subjects: [subject_a, subject_b])
+
+      result = Lessons.get_lesson!(lesson.id, preloads: :subjects)
+
+      assert result.id == lesson.id
+      assert [subj1, subj2] = result.subjects
+      subject_ids = [subj1.id, subj2.id]
+      assert subject_a.id in subject_ids
+      assert subject_b.id in subject_ids
+    end
+
+    test "get_lesson!/2 raises when lesson does not exist" do
+      assert_raise Ecto.NoResultsError, fn -> Lessons.get_lesson!(0) end
     end
 
     test "create_lesson/1 with valid data creates a lesson" do
@@ -208,6 +307,69 @@ defmodule Lanttern.LessonsTest do
                })
 
       assert lesson.position == 99
+    end
+
+    test "create_lesson/1 with subjects_ids creates lesson with subjects" do
+      strand = insert(:strand)
+      subject_a = insert(:subject)
+      subject_b = insert(:subject)
+
+      assert {:ok, %Lesson{} = lesson} =
+               Lessons.create_lesson(%{
+                 name: "Lesson with subjects",
+                 strand_id: strand.id,
+                 subjects_ids: [subject_a.id, subject_b.id]
+               })
+
+      lesson = Repo.preload(lesson, :subjects)
+      assert [subj1, subj2] = lesson.subjects
+      subject_ids = [subj1.id, subj2.id]
+      assert subject_a.id in subject_ids
+      assert subject_b.id in subject_ids
+    end
+
+    test "update_lesson/2 with subjects_ids updates lesson subjects" do
+      lesson = insert(:lesson) |> Repo.preload(:subjects)
+      subject_a = insert(:subject)
+      subject_b = insert(:subject)
+      subject_c = insert(:subject)
+
+      # Add initial subjects
+      assert {:ok, lesson} =
+               Lessons.update_lesson(lesson, %{subjects_ids: [subject_a.id, subject_b.id]})
+
+      lesson = Repo.preload(lesson, :subjects, force: true)
+      assert [_, _] = lesson.subjects
+
+      # Update subjects (replace with different set)
+      assert {:ok, lesson} =
+               Lessons.update_lesson(lesson, %{subjects_ids: [subject_b.id, subject_c.id]})
+
+      lesson = Repo.preload(lesson, :subjects, force: true)
+      assert [subj1, subj2] = lesson.subjects
+      subject_ids = [subj1.id, subj2.id]
+      assert subject_b.id in subject_ids
+      assert subject_c.id in subject_ids
+      refute subject_a.id in subject_ids
+    end
+
+    test "update_lesson/2 with empty subjects_ids removes all subjects" do
+      lesson = insert(:lesson) |> Repo.preload(:subjects)
+      subject_a = insert(:subject)
+      subject_b = insert(:subject)
+
+      # Add subjects
+      assert {:ok, lesson} =
+               Lessons.update_lesson(lesson, %{subjects_ids: [subject_a.id, subject_b.id]})
+
+      lesson = Repo.preload(lesson, :subjects, force: true)
+      assert [_, _] = lesson.subjects
+
+      # Remove all subjects
+      assert {:ok, lesson} = Lessons.update_lesson(lesson, %{subjects_ids: []})
+
+      lesson = Repo.preload(lesson, :subjects, force: true)
+      assert lesson.subjects == []
     end
   end
 end

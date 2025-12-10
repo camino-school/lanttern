@@ -5,6 +5,7 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
   alias Lanttern.LearningContext.Moment
   alias Lanttern.Lessons
   alias Lanttern.Lessons.Lesson
+  alias Lanttern.Taxonomy.Subject
 
   import Lanttern.SupabaseHelpers, only: [object_url_to_render_url: 2]
   import Lanttern.Utils, only: [reorder: 3]
@@ -40,15 +41,37 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
         <.button type="link" navigate={~p"/strands/#{@strand.id}/overview"} class="mt-4">
           {gettext("Full overview")}
         </.button>
-        <section class="mt-20">
+        <section class="mt-20" id="lessons-section">
           <h2 class="font-display font-black text-2xl">{gettext("Strand lessons")}</h2>
           <div class="flex items-center gap-4 mt-6">
-            <.button
-              type="button"
-              icon_name="hero-funnel-mini"
-            >
-              {gettext("All moments and lessons")}
-            </.button>
+            <div class="relative">
+              <.button
+                type="button"
+                icon_name="hero-funnel-mini"
+                id="lesson-filter-options-button"
+              >
+                {if @subject_filter,
+                  do: gettext("Subject: %{subject}", subject: @subject_filter.name),
+                  else: gettext("All lessons")}
+              </.button>
+              <.dropdown_menu
+                id="lesson-filter-options"
+                button_id="lesson-filter-options-button"
+                z_index="30"
+              >
+                <:item
+                  type="link"
+                  navigate={~p"/strands/#{@strand}/#lessons-section"}
+                  text={gettext("All lessons")}
+                />
+                <:item
+                  :for={subject <- @strand.subjects}
+                  type="link"
+                  navigate={"#{~p"/strands/#{@strand}"}?subject=#{subject.id}#lessons-section"}
+                  text={subject.name}
+                />
+              </.dropdown_menu>
+            </div>
             <div class="relative">
               <.button
                 type="button"
@@ -63,8 +86,14 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
                 button_id="new-in-lesson-options-button"
                 z_index="30"
               >
-                <:item type="link" patch="?moment=new" text={gettext("Create new moment")} />
-                <:item type="link" patch="?lesson=new" text={gettext("Create new lesson")} />
+                <:item
+                  on_click={JS.push("new_moment", target: @myself)}
+                  text={gettext("Create new moment")}
+                />
+                <:item
+                  on_click={JS.push("new_lesson", target: @myself)}
+                  text={gettext("Create new lesson")}
+                />
               </.dropdown_menu>
             </div>
           </div>
@@ -79,9 +108,10 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
           >
             <.lesson_entry
               :for={{dom_id, lesson} <- @streams.unattached_lessons}
-              class="mt-4"
               lesson={lesson}
+              on_edit={JS.push("edit_lesson", value: %{id: lesson.id}, target: @myself)}
               id={dom_id}
+              class="mt-4"
             />
           </div>
           <%= if @moments_ids == [] do %>
@@ -115,8 +145,8 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
                         {moment.name}
                       </.link>
                       <.action
-                        type="link"
-                        patch={"?moment=#{moment.id}"}
+                        type="button"
+                        phx-click={JS.push("edit_moment", value: %{id: moment.id}, target: @myself)}
                         icon_name="hero-pencil-mini"
                         theme="subtle"
                       >
@@ -137,15 +167,18 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
                 >
                   <.lesson_entry
                     :for={{dom_id, lesson} <- @streams["moment_#{moment.id}_lessons"] || []}
-                    class="mt-4"
                     lesson={lesson}
+                    on_edit={JS.push("edit_lesson", value: %{id: lesson.id}, target: @myself)}
                     id={dom_id}
+                    class="mt-4"
                   />
                   <.empty_state_simple
-                    class="flex-1 p-4 mt-4 ml-10 hidden only:block"
+                    class="p-4 mt-4 ml-10 hidden only:block"
                     id={"moment-#{moment.id}-lessons-empty"}
                   >
-                    {gettext("No lessons for this moment yet")}
+                    {if @subject_filter,
+                      do: gettext("No lessons in %{subject}", subject: @subject_filter.name),
+                      else: gettext("No lessons for this moment yet")}
                   </.empty_state_simple>
                 </div>
               </div>
@@ -157,19 +190,23 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
         :if={@moment}
         id="moment-form-overlay"
         show={true}
-        on_cancel={JS.patch(~p"/strands/#{@strand}")}
+        on_cancel={JS.push("close_moment_form", target: @myself)}
       >
         <:title>{@moment_overlay_title}</:title>
         <.live_component
           module={MomentFormComponent}
-          id={:new}
+          id="moment-form"
           moment={@moment}
           strand_id={@strand.id}
-          action={:new}
-          navigate={fn _moment -> ~p"/strands/#{@strand}" end}
-          notify_parent
+          navigate={
+            fn _moment ->
+              if @subject_filter,
+                do: ~p"/strands/#{@strand}?subject=#{@subject_filter.id}",
+                else: ~p"/strands/#{@strand}"
+            end
+          }
         />
-        <:actions_left>
+        <:actions_left :if={@moment.id}>
           <.button
             type="button"
             theme="ghost"
@@ -197,7 +234,7 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
         :if={@lesson}
         id="lesson-form-overlay"
         show={true}
-        on_cancel={JS.patch(~p"/strands/#{@strand}")}
+        on_cancel={JS.push("close_lesson_form", target: @myself)}
       >
         <:title>{@lesson_overlay_title}</:title>
         <.live_component
@@ -205,9 +242,16 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
           id={:new}
           lesson={@lesson}
           moments={@moments}
+          subjects={@strand.subjects}
           strand_id={@strand.id}
           action={:new}
-          navigate={fn _lesson -> ~p"/strands/#{@strand}" end}
+          navigate={
+            fn _lesson ->
+              if @subject_filter,
+                do: ~p"/strands/#{@strand}?subject=#{@subject_filter.id}",
+                else: ~p"/strands/#{@strand}"
+            end
+          }
           on_cancel={JS.exec("data-cancel", to: "#lesson-form-overlay")}
         />
       </.modal>
@@ -217,6 +261,7 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
 
   attr :id, :string, required: true
   attr :lesson, :map, required: true
+  attr :on_edit, :any, required: true
   attr :class, :any, default: nil
 
   defp lesson_entry(assigns) do
@@ -232,15 +277,26 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
         <div class="flex items-center gap-4">
           <h4 class="font-display font-bold text-base">{@lesson.name}</h4>
           <.action
-            type="link"
-            patch={"?lesson=#{@lesson.id}"}
+            type="button"
+            phx-click={@on_edit}
             icon_name="hero-pencil-mini"
             theme="subtle"
           >
             {gettext("Edit")}
           </.action>
         </div>
+        <.lesson_subjects subjects={@lesson.subjects} />
       </.card_base>
+    </div>
+    """
+  end
+
+  defp lesson_subjects(%{subjects: []} = assigns), do: ~H""
+
+  defp lesson_subjects(assigns) do
+    ~H"""
+    <div class="mt-2 text-xs">
+      {@subjects |> Enum.map(& &1.name) |> Enum.join(", ")}
     </div>
     """
   end
@@ -250,22 +306,50 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
   def mount(socket) do
     socket =
       socket
+      |> assign(:moment, nil)
+      |> assign(:lesson, nil)
       |> assign(:initialized, false)
 
     {:ok, socket}
   end
 
   @impl true
+  def update(%{action: {MomentFormComponent, {action, moment}}}, socket)
+      when action in [:created, :updated] do
+    message =
+      case action do
+        :created -> gettext("New moment created")
+        :updated -> gettext("Moment updated")
+      end
+
+    socket =
+      socket
+      |> stream_insert(:moments, moment)
+      |> assign(:moment, nil)
+      |> delegate_navigation(put_flash: {:info, message})
+
+    {:ok, socket}
+  end
+
   def update(assigns, socket) do
     socket =
       socket
       |> assign(assigns)
+      |> assign_subject_filter()
       |> initialize()
-      |> assign_moment()
-      |> assign_lesson()
 
     {:ok, socket}
   end
+
+  defp assign_subject_filter(%{assigns: %{params: %{"subject" => subject_id}}} = socket) do
+    subject_filter =
+      socket.assigns.strand.subjects
+      |> Enum.find(&("#{&1.id}" == subject_id))
+
+    assign(socket, :subject_filter, subject_filter)
+  end
+
+  defp assign_subject_filter(socket), do: assign(socket, :subject_filter, nil)
 
   defp initialize(%{assigns: %{initialized: false}} = socket) do
     strand = socket.assigns.strand
@@ -288,13 +372,23 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
 
     socket
     |> stream(:moments, moments)
-    |> assign(:moments_ids, Enum.map(moments, &"#{&1.id}"))
+    |> assign(:moments_ids, Enum.map(moments, & &1.id))
     |> assign(:moments, moments)
   end
 
   defp stream_lessons(socket) do
+    subjects_ids =
+      case socket.assigns.subject_filter do
+        %{id: id} -> [id]
+        _ -> []
+      end
+
     lessons =
-      Lessons.list_lessons(strand_id: socket.assigns.strand.id, preloads: :moment)
+      Lessons.list_lessons(
+        strand_id: socket.assigns.strand.id,
+        subjects_ids: subjects_ids,
+        preloads: [:subjects]
+      )
 
     # group and stream lessons by moment
     moments_lessons_map = Enum.group_by(lessons, &Map.get(&1, :moment_id))
@@ -305,7 +399,7 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
     # we have a flat lessons ids list for security quick checks
     # (`id in socket.assigns.lessons_ids`) but we also have
     # a map of lessons ids per moment for sorting management
-    |> assign(:lessons_ids, Enum.map(lessons, &"#{&1.id}"))
+    |> assign(:lessons_ids, Enum.map(lessons, & &1.id))
     |> assign_moments_lessons_ids_map(moments_lessons_map)
   end
 
@@ -355,53 +449,38 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
     assign(socket, :moments_lessons_ids_map, all_moments_lessons_ids_map)
   end
 
-  defp assign_moment(%{assigns: %{params: %{"moment" => "new"}}} = socket) do
-    moment = %Moment{strand_id: socket.assigns.strand.id, subjects: []}
-
-    socket
-    |> assign(:moment, moment)
-    |> assign(:moment_overlay_title, gettext("New moment"))
-  end
-
-  defp assign_moment(%{assigns: %{params: %{"moment" => moment_id}}} = socket) do
-    if moment_id in socket.assigns.moments_ids do
-      moment = LearningContext.get_moment(moment_id, preloads: :subjects)
-
-      socket
-      |> assign(:moment, moment)
-      |> assign(:moment_overlay_title, gettext("Edit moment"))
-    else
-      assign(socket, :moment, nil)
-    end
-  end
-
-  defp assign_moment(socket), do: assign(socket, :moment, nil)
-
-  defp assign_lesson(%{assigns: %{params: %{"lesson" => "new"}}} = socket) do
-    lesson = %Lesson{strand_id: socket.assigns.strand.id}
-
-    socket
-    |> assign(:lesson, lesson)
-    |> assign(:lesson_overlay_title, gettext("New lesson"))
-  end
-
-  defp assign_lesson(%{assigns: %{params: %{"lesson" => lesson_id}}} = socket) do
-    if lesson_id in socket.assigns.lessons_ids do
-      lesson = Lessons.get_lesson(lesson_id)
-
-      socket
-      |> assign(:lesson, lesson)
-      |> assign(:lesson_overlay_title, gettext("Edit lesson"))
-    else
-      assign(socket, :lesson, nil)
-    end
-  end
-
-  defp assign_lesson(socket), do: assign(socket, :lesson, nil)
-
   # event handlers
 
   @impl true
+  def handle_event("new_moment", _params, socket) do
+    moment = %Moment{strand_id: socket.assigns.strand.id, subjects: []}
+
+    socket =
+      socket
+      |> assign(:moment, moment)
+      |> assign(:moment_overlay_title, gettext("New moment"))
+
+    {:noreply, socket}
+  end
+
+  def handle_event("edit_moment", %{"id" => moment_id}, socket) do
+    socket =
+      if moment_id in socket.assigns.moments_ids do
+        moment = LearningContext.get_moment(moment_id, preloads: :subjects)
+
+        socket
+        |> assign(:moment, moment)
+        |> assign(:moment_overlay_title, gettext("Edit moment"))
+      else
+        socket
+      end
+
+    {:noreply, socket}
+  end
+
+  def handle_event("close_moment_form", _params, socket),
+    do: {:noreply, assign(socket, :moment, nil)}
+
   def handle_event("delete_moment", _params, socket) do
     case LearningContext.delete_moment(socket.assigns.moment) do
       {:ok, _moment} ->
@@ -426,6 +505,41 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
         {:noreply, socket}
     end
   end
+
+  def handle_event("new_lesson", _params, socket) do
+    subjects =
+      case socket.assigns.subject_filter do
+        %Subject{} = subject -> [subject]
+        _ -> []
+      end
+
+    lesson = %Lesson{strand_id: socket.assigns.strand.id, subjects: subjects}
+
+    socket =
+      socket
+      |> assign(:lesson, lesson)
+      |> assign(:lesson_overlay_title, gettext("New lesson"))
+
+    {:noreply, socket}
+  end
+
+  def handle_event("edit_lesson", %{"id" => lesson_id}, socket) do
+    socket =
+      if lesson_id in socket.assigns.lessons_ids do
+        lesson = Lessons.get_lesson(lesson_id, preloads: :subjects)
+
+        socket
+        |> assign(:lesson, lesson)
+        |> assign(:lesson_overlay_title, gettext("Edit lesson"))
+      else
+        socket
+      end
+
+    {:noreply, socket}
+  end
+
+  def handle_event("close_lesson_form", _params, socket),
+    do: {:noreply, assign(socket, :lesson, nil)}
 
   def handle_event(
         "sortable_update",
