@@ -5,6 +5,7 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
   alias Lanttern.LearningContext.Moment
   alias Lanttern.Lessons
   alias Lanttern.Lessons.Lesson
+  alias Lanttern.Taxonomy.Subject
 
   import Lanttern.SupabaseHelpers, only: [object_url_to_render_url: 2]
   import Lanttern.Utils, only: [reorder: 3]
@@ -66,7 +67,7 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
                 <:item
                   :for={subject <- @strand.subjects}
                   type="link"
-                  navigate={"?subject=#{subject.id}#lessons-section"}
+                  navigate={"#{~p"/strands/#{@strand}"}?subject=#{subject.id}#lessons-section"}
                   text={subject.name}
                 />
               </.dropdown_menu>
@@ -197,7 +198,13 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
           id="moment-form"
           moment={@moment}
           strand_id={@strand.id}
-          navigate={fn _moment -> ~p"/strands/#{@strand}" end}
+          navigate={
+            fn _moment ->
+              if @subject_filter,
+                do: ~p"/strands/#{@strand}?subject=#{@subject_filter.id}",
+                else: ~p"/strands/#{@strand}"
+            end
+          }
         />
         <:actions_left :if={@moment.id}>
           <.button
@@ -238,7 +245,13 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
           subjects={@strand.subjects}
           strand_id={@strand.id}
           action={:new}
-          navigate={fn _lesson -> ~p"/strands/#{@strand}" end}
+          navigate={
+            fn _lesson ->
+              if @subject_filter,
+                do: ~p"/strands/#{@strand}?subject=#{@subject_filter.id}",
+                else: ~p"/strands/#{@strand}"
+            end
+          }
           on_cancel={JS.exec("data-cancel", to: "#lesson-form-overlay")}
         />
       </.modal>
@@ -494,7 +507,13 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
   end
 
   def handle_event("new_lesson", _params, socket) do
-    lesson = %Lesson{strand_id: socket.assigns.strand.id, subjects: []}
+    subjects =
+      case socket.assigns.subject_filter do
+        %Subject{} = subject -> [subject]
+        _ -> []
+      end
+
+    lesson = %Lesson{strand_id: socket.assigns.strand.id, subjects: subjects}
 
     socket =
       socket
