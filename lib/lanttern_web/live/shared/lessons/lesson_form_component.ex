@@ -11,9 +11,8 @@ defmodule LantternWeb.Lessons.LessonFormComponent do
   def render(assigns) do
     ~H"""
     <div class={@class}>
-      <.form for={@form} id="lesson-form" phx-target={@myself} phx-change="validate" phx-submit="save">
+      <.form for={@form} id={@id} phx-target={@myself} phx-change="validate" phx-submit="save">
         <.input field={@form[:strand_id]} type="hidden" />
-
         <.input
           field={@form[:name]}
           type="text"
@@ -21,24 +20,33 @@ defmodule LantternWeb.Lessons.LessonFormComponent do
           class="mb-6"
           phx-debounce="1500"
         />
-        <div class="mb-6">
+        <%!-- enable moment picker only when creating lesson --%>
+        <div :if={!@lesson.id} class="mb-6">
           <.label>{gettext("Moment (optional)")}</.label>
-          <p class="text-sm text-ltrn-subtle mb-2">
-            {gettext(
-              "Select a moment to attach this lesson to, or leave unselected for a strand-level lesson"
-            )}
-          </p>
           <.badge_button_picker
             items={@moments}
             selected_ids={if @selected_moment_id, do: [@selected_moment_id], else: []}
             on_select={&JS.push("select_moment", value: %{moment_id: &1}, target: @myself)}
           />
+          <p class="text-sm text-ltrn-subtle mt-2">
+            {gettext(
+              "Select a moment to attach this lesson to, or leave unselected for a strand-level lesson"
+            )}
+          </p>
+        </div>
+        <%!-- when editing, only show current moment and inform how to change it --%>
+        <div :if={@lesson.id && @current_moment} class="mb-6">
+          <p class="font-bold">
+            {gettext(~s(Lesson in the moment "%{moment}"), moment: @current_moment.name)}
+          </p>
+          <p class="text-sm text-ltrn-subtle mt-2">
+            {gettext(
+              "To change the lesson moment, drag the lesson to the desired moment from the strand lessons timeline"
+            )}
+          </p>
         </div>
         <div class="mb-6">
-          <.label>{gettext("Subjects (optional)")}</.label>
-          <p class="text-sm text-ltrn-subtle mb-2">
-            {gettext("Select subjects for this lesson from the strand's subjects")}
-          </p>
+          <.label>{gettext("Subjects")}</.label>
           <.badge_button_picker
             items={@subjects}
             selected_ids={@selected_subjects_ids}
@@ -106,9 +114,22 @@ defmodule LantternWeb.Lessons.LessonFormComponent do
       |> assign(:selected_moment_id, lesson.moment_id)
       |> assign(:selected_subjects_ids, selected_subjects_ids)
       |> assign_form(Lessons.change_lesson(lesson))
+      |> assign_current_moment()
 
     {:ok, socket}
   end
+
+  defp assign_current_moment(%{assigns: %{lesson: %{moment_id: moment_id}}} = socket)
+       when not is_nil(moment_id) do
+    moment =
+      socket.assigns.moments
+      |> Enum.find(&(&1.id == moment_id))
+
+    assign(socket, :current_moment, moment)
+  end
+
+  defp assign_current_moment(socket),
+    do: assign(socket, :current_moment, nil)
 
   @impl true
   def handle_event("validate", %{"lesson" => lesson_params}, socket) do
@@ -174,7 +195,7 @@ defmodule LantternWeb.Lessons.LessonFormComponent do
         socket =
           socket
           |> put_flash(:info, gettext("Lesson created successfully"))
-          |> handle_navigation(lesson)
+          |> handle_navigation({:created, lesson})
 
         {:noreply, socket}
 
@@ -189,7 +210,7 @@ defmodule LantternWeb.Lessons.LessonFormComponent do
         socket =
           socket
           |> put_flash(:info, gettext("Lesson updated successfully"))
-          |> handle_navigation(lesson)
+          |> handle_navigation({:updated, lesson})
 
         {:noreply, socket}
 

@@ -328,6 +328,64 @@ defmodule Lanttern.LessonsTest do
       assert subject_b.id in subject_ids
     end
 
+    test "create_lesson/1 with is_published true requires description" do
+      strand = insert(:strand)
+
+      assert {:error, %Ecto.Changeset{} = changeset} =
+               Lessons.create_lesson(%{
+                 name: "Published lesson",
+                 strand_id: strand.id,
+                 is_published: true
+               })
+
+      assert %{description: ["Description can't be blank when lesson is published"]} =
+               errors_on(changeset)
+    end
+
+    test "create_lesson/1 with is_published true and blank description returns error" do
+      strand = insert(:strand)
+
+      assert {:error, %Ecto.Changeset{} = changeset} =
+               Lessons.create_lesson(%{
+                 name: "Published lesson",
+                 description: "   ",
+                 strand_id: strand.id,
+                 is_published: true
+               })
+
+      assert %{description: ["Description can't be blank when lesson is published"]} =
+               errors_on(changeset)
+    end
+
+    test "create_lesson/1 with is_published true and description succeeds" do
+      strand = insert(:strand)
+
+      assert {:ok, %Lesson{} = lesson} =
+               Lessons.create_lesson(%{
+                 name: "Published lesson",
+                 description: "A valid description",
+                 strand_id: strand.id,
+                 is_published: true
+               })
+
+      assert lesson.is_published == true
+      assert lesson.description == "A valid description"
+    end
+
+    test "create_lesson/1 with is_published false allows nil description" do
+      strand = insert(:strand)
+
+      assert {:ok, %Lesson{} = lesson} =
+               Lessons.create_lesson(%{
+                 name: "Draft lesson",
+                 strand_id: strand.id,
+                 is_published: false
+               })
+
+      assert lesson.is_published == false
+      assert lesson.description == nil
+    end
+
     test "update_lesson/2 with subjects_ids updates lesson subjects" do
       lesson = insert(:lesson) |> Repo.preload(:subjects)
       subject_a = insert(:subject)
@@ -370,6 +428,36 @@ defmodule Lanttern.LessonsTest do
 
       lesson = Repo.preload(lesson, :subjects, force: true)
       assert lesson.subjects == []
+    end
+
+    test "update_lesson/2 setting is_published to true requires description" do
+      lesson = insert(:lesson, is_published: false, description: nil)
+
+      assert {:error, %Ecto.Changeset{} = changeset} =
+               Lessons.update_lesson(lesson, %{is_published: true})
+
+      assert %{description: ["Description can't be blank when lesson is published"]} =
+               errors_on(changeset)
+    end
+
+    test "update_lesson/2 can publish lesson with description" do
+      lesson = insert(:lesson, is_published: false, description: "Some description")
+
+      assert {:ok, %Lesson{} = updated_lesson} =
+               Lessons.update_lesson(lesson, %{is_published: true})
+
+      assert updated_lesson.is_published == true
+      assert updated_lesson.description == "Some description"
+    end
+
+    test "update_lesson/2 can unpublish lesson without description" do
+      lesson = insert(:lesson, is_published: true, description: "Some description")
+
+      assert {:ok, %Lesson{} = updated_lesson} =
+               Lessons.update_lesson(lesson, %{is_published: false, description: nil})
+
+      assert updated_lesson.is_published == false
+      assert updated_lesson.description == nil
     end
   end
 end

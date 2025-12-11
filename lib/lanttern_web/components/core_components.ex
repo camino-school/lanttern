@@ -702,6 +702,7 @@ defmodule LantternWeb.CoreComponents do
     default: nil,
     doc: "we use a separate attr for bg class to prevent clashing with default bg"
 
+  attr :remove_shadow, :boolean, default: false
   attr :id, :string, default: nil
   attr :rest, :global
 
@@ -709,7 +710,7 @@ defmodule LantternWeb.CoreComponents do
 
   def card_base(assigns) do
     ~H"""
-    <div id={@id} class={[card_base_classes(@bg_class), @class]} {@rest}>
+    <div id={@id} class={[card_base_classes(@bg_class, @remove_shadow), @class]} {@rest}>
       {render_slot(@inner_block)}
     </div>
     """
@@ -722,8 +723,8 @@ defmodule LantternWeb.CoreComponents do
   (not possible with `<.card_base>`).
   """
 
-  def card_base_classes(bg_class \\ nil),
-    do: "rounded-sm shadow-xl #{bg_class || "bg-white"}"
+  def card_base_classes(bg_class \\ nil, remove_shadow \\ false),
+    do: ["rounded-sm #{bg_class || "bg-white"}", if(!remove_shadow, do: "shadow-xl")]
 
   @doc """
   Renders a page cover.
