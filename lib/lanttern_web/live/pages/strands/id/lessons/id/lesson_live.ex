@@ -56,6 +56,42 @@ defmodule LantternWeb.LessonLive do
   def handle_event("cancel_edit", _params, socket),
     do: {:noreply, assign(socket, :is_editing, false)}
 
+  def handle_event("publish", _params, socket) do
+    socket =
+      Lessons.update_lesson(socket.assigns.lesson, %{is_published: true})
+      |> case do
+        {:ok, lesson} ->
+          socket
+          |> assign(:lesson, lesson)
+          |> put_flash(:info, gettext("Lesson published"))
+
+        # missing description validation
+        {:error, %Ecto.Changeset{errors: [description: {error, []}]}} ->
+          put_flash(socket, :error, error)
+
+        {:error, _changeset} ->
+          put_flash(socket, :error, gettext("Something went wrong"))
+      end
+
+    {:noreply, socket}
+  end
+
+  def handle_event("unpublish", _params, socket) do
+    socket =
+      Lessons.update_lesson(socket.assigns.lesson, %{is_published: false})
+      |> case do
+        {:ok, lesson} ->
+          socket
+          |> assign(:lesson, lesson)
+          |> put_flash(:info, gettext("Lesson unpublished"))
+
+        {:error, _changeset} ->
+          put_flash(socket, :error, gettext("Something went wrong"))
+      end
+
+    {:noreply, socket}
+  end
+
   # -- description
 
   def handle_event("edit_description", _params, socket) do

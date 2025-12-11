@@ -5,6 +5,8 @@ defmodule Lanttern.Lessons.Lesson do
 
   use Ecto.Schema
   import Ecto.Changeset
+  use Gettext, backend: Lanttern.Gettext
+
   import Lanttern.SchemaHelpers, only: [put_subjects: 1]
 
   alias Lanttern.LearningContext.Moment
@@ -61,6 +63,22 @@ defmodule Lanttern.Lessons.Lesson do
       :subjects_ids
     ])
     |> validate_required([:name, :position, :strand_id])
+    |> validate_published_lesson()
     |> put_subjects()
+  end
+
+  defp validate_published_lesson(changeset) do
+    is_published = get_field(changeset, :is_published)
+    description = get_field(changeset, :description)
+
+    if is_published && (is_nil(description) || String.trim(description) == "") do
+      add_error(
+        changeset,
+        :description,
+        gettext("Description can't be blank when lesson is published")
+      )
+    else
+      changeset
+    end
   end
 end
