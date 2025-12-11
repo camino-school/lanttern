@@ -72,6 +72,11 @@ defmodule LantternWeb.FormComponents do
   attr :id, :any, default: nil
   attr :name, :any
   attr :label, :string, default: nil
+
+  attr :label_is_sr_only, :boolean,
+    default: false,
+    doc: "Render the label for screen readers only"
+
   attr :value, :any
 
   attr :type, :string,
@@ -175,6 +180,7 @@ defmodule LantternWeb.FormComponents do
         for={@id}
         show_optional={@show_optional}
         custom={if @custom_label == [], do: false, else: true}
+        class={if @label_is_sr_only, do: "sr-only"}
       >
         {@label || render_slot(@custom_label)}
       </.label>
@@ -223,6 +229,7 @@ defmodule LantternWeb.FormComponents do
         show_optional={@show_optional}
         help_text={@help_text}
         custom={if @custom_label == [], do: false, else: true}
+        class={if @label_is_sr_only, do: "sr-only"}
       >
         {@label || render_slot(@custom_label)}
       </.label>
@@ -244,6 +251,7 @@ defmodule LantternWeb.FormComponents do
         show_optional={@show_optional}
         help_text={@help_text}
         custom={if @custom_label == [], do: false, else: true}
+        class={if @label_is_sr_only, do: "sr-only"}
       >
         {@label || render_slot(@custom_label)}
       </.label>
@@ -295,7 +303,7 @@ defmodule LantternWeb.FormComponents do
       <.markdown
         id={"preview-#{@id}"}
         text={@value || ""}
-        class="w-full max-w-none min-h-[10rem] p-4 rounded-xs shadow-xs ring-1 ring-ltrn-lighter bg-white hidden"
+        class="w-full max-w-none min-h-40 p-4 rounded-xs shadow-xs ring-1 ring-ltrn-lighter bg-white hidden"
       />
       <.error :for={msg <- @errors}>{msg}</.error>
     </div>
@@ -312,6 +320,7 @@ defmodule LantternWeb.FormComponents do
         show_optional={@show_optional}
         help_text={@help_text}
         custom={if @custom_label == [], do: false, else: true}
+        class={if @label_is_sr_only, do: "sr-only"}
       >
         {@label || render_slot(@custom_label)}
       </.label>
@@ -331,11 +340,12 @@ defmodule LantternWeb.FormComponents do
   attr :help_text, :string, default: nil, doc: "render a tooltip with some extra instructions"
   attr :show_optional, :boolean, default: false
   attr :custom, :boolean, default: false
+  attr :class, :any, default: nil
   slot :inner_block, required: true
 
   def label(%{show_optional: true} = assigns) do
     ~H"""
-    <div class="flex justify-between gap-4 mb-2 text-sm">
+    <div class={["flex justify-between gap-4 mb-2 text-sm", @class]}>
       <label for={@for} class="font-bold">
         <.help_tooltip text={@help_text} class="inline-block font-normal" />
         {render_slot(@inner_block)}
@@ -347,7 +357,7 @@ defmodule LantternWeb.FormComponents do
 
   def label(%{custom: true} = assigns) do
     ~H"""
-    <label for={@for} class="block mb-2">
+    <label for={@for} class={["block mb-2", @class]}>
       <.help_tooltip text={@help_text} class="inline-block font-normal" />
       {render_slot(@inner_block)}
     </label>
@@ -356,7 +366,7 @@ defmodule LantternWeb.FormComponents do
 
   def label(assigns) do
     ~H"""
-    <label for={@for} class="flex items-center gap-2 mb-2 text-sm font-bold">
+    <label for={@for} class={["flex items-center gap-2 mb-2 text-sm font-bold", @class]}>
       <.help_tooltip text={@help_text} class="font-normal" />
       {render_slot(@inner_block)}
     </label>
@@ -396,7 +406,7 @@ defmodule LantternWeb.FormComponents do
         type="radio"
         value={@value}
         checked={@field.value == @value}
-        class="relative size-4 appearance-none rounded-full border border-ltrn-light bg-white before:absolute before:inset-1 before:rounded-full before:bg-white checked:border-ltrn-primary checked:bg-ltrn-primary focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ltrn-primary disabled:border-ltrn-light disabled:bg-ltrn-lightest disabled:before:bg-ltrn-light forced-colors:appearance-auto forced-colors:before:hidden [&:not(:checked)]:before:hidden"
+        class="relative size-4 appearance-none rounded-full border border-ltrn-light bg-white before:absolute before:inset-1 before:rounded-full before:bg-white checked:border-ltrn-primary checked:bg-ltrn-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ltrn-primary disabled:border-ltrn-light disabled:bg-ltrn-lightest disabled:before:bg-ltrn-light forced-colors:appearance-auto forced-colors:before:hidden not-checked:before:hidden"
       />
       <label for={"#{@value}-#{@field.id}"} class="block">
         {@label}
@@ -456,7 +466,7 @@ defmodule LantternWeb.FormComponents do
       id={@id}
       name={@name}
       class={[
-        "block w-full min-h-[10rem] rounded-xs border-0 shadow-xs ring-1 sm:text-sm sm:leading-6",
+        "block w-full min-h-40 rounded-xs border-0 shadow-xs ring-1 sm:text-sm sm:leading-6",
         "focus:ring-2 focus:ring-inset",
         "phx-no-feedback:ring-ltrn-lighter phx-no-feedback:focus:ring-ltrn-primary",
         @errors == [] && "ring-ltrn-lighter focus:ring-ltrn-primary",

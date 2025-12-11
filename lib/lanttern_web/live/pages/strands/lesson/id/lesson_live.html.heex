@@ -57,7 +57,7 @@
             </div>
           </div>
         </div>
-        <div class="mt-10">
+        <section id="lesson-description" class="mt-10">
           <.markdown :if={!@description_form && @lesson.description} text={@lesson.description} />
           <.button
             :if={!@description_form && !@lesson.description}
@@ -79,14 +79,15 @@
             for={@description_form}
             phx-submit="save_description"
             phx-change="validate_description"
+            id="lesson-description-form"
           >
-            <.input field={@description_form[:description]} type="markdown" phx-debounce="1500" />
-            <%!-- <p
-              :if={@description_error}
-              class="p-4 rounded-sm mt-4 text-sm text-ltrn-alert-accent bg-ltrn-alert-lighter"
-            >
-              {@description_error}
-            </p> --%>
+            <.input
+              field={@description_form[:description]}
+              type="markdown"
+              label={gettext("Lesson description")}
+              label_is_sr_only
+              phx-debounce="1500"
+            />
             <div class="flex justify-end gap-2 mt-2">
               <.button type="button" theme="ghost" phx-click="cancel_description_edit">
                 {gettext("Cancel")}
@@ -94,8 +95,8 @@
               <.button type="submit" theme="primary">{gettext("Save")}</.button>
             </div>
           </.form>
-        </div>
-        <div class="p-4 rounded-xs mt-10 bg-ltrn-staff-lightest">
+        </section>
+        <section id="teacher-notes" class="p-4 rounded-xs mt-10 bg-ltrn-staff-lightest">
           <div class="flex items-center gap-6">
             <p class="flex-1 font-bold text-ltrn-staff-dark">
               {gettext("Teacher notes (never shared with students and guardians)")}
@@ -147,8 +148,8 @@
               <.button type="submit" theme="primary">{gettext("Save")}</.button>
             </div>
           </.form>
-        </div>
-        <div class="p-4 rounded-xs mt-10 bg-ltrn-diff-lightest">
+        </section>
+        <section id="lesson-differentiation" class="p-4 rounded-xs mt-10 bg-ltrn-diff-lightest">
           <div class="flex items-center gap-6">
             <p class="flex-1 font-bold text-ltrn-diff-dark">
               {gettext("Differentiation (never shared with students and guardians)")}
@@ -200,7 +201,7 @@
               <.button type="submit" theme="primary">{gettext("Save")}</.button>
             </div>
           </.form>
-        </div>
+        </section>
       </.responsive_container>
     </div>
   </div>
