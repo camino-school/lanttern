@@ -14,7 +14,12 @@
       <.responsive_container class="py-10">
         <div class="flex items-start gap-6">
           <div class="flex-1 pt-2">
-            <h1 class="font-display font-black text-2xl">{@lesson.name}</h1>
+            <h1 class="font-display font-black text-2xl">
+              {@lesson.name}
+              <span :if={!@lesson.is_published} class="font-bold text-ltrn-subtle">
+                ({gettext("Draft")})
+              </span>
+            </h1>
             <div
               :if={@lesson.moment || @lesson.subjects != []}
               class="flex items-center gap-4 mt-2 text-ltrn-subtle"
@@ -140,7 +145,7 @@
             </.button>
             <.button
               :if={!@differentiation_form && @lesson.differentiation_notes}
-              phx-click="edit_teacher_notes"
+              phx-click="edit_differentiation"
               size="sm"
             >
               {gettext("Edit")}
@@ -196,7 +201,6 @@
     moments={@strand.moments}
     subjects={@strand.subjects}
     strand_id={@strand.id}
-    action={:new}
     navigate={~p"/strands/lesson/#{@lesson}"}
     on_cancel={JS.exec("data-cancel", to: "#lesson-form-overlay")}
   />

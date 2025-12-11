@@ -244,12 +244,15 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
           moments={@moments}
           subjects={@strand.subjects}
           strand_id={@strand.id}
-          action={:new}
           navigate={
-            fn _lesson ->
-              if @subject_filter,
-                do: ~p"/strands/#{@strand}?subject=#{@subject_filter.id}",
-                else: ~p"/strands/#{@strand}"
+            fn
+              {:created, lesson} ->
+                ~p"/strands/lesson/#{lesson}"
+
+              {:updated, _lesson} ->
+                if @subject_filter,
+                  do: ~p"/strands/#{@strand}?subject=#{@subject_filter.id}",
+                  else: ~p"/strands/#{@strand}"
             end
           }
           on_cancel={JS.exec("data-cancel", to: "#lesson-form-overlay")}
@@ -273,14 +276,21 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
       <div class="py-3 hover:cursor-move drag-handle">
         <hr class="w-6 h-0.5 border-0 rounded-full bg-ltrn-subtle" />
       </div>
-      <.card_base class="flex-1 p-4">
+      <.card_base
+        class="flex-1 p-4"
+        bg_class={if !@lesson.is_published, do: "bg-ltrn-lightest"}
+        remove_shadow={!@lesson.is_published}
+      >
         <div class="flex items-center gap-4">
-          <h4 class="font-display font-bold text-base">
+          <h4 class="flex-1 font-display font-bold text-base">
             <.link
               navigate={~p"/strands/lesson/#{@lesson.id}"}
               class="hover:text-ltrn-subtle"
             >
               {@lesson.name}
+              <span :if={!@lesson.is_published} class="font-normal text-ltrn-subtle">
+                ({gettext("Draft")})
+              </span>
             </.link>
           </h4>
           <.action
@@ -292,18 +302,13 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
             {gettext("Edit")}
           </.action>
         </div>
-        <.lesson_subjects subjects={@lesson.subjects} />
+        <div :if={@lesson.description} class="mt-2 text-xs">
+          <.markdown text={@lesson.description} strip_tags class="mt-2 line-clamp-1" />
+        </div>
+        <div :if={@lesson.subjects != []} class="mt-2 text-xs">
+          {@lesson.subjects |> Enum.map(& &1.name) |> Enum.join(", ")}
+        </div>
       </.card_base>
-    </div>
-    """
-  end
-
-  defp lesson_subjects(%{subjects: []} = assigns), do: ~H""
-
-  defp lesson_subjects(assigns) do
-    ~H"""
-    <div class="mt-2 text-xs">
-      {@subjects |> Enum.map(& &1.name) |> Enum.join(", ")}
     </div>
     """
   end

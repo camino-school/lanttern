@@ -195,7 +195,7 @@ defmodule LantternWeb.Lessons.LessonFormComponent do
         socket =
           socket
           |> put_flash(:info, gettext("Lesson created successfully"))
-          |> handle_navigation(lesson)
+          |> handle_navigation({:created, lesson})
 
         {:noreply, socket}
 
@@ -210,7 +210,7 @@ defmodule LantternWeb.Lessons.LessonFormComponent do
         socket =
           socket
           |> put_flash(:info, gettext("Lesson updated successfully"))
-          |> handle_navigation(lesson)
+          |> handle_navigation({:updated, lesson})
 
         {:noreply, socket}
 
