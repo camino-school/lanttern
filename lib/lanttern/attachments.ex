@@ -18,13 +18,19 @@ defmodule Lanttern.Attachments do
   - `:assessment_point_entry_id` - filter results by assessment point entry evidences
   - `:student_cycle_info_id` - filter attachments linked to given student cycle info. May be used with `:shared_with_student` option.
   - `:moment_card_id` - filter results by moment card
+  - `:lesson_id` - filter results by lesson. May be used with `:is_teacher_only_resource` option.
   - `:ilp_comment_id` - filter results by ILP comment
   - `:shared_with_student` - expect a tuple with type and boolean (view the section below for accepted types). If not given, will not filter results.
+  - `:is_teacher_only_resource` - expect a tuple with type and boolean (view the section below for accepted types). If not given, will not filter results.
 
   #### `:shared_with_student` supported types
 
   - `:student_cycle_info` - use with `:student_cycle_info_id` opt
   - `:moment_card` - use with `:moment_card_id` opt
+
+  #### `:is_teacher_only_resource` supported types
+
+  - `:lesson` - use with `:lesson_id` opt
 
   ## Examples
 
@@ -93,6 +99,20 @@ defmodule Lanttern.Attachments do
     |> apply_list_attachments_opts(opts)
   end
 
+  defp apply_list_attachments_opts(queryable, [{:lesson_id, lesson_id} | opts])
+       when is_integer(lesson_id) do
+    from(
+      a in queryable,
+      join: la in assoc(a, :lesson_attachment),
+      as: :lesson_attachment,
+      where: la.lesson_id == ^lesson_id,
+      order_by: la.position,
+      select: %{a | is_teacher_only: la.is_teacher_only_resource}
+    )
+    |> maybe_filter_by_is_teacher_only_resource(Keyword.get(opts, :is_teacher_only_resource))
+    |> apply_list_attachments_opts(opts)
+  end
+
   defp apply_list_attachments_opts(queryable, [{:ilp_comment_id, ilp_comment_id} | opts])
        when is_integer(ilp_comment_id) do
     from(
@@ -125,6 +145,17 @@ defmodule Lanttern.Attachments do
   end
 
   defp maybe_filter_by_shared_with_student(queryable, _shared_tuple),
+    do: queryable
+
+  defp maybe_filter_by_is_teacher_only_resource(queryable, {:lesson, is_teacher_only_resource})
+       when is_boolean(is_teacher_only_resource) do
+    from(
+      [_a, lesson_attachment: la] in queryable,
+      where: la.is_teacher_only_resource == ^is_teacher_only_resource
+    )
+  end
+
+  defp maybe_filter_by_is_teacher_only_resource(queryable, _tuple),
     do: queryable
 
   @doc """

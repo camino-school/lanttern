@@ -4,6 +4,7 @@ defmodule Lanttern.AttachmentsTest do
   import Lanttern.Factory
 
   alias Lanttern.Attachments
+  alias Lanttern.Lessons
 
   describe "attachments" do
     alias Lanttern.Attachments.Attachment
@@ -351,6 +352,78 @@ defmodule Lanttern.AttachmentsTest do
     test "change_attachment/1 returns a attachment changeset" do
       attachment = attachment_fixture()
       assert %Ecto.Changeset{} = Attachments.change_attachment(attachment)
+    end
+
+    test "list_attachments/1 with lesson_id opts returns all attachments linked to given lesson" do
+      profile = insert(:profile)
+      lesson = insert(:lesson)
+
+      {:ok, teacher_attachment} =
+        Lessons.create_lesson_attachment(
+          profile.id,
+          lesson.id,
+          %{"name" => "teacher doc", "link" => "https://example.com", "is_external" => true},
+          true
+        )
+
+      {:ok, shared_attachment} =
+        Lessons.create_lesson_attachment(
+          profile.id,
+          lesson.id,
+          %{"name" => "student doc", "link" => "https://example.com", "is_external" => true},
+          false
+        )
+
+      # extra attachment to test filtering
+      attachment_fixture()
+
+      [expected_teacher, expected_shared] =
+        Attachments.list_attachments(lesson_id: lesson.id)
+
+      assert expected_teacher.id == teacher_attachment.id
+      assert expected_teacher.is_teacher_only == true
+
+      assert expected_shared.id == shared_attachment.id
+      assert expected_shared.is_teacher_only == false
+    end
+
+    test "list_attachments/1 with lesson_id and is_teacher_only_resource opts filters correctly" do
+      profile = insert(:profile)
+      lesson = insert(:lesson)
+
+      {:ok, teacher_attachment} =
+        Lessons.create_lesson_attachment(
+          profile.id,
+          lesson.id,
+          %{"name" => "teacher doc", "link" => "https://example.com", "is_external" => true},
+          true
+        )
+
+      {:ok, shared_attachment} =
+        Lessons.create_lesson_attachment(
+          profile.id,
+          lesson.id,
+          %{"name" => "student doc", "link" => "https://example.com", "is_external" => true},
+          false
+        )
+
+      # only teacher attachments
+      [expected_teacher] =
+        Attachments.list_attachments(
+          lesson_id: lesson.id,
+          is_teacher_only_resource: {:lesson, true}
+        )
+
+      assert expected_teacher.id == teacher_attachment.id
+
+      # only student attachments
+      [expected_shared] =
+        Attachments.list_attachments(
+          lesson_id: lesson.id,
+          is_teacher_only_resource: {:lesson, false}
+        )
+
+      assert expected_shared.id == shared_attachment.id
     end
   end
 end

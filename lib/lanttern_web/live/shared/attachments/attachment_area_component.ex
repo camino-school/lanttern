@@ -8,6 +8,7 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
   - assessment point entry evidences (use `assessment_point_entry_id` assign)
   - student cycle info attachments (use `student_cycle_info_id` assign and `shared_with_student` assign)
   - moment card attachments (use `moment_card_id` assign and `shared_with_student` assign)
+  - lesson attachments (use `lesson_id` assign and `is_teacher_only_resource` assign)
   - ILP comments attachments (use `ilp_comment_id` assign)
 
   ### Supported attrs/assigns
@@ -20,7 +21,9 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
   - `assessment_point_entry_id` (optional, integer) - view supported contexts above
   - `student_cycle_info_id` (optional, integer) - view supported contexts above
   - `moment_card_id` (optional, integer) - view supported contexts above
+  - `lesson_id` (optional, integer) - view supported contexts above
   - `shared_with_student` (optional, boolean) - used with student cycle info and moment card. View supported contexts above
+  - `is_teacher_only_resource` (optional, boolean) - used with lesson. View supported contexts above
 
   """
 
@@ -33,6 +36,7 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
   alias Lanttern.Attachments.Attachment
   alias Lanttern.ILP
   alias Lanttern.LearningContext
+  alias Lanttern.Lessons
   alias Lanttern.Notes
   alias Lanttern.StudentsCycleInfo
   alias Lanttern.SupabaseHelpers
@@ -224,6 +228,7 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
       |> assign(:is_editing, false)
       |> assign(:upload_error, nil)
       |> assign(:shared_with_student, nil)
+      |> assign(:is_teacher_only_resource, nil)
       |> stream_configure(
         :attachments,
         dom_id: fn {attachment, _i} -> "attachment-#{attachment.id}" end
@@ -269,6 +274,9 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
   defp assign_type(%{assigns: %{moment_card_id: _}} = socket),
     do: assign(socket, :type, :moment_card_attachments)
 
+  defp assign_type(%{assigns: %{lesson_id: _}} = socket),
+    do: assign(socket, :type, :lesson_attachments)
+
   defp assign_type(%{assigns: %{ilp_comment_id: _}} = socket),
     do: assign(socket, :type, :ilp_comment_attachments)
 
@@ -303,6 +311,16 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
       Attachments.list_attachments(
         moment_card_id: id,
         shared_with_student: {:moment_card, socket.assigns.shared_with_student}
+      )
+
+    handle_stream_attachments_socket_assigns(socket, attachments)
+  end
+
+  defp stream_attachments(%{assigns: %{type: :lesson_attachments, lesson_id: id}} = socket) do
+    attachments =
+      Attachments.list_attachments(
+        lesson_id: id,
+        is_teacher_only_resource: {:lesson, socket.assigns.is_teacher_only_resource}
       )
 
     handle_stream_attachments_socket_assigns(socket, attachments)
@@ -428,6 +446,9 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
       :moment_card_attachments ->
         LearningContext.update_moment_card_attachments_positions(attachments_ids)
 
+      :lesson_attachments ->
+        Lessons.update_lesson_attachments_positions(attachments_ids)
+
       :ilp_comment_attachments ->
         ILP.update_ilp_comment_attachments_positions(attachments_ids)
     end
@@ -445,7 +466,7 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
     # as attachment_id is handled in JS call, validate if it's part of the current attachments
     with true <- attachment_id in socket.assigns.attachments_ids,
          attachment <- Attachments.get_attachment!(attachment_id),
-         {:ok, attachment} <- LearningContext.toggle_moment_card_attachment_share(attachment) do
+         {:ok, attachment} <- toggle_attachment_share(socket.assigns.type, attachment) do
       notify(__MODULE__, {:updated, attachment}, socket.assigns)
       {:noreply, stream_insert(socket, :attachments, {attachment, i})}
     else
@@ -619,6 +640,34 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
     end
   end
 
+  defp save_attachment(%{assigns: %{type: :lesson_attachments}} = socket, :new, params) do
+    %{
+      current_user: current_user,
+      lesson_id: lesson_id,
+      is_teacher_only_resource: is_teacher_only_resource
+    } = socket.assigns
+
+    case Lessons.create_lesson_attachment(
+           current_user.current_profile_id,
+           lesson_id,
+           params,
+           is_teacher_only_resource || false
+         ) do
+      {:ok, attachment} ->
+        notify(__MODULE__, {:created, attachment}, socket.assigns)
+
+        socket =
+          socket
+          |> assign(:is_adding_external, false)
+          |> stream_attachments()
+
+        {:noreply, socket}
+
+      {:error, %Ecto.Changeset{} = changeset} ->
+        {:noreply, assign_form(socket, changeset)}
+    end
+  end
+
   defp save_attachment(%{assigns: %{type: :ilp_comment_attachments}} = socket, :new, params) do
     %{
       current_profile: current_profile,
@@ -666,4 +715,12 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
 
   defp assign_form(socket, %Ecto.Changeset{} = changeset),
     do: assign(socket, :form, to_form(changeset))
+
+  defp toggle_attachment_share(:moment_card_attachments, attachment),
+    do: LearningContext.toggle_moment_card_attachment_share(attachment)
+
+  defp toggle_attachment_share(:lesson_attachments, attachment),
+    do: Lessons.toggle_lesson_attachment_share(attachment)
+
+  defp toggle_attachment_share(_, _), do: {:error, gettext("Unsupported type")}
 end
