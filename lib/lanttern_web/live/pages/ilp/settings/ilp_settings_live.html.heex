@@ -38,6 +38,7 @@
             data-sortable-handle=".sortable-handle"
             data-group-name="sections"
             data-template-id={template.id}
+            data-sortable-event="sortable_update"
           >
             <.card_base
               :for={section <- template.sections}
@@ -55,6 +56,7 @@
                 data-sortable-handle=".sortable-handle"
                 data-group-name="components"
                 data-section-id={section.id}
+                data-sortable-event="sortable_update"
               >
                 <div
                   :for={component <- section.components}

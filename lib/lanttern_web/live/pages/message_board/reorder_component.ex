@@ -47,6 +47,7 @@ defmodule LantternWeb.MessageBoard.ReorderComponent do
           phx-target={@myself}
           id="sortable-section-cards"
           data-sortable-handle=".sortable-handle"
+          data-sortable-event="sortable_update"
           phx-update="ignore"
         >
           <.draggable_card

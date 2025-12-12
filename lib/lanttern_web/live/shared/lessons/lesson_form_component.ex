@@ -166,7 +166,7 @@ defmodule LantternWeb.Lessons.LessonFormComponent do
         {:ok, lesson} ->
           socket
           |> put_flash(:info, gettext("Lesson deleted"))
-          |> handle_navigation(lesson)
+          |> handle_navigation({:deleted, lesson})
 
         {:error, _changeset} ->
           # put_flash!(socket, :error, gettext("Something went wrong."))

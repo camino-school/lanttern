@@ -30,6 +30,7 @@ defmodule LantternWeb.StudentsSettingsLive.TagsComponent do
           id="student-tags"
           class="p-4"
           data-sortable-handle=".sortable-handle"
+          data-sortable-event="sortable_update"
           phx-update="ignore"
         >
           <.draggable_card

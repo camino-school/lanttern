@@ -29,7 +29,7 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
 
   use LantternWeb, :live_component
 
-  import Lanttern.Utils, only: [swap: 3]
+  import Lanttern.Utils, only: [reorder: 3]
 
   alias Lanttern.Assessments
   alias Lanttern.Attachments
@@ -68,23 +68,14 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
         attachments_length={@attachments_length}
         on_toggle_share={
           if @allow_editing && @type == :moment_card_attachments,
-            do: fn attachment_id, i ->
+            do: fn attachment_id ->
               JS.push("toggle_moment_card_attachment_share",
-                value: %{"attachment_id" => attachment_id, "index" => i},
+                value: %{"attachment_id" => attachment_id},
                 target: @myself
               )
             end
         }
-        on_move_up={
-          fn i ->
-            JS.push("reorder_attachments", value: %{from: i, to: i - 1}, target: @myself)
-          end
-        }
-        on_move_down={
-          fn i ->
-            JS.push("reorder_attachments", value: %{from: i, to: i + 1}, target: @myself)
-          end
-        }
+        sortable_event="sort_attachments"
         on_edit={&JS.push("edit", value: %{"id" => &1}, target: @myself)}
         on_remove={&JS.push("delete", value: %{"id" => &1}, target: @myself)}
       />
@@ -229,10 +220,6 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
       |> assign(:upload_error, nil)
       |> assign(:shared_with_student, nil)
       |> assign(:is_teacher_only_resource, nil)
-      |> stream_configure(
-        :attachments,
-        dom_id: fn {attachment, _i} -> "attachment-#{attachment.id}" end
-      )
       |> allow_upload(:attachment_file,
         accept: :any,
         max_file_size: 5_000_000,
@@ -331,7 +318,7 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
     attachments_ids = Enum.map(attachments, & &1.id)
 
     socket
-    |> stream(:attachments, Enum.with_index(attachments), reset: true)
+    |> stream(:attachments, attachments, reset: true)
     |> assign(:attachments_length, length(attachments))
     |> assign(:attachments_ids, attachments_ids)
   end
@@ -340,7 +327,7 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
     attachments_ids = Enum.map(attachments, & &1.id)
 
     socket
-    |> stream(:attachments, Enum.with_index(attachments), reset: true)
+    |> stream(:attachments, attachments, reset: true)
     |> assign(:attachments_length, length(attachments))
     |> assign(:attachments_ids, attachments_ids)
   end
@@ -428,10 +415,14 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
     end
   end
 
-  def handle_event("reorder_attachments", %{"from" => i, "to" => j}, socket) do
+  def handle_event(
+        "sort_attachments",
+        %{"oldIndex" => old_index, "newIndex" => new_index} = _payload,
+        socket
+      ) do
     attachments_ids =
       socket.assigns.attachments_ids
-      |> swap(i, j)
+      |> reorder(old_index, new_index)
 
     case socket.assigns.type do
       :note_attachments ->
@@ -460,7 +451,7 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
 
   def handle_event(
         "toggle_moment_card_attachment_share",
-        %{"attachment_id" => attachment_id, "index" => i},
+        %{"attachment_id" => attachment_id},
         socket
       ) do
     # as attachment_id is handled in JS call, validate if it's part of the current attachments
@@ -468,7 +459,7 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
          attachment <- Attachments.get_attachment!(attachment_id),
          {:ok, attachment} <- toggle_attachment_share(socket.assigns.type, attachment) do
       notify(__MODULE__, {:updated, attachment}, socket.assigns)
-      {:noreply, stream_insert(socket, :attachments, {attachment, i})}
+      {:noreply, stream_insert(socket, :attachments, attachment)}
     else
       _ ->
         {:noreply, put_flash(socket, :error, gettext("Something went wrong"))}

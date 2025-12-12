@@ -103,6 +103,7 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
             class="mt-8"
             phx-hook="Sortable"
             data-sortable-handle=".drag-handle"
+            data-sortable-event="sortable_update"
             data-moment-id="unattached"
             data-sortable-group="lessons"
           >
@@ -124,6 +125,7 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
               phx-update="stream"
               phx-hook="Sortable"
               data-sortable-handle=".drag-handle"
+              data-sortable-event="sortable_update"
               data-sortable-group="moments"
             >
               <div
@@ -161,6 +163,7 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
                   id={"moment-#{moment.id}-lessons"}
                   phx-hook="Sortable"
                   data-sortable-handle=".drag-handle"
+                  data-sortable-event="sortable_update"
                   phx-update="stream"
                   data-moment-id={moment.id}
                   data-sortable-group="lessons"
@@ -249,7 +252,7 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
               {:created, lesson} ->
                 ~p"/strands/lesson/#{lesson}"
 
-              {:updated, _lesson} ->
+              {_updated_or_deleted, _lesson} ->
                 if @subject_filter,
                   do: ~p"/strands/#{@strand}?subject=#{@subject_filter.id}",
                   else: ~p"/strands/#{@strand}"

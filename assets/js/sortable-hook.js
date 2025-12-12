@@ -5,8 +5,10 @@ import Sortable from 'sortablejs';
  * (e.g. use `data-section-name` for pattern matching).
  * 
  * The predefined data attributes are:
- * - `data-sortable-handle` - for `handle` opt
+ * - `data-sortable-event` (required) - the event name on pushEvent
+ * - `data-sortable-handle` (required) - for `handle` opt
  * - `data-sortable-group` - for `group` opt
+ * 
  */
 
 const sortableHook = {
@@ -26,7 +28,7 @@ const sortableHook = {
           to: evt.to.dataset
         };
 
-        hook.pushEventTo(el, "sortable_update", payload);
+        hook.pushEventTo(el, el.dataset.sortableEvent, payload);
       },
     };
 

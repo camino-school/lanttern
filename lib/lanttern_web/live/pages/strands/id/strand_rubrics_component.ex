@@ -72,6 +72,7 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
               id={"#{dom_id}-strand-rubrics"}
               data-sortable-handle=".sortable-handle"
               data-group-name="goal"
+              data-sortable-event="sortable_update"
               data-goal-id={goal.id}
             >
               <.rubric
@@ -145,6 +146,7 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
                 id={"#{dom_id}-strand-rubrics"}
                 data-sortable-handle=".sortable-handle"
                 data-group-name="goal-diff"
+                data-sortable-event="sortable_update"
                 data-goal-id={goal.id}
               >
                 <.rubric
