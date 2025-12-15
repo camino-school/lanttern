@@ -4,10 +4,12 @@ defmodule Lanttern.Lessons do
   """
 
   import Ecto.Query, warn: false
-  import Lanttern.RepoHelpers, only: [maybe_preload: 2, update_positions: 2]
+  import Lanttern.RepoHelpers, only: [maybe_preload: 2, update_positions: 2, update_positions: 3]
   alias Lanttern.Repo
 
+  alias Lanttern.Attachments.Attachment
   alias Lanttern.Lessons.Lesson
+  alias Lanttern.Lessons.LessonAttachment
 
   @doc """
   Returns the list of lessons.
@@ -222,5 +224,133 @@ defmodule Lanttern.Lessons do
   """
   def change_lesson(%Lesson{} = lesson, attrs \\ %{}) do
     Lesson.changeset(lesson, attrs)
+  end
+
+  # Lesson attachments
+
+  @doc """
+  Creates a lesson attachment.
+
+  Returns `{:ok, attachment}` on success.
+
+  The attachment is returned with a virtual `:is_teacher_only` field.
+
+  ## Examples
+
+      iex> create_lesson_attachment(profile_id, lesson_id, %{name: "doc", link: "http://..."}, false)
+      {:ok, %Attachment{is_teacher_only: false}}
+
+  """
+  @spec create_lesson_attachment(
+          profile_id :: pos_integer(),
+          lesson_id :: pos_integer(),
+          attachment_attrs :: map(),
+          is_teacher_only_resource :: boolean()
+        ) ::
+          {:ok, Attachment.t()} | {:error, Ecto.Changeset.t()}
+  def create_lesson_attachment(
+        profile_id,
+        lesson_id,
+        attachment_attrs,
+        is_teacher_only_resource \\ true
+      ) do
+    insert_query =
+      %Attachment{}
+      |> Attachment.changeset(Map.put(attachment_attrs, "owner_id", profile_id))
+
+    Ecto.Multi.new()
+    |> Ecto.Multi.insert(:insert_attachment, insert_query)
+    |> Ecto.Multi.run(
+      :link_lesson,
+      fn _repo, %{insert_attachment: attachment} ->
+        attrs =
+          from(
+            la in LessonAttachment,
+            where: la.lesson_id == ^lesson_id
+          )
+          |> set_position_in_attrs(%{
+            lesson_id: lesson_id,
+            attachment_id: attachment.id,
+            is_teacher_only_resource: is_teacher_only_resource,
+            owner_id: profile_id
+          })
+
+        %LessonAttachment{}
+        |> LessonAttachment.changeset(attrs)
+        |> Repo.insert()
+      end
+    )
+    |> Repo.transaction()
+    |> case do
+      {:error, _multi, changeset, _changes} ->
+        {:error, changeset}
+
+      {:ok, %{insert_attachment: attachment}} ->
+        {:ok, %{attachment | is_teacher_only: is_teacher_only_resource}}
+    end
+  end
+
+  defp set_position_in_attrs(query, attrs) do
+    position =
+      query
+      |> select([q], q.position)
+      |> order_by([q], desc: q.position)
+      |> limit(1)
+      |> Repo.one()
+      |> case do
+        nil -> 0
+        pos -> pos + 1
+      end
+
+    Map.put(attrs, :position, position)
+  end
+
+  @doc """
+  Update lesson attachments positions based on ids list order.
+
+  ## Examples
+
+      iex> update_lesson_attachments_positions([3, 2, 1])
+      :ok
+
+  """
+  @spec update_lesson_attachments_positions(attachments_ids :: [pos_integer()]) ::
+          :ok | {:error, String.t()}
+  def update_lesson_attachments_positions(attachments_ids),
+    do: update_positions(LessonAttachment, attachments_ids, id_field: :attachment_id)
+
+  @doc """
+  Toggle the lesson attachment `is_teacher_only_resource` field and returns the attachment with `is_teacher_only` field updated.
+
+  ## Examples
+
+      iex> toggle_lesson_attachment_share(attachment)
+      {:ok, %Attachment{is_teacher_only: false}}
+
+      iex> toggle_lesson_attachment_share(attachment)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  @spec toggle_lesson_attachment_share(Attachment.t()) ::
+          {:ok, Attachment.t()} | {:error, Ecto.Changeset.t()}
+  def toggle_lesson_attachment_share(attachment) do
+    lesson_attachment =
+      Repo.get_by!(
+        LessonAttachment,
+        attachment_id: attachment.id
+      )
+
+    lesson_attachment
+    |> LessonAttachment.changeset(%{
+      is_teacher_only_resource: !lesson_attachment.is_teacher_only_resource
+    })
+    |> Repo.update()
+    |> case do
+      {:ok, updated_lesson_attachment} ->
+        {:ok, %{attachment | is_teacher_only: updated_lesson_attachment.is_teacher_only_resource}}
+
+      {:error, changeset} ->
+        {:error, changeset}
+    end
   end
 end

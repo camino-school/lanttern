@@ -14,6 +14,8 @@ defmodule Lanttern.Attachments.Attachment do
   alias Lanttern.ILP.ILPCommentAttachment
   alias Lanttern.LearningContext.MomentCard
   alias Lanttern.LearningContext.MomentCardAttachment
+  alias Lanttern.Lessons.Lesson
+  alias Lanttern.Lessons.LessonAttachment
   alias Lanttern.Notes.Note
   alias Lanttern.Notes.NoteAttachment
   alias Lanttern.StudentsCycleInfo.StudentCycleInfo
@@ -35,6 +37,8 @@ defmodule Lanttern.Attachments.Attachment do
           student_cycle_info: StudentCycleInfo.t(),
           moment_card_attachment: MomentCardAttachment.t(),
           moment_card: MomentCard.t(),
+          lesson_attachment: LessonAttachment.t(),
+          lesson: Lesson.t(),
           ilp_comment_attachment: ILPCommentAttachment.t(),
           ilp_comment: ILPComment.t(),
           inserted_at: DateTime.t(),
@@ -51,8 +55,11 @@ defmodule Lanttern.Attachments.Attachment do
     field :signed_link, :string, virtual: true
     field :signed_link_error, :boolean, default: false, virtual: true
 
-    # used in the context of moment card attachments
+    # used in the context of moment card attachments and student cycle info
     field :is_shared, :boolean, virtual: true
+
+    # used in the context of lesson attachments
+    field :is_teacher_only, :boolean, virtual: true
 
     belongs_to :owner, Profile
 
@@ -69,6 +76,9 @@ defmodule Lanttern.Attachments.Attachment do
 
     has_one :moment_card_attachment, MomentCardAttachment
     has_one :moment_card, through: [:moment_card_attachment, :moment_card]
+
+    has_one :lesson_attachment, LessonAttachment
+    has_one :lesson, through: [:lesson_attachment, :lesson]
 
     has_one :ilp_comment_attachment, ILPCommentAttachment
     has_one :ilp_comment, through: [:ilp_comment_attachment, :ilp_comment]

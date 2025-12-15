@@ -12,13 +12,16 @@ defmodule LantternWeb.AttachmentsComponents do
   alias LantternWeb.Attachments.AttachmentViewComponent
 
   @doc """
-  Renders an assessment point entry badge.
+  Renders an attachment list.
   """
   attr :attachments, :any, required: true, doc: "list or stream of attachments."
   attr :allow_editing, :boolean, default: false
   attr :attachments_length, :integer, default: nil, doc: "required when edit is allowed"
-  attr :on_move_up, :any, default: nil, doc: "function. required when edit is allowed"
-  attr :on_move_down, :any, default: nil, doc: "function. required when edit is allowed"
+
+  attr :sortable_event, :string,
+    default: nil,
+    doc: "the value used in `data-sortable-event`. required when edit is allowed"
+
   attr :on_edit, :any, default: nil, doc: "function. required when edit is allowed"
   attr :on_remove, :any, default: nil, doc: "function. required when edit is allowed"
 
@@ -29,26 +32,37 @@ defmodule LantternWeb.AttachmentsComponents do
   attr :id, :string, required: true
   attr :class, :any, default: nil
 
+  attr :sortable_group, :string,
+    default: nil,
+    doc: "enables cross-component drag-and-drop via SortableJS groups"
+
+  attr :component_id, :string,
+    default: nil,
+    doc: "parent component ID for source/target detection in cross-component drags"
+
   def attachments_list(assigns) do
     attachments = normalize_attachments(assigns)
     assigns = assign(assigns, :attachments, attachments)
 
     ~H"""
-    <ul id={@id} phx-update="stream" class={@class}>
+    <ul
+      id={@id}
+      phx-update="stream"
+      class={@class}
+      phx-hook="Sortable"
+      data-sortable-handle=".sortable-handle"
+      data-sortable-event={@sortable_event}
+      data-sortable-group={@sortable_group}
+      data-component-id={@component_id}
+    >
       <li
-        :for={{dom_id, {attachment, i}} <- @attachments}
+        :for={{dom_id, attachment} <- @attachments}
         id={"#{@id}-#{dom_id}"}
         class="flex items-center gap-4 mt-4"
       >
         <%= if @allow_editing do %>
-          <.sortable_card
-            is_move_up_disabled={i == 0}
-            on_move_up={@on_move_up.(i)}
-            is_move_down_disabled={i + 1 == @attachments_length}
-            on_move_down={@on_move_down.(i)}
-            class="flex-1 min-w-0"
-          >
-            <div class="flex items-center gap-4">
+          <.draggable_card class="flex-1 flex items-center gap-4 min-w-0 px-4 py-6">
+            <div class="flex-1 flex items-center gap-4">
               <button
                 type="button"
                 phx-hook="CopyToClipboard"
@@ -78,7 +92,7 @@ defmodule LantternWeb.AttachmentsComponents do
                   <.toggle
                     enabled={attachment.is_shared}
                     theme="student"
-                    phx-click={@on_toggle_share.(attachment.id, i)}
+                    phx-click={@on_toggle_share.(attachment.id)}
                   />
                   <span :if={attachment.is_shared} class="text-ltrn-student-dark">
                     {gettext("Shared with students and guardians")}
@@ -89,7 +103,7 @@ defmodule LantternWeb.AttachmentsComponents do
                 </div>
               </div>
             </div>
-          </.sortable_card>
+          </.draggable_card>
           <.menu_button id={attachment.id}>
             <:item
               :if={attachment.is_external}
@@ -118,16 +132,15 @@ defmodule LantternWeb.AttachmentsComponents do
     """
   end
 
-  # normalize all attachments to indexed LiveStream format {dom_id, {attachment, index}}
+  # normalize all attachments to LiveStream format {dom_id, attachment}
 
   defp normalize_attachments(%{attachments: %Phoenix.LiveView.LiveStream{} = attachments}),
     do: attachments
 
   defp normalize_attachments(%{attachments: attachments, id: component_id}) do
     attachments
-    |> Enum.with_index()
-    |> Enum.map(fn {attachment, i} ->
-      {"#{component_id}-attachment-#{attachment.id}", {attachment, i}}
+    |> Enum.map(fn attachment ->
+      {"#{component_id}-attachment-#{attachment.id}", attachment}
     end)
   end
 end

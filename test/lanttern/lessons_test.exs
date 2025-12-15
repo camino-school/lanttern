@@ -460,4 +460,131 @@ defmodule Lanttern.LessonsTest do
       assert updated_lesson.description == nil
     end
   end
+
+  describe "lesson attachments" do
+    alias Lanttern.Attachments
+    alias Lanttern.Lessons.LessonAttachment
+
+    test "create_lesson_attachment/4 creates attachment linked to lesson with is_teacher_only true when teacher-only" do
+      profile = insert(:profile)
+      lesson = insert(:lesson)
+
+      {:ok, attachment} =
+        Lessons.create_lesson_attachment(
+          profile.id,
+          lesson.id,
+          %{"name" => "teacher doc", "link" => "https://example.com", "is_external" => true},
+          true
+        )
+
+      assert attachment.is_teacher_only == true
+    end
+
+    test "create_lesson_attachment/4 creates attachment linked to lesson with is_teacher_only false when not teacher-only" do
+      profile = insert(:profile)
+      lesson = insert(:lesson)
+
+      {:ok, attachment} =
+        Lessons.create_lesson_attachment(
+          profile.id,
+          lesson.id,
+          %{"name" => "student doc", "link" => "https://example.com", "is_external" => true},
+          false
+        )
+
+      assert attachment.is_teacher_only == false
+    end
+
+    test "create_lesson_attachment/4 sets position automatically" do
+      profile = insert(:profile)
+      lesson = insert(:lesson)
+
+      {:ok, attachment_1} =
+        Lessons.create_lesson_attachment(
+          profile.id,
+          lesson.id,
+          %{"name" => "doc 1", "link" => "https://example.com", "is_external" => true}
+        )
+
+      {:ok, attachment_2} =
+        Lessons.create_lesson_attachment(
+          profile.id,
+          lesson.id,
+          %{"name" => "doc 2", "link" => "https://example.com", "is_external" => true}
+        )
+
+      lesson_attachment_1 =
+        Repo.get_by!(LessonAttachment, attachment_id: attachment_1.id)
+
+      lesson_attachment_2 =
+        Repo.get_by!(LessonAttachment, attachment_id: attachment_2.id)
+
+      assert lesson_attachment_1.position == 0
+      assert lesson_attachment_2.position == 1
+    end
+
+    test "update_lesson_attachments_positions/1 updates positions" do
+      lesson = insert(:lesson)
+      profile = insert(:profile)
+
+      {:ok, attachment_1} =
+        Lessons.create_lesson_attachment(
+          profile.id,
+          lesson.id,
+          %{"name" => "doc 1", "link" => "https://example.com", "is_external" => true}
+        )
+
+      {:ok, attachment_2} =
+        Lessons.create_lesson_attachment(
+          profile.id,
+          lesson.id,
+          %{"name" => "doc 2", "link" => "https://example.com", "is_external" => true}
+        )
+
+      {:ok, attachment_3} =
+        Lessons.create_lesson_attachment(
+          profile.id,
+          lesson.id,
+          %{"name" => "doc 3", "link" => "https://example.com", "is_external" => true}
+        )
+
+      # reorder: 3, 1, 2
+      :ok =
+        Lessons.update_lesson_attachments_positions([
+          attachment_3.id,
+          attachment_1.id,
+          attachment_2.id
+        ])
+
+      # verify order via list_attachments
+      [expected_1, expected_2, expected_3] =
+        Attachments.list_attachments(lesson_id: lesson.id)
+
+      assert expected_1.id == attachment_3.id
+      assert expected_2.id == attachment_1.id
+      assert expected_3.id == attachment_2.id
+    end
+
+    test "toggle_lesson_attachment_share/1 toggles is_teacher_only_resource and returns correct is_teacher_only" do
+      profile = insert(:profile)
+      lesson = insert(:lesson)
+
+      {:ok, attachment} =
+        Lessons.create_lesson_attachment(
+          profile.id,
+          lesson.id,
+          %{"name" => "doc", "link" => "https://example.com", "is_external" => true},
+          true
+        )
+
+      assert attachment.is_teacher_only == true
+
+      {:ok, toggled_attachment} = Lessons.toggle_lesson_attachment_share(attachment)
+      assert toggled_attachment.is_teacher_only == false
+
+      # verify in database
+      lesson_attachment = Repo.get_by!(LessonAttachment, attachment_id: attachment.id)
+      assert lesson_attachment.is_teacher_only_resource == false
+    end
+  end
 end

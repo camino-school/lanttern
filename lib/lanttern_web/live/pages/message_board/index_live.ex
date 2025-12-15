@@ -145,6 +145,7 @@ defmodule LantternWeb.MessageBoard.IndexLive do
             phx-hook="Sortable"
             id="sortable-section-cards"
             data-sortable-handle=".sortable-handle"
+            data-sortable-event="sortable_update"
             phx-update="ignore"
           >
             <.draggable_card

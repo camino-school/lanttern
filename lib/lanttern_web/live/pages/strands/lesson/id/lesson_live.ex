@@ -6,6 +6,7 @@ defmodule LantternWeb.LessonLive do
 
   # shared components
   import LantternWeb.LearningContextComponents, only: [mini_strand_card: 1]
+  alias LantternWeb.Attachments.AttachmentAreaComponent
   alias LantternWeb.Lessons.LessonFormComponent
 
   # lifecycle
