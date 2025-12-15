@@ -66,6 +66,8 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
         attachments={@streams.attachments}
         allow_editing={@allow_editing}
         attachments_length={@attachments_length}
+        sortable_group={@sortable_group}
+        component_id={@id}
         on_toggle_share={
           if @allow_editing && @type == :moment_card_attachments,
             do: fn attachment_id ->
@@ -220,12 +222,47 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
       |> assign(:upload_error, nil)
       |> assign(:shared_with_student, nil)
       |> assign(:is_teacher_only_resource, nil)
+      |> assign(:sortable_group, nil)
       |> allow_upload(:attachment_file,
         accept: :any,
         max_file_size: 5_000_000,
         max_entries: 1
       )
       |> assign(:initialized, false)
+
+    {:ok, socket}
+  end
+
+  @impl true
+  def update(%{action: :receive_attachment} = assigns, socket) do
+    %{attachment_id: attachment_id, new_index: new_index} = assigns
+
+    socket =
+      case socket.assigns.type do
+        :lesson_attachments ->
+          attachment = Attachments.get_attachment!(attachment_id)
+
+          case Lessons.toggle_lesson_attachment_share(attachment) do
+            {:ok, _updated_attachment} ->
+              # Insert at dropped position in ids list
+              attachments_ids =
+                List.insert_at(socket.assigns.attachments_ids, new_index, attachment_id)
+
+              # Update positions in DB
+              Lessons.update_lesson_attachments_positions(attachments_ids)
+
+              # OPTIMIZATION: Just update ids, don't reload all
+              socket
+              |> assign(:attachments_ids, attachments_ids)
+              |> assign(:attachments_length, length(attachments_ids))
+
+            {:error, _} ->
+              put_flash(socket, :error, gettext("Failed to move attachment"))
+          end
+
+        _ ->
+          put_flash(socket, :error, gettext("Operation not supported"))
+      end
 
     {:ok, socket}
   end
@@ -415,11 +452,51 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
     end
   end
 
+  # Cross-component drag: from one AttachmentAreaComponent to another
+  def handle_event(
+        "sort_attachments",
+        %{
+          "from" => %{"componentId" => from_id},
+          "to" => %{"componentId" => to_id},
+          "oldIndex" => old_index,
+          "newIndex" => new_index
+        },
+        socket
+      )
+      when from_id != to_id do
+    # SOURCE component: remove and notify target
+
+    {attachment_id, remaining_ids} =
+      List.pop_at(socket.assigns.attachments_ids, old_index)
+
+    # Validate attachment belongs to this component
+    if attachment_id in socket.assigns.attachments_ids do
+      send_update(__MODULE__,
+        id: to_id,
+        action: :receive_attachment,
+        attachment_id: attachment_id,
+        new_index: new_index
+      )
+
+      # Update our state (DON'T update positions in DB per user requirement)
+      socket =
+        socket
+        |> assign(:attachments_ids, remaining_ids)
+        |> assign(:attachments_length, length(remaining_ids))
+
+      {:noreply, socket}
+    else
+      {:noreply, put_flash(socket, :error, gettext("Invalid attachment"))}
+    end
+  end
+
+  # Within-component drag: reordering within the same component
   def handle_event(
         "sort_attachments",
         %{"oldIndex" => old_index, "newIndex" => new_index} = _payload,
         socket
-      ) do
+      )
+      when old_index != new_index do
     attachments_ids =
       socket.assigns.attachments_ids
       |> reorder(old_index, new_index)
@@ -444,10 +521,18 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
         ILP.update_ilp_comment_attachments_positions(attachments_ids)
     end
     |> case do
-      :ok -> {:noreply, stream_attachments(socket)}
-      {:error, msg} -> {:noreply, put_flash(socket, :error, msg)}
+      :ok ->
+        # OPTIMIZATION: Don't stream attachments (SortableJS already updated UI)
+        # Just update the ids list in assigns
+        {:noreply, assign(socket, :attachments_ids, attachments_ids)}
+
+      {:error, msg} ->
+        {:noreply, put_flash(socket, :error, msg)}
     end
   end
+
+  # Catch-all for when indexes are the same (no movement)
+  def handle_event("sort_attachments", _payload, socket), do: {:noreply, socket}
 
   def handle_event(
         "toggle_moment_card_attachment_share",

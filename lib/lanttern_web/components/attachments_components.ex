@@ -32,6 +32,14 @@ defmodule LantternWeb.AttachmentsComponents do
   attr :id, :string, required: true
   attr :class, :any, default: nil
 
+  attr :sortable_group, :string,
+    default: nil,
+    doc: "enables cross-component drag-and-drop via SortableJS groups"
+
+  attr :component_id, :string,
+    default: nil,
+    doc: "parent component ID for source/target detection in cross-component drags"
+
   def attachments_list(assigns) do
     attachments = normalize_attachments(assigns)
     assigns = assign(assigns, :attachments, attachments)
@@ -44,6 +52,8 @@ defmodule LantternWeb.AttachmentsComponents do
       phx-hook="Sortable"
       data-sortable-handle=".sortable-handle"
       data-sortable-event={@sortable_event}
+      data-sortable-group={@sortable_group}
+      data-component-id={@component_id}
     >
       <li
         :for={{dom_id, attachment} <- @attachments}
