@@ -161,8 +161,11 @@ defmodule LantternWeb.OverlayComponents do
   attr :id, :string, required: true
   attr :show, :boolean, default: false
   attr :on_cancel, JS, default: %JS{}
+  attr :sticky_header, :boolean, default: false
   attr :prevent_close_on_click_away, :boolean, default: false
+  attr :full_y, :boolean, default: false
   attr :full_w, :boolean, default: false
+  attr :bg_color, :string, default: ""
 
   slot :title
   slot :inner_block, required: true
@@ -170,6 +173,19 @@ defmodule LantternWeb.OverlayComponents do
   slot :actions_left
 
   def slide_over(assigns) do
+    bg_style =
+      if Map.get(assigns, :bg_color, "") != "" and not is_nil(assigns.bg_color) do
+        color = assigns.bg_color || "#FFE4E6"
+
+        "background-image: radial-gradient(circle at 100% 160px, #{color}1f 240px, transparent 360px), " <>
+          "radial-gradient(circle at 85% -200px, #{color}14 360px, transparent 480px), " <>
+          "radial-gradient(circle at 15% 96px, #{color}10 360px, transparent 480px);"
+      else
+        nil
+      end
+
+    assigns = assign(assigns, :bg_style, bg_style)
+
     ~H"""
     <div
       id={@id}
@@ -183,14 +199,14 @@ defmodule LantternWeb.OverlayComponents do
       <div
         class="fixed inset-0 overflow-hidden"
         tabindex="0"
-        aria-labelledby={"#{@id}-title"}
+        aria-labelledby={"#{@id}-header"}
         aria-describedby={"#{@id}-description"}
         role="dialog"
         aria-modal="true"
       >
         <div class="absolute inset-0 overflow-hidden">
           <div class={[
-            "pointer-events-none fixed top-20 bottom-0 flex max-w-full",
+            "#{if @full_y, do: "top-0", else: "top-20"} pointer-events-none fixed bottom-0 flex max-w-full",
             "md:inset-y-0 md:right-0"
           ]}>
             <.focus_wrap
@@ -203,11 +219,16 @@ defmodule LantternWeb.OverlayComponents do
               class="pointer-events-auto w-screen md:max-w-xl transition-translate"
             >
               <div class="flex flex-col h-full divide-y divide-ltrn-lighter bg-white shadow-xl rounded-l">
-                <div class="flex-1 min-h-0 overflow-y-scroll ltrn-bg-slide-over">
+                <div class="flex-1 min-h-0 overflow-y-scroll ltrn-bg-slide-over" style={@bg_style}>
                   <h2
                     :if={@title != []}
-                    class="px-4 sm:px-6 py-6 font-display font-black text-3xl"
-                    id={"#{@id}-title"}
+                    class={
+                      if @sticky_header,
+                        do:
+                          "sticky top-0 z-10 px-4 sm:px-6 py-6 font-display font-black text-3xl bg-white/60 backdrop-blur",
+                        else: "px-4 sm:px-6 py-6 font-display font-black text-3xl"
+                    }
+                    id={"#{@id}-header"}
                   >
                     {render_slot(@title)}
                   </h2>

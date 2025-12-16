@@ -71,7 +71,7 @@ defmodule Lanttern.MixProject do
       {:bandit, "~> 1.5"},
       {:timex, "~> 3.0"},
       {:joken, "~> 2.5"},
-      {:joken_jwks, "~> 1.6.0"},
+      {:joken_jwks, "~> 1.7"},
       {:benchee, "~> 1.0", only: :dev},
       {:ex_doc, "~> 0.27", runtime: false},
       {:earmark, "~> 1.4"},
@@ -83,7 +83,7 @@ defmodule Lanttern.MixProject do
       {:slugify, "~> 1.3"},
       {:image, "~> 0.37"},
       {:ex_openai, "~> 1.8.0-beta"},
-      {:tidewave, "~> 0.1.10", only: :dev},
+      {:tidewave, "~> 0.3", only: :dev},
       {:excoveralls, "~> 0.18", only: :test},
       {:phoenix_test, "~> 0.7.1", only: :test, runtime: false},
       {:ex_machina, "~> 2.8.0", only: :test},
@@ -94,7 +94,9 @@ defmodule Lanttern.MixProject do
       {:cachex, "~> 4.1"},
       {:oban, "~> 2.20"},
       {:usage_rules, "~> 0.1", only: [:dev]},
-      {:igniter, "~> 0.6", only: [:dev]}
+      {:igniter, "~> 0.6", only: [:dev]},
+      {:live_debugger, "~> 0.3.0", only: :dev},
+      {:mix_audit, "~> 2.1", only: [:dev, :test], runtime: false}
     ]
   end
 
@@ -110,8 +112,7 @@ defmodule Lanttern.MixProject do
       "setup.no-ecto": ["deps.get", "assets.setup", "assets.build"],
       "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
       "ecto.reset": ["ecto.drop", "ecto.setup"],
-      test: ["ecto.create --quiet", "ecto.migrate --quiet", "test --cover"],
-      "test.drop": ["ecto.drop", "test"],
+      test: ["ecto.drop", "ecto.create --quiet", "ecto.migrate --quiet", "test --cover"],
       "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],
       "assets.build": ["cmd --cd assets npm i", "tailwind lanttern", "esbuild lanttern"],
       "assets.deploy": [
@@ -120,11 +121,17 @@ defmodule Lanttern.MixProject do
         "esbuild lanttern --minify",
         "phx.digest"
       ],
+      restore: [
+        "ecto.drop",
+        "ecto.create",
+        "cmd PGPASSWORD=postgres pg_restore --verbose --clean --no-acl --no-owner -h localhost -U postgres -d lanttern_dev lanttern.backup"
+      ],
       precommit: [
         "compile --warning-as-errors",
         "deps.unlock --unused",
         "format",
         "credo --strict",
+        "deps.audit",
         "test"
       ]
     ]

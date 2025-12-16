@@ -3,10 +3,14 @@ defmodule Lanttern.MessageBoardV2 do
   The MessageBoardV2 context - Version 2
   """
   import Ecto.Query, warn: false
-  alias Lanttern.Repo
   import Lanttern.RepoHelpers
+
+  alias Lanttern.Attachments.Attachment
+  alias Lanttern.MessageBoard.MessageAttachment
   alias Lanttern.MessageBoard.MessageV2, as: Message
   alias Lanttern.MessageBoard.Section
+  alias Lanttern.Repo
+  alias Lanttern.Schools.Class
 
   @doc """
   Returns the list of messages ordered by updated_at and position.
@@ -164,6 +168,88 @@ defmodule Lanttern.MessageBoardV2 do
   end
 
   @doc """
+  Archive a message.
+
+  Kind of a soft delete, using the `archived_at` field.
+
+  ## Examples
+
+      iex> archive_message(message)
+      {:ok, %Message{}}
+
+      iex> archive_message(message)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  @spec archive_message(Message.t()) ::
+          {:ok, Message.t()} | {:error, Ecto.Changeset.t()}
+  def archive_message(%Message{} = message) do
+    total_messages =
+      from(m in Message,
+        where: m.section_id == ^message.section_id,
+        select: count(m.id)
+      )
+      |> Repo.one()
+
+    max_archived_position =
+      from(m in Message,
+        where: m.section_id == ^message.section_id and not is_nil(m.archived_at),
+        select: max(m.position)
+      )
+      |> Repo.one()
+
+    new_position =
+      case max_archived_position do
+        nil -> total_messages
+        max_pos -> max_pos + 1
+      end
+
+    message
+    |> Message.archive_changeset()
+    |> Ecto.Changeset.put_change(:position, new_position)
+    |> Repo.update()
+  end
+
+  @doc """
+  Unarchive a message.
+
+  Sets `archived_at` field to nil.
+
+  ## Examples
+
+  iex> unarchive_message(message)
+  {:ok, %StaffMember{}}
+
+  iex> unarchive_message(message)
+  {:error, %Ecto.Changeset{}}
+
+  """
+  @spec unarchive_message(Message.t()) ::
+          {:ok, Message.t()} | {:error, Ecto.Changeset.t()}
+  def unarchive_message(%Message{} = message) do
+    non_archived_count = count_non_archived_messages_in_section(message.section_id)
+
+    message
+    |> Message.unarchive_changeset()
+    |> Ecto.Changeset.put_change(:position, non_archived_count + 1)
+    |> Repo.update()
+  end
+
+  @doc """
+  Counts non-archived messages in a section.
+  Returns 0 if section_id is nil.
+  """
+  def count_non_archived_messages_in_section(nil), do: 0
+
+  def count_non_archived_messages_in_section(section_id) do
+    from(m in Message,
+      where: m.section_id == ^section_id and is_nil(m.archived_at),
+      select: count(m.id)
+    )
+    |> Repo.one()
+  end
+
+  @doc """
   Deletes a message.
 
   Returns `{:ok, message}` if successful, `{:error, changeset}` otherwise.
@@ -278,6 +364,40 @@ defmodule Lanttern.MessageBoardV2 do
               mc.class_id in ^classes_ids
         )
     end
+  end
+
+  @doc """
+  Lists sections with messages filtered by student.
+
+  A message is related to the student if it's sent to the student's classes or school.
+  Returns sections with their associated messages filtered by student access.
+  """
+  def list_sections_for_students(student_id, school_id) do
+    student_classes_ids =
+      from(
+        cl in Class,
+        join: cs in "classes_students",
+        on: cl.id == cs.class_id,
+        where: cs.student_id == ^student_id,
+        select: cl.id
+      )
+      |> Repo.all()
+
+    messages_query =
+      from(
+        m in Message,
+        left_join: mc in assoc(m, :message_classes),
+        where: is_nil(m.archived_at),
+        order_by: m.position
+      )
+      |> apply_section_opts(classes_ids: student_classes_ids, school_id: school_id)
+
+    from(s in Section,
+      where: s.school_id == ^school_id,
+      order_by: s.position
+    )
+    |> preload(messages: ^messages_query)
+    |> Repo.all()
   end
 
   @doc """
@@ -472,4 +592,77 @@ defmodule Lanttern.MessageBoardV2 do
   """
   def update_sections_positions(sections_ids) when is_list(sections_ids),
     do: update_positions(Section, sections_ids)
+
+  # @doc """
+  # Returns the list of message_attachments.
+
+  # ## Examples
+
+  #     iex> list_message_attachments()
+  #     [%MessageAttachment{}, ...]
+
+  # """
+  def list_message_attachments do
+    Repo.all(MessageAttachment)
+  end
+
+  # @doc """
+  # Gets a single message_attachment.
+
+  # Raises `Ecto.NoResultsError` if the Message attachment does not exist.
+
+  # ## Examples
+
+  #     iex> get_message_attachment!(123)
+  #     %MessageAttachment{}
+
+  #     iex> get_message_attachment!(456)
+  #     ** (Ecto.NoResultsError)
+
+  # """
+  def get_message_attachment!(id), do: Repo.get!(MessageAttachment, id)
+
+  @doc """
+  Creates a message_attachment.
+  """
+  @spec create_message_attachment(pos_integer(), pos_integer(), map()) ::
+          {:ok, Attachment.t()} | {:error, Ecto.Changeset.t()}
+  def create_message_attachment(profile_id, message_id, attrs) do
+    insert_query =
+      %Attachment{}
+      |> Attachment.changeset(Map.put(attrs, "owner_id", profile_id))
+
+    Ecto.Multi.new()
+    |> Ecto.Multi.insert(:insert_attachment, insert_query)
+    |> Ecto.Multi.run(:set_position, fn _repo, %{insert_attachment: attachment} ->
+      from(
+        ma in MessageAttachment,
+        where: ma.message_id == ^message_id
+      )
+      |> set_position_in_attrs(%{
+        message_id: message_id,
+        attachment_id: attachment.id,
+        owner_id: profile_id
+      })
+      |> then(&{:ok, &1})
+    end)
+    |> Ecto.Multi.insert(:link_message, fn %{set_position: attrs} ->
+      MessageAttachment.changeset(%MessageAttachment{}, attrs)
+    end)
+    |> Repo.transaction()
+    |> case do
+      {:error, _multi, changeset, _changes} -> {:error, changeset}
+      {:ok, %{insert_attachment: attachment}} -> {:ok, attachment}
+    end
+  end
+
+  @doc """
+  Update message attachments positions based on ids list order.
+
+  Expects a list of attachment ids in the new order.
+  """
+  @spec update_message_attachments_positions(attachments_ids :: [pos_integer()]) ::
+          :ok | {:error, String.t()}
+  def update_message_attachments_positions(attachments_ids),
+    do: update_positions(MessageAttachment, attachments_ids, id_field: :attachment_id)
 end

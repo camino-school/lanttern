@@ -1,8 +1,10 @@
 defmodule LantternWeb.ArchivedMessagesLiveTest do
   use LantternWeb.ConnCase
 
-  alias Lanttern.MessageBoard
-  alias Lanttern.MessageBoardFixtures
+  alias Lanttern.MessageBoardV2, as: MessageBoard
+  alias Lanttern.Schools
+
+  import Lanttern.Factory
 
   @live_view_path "/school/message_board/archive"
 
@@ -11,17 +13,21 @@ defmodule LantternWeb.ArchivedMessagesLiveTest do
   describe "Archived message board" do
     test "list archived messages", %{conn: conn, user: user} do
       school_id = user.current_profile.school_id
+      school = Schools.get_school!(school_id)
+      section = insert(:section, %{school: school})
 
       message =
-        MessageBoardFixtures.message_fixture(%{
-          school_id: school_id,
+        insert(:message, %{
+          school: school,
+          section: section,
           name: "not archived message abc",
           description: "not archived message desc abc"
         })
 
       {:ok, archived} =
-        MessageBoardFixtures.message_fixture(%{
-          school_id: school_id,
+        insert(:message, %{
+          school: school,
+          section: section,
           name: "archived message abc",
           description: "archived message desc abc"
         })
@@ -29,26 +35,24 @@ defmodule LantternWeb.ArchivedMessagesLiveTest do
 
       {:ok, view, _html} = live(conn, @live_view_path)
 
-      refute view |> has_element?("h5", message.name)
-      refute view |> has_element?("p", message.description)
-
-      assert view |> has_element?("h5", archived.name)
-      assert view |> has_element?("p", archived.description)
+      refute view |> has_element?("h3", message.name)
+      assert view |> has_element?("h3", archived.name)
     end
 
-    test "display unarchive and delete buttons to communication manager", context do
+    test "display unarchive button to communication manager", context do
       %{conn: conn, user: user} = set_user_permissions(["communication_management"], context)
 
       school_id = user.current_profile.school_id
+      school = Schools.get_school!(school_id)
+      section = insert(:section, %{school: school})
 
       {:ok, _message} =
-        MessageBoardFixtures.message_fixture(%{school_id: school_id})
+        insert(:message, %{school: school, section: section})
         |> MessageBoard.archive_message()
 
       {:ok, view, _html} = live(conn, @live_view_path)
 
-      assert view |> has_element?("button", "Unarchive")
-      assert view |> has_element?("button", "Delete")
+      assert view |> has_element?("button[title='Unarchive']")
     end
 
     test "hide unarchive and delete buttons when not communication manager", %{
@@ -56,9 +60,11 @@ defmodule LantternWeb.ArchivedMessagesLiveTest do
       user: user
     } do
       school_id = user.current_profile.school_id
+      school = Schools.get_school!(school_id)
+      section = insert(:section, %{school: school})
 
       {:ok, _message} =
-        MessageBoardFixtures.message_fixture(%{school_id: school_id})
+        insert(:message, %{school: school, section: section})
         |> MessageBoard.archive_message()
 
       {:ok, view, _html} = live(conn, @live_view_path)

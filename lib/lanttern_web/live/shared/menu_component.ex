@@ -460,6 +460,13 @@ defmodule LantternWeb.MenuComponent do
         path: ~p"/grades_reports",
         text: gettext("Grades reports")
       },
+      # Message Board V2
+      #  %{
+      #   profile: "staff",
+      #   active: :message_board,
+      #   path: ~p"/school/message_board",
+      #   text: gettext("Message Board")
+      # },
       # student
       %{
         profile: "student",
