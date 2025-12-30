@@ -111,7 +111,7 @@ defmodule LantternWeb.Attachments.AttachmentViewComponent do
   defp fetch_presigned_url(%{assigns: %{attachment: %{is_external: false} = attachment}} = socket) do
     socket
     |> start_async(:fetch_presigned_url, fn ->
-      case SupabaseHelpers.create_signed_url(attachment.link, download: attachment.name) do
+      case SupabaseHelpers.create_signed_url(attachment.link) do
         {:ok, url} ->
           %{attachment | signed_link: url}
 
