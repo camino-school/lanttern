@@ -143,6 +143,99 @@ defmodule Lanttern.IdentityFixtures do
     )
   end
 
+  @doc """
+  Generate a scope for testing based on a user fixture.
+
+  Defaults to creating a scope for a staff member user with no permissions.
+
+  ## Examples
+
+      iex> scope_fixture()
+      %Scope{user: %User{}, profile: %Profile{}, school_id: 1}
+
+      iex> scope_fixture(permissions: ["manage_posts"])
+      %Scope{user: %User{}, profile: %Profile{}, permissions: ["manage_posts"]}
+
+  """
+  def scope_fixture(attrs \\ %{}) do
+    permissions = Map.get(attrs, :permissions, [])
+    user = current_staff_member_user_fixture(%{}, permissions)
+    Identity.Scope.for_user(user)
+  end
+
+  @doc """
+  Generate a staff member scope for testing.
+
+  Creates a scope with a staff member profile.
+
+  ## Options
+
+  - `:permissions` - list of permissions to assign to the scope
+  - Other attrs are passed to staff_member_fixture
+
+  """
+  def staff_scope_fixture(attrs \\ %{}) do
+    scope_fixture(attrs)
+  end
+
+  @doc """
+  Generate a student scope for testing.
+
+  Creates a scope with a student profile.
+  """
+  def student_scope_fixture(attrs \\ %{}) do
+    user = user_fixture()
+    student = student_fixture(attrs) |> Lanttern.Repo.preload(:school)
+
+    student_profile =
+      student_profile_fixture(%{user_id: user.id, student_id: student.id})
+
+    user =
+      user
+      |> Map.put(
+        :current_profile,
+        %Identity.Profile{
+          id: student_profile.id,
+          name: student.name,
+          type: "student",
+          school_id: student.school.id,
+          school_name: student.school.name,
+          permissions: []
+        }
+      )
+
+    Identity.Scope.for_user(user)
+  end
+
+  @doc """
+  Generate a guardian scope for testing.
+
+  Creates a scope with a guardian profile.
+  """
+  def guardian_scope_fixture(attrs \\ %{}) do
+    user = user_fixture()
+    student = student_fixture(attrs) |> Lanttern.Repo.preload(:school)
+
+    guardian_profile =
+      guardian_profile_fixture(%{user_id: user.id, guardian_of_student_id: student.id})
+
+    user =
+      user
+      |> Map.put(
+        :current_profile,
+        %Identity.Profile{
+          id: guardian_profile.id,
+          name: "Guardian of #{student.name}",
+          type: "guardian",
+          school_id: student.school.id,
+          school_name: student.school.name,
+          permissions: []
+        }
+      )
+
+    Identity.Scope.for_user(user)
+  end
+
   # helpers
 
   def maybe_gen_profile_id(attrs, opts \\ [])
