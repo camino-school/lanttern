@@ -31,6 +31,7 @@ msgstr ""
 msgid "Curriculum"
 msgstr ""
 
+#: lib/lanttern_web/live/pages/agents/settings/agents_settings_live.html.heex:4
 #: lib/lanttern_web/live/pages/dashboard/dashboard_live.ex:19
 #: lib/lanttern_web/live/shared/menu_component.ex:426
 #, elixir-autogen, elixir-format
@@ -100,6 +101,7 @@ msgstr ""
 #: lib/lanttern_web/components/form_components.ex:815
 #: lib/lanttern_web/components/overlay_components.ex:610
 #: lib/lanttern_web/components/overlay_components.ex:673
+#: lib/lanttern_web/live/pages/agents/settings/agent_card_component.ex:121
 #: lib/lanttern_web/live/pages/curriculum/component/id/curriculum_component_live.html.heex:168
 #: lib/lanttern_web/live/pages/grades_report/grades_reports_live.html.heex:123
 #: lib/lanttern_web/live/pages/grades_report/id/grades_report_live.html.heex:127
@@ -121,6 +123,7 @@ msgstr ""
 #: lib/lanttern_web/live/pages/strands/library/strands_library_live.html.heex:102
 #: lib/lanttern_web/live/pages/strands/moment/id/assessment_component.ex:99
 #: lib/lanttern_web/live/pages/strands/moment/id/moment_live.html.heex:115
+#: lib/lanttern_web/live/shared/agents/agent_form_component.ex:47
 #: lib/lanttern_web/live/shared/assessments/assessment_point_form_overlay_component.ex:150
 #: lib/lanttern_web/live/shared/assessments/entry_details_overlay_component.ex:266
 #: lib/lanttern_web/live/shared/attachments/attachment_area_component.ex:111
@@ -174,6 +177,7 @@ msgstr ""
 #: lib/lanttern_web/components/form_components.ex:824
 #: lib/lanttern_web/components/overlay_components.ex:613
 #: lib/lanttern_web/components/overlay_components.ex:676
+#: lib/lanttern_web/live/pages/agents/settings/agent_card_component.ex:124
 #: lib/lanttern_web/live/pages/curriculum/component/id/curriculum_component_live.html.heex:171
 #: lib/lanttern_web/live/pages/grades_report/grades_reports_live.html.heex:126
 #: lib/lanttern_web/live/pages/grades_report/id/grades_report_live.html.heex:130
@@ -193,6 +197,7 @@ msgstr ""
 #: lib/lanttern_web/live/pages/strands/library/strands_library_live.html.heex:105
 #: lib/lanttern_web/live/pages/strands/moment/id/assessment_component.ex:102
 #: lib/lanttern_web/live/pages/strands/moment/id/moment_live.html.heex:118
+#: lib/lanttern_web/live/shared/agents/agent_form_component.ex:50
 #: lib/lanttern_web/live/shared/assessments/assessment_point_form_overlay_component.ex:160
 #: lib/lanttern_web/live/shared/assessments/assessments_grid_component.ex:159
 #: lib/lanttern_web/live/shared/assessments/entry_details_overlay_component.ex:75
@@ -439,6 +444,7 @@ msgstr ""
 #: lib/lanttern_web/live/pages/strands/id/lessons_component.ex:220
 #: lib/lanttern_web/live/pages/strands/id/overview/strand_overview_live.html.heex:41
 #: lib/lanttern_web/live/pages/strands/id/strand_live.html.heex:54
+#: lib/lanttern_web/live/shared/agents/agent_form_component.ex:38
 #: lib/lanttern_web/live/shared/assessments/assessment_point_form_overlay_component.ex:140
 #: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_overlay_component.ex:62
 #: lib/lanttern_web/live/shared/grades_reports/student_grades_report_final_entry_overlay_component.ex:65
@@ -506,6 +512,7 @@ msgstr ""
 #: lib/lanttern_web/live/pages/strands/id/overview/strand_overview_live.html.heex:44
 #: lib/lanttern_web/live/pages/strands/id/strand_live.html.heex:57
 #: lib/lanttern_web/live/pages/strands/moment/id/moment_live.html.heex:54
+#: lib/lanttern_web/live/shared/agents/agent_form_component.ex:36
 #: lib/lanttern_web/live/shared/assessments/assessment_point_form_overlay_component.ex:138
 #: lib/lanttern_web/live/shared/assessments/assessment_point_form_overlay_component.ex:184
 #: lib/lanttern_web/live/shared/assessments/assessments_grid_component.ex:147
@@ -561,6 +568,7 @@ msgstr ""
 #: lib/lanttern_web/components/ilp_components.ex:124
 #: lib/lanttern_web/components/learning_context_components.ex:81
 #: lib/lanttern_web/components/message_board_components.ex:56
+#: lib/lanttern_web/live/pages/agents/settings/agent_card_component.ex:28
 #: lib/lanttern_web/live/pages/grades_report/grades_reports_live.html.heex:48
 #: lib/lanttern_web/live/pages/grades_report/id/grades_report_live.html.heex:41
 #: lib/lanttern_web/live/pages/ilp/settings/ilp_settings_live.html.heex:32
@@ -5709,4 +5717,70 @@ msgstr ""
 #: lib/lanttern_web/live/shared/message_board/message_form_overlay_component_v2.ex:84
 #, elixir-autogen, elixir-format
 msgid "what appears in the card preview"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/agents/settings/agents_settings_live.ex:17
+#: lib/lanttern_web/live/pages/agents/settings/agents_settings_live.html.heex:6
+#, elixir-autogen, elixir-format
+msgid "AI Agents"
+msgstr ""
+
+#: lib/lanttern_web/live/shared/agents/agent_form_component.ex:127
+#, elixir-autogen, elixir-format
+msgid "Agent created"
+msgstr ""
+
+#: lib/lanttern_web/live/shared/agents/agent_form_component.ex:101
+#, elixir-autogen, elixir-format
+msgid "Agent deleted"
+msgstr ""
+
+#: lib/lanttern_web/live/shared/agents/agent_form_component.ex:18
+#, elixir-autogen, elixir-format
+msgid "Agent name"
+msgstr ""
+
+#: lib/lanttern_web/live/shared/agents/agent_form_component.ex:146
+#, elixir-autogen, elixir-format
+msgid "Agent updated"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/agents/settings/agents_settings_live.ex:102
+#, elixir-autogen, elixir-format
+msgid "Edit AI agent"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/agents/settings/agents_settings_live.html.heex:13
+#, elixir-autogen, elixir-format
+msgid "Manage AI agents below"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/agents/settings/agents_settings_live.ex:81
+#, elixir-autogen, elixir-format
+msgid "New AI agent"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/agents/settings/agents_settings_live.html.heex:21
+#, elixir-autogen, elixir-format
+msgid "New agent"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/agents/settings/agents_settings_live.html.heex:37
+#, elixir-autogen, elixir-format
+msgid "No agents created yet"
+msgstr ""
+
+#: lib/lanttern_web/live/shared/agents/agent_form_component.ex:26
+#, elixir-autogen, elixir-format
+msgid "Something went wrong when trying to delete the agent"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/agents/settings/agent_card_component.ex:32
+#, elixir-autogen, elixir-format
+msgid "Toggle agent card"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/agents/settings/agents_settings_live.ex:34
+#, elixir-autogen, elixir-format
+msgid "You don't have access to agents settings page"
 msgstr ""
