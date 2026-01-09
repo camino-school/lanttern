@@ -8,14 +8,20 @@ defmodule Lanttern.SchoolConfigTest do
 
     import Lanttern.SchoolConfigFixtures
 
+    alias Lanttern.IdentityFixtures
+
     @invalid_attrs %{name: nil, position: nil, template: nil}
 
     test "list_moment_cards_templates/1 returns all moment_cards_templates ordered by position" do
-      moment_card_template_3 = moment_card_template_fixture(%{position: 3})
-      moment_card_template_2 = moment_card_template_fixture(%{position: 2})
-      moment_card_template_1 = moment_card_template_fixture(%{position: 1})
+      scope = IdentityFixtures.scope_fixture()
+      moment_card_template_3 = moment_card_template_fixture(scope, %{position: 3})
+      moment_card_template_2 = moment_card_template_fixture(scope, %{position: 2})
+      moment_card_template_1 = moment_card_template_fixture(scope, %{position: 1})
 
-      assert SchoolConfig.list_moment_cards_templates() == [
+      # list should be filter by school scope. create other fixture for filter test
+      moment_card_template_fixture(IdentityFixtures.scope_fixture())
+
+      assert SchoolConfig.list_moment_cards_templates(scope) == [
                moment_card_template_1,
                moment_card_template_2,
                moment_card_template_3
@@ -33,44 +39,32 @@ defmodule Lanttern.SchoolConfigTest do
         expected_moment_card_template_2,
         expected_moment_card_template_3,
         expected_moment_card_template_1
-      ] = SchoolConfig.list_moment_cards_templates()
+      ] = SchoolConfig.list_moment_cards_templates(scope)
 
       assert expected_moment_card_template_1.id == moment_card_template_1.id
       assert expected_moment_card_template_2.id == moment_card_template_2.id
       assert expected_moment_card_template_3.id == moment_card_template_3.id
     end
 
-    test "list_moment_cards_templates/1 with school filter returns all moment_cards_templates filtered by school" do
-      school = Lanttern.SchoolsFixtures.school_fixture()
-      moment_card_template = moment_card_template_fixture(%{school_id: school.id})
-
-      # other fixtures for filter test
-      moment_card_template_fixture()
-
-      assert SchoolConfig.list_moment_cards_templates(school_id: school.id) == [
-               moment_card_template
-             ]
-    end
-
     test "get_moment_card_template!/1 returns the moment_card_template with given id" do
-      moment_card_template = moment_card_template_fixture()
+      scope = IdentityFixtures.scope_fixture()
+      moment_card_template = moment_card_template_fixture(scope)
 
-      assert SchoolConfig.get_moment_card_template!(moment_card_template.id) ==
+      assert SchoolConfig.get_moment_card_template!(scope, moment_card_template.id) ==
                moment_card_template
     end
 
     test "create_moment_card_template/1 with valid data creates a moment_card_template" do
-      school = Lanttern.SchoolsFixtures.school_fixture()
+      scope = IdentityFixtures.scope_fixture()
 
       valid_attrs = %{
         name: "some name",
         position: 42,
-        template: "some template",
-        school_id: school.id
+        template: "some template"
       }
 
       assert {:ok, %MomentCardTemplate{} = moment_card_template} =
-               SchoolConfig.create_moment_card_template(valid_attrs)
+               SchoolConfig.create_moment_card_template(scope, valid_attrs)
 
       assert moment_card_template.name == "some name"
       assert moment_card_template.position == 42
@@ -78,23 +72,27 @@ defmodule Lanttern.SchoolConfigTest do
     end
 
     test "created moments cards are ordered automatically" do
-      school = Lanttern.SchoolsFixtures.school_fixture()
+      scope = IdentityFixtures.scope_fixture()
 
       valid_attrs = %{
         name: "some name",
-        template: "some template",
-        school_id: school.id
+        template: "some template"
       }
 
-      {:ok, _moment_card_template_1} = SchoolConfig.create_moment_card_template(valid_attrs)
-      {:ok, _moment_card_template_2} = SchoolConfig.create_moment_card_template(valid_attrs)
-      {:ok, _moment_card_template_3} = SchoolConfig.create_moment_card_template(valid_attrs)
+      {:ok, _moment_card_template_1} =
+        SchoolConfig.create_moment_card_template(scope, valid_attrs)
+
+      {:ok, _moment_card_template_2} =
+        SchoolConfig.create_moment_card_template(scope, valid_attrs)
+
+      {:ok, _moment_card_template_3} =
+        SchoolConfig.create_moment_card_template(scope, valid_attrs)
 
       [
         expected_moment_card_template_1,
         expected_moment_card_template_2,
         expected_moment_card_template_3
-      ] = SchoolConfig.list_moment_cards_templates(school_id: school.id)
+      ] = SchoolConfig.list_moment_cards_templates(scope)
 
       assert expected_moment_card_template_1.position == 0
       assert expected_moment_card_template_2.position == 1
@@ -102,16 +100,19 @@ defmodule Lanttern.SchoolConfigTest do
     end
 
     test "create_moment_card_template/1 with invalid data returns error changeset" do
+      scope = IdentityFixtures.scope_fixture()
+
       assert {:error, %Ecto.Changeset{}} =
-               SchoolConfig.create_moment_card_template(@invalid_attrs)
+               SchoolConfig.create_moment_card_template(scope, @invalid_attrs)
     end
 
     test "update_moment_card_template/2 with valid data updates the moment_card_template" do
-      moment_card_template = moment_card_template_fixture()
+      scope = IdentityFixtures.scope_fixture()
+      moment_card_template = moment_card_template_fixture(scope)
       update_attrs = %{name: "some updated name", position: 43, template: "some updated template"}
 
       assert {:ok, %MomentCardTemplate{} = moment_card_template} =
-               SchoolConfig.update_moment_card_template(moment_card_template, update_attrs)
+               SchoolConfig.update_moment_card_template(scope, moment_card_template, update_attrs)
 
       assert moment_card_template.name == "some updated name"
       assert moment_card_template.position == 43
@@ -119,29 +120,38 @@ defmodule Lanttern.SchoolConfigTest do
     end
 
     test "update_moment_card_template/2 with invalid data returns error changeset" do
-      moment_card_template = moment_card_template_fixture()
+      scope = IdentityFixtures.scope_fixture()
+      moment_card_template = moment_card_template_fixture(scope)
 
       assert {:error, %Ecto.Changeset{}} =
-               SchoolConfig.update_moment_card_template(moment_card_template, @invalid_attrs)
+               SchoolConfig.update_moment_card_template(
+                 scope,
+                 moment_card_template,
+                 @invalid_attrs
+               )
 
       assert moment_card_template ==
-               SchoolConfig.get_moment_card_template!(moment_card_template.id)
+               SchoolConfig.get_moment_card_template!(scope, moment_card_template.id)
     end
 
     test "delete_moment_card_template/1 deletes the moment_card_template" do
-      moment_card_template = moment_card_template_fixture()
+      scope = IdentityFixtures.scope_fixture()
+      moment_card_template = moment_card_template_fixture(scope)
 
       assert {:ok, %MomentCardTemplate{}} =
-               SchoolConfig.delete_moment_card_template(moment_card_template)
+               SchoolConfig.delete_moment_card_template(scope, moment_card_template)
 
       assert_raise Ecto.NoResultsError, fn ->
-        SchoolConfig.get_moment_card_template!(moment_card_template.id)
+        SchoolConfig.get_moment_card_template!(scope, moment_card_template.id)
       end
     end
 
     test "change_moment_card_template/1 returns a moment_card_template changeset" do
-      moment_card_template = moment_card_template_fixture()
-      assert %Ecto.Changeset{} = SchoolConfig.change_moment_card_template(moment_card_template)
+      scope = IdentityFixtures.scope_fixture()
+      moment_card_template = moment_card_template_fixture(scope)
+
+      assert %Ecto.Changeset{} =
+               SchoolConfig.change_moment_card_template(scope, moment_card_template)
     end
   end
 end

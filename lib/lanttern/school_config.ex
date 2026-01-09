@@ -7,42 +7,26 @@ defmodule Lanttern.SchoolConfig do
   import Lanttern.RepoHelpers
   alias Lanttern.Repo
 
+  alias Lanttern.Identity.Scope
   alias Lanttern.SchoolConfig.MomentCardTemplate
 
   @doc """
   Returns the list of moment_cards_templates.
 
-  ### Options:
-
-  - `:school_id` – filter result by provided school id
-
   ## Examples
 
-      iex> list_moment_cards_templates()
+      iex> list_moment_cards_templates(scope)
       [%MomentCardTemplate{}, ...]
 
   """
-  def list_moment_cards_templates(opts \\ []) do
+  def list_moment_cards_templates(%Scope{} = scope) do
     from(
       mct in MomentCardTemplate,
+      where: mct.school_id == ^scope.school_id,
       order_by: mct.position
     )
-    |> apply_list_moment_cards_templates_opts(opts)
     |> Repo.all()
   end
-
-  defp apply_list_moment_cards_templates_opts(queryable, []), do: queryable
-
-  defp apply_list_moment_cards_templates_opts(queryable, [{:school_id, school_id} | opts]) do
-    from(
-      mct in queryable,
-      where: mct.school_id == ^school_id
-    )
-    |> apply_list_moment_cards_templates_opts(opts)
-  end
-
-  defp apply_list_moment_cards_templates_opts(queryable, [_ | opts]),
-    do: apply_list_moment_cards_templates_opts(queryable, opts)
 
   @doc """
   Gets a single moment_card_template.
@@ -51,63 +35,55 @@ defmodule Lanttern.SchoolConfig do
 
   ## Examples
 
-      iex> get_moment_card_template(123)
+      iex> get_moment_card_template(scope, 123)
       %MomentCardTemplate{}
 
-      iex> get_moment_card_template(456)
+      iex> get_moment_card_template(scope, 456)
       nil
 
   """
-  def get_moment_card_template(id), do: Repo.get(MomentCardTemplate, id)
+  def get_moment_card_template(%Scope{} = scope, id) do
+    Repo.get_by(MomentCardTemplate, id: id, school_id: scope.school_id)
+  end
 
   @doc """
   Same as get_moment_card_template/1, but raises `Ecto.NoResultsError` if the Moment card template does not exist.
 
   ## Examples
 
-      iex> get_moment_card_template!(123)
+      iex> get_moment_card_template!(scope, 123)
       %MomentCardTemplate{}
 
-      iex> get_moment_card_template!(456)
+      iex> get_moment_card_template!(scope, 456)
       ** (Ecto.NoResultsError)
   """
-  def get_moment_card_template!(id), do: Repo.get!(MomentCardTemplate, id)
+  def get_moment_card_template!(%Scope{} = scope, id) do
+    Repo.get_by!(MomentCardTemplate, id: id, school_id: scope.school_id)
+  end
 
   @doc """
   Creates a moment_card_template.
 
   ## Examples
 
-      iex> create_moment_card_template(%{field: value})
+      iex> create_moment_card_template(scope, %{field: value})
       {:ok, %MomentCardTemplate{}}
 
-      iex> create_moment_card_template(%{field: bad_value})
+      iex> create_moment_card_template(scope, %{field: bad_value})
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_moment_card_template(attrs \\ %{}) do
+  def create_moment_card_template(%Scope{} = scope, attrs \\ %{}) do
     queryable =
-      case attrs do
-        %{school_id: school_id} ->
-          from(
-            mct in MomentCardTemplate,
-            where: mct.school_id == ^school_id
-          )
-
-        %{"school_id" => school_id} ->
-          from(
-            mct in MomentCardTemplate,
-            where: mct.school_id == ^school_id
-          )
-
-        _ ->
-          MomentCardTemplate
-      end
+      from(
+        mct in MomentCardTemplate,
+        where: mct.school_id == ^scope.school_id
+      )
 
     attrs = set_position_in_attrs(queryable, attrs)
 
     %MomentCardTemplate{}
-    |> MomentCardTemplate.changeset(attrs)
+    |> MomentCardTemplate.changeset(attrs, scope)
     |> Repo.insert()
   end
 
@@ -116,16 +92,22 @@ defmodule Lanttern.SchoolConfig do
 
   ## Examples
 
-      iex> update_moment_card_template(moment_card_template, %{field: new_value})
+      iex> update_moment_card_template(scope, moment_card_template, %{field: new_value})
       {:ok, %MomentCardTemplate{}}
 
-      iex> update_moment_card_template(moment_card_template, %{field: bad_value})
+      iex> update_moment_card_template(scope, moment_card_template, %{field: bad_value})
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_moment_card_template(%MomentCardTemplate{} = moment_card_template, attrs) do
+  def update_moment_card_template(
+        %Scope{} = scope,
+        %MomentCardTemplate{} = moment_card_template,
+        attrs
+      ) do
+    Scope.belongs_to_school?(scope, moment_card_template.school_id)
+
     moment_card_template
-    |> MomentCardTemplate.changeset(attrs)
+    |> MomentCardTemplate.changeset(attrs, scope)
     |> Repo.update()
   end
 
@@ -134,14 +116,15 @@ defmodule Lanttern.SchoolConfig do
 
   ## Examples
 
-      iex> delete_moment_card_template(moment_card_template)
+      iex> delete_moment_card_template(scope, moment_card_template)
       {:ok, %MomentCardTemplate{}}
 
-      iex> delete_moment_card_template(moment_card_template)
+      iex> delete_moment_card_template(scope, moment_card_template)
       {:error, %Ecto.Changeset{}}
 
   """
-  def delete_moment_card_template(%MomentCardTemplate{} = moment_card_template) do
+  def delete_moment_card_template(%Scope{} = scope, %MomentCardTemplate{} = moment_card_template) do
+    Scope.belongs_to_school?(scope, moment_card_template.school_id)
     Repo.delete(moment_card_template)
   end
 
@@ -150,12 +133,17 @@ defmodule Lanttern.SchoolConfig do
 
   ## Examples
 
-      iex> change_moment_card_template(moment_card_template)
+      iex> change_moment_card_template(scope, moment_card_template)
       %Ecto.Changeset{data: %MomentCardTemplate{}}
 
   """
-  def change_moment_card_template(%MomentCardTemplate{} = moment_card_template, attrs \\ %{}) do
-    MomentCardTemplate.changeset(moment_card_template, attrs)
+  def change_moment_card_template(
+        %Scope{} = scope,
+        %MomentCardTemplate{} = moment_card_template,
+        attrs \\ %{}
+      ) do
+    Scope.belongs_to_school?(scope, moment_card_template.school_id)
+    MomentCardTemplate.changeset(moment_card_template, attrs, scope)
   end
 
   @doc """

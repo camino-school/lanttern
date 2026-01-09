@@ -66,6 +66,7 @@ defmodule LantternWeb.SchoolLive.MomentCardsTemplatesComponent do
         :if={@template}
         module={MomentCardTemplateOverlayComponent}
         moment_card_template={@template}
+        current_scope={@current_scope}
         id="moment-card-template-overlay"
         on_cancel={JS.patch(~p"/school/moment_cards_templates")}
         allow_edit={@is_content_manager}
@@ -164,10 +165,8 @@ defmodule LantternWeb.SchoolLive.MomentCardsTemplatesComponent do
   defp initialize(socket), do: socket
 
   defp stream_templates(socket) do
-    school_id = socket.assigns.current_user.current_profile.school_id
-
     templates =
-      SchoolConfig.list_moment_cards_templates(school_id: school_id)
+      SchoolConfig.list_moment_cards_templates(socket.assigns.current_scope)
 
     socket
     |> stream(:templates, templates)
@@ -178,18 +177,14 @@ defmodule LantternWeb.SchoolLive.MomentCardsTemplatesComponent do
   defp assign_template(
          %{assigns: %{params: %{"new" => "true"}, is_content_manager: true}} = socket
        ) do
-    template = %MomentCardTemplate{
-      school_id: socket.assigns.current_user.current_profile.school_id
-    }
-
-    socket
-    |> assign(:template, template)
+    template = %MomentCardTemplate{school_id: socket.assigns.current_scope.school_id}
+    assign(socket, :template, template)
   end
 
   defp assign_template(%{assigns: %{params: %{"id" => id}}} = socket) do
     template =
       if id in socket.assigns.templates_ids do
-        SchoolConfig.get_moment_card_template(id)
+        SchoolConfig.get_moment_card_template(socket.assigns.current_scope, id)
       end
 
     socket
@@ -201,10 +196,8 @@ defmodule LantternWeb.SchoolLive.MomentCardsTemplatesComponent do
   defp assign_sortable_templates(
          %{assigns: %{params: %{"reorder" => "true"}, is_content_manager: true}} = socket
        ) do
-    school_id = socket.assigns.current_user.current_profile.school_id
-
     templates =
-      SchoolConfig.list_moment_cards_templates(schools_ids: [school_id])
+      SchoolConfig.list_moment_cards_templates(socket.assigns.current_scope)
       # remove unnecessary fields to save memory
       |> Enum.map(&%MomentCardTemplate{id: &1.id, name: &1.name})
 

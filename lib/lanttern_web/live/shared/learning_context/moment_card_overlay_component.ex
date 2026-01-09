@@ -302,9 +302,7 @@ defmodule LantternWeb.LearningContext.MomentCardOverlayComponent do
 
   defp stream_templates(%{assigns: %{moment_card: %{id: nil}}} = socket) do
     templates =
-      SchoolConfig.list_moment_cards_templates(
-        school_id: socket.assigns.current_user.current_profile.school_id
-      )
+      SchoolConfig.list_moment_cards_templates(socket.assigns.current_scope)
 
     if templates == [] do
       # skip template selection if there's no template registered

@@ -44,8 +44,7 @@ defmodule Lanttern.LearningContextFixtures do
       |> Enum.into(%{
         name: "some name",
         description: "some description",
-        moment_id: maybe_gen_moment_id(attrs),
-        school_id: Lanttern.SchoolsFixtures.maybe_gen_school_id(attrs)
+        moment_id: maybe_gen_moment_id(attrs)
       })
       |> then(&Lanttern.LearningContext.create_moment_card(scope, &1))
 
