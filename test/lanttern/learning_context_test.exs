@@ -796,21 +796,13 @@ defmodule Lanttern.LearningContextTest do
       moment = moment_fixture()
 
       # create moment card should handle positioning
-      moment_card_1 =
-        moment_card_fixture(scope, %{moment_id: moment.id, school_id: scope.school_id})
-
-      moment_card_2 =
-        moment_card_fixture(scope, %{moment_id: moment.id, school_id: scope.school_id})
+      moment_card_1 = moment_card_fixture(scope, %{moment_id: moment.id})
+      moment_card_2 = moment_card_fixture(scope, %{moment_id: moment.id})
 
       # extra moment cards for filter testing
       another_scope = IdentityFixtures.scope_fixture()
 
       moment_card_fixture(another_scope)
-
-      _from_another_moment =
-        moment_card_fixture(another_scope, %{school_id: another_scope.school_id})
-
-      _from_another_school = moment_card_fixture(scope, %{moment_id: moment.id})
 
       assert [moment_card_1, moment_card_2] ==
                LearningContext.list_moment_cards(
@@ -984,7 +976,7 @@ defmodule Lanttern.LearningContextTest do
 
     test "change_moment_card/1 returns a moment_card changeset", %{scope: scope} do
       moment_card = moment_card_fixture(scope)
-      assert %Ecto.Changeset{} = LearningContext.change_moment_card(moment_card)
+      assert %Ecto.Changeset{} = LearningContext.change_moment_card(scope, moment_card)
     end
 
     test "toggle_moment_card_attachment_share/1 returns the updated attachment", %{scope: scope} do

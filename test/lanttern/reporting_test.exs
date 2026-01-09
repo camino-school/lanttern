@@ -2191,19 +2191,17 @@ defmodule Lanttern.ReportingTest do
       moment_card =
         LearningContextFixtures.moment_card_fixture(scope, %{
           moment_id: moment.id,
-          school_id: scope.school_id,
           shared_with_students: true
         })
 
       _not_shared_card =
         LearningContextFixtures.moment_card_fixture(scope, %{
           moment_id: moment.id,
-          school_id: scope.school_id,
           shared_with_students: false
         })
 
       _other_school_card =
-        LearningContextFixtures.moment_card_fixture(scope, %{
+        LearningContextFixtures.moment_card_fixture(IdentityFixtures.scope_fixture(), %{
           moment_id: moment.id,
           shared_with_students: true
         })

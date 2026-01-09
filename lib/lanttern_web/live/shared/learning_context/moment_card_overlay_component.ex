@@ -327,7 +327,11 @@ defmodule LantternWeb.LearningContext.MomentCardOverlayComponent do
   end
 
   defp assign_form(socket) do
-    changeset = LearningContext.change_moment_card(socket.assigns.moment_card)
+    changeset =
+      LearningContext.change_moment_card(
+        socket.assigns.current_scope,
+        socket.assigns.moment_card
+      )
 
     socket
     |> assign(:form, to_form(changeset))
@@ -411,8 +415,11 @@ defmodule LantternWeb.LearningContext.MomentCardOverlayComponent do
 
   defp assign_validated_form(socket, params) do
     changeset =
-      socket.assigns.moment_card
-      |> LearningContext.change_moment_card(params)
+      LearningContext.change_moment_card(
+        socket.assigns.current_scope,
+        socket.assigns.moment_card,
+        params
+      )
       |> Map.put(:action, :validate)
 
     assign(socket, :form, to_form(changeset))
@@ -425,10 +432,6 @@ defmodule LantternWeb.LearningContext.MomentCardOverlayComponent do
       |> Map.put_new(
         "moment_id",
         socket.assigns.moment_card.moment_id
-      )
-      |> Map.put_new(
-        "school_id",
-        socket.assigns.current_user.current_profile.school_id
       )
 
     LearningContext.create_moment_card(socket.assigns.current_scope, moment_card_params)

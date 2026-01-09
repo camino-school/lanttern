@@ -826,16 +826,16 @@ defmodule Lanttern.LearningContext do
 
   ## Examples
 
-      iex> create_moment_card(%{field: value})
+      iex> create_moment_card(scope, %{field: value})
       {:ok, %MomentCard{}}
 
-      iex> create_moment_card(%{field: bad_value})
+      iex> create_moment_card(scope, %{field: bad_value})
       {:error, %Ecto.Changeset{}}
 
   """
   def create_moment_card(%Scope{} = scope, attrs \\ %{}) do
     %MomentCard{}
-    |> MomentCard.changeset(attrs)
+    |> MomentCard.changeset(attrs, scope)
     |> set_moment_card_position()
     |> Repo.insert()
     |> LearningContextLog.maybe_create_moment_card_log("CREATE", scope)
@@ -878,16 +878,16 @@ defmodule Lanttern.LearningContext do
 
   ## Examples
 
-      iex> update_moment_card(moment_card, %{field: new_value})
+      iex> update_moment_card(scope, moment_card, %{field: new_value})
       {:ok, %MomentCard{}}
 
-      iex> update_moment_card(moment_card, %{field: bad_value})
+      iex> update_moment_card(scope, moment_card, %{field: bad_value})
       {:error, %Ecto.Changeset{}}
 
   """
   def update_moment_card(%Scope{} = scope, %MomentCard{} = moment_card, attrs) do
     moment_card
-    |> MomentCard.changeset(attrs)
+    |> MomentCard.changeset(attrs, scope)
     |> Repo.update()
     |> LearningContextLog.maybe_create_moment_card_log("UPDATE", scope)
   end
@@ -939,10 +939,10 @@ defmodule Lanttern.LearningContext do
 
   ## Examples
 
-      iex> delete_moment_card(moment_card)
+      iex> delete_moment_card(scope, moment_card)
       {:ok, %MomentCard{}}
 
-      iex> delete_moment_card(moment_card)
+      iex> delete_moment_card(scope, moment_card)
       {:error, %Ecto.Changeset{}}
 
   """
@@ -978,12 +978,12 @@ defmodule Lanttern.LearningContext do
 
   ## Examples
 
-      iex> change_moment_card(moment_card)
+      iex> change_moment_card(scope, moment_card)
       %Ecto.Changeset{data: %MomentCard{}}
 
   """
-  def change_moment_card(%MomentCard{} = moment_card, attrs \\ %{}) do
-    MomentCard.changeset(moment_card, attrs)
+  def change_moment_card(%Scope{} = scope, %MomentCard{} = moment_card, attrs \\ %{}) do
+    MomentCard.changeset(moment_card, attrs, scope)
   end
 
   @doc """
