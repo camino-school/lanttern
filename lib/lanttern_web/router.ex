@@ -130,10 +130,16 @@ defmodule LantternWeb.Router do
       live "/students_records", StudentsRecordsLive, :index
       live "/students_records/settings/status", StudentsRecordsSettingsLive, :manage_status
       live "/students_records/settings/tags", StudentsRecordsSettingsLive, :manage_tags
+
       # ILP
 
       live "/ilp", ILPLive, :index
       live "/ilp/settings", ILPSettingsLive, :index
+
+      # settings
+
+      live "/settings/agents", AgentsSettingsLive, :index
+      live "/settings/agents/:id", AgentsSettingsLive, :show
     end
 
     live_session :authenticated_guardian,

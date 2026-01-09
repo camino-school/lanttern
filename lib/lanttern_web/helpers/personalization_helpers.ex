@@ -11,7 +11,8 @@ defmodule LantternWeb.PersonalizationHelpers do
     "school_management" => "School management",
     "content_management" => "Content management",
     "communication_management" => "Communication management",
-    "ilp_management" => "ILP management"
+    "ilp_management" => "ILP management",
+    "agents_management" => "AI agents management"
   }
 
   @doc """

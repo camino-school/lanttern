@@ -9,6 +9,7 @@ defmodule Lanttern.Personalization do
   - `content_management` - control content related configurations
   - `communication_management` - allows school message board management
   - `ilp_management` - allows ILP template management and students ILP sharing
+  - `agents_management` - allows AI agents management
   """
 
   import Ecto.Query, warn: false
@@ -22,7 +23,8 @@ defmodule Lanttern.Personalization do
     "school_management",
     "content_management",
     "communication_management",
-    "ilp_management"
+    "ilp_management",
+    "agents_management"
   ]
 
   @doc """
