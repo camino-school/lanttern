@@ -1,6 +1,7 @@
 defmodule LantternWeb.SchoolLiveTest do
   use LantternWeb.ConnCase
 
+  alias Lanttern.Identity.Scope
   alias Lanttern.SchoolConfigFixtures
   alias Lanttern.SchoolsFixtures
 
@@ -167,13 +168,10 @@ defmodule LantternWeb.SchoolLiveTest do
 
   describe "Template management" do
     test "list templates and basic navigation", %{conn: conn, user: user} do
-      school_id = user.current_profile.school_id
+      scope = Scope.for_user(user)
 
       template =
-        SchoolConfigFixtures.moment_card_template_fixture(%{
-          school_id: school_id,
-          name: "template abc"
-        })
+        SchoolConfigFixtures.moment_card_template_fixture(scope, %{name: "template abc"})
 
       {:ok, view, _html} = live(conn, "#{@live_view_base_path}/moment_cards_templates")
 
@@ -201,13 +199,10 @@ defmodule LantternWeb.SchoolLiveTest do
 
     test "allow user with content management permissions to edit template", context do
       %{conn: conn, user: user} = set_user_permissions(["content_management"], context)
-      school_id = user.current_profile.school_id
+      scope = Scope.for_user(user)
 
       template =
-        SchoolConfigFixtures.moment_card_template_fixture(%{
-          school_id: school_id,
-          name: "template abc"
-        })
+        SchoolConfigFixtures.moment_card_template_fixture(scope, %{name: "template abc"})
 
       {:ok, view, _html} =
         live(conn, "#{@live_view_base_path}/moment_cards_templates?id=#{template.id}")
@@ -219,13 +214,10 @@ defmodule LantternWeb.SchoolLiveTest do
       conn: conn,
       user: user
     } do
-      school_id = user.current_profile.school_id
+      scope = Scope.for_user(user)
 
       template =
-        SchoolConfigFixtures.moment_card_template_fixture(%{
-          school_id: school_id,
-          name: "template abc"
-        })
+        SchoolConfigFixtures.moment_card_template_fixture(scope, %{name: "template abc"})
 
       {:ok, view, _html} =
         live(conn, "#{@live_view_base_path}/moment_cards_templates?id=#{template.id}")

@@ -12,6 +12,7 @@ defmodule LantternWeb.Router do
     plug :protect_from_forgery
     plug LantternWeb.PutSecureBrowserHeadersPlug
     plug :fetch_current_user
+    plug :fetch_current_scope
     plug :put_locale
   end
 
@@ -54,6 +55,7 @@ defmodule LantternWeb.Router do
     live_session :authenticated_staff_member,
       on_mount: [
         {LantternWeb.UserAuth, :ensure_authenticated_staff_member},
+        {LantternWeb.UserAuth, :mount_current_scope},
         {LantternWeb.Path, :put_path_in_socket},
         {LantternWeb.LocalizationHelpers, :put_timezone}
       ] do
@@ -137,6 +139,7 @@ defmodule LantternWeb.Router do
     live_session :authenticated_guardian,
       on_mount: [
         {LantternWeb.UserAuth, :ensure_authenticated_guardian},
+        {LantternWeb.UserAuth, :mount_current_scope},
         {LantternWeb.Path, :put_path_in_socket},
         {LantternWeb.LocalizationHelpers, :put_timezone}
       ] do
@@ -146,6 +149,7 @@ defmodule LantternWeb.Router do
     live_session :authenticated_student,
       on_mount: [
         {LantternWeb.UserAuth, :ensure_authenticated_student},
+        {LantternWeb.UserAuth, :mount_current_scope},
         {LantternWeb.Path, :put_path_in_socket},
         {LantternWeb.LocalizationHelpers, :put_timezone}
       ] do
@@ -155,6 +159,7 @@ defmodule LantternWeb.Router do
     live_session :authenticated_student_or_guardian,
       on_mount: [
         {LantternWeb.UserAuth, :ensure_authenticated_student_or_guardian},
+        {LantternWeb.UserAuth, :mount_current_scope},
         {LantternWeb.Path, :put_path_in_socket},
         {LantternWeb.LocalizationHelpers, :put_timezone}
       ] do
@@ -167,6 +172,7 @@ defmodule LantternWeb.Router do
     live_session :authenticated_user,
       on_mount: [
         {LantternWeb.UserAuth, :ensure_authenticated},
+        {LantternWeb.UserAuth, :mount_current_scope},
         {LantternWeb.Path, :put_path_in_socket},
         {LantternWeb.LocalizationHelpers, :put_timezone}
       ] do

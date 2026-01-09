@@ -48,7 +48,7 @@ defmodule Lanttern.LearningContext.MomentCard do
   end
 
   @doc false
-  def changeset(moment_card, attrs) do
+  def changeset(moment_card, attrs, scope) do
     moment_card
     |> cast(attrs, [
       :name,
@@ -57,9 +57,9 @@ defmodule Lanttern.LearningContext.MomentCard do
       :teacher_instructions,
       :differentiation,
       :shared_with_students,
-      :moment_id,
-      :school_id
+      :moment_id
     ])
-    |> validate_required([:name, :description, :moment_id, :school_id])
+    |> validate_required([:name, :description, :moment_id])
+    |> put_change(:school_id, scope.school_id)
   end
 end

@@ -9,6 +9,7 @@ defmodule LantternWeb.UserAuth do
 
   use Gettext, backend: Lanttern.Gettext
   alias Lanttern.Identity
+  alias Lanttern.Identity.Scope
   alias Lanttern.Identity.User
 
   # Make the remember me cookie valid for 60 days.
@@ -157,6 +158,21 @@ defmodule LantternWeb.UserAuth do
     end
   end
 
+  @doc """
+  Fetches the current scope based on the current user.
+
+  Should be used after `fetch_current_user/2` as it expects
+  the `:current_user` assign to be present.
+  """
+  def fetch_current_scope(conn, _opts) do
+    scope =
+      conn.assigns
+      |> Map.get(:current_user)
+      |> Scope.for_user()
+
+    assign(conn, :current_scope, scope)
+  end
+
   defp ensure_user_token(conn) do
     if token = get_session(conn, :user_token) do
       {token, conn}
@@ -226,6 +242,10 @@ defmodule LantternWeb.UserAuth do
       to socket assigns based on user_token, or nil if
       there's no user_token or no matching user.
 
+    * `:mount_current_scope` - Assigns current_scope
+      to socket assigns based on current_user.
+      Should be used after `:mount_current_user`.
+
     * `:ensure_authenticated_` - Authenticates the user from the session,
       and assigns the current_user to socket assigns based
       on user_token.
@@ -254,6 +274,10 @@ defmodule LantternWeb.UserAuth do
   """
   def on_mount(:mount_current_user, _params, session, socket) do
     {:cont, mount_current_user(socket, session)}
+  end
+
+  def on_mount(:mount_current_scope, _params, _session, socket) do
+    {:cont, mount_current_scope(socket)}
   end
 
   def on_mount(:ensure_authenticated, _params, session, socket) do
@@ -301,6 +325,14 @@ defmodule LantternWeb.UserAuth do
       if user_token = session["user_token"] do
         Identity.get_user_by_session_token(user_token)
       end
+    end)
+  end
+
+  defp mount_current_scope(socket) do
+    Phoenix.Component.assign_new(socket, :current_scope, fn ->
+      socket.assigns
+      |> Map.get(:current_user)
+      |> Scope.for_user()
     end)
   end
 

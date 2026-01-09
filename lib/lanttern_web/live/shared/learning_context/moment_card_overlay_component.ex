@@ -302,9 +302,7 @@ defmodule LantternWeb.LearningContext.MomentCardOverlayComponent do
 
   defp stream_templates(%{assigns: %{moment_card: %{id: nil}}} = socket) do
     templates =
-      SchoolConfig.list_moment_cards_templates(
-        school_id: socket.assigns.current_user.current_profile.school_id
-      )
+      SchoolConfig.list_moment_cards_templates(socket.assigns.current_scope)
 
     if templates == [] do
       # skip template selection if there's no template registered
@@ -327,7 +325,11 @@ defmodule LantternWeb.LearningContext.MomentCardOverlayComponent do
   end
 
   defp assign_form(socket) do
-    changeset = LearningContext.change_moment_card(socket.assigns.moment_card)
+    changeset =
+      LearningContext.change_moment_card(
+        socket.assigns.current_scope,
+        socket.assigns.moment_card
+      )
 
     socket
     |> assign(:form, to_form(changeset))
@@ -392,9 +394,7 @@ defmodule LantternWeb.LearningContext.MomentCardOverlayComponent do
   end
 
   def handle_event("delete", _, socket) do
-    LearningContext.delete_moment_card(socket.assigns.moment_card,
-      log_profile_id: socket.assigns.current_user.current_profile_id
-    )
+    LearningContext.delete_moment_card(socket.assigns.current_scope, socket.assigns.moment_card)
     |> case do
       {:ok, _moment_card} ->
         # we notify using the assigned moment card
@@ -413,8 +413,11 @@ defmodule LantternWeb.LearningContext.MomentCardOverlayComponent do
 
   defp assign_validated_form(socket, params) do
     changeset =
-      socket.assigns.moment_card
-      |> LearningContext.change_moment_card(params)
+      LearningContext.change_moment_card(
+        socket.assigns.current_scope,
+        socket.assigns.moment_card,
+        params
+      )
       |> Map.put(:action, :validate)
 
     assign(socket, :form, to_form(changeset))
@@ -428,14 +431,8 @@ defmodule LantternWeb.LearningContext.MomentCardOverlayComponent do
         "moment_id",
         socket.assigns.moment_card.moment_id
       )
-      |> Map.put_new(
-        "school_id",
-        socket.assigns.current_user.current_profile.school_id
-      )
 
-    LearningContext.create_moment_card(moment_card_params,
-      log_profile_id: socket.assigns.current_user.current_profile_id
-    )
+    LearningContext.create_moment_card(socket.assigns.current_scope, moment_card_params)
     |> case do
       {:ok, moment_card} ->
         notify(__MODULE__, {:created, moment_card}, socket.assigns)
@@ -454,9 +451,9 @@ defmodule LantternWeb.LearningContext.MomentCardOverlayComponent do
 
   defp save_moment_card(socket, _id, moment_card_params) do
     LearningContext.update_moment_card(
+      socket.assigns.current_scope,
       socket.assigns.moment_card,
-      moment_card_params,
-      log_profile_id: socket.assigns.current_user.current_profile_id
+      moment_card_params
     )
     |> case do
       {:ok, moment_card} ->
