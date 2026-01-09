@@ -66,6 +66,33 @@ defmodule Lanttern.Identity.Scope do
   def for_user(nil), do: nil
 
   @doc """
+  Adds a permission to the scope.
+
+  If the permission already exists, the scope is returned unchanged.
+
+  ## Examples
+
+      iex> put_permission(%Scope{permissions: []}, "manage_posts")
+      %Scope{permissions: ["manage_posts"]}
+
+      iex> put_permission(%Scope{permissions: ["view_posts"]}, "manage_posts")
+      %Scope{permissions: ["view_posts", "manage_posts"]}
+
+      iex> put_permission(%Scope{permissions: ["manage_posts"]}, "manage_posts")
+      %Scope{permissions: ["manage_posts"]}
+
+  """
+  @spec put_permission(t(), String.t()) :: t()
+  def put_permission(%__MODULE__{permissions: permissions} = scope, permission)
+      when is_binary(permission) do
+    if permission in permissions do
+      scope
+    else
+      %{scope | permissions: [permission | permissions]}
+    end
+  end
+
+  @doc """
   Checks if the scope has a specific permission.
 
   ## Examples

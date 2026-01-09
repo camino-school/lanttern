@@ -2,10 +2,11 @@ defmodule LantternWeb.SchoolLive.MomentCardsTemplatesComponent do
   @moduledoc """
   ### Supported attrs/assigns
 
-  - `is_content_manager` (required, bool)
+  - `current_scope` (required, Scope)
   """
   use LantternWeb, :live_component
 
+  alias Lanttern.Identity.Scope
   alias Lanttern.SchoolConfig
   alias Lanttern.SchoolConfig.MomentCardTemplate
 
@@ -158,11 +159,19 @@ defmodule LantternWeb.SchoolLive.MomentCardsTemplatesComponent do
 
   defp initialize(%{assigns: %{initialized: false}} = socket) do
     socket
+    |> assign_is_content_manager()
     |> stream_templates()
     |> assign(:initialized, true)
   end
 
   defp initialize(socket), do: socket
+
+  defp assign_is_content_manager(socket) do
+    is_content_manager =
+      Scope.has_permission?(socket.assigns.current_scope, "content_management")
+
+    assign(socket, :is_content_manager, is_content_manager)
+  end
 
   defp stream_templates(socket) do
     templates =

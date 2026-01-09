@@ -74,6 +74,8 @@ defmodule Lanttern.SchoolConfig do
 
   """
   def create_moment_card_template(%Scope{} = scope, attrs \\ %{}) do
+    true = Scope.has_permission?(scope, "content_management")
+
     queryable =
       from(
         mct in MomentCardTemplate,
@@ -104,7 +106,8 @@ defmodule Lanttern.SchoolConfig do
         %MomentCardTemplate{} = moment_card_template,
         attrs
       ) do
-    Scope.belongs_to_school?(scope, moment_card_template.school_id)
+    true = Scope.belongs_to_school?(scope, moment_card_template.school_id)
+    true = Scope.has_permission?(scope, "content_management")
 
     moment_card_template
     |> MomentCardTemplate.changeset(attrs, scope)
@@ -124,7 +127,9 @@ defmodule Lanttern.SchoolConfig do
 
   """
   def delete_moment_card_template(%Scope{} = scope, %MomentCardTemplate{} = moment_card_template) do
-    Scope.belongs_to_school?(scope, moment_card_template.school_id)
+    true = Scope.belongs_to_school?(scope, moment_card_template.school_id)
+    true = Scope.has_permission?(scope, "content_management")
+
     Repo.delete(moment_card_template)
   end
 
@@ -142,7 +147,9 @@ defmodule Lanttern.SchoolConfig do
         %MomentCardTemplate{} = moment_card_template,
         attrs \\ %{}
       ) do
-    Scope.belongs_to_school?(scope, moment_card_template.school_id)
+    true = Scope.belongs_to_school?(scope, moment_card_template.school_id)
+    true = Scope.has_permission?(scope, "content_management")
+
     MomentCardTemplate.changeset(moment_card_template, attrs, scope)
   end
 

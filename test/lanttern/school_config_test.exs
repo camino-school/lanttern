@@ -55,7 +55,7 @@ defmodule Lanttern.SchoolConfigTest do
     end
 
     test "create_moment_card_template/1 with valid data creates a moment_card_template" do
-      scope = IdentityFixtures.scope_fixture()
+      scope = IdentityFixtures.scope_fixture(%{permissions: ["content_management"]})
 
       valid_attrs = %{
         name: "some name",
@@ -72,7 +72,7 @@ defmodule Lanttern.SchoolConfigTest do
     end
 
     test "created moments cards are ordered automatically" do
-      scope = IdentityFixtures.scope_fixture()
+      scope = IdentityFixtures.scope_fixture(%{permissions: ["content_management"]})
 
       valid_attrs = %{
         name: "some name",
@@ -100,14 +100,14 @@ defmodule Lanttern.SchoolConfigTest do
     end
 
     test "create_moment_card_template/1 with invalid data returns error changeset" do
-      scope = IdentityFixtures.scope_fixture()
+      scope = IdentityFixtures.scope_fixture(%{permissions: ["content_management"]})
 
       assert {:error, %Ecto.Changeset{}} =
                SchoolConfig.create_moment_card_template(scope, @invalid_attrs)
     end
 
     test "update_moment_card_template/2 with valid data updates the moment_card_template" do
-      scope = IdentityFixtures.scope_fixture()
+      scope = IdentityFixtures.scope_fixture(%{permissions: ["content_management"]})
       moment_card_template = moment_card_template_fixture(scope)
       update_attrs = %{name: "some updated name", position: 43, template: "some updated template"}
 
@@ -120,7 +120,7 @@ defmodule Lanttern.SchoolConfigTest do
     end
 
     test "update_moment_card_template/2 with invalid data returns error changeset" do
-      scope = IdentityFixtures.scope_fixture()
+      scope = IdentityFixtures.scope_fixture(%{permissions: ["content_management"]})
       moment_card_template = moment_card_template_fixture(scope)
 
       assert {:error, %Ecto.Changeset{}} =
@@ -135,7 +135,7 @@ defmodule Lanttern.SchoolConfigTest do
     end
 
     test "delete_moment_card_template/1 deletes the moment_card_template" do
-      scope = IdentityFixtures.scope_fixture()
+      scope = IdentityFixtures.scope_fixture(%{permissions: ["content_management"]})
       moment_card_template = moment_card_template_fixture(scope)
 
       assert {:ok, %MomentCardTemplate{}} =
@@ -147,7 +147,7 @@ defmodule Lanttern.SchoolConfigTest do
     end
 
     test "change_moment_card_template/1 returns a moment_card_template changeset" do
-      scope = IdentityFixtures.scope_fixture()
+      scope = IdentityFixtures.scope_fixture(%{permissions: ["content_management"]})
       moment_card_template = moment_card_template_fixture(scope)
 
       assert %Ecto.Changeset{} =

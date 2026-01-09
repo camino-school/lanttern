@@ -4,10 +4,15 @@ defmodule Lanttern.SchoolConfigFixtures do
   entities via the `Lanttern.SchoolConfig` context.
   """
 
+  alias Lanttern.Identity.Scope
+
   @doc """
   Generate a moment_card_template.
   """
-  def moment_card_template_fixture(scope, attrs \\ %{}) do
+  def moment_card_template_fixture(%Scope{} = scope, attrs \\ %{}) do
+    # inject required permissions for fixtures
+    scope = Scope.put_permission(scope, "content_management")
+
     {:ok, moment_card_template} =
       attrs
       |> Enum.into(%{
