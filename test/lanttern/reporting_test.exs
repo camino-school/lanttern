@@ -2051,6 +2051,7 @@ defmodule Lanttern.ReportingTest do
     alias Lanttern.AssessmentsFixtures
     alias Lanttern.CurriculaFixtures
     alias Lanttern.GradingFixtures
+    alias Lanttern.IdentityFixtures
     alias Lanttern.LearningContext
     alias Lanttern.LearningContextFixtures
     alias Lanttern.SchoolsFixtures
@@ -2184,34 +2185,32 @@ defmodule Lanttern.ReportingTest do
     end
 
     test "list_moment_cards_and_attachments_shared_with_students/1 returns all cards and attachments for the given moment" do
-      school = SchoolsFixtures.school_fixture()
+      scope = IdentityFixtures.scope_fixture()
       moment = LearningContextFixtures.moment_fixture()
 
       moment_card =
-        LearningContextFixtures.moment_card_fixture(%{
+        LearningContextFixtures.moment_card_fixture(scope, %{
           moment_id: moment.id,
-          school_id: school.id,
+          school_id: scope.school_id,
           shared_with_students: true
         })
 
       _not_shared_card =
-        LearningContextFixtures.moment_card_fixture(%{
+        LearningContextFixtures.moment_card_fixture(scope, %{
           moment_id: moment.id,
-          school_id: school.id,
+          school_id: scope.school_id,
           shared_with_students: false
         })
 
       _other_school_card =
-        LearningContextFixtures.moment_card_fixture(%{
+        LearningContextFixtures.moment_card_fixture(scope, %{
           moment_id: moment.id,
           shared_with_students: true
         })
 
-      profile = Lanttern.IdentityFixtures.staff_member_profile_fixture()
-
       {:ok, attachment} =
         LearningContext.create_moment_card_attachment(
-          profile.id,
+          scope.profile.id,
           moment_card.id,
           %{"name" => "attachment", "link" => "https://somevaliduri.com"},
           true
@@ -2219,14 +2218,14 @@ defmodule Lanttern.ReportingTest do
 
       {:ok, _not_shared_attachment} =
         LearningContext.create_moment_card_attachment(
-          profile.id,
+          scope.profile.id,
           moment_card.id,
           %{"name" => "attachment", "link" => "https://somevaliduri.com"}
         )
 
       [expected_card] =
         Reporting.list_moment_cards_and_attachments_shared_with_students(moment.id,
-          school_id: school.id
+          school_id: scope.school_id
         )
 
       assert expected_card.id == moment_card.id

@@ -13,6 +13,7 @@ defmodule Lanttern.LearningContext do
   alias Lanttern.Assessments.AssessmentPointEntry
   alias Lanttern.Attachments
   alias Lanttern.Attachments.Attachment
+  alias Lanttern.Identity.Scope
   alias Lanttern.LearningContext.Moment
   alias Lanttern.LearningContext.MomentCard
   alias Lanttern.LearningContext.MomentCardAttachment
@@ -821,9 +822,7 @@ defmodule Lanttern.LearningContext do
   @doc """
   Creates a moment_card.
 
-  ## Options:
-
-  - `:log_profile_id` - logs the operation, linked to given profile
+  Logs the operation linked to profile in current scope.
 
   ## Examples
 
@@ -834,12 +833,12 @@ defmodule Lanttern.LearningContext do
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_moment_card(attrs \\ %{}, opts \\ []) do
+  def create_moment_card(%Scope{} = scope, attrs \\ %{}) do
     %MomentCard{}
     |> MomentCard.changeset(attrs)
     |> set_moment_card_position()
     |> Repo.insert()
-    |> LearningContextLog.maybe_create_moment_card_log("CREATE", opts)
+    |> LearningContextLog.maybe_create_moment_card_log("CREATE", scope)
   end
 
   # skip if not valid
@@ -875,9 +874,7 @@ defmodule Lanttern.LearningContext do
   @doc """
   Updates a moment_card.
 
-  ## Options:
-
-  - `:log_profile_id` - logs the operation, linked to given profile
+  Logs the operation linked to profile in current scope.
 
   ## Examples
 
@@ -888,11 +885,11 @@ defmodule Lanttern.LearningContext do
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_moment_card(%MomentCard{} = moment_card, attrs, opts \\ []) do
+  def update_moment_card(%Scope{} = scope, %MomentCard{} = moment_card, attrs) do
     moment_card
     |> MomentCard.changeset(attrs)
     |> Repo.update()
-    |> LearningContextLog.maybe_create_moment_card_log("UPDATE", opts)
+    |> LearningContextLog.maybe_create_moment_card_log("UPDATE", scope)
   end
 
   @doc """
@@ -938,9 +935,7 @@ defmodule Lanttern.LearningContext do
   After the whole operation, in case of success, we trigger a request for deleting
   the attachments from the cloud (if they are internal).
 
-  ## Options:
-
-  - `:log_profile_id` - logs the operation, linked to given profile
+  Logs the operation linked to profile in current scope.
 
   ## Examples
 
@@ -951,7 +946,7 @@ defmodule Lanttern.LearningContext do
       {:error, %Ecto.Changeset{}}
 
   """
-  def delete_moment_card(%MomentCard{} = moment_card, opts \\ []) do
+  def delete_moment_card(%Scope{} = scope, %MomentCard{} = moment_card) do
     attachments_query =
       from(
         a in Attachment,
@@ -975,7 +970,7 @@ defmodule Lanttern.LearningContext do
       {:error, _name, value, _changes_so_far} ->
         {:error, value}
     end
-    |> LearningContextLog.maybe_create_moment_card_log("DELETE", opts)
+    |> LearningContextLog.maybe_create_moment_card_log("DELETE", scope)
   end
 
   @doc """
