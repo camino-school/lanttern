@@ -71,18 +71,19 @@ defmodule LantternWeb.Agents.AgentFormComponent do
     socket =
       socket
       |> assign(assigns)
-      |> assign_form(Agents.change_agent(agent))
+      |> assign_form(Agents.change_agent(assigns.current_scope, agent))
 
     {:ok, socket}
   end
 
   @impl true
   def handle_event("validate", %{"agent" => agent_params}, socket) do
-    agent_params = inject_extra_params(socket, agent_params)
-
     changeset =
-      socket.assigns.agent
-      |> Agents.change_agent(agent_params)
+      Agents.change_agent(
+        socket.assigns.current_scope,
+        socket.assigns.agent,
+        agent_params
+      )
       |> Map.put(:action, :validate)
 
     {:noreply, assign_form(socket, changeset)}
@@ -90,7 +91,7 @@ defmodule LantternWeb.Agents.AgentFormComponent do
 
   def handle_event("delete", _params, socket) do
     socket =
-      case Agents.delete_agent(socket.assigns.agent) do
+      case Agents.delete_agent(socket.assigns.current_scope, socket.assigns.agent) do
         {:ok, agent} ->
           message = {:deleted, agent}
 
@@ -111,12 +112,11 @@ defmodule LantternWeb.Agents.AgentFormComponent do
     do: {:noreply, assign(socket, :has_delete_error, false)}
 
   def handle_event("save", %{"agent" => agent_params}, socket) do
-    agent_params = inject_extra_params(socket, agent_params)
     save_agent(socket, socket.assigns.agent.id, agent_params)
   end
 
   defp save_agent(socket, nil, agent_params) do
-    case Agents.create_agent(agent_params) do
+    case Agents.create_agent(socket.assigns.current_scope, agent_params) do
       {:ok, agent} ->
         message = {:created, agent}
 
@@ -135,7 +135,7 @@ defmodule LantternWeb.Agents.AgentFormComponent do
   end
 
   defp save_agent(socket, _id, agent_params) do
-    case Agents.update_agent(socket.assigns.agent, agent_params) do
+    case Agents.update_agent(socket.assigns.current_scope, socket.assigns.agent, agent_params) do
       {:ok, agent} ->
         message = {:updated, agent}
 
@@ -151,12 +151,6 @@ defmodule LantternWeb.Agents.AgentFormComponent do
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign_form(socket, changeset)}
     end
-  end
-
-  # inject params handled in backend
-  defp inject_extra_params(socket, params) do
-    params
-    |> Map.put("school_id", socket.assigns.agent.school_id)
   end
 
   # helpers

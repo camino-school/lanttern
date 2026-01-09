@@ -7,41 +7,25 @@ defmodule Lanttern.Agents do
   alias Lanttern.Repo
 
   alias Lanttern.Agents.Agent
+  alias Lanttern.Identity.Scope
 
   @doc """
   Returns the list of ai_agents.
 
-  ## Options
-
-  - `:school_id` - filter agents by school
-
   ## Examples
 
-      iex> list_ai_agents()
-      [%Agent{}, ...]
-
-      iex> list_ai_agents(school_id: 1)
+      iex> list_ai_agents(scope)
       [%Agent{}, ...]
 
   """
-  def list_ai_agents(opts \\ []) do
+  def list_ai_agents(%Scope{} = scope) do
     from(
       a in Agent,
+      where: a.school_id == ^scope.school_id,
       order_by: [asc: :name]
     )
-    |> apply_list_ai_agents_opts(opts)
     |> Repo.all()
   end
-
-  defp apply_list_ai_agents_opts(queryable, []), do: queryable
-
-  defp apply_list_ai_agents_opts(queryable, [{:school_id, school_id} | opts]) do
-    from(a in queryable, where: a.school_id == ^school_id)
-    |> apply_list_ai_agents_opts(opts)
-  end
-
-  defp apply_list_ai_agents_opts(queryable, [_ | opts]),
-    do: apply_list_ai_agents_opts(queryable, opts)
 
   @doc """
   Gets a single agent.
@@ -50,30 +34,34 @@ defmodule Lanttern.Agents do
 
   ## Examples
 
-      iex> get_agent!(123)
+      iex> get_agent!(scope, 123)
       %Agent{}
 
-      iex> get_agent!(456)
+      iex> get_agent!(scope, 456)
       ** (Ecto.NoResultsError)
 
   """
-  def get_agent!(id), do: Repo.get!(Agent, id)
+  def get_agent!(%Scope{} = scope, id) do
+    Repo.get_by!(Agent, id: id, school_id: scope.school_id)
+  end
 
   @doc """
   Creates a agent.
 
   ## Examples
 
-      iex> create_agent(%{field: value})
+      iex> create_agent(scope, %{field: value})
       {:ok, %Agent{}}
 
-      iex> create_agent(%{field: bad_value})
+      iex> create_agent(scope, %{field: bad_value})
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_agent(attrs) do
+  def create_agent(%Scope{} = scope, attrs) do
+    true = Scope.has_permission?(scope, "agents_management")
+
     %Agent{}
-    |> Agent.changeset(attrs)
+    |> Agent.changeset(attrs, scope)
     |> Repo.insert()
   end
 
@@ -82,16 +70,19 @@ defmodule Lanttern.Agents do
 
   ## Examples
 
-      iex> update_agent(agent, %{field: new_value})
+      iex> update_agent(scope, agent, %{field: new_value})
       {:ok, %Agent{}}
 
-      iex> update_agent(agent, %{field: bad_value})
+      iex> update_agent(scope, agent, %{field: bad_value})
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_agent(%Agent{} = agent, attrs) do
+  def update_agent(%Scope{} = scope, %Agent{} = agent, attrs) do
+    true = Scope.has_permission?(scope, "agents_management")
+    true = Scope.belongs_to_school?(scope, agent.school_id)
+
     agent
-    |> Agent.changeset(attrs)
+    |> Agent.changeset(attrs, scope)
     |> Repo.update()
   end
 
@@ -100,14 +91,17 @@ defmodule Lanttern.Agents do
 
   ## Examples
 
-      iex> delete_agent(agent)
+      iex> delete_agent(scope, agent)
       {:ok, %Agent{}}
 
-      iex> delete_agent(agent)
+      iex> delete_agent(scope, agent)
       {:error, %Ecto.Changeset{}}
 
   """
-  def delete_agent(%Agent{} = agent) do
+  def delete_agent(%Scope{} = scope, %Agent{} = agent) do
+    true = Scope.has_permission?(scope, "agents_management")
+    true = Scope.belongs_to_school?(scope, agent.school_id)
+
     Repo.delete(agent)
   end
 
@@ -116,11 +110,14 @@ defmodule Lanttern.Agents do
 
   ## Examples
 
-      iex> change_agent(agent)
+      iex> change_agent(scope, agent)
       %Ecto.Changeset{data: %Agent{}}
 
   """
-  def change_agent(%Agent{} = agent, attrs \\ %{}) do
-    Agent.changeset(agent, attrs)
+  def change_agent(%Scope{} = scope, %Agent{} = agent, attrs \\ %{}) do
+    true = Scope.has_permission?(scope, "agents_management")
+    true = Scope.belongs_to_school?(scope, agent.school_id)
+
+    Agent.changeset(agent, attrs, scope)
   end
 end

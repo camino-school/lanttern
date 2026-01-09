@@ -29,6 +29,7 @@
             id={dom_id}
             agent={agent}
             selected_agent_id={@selected_agent_id}
+            current_scope={@current_scope}
           />
         </div>
       <% else %>
@@ -49,6 +50,7 @@
       module={LantternWeb.Agents.AgentFormComponent}
       id="agent-form"
       agent={@agent}
+      current_scope={@current_scope}
       navigate={
         fn
           {:deleted, _agent} ->

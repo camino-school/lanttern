@@ -24,7 +24,7 @@ defmodule LantternWeb.AgentsSettingsLive do
 
   defp check_if_user_has_access(socket) do
     has_access =
-      "school_management" in socket.assigns.current_user.current_profile.permissions
+      "agents_management" in socket.assigns.current_user.current_profile.permissions
 
     if has_access do
       socket
@@ -36,8 +36,7 @@ defmodule LantternWeb.AgentsSettingsLive do
   end
 
   defp stream_agents(socket) do
-    school_id = socket.assigns.current_user.current_profile.school_id
-    agents = Agents.list_ai_agents(school_id: school_id)
+    agents = Agents.list_ai_agents(socket.assigns.current_scope)
 
     socket
     |> stream(:agents, agents)
@@ -96,7 +95,7 @@ defmodule LantternWeb.AgentsSettingsLive do
 
   defp open_agent_form(socket, agent_id) do
     if "#{agent_id}" in socket.assigns.agents_ids do
-      agent = Agents.get_agent!(agent_id)
+      agent = Agents.get_agent!(socket.assigns.current_scope, agent_id)
 
       socket
       |> assign(:agent, agent)

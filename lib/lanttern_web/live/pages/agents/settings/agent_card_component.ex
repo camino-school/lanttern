@@ -204,7 +204,7 @@ defmodule LantternWeb.AgentsSettingsLive.AgentCardComponent do
   end
 
   defp assign_field_forms(socket) do
-    changeset = Agents.change_agent(socket.assigns.agent)
+    changeset = Agents.change_agent(socket.assigns.current_scope, socket.assigns.agent)
 
     socket
     |> assign(:personality_form, to_form(changeset))
@@ -287,8 +287,11 @@ defmodule LantternWeb.AgentsSettingsLive.AgentCardComponent do
     field_params = Map.take(params, [Atom.to_string(field)])
 
     changeset =
-      socket.assigns.agent
-      |> Agents.change_agent(field_params)
+      Agents.change_agent(
+        socket.assigns.current_scope,
+        socket.assigns.agent,
+        field_params
+      )
       |> Map.put(:action, :validate)
 
     {:noreply, assign(socket, :"#{field}_form", to_form(changeset))}
@@ -297,7 +300,7 @@ defmodule LantternWeb.AgentsSettingsLive.AgentCardComponent do
   defp save_agent_field(socket, field, params) do
     field_params = Map.take(params, [Atom.to_string(field)])
 
-    case Agents.update_agent(socket.assigns.agent, field_params) do
+    case Agents.update_agent(socket.assigns.current_scope, socket.assigns.agent, field_params) do
       {:ok, updated_agent} ->
         socket
         |> assign(:agent, updated_agent)

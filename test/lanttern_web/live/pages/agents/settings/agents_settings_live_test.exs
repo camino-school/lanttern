@@ -12,7 +12,7 @@ defmodule LantternWeb.AgentsSettingsLiveTest do
 
   describe "Agents settings live view" do
     test "agents are listed", context do
-      %{conn: conn, user: user} = set_user_permissions(["school_management"], context)
+      %{conn: conn, user: user} = set_user_permissions(["agents_management"], context)
       school = Lanttern.Schools.get_school!(user.current_profile.school_id)
 
       insert(:agent, %{school: school, name: "Agent Alpha"})
@@ -25,7 +25,7 @@ defmodule LantternWeb.AgentsSettingsLiveTest do
     end
 
     test "agent detail is displayed correctly", context do
-      %{conn: conn, user: user} = set_user_permissions(["school_management"], context)
+      %{conn: conn, user: user} = set_user_permissions(["agents_management"], context)
       school = Lanttern.Schools.get_school!(user.current_profile.school_id)
 
       agent =
@@ -55,7 +55,7 @@ defmodule LantternWeb.AgentsSettingsLiveTest do
     end
 
     test "create agent", context do
-      %{conn: conn} = set_user_permissions(["school_management"], context)
+      %{conn: conn} = set_user_permissions(["agents_management"], context)
 
       session =
         conn
@@ -78,25 +78,24 @@ defmodule LantternWeb.AgentsSettingsLiveTest do
     end
 
     test "edit agent", context do
-      %{conn: conn, user: user} = set_user_permissions(["school_management"], context)
+      %{conn: conn, user: user} = set_user_permissions(["agents_management"], context)
       school = Lanttern.Schools.get_school!(user.current_profile.school_id)
       agent = insert(:agent, %{school: school, name: "Old name"})
 
-      session =
+      conn
+      |> visit("#{@live_view_path}/#{agent.id}")
+      |> click_button("#agents-list button[phx-click=\"edit_agent\"]", "Edit")
+      |> within("#agent-form-overlay", fn conn ->
         conn
-        |> visit("#{@live_view_path}/#{agent.id}")
-        |> click_button("#agents-list button[phx-click=\"edit_agent\"]", "Edit")
-        |> within("#agent-form-overlay", fn conn ->
-          conn
-          |> fill_in("Agent name", with: "Updated agent name")
-          |> click_button("Save")
-        end)
-        |> assert_has("#agents-list", text: "Updated agent name")
-        |> assert_has("#agents-list", text: "Edit")
+        |> fill_in("Agent name", with: "Updated agent name")
+        |> click_button("Save")
+      end)
+      |> assert_has("#agents-list", text: "Updated agent name")
+      |> assert_has("#agents-list", text: "Edit")
     end
 
     test "delete agent", context do
-      %{conn: conn, user: user} = set_user_permissions(["school_management"], context)
+      %{conn: conn, user: user} = set_user_permissions(["agents_management"], context)
       school = Lanttern.Schools.get_school!(user.current_profile.school_id)
       agent = insert(:agent, %{school: school, name: "Agent to delete"})
 

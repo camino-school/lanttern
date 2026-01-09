@@ -6,6 +6,7 @@ defmodule Lanttern.Agents.Agent do
   use Ecto.Schema
   import Ecto.Changeset
 
+  alias Lanttern.Identity.Scope
   alias Lanttern.Schools.School
 
   @type t :: %__MODULE__{
@@ -34,9 +35,10 @@ defmodule Lanttern.Agents.Agent do
   end
 
   @doc false
-  def changeset(agent, attrs) do
+  def changeset(agent, attrs, %Scope{} = scope) do
     agent
-    |> cast(attrs, [:name, :knowledge, :personality, :guardrails, :instructions, :school_id])
-    |> validate_required([:name, :school_id])
+    |> cast(attrs, [:name, :knowledge, :personality, :guardrails, :instructions])
+    |> validate_required([:name])
+    |> put_change(:school_id, scope.school_id)
   end
 end
