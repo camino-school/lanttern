@@ -170,21 +170,21 @@ defmodule Lanttern.AttachmentsTest do
 
       {:ok, attachment_1} =
         LearningContext.create_moment_card_attachment(
-          scope.profile.id,
+          scope.profile_id,
           moment_card.id,
           %{"name" => "attachment 1", "link" => "https://somevaliduri.com", "is_external" => true}
         )
 
       {:ok, attachment_2} =
         LearningContext.create_moment_card_attachment(
-          scope.profile.id,
+          scope.profile_id,
           moment_card.id,
           %{"name" => "attachment 2", "link" => "https://somevaliduri.com", "is_external" => true}
         )
 
       {:ok, shared_attachment} =
         LearningContext.create_moment_card_attachment(
-          scope.profile.id,
+          scope.profile_id,
           moment_card.id,
           %{
             "name" => "family attachment",
@@ -200,7 +200,7 @@ defmodule Lanttern.AttachmentsTest do
       another_scope = IdentityFixtures.scope_fixture()
 
       LearningContext.create_moment_card_attachment(
-        scope.profile.id,
+        scope.profile_id,
         LearningContextFixtures.moment_card_fixture(another_scope).id,
         %{
           "name" => "other attachment",

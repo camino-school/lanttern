@@ -6,7 +6,6 @@ defmodule Lanttern.LearningContextLog do
   import Ecto.Query, warn: false
   alias Lanttern.Repo
 
-  alias Lanttern.Identity.Profile
   alias Lanttern.Identity.Scope
   alias Lanttern.LearningContext.MomentCard
   alias Lanttern.LearningContextLog.MomentCardLog
@@ -48,7 +47,7 @@ defmodule Lanttern.LearningContextLog do
   def maybe_create_moment_card_log(
         {:ok, %MomentCard{} = moment_card} = operation_tuple,
         operation,
-        %Scope{profile: %Profile{id: profile_id}}
+        %Scope{profile_id: profile_id}
       ) do
     attrs =
       moment_card

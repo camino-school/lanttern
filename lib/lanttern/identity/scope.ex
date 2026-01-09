@@ -2,29 +2,28 @@ defmodule Lanttern.Identity.Scope do
   @moduledoc """
   The scope data structure for maintaining request/session information.
 
-  A scope contains information about the current user and their profile,
-  including school association, permissions, and role. This is used to
-  properly scope database operations for security and data access control.
+  A lightweight scope contains only essential identifiers and permissions
+  for the current user and their profile. This is used to properly scope
+  database operations for security and data access control without carrying
+  full structs in memory.
   """
 
   alias Lanttern.Identity.Profile
   alias Lanttern.Identity.User
 
   @type t :: %__MODULE__{
-          user: User.t() | nil,
-          profile: Profile.t() | nil,
-          school_id: pos_integer() | nil,
-          permissions: [String.t()],
+          user_id: pos_integer() | nil,
+          profile_id: pos_integer() | nil,
           profile_type: String.t() | nil,
-          role: String.t() | nil
+          school_id: pos_integer() | nil,
+          permissions: [String.t()]
         }
 
-  defstruct user: nil,
-            profile: nil,
-            school_id: nil,
-            permissions: [],
+  defstruct user_id: nil,
+            profile_id: nil,
             profile_type: nil,
-            role: nil
+            school_id: nil,
+            permissions: []
 
   @doc """
   Creates a scope for the given user.
@@ -33,33 +32,31 @@ defmodule Lanttern.Identity.Scope do
 
   ## Examples
 
-      iex> for_user(%User{current_profile: %Profile{school_id: 1}})
-      %Scope{user: %User{}, profile: %Profile{}, school_id: 1}
+      iex> for_user(%User{id: 1, current_profile: %Profile{id: 2, school_id: 3}})
+      %Scope{user_id: 1, profile_id: 2, school_id: 3}
 
       iex> for_user(nil)
       nil
 
   """
   @spec for_user(User.t() | nil) :: t() | nil
-  def for_user(%User{current_profile: %Profile{} = profile} = user) do
+  def for_user(%User{id: user_id, current_profile: %Profile{} = profile}) do
     %__MODULE__{
-      user: user,
-      profile: profile,
-      school_id: profile.school_id,
-      permissions: profile.permissions || [],
+      user_id: user_id,
+      profile_id: profile.id,
       profile_type: profile.type,
-      role: profile.role
+      school_id: profile.school_id,
+      permissions: profile.permissions || []
     }
   end
 
-  def for_user(%User{} = user) do
+  def for_user(%User{id: user_id}) do
     %__MODULE__{
-      user: user,
-      profile: nil,
-      school_id: nil,
-      permissions: [],
+      user_id: user_id,
+      profile_id: nil,
       profile_type: nil,
-      role: nil
+      school_id: nil,
+      permissions: []
     }
   end
 
@@ -114,25 +111,6 @@ defmodule Lanttern.Identity.Scope do
   end
 
   def has_permission?(_scope, _permission), do: false
-
-  @doc """
-  Checks if the scope is for a root admin user.
-
-  ## Examples
-
-      iex> root_admin?(%Scope{user: %User{is_root_admin: true}})
-      true
-
-      iex> root_admin?(%Scope{user: %User{is_root_admin: false}})
-      false
-
-      iex> root_admin?(nil)
-      false
-
-  """
-  @spec root_admin?(t() | nil) :: boolean()
-  def root_admin?(%__MODULE__{user: %User{is_root_admin: true}}), do: true
-  def root_admin?(_scope), do: false
 
   @doc """
   Checks if the scope belongs to a specific school.

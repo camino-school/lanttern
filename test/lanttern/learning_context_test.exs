@@ -880,7 +880,7 @@ defmodule Lanttern.LearningContextTest do
           )
 
         assert moment_card_log.moment_card_id == moment_card.id
-        assert moment_card_log.profile_id == scope.profile.id
+        assert moment_card_log.profile_id == scope.profile_id
         assert moment_card_log.operation == "CREATE"
 
         assert moment_card_log.name == moment_card.name
@@ -922,7 +922,7 @@ defmodule Lanttern.LearningContextTest do
           )
 
         assert moment_card_log.moment_card_id == moment_card.id
-        assert moment_card_log.profile_id == scope.profile.id
+        assert moment_card_log.profile_id == scope.profile_id
         assert moment_card_log.operation == "UPDATE"
 
         assert moment_card_log.name == moment_card.name
@@ -948,7 +948,7 @@ defmodule Lanttern.LearningContextTest do
 
       {:ok, attachment} =
         LearningContext.create_moment_card_attachment(
-          scope.profile.id,
+          scope.profile_id,
           moment_card.id,
           %{"name" => "attachment", "link" => "https://somevaliduri.com"}
         )
@@ -969,7 +969,7 @@ defmodule Lanttern.LearningContextTest do
           )
 
         assert moment_card_log.moment_card_id == moment_card.id
-        assert moment_card_log.profile_id == scope.profile.id
+        assert moment_card_log.profile_id == scope.profile_id
         assert moment_card_log.operation == "DELETE"
       end)
     end
@@ -984,7 +984,7 @@ defmodule Lanttern.LearningContextTest do
 
       {:ok, attachment} =
         LearningContext.create_moment_card_attachment(
-          scope.profile.id,
+          scope.profile_id,
           moment_card.id,
           %{"name" => "attachment", "link" => "https://somevaliduri.com"}
         )

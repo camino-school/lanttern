@@ -12,8 +12,8 @@ defmodule Lanttern.Identity.ScopeTest do
       scope = Scope.for_user(user)
 
       assert %Scope{} = scope
-      assert scope.user.id == user.id
-      assert scope.profile.id == user.current_profile.id
+      assert scope.user_id == user.id
+      assert scope.profile_id == user.current_profile.id
       assert scope.school_id == user.current_profile.school_id
       assert scope.permissions == ["manage_posts"]
       assert scope.profile_type == "staff"
@@ -25,8 +25,8 @@ defmodule Lanttern.Identity.ScopeTest do
       scope = Scope.for_user(user)
 
       assert %Scope{} = scope
-      assert scope.user.id == user.id
-      assert scope.profile == nil
+      assert scope.user_id == user.id
+      assert scope.profile_id == nil
       assert scope.school_id == nil
       assert scope.permissions == []
       assert scope.profile_type == nil
@@ -53,25 +53,6 @@ defmodule Lanttern.Identity.ScopeTest do
 
     test "returns false for nil scope" do
       refute Scope.has_permission?(nil, "manage_posts")
-    end
-  end
-
-  describe "root_admin?/1" do
-    test "returns true for root admin user" do
-      user = root_admin_fixture()
-      scope = Scope.for_user(user)
-
-      assert Scope.root_admin?(scope)
-    end
-
-    test "returns false for non-root admin user" do
-      scope = staff_scope_fixture()
-
-      refute Scope.root_admin?(scope)
-    end
-
-    test "returns false for nil scope" do
-      refute Scope.root_admin?(nil)
     end
   end
 

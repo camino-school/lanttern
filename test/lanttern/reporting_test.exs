@@ -2208,7 +2208,7 @@ defmodule Lanttern.ReportingTest do
 
       {:ok, attachment} =
         LearningContext.create_moment_card_attachment(
-          scope.profile.id,
+          scope.profile_id,
           moment_card.id,
           %{"name" => "attachment", "link" => "https://somevaliduri.com"},
           true
@@ -2216,7 +2216,7 @@ defmodule Lanttern.ReportingTest do
 
       {:ok, _not_shared_attachment} =
         LearningContext.create_moment_card_attachment(
-          scope.profile.id,
+          scope.profile_id,
           moment_card.id,
           %{"name" => "attachment", "link" => "https://somevaliduri.com"}
         )
