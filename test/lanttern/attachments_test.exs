@@ -165,26 +165,26 @@ defmodule Lanttern.AttachmentsTest do
     end
 
     test "list_attachments/1 with moment_card_id opts returns all attachments linked to given moment card" do
-      profile = IdentityFixtures.staff_member_profile_fixture()
-      moment_card = LearningContextFixtures.moment_card_fixture()
+      scope = IdentityFixtures.scope_fixture()
+      moment_card = LearningContextFixtures.moment_card_fixture(scope)
 
       {:ok, attachment_1} =
         LearningContext.create_moment_card_attachment(
-          profile.id,
+          scope.profile_id,
           moment_card.id,
           %{"name" => "attachment 1", "link" => "https://somevaliduri.com", "is_external" => true}
         )
 
       {:ok, attachment_2} =
         LearningContext.create_moment_card_attachment(
-          profile.id,
+          scope.profile_id,
           moment_card.id,
           %{"name" => "attachment 2", "link" => "https://somevaliduri.com", "is_external" => true}
         )
 
       {:ok, shared_attachment} =
         LearningContext.create_moment_card_attachment(
-          profile.id,
+          scope.profile_id,
           moment_card.id,
           %{
             "name" => "family attachment",
@@ -197,9 +197,11 @@ defmodule Lanttern.AttachmentsTest do
       # extra attachments to test filtering
       attachment_fixture()
 
+      another_scope = IdentityFixtures.scope_fixture()
+
       LearningContext.create_moment_card_attachment(
-        profile.id,
-        LearningContextFixtures.moment_card_fixture().id,
+        scope.profile_id,
+        LearningContextFixtures.moment_card_fixture(another_scope).id,
         %{
           "name" => "other attachment",
           "link" => "https://somevaliduri.com",

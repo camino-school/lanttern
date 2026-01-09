@@ -78,6 +78,7 @@ defmodule LantternWeb.MomentLive.CardsComponent do
         id="moment-card-overlay"
         on_cancel={JS.patch(~p"/strands/moment/#{@moment}/cards")}
         current_user={@current_user}
+        current_scope={@current_scope}
         allow_edit
         notify_component={@myself}
       />

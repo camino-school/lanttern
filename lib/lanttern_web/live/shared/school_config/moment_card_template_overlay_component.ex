@@ -162,7 +162,11 @@ defmodule LantternWeb.SchoolConfig.MomentCardTemplateOverlayComponent do
     do: assign(socket, :is_editing, false)
 
   defp assign_form(socket) do
-    changeset = SchoolConfig.change_moment_card_template(socket.assigns.moment_card_template)
+    changeset =
+      SchoolConfig.change_moment_card_template(
+        socket.assigns.current_scope,
+        socket.assigns.moment_card_template
+      )
 
     socket
     |> assign(:form, to_form(changeset))
@@ -195,7 +199,10 @@ defmodule LantternWeb.SchoolConfig.MomentCardTemplateOverlayComponent do
   end
 
   def handle_event("delete", _, socket) do
-    SchoolConfig.delete_moment_card_template(socket.assigns.moment_card_template)
+    SchoolConfig.delete_moment_card_template(
+      socket.assigns.current_scope,
+      socket.assigns.moment_card_template
+    )
     |> case do
       {:ok, _moment_card_template} ->
         # we notify using the assigned moment card template
@@ -214,23 +221,21 @@ defmodule LantternWeb.SchoolConfig.MomentCardTemplateOverlayComponent do
 
   defp assign_validated_form(socket, params) do
     changeset =
-      socket.assigns.moment_card_template
-      |> SchoolConfig.change_moment_card_template(params)
+      SchoolConfig.change_moment_card_template(
+        socket.assigns.current_scope,
+        socket.assigns.moment_card_template,
+        params
+      )
       |> Map.put(:action, :validate)
 
     assign(socket, :form, to_form(changeset))
   end
 
   defp save_moment_card_template(socket, nil, moment_card_template_params) do
-    # inject school id to params
-    moment_card_template_params =
-      Map.put_new(
-        moment_card_template_params,
-        "school_id",
-        socket.assigns.moment_card_template.school_id
-      )
-
-    SchoolConfig.create_moment_card_template(moment_card_template_params)
+    SchoolConfig.create_moment_card_template(
+      socket.assigns.current_scope,
+      moment_card_template_params
+    )
     |> case do
       {:ok, moment_card_template} ->
         notify(__MODULE__, {:created, moment_card_template}, socket.assigns)
@@ -249,6 +254,7 @@ defmodule LantternWeb.SchoolConfig.MomentCardTemplateOverlayComponent do
 
   defp save_moment_card_template(socket, _id, moment_card_template_params) do
     SchoolConfig.update_moment_card_template(
+      socket.assigns.current_scope,
       socket.assigns.moment_card_template,
       moment_card_template_params
     )
