@@ -38,16 +38,15 @@ defmodule Lanttern.LearningContextFixtures do
   @doc """
   Generate a moment_card.
   """
-  def moment_card_fixture(attrs \\ %{}) do
+  def moment_card_fixture(scope, attrs \\ %{}) do
     {:ok, moment_card} =
       attrs
       |> Enum.into(%{
         name: "some name",
         description: "some description",
-        moment_id: maybe_gen_moment_id(attrs),
-        school_id: Lanttern.SchoolsFixtures.maybe_gen_school_id(attrs)
+        moment_id: maybe_gen_moment_id(attrs)
       })
-      |> Lanttern.LearningContext.create_moment_card()
+      |> then(&Lanttern.LearningContext.create_moment_card(scope, &1))
 
     moment_card
   end

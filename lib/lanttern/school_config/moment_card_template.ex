@@ -32,9 +32,10 @@ defmodule Lanttern.SchoolConfig.MomentCardTemplate do
   end
 
   @doc false
-  def changeset(moment_card_template, attrs) do
+  def changeset(moment_card_template, attrs, scope) do
     moment_card_template
-    |> cast(attrs, [:name, :template, :instructions, :position, :school_id])
-    |> validate_required([:name, :template, :position, :school_id])
+    |> cast(attrs, [:name, :template, :instructions, :position])
+    |> validate_required([:name, :template, :position])
+    |> put_change(:school_id, scope.school_id)
   end
 end

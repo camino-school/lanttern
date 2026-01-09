@@ -14,6 +14,25 @@ config :lanttern,
   supabase_api_key: System.get_env("SUPABASE_PROJECT_API_KEY"),
   supabase_project_url: System.get_env("SUPABASE_PROJECT_URL")
 
+# Configure Phoenix scopes
+config :lanttern, :scopes,
+  user: [
+    module: Lanttern.Identity.Scope,
+    assign_key: :current_scope,
+    access_path: [:user, :id],
+    schema_key: :user_id,
+    schema_type: :id,
+    schema_table: :users
+  ],
+  school: [
+    module: Lanttern.Identity.Scope,
+    assign_key: :current_scope,
+    access_path: [:school_id],
+    schema_key: :school_id,
+    schema_type: :id,
+    schema_table: :schools
+  ]
+
 query_args = ["SET pg_trgm.word_similarity_threshold = 0.4", []]
 
 config :lanttern, Lanttern.Repo,

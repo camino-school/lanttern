@@ -10,9 +10,10 @@ defmodule LantternWeb.MomentLive.CardsComponentTest do
   describe "Moment cards" do
     test "display existing moment cards", %{conn: conn, user: user} do
       moment = LearningContextFixtures.moment_fixture()
+      scope = Lanttern.Identity.Scope.for_user(user)
 
       _moment_card =
-        LearningContextFixtures.moment_card_fixture(%{
+        LearningContextFixtures.moment_card_fixture(scope, %{
           moment_id: moment.id,
           school_id: user.current_profile.school_id,
           name: "some card name abc",
@@ -52,9 +53,10 @@ defmodule LantternWeb.MomentLive.CardsComponentTest do
 
     test "update card", %{conn: conn, user: user} do
       moment = LearningContextFixtures.moment_fixture()
+      scope = Lanttern.Identity.Scope.for_user(user)
 
       moment_card =
-        LearningContextFixtures.moment_card_fixture(%{
+        LearningContextFixtures.moment_card_fixture(scope, %{
           moment_id: moment.id,
           school_id: user.current_profile.school_id,
           name: "some card name abc",
@@ -93,9 +95,10 @@ defmodule LantternWeb.MomentLive.CardsComponentTest do
 
     test "delete card", %{conn: conn, user: user} do
       moment = LearningContextFixtures.moment_fixture()
+      scope = Lanttern.Identity.Scope.for_user(user)
 
       moment_card =
-        LearningContextFixtures.moment_card_fixture(%{
+        LearningContextFixtures.moment_card_fixture(scope, %{
           moment_id: moment.id,
           school_id: user.current_profile.school_id,
           name: "some card name abc"
