@@ -74,7 +74,7 @@ defmodule LantternWeb.AgentsSettingsLiveTest do
       |> assert_path("#{@live_view_path}/#{agent.id}")
       |> assert_has("#agents-list", text: "New agent name")
       |> assert_has("#agents-list", text: "Edit")
-      |> assert_has("#agents-list", text: "Add personality")
+      |> assert_has("#agents-list button[phx-click=\"edit_personality\"]", text: "Add")
     end
 
     test "edit agent", context do
