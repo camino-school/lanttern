@@ -31,8 +31,9 @@ msgstr ""
 msgid "Curriculum"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/agents/settings/agents_settings_live.html.heex:4
 #: lib/lanttern_web/live/pages/dashboard/dashboard_live.ex:19
+#: lib/lanttern_web/live/pages/settings/agents/agents_settings_live.html.heex:4
+#: lib/lanttern_web/live/pages/settings/lesson_templates/lesson_templates_live.html.heex:4
 #: lib/lanttern_web/live/shared/menu_component.ex:426
 #, elixir-autogen, elixir-format
 msgid "Dashboard"
@@ -101,7 +102,6 @@ msgstr ""
 #: lib/lanttern_web/components/form_components.ex:815
 #: lib/lanttern_web/components/overlay_components.ex:610
 #: lib/lanttern_web/components/overlay_components.ex:673
-#: lib/lanttern_web/live/pages/agents/settings/agent_card_component.ex:121
 #: lib/lanttern_web/live/pages/curriculum/component/id/curriculum_component_live.html.heex:168
 #: lib/lanttern_web/live/pages/grades_report/grades_reports_live.html.heex:123
 #: lib/lanttern_web/live/pages/grades_report/id/grades_report_live.html.heex:127
@@ -114,6 +114,8 @@ msgstr ""
 #: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:133
 #: lib/lanttern_web/live/pages/report_cards/report_cards_live.html.heex:104
 #: lib/lanttern_web/live/pages/school/moment_cards_templates_component.ex:109
+#: lib/lanttern_web/live/pages/settings/agents/agent_card_component.ex:121
+#: lib/lanttern_web/live/pages/settings/lesson_templates/lesson_template_card_component.ex:101
 #: lib/lanttern_web/live/pages/strands/id/lessons_component.ex:229
 #: lib/lanttern_web/live/pages/strands/id/overview/strand_overview_live.html.heex:218
 #: lib/lanttern_web/live/pages/strands/id/strand_live.html.heex:118
@@ -137,6 +139,7 @@ msgstr ""
 #: lib/lanttern_web/live/shared/ilp/ilp_template_form_component.ex:162
 #: lib/lanttern_web/live/shared/ilp/student_ilp_form_overlay_component.ex:110
 #: lib/lanttern_web/live/shared/learning_context/moment_card_overlay_component.ex:197
+#: lib/lanttern_web/live/shared/lesson_templates/lesson_template_form_component.ex:47
 #: lib/lanttern_web/live/shared/lessons/lesson_form_component.ex:81
 #: lib/lanttern_web/live/shared/message_board/message_form_overlay_component.ex:160
 #: lib/lanttern_web/live/shared/message_board/message_form_overlay_component_v2.ex:180
@@ -177,7 +180,6 @@ msgstr ""
 #: lib/lanttern_web/components/form_components.ex:824
 #: lib/lanttern_web/components/overlay_components.ex:613
 #: lib/lanttern_web/components/overlay_components.ex:676
-#: lib/lanttern_web/live/pages/agents/settings/agent_card_component.ex:124
 #: lib/lanttern_web/live/pages/curriculum/component/id/curriculum_component_live.html.heex:171
 #: lib/lanttern_web/live/pages/grades_report/grades_reports_live.html.heex:126
 #: lib/lanttern_web/live/pages/grades_report/id/grades_report_live.html.heex:130
@@ -188,6 +190,8 @@ msgstr ""
 #: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:136
 #: lib/lanttern_web/live/pages/report_cards/report_cards_live.html.heex:107
 #: lib/lanttern_web/live/pages/school/moment_cards_templates_component.ex:112
+#: lib/lanttern_web/live/pages/settings/agents/agent_card_component.ex:124
+#: lib/lanttern_web/live/pages/settings/lesson_templates/lesson_template_card_component.ex:104
 #: lib/lanttern_web/live/pages/strands/id/lessons_component.ex:232
 #: lib/lanttern_web/live/pages/strands/id/overview/strand_overview_live.html.heex:221
 #: lib/lanttern_web/live/pages/strands/id/strand_live.html.heex:121
@@ -209,6 +213,7 @@ msgstr ""
 #: lib/lanttern_web/live/shared/ilp/ilp_template_form_component.ex:165
 #: lib/lanttern_web/live/shared/ilp/student_ilp_form_overlay_component.ex:119
 #: lib/lanttern_web/live/shared/learning_context/moment_card_overlay_component.ex:200
+#: lib/lanttern_web/live/shared/lesson_templates/lesson_template_form_component.ex:50
 #: lib/lanttern_web/live/shared/lessons/lesson_form_component.ex:84
 #: lib/lanttern_web/live/shared/message_board/message_form_overlay_component.ex:163
 #: lib/lanttern_web/live/shared/message_board/message_form_overlay_component_v2.ex:183
@@ -411,6 +416,7 @@ msgstr ""
 
 #: lib/lanttern_web/live/pages/school/staff/id/staff_member_live.html.heex:11
 #: lib/lanttern_web/live/pages/school/students/id/student_live.html.heex:11
+#: lib/lanttern_web/live/pages/settings/lesson_templates/lesson_template_card_component.ex:46
 #, elixir-autogen, elixir-format
 msgid "About"
 msgstr ""
@@ -451,6 +457,7 @@ msgstr ""
 #: lib/lanttern_web/live/shared/ilp/ilp_comment_form_overlay_component.ex:85
 #: lib/lanttern_web/live/shared/ilp/student_ilp_form_overlay_component.ex:100
 #: lib/lanttern_web/live/shared/learning_context/moment_card_overlay_component.ex:243
+#: lib/lanttern_web/live/shared/lesson_templates/lesson_template_form_component.ex:38
 #: lib/lanttern_web/live/shared/lessons/lesson_form_component.ex:72
 #: lib/lanttern_web/live/shared/message_board/message_form_overlay_component.ex:129
 #: lib/lanttern_web/live/shared/message_board/message_form_overlay_component_v2.ex:170
@@ -522,6 +529,7 @@ msgstr ""
 #: lib/lanttern_web/live/shared/ilp/ilp_template_form_component.ex:155
 #: lib/lanttern_web/live/shared/ilp/student_ilp_form_overlay_component.ex:98
 #: lib/lanttern_web/live/shared/learning_context/moment_card_overlay_component.ex:241
+#: lib/lanttern_web/live/shared/lesson_templates/lesson_template_form_component.ex:36
 #: lib/lanttern_web/live/shared/lessons/lesson_form_component.ex:70
 #: lib/lanttern_web/live/shared/message_board/message_form_overlay_component.ex:127
 #: lib/lanttern_web/live/shared/message_board/message_form_overlay_component_v2.ex:168
@@ -568,12 +576,13 @@ msgstr ""
 #: lib/lanttern_web/components/ilp_components.ex:124
 #: lib/lanttern_web/components/learning_context_components.ex:81
 #: lib/lanttern_web/components/message_board_components.ex:56
-#: lib/lanttern_web/live/pages/agents/settings/agent_card_component.ex:28
 #: lib/lanttern_web/live/pages/grades_report/grades_reports_live.html.heex:48
 #: lib/lanttern_web/live/pages/grades_report/id/grades_report_live.html.heex:41
 #: lib/lanttern_web/live/pages/ilp/settings/ilp_settings_live.html.heex:32
 #: lib/lanttern_web/live/pages/report_cards/id/report_card_live.html.heex:42
 #: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:320
+#: lib/lanttern_web/live/pages/settings/agents/agent_card_component.ex:28
+#: lib/lanttern_web/live/pages/settings/lesson_templates/lesson_template_card_component.ex:28
 #: lib/lanttern_web/live/pages/strands/id/lessons_component.ex:155
 #: lib/lanttern_web/live/pages/strands/id/lessons_component.ex:305
 #: lib/lanttern_web/live/pages/strands/id/overview/strand_overview_live.html.heex:161
@@ -2276,6 +2285,7 @@ msgstr ""
 msgid "(Strand final assessment)"
 msgstr ""
 
+#: lib/lanttern_web/live/pages/settings/lesson_templates/lesson_template_card_component.ex:129
 #: lib/lanttern_web/live/shared/assessments/entry_details_overlay_component.ex:253
 #, elixir-autogen, elixir-format
 msgid "Add"
@@ -3560,6 +3570,7 @@ msgstr ""
 msgid "Select a template from the list below to create the card"
 msgstr ""
 
+#: lib/lanttern_web/live/pages/settings/lesson_templates/lesson_template_card_component.ex:56
 #: lib/lanttern_web/live/shared/school_config/moment_card_template_overlay_component.ex:52
 #, elixir-autogen, elixir-format
 msgid "Template"
@@ -4738,6 +4749,7 @@ msgid "Teacher notes (internal, not shared)"
 msgstr ""
 
 #: lib/lanttern_web/live/shared/ilp/ilp_template_form_component.ex:31
+#: lib/lanttern_web/live/shared/lesson_templates/lesson_template_form_component.ex:18
 #, elixir-autogen, elixir-format
 msgid "Template name"
 msgstr ""
@@ -5719,8 +5731,8 @@ msgstr ""
 msgid "what appears in the card preview"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/agents/settings/agents_settings_live.ex:17
-#: lib/lanttern_web/live/pages/agents/settings/agents_settings_live.html.heex:6
+#: lib/lanttern_web/live/pages/settings/agents/agents_settings_live.ex:17
+#: lib/lanttern_web/live/pages/settings/agents/agents_settings_live.html.heex:6
 #, elixir-autogen, elixir-format
 msgid "AI Agents"
 msgstr ""
@@ -5745,27 +5757,27 @@ msgstr ""
 msgid "Agent updated"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/agents/settings/agents_settings_live.ex:102
+#: lib/lanttern_web/live/pages/settings/agents/agents_settings_live.ex:102
 #, elixir-autogen, elixir-format
 msgid "Edit AI agent"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/agents/settings/agents_settings_live.html.heex:13
+#: lib/lanttern_web/live/pages/settings/agents/agents_settings_live.html.heex:13
 #, elixir-autogen, elixir-format
 msgid "Manage AI agents below"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/agents/settings/agents_settings_live.ex:81
+#: lib/lanttern_web/live/pages/settings/agents/agents_settings_live.ex:81
 #, elixir-autogen, elixir-format
 msgid "New AI agent"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/agents/settings/agents_settings_live.html.heex:21
+#: lib/lanttern_web/live/pages/settings/agents/agents_settings_live.html.heex:21
 #, elixir-autogen, elixir-format
 msgid "New agent"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/agents/settings/agents_settings_live.html.heex:37
+#: lib/lanttern_web/live/pages/settings/agents/agents_settings_live.html.heex:37
 #, elixir-autogen, elixir-format
 msgid "No agents created yet"
 msgstr ""
@@ -5775,12 +5787,73 @@ msgstr ""
 msgid "Something went wrong when trying to delete the agent"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/agents/settings/agent_card_component.ex:32
+#: lib/lanttern_web/live/pages/settings/agents/agent_card_component.ex:32
 #, elixir-autogen, elixir-format
 msgid "Toggle agent card"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/agents/settings/agents_settings_live.ex:34
+#: lib/lanttern_web/live/pages/settings/agents/agents_settings_live.ex:34
 #, elixir-autogen, elixir-format
 msgid "You don't have access to agents settings page"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/settings/lesson_templates/lesson_templates_live.ex:110
+#, elixir-autogen, elixir-format
+msgid "Edit lesson template"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/settings/lesson_templates/lesson_templates_live.ex:17
+#: lib/lanttern_web/live/pages/settings/lesson_templates/lesson_templates_live.html.heex:6
+#, elixir-autogen, elixir-format
+msgid "Lesson Templates"
+msgstr ""
+
+#: lib/lanttern_web/live/shared/lesson_templates/lesson_template_form_component.ex:135
+#, elixir-autogen, elixir-format
+msgid "Lesson template created"
+msgstr ""
+
+#: lib/lanttern_web/live/shared/lesson_templates/lesson_template_form_component.ex:106
+#, elixir-autogen, elixir-format
+msgid "Lesson template deleted"
+msgstr ""
+
+#: lib/lanttern_web/live/shared/lesson_templates/lesson_template_form_component.ex:158
+#, elixir-autogen, elixir-format
+msgid "Lesson template updated"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/settings/lesson_templates/lesson_templates_live.html.heex:13
+#, elixir-autogen, elixir-format
+msgid "Manage lesson templates below"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/settings/lesson_templates/lesson_templates_live.ex:85
+#, elixir-autogen, elixir-format
+msgid "New lesson template"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/settings/lesson_templates/lesson_templates_live.html.heex:21
+#, elixir-autogen, elixir-format
+msgid "New template"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/settings/lesson_templates/lesson_templates_live.html.heex:37
+#, elixir-autogen, elixir-format
+msgid "No lesson templates created yet"
+msgstr ""
+
+#: lib/lanttern_web/live/shared/lesson_templates/lesson_template_form_component.ex:26
+#, elixir-autogen, elixir-format
+msgid "Something went wrong when trying to delete the lesson template"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/settings/lesson_templates/lesson_template_card_component.ex:32
+#, elixir-autogen, elixir-format
+msgid "Toggle lesson template card"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/settings/lesson_templates/lesson_templates_live.ex:34
+#, elixir-autogen, elixir-format
+msgid "You don't have access to lesson templates page"
 msgstr ""
