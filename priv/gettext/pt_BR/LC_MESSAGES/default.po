@@ -2285,6 +2285,7 @@ msgstr "A nota atribuída manualmente será sobrescrita por esta operação. Voc
 msgid "(Strand final assessment)"
 msgstr "(Avaliação final da trilha)"
 
+#: lib/lanttern_web/live/pages/settings/agents/agent_card_component.ex:149
 #: lib/lanttern_web/live/pages/settings/lesson_templates/lesson_template_card_component.ex:129
 #: lib/lanttern_web/live/shared/assessments/entry_details_overlay_component.ex:253
 #, elixir-autogen, elixir-format
@@ -5818,42 +5819,62 @@ msgstr "Template de aula criado"
 msgid "Lesson template deleted"
 msgstr "Template de aula deletado"
 
-#: lib/lantterm_web/live/shared/lesson_templates/lesson_template_form_component.ex:158
+#: lib/lanttern_web/live/shared/lesson_templates/lesson_template_form_component.ex:158
 #, elixir-autogen, elixir-format
 msgid "Lesson template updated"
 msgstr "Template de aula atualizado"
 
-#: lib/lantterm_web/live/pages/settings/lesson_templates/lesson_templates_live.html.heex:13
+#: lib/lanttern_web/live/pages/settings/lesson_templates/lesson_templates_live.html.heex:13
 #, elixir-autogen, elixir-format
 msgid "Manage lesson templates below"
 msgstr "Gerencie os templates de aula abaixo"
 
-#: lib/lantterm_web/live/pages/settings/lesson_templates/lesson_templates_live.ex:85
+#: lib/lanttern_web/live/pages/settings/lesson_templates/lesson_templates_live.ex:85
 #, elixir-autogen, elixir-format
 msgid "New lesson template"
 msgstr "Novo template de aula"
 
-#: lib/lantterm_web/live/pages/settings/lesson_templates/lesson_templates_live.html.heex:21
+#: lib/lanttern_web/live/pages/settings/lesson_templates/lesson_templates_live.html.heex:21
 #, elixir-autogen, elixir-format
 msgid "New template"
 msgstr "Novo template"
 
-#: lib/lantterm_web/live/pages/settings/lesson_templates/lesson_templates_live.html.heex:37
+#: lib/lanttern_web/live/pages/settings/lesson_templates/lesson_templates_live.html.heex:37
 #, elixir-autogen, elixir-format
 msgid "No lesson templates created yet"
 msgstr "Nenhum template de aula criado ainda"
 
-#: lib/lantterm_web/live/shared/lesson_templates/lesson_template_form_component.ex:26
+#: lib/lanttern_web/live/shared/lesson_templates/lesson_template_form_component.ex:26
 #, elixir-autogen, elixir-format
 msgid "Something went wrong when trying to delete the lesson template"
 msgstr "Algo deu errado ao tentar deletar o template de aula"
 
-#: lib/lantterm_web/live/pages/settings/lesson_templates/lesson_template_card_component.ex:32
+#: lib/lanttern_web/live/pages/settings/lesson_templates/lesson_template_card_component.ex:32
 #, elixir-autogen, elixir-format
 msgid "Toggle lesson template card"
 msgstr "Alternar card do template de aula"
 
-#: lib/lantterm_web/live/pages/settings/lesson_templates/lesson_templates_live.ex:34
+#: lib/lanttern_web/live/pages/settings/lesson_templates/lesson_templates_live.ex:34
 #, elixir-autogen, elixir-format
 msgid "You don't have access to lesson templates page"
 msgstr "Você não tem acesso à página de templates de aula"
+
+#: lib/lanttern_web/live/pages/settings/agents/agent_card_component.ex:76
+#, elixir-autogen, elixir-format
+msgid "Guardrails"
+msgstr "Proteções"
+
+#: lib/lanttern_web/live/pages/settings/agents/agent_card_component.ex:66
+#, elixir-autogen, elixir-format
+msgid "Instructions"
+msgstr "Instruções"
+
+#: lib/lanttern_web/live/pages/settings/agents/agent_card_component.ex:56
+#, elixir-autogen, elixir-format
+msgid "Knowledge"
+msgstr "Conhecimento"
+
+#: lib/lanttern_web/live/pages/settings/agents/agent_card_component.ex:46
+#, elixir-autogen, elixir-format
+msgid "Personality"
+msgstr "Personalidade"

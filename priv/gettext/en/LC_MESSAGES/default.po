@@ -2285,6 +2285,7 @@ msgstr ""
 msgid "(Strand final assessment)"
 msgstr ""
 
+#: lib/lanttern_web/live/pages/settings/agents/agent_card_component.ex:149
 #: lib/lanttern_web/live/pages/settings/lesson_templates/lesson_template_card_component.ex:129
 #: lib/lanttern_web/live/shared/assessments/entry_details_overlay_component.ex:253
 #, elixir-autogen, elixir-format
@@ -5856,4 +5857,24 @@ msgstr ""
 #: lib/lanttern_web/live/pages/settings/lesson_templates/lesson_templates_live.ex:34
 #, elixir-autogen, elixir-format, fuzzy
 msgid "You don't have access to lesson templates page"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/settings/agents/agent_card_component.ex:76
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Guardrails"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/settings/agents/agent_card_component.ex:66
+#, elixir-autogen, elixir-format
+msgid "Instructions"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/settings/agents/agent_card_component.ex:56
+#, elixir-autogen, elixir-format
+msgid "Knowledge"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/settings/agents/agent_card_component.ex:46
+#, elixir-autogen, elixir-format
+msgid "Personality"
 msgstr ""
