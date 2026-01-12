@@ -43,7 +43,7 @@ defmodule LantternWeb.AgentsSettingsLive.AgentCardComponent do
               <%!-- Personality field --%>
               <.field_section
                 field={:personality}
-                label="Personality"
+                field_name={gettext("Personality")}
                 agent={@agent}
                 is_editing={@is_editing_personality}
                 form={@personality_form}
@@ -53,7 +53,7 @@ defmodule LantternWeb.AgentsSettingsLive.AgentCardComponent do
               <%!-- Knowledge field --%>
               <.field_section
                 field={:knowledge}
-                label="Knowledge"
+                field_name={gettext("Knowledge")}
                 agent={@agent}
                 is_editing={@is_editing_knowledge}
                 form={@knowledge_form}
@@ -63,7 +63,7 @@ defmodule LantternWeb.AgentsSettingsLive.AgentCardComponent do
               <%!-- Instructions field --%>
               <.field_section
                 field={:instructions}
-                label="Instructions"
+                field_name={gettext("Instructions")}
                 agent={@agent}
                 is_editing={@is_editing_instructions}
                 form={@instructions_form}
@@ -73,7 +73,7 @@ defmodule LantternWeb.AgentsSettingsLive.AgentCardComponent do
               <%!-- Guardrails field --%>
               <.field_section
                 field={:guardrails}
-                label="Guardrails"
+                field_name={gettext("Guardrails")}
                 agent={@agent}
                 is_editing={@is_editing_guardrails}
                 form={@guardrails_form}
@@ -89,7 +89,7 @@ defmodule LantternWeb.AgentsSettingsLive.AgentCardComponent do
 
   # function component for field section
   attr :field, :atom, required: true
-  attr :label, :string, required: true
+  attr :field_name, :string, required: true
   attr :agent, :map, required: true
   attr :is_editing, :boolean, required: true
   attr :form, :map, required: true
@@ -98,7 +98,7 @@ defmodule LantternWeb.AgentsSettingsLive.AgentCardComponent do
   defp field_section(assigns) do
     ~H"""
     <div>
-      <h4 class="font-display font-bold text-lg mb-2">{@label}</h4>
+      <h4 class="font-display font-bold text-lg mb-2">{@field_name}</h4>
       <%= if @is_editing do %>
         <.form
           for={@form}
@@ -146,7 +146,7 @@ defmodule LantternWeb.AgentsSettingsLive.AgentCardComponent do
             phx-click={"edit_#{@field}"}
             phx-target={@myself}
           >
-            {"Add #{String.downcase(@label)}"}
+            {gettext("Add")}
           </.button>
         <% end %>
       <% end %>

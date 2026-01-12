@@ -140,6 +140,9 @@ defmodule LantternWeb.Router do
 
       live "/settings/agents", AgentsSettingsLive, :index
       live "/settings/agents/:id", AgentsSettingsLive, :show
+
+      live "/settings/lesson_templates", LessonTemplatesLive, :index
+      live "/settings/lesson_templates/:id", LessonTemplatesLive, :show
     end
 
     live_session :authenticated_guardian,
