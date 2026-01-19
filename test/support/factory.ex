@@ -4,8 +4,10 @@ defmodule Lanttern.Factory do
   use ExMachina.Ecto, repo: Lanttern.Repo
 
   use Lanttern.AgentFactory
+  use Lanttern.AgentMessageFactory
   use Lanttern.AttachmentFactory
   use Lanttern.ClassFactory
+  use Lanttern.ConversationFactory
   use Lanttern.CycleFactory
   use Lanttern.ILPCommentAttachmentFactory
   use Lanttern.ILPCommentFactory
@@ -15,6 +17,7 @@ defmodule Lanttern.Factory do
   use Lanttern.LessonTemplateFactory
   use Lanttern.MessageBoardFactory
   use Lanttern.MessageFactory
+  use Lanttern.ModelCallFactory
   use Lanttern.MomentFactory
   use Lanttern.NoteFactory
   use Lanttern.ProfileFactory

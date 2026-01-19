@@ -1409,7 +1409,8 @@ defmodule LantternWeb.CoreComponents do
   """
   attr :text, :string, required: true
   attr :theme, :string, default: "slate"
-  attr :size, :string, default: "sm", doc: "sm | base"
+  attr :size, :string, default: "base", doc: "sm | base"
+  attr :invert, :boolean, default: false
   attr :strip_tags, :boolean, default: false
   attr :class, :any, default: nil
   attr :rest, :global
@@ -1429,6 +1430,7 @@ defmodule LantternWeb.CoreComponents do
       :if={@text}
       class={[
         "prose prose-#{@theme} prose-#{@size}",
+        if(@invert, do: "prose-invert"),
         @class
       ]}
       {@rest}

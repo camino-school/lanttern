@@ -95,7 +95,8 @@ defmodule Lanttern.MixProject do
       {:oban, "~> 2.20"},
       {:usage_rules, "~> 0.1", only: [:dev]},
       {:igniter, "~> 0.6", only: [:dev]},
-      {:html_sanitize_ex, "~> 1.4"}
+      {:html_sanitize_ex, "~> 1.4"},
+      {:langchain, "0.4.0"}
     ]
   end
 

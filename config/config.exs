@@ -98,11 +98,15 @@ config :lanttern, LantternWeb.UserAuth, google_client_id: System.get_env("GOOGLE
 # ex_openai config
 config :ex_openai,
   api_key: System.get_env("OPENAI_API_KEY"),
-  organization_key: System.get_env("OPENAI_ORGANIZATION_KEY"),
+  organization_key: System.get_env("OPENAI_ORG_ID"),
   http_options: [
     # 60 seconds timeout
     recv_timeout: 60_000
   ]
+
+# LangChain config
+config :langchain, openai_key: System.fetch_env!("OPENAI_API_KEY")
+config :langchain, openai_org_id: System.fetch_env!("OPENAI_ORG_ID")
 
 # Oban config
 config :lanttern, Oban,

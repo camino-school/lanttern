@@ -1,4 +1,4 @@
-defmodule Lanttern.AgentChat.ModelCalls do
+defmodule Lanttern.AgentChat.ModelCall do
   @moduledoc """
   LLM calls info schema.
   """
