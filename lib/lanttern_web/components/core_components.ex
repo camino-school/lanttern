@@ -892,7 +892,7 @@ defmodule LantternWeb.CoreComponents do
       when is_binary(start_bg_color) and is_binary(stop_bg_color),
       do: "background-image: linear-gradient(to right, #{start_bg_color}, #{stop_bg_color})"
 
-  def create_color_map_gradient_bg_style(_), do: %{}
+  def create_color_map_gradient_bg_style(_), do: ""
 
   @doc """
   Renders a data grid.
