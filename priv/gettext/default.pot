@@ -12,8 +12,8 @@ msgid ""
 msgstr ""
 
 #: lib/lanttern_web/components/core_components.ex:975
-#: lib/lanttern_web/components/core_components.ex:2173
-#: lib/lanttern_web/components/core_components.ex:2235
+#: lib/lanttern_web/components/core_components.ex:2184
+#: lib/lanttern_web/components/core_components.ex:2246
 #, elixir-autogen, elixir-format
 msgid "Actions"
 msgstr ""
@@ -57,9 +57,9 @@ msgstr ""
 msgid "Strands"
 msgstr ""
 
-#: lib/lanttern_web/components/core_components.ex:1148
+#: lib/lanttern_web/components/core_components.ex:1159
 #: lib/lanttern_web/components/overlay_components.ex:78
-#: lib/lanttern_web/components/overlay_components.ex:334
+#: lib/lanttern_web/components/overlay_components.ex:335
 #, elixir-autogen, elixir-format
 msgid "close"
 msgstr ""
@@ -95,24 +95,28 @@ msgstr ""
 msgid "Applying filters..."
 msgstr ""
 
-#: lib/lanttern_web/components/form_components.ex:805
-#: lib/lanttern_web/components/overlay_components.ex:576
-#: lib/lanttern_web/components/overlay_components.ex:639
+#: lib/lanttern_web/components/form_components.ex:808
+#: lib/lanttern_web/components/overlay_components.ex:577
+#: lib/lanttern_web/components/overlay_components.ex:640
 #: lib/lanttern_web/live/pages/curriculum/component/id/curriculum_component_live.html.heex:168
 #: lib/lanttern_web/live/pages/grades_report/grades_reports_live.html.heex:123
 #: lib/lanttern_web/live/pages/grades_report/id/grades_report_live.html.heex:127
+#: lib/lanttern_web/live/pages/message_board/index_live.ex:183
+#: lib/lanttern_web/live/pages/message_board/index_live.ex:217
+#: lib/lanttern_web/live/pages/message_board/index_live.ex:297
 #: lib/lanttern_web/live/pages/report_cards/id/report_card_live.html.heex:137
 #: lib/lanttern_web/live/pages/report_cards/id/strands_reports_component.ex:142
 #: lib/lanttern_web/live/pages/report_cards/id/strands_reports_component.ex:192
 #: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:133
 #: lib/lanttern_web/live/pages/report_cards/report_cards_live.html.heex:104
-#: lib/lanttern_web/live/pages/school/moment_cards_templates_component.ex:107
+#: lib/lanttern_web/live/pages/school/moment_cards_templates_component.ex:109
+#: lib/lanttern_web/live/pages/school/staff/id/staff_member_live.html.heex:88
 #: lib/lanttern_web/live/pages/strands/id/moments_component.ex:91
 #: lib/lanttern_web/live/pages/strands/id/moments_component.ex:136
 #: lib/lanttern_web/live/pages/strands/id/strand_live.html.heex:128
 #: lib/lanttern_web/live/pages/strands/library/strands_library_live.html.heex:102
 #: lib/lanttern_web/live/pages/strands/moment/id/assessment_component.ex:99
-#: lib/lanttern_web/live/pages/strands/moment/id/moment_live.html.heex:114
+#: lib/lanttern_web/live/pages/strands/moment/id/moment_live.html.heex:115
 #: lib/lanttern_web/live/shared/assessments/assessment_point_form_overlay_component.ex:150
 #: lib/lanttern_web/live/shared/assessments/entry_details_overlay_component.ex:266
 #: lib/lanttern_web/live/shared/attachments/attachment_area_component.ex:114
@@ -127,6 +131,7 @@ msgstr ""
 #: lib/lanttern_web/live/shared/ilp/student_ilp_form_overlay_component.ex:110
 #: lib/lanttern_web/live/shared/learning_context/moment_card_overlay_component.ex:197
 #: lib/lanttern_web/live/shared/message_board/message_form_overlay_component.ex:160
+#: lib/lanttern_web/live/shared/message_board/message_form_overlay_component_v2.ex:180
 #: lib/lanttern_web/live/shared/notes/note_component.ex:61
 #: lib/lanttern_web/live/shared/rubrics/rubric_form_overlay_component.ex:137
 #: lib/lanttern_web/live/shared/school_config/moment_card_template_overlay_component.ex:79
@@ -161,24 +166,26 @@ msgstr ""
 msgid "New strand"
 msgstr ""
 
-#: lib/lanttern_web/components/form_components.ex:814
-#: lib/lanttern_web/components/overlay_components.ex:579
-#: lib/lanttern_web/components/overlay_components.ex:642
+#: lib/lanttern_web/components/form_components.ex:817
+#: lib/lanttern_web/components/overlay_components.ex:580
+#: lib/lanttern_web/components/overlay_components.ex:643
 #: lib/lanttern_web/live/pages/curriculum/component/id/curriculum_component_live.html.heex:171
 #: lib/lanttern_web/live/pages/grades_report/grades_reports_live.html.heex:126
 #: lib/lanttern_web/live/pages/grades_report/id/grades_report_live.html.heex:130
+#: lib/lanttern_web/live/pages/message_board/index_live.ex:192
 #: lib/lanttern_web/live/pages/report_cards/id/report_card_live.html.heex:140
 #: lib/lanttern_web/live/pages/report_cards/id/strands_reports_component.ex:145
 #: lib/lanttern_web/live/pages/report_cards/id/strands_reports_component.ex:195
 #: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:136
 #: lib/lanttern_web/live/pages/report_cards/report_cards_live.html.heex:107
-#: lib/lanttern_web/live/pages/school/moment_cards_templates_component.ex:110
+#: lib/lanttern_web/live/pages/school/moment_cards_templates_component.ex:112
+#: lib/lanttern_web/live/pages/school/staff/id/staff_member_live.html.heex:91
 #: lib/lanttern_web/live/pages/strands/id/moments_component.ex:94
 #: lib/lanttern_web/live/pages/strands/id/moments_component.ex:139
 #: lib/lanttern_web/live/pages/strands/id/strand_live.html.heex:131
 #: lib/lanttern_web/live/pages/strands/library/strands_library_live.html.heex:105
 #: lib/lanttern_web/live/pages/strands/moment/id/assessment_component.ex:102
-#: lib/lanttern_web/live/pages/strands/moment/id/moment_live.html.heex:117
+#: lib/lanttern_web/live/pages/strands/moment/id/moment_live.html.heex:118
 #: lib/lanttern_web/live/shared/assessments/assessment_point_form_overlay_component.ex:160
 #: lib/lanttern_web/live/shared/assessments/assessments_grid_component.ex:159
 #: lib/lanttern_web/live/shared/assessments/entry_details_overlay_component.ex:75
@@ -191,6 +198,7 @@ msgstr ""
 #: lib/lanttern_web/live/shared/ilp/student_ilp_form_overlay_component.ex:119
 #: lib/lanttern_web/live/shared/learning_context/moment_card_overlay_component.ex:200
 #: lib/lanttern_web/live/shared/message_board/message_form_overlay_component.ex:163
+#: lib/lanttern_web/live/shared/message_board/message_form_overlay_component_v2.ex:183
 #: lib/lanttern_web/live/shared/notes/note_component.ex:64
 #: lib/lanttern_web/live/shared/rubrics/rubric_form_overlay_component.ex:146
 #: lib/lanttern_web/live/shared/school_config/moment_card_template_overlay_component.ex:82
@@ -238,8 +246,9 @@ msgstr ""
 msgid "Description"
 msgstr ""
 
-#: lib/lanttern_web/components/form_components.ex:753
-#: lib/lanttern_web/components/form_components.ex:798
+#: lib/lanttern_web/components/form_components.ex:756
+#: lib/lanttern_web/components/form_components.ex:801
+#: lib/lanttern_web/live/shared/message_board/message_form_overlay_component_v2.ex:255
 #, elixir-autogen, elixir-format
 msgid "File \"%{file}\" is invalid."
 msgstr ""
@@ -273,6 +282,7 @@ msgstr ""
 msgid "No year selected"
 msgstr ""
 
+#: lib/lanttern_web/live/pages/message_board/index_live.ex:133
 #: lib/lanttern_web/live/shared/assessments/assessment_point_form_component.ex:29
 #: lib/lanttern_web/live/shared/assessments/assessment_point_form_overlay_component.ex:49
 #: lib/lanttern_web/live/shared/grades_reports/grades_report_form_component.ex:26
@@ -282,6 +292,7 @@ msgstr ""
 #: lib/lanttern_web/live/shared/learning_context/moment_card_overlay_component.ex:126
 #: lib/lanttern_web/live/shared/learning_context/strand_form_component.ex:21
 #: lib/lanttern_web/live/shared/message_board/message_form_overlay_component.ex:39
+#: lib/lanttern_web/live/shared/message_board/message_form_overlay_component_v2.ex:41
 #: lib/lanttern_web/live/shared/rubrics/rubric_form_overlay_component.ex:66
 #: lib/lanttern_web/live/shared/school_config/moment_card_template_overlay_component.ex:40
 #: lib/lanttern_web/live/shared/schools/class_form_overlay_component.ex:29
@@ -297,7 +308,8 @@ msgstr ""
 msgid "Oops, something went wrong! Please check the errors below."
 msgstr ""
 
-#: lib/lanttern_web/components/form_components.ex:741
+#: lib/lanttern_web/components/form_components.ex:744
+#: lib/lanttern_web/live/shared/message_board/message_form_overlay_component_v2.ex:243
 #, elixir-autogen, elixir-format
 msgid "Replace image"
 msgstr ""
@@ -343,18 +355,21 @@ msgstr ""
 msgid "Strand updated successfully"
 msgstr ""
 
-#: lib/lanttern_web/components/form_components.ex:721
+#: lib/lanttern_web/components/form_components.ex:724
+#: lib/lanttern_web/live/shared/message_board/message_form_overlay_component_v2.ex:218
 #, elixir-autogen, elixir-format
 msgid "Upload a cover image file"
 msgstr ""
 
-#: lib/lanttern_web/components/form_components.ex:765
+#: lib/lanttern_web/components/form_components.ex:768
+#: lib/lanttern_web/live/shared/message_board/message_form_overlay_component_v2.ex:267
 #, elixir-autogen, elixir-format
 msgid "cancel"
 msgstr ""
 
-#: lib/lanttern_web/components/form_components.ex:724
+#: lib/lanttern_web/components/form_components.ex:727
 #: lib/lanttern_web/live/shared/attachments/attachment_area_component.ex:182
+#: lib/lanttern_web/live/shared/message_board/message_form_overlay_component_v2.ex:221
 #, elixir-autogen, elixir-format
 msgid "or drag and drop here"
 msgstr ""
@@ -365,7 +380,7 @@ msgstr ""
 msgid "Attempting to reconnect"
 msgstr ""
 
-#: lib/lanttern_web/components/form_components.ex:905
+#: lib/lanttern_web/components/form_components.ex:908
 #, elixir-autogen, elixir-format
 msgid "Markdown supported"
 msgstr ""
@@ -381,6 +396,8 @@ msgid "Something went wrong!"
 msgstr ""
 
 #: lib/lanttern_web/live/pages/school/staff/id/staff_member_live.html.heex:11
+#: lib/lanttern_web/live/pages/school/staff/id/staff_member_live.html.heex:49
+#: lib/lanttern_web/live/pages/school/staff/id/staff_member_live.html.heex:83
 #: lib/lanttern_web/live/pages/school/students/id/student_live.html.heex:11
 #: lib/lanttern_web/live/pages/strands/id/strand_live.html.heex:12
 #, elixir-autogen, elixir-format
@@ -406,6 +423,8 @@ msgstr ""
 #: lib/lanttern_web/live/pages/curriculum/component/id/curriculum_component_live.html.heex:159
 #: lib/lanttern_web/live/pages/grades_report/grades_reports_live.html.heex:114
 #: lib/lanttern_web/live/pages/grades_report/id/grades_report_live.html.heex:118
+#: lib/lanttern_web/live/pages/message_board/components.ex:67
+#: lib/lanttern_web/live/pages/message_board/index_live.ex:173
 #: lib/lanttern_web/live/pages/report_cards/id/report_card_live.html.heex:47
 #: lib/lanttern_web/live/pages/report_cards/id/strands_reports_component.ex:133
 #: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:124
@@ -418,6 +437,7 @@ msgstr ""
 #: lib/lanttern_web/live/shared/ilp/student_ilp_form_overlay_component.ex:100
 #: lib/lanttern_web/live/shared/learning_context/moment_card_overlay_component.ex:243
 #: lib/lanttern_web/live/shared/message_board/message_form_overlay_component.ex:129
+#: lib/lanttern_web/live/shared/message_board/message_form_overlay_component_v2.ex:170
 #: lib/lanttern_web/live/shared/rubrics/rubric_form_overlay_component.ex:127
 #: lib/lanttern_web/live/shared/school_config/moment_card_template_overlay_component.ex:111
 #: lib/lanttern_web/live/shared/schools/class_form_overlay_component.ex:109
@@ -464,7 +484,7 @@ msgstr ""
 msgid "Add your notes..."
 msgstr ""
 
-#: lib/lanttern_web/components/form_components.ex:831
+#: lib/lanttern_web/components/form_components.ex:834
 #: lib/lanttern_web/components/message_board_components.ex:41
 #: lib/lanttern_web/components/schools_components.ex:197
 #: lib/lanttern_web/live/pages/curriculum/component/id/curriculum_component_live.html.heex:157
@@ -486,6 +506,7 @@ msgstr ""
 #: lib/lanttern_web/live/shared/ilp/student_ilp_form_overlay_component.ex:98
 #: lib/lanttern_web/live/shared/learning_context/moment_card_overlay_component.ex:241
 #: lib/lanttern_web/live/shared/message_board/message_form_overlay_component.ex:127
+#: lib/lanttern_web/live/shared/message_board/message_form_overlay_component_v2.ex:168
 #: lib/lanttern_web/live/shared/notes/note_component.ex:53
 #: lib/lanttern_web/live/shared/rubrics/rubric_form_overlay_component.ex:125
 #: lib/lanttern_web/live/shared/school_config/moment_card_template_overlay_component.ex:109
@@ -523,8 +544,8 @@ msgid "Differentiation"
 msgstr ""
 
 #: lib/lanttern_web/components/attachments_components.ex:97
-#: lib/lanttern_web/components/core_components.ex:1482
-#: lib/lanttern_web/components/form_components.ex:272
+#: lib/lanttern_web/components/core_components.ex:1493
+#: lib/lanttern_web/components/form_components.ex:274
 #: lib/lanttern_web/components/ilp_components.ex:124
 #: lib/lanttern_web/components/learning_context_components.ex:81
 #: lib/lanttern_web/components/message_board_components.ex:56
@@ -533,6 +554,7 @@ msgstr ""
 #: lib/lanttern_web/live/pages/ilp/settings/ilp_settings_live.html.heex:32
 #: lib/lanttern_web/live/pages/report_cards/id/report_card_live.html.heex:42
 #: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:320
+#: lib/lanttern_web/live/pages/school/staff/id/staff_member_live.html.heex:68
 #: lib/lanttern_web/live/pages/strands/id/about_component.ex:78
 #: lib/lanttern_web/live/pages/strands/id/strand_rubrics_component.ex:228
 #: lib/lanttern_web/live/pages/students/settings/tags_component.ex:45
@@ -565,7 +587,7 @@ msgid "No assessment points for this strand yet"
 msgstr ""
 
 #: lib/lanttern_web/live/pages/report_cards/id/strands_reports_component.ex:28
-#: lib/lanttern_web/live/pages/school/moment_cards_templates_component.ex:32
+#: lib/lanttern_web/live/pages/school/moment_cards_templates_component.ex:33
 #: lib/lanttern_web/live/pages/strands/id/moments_component.ex:26
 #: lib/lanttern_web/live/pages/strands/moment/id/assessment_component.ex:34
 #: lib/lanttern_web/live/pages/strands/moment/id/cards_component.ex:25
@@ -747,7 +769,7 @@ msgid "Curriculum item already added to this strand"
 msgstr ""
 
 #: lib/lanttern_web/live/pages/strands/moment/id/moment_live.html.heex:46
-#: lib/lanttern_web/live/pages/strands/moment/id/moment_live.html.heex:100
+#: lib/lanttern_web/live/pages/strands/moment/id/moment_live.html.heex:101
 #, elixir-autogen, elixir-format
 msgid "Edit moment"
 msgstr ""
@@ -789,7 +811,7 @@ msgstr ""
 msgid "Moments"
 msgstr ""
 
-#: lib/lanttern_web/components/core_components.ex:2123
+#: lib/lanttern_web/components/core_components.ex:2134
 #, elixir-autogen, elixir-format
 msgid "Move moment down"
 msgstr ""
@@ -809,7 +831,7 @@ msgstr ""
 msgid "Save moment"
 msgstr ""
 
-#: lib/lanttern/learning_context.ex:679
+#: lib/lanttern/learning_context.ex:681
 #: lib/lanttern/repo_helpers.ex:191
 #: lib/lanttern_web/controllers/privacy_policy_controller.ex:53
 #: lib/lanttern_web/live/pages/grades_report/id/grades_report_live.ex:220
@@ -946,7 +968,8 @@ msgstr ""
 msgid "Calculate subject grades"
 msgstr ""
 
-#: lib/lanttern_web/components/form_components.ex:726
+#: lib/lanttern_web/components/form_components.ex:729
+#: lib/lanttern_web/live/shared/message_board/message_form_overlay_component_v2.ex:228
 #, elixir-autogen, elixir-format
 msgid "Cancel cover removal"
 msgstr ""
@@ -1251,7 +1274,7 @@ msgstr ""
 msgid "Move down"
 msgstr ""
 
-#: lib/lanttern_web/components/core_components.ex:2113
+#: lib/lanttern_web/components/core_components.ex:2124
 #: lib/lanttern_web/live/shared/grading/grade_composition_overlay_component.ex:167
 #, elixir-autogen, elixir-format
 msgid "Move up"
@@ -1348,7 +1371,7 @@ msgstr ""
 msgid "Partial results"
 msgstr ""
 
-#: lib/lanttern_web/components/form_components.ex:289
+#: lib/lanttern_web/components/form_components.ex:291
 #: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:309
 #: lib/lanttern_web/live/shared/students/student_tag_form_overlay_component.ex:58
 #: lib/lanttern_web/live/shared/students_records/student_record_status_form_overlay.ex:75
@@ -1364,8 +1387,8 @@ msgstr ""
 
 #: lib/lanttern_web/components/attachments_components.ex:102
 #: lib/lanttern_web/components/core_components.ex:356
-#: lib/lanttern_web/components/core_components.ex:1570
-#: lib/lanttern_web/components/form_components.ex:833
+#: lib/lanttern_web/components/core_components.ex:1581
+#: lib/lanttern_web/components/form_components.ex:836
 #: lib/lanttern_web/live/shared/grading/grade_composition_overlay_component.ex:196
 #, elixir-autogen, elixir-format
 msgid "Remove"
@@ -1644,8 +1667,8 @@ msgstr ""
 msgid "Welcome!"
 msgstr ""
 
-#: lib/lanttern_web/user_auth.ex:315
-#: lib/lanttern_web/user_auth.ex:372
+#: lib/lanttern_web/user_auth.ex:347
+#: lib/lanttern_web/user_auth.ex:404
 #, elixir-autogen, elixir-format
 msgid "You must log in to access this page."
 msgstr ""
@@ -1716,8 +1739,8 @@ msgstr ""
 msgid "Hey!"
 msgstr ""
 
-#: lib/lanttern_web/components/core_components.ex:1635
-#: lib/lanttern_web/components/core_components.ex:1657
+#: lib/lanttern_web/components/core_components.ex:1646
+#: lib/lanttern_web/components/core_components.ex:1668
 #, elixir-autogen, elixir-format
 msgid "Selected"
 msgstr ""
@@ -1727,7 +1750,7 @@ msgstr ""
 msgid "About grades"
 msgstr ""
 
-#: lib/lanttern_web/components/form_components.ex:343
+#: lib/lanttern_web/components/form_components.ex:346
 #, elixir-autogen, elixir-format
 msgid "Optional"
 msgstr ""
@@ -1765,6 +1788,7 @@ msgid "Understood!"
 msgstr ""
 
 #: lib/lanttern_web/controllers/privacy_policy_html/accept_policy.html.heex:22
+#: lib/lanttern_web/live/pages/message_board/index_live.ex:306
 #, elixir-autogen, elixir-format
 msgid "Confirm"
 msgstr ""
@@ -2050,6 +2074,7 @@ msgstr ""
 
 #: lib/lanttern_web/components/attachments_components.ex:105
 #: lib/lanttern_web/components/message_board_components.ex:51
+#: lib/lanttern_web/live/pages/message_board/components.ex:66
 #, elixir-autogen, elixir-format
 msgid "Are you sure? This action cannot be undone."
 msgstr ""
@@ -2069,7 +2094,7 @@ msgstr ""
 msgid "Error deleting attachment"
 msgstr ""
 
-#: lib/lanttern_web/components/form_components.ex:870
+#: lib/lanttern_web/components/form_components.ex:873
 #, elixir-autogen, elixir-format
 msgid "File too large (max. %{file_size}MB)"
 msgstr ""
@@ -2089,7 +2114,7 @@ msgstr ""
 msgid "Note's attachments"
 msgstr ""
 
-#: lib/lanttern_web/components/form_components.ex:865
+#: lib/lanttern_web/components/form_components.ex:868
 #, elixir-autogen, elixir-format
 msgid "Only %{formats} files accepted"
 msgstr ""
@@ -2412,7 +2437,7 @@ msgstr ""
 
 #: lib/lanttern_web/components/assessments_components.ex:66
 #: lib/lanttern_web/components/assessments_components.ex:203
-#: lib/lanttern_web/live/shared/assessments/entry_particle_component.ex:128
+#: lib/lanttern_web/live/shared/assessments/entry_particle_component.ex:130
 #, elixir-autogen, elixir-format
 msgid "No entry"
 msgstr ""
@@ -2490,12 +2515,12 @@ msgstr ""
 msgid "Tracking"
 msgstr ""
 
-#: lib/lanttern_web/live/shared/assessments/entry_particle_component.ex:126
+#: lib/lanttern_web/live/shared/assessments/entry_particle_component.ex:128
 #, elixir-autogen, elixir-format
 msgid "No student self-assessment"
 msgstr ""
 
-#: lib/lanttern_web/live/shared/assessments/entry_particle_component.ex:127
+#: lib/lanttern_web/live/shared/assessments/entry_particle_component.ex:129
 #, elixir-autogen, elixir-format
 msgid "No teacher assessment"
 msgstr ""
@@ -2503,6 +2528,7 @@ msgstr ""
 #: lib/lanttern_web/live/pages/school/staff/id/students_records_component.ex:91
 #: lib/lanttern_web/live/pages/students_records/students_records_live.html.heex:30
 #: lib/lanttern_web/live/shared/message_board/message_form_overlay_component.ex:95
+#: lib/lanttern_web/live/shared/message_board/message_form_overlay_component_v2.ex:140
 #: lib/lanttern_web/live/shared/schools/student_form_overlay_component.ex:55
 #: lib/lanttern_web/live/shared/students_records/student_record_overlay_component.ex:124
 #: lib/lanttern_web/live/shared/students_records/student_record_overlay_component.ex:242
@@ -2961,6 +2987,7 @@ msgid "All subjects"
 msgstr ""
 
 #: lib/lanttern_web/live/pages/grades_report/grades_reports_live.html.heex:11
+#: lib/lanttern_web/live/pages/message_board/index_live.ex:29
 #: lib/lanttern_web/live/pages/report_cards/report_cards_live.html.heex:25
 #: lib/lanttern_web/live/pages/school/classes_component.ex:22
 #: lib/lanttern_web/live/pages/strands/library/strands_library_live.html.heex:12
@@ -3438,12 +3465,12 @@ msgstr ""
 msgid "School area attachments"
 msgstr ""
 
-#: lib/lanttern_web/components/form_components.ex:850
+#: lib/lanttern_web/components/form_components.ex:853
 #, elixir-autogen, elixir-format
 msgid "Upload profile picture"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/school/moment_cards_templates_component.ex:40
+#: lib/lanttern_web/live/pages/school/moment_cards_templates_component.ex:41
 #, elixir-autogen, elixir-format
 msgid "Add card template"
 msgstr ""
@@ -3483,12 +3510,12 @@ msgstr ""
 msgid "Edit template"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/strands/moment/id/cards_component.ex:90
+#: lib/lanttern_web/live/pages/strands/moment/id/cards_component.ex:91
 #, elixir-autogen, elixir-format
 msgid "Moment cards order"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/school/moment_cards_templates_component.ex:80
+#: lib/lanttern_web/live/pages/school/moment_cards_templates_component.ex:82
 #, elixir-autogen, elixir-format
 msgid "Moment cards templates order"
 msgstr ""
@@ -3499,7 +3526,7 @@ msgid "New moment card template"
 msgstr ""
 
 #: lib/lanttern_web/live/pages/ilp/settings/ilp_settings_live.html.heex:14
-#: lib/lanttern_web/live/pages/school/moment_cards_templates_component.ex:47
+#: lib/lanttern_web/live/pages/school/moment_cards_templates_component.ex:48
 #, elixir-autogen, elixir-format
 msgid "No templates created yet"
 msgstr ""
@@ -3545,7 +3572,7 @@ msgstr ""
 msgid "Templates"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/school/moment_cards_templates_component.ex:23
+#: lib/lanttern_web/live/pages/school/moment_cards_templates_component.ex:24
 #, elixir-autogen, elixir-format
 msgid "Templates for new moment cards"
 msgstr ""
@@ -3664,13 +3691,13 @@ msgstr ""
 msgid "Are you sure? You can reactive the staff member later."
 msgstr ""
 
-#: lib/lanttern_web/components/form_components.ex:841
+#: lib/lanttern_web/components/form_components.ex:844
 #, elixir-autogen, elixir-format
 msgid "Cancel remove"
 msgstr ""
 
 #: lib/lanttern_web/live/pages/school/staff/id/staff_member_live.html.heex:26
-#: lib/lanttern_web/live/pages/school/staff/id/staff_member_live.html.heex:62
+#: lib/lanttern_web/live/pages/school/staff/id/staff_member_live.html.heex:117
 #: lib/lanttern_web/live/pages/school/staff_component.ex:166
 #, elixir-autogen, elixir-format
 msgid "Edit staff member"
@@ -3741,7 +3768,7 @@ msgstr ""
 msgid "Staff member created successfully"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/school/staff/id/staff_member_live.ex:87
+#: lib/lanttern_web/live/pages/school/staff/id/staff_member_live.ex:139
 #: lib/lanttern_web/live/pages/school/staff_component.ex:99
 #, elixir-autogen, elixir-format
 msgid "Staff member updated successfully"
@@ -3859,7 +3886,7 @@ msgid_plural "Showing %{count} results for selected filters"
 msgstr[0] ""
 msgstr[1] ""
 
-#: lib/lanttern_web/live/pages/school/staff/id/staff_member_live.ex:96
+#: lib/lanttern_web/live/pages/school/staff/id/staff_member_live.ex:148
 #, elixir-autogen, elixir-format
 msgid "Staff member deleted successfully"
 msgstr ""
@@ -4178,8 +4205,8 @@ msgstr ""
 msgid "%{student} reactivated"
 msgstr ""
 
-#: lib/lanttern_web/components/core_components.ex:1893
-#: lib/lanttern_web/components/core_components.ex:1901
+#: lib/lanttern_web/components/core_components.ex:1904
+#: lib/lanttern_web/components/core_components.ex:1912
 #, elixir-autogen, elixir-format
 msgid "(Deactivated)"
 msgstr ""
@@ -4310,6 +4337,7 @@ msgid "Additional %{cycle} information"
 msgstr ""
 
 #: lib/lanttern_web/live/shared/message_board/message_form_overlay_component.ex:80
+#: lib/lanttern_web/live/shared/message_board/message_form_overlay_component_v2.ex:124
 #, elixir-autogen, elixir-format
 msgid "All school"
 msgstr ""
@@ -4329,11 +4357,13 @@ msgstr ""
 msgid "Are you sure? You can unarchive the message later."
 msgstr ""
 
-#: lib/lanttern/message_board/message.ex:75
+#: lib/lanttern/message_board/message.ex:77
+#: lib/lanttern/message_board/message_v2.ex:83
 #, elixir-autogen, elixir-format
 msgid "At least 1 class is required"
 msgstr ""
 
+#: lib/lanttern_web/live/pages/message_board/index_live.ex:629
 #: lib/lanttern_web/live/pages/school/message_board_component.ex:201
 #, elixir-autogen, elixir-format
 msgid "Edit message"
@@ -4345,6 +4375,7 @@ msgstr ""
 msgid "Explore strands"
 msgstr ""
 
+#: lib/lanttern_web/live/pages/message_board/index_live.ex:463
 #: lib/lanttern_web/live/pages/school/message_board/archive/archived_messages_live.ex:106
 #, elixir-autogen, elixir-format
 msgid "Failed to delete message"
@@ -4355,6 +4386,7 @@ msgstr ""
 msgid "Failed to unarchive message"
 msgstr ""
 
+#: lib/lanttern_web/live/pages/message_board/index_live.ex:233
 #: lib/lanttern_web/live/pages/school/message_board/archive/archived_messages_live.html.heex:61
 #: lib/lanttern_web/live/pages/school/message_board_component.ex:90
 #, elixir-autogen, elixir-format
@@ -4378,27 +4410,32 @@ msgstr ""
 msgid "Message archived successfully"
 msgstr ""
 
+#: lib/lanttern_web/live/pages/message_board/index_live.ex:339
 #: lib/lanttern_web/live/pages/school/school_live.html.heex:19
 #: lib/lanttern_web/live/shared/message_board/message_board_viewer_component.ex:28
 #, elixir-autogen, elixir-format
 msgid "Message board"
 msgstr ""
 
+#: lib/lanttern_web/live/pages/message_board/index_live.ex:484
 #: lib/lanttern_web/live/pages/school/message_board_component.ex:121
 #, elixir-autogen, elixir-format
 msgid "Message created successfully"
 msgstr ""
 
 #: lib/lanttern_web/live/shared/message_board/message_form_overlay_component.ex:44
+#: lib/lanttern_web/live/shared/message_board/message_form_overlay_component_v2.ex:69
 #, elixir-autogen, elixir-format
 msgid "Message title"
 msgstr ""
 
+#: lib/lanttern_web/live/pages/message_board/index_live.ex:485
 #: lib/lanttern_web/live/pages/school/message_board_component.ex:122
 #, elixir-autogen, elixir-format
 msgid "Message updated successfully"
 msgstr ""
 
+#: lib/lanttern_web/live/pages/message_board/index_live.ex:612
 #: lib/lanttern_web/live/pages/school/message_board_component.ex:55
 #: lib/lanttern_web/live/pages/school/message_board_component.ex:191
 #, elixir-autogen, elixir-format
@@ -4422,26 +4459,31 @@ msgid "No selected classes"
 msgstr ""
 
 #: lib/lanttern_web/live/shared/message_board/message_form_overlay_component.ex:84
+#: lib/lanttern_web/live/shared/message_board/message_form_overlay_component_v2.ex:129
 #, elixir-autogen, elixir-format
 msgid "Selected classes"
 msgstr ""
 
 #: lib/lanttern_web/live/shared/message_board/message_form_overlay_component.ex:78
+#: lib/lanttern_web/live/shared/message_board/message_form_overlay_component_v2.ex:119
 #, elixir-autogen, elixir-format
 msgid "Send to"
 msgstr ""
 
-#: lib/lanttern/message_board/message.ex:52
+#: lib/lanttern/message_board/message.ex:54
+#: lib/lanttern/message_board/message_v2.ex:70
 #, elixir-autogen, elixir-format
 msgid "Send to must be 'school' or 'classes'"
 msgstr ""
 
 #: lib/lanttern_web/live/shared/message_board/message_form_overlay_component.ex:70
+#: lib/lanttern_web/live/shared/message_board/message_form_overlay_component_v2.ex:111
 #, elixir-autogen, elixir-format
 msgid "Sending to all school"
 msgstr ""
 
 #: lib/lanttern_web/live/shared/message_board/message_form_overlay_component.ex:74
+#: lib/lanttern_web/live/shared/message_board/message_form_overlay_component_v2.ex:115
 #, elixir-autogen, elixir-format
 msgid "Sending to selected classes"
 msgstr ""
@@ -5253,12 +5295,12 @@ msgstr ""
 msgid "Enter the 6-digit code sent to %{email}"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/users/log-in/code/user_code_login_live.ex:111
+#: lib/lanttern_web/live/pages/users/log-in/code/user_code_login_live.ex:143
 #, elixir-autogen, elixir-format
 msgid "Failed to send code. Please try again."
 msgstr ""
 
-#: lib/lanttern_web/live/pages/users/log-in/code/user_code_login_live.ex:97
+#: lib/lanttern_web/live/pages/users/log-in/code/user_code_login_live.ex:105
 #, elixir-autogen, elixir-format
 msgid "Invalid access to this page."
 msgstr ""
@@ -5268,22 +5310,187 @@ msgstr ""
 msgid "Keep me signed in"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/users/log-in/code/user_code_login_live.ex:108
+#: lib/lanttern_web/live/pages/users/log-in/code/user_code_login_live.ex:119
 #, elixir-autogen, elixir-format
 msgid "New code sent to your email."
 msgstr ""
 
-#: lib/lanttern_web/live/pages/users/log-in/code/user_code_login_live.ex:63
+#: lib/lanttern_web/live/pages/users/log-in/code/user_code_login_live.ex:66
 #, elixir-autogen, elixir-format
 msgid "Resend code"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/users/log-in/code/user_code_login_live.ex:72
+#: lib/lanttern_web/live/pages/users/log-in/code/user_code_login_live.ex:76
 #, elixir-autogen, elixir-format
 msgid "Sign in using a different email"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/users/log-in/code/user_code_login_live.ex:116
+#: lib/lanttern_web/controllers/user_session_controller.ex:42
 #, elixir-autogen, elixir-format
 msgid "User not found."
+msgstr ""
+
+#: lib/lanttern_web/live/pages/school/staff/id/staff_member_live.ex:125
+#, elixir-autogen, elixir-format
+msgid "About updated successfully!"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/users/log-in/user_login_live.ex:130
+#, elixir-autogen, elixir-format
+msgid "An error occurred. Please try again."
+msgstr ""
+
+#: lib/lanttern_web/live/pages/message_board/index_live.ex:267
+#, elixir-autogen, elixir-format
+msgid "Are you sure you want to delete the section: \"%{name}\"? This action cannot be reversed. Type in \"%{name}\" to confirm."
+msgstr ""
+
+#: lib/lanttern_web/live/shared/message_board/message_form_overlay_component_v2.ex:53
+#, elixir-autogen, elixir-format
+msgid "Card color"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/message_board/index_live.ex:77
+#, elixir-autogen, elixir-format
+msgid "Configure section"
+msgstr ""
+
+#: lib/lanttern_web/live/shared/message_board/message_form_overlay_component_v2.ex:104
+#, elixir-autogen, elixir-format
+msgid "Contents"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/message_board/index_live.ex:46
+#, elixir-autogen, elixir-format
+msgid "Create section"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/message_board/index_live.ex:255
+#, elixir-autogen, elixir-format
+msgid "Delete section"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/message_board/index_live.ex:225
+#, elixir-autogen, elixir-format
+msgid "Done"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/message_board/index_live.ex:570
+#, elixir-autogen, elixir-format
+msgid "Edit section"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/message_board/index_live.ex:448
+#, elixir-autogen, elixir-format
+msgid "Failed to delete section"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/message_board/index_live.ex:54
+#, elixir-autogen, elixir-format
+msgid "Manage message board sections and messages. Messages are displayed in students and guardians home page."
+msgstr ""
+
+#: lib/lanttern_web/live/pages/message_board/index_live.ex:21
+#, elixir-autogen, elixir-format
+msgid "Message board admin"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/message_board/index_live.ex:458
+#: lib/lanttern_web/live/pages/message_board/index_live.ex:486
+#, elixir-autogen, elixir-format
+msgid "Message deleted successfully"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/message_board/index_live.ex:622
+#, elixir-autogen, elixir-format
+msgid "Message not found"
+msgstr ""
+
+#: lib/lanttern_web/live/shared/message_board/message_form_overlay_component_v2.ex:83
+#, elixir-autogen, elixir-format
+msgid "Message subtitle"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/message_board/index_live.ex:548
+#, elixir-autogen, elixir-format
+msgid "New section"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/message_board/index_live.ex:60
+#: lib/lanttern_web/live/pages/message_board/reorder_component.ex:40
+#, elixir-autogen, elixir-format
+msgid "No sections created yet"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/school/staff/id/staff_member_live.html.heex:98
+#, elixir-autogen, elixir-format
+msgid "Nothing here yet"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/users/log-in/code/user_code_login_live.ex:128
+#, elixir-autogen, elixir-format
+msgid "Please wait %{seconds} seconds before requesting another code."
+msgstr ""
+
+#: lib/lanttern_web/live/pages/users/log-in/code/user_code_login_live.ex:138
+#: lib/lanttern_web/live/pages/users/log-in/user_login_live.ex:126
+#, elixir-autogen, elixir-format
+msgid "Please wait before requesting another login code."
+msgstr ""
+
+#: lib/lanttern_web/live/shared/message_board/message_form_overlay_component_v2.ex:224
+#, elixir-autogen, elixir-format
+msgid "Recommended aspect ratio of 16:9 (landscape orientation)"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/message_board/index_live.ex:39
+#: lib/lanttern_web/live/pages/message_board/index_live.ex:204
+#, elixir-autogen, elixir-format
+msgid "Reorder sections"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/users/log-in/code/user_code_login_live.ex:64
+#, elixir-autogen, elixir-format
+msgid "Resend code in %{seconds} seconds"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/message_board/index_live.ex:439
+#, elixir-autogen, elixir-format
+msgid "Section deleted successfully"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/message_board/index_live.ex:138
+#, elixir-autogen, elixir-format
+msgid "Section name"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/message_board/index_live.ex:562
+#: lib/lanttern_web/live/pages/message_board/index_live.ex:585
+#, elixir-autogen, elixir-format
+msgid "Section not found"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/school/staff/id/staff_member_live.html.heex:58
+#, elixir-autogen, elixir-format
+msgid "Tell us something about yourself!"
+msgstr ""
+
+#: lib/lanttern_web/controllers/user_session_controller.ex:37
+#, elixir-autogen, elixir-format
+msgid "The code has been invalidated due to too many attempts."
+msgstr ""
+
+#: lib/lanttern_web/controllers/user_session_controller.ex:32
+#, elixir-autogen, elixir-format
+msgid "The code is invalid or has expired."
+msgstr ""
+
+#: lib/lanttern_web/live/shared/message_board/message_form_overlay_component_v2.ex:92
+#, elixir-autogen, elixir-format
+msgid "When using a cover image, subtitles will not be displayed in the message card."
+msgstr ""
+
+#: lib/lanttern_web/live/shared/message_board/message_form_overlay_component_v2.ex:84
+#, elixir-autogen, elixir-format
+msgid "what appears in the card preview"
 msgstr ""

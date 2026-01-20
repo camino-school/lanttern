@@ -44,6 +44,61 @@
           </p>
         </div>
       </div>
+      <section id="about" class="mt-10">
+        <div class="flex items-center gap-4 mb-6">
+          <h3 class="font-display font-black text-xl">{gettext("About")}</h3>
+          <%= if !@is_editing_about && (@is_current_user || @is_school_manager) do %>
+            <%= if !@staff_member.about && @is_current_user do %>
+              <%!-- empty, is current user --%>
+              <.action
+                type="button"
+                phx-click="edit_about"
+                icon_name="hero-chat-bubble-left-mini"
+              >
+                {gettext("Tell us something about yourself!")}
+              </.action>
+            <% else %>
+              <%!-- existing (edit) and school manager --%>
+              <.action
+                type="button"
+                phx-click="edit_about"
+                icon_name="hero-pencil-mini"
+                theme="subtle"
+              >
+                {gettext("Edit")}
+              </.action>
+            <% end %>
+          <% end %>
+        </div>
+        <%= if @is_editing_about do %>
+          <.form
+            id="about-form"
+            for={@about_form}
+            phx-change="validate_about"
+            phx-submit="save_about"
+          >
+            <.input
+              type="markdown"
+              field={@about_form[:about]}
+              label={gettext("About")}
+              label_is_sr_only
+            />
+            <div class="flex justify-end gap-4 mt-4">
+              <.action type="button" size="md" theme="subtle" phx-click="cancel_edit_about">
+                {gettext("Cancel")}
+              </.action>
+              <.action type="submit" size="md" icon_name="hero-check">
+                {gettext("Save")}
+              </.action>
+            </div>
+          </.form>
+        <% else %>
+          <.markdown :if={@staff_member.about} text={@staff_member.about} />
+          <.empty_state_simple :if={!@staff_member.about}>
+            {gettext("Nothing here yet")}
+          </.empty_state_simple>
+        <% end %>
+      </section>
     </.responsive_container>
   </div>
   <.live_component
