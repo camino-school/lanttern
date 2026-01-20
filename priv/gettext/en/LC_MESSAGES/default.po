@@ -12,8 +12,8 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: lib/lanttern_web/components/core_components.ex:977
-#: lib/lanttern_web/components/core_components.ex:2198
-#: lib/lanttern_web/components/core_components.ex:2260
+#: lib/lanttern_web/components/core_components.ex:2200
+#: lib/lanttern_web/components/core_components.ex:2262
 #, elixir-autogen, elixir-format
 msgid "Actions"
 msgstr ""
@@ -575,7 +575,7 @@ msgid "Differentiation"
 msgstr ""
 
 #: lib/lanttern_web/components/attachments_components.ex:111
-#: lib/lanttern_web/components/core_components.ex:1507
+#: lib/lanttern_web/components/core_components.ex:1509
 #: lib/lanttern_web/components/form_components.ex:280
 #: lib/lanttern_web/components/ilp_components.ex:124
 #: lib/lanttern_web/components/learning_context_components.ex:81
@@ -835,7 +835,7 @@ msgstr ""
 msgid "Moments"
 msgstr ""
 
-#: lib/lanttern_web/components/core_components.ex:2148
+#: lib/lanttern_web/components/core_components.ex:2150
 #, elixir-autogen, elixir-format
 msgid "Move moment down"
 msgstr ""
@@ -1296,7 +1296,7 @@ msgstr ""
 msgid "Move down"
 msgstr ""
 
-#: lib/lanttern_web/components/core_components.ex:2138
+#: lib/lanttern_web/components/core_components.ex:2140
 #: lib/lanttern_web/live/shared/grading/grade_composition_overlay_component.ex:167
 #, elixir-autogen, elixir-format
 msgid "Move up"
@@ -1410,7 +1410,7 @@ msgstr ""
 
 #: lib/lanttern_web/components/attachments_components.ex:116
 #: lib/lanttern_web/components/core_components.ex:356
-#: lib/lanttern_web/components/core_components.ex:1595
+#: lib/lanttern_web/components/core_components.ex:1597
 #: lib/lanttern_web/components/form_components.ex:843
 #: lib/lanttern_web/live/shared/grading/grade_composition_overlay_component.ex:196
 #, elixir-autogen, elixir-format
@@ -1762,8 +1762,8 @@ msgstr ""
 msgid "Hey!"
 msgstr ""
 
-#: lib/lanttern_web/components/core_components.ex:1660
-#: lib/lanttern_web/components/core_components.ex:1682
+#: lib/lanttern_web/components/core_components.ex:1662
+#: lib/lanttern_web/components/core_components.ex:1684
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Selected"
 msgstr ""
@@ -4231,8 +4231,8 @@ msgstr ""
 msgid "%{student} reactivated"
 msgstr ""
 
-#: lib/lanttern_web/components/core_components.ex:1918
-#: lib/lanttern_web/components/core_components.ex:1926
+#: lib/lanttern_web/components/core_components.ex:1920
+#: lib/lanttern_web/components/core_components.ex:1928
 #, elixir-autogen, elixir-format, fuzzy
 msgid "(Deactivated)"
 msgstr ""
@@ -4560,6 +4560,7 @@ msgstr ""
 msgid "Your %{cycle} report cards"
 msgstr ""
 
+#: lib/lanttern_web/live/pages/chats/chats_live.html.heex:127
 #: lib/lanttern_web/live/pages/guardian/guardian_home_live.html.heex:3
 #, elixir-autogen, elixir-format
 msgid "Hello!"
@@ -5897,4 +5898,60 @@ msgstr ""
 #: lib/lanttern_web/live/pages/school/staff/id/staff_member_live.html.heex:58
 #, elixir-autogen, elixir-format
 msgid "Tell us something about yourself!"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/chats/chats_live.ex:23
+#, elixir-autogen, elixir-format, fuzzy
+msgid "AI Agents Chat"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/chats/chats_live.ex:59
+#, elixir-autogen, elixir-format
+msgid "Conversation not found"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/chats/chats_live.ex:108
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Failed to create conversation"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/chats/chats_live.ex:177
+#, elixir-autogen, elixir-format
+msgid "Failed to get AI response"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/chats/chats_live.ex:250
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Failed to save response"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/chats/chats_live.ex:131
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Failed to send message"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/chats/chats_live.html.heex:143
+#, elixir-autogen, elixir-format
+msgid "How can I help you today?"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/chats/chats_live.html.heex:44
+#, elixir-autogen, elixir-format, fuzzy
+msgid "New chat"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/chats/chats_live.html.heex:51
+#, elixir-autogen, elixir-format
+msgid "Recents"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/chats/chats_live.html.heex:142
+#, elixir-autogen, elixir-format
+msgid "Reply..."
+msgstr ""
+
+#: lib/lanttern_web/live/pages/chats/chats_live.html.heex:69
+#: lib/lanttern_web/live/pages/chats/chats_live.html.heex:76
+#, elixir-autogen, elixir-format
+msgid "Unnamed conversation"
 msgstr ""
