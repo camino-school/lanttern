@@ -12,6 +12,7 @@ defmodule Lanttern.Schools.StaffMember do
   @type t :: %__MODULE__{
           id: pos_integer(),
           name: String.t(),
+          about: String.t(),
           profile_picture_url: String.t() | nil,
           role: String.t(),
           school: School.t(),
@@ -23,6 +24,7 @@ defmodule Lanttern.Schools.StaffMember do
 
   schema "staff" do
     field :name, :string
+    field :about, :string
     field :profile_picture_url, :string
     field :role, :string, default: "Teacher"
     field :deactivated_at, :utc_datetime
@@ -41,7 +43,7 @@ defmodule Lanttern.Schools.StaffMember do
   @doc false
   def changeset(staff_member, attrs) do
     staff_member
-    |> cast(attrs, [:name, :school_id, :profile_picture_url, :role, :deactivated_at])
+    |> cast(attrs, [:name, :about, :school_id, :profile_picture_url, :role, :deactivated_at])
     |> validate_required([:name, :school_id, :role])
   end
 end

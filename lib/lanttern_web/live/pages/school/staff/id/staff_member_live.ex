@@ -1,6 +1,7 @@
 defmodule LantternWeb.StaffMemberLive do
   use LantternWeb, :live_view
 
+  alias Lanttern.Identity.Scope
   alias Lanttern.Schools
   alias Lanttern.Schools.StaffMember
 
@@ -18,6 +19,7 @@ defmodule LantternWeb.StaffMemberLive do
   def mount(params, _session, socket) do
     socket =
       socket
+      |> assign(:is_editing_about, false)
       |> assign_staff_member(params)
       |> assign_is_school_manager()
       |> assign_is_current_user()
@@ -28,7 +30,7 @@ defmodule LantternWeb.StaffMemberLive do
   defp assign_staff_member(socket, params) do
     case Schools.get_staff_member!(params["id"], preloads: :school, load_email: true) do
       %StaffMember{} = staff_member ->
-        check_if_user_has_access(socket.assigns.current_user, staff_member)
+        check_if_user_has_access(socket.assigns.current_scope, staff_member)
 
         socket
         |> assign(:staff_member, staff_member)
@@ -41,22 +43,24 @@ defmodule LantternWeb.StaffMemberLive do
 
   # check if user can view the staff member profile
   # users can view only staff members from their school
-  defp check_if_user_has_access(current_user, staff_member) do
-    if staff_member.school_id != current_user.current_profile.school_id,
+  defp check_if_user_has_access(scope, staff_member) do
+    if !Scope.belongs_to_school?(scope, staff_member.school_id),
       do: raise(LantternWeb.NotFoundError)
   end
 
   defp assign_is_current_user(socket) do
     is_current_user =
-      socket.assigns.current_user.current_profile.staff_member_id ==
+      Scope.staff_member?(
+        socket.assigns.current_scope,
         socket.assigns.staff_member.id
+      )
 
     assign(socket, :is_current_user, is_current_user)
   end
 
   defp assign_is_school_manager(socket) do
     is_school_manager =
-      "school_management" in socket.assigns.current_user.current_profile.permissions
+      Scope.has_permission?(socket.assigns.current_scope, "school_management")
 
     assign(socket, :is_school_manager, is_school_manager)
   end
@@ -79,6 +83,54 @@ defmodule LantternWeb.StaffMemberLive do
 
   defp assign_is_editing(socket, _params),
     do: assign(socket, :is_editing, false)
+
+  @impl true
+  def handle_event("edit_about", _params, socket) do
+    form =
+      socket.assigns.staff_member
+      |> Schools.change_staff_member()
+      |> to_form()
+
+    socket =
+      socket
+      |> assign(:about_form, form)
+      |> assign(:is_editing_about, true)
+
+    {:noreply, socket}
+  end
+
+  def handle_event("validate_about", %{"staff_member" => params}, socket) do
+    form =
+      socket.assigns.staff_member
+      |> Schools.change_staff_member(params)
+      |> to_form()
+
+    socket =
+      socket
+      |> assign(:about_form, form)
+
+    {:noreply, socket}
+  end
+
+  def handle_event("cancel_edit_about", _params, socket) do
+    {:noreply, assign(socket, :is_editing_about, false)}
+  end
+
+  def handle_event("save_about", %{"staff_member" => params}, socket) do
+    socket =
+      Schools.update_staff_member(socket.assigns.staff_member, params)
+      |> case do
+        {:ok, staff_member} ->
+          socket
+          |> put_flash(:info, gettext("About updated successfully!"))
+          |> push_navigate(to: ~p"/school/staff/#{staff_member}")
+
+        {:error, changeset} ->
+          assign(socket, :about_form, to_form(changeset))
+      end
+
+    {:noreply, socket}
+  end
 
   @impl true
   def handle_info({StaffMemberFormOverlayComponent, {:updated, _student}}, socket) do

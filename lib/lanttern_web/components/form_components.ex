@@ -72,6 +72,7 @@ defmodule LantternWeb.FormComponents do
   attr :id, :any, default: nil
   attr :name, :any
   attr :label, :string, default: nil
+  attr :label_is_sr_only, :boolean, default: false
   attr :value, :any
 
   attr :type, :string,
@@ -244,6 +245,7 @@ defmodule LantternWeb.FormComponents do
         show_optional={@show_optional}
         help_text={@help_text}
         custom={if @custom_label == [], do: false, else: true}
+        class={if @label_is_sr_only, do: "sr-only"}
       >
         {@label || render_slot(@custom_label)}
       </.label>
@@ -331,11 +333,12 @@ defmodule LantternWeb.FormComponents do
   attr :help_text, :string, default: nil, doc: "render a tooltip with some extra instructions"
   attr :show_optional, :boolean, default: false
   attr :custom, :boolean, default: false
+  attr :class, :any, default: nil
   slot :inner_block, required: true
 
   def label(%{show_optional: true} = assigns) do
     ~H"""
-    <div class="flex justify-between gap-4 mb-2 text-sm">
+    <div class={["flex justify-between gap-4 mb-2 text-sm", @class]}>
       <label for={@for} class="font-bold">
         <.help_tooltip text={@help_text} class="inline-block font-normal" />
         {render_slot(@inner_block)}
@@ -347,7 +350,7 @@ defmodule LantternWeb.FormComponents do
 
   def label(%{custom: true} = assigns) do
     ~H"""
-    <label for={@for} class="block mb-2">
+    <label for={@for} class={["block mb-2", @class]}>
       <.help_tooltip text={@help_text} class="inline-block font-normal" />
       {render_slot(@inner_block)}
     </label>
@@ -356,7 +359,7 @@ defmodule LantternWeb.FormComponents do
 
   def label(assigns) do
     ~H"""
-    <label for={@for} class="flex items-center gap-2 mb-2 text-sm font-bold">
+    <label for={@for} class={["flex items-center gap-2 mb-2 text-sm font-bold", @class]}>
       <.help_tooltip text={@help_text} class="font-normal" />
       {render_slot(@inner_block)}
     </label>

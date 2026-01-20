@@ -96,4 +96,28 @@ defmodule Lanttern.Identity.ScopeTest do
       refute Scope.profile_type?(nil, "staff")
     end
   end
+
+  describe "staff_member?/2" do
+    test "returns true when scope is staff and staff_member_id matches" do
+      scope = staff_scope_fixture()
+
+      assert Scope.staff_member?(scope, scope.staff_member_id)
+    end
+
+    test "returns false when scope is staff but staff_member_id doesn't match" do
+      scope = staff_scope_fixture()
+
+      refute Scope.staff_member?(scope, scope.staff_member_id + 1)
+    end
+
+    test "returns false when profile_type is not staff even if staff_member_id matches" do
+      student_scope = student_scope_fixture()
+
+      refute Scope.staff_member?(student_scope, student_scope.staff_member_id)
+    end
+
+    test "returns false for nil scope" do
+      refute Scope.staff_member?(nil, 1)
+    end
+  end
 end

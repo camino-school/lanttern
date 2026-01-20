@@ -43,6 +43,10 @@ npm-debug.log
 # LLMs
 CLAUDE.md
 .windsurfrules
+.claude
 
 # Elixir LS
 .elixir_ls
+
+# local WIP files (don't commit, but don't discard)
+/_wip/

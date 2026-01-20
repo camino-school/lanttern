@@ -136,6 +136,7 @@ defmodule Lanttern.IdentityFixtures do
         id: staff_member_profile.id,
         name: staff_member.name,
         type: "staff",
+        staff_member_id: staff_member.id,
         school_id: staff_member.school.id,
         school_name: staff_member.school.name,
         permissions: permissions
@@ -198,6 +199,7 @@ defmodule Lanttern.IdentityFixtures do
           id: student_profile.id,
           name: student.name,
           type: "student",
+          student_id: student.id,
           school_id: student.school.id,
           school_name: student.school.name,
           permissions: []
