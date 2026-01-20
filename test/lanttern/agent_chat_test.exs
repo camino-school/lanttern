@@ -297,4 +297,250 @@ defmodule Lanttern.AgentChatTest do
                :gt
     end
   end
+
+  describe "rename_conversation_based_on_chain/3" do
+    setup do
+      Mimic.copy(LangChain.Chains.LLMChain)
+
+      scope = IdentityFixtures.scope_fixture()
+      profile = Repo.get!(Profile, scope.profile_id)
+      conversation = insert(:conversation, %{profile: profile, name: nil})
+
+      # Create a mock LLM
+      mock_llm = LangChain.ChatModels.ChatOpenAI.new!(%{model: "gpt-4", api_key: "test-key"})
+
+      # Create a chain with sample messages
+      chain =
+        LangChain.Chains.LLMChain.new!(%{llm: mock_llm})
+        |> LangChain.Chains.LLMChain.add_message(
+          LangChain.Message.new_user!("What is the capital of France?")
+        )
+        |> LangChain.Chains.LLMChain.add_message(
+          LangChain.Message.new_assistant!("The capital of France is Paris.")
+        )
+
+      %{scope: scope, conversation: conversation, chain: chain, profile: profile}
+    end
+
+    test "successfully renames conversation based on chain messages", %{
+      scope: scope,
+      conversation: conversation,
+      chain: chain
+    } do
+      # Mock LLMChain.run to execute the function and return the result
+      Mimic.expect(LangChain.Chains.LLMChain, :run, fn naming_chain, _opts ->
+        # Extract the function from the chain
+        [rename_function] = naming_chain.tools
+
+        # Simulate the LLM calling the function with a title
+        {:ok, content, updated_conv} =
+          rename_function.function.(%{"title" => "Capital of France"}, %{})
+
+        # Create a proper ToolResult
+        tool_result =
+          LangChain.Message.ToolResult.new!(%{
+            type: :function,
+            tool_call_id: "call_123",
+            name: "set_conversation_title",
+            content: content,
+            processed_content: updated_conv
+          })
+
+        # Return a chain with the tool result
+        result_chain = %{
+          naming_chain
+          | messages:
+              naming_chain.messages ++
+                [
+                  LangChain.Message.new_tool_result!(%{
+                    tool_results: [tool_result]
+                  })
+                ]
+        }
+
+        {:ok, result_chain}
+      end)
+
+      assert {:ok, %Conversation{} = result} =
+               AgentChat.rename_conversation_based_on_chain(scope, conversation, chain)
+
+      assert result.name == "Capital of France"
+      assert result.id == conversation.id
+
+      # Verify the conversation was actually updated in the database
+      db_conversation = Repo.get!(Conversation, conversation.id)
+      assert db_conversation.name == "Capital of France"
+    end
+
+    test "handles LLM errors gracefully", %{
+      scope: scope,
+      conversation: conversation,
+      chain: chain
+    } do
+      error = %LangChain.LangChainError{message: "API rate limit exceeded"}
+
+      Mimic.expect(LangChain.Chains.LLMChain, :run, fn _chain, _opts ->
+        {:error, chain, error}
+      end)
+
+      assert {:error, %LangChain.LangChainError{}} =
+               AgentChat.rename_conversation_based_on_chain(scope, conversation, chain)
+
+      # Verify conversation name remains nil
+      db_conversation = Repo.get!(Conversation, conversation.id)
+      assert db_conversation.name == nil
+    end
+
+    test "handles missing tool result by reloading conversation", %{
+      scope: scope,
+      conversation: conversation,
+      chain: chain
+    } do
+      # Mock response chain without tool result
+      response_chain = %{
+        chain
+        | messages: chain.messages ++ [LangChain.Message.new_assistant!("I cannot help")]
+      }
+
+      Mimic.expect(LangChain.Chains.LLMChain, :run, fn _chain, _opts ->
+        {:ok, response_chain}
+      end)
+
+      assert {:ok, %Conversation{} = result} =
+               AgentChat.rename_conversation_based_on_chain(scope, conversation, chain)
+
+      # Should return the conversation reloaded from DB
+      assert result.id == conversation.id
+    end
+
+    test "raises when scope does not match conversation profile", %{
+      chain: chain,
+      profile: profile
+    } do
+      different_scope = IdentityFixtures.scope_fixture()
+      conversation = insert(:conversation, %{profile: profile, name: nil})
+
+      assert_raise MatchError, fn ->
+        AgentChat.rename_conversation_based_on_chain(different_scope, conversation, chain)
+      end
+    end
+
+    test "only works with conversations that have no name", %{
+      scope: scope,
+      profile: profile,
+      chain: chain
+    } do
+      conversation_with_name = insert(:conversation, %{profile: profile, name: "Existing Name"})
+
+      # Function pattern match should fail - it only matches conversations with name: nil
+      assert_raise FunctionClauseError, fn ->
+        AgentChat.rename_conversation_based_on_chain(scope, conversation_with_name, chain)
+      end
+    end
+
+    test "extracts context from first 4 messages only", %{
+      scope: scope,
+      conversation: conversation,
+      chain: chain
+    } do
+      # Add more messages to chain (total will be 7 messages)
+      extended_chain =
+        chain
+        |> LangChain.Chains.LLMChain.add_message(LangChain.Message.new_user!("What about Italy?"))
+        |> LangChain.Chains.LLMChain.add_message(
+          LangChain.Message.new_assistant!("The capital of Italy is Rome.")
+        )
+        |> LangChain.Chains.LLMChain.add_message(LangChain.Message.new_user!("And Germany?"))
+        |> LangChain.Chains.LLMChain.add_message(
+          LangChain.Message.new_assistant!("The capital of Germany is Berlin.")
+        )
+        |> LangChain.Chains.LLMChain.add_message(LangChain.Message.new_user!("Thanks!"))
+
+      # Capture the chain that gets passed to run to verify context building
+      Mimic.expect(LangChain.Chains.LLMChain, :run, fn naming_chain, _opts ->
+        # The naming chain should have 1 message (the naming prompt)
+        # And it should only reference the first 4 messages from the original chain
+        assert length(naming_chain.messages) == 1
+        [naming_message] = naming_chain.messages
+        assert naming_message.role == :user
+
+        # The content should only include first 4 messages (2 user + 2 assistant from extended_chain)
+        content = LangChain.Message.ContentPart.content_to_string(naming_message.content)
+        assert content =~ "What is the capital of France?"
+        assert content =~ "The capital of France is Paris"
+        assert content =~ "What about Italy?"
+        assert content =~ "The capital of Italy is Rome"
+
+        # Should NOT include the 5th+ messages
+        refute content =~ "And Germany?"
+        refute content =~ "Berlin"
+
+        # Execute the function to update the conversation
+        [rename_function] = naming_chain.tools
+
+        {:ok, content, updated_conv} =
+          rename_function.function.(%{"title" => "European Capitals"}, %{})
+
+        tool_result =
+          LangChain.Message.ToolResult.new!(%{
+            type: :function,
+            tool_call_id: "call_123",
+            name: "set_conversation_title",
+            content: content,
+            processed_content: updated_conv
+          })
+
+        result_chain = %{
+          naming_chain
+          | messages:
+              naming_chain.messages ++
+                [LangChain.Message.new_tool_result!(%{tool_results: [tool_result]})]
+        }
+
+        {:ok, result_chain}
+      end)
+
+      assert {:ok, %Conversation{}} =
+               AgentChat.rename_conversation_based_on_chain(scope, conversation, extended_chain)
+    end
+
+    test "truncates titles longer than 50 characters", %{
+      scope: scope,
+      conversation: conversation,
+      chain: chain
+    } do
+      long_title = "This is a very long conversation title that exceeds fifty characters"
+      expected_title = String.slice(long_title, 0, 50)
+
+      Mimic.expect(LangChain.Chains.LLMChain, :run, fn naming_chain, _opts ->
+        # Execute the function with a long title
+        [rename_function] = naming_chain.tools
+        {:ok, content, updated_conv} = rename_function.function.(%{"title" => long_title}, %{})
+
+        tool_result =
+          LangChain.Message.ToolResult.new!(%{
+            type: :function,
+            tool_call_id: "call_123",
+            name: "set_conversation_title",
+            content: content,
+            processed_content: updated_conv
+          })
+
+        result_chain = %{
+          naming_chain
+          | messages:
+              naming_chain.messages ++
+                [LangChain.Message.new_tool_result!(%{tool_results: [tool_result]})]
+        }
+
+        {:ok, result_chain}
+      end)
+
+      assert {:ok, %Conversation{} = result} =
+               AgentChat.rename_conversation_based_on_chain(scope, conversation, chain)
+
+      assert result.name == expected_title
+      assert String.length(result.name) == 50
+    end
+  end
 end

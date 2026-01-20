@@ -8,6 +8,7 @@ defmodule Lanttern.AgentChat do
   alias Lanttern.Repo
 
   alias LangChain.Chains.LLMChain
+  alias LangChain.Message.ContentPart
 
   alias Lanttern.AgentChat.Conversation
   alias Lanttern.AgentChat.Message
@@ -139,7 +140,9 @@ defmodule Lanttern.AgentChat do
       chain.messages
       |> Enum.filter(&(&1.role in [:user, :assistant]))
       |> Enum.take(4)
-      |> Enum.map_join("\n", fn msg -> "#{msg.role}: #{extract_text_content(msg.content)}" end)
+      |> Enum.map_join("\n", fn msg ->
+        "#{msg.role}: #{ContentPart.content_to_string(msg.content)}"
+      end)
 
     rename_function = build_rename_function(scope, conversation)
 
@@ -174,16 +177,6 @@ defmodule Lanttern.AgentChat do
         {:error, error}
     end
   end
-
-  # Extract text content from LangChain message content (handles ContentPart lists)
-  defp extract_text_content(content) when is_list(content) do
-    content
-    |> Enum.filter(&(&1.type == :text))
-    |> Enum.map_join("\n", & &1.content)
-  end
-
-  defp extract_text_content(content) when is_binary(content), do: content
-  defp extract_text_content(_), do: ""
 
   defp build_rename_function(scope, conversation) do
     LangChain.Function.new!(%{

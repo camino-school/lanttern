@@ -2,22 +2,11 @@ defmodule LantternWeb.ChatsLive do
   use LantternWeb, :live_view
 
   alias LangChain.ChatModels.ChatOpenAI
+  alias LangChain.Message.ContentPart
 
   alias Lanttern.AgentChat
 
   @model "gpt-5-nano"
-
-  # helpers
-
-  # Extract text content from LangChain message content (list of ContentParts)
-  defp extract_text_content(content) when is_list(content) do
-    content
-    |> Enum.filter(&(&1.type == :text))
-    |> Enum.map_join("\n", & &1.content)
-  end
-
-  defp extract_text_content(content) when is_binary(content), do: content
-  defp extract_text_content(_), do: ""
 
   # lifecycle
 
@@ -177,12 +166,12 @@ defmodule LantternWeb.ChatsLive do
           }
 
           # Save the assistant message
-          content = extract_text_content(assistant_message.content)
+          content = ContentPart.content_to_string(assistant_message.content)
 
           AgentChat.add_assistant_message(conversation_id, content, usage_attrs)
           |> handle_add_assistant_message(socket, conversation_id, updated_chain)
 
-        {:error, _reason} ->
+        {:error, _chain, _reason} ->
           socket
           |> assign(:loading, false)
           |> put_flash(:error, gettext("Failed to get AI response"))
@@ -191,20 +180,18 @@ defmodule LantternWeb.ChatsLive do
     {:noreply, socket}
   end
 
-  @impl true
   def handle_info({:rename_conversation, conversation, chain}, socket) do
-    scope = socket.assigns.current_scope
-
-    case AgentChat.rename_conversation_based_on_chain(scope, conversation, chain) do
+    AgentChat.rename_conversation_based_on_chain(
+      socket.assigns.current_scope,
+      conversation,
+      chain
+    )
+    |> case do
       {:ok, updated_conversation} ->
         socket =
           socket
           |> assign(:current_conversation, updated_conversation)
-          |> update(:conversations, fn convs ->
-            Enum.map(convs, fn c ->
-              if c.id == updated_conversation.id, do: updated_conversation, else: c
-            end)
-          end)
+          |> update_conversation_in_list(updated_conversation)
 
         {:noreply, socket}
 
@@ -212,6 +199,18 @@ defmodule LantternWeb.ChatsLive do
         # Silently fail - naming is not critical
         {:noreply, socket}
     end
+  end
+
+  defp update_conversation_in_list(socket, updated_conversation) do
+    update(
+      socket,
+      :conversations,
+      &Enum.map(&1, fn c ->
+        if c.id == updated_conversation.id,
+          do: updated_conversation,
+          else: c
+      end)
+    )
   end
 
   defp handle_add_assistant_message(
