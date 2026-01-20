@@ -894,7 +894,7 @@ defmodule LantternWeb.CoreComponents do
       when is_binary(start_bg_color) and is_binary(stop_bg_color),
       do: "background-image: linear-gradient(to right, #{start_bg_color}, #{stop_bg_color})"
 
-  def create_color_map_gradient_bg_style(_), do: %{}
+  def create_color_map_gradient_bg_style(_), do: ""
 
   @doc """
   Renders a data grid.
@@ -1075,14 +1075,23 @@ defmodule LantternWeb.CoreComponents do
   @doc """
   Renders a simple empty state component
   """
+  attr :text_only, :boolean, default: true
   attr :class, :any, default: nil
   attr :id, :string, default: nil
   slot :inner_block, required: true
 
+  def empty_state_simple(%{text_only: true} = assigns) do
+    ~H"""
+    <div class={["p-4 border border-dashed border-ltrn-light rounded-sm", @class]} id={@id}>
+      <p class="text-ltrn-subtle text-center">{render_slot(@inner_block)}</p>
+    </div>
+    """
+  end
+
   def empty_state_simple(assigns) do
     ~H"""
     <div class={["p-4 border border-dashed border-ltrn-light rounded-sm", @class]} id={@id}>
-      <p class="text-sm text-ltrn-subtle text-center">{render_slot(@inner_block)}</p>
+      {render_slot(@inner_block)}
     </div>
     """
   end

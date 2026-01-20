@@ -15,6 +15,8 @@ defmodule Lanttern.Identity.Scope do
           user_id: pos_integer() | nil,
           profile_id: pos_integer() | nil,
           profile_type: String.t() | nil,
+          staff_member_id: pos_integer() | nil,
+          student_id: pos_integer() | nil,
           school_id: pos_integer() | nil,
           permissions: [String.t()]
         }
@@ -22,6 +24,8 @@ defmodule Lanttern.Identity.Scope do
   defstruct user_id: nil,
             profile_id: nil,
             profile_type: nil,
+            staff_member_id: nil,
+            student_id: nil,
             school_id: nil,
             permissions: []
 
@@ -45,6 +49,8 @@ defmodule Lanttern.Identity.Scope do
       user_id: user_id,
       profile_id: profile.id,
       profile_type: profile.type,
+      staff_member_id: profile.staff_member_id,
+      student_id: profile.student_id,
       school_id: profile.school_id,
       permissions: profile.permissions || []
     }
@@ -55,6 +61,8 @@ defmodule Lanttern.Identity.Scope do
       user_id: user_id,
       profile_id: nil,
       profile_type: nil,
+      staff_member_id: nil,
+      student_id: nil,
       school_id: nil,
       permissions: []
     }
@@ -178,4 +186,29 @@ defmodule Lanttern.Identity.Scope do
       do: true
 
   def profile_type?(_scope, _profile_type), do: false
+
+  @doc """
+  Checks if the scope is for a specific staff member.
+
+  ## Examples
+
+      iex> staff_member?(%Scope{profile_type: "staff", staff_member_id: 1}, 1)
+      true
+
+      iex> staff_member?(%Scope{profile_type: "staff", staff_member_id: 2}, 1)
+      false
+
+      iex> staff_member?(%Scope{profile_type: "student", staff_member_id: 1}, 1)
+      false
+
+      iex> staff_member?(nil, 1)
+      false
+
+  """
+  @spec staff_member?(t() | nil, pos_integer()) :: boolean()
+  def staff_member?(%__MODULE__{profile_type: "staff", staff_member_id: id}, id)
+      when is_integer(id),
+      do: true
+
+  def staff_member?(_scope, _staff_member_id), do: false
 end

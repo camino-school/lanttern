@@ -12,8 +12,8 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n>1);\n"
 
 #: lib/lanttern_web/components/core_components.ex:977
-#: lib/lanttern_web/components/core_components.ex:2189
-#: lib/lanttern_web/components/core_components.ex:2251
+#: lib/lanttern_web/components/core_components.ex:2198
+#: lib/lanttern_web/components/core_components.ex:2260
 #, elixir-autogen, elixir-format
 msgid "Actions"
 msgstr "Ações"
@@ -61,7 +61,7 @@ msgstr "Rubricas"
 msgid "Strands"
 msgstr "Trilhas"
 
-#: lib/lanttern_web/components/core_components.ex:1152
+#: lib/lanttern_web/components/core_components.ex:1161
 #: lib/lanttern_web/components/overlay_components.ex:79
 #: lib/lanttern_web/components/overlay_components.ex:339
 #, elixir-autogen, elixir-format
@@ -114,6 +114,7 @@ msgstr "Aplicando filtros..."
 #: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:133
 #: lib/lanttern_web/live/pages/report_cards/report_cards_live.html.heex:104
 #: lib/lanttern_web/live/pages/school/moment_cards_templates_component.ex:109
+#: lib/lanttern_web/live/pages/school/staff/id/staff_member_live.html.heex:88
 #: lib/lanttern_web/live/pages/settings/agents/agent_card_component.ex:121
 #: lib/lanttern_web/live/pages/settings/lesson_templates/lesson_template_card_component.ex:101
 #: lib/lanttern_web/live/pages/strands/id/lessons_component.ex:229
@@ -190,6 +191,7 @@ msgstr "Nova trilha"
 #: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:136
 #: lib/lanttern_web/live/pages/report_cards/report_cards_live.html.heex:107
 #: lib/lanttern_web/live/pages/school/moment_cards_templates_component.ex:112
+#: lib/lanttern_web/live/pages/school/staff/id/staff_member_live.html.heex:91
 #: lib/lanttern_web/live/pages/settings/agents/agent_card_component.ex:124
 #: lib/lanttern_web/live/pages/settings/lesson_templates/lesson_template_card_component.ex:104
 #: lib/lanttern_web/live/pages/strands/id/lessons_component.ex:232
@@ -415,6 +417,8 @@ msgid "Something went wrong!"
 msgstr "Algo deu errado!"
 
 #: lib/lanttern_web/live/pages/school/staff/id/staff_member_live.html.heex:11
+#: lib/lanttern_web/live/pages/school/staff/id/staff_member_live.html.heex:49
+#: lib/lanttern_web/live/pages/school/staff/id/staff_member_live.html.heex:83
 #: lib/lanttern_web/live/pages/school/students/id/student_live.html.heex:11
 #: lib/lanttern_web/live/pages/settings/lesson_templates/lesson_template_card_component.ex:46
 #, elixir-autogen, elixir-format
@@ -571,7 +575,7 @@ msgid "Differentiation"
 msgstr "Diferenciação"
 
 #: lib/lanttern_web/components/attachments_components.ex:111
-#: lib/lanttern_web/components/core_components.ex:1498
+#: lib/lanttern_web/components/core_components.ex:1507
 #: lib/lanttern_web/components/form_components.ex:280
 #: lib/lanttern_web/components/ilp_components.ex:124
 #: lib/lanttern_web/components/learning_context_components.ex:81
@@ -581,6 +585,7 @@ msgstr "Diferenciação"
 #: lib/lanttern_web/live/pages/ilp/settings/ilp_settings_live.html.heex:32
 #: lib/lanttern_web/live/pages/report_cards/id/report_card_live.html.heex:42
 #: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:320
+#: lib/lanttern_web/live/pages/school/staff/id/staff_member_live.html.heex:68
 #: lib/lanttern_web/live/pages/settings/agents/agent_card_component.ex:28
 #: lib/lanttern_web/live/pages/settings/lesson_templates/lesson_template_card_component.ex:28
 #: lib/lanttern_web/live/pages/strands/id/lessons_component.ex:155
@@ -830,7 +835,7 @@ msgstr "Momento atualizado com sucesso"
 msgid "Moments"
 msgstr "Momentos"
 
-#: lib/lanttern_web/components/core_components.ex:2139
+#: lib/lanttern_web/components/core_components.ex:2148
 #, elixir-autogen, elixir-format
 msgid "Move moment down"
 msgstr "Mover momento para baixo"
@@ -1291,7 +1296,7 @@ msgstr "Lista de report cards vinculados a esta trilha"
 msgid "Move down"
 msgstr "Mover para baixo"
 
-#: lib/lanttern_web/components/core_components.ex:2129
+#: lib/lanttern_web/components/core_components.ex:2138
 #: lib/lanttern_web/live/shared/grading/grade_composition_overlay_component.ex:167
 #, elixir-autogen, elixir-format
 msgid "Move up"
@@ -1405,7 +1410,7 @@ msgstr "Recalcular nota"
 
 #: lib/lanttern_web/components/attachments_components.ex:116
 #: lib/lanttern_web/components/core_components.ex:356
-#: lib/lanttern_web/components/core_components.ex:1586
+#: lib/lanttern_web/components/core_components.ex:1595
 #: lib/lanttern_web/components/form_components.ex:843
 #: lib/lanttern_web/live/shared/grading/grade_composition_overlay_component.ex:196
 #, elixir-autogen, elixir-format
@@ -1757,8 +1762,8 @@ msgstr "Limpar seleção"
 msgid "Hey!"
 msgstr "Olá!"
 
-#: lib/lanttern_web/components/core_components.ex:1651
-#: lib/lanttern_web/components/core_components.ex:1673
+#: lib/lanttern_web/components/core_components.ex:1660
+#: lib/lanttern_web/components/core_components.ex:1682
 #, elixir-autogen, elixir-format
 msgid "Selected"
 msgstr "Selecionado"
@@ -3718,7 +3723,7 @@ msgid "Cancel remove"
 msgstr "Cancelar remoção"
 
 #: lib/lanttern_web/live/pages/school/staff/id/staff_member_live.html.heex:26
-#: lib/lanttern_web/live/pages/school/staff/id/staff_member_live.html.heex:62
+#: lib/lanttern_web/live/pages/school/staff/id/staff_member_live.html.heex:117
 #: lib/lanttern_web/live/pages/school/staff_component.ex:166
 #, elixir-autogen, elixir-format
 msgid "Edit staff member"
@@ -3789,7 +3794,7 @@ msgstr "Equipe"
 msgid "Staff member created successfully"
 msgstr "Colaborador criado com sucesso"
 
-#: lib/lanttern_web/live/pages/school/staff/id/staff_member_live.ex:87
+#: lib/lanttern_web/live/pages/school/staff/id/staff_member_live.ex:139
 #: lib/lanttern_web/live/pages/school/staff_component.ex:99
 #, elixir-autogen, elixir-format
 msgid "Staff member updated successfully"
@@ -3907,7 +3912,7 @@ msgid_plural "Showing %{count} results for selected filters"
 msgstr[0] "Mostrando 1 resultado para os filtros selecionados"
 msgstr[1] "Mostrando %{count} resultados para os filtros selecionados"
 
-#: lib/lanttern_web/live/pages/school/staff/id/staff_member_live.ex:96
+#: lib/lanttern_web/live/pages/school/staff/id/staff_member_live.ex:148
 #, elixir-autogen, elixir-format
 msgid "Staff member deleted successfully"
 msgstr "Colaborador deletado com sucesso"
@@ -4226,8 +4231,8 @@ msgstr "%{student} deletado"
 msgid "%{student} reactivated"
 msgstr "%{student} reativado"
 
-#: lib/lanttern_web/components/core_components.ex:1909
-#: lib/lanttern_web/components/core_components.ex:1917
+#: lib/lanttern_web/components/core_components.ex:1918
+#: lib/lanttern_web/components/core_components.ex:1926
 #, elixir-autogen, elixir-format
 msgid "(Deactivated)"
 msgstr "(Desativado)"
@@ -5878,3 +5883,18 @@ msgstr "Conhecimento"
 #, elixir-autogen, elixir-format
 msgid "Personality"
 msgstr "Personalidade"
+
+#: lib/lanttern_web/live/pages/school/staff/id/staff_member_live.ex:125
+#, elixir-autogen, elixir-format
+msgid "About updated successfully!"
+msgstr "Sobre atualizado com sucesso"
+
+#: lib/lanttern_web/live/pages/school/staff/id/staff_member_live.html.heex:98
+#, elixir-autogen, elixir-format
+msgid "Nothing here yet"
+msgstr "Nada por aqui ainda"
+
+#: lib/lanttern_web/live/pages/school/staff/id/staff_member_live.html.heex:58
+#, elixir-autogen, elixir-format
+msgid "Tell us something about yourself!"
+msgstr "Nos conte algo sobre você!"
