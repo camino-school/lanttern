@@ -186,6 +186,44 @@ defmodule Lanttern.AgentChatTest do
     end
   end
 
+  describe "rename_conversation/3" do
+    test "successfully renames a conversation" do
+      scope = IdentityFixtures.scope_fixture()
+      profile = Repo.get!(Profile, scope.profile_id)
+
+      conversation = insert(:conversation, %{profile: profile, name: "Old name"})
+
+      assert {:ok, %Conversation{} = updated_conversation} =
+               AgentChat.rename_conversation(scope, conversation, "New conversation name")
+
+      assert updated_conversation.name == "New conversation name"
+      assert updated_conversation.id == conversation.id
+    end
+
+    test "successfully sets name for conversation without initial name" do
+      scope = IdentityFixtures.scope_fixture()
+      profile = Repo.get!(Profile, scope.profile_id)
+
+      conversation = insert(:conversation, %{profile: profile, name: nil})
+
+      assert {:ok, %Conversation{} = updated_conversation} =
+               AgentChat.rename_conversation(scope, conversation, "First name")
+
+      assert updated_conversation.name == "First name"
+    end
+
+    test "raises when scope does not match conversation profile" do
+      scope = IdentityFixtures.scope_fixture()
+      other_profile = insert(:profile)
+
+      conversation = insert(:conversation, %{profile: other_profile})
+
+      assert_raise MatchError, fn ->
+        AgentChat.rename_conversation(scope, conversation, "New name")
+      end
+    end
+  end
+
   describe "add_user_message/3" do
     test "adds a user message to an existing conversation" do
       scope = IdentityFixtures.scope_fixture()

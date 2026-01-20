@@ -96,6 +96,123 @@ defmodule Lanttern.AgentChat do
   end
 
   @doc """
+  Renames a conversation.
+
+  ## Examples
+
+      iex> rename_conversation(scope, conversation, "New name")
+      {:ok, %Conversation{}}
+
+  """
+  def rename_conversation(%Scope{} = scope, %Conversation{} = conversation, name)
+      when is_binary(name) and name != "" do
+    true = Scope.matches_profile?(scope, conversation.profile_id)
+
+    conversation
+    |> Conversation.changeset(%{name: name}, scope)
+    |> Repo.update()
+  end
+
+  @doc """
+  Renames an existing conversation based on chain messages.
+
+  The AI agent will use this function to name unnamed conversations
+  based on the initial user messages and model responses (first 4 messages max).
+
+  Uses LLM function calling to ensure consistent, structured output.
+
+  ## Examples
+
+      iex> rename_conversation_based_on_chain(scope, conversation, chain)
+      {:ok, %Conversation{}}
+
+  """
+  def rename_conversation_based_on_chain(
+        %Scope{} = scope,
+        %Conversation{name: nil} = conversation,
+        chain
+      ) do
+    true = Scope.matches_profile?(scope, conversation.profile_id)
+
+    # Extract context from chain messages (user message + assistant response)
+    context =
+      chain.messages
+      |> Enum.filter(&(&1.role in [:user, :assistant]))
+      |> Enum.take(4)
+      |> Enum.map_join("\n", fn msg -> "#{msg.role}: #{extract_text_content(msg.content)}" end)
+
+    rename_function = build_rename_function(scope, conversation)
+
+    naming_prompt = """
+    Based on the following conversation excerpt, generate a concise title (max 50 characters) that captures the main topic or intent. Use the set_conversation_title function to set the title.
+
+    #{context}
+    """
+
+    naming_chain =
+      LLMChain.new!(%{llm: chain.llm})
+      |> LLMChain.add_tools([rename_function])
+      |> LLMChain.add_message(LangChain.Message.new_user!(naming_prompt))
+
+    case LLMChain.run(naming_chain, mode: :while_needs_response) do
+      {:ok, updated_chain} ->
+        # The function was executed - find the tool result to get the conversation
+        tool_result =
+          updated_chain.messages
+          |> Enum.find(&(&1.role == :tool))
+
+        case tool_result do
+          %{tool_results: [%{processed_content: %Conversation{} = updated_conversation}]} ->
+            {:ok, updated_conversation}
+
+          _ ->
+            # Fallback: reload conversation from DB
+            {:ok, Repo.get!(Conversation, conversation.id)}
+        end
+
+      {:error, _chain, error} ->
+        {:error, error}
+    end
+  end
+
+  # Extract text content from LangChain message content (handles ContentPart lists)
+  defp extract_text_content(content) when is_list(content) do
+    content
+    |> Enum.filter(&(&1.type == :text))
+    |> Enum.map_join("\n", & &1.content)
+  end
+
+  defp extract_text_content(content) when is_binary(content), do: content
+  defp extract_text_content(_), do: ""
+
+  defp build_rename_function(scope, conversation) do
+    LangChain.Function.new!(%{
+      name: "set_conversation_title",
+      description:
+        "Sets the title for this conversation. The title should be concise (max 50 characters) and capture the main topic.",
+      parameters: [
+        LangChain.FunctionParam.new!(%{
+          name: "title",
+          type: :string,
+          description: "The conversation title (max 50 characters)",
+          required: true
+        })
+      ],
+      function: fn %{"title" => title}, _context ->
+        title = String.slice(title, 0, 50)
+
+        case rename_conversation(scope, conversation, title) do
+          {:ok, updated_conversation} ->
+            {:ok, "Title set to: #{title}", updated_conversation}
+
+          {:error, changeset} ->
+            {:error, "Failed to set title: #{inspect(changeset.errors)}"}
+        end
+      end
+    })
+  end
+
+  @doc """
   Adds a user message to an existing conversation.
 
   ## Examples

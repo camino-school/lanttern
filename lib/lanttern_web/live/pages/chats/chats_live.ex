@@ -23,8 +23,6 @@ defmodule LantternWeb.ChatsLive do
 
   @impl true
   def mount(_params, _session, socket) do
-    conversations = AgentChat.list_conversations(socket.assigns.current_scope)
-
     # Mock data for available agents (to be replaced later)
     agents = [
       %{id: 1, name: "Agent Foo"},
@@ -34,7 +32,7 @@ defmodule LantternWeb.ChatsLive do
     socket =
       socket
       |> assign(:page_title, gettext("AI Agents Chat"))
-      |> assign(:conversations, conversations)
+      |> assign_conversations()
       |> assign(:agents, agents)
       |> assign(:selected_agent_id, 1)
       |> assign(:current_conversation, nil)
@@ -43,6 +41,11 @@ defmodule LantternWeb.ChatsLive do
       |> assign(:loading, false)
 
     {:ok, socket}
+  end
+
+  defp assign_conversations(socket) do
+    conversations = AgentChat.list_conversations(socket.assigns.current_scope)
+    assign(socket, :conversations, conversations)
   end
 
   @impl true
@@ -81,17 +84,14 @@ defmodule LantternWeb.ChatsLive do
     {:noreply, push_patch(socket, to: ~p"/chats/#{id}")}
   end
 
-  @impl true
   def handle_event("new_chat", _params, socket) do
     {:noreply, push_patch(socket, to: ~p"/chats")}
   end
 
-  @impl true
   def handle_event("update_message", %{"message" => value}, socket) do
     {:noreply, assign(socket, :message_input, value)}
   end
 
-  @impl true
   def handle_event("send_message", %{"message" => content}, socket) when content != "" do
     socket = assign(socket, :loading, true)
 
@@ -146,12 +146,10 @@ defmodule LantternWeb.ChatsLive do
     end
   end
 
-  @impl true
   def handle_event("send_message", _params, socket) do
     {:noreply, socket}
   end
 
-  @impl true
   def handle_event("select_agent", %{"id" => id}, socket) do
     {:noreply, assign(socket, :selected_agent_id, String.to_integer(id))}
   end
@@ -182,7 +180,7 @@ defmodule LantternWeb.ChatsLive do
           content = extract_text_content(assistant_message.content)
 
           AgentChat.add_assistant_message(conversation_id, content, usage_attrs)
-          |> handle_add_assistant_message(socket, conversation_id)
+          |> handle_add_assistant_message(socket, conversation_id, updated_chain)
 
         {:error, _reason} ->
           socket
@@ -193,7 +191,42 @@ defmodule LantternWeb.ChatsLive do
     {:noreply, socket}
   end
 
-  defp handle_add_assistant_message({:ok, %{message: saved_message}}, socket, conversation_id) do
+  @impl true
+  def handle_info({:rename_conversation, conversation, chain}, socket) do
+    scope = socket.assigns.current_scope
+
+    case AgentChat.rename_conversation_based_on_chain(scope, conversation, chain) do
+      {:ok, updated_conversation} ->
+        socket =
+          socket
+          |> assign(:current_conversation, updated_conversation)
+          |> update(:conversations, fn convs ->
+            Enum.map(convs, fn c ->
+              if c.id == updated_conversation.id, do: updated_conversation, else: c
+            end)
+          end)
+
+        {:noreply, socket}
+
+      {:error, _reason} ->
+        # Silently fail - naming is not critical
+        {:noreply, socket}
+    end
+  end
+
+  defp handle_add_assistant_message(
+         {:ok, %{message: saved_message}},
+         socket,
+         conversation_id,
+         chain
+       ) do
+    conversation = socket.assigns.current_conversation
+
+    # Trigger async rename for unnamed conversations after first response
+    if is_nil(conversation.name) do
+      send(self(), {:rename_conversation, conversation, chain})
+    end
+
     socket
     |> update(:messages, fn msgs -> msgs ++ [saved_message] end)
     |> assign(:loading, false)
@@ -212,7 +245,7 @@ defmodule LantternWeb.ChatsLive do
     end)
   end
 
-  defp handle_add_assistant_message({:error, _}, socket, _) do
+  defp handle_add_assistant_message({:error, _}, socket, _conversation_id, _chain) do
     socket
     |> assign(:loading, false)
     |> put_flash(:error, gettext("Failed to save response"))
