@@ -20,9 +20,10 @@
 
 
 @theme inline {
-  --color-ltrn-primary: var(--color-cyan-400);
+  --color-ltrn-primary: var(--color-stone-800);
   --color-ltrn-secondary: var(--color-rose-500);
-  --color-ltrn-dark: var(--color-stone-700);
+  --color-ltrn-darkest: var(--color-stone-800);
+  --color-ltrn-dark: var(--color-stone-600);
   --color-ltrn-subtle: var(--color-stone-400);
   --color-ltrn-light: var(--color-stone-300);
   --color-ltrn-lighter: var(--color-stone-200);
@@ -85,17 +86,15 @@ button {
 .ltrn-bg-main {
   background-attachment: fixed;
   background-image:
-    radial-gradient(circle at 100% 160px, #FFE4E6 240px, transparent 360px),
-    radial-gradient(circle at 85% -200px, #DDD6FE 360px, transparent 480px),
-    radial-gradient(circle at 15% 96px, #ECFEFF 360px, transparent 480px);
+    radial-gradient(circle at -9rem -22rem, var(--color-violet-300) 20rem, transparent 30rem),
+    radial-gradient(circle at -4rem -26rem, var(--color-pink-200) 30rem, transparent 40rem);
 }
 
 .ltrn-bg-main-local {
   background-attachment: local;
   background-image:
-    radial-gradient(circle at 100% 160px, #FFE4E6 240px, transparent 360px),
-    radial-gradient(circle at 85% -200px, #DDD6FE 360px, transparent 480px),
-    radial-gradient(circle at 15% 96px, #ECFEFF 360px, transparent 480px);
+    radial-gradient(circle at -9rem -22rem, var(--color-violet-300) 0, transparent 30rem),
+    radial-gradient(circle at -4rem -26rem, var(--color-pink-200) 0, transparent 40rem);
 }
 
 .ltrn-bg-landing {

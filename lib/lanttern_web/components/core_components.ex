@@ -129,7 +129,7 @@ defmodule LantternWeb.CoreComponents do
 
   defp action_styles(theme, size),
     do:
-      "group relative flex items-center gap-2 min-w-0 #{Map.get(@action_themes, theme)} #{Map.get(@action_sizes, size)} disabled:cursor-not-allowed"
+      "group relative flex items-center gap-2 min-w-0 font-sans #{Map.get(@action_themes, theme)} #{Map.get(@action_sizes, size)} disabled:cursor-not-allowed"
 
   defp action_bg_styles(theme, size),
     do:
@@ -328,7 +328,7 @@ defmodule LantternWeb.CoreComponents do
     <span
       id={@id}
       class={[
-        "inline-flex items-center px-1 py-1 font-mono font-normal text-xs truncate",
+        "inline-flex items-center px-1 py-1 font-sans font-normal text-sm truncate",
         if(@rounded, do: "rounded-full", else: "rounded-xs"),
         badge_theme(@theme),
         @class
@@ -421,7 +421,7 @@ defmodule LantternWeb.CoreComponents do
   """
   def get_badge_button_styles(theme \\ "default") do
     [
-      "inline-flex items-center gap-1 rounded-full px-2 py-1 font-mono text-xs shadow-sm",
+      "inline-flex items-center gap-1 rounded-full px-2 py-1 font-sans text-sm shadow-sm",
       badge_theme(theme, true)
     ]
   end
@@ -652,7 +652,7 @@ defmodule LantternWeb.CoreComponents do
   """
   def get_button_styles(theme \\ "default", size \\ "normal", _rounded \\ false) do
     [
-      "inline-flex items-center justify-center gap-2 py-2 px-4 rounded-full disabled:cursor-not-allowed",
+      "inline-flex items-center justify-center gap-2 py-2 px-4 rounded-full font-sans disabled:cursor-not-allowed",
       "disabled:shadow-none",
       if(size == "sm", do: "text-sm", else: "text-base"),
       # if(rounded, do: "rounded-full", else: "rounded-xs"),
@@ -663,11 +663,11 @@ defmodule LantternWeb.CoreComponents do
 
   @button_themes %{
     "default" => [
-      "border border-ltrn-dark bg-transparent hover:bg-ltrn-dark/10",
-      "disabled:text-ltrn-subtle disabled:bg-ltrn-dark/10"
+      "border border-ltrn-darkest text-ltrn-darkest bg-transparent hover:bg-ltrn-darkest/10",
+      "disabled:text-ltrn-subtle disabled:bg-ltrn-darkest/10"
     ],
     "primary_light" => "bg-ltrn-mesh-cyan hover:bg-white text-ltrn-primary",
-    "primary" => "bg-ltrn-dark hover:bg-ltrn-dark/90 text-white",
+    "primary" => "bg-ltrn-darkest hover:bg-ltrn-darkest/90 text-white",
     "diff_light" => [
       "bg-ltrn-diff-lightest hover:bg-ltrn-diff-lighter text-ltrn-diff-dark",
       "disabled:opacity-40"
