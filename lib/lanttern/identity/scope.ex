@@ -98,6 +98,28 @@ defmodule Lanttern.Identity.Scope do
   end
 
   @doc """
+  Checks if the scope matches the given profile.
+
+  ## Examples
+
+      iex> matches_profile?(%Scope{profile_id: 1}, 1)
+      true
+
+      iex> matches_profile?(%Scope{profile_id: 1}, 2)
+      false
+
+      iex> matches_profile?(nil, 1)
+      false
+
+  """
+  @spec matches_profile?(t() | nil, pos_integer()) :: boolean()
+  def matches_profile?(%__MODULE__{profile_id: profile_id}, profile_id)
+      when is_integer(profile_id),
+      do: true
+
+  def matches_profile?(_scope, _profile_id), do: false
+
+  @doc """
   Checks if the scope has a specific permission.
 
   ## Examples

@@ -1,0 +1,182 @@
+<Layouts.app_logged_in
+  flash={@flash}
+  current_user={@current_user}
+  current_path={@current_path}
+  no_bg
+>
+  <div class="relative flex h-screen">
+    <%!-- Background decoration for main area --%>
+    <div class="absolute left-0 top-0 h-[800px] w-[1000px] translate-x-[140px] overflow-hidden pointer-events-none">
+      <div class="absolute -left-[59px] -top-[426px] size-[640px]">
+        <div class="size-full rounded-full bg-rose-200/60 blur-3xl"></div>
+      </div>
+      <div class="absolute -left-[140px] -top-[366px] size-[480px]">
+        <div class="size-full rounded-full bg-violet-300/50 blur-3xl"></div>
+      </div>
+    </div>
+
+    <%!-- Sidebar --%>
+    <aside class="relative w-70 bg-white shrink-0">
+      <%!-- Sidebar background decoration --%>
+      <div class="absolute bottom-0 right-0 h-140 w-70 overflow-hidden pointer-events-none">
+        <div class="absolute -bottom-8 -right-55 size-80">
+          <div class="size-full rounded-full bg-rose-200/60 blur-3xl"></div>
+        </div>
+        <div class="absolute -bottom-33 -right-50 size-60">
+          <div class="size-full rounded-full bg-violet-300/50 blur-3xl"></div>
+        </div>
+      </div>
+
+      <%!-- Sidebar content --%>
+      <div class="relative">
+        <%!-- New chat link --%>
+        <.link
+          patch={~p"/chats"}
+          class="group flex items-center justify-between w-full px-10 my-10"
+        >
+          <span class={[
+            "font-serif text-base leading-6",
+            if(@current_conversation,
+              do: "text-ltrn-subtle group-hover:text-ltrn-dark",
+              else: "font-bold text-ltrn-dark"
+            )
+          ]}>
+            {gettext("New chat")}
+          </span>
+        </.link>
+
+        <%!-- Recents label --%>
+        <div class="px-10 pt-8 pb-4">
+          <p class="font-sans text-sm leading-5 text-ltrn-subtle">
+            {gettext("Recents")}
+          </p>
+        </div>
+
+        <%!-- Conversation list --%>
+        <nav class="flex flex-col gap-2">
+          <%= for conversation <- @conversations do %>
+            <.link
+              patch={~p"/chats/#{conversation.id}"}
+              id={"conversation-#{conversation.id}"}
+              class="group flex items-center justify-between w-full px-10 py-0 text-left"
+            >
+              <%= if @current_conversation && @current_conversation.id == conversation.id do %>
+                <%!-- Current/active state --%>
+                <div class="flex items-center w-full">
+                  <div class="bg-ltrn-dark h-6 w-2 shrink-0 -ml-10"></div>
+                  <div class="flex items-center gap-2 min-w-0 flex-1 ml-8">
+                    <span class="font-serif font-bold text-base leading-6 text-ltrn-dark truncate">
+                      {conversation.name || gettext("Unnamed conversation")}
+                    </span>
+                  </div>
+                </div>
+              <% else %>
+                <%!-- Default state --%>
+                <span class="font-serif text-base leading-6 text-ltrn-subtle group-hover:text-ltrn-dark truncate">
+                  {conversation.name || gettext("Unnamed conversation")}
+                </span>
+              <% end %>
+            </.link>
+          <% end %>
+        </nav>
+      </div>
+    </aside>
+
+    <%!-- Main content area --%>
+    <main class="relative flex-1 p-10 overflow-y-auto">
+      <%= if @current_conversation do %>
+        <%!-- Chat messages area --%>
+        <div class="max-w-[640px] py-10 mx-auto space-y-6">
+          <%= for message <- @messages do %>
+            <%= if message.role == "user" do %>
+              <div class="flex justify-end">
+                <div class="rounded-sm p-4 text-white bg-ltrn-dark">
+                  <.markdown text={message.content} invert />
+                </div>
+              </div>
+            <% else %>
+              <.markdown text={message.content} />
+            <% end %>
+          <% end %>
+
+          <%!-- Loading indicator --%>
+          <%= if @loading do %>
+            <div class="flex justify-start">
+              <div class="bg-white border border-ltrn-light rounded-lg px-4 py-3">
+                <div class="flex items-center gap-2">
+                  <div class="w-2 h-2 rounded-full bg-ltrn-subtle animate-bounce"></div>
+                  <div
+                    class="w-2 h-2 rounded-full bg-ltrn-subtle animate-bounce"
+                    style="animation-delay: 0.1s"
+                  >
+                  </div>
+                  <div
+                    class="w-2 h-2 rounded-full bg-ltrn-subtle animate-bounce"
+                    style="animation-delay: 0.2s"
+                  >
+                  </div>
+                </div>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      <% else %>
+        <%!-- Welcome message (new chat) --%>
+        <div class="text-center mb-6">
+          <h1 class="font-display font-black text-2xl text-ltrn-dark">
+            {gettext("Hello!")}
+          </h1>
+        </div>
+      <% end %>
+
+      <%!-- Input area (always visible) --%>
+      <div class="sticky bottom-0 left-0 right-0">
+        <div class="w-full max-w-172 mx-auto bg-white border border-ltrn-light rounded-sm shadow-xl">
+          <form phx-submit="send_message" class="relative">
+            <textarea
+              name="message"
+              phx-change="update_message"
+              value={@message_input}
+              placeholder={
+                if @current_conversation,
+                  do: gettext("Reply..."),
+                  else: gettext("How can I help you today?")
+              }
+              disabled={@loading}
+              class={[
+                "w-full h-24 px-4 py-4 font-serif text-base leading-6 text-ltrn-dark placeholder:text-ltrn-subtle resize-none border-0 focus:ring-0 focus:outline-none",
+                @loading && "opacity-50 cursor-not-allowed"
+              ]}
+            ></textarea>
+
+            <%!-- Bottom controls --%>
+            <div class="flex items-center justify-end gap-2 px-4 py-4">
+              <%!-- Agent selector button --%>
+              <button
+                type="button"
+                class="flex items-center gap-2 px-4 py-2 border border-ltrn-dark rounded-full text-ltrn-dark font-sans text-sm leading-5 hover:bg-ltrn-lightest"
+              >
+                {Enum.find(@agents, &(&1.id == @selected_agent_id)).name}
+              </button>
+
+              <%!-- Send button --%>
+              <button
+                type="submit"
+                disabled={@loading || @message_input == ""}
+                class={[
+                  "flex items-center justify-center p-2 rounded-full",
+                  if(@loading || @message_input == "",
+                    do: "bg-ltrn-subtle cursor-not-allowed",
+                    else: "bg-ltrn-dark hover:bg-ltrn-dark/80"
+                  )
+                ]}
+              >
+                <.icon name="hero-arrow-up" class="size-5 text-white" />
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </main>
+  </div>
+</Layouts.app_logged_in>

@@ -13,7 +13,7 @@
 
 @plugin "./heroicons.tailwind.plugin.js";
 
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&family=Open+Sans:ital,wght@0,300..800;1,300..800&family=Source+Code+Pro:ital,wght@0,200..900;1,200..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@900&family=PT+Mono&family=PT+Sans:ital,wght@0,400;0,700;1,400;1,700&family=PT+Serif:ital,wght@0,400;0,700;1,400;1,700&display=swap');
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 @config "./tailwind.config.js";
@@ -22,11 +22,11 @@
 @theme inline {
   --color-ltrn-primary: var(--color-cyan-400);
   --color-ltrn-secondary: var(--color-rose-500);
-  --color-ltrn-dark: var(--color-slate-700);
-  --color-ltrn-subtle: var(--color-slate-400);
-  --color-ltrn-light: var(--color-slate-300);
-  --color-ltrn-lighter: var(--color-slate-200);
-  --color-ltrn-lightest: var(--color-slate-100);
+  --color-ltrn-dark: var(--color-stone-700);
+  --color-ltrn-subtle: var(--color-stone-400);
+  --color-ltrn-light: var(--color-stone-300);
+  --color-ltrn-lighter: var(--color-stone-200);
+  --color-ltrn-lightest: var(--color-stone-100);
 
   --color-ltrn-mesh-primary: var(--color-cyan-200);
   --color-ltrn-mesh-cyan: var(--color-cyan-50);
@@ -70,9 +70,10 @@
   --color-ltrn-success-accent: var(--color-teal-500);
   --color-ltrn-success-lighter: var(--color-teal-100);
 
-  --font-display: 'Montserrat', sans-serif;
-  --font-mono: "Source Code Pro", monospace;
-  --font-sans: 'Open Sans', sans-serif;
+  --font-display: "Montserrat", sans-serif;
+  --font-mono: "PT Mono", monospace;
+  --font-sans: "PT Sans", sans-serif;
+  --font-serif: "PT Serif", serif;
 }
 
 @custom-variant aria-current (&[aria-current="true"]);
