@@ -1,0 +1,184 @@
+<Layouts.app_logged_in
+  flash={@flash}
+  current_user={@current_user}
+  current_path={@current_path}
+>
+  <.header_base class="flex items-center gap-4 w-full max-w-screen p-4 bg-white/40 backdrop-blur-sm">
+    <div class="flex-1">
+      <p class="font-sans text-sm">
+        {@strand.name}
+        <%= if @lesson.moment do %>
+          | {@lesson.moment.name}
+        <% end %>
+      </p>
+      <.link
+        navigate={~p"/strands/lesson/#{@lesson}"}
+        class="flex items-center gap-2 font-bold text-ltrn-darkest hover:text-ltrn-darkest/50"
+      >
+        <.icon name="hero-arrow-left-mini" />
+        {@lesson.name}
+      </.link>
+    </div>
+    <div class="relative">
+      <.button
+        type="button"
+        id="conversation-list-button"
+        size="sm"
+      >
+        {if @conversation,
+          do: @conversation.name || gettext("Unnamed chat"),
+          else: gettext("Past chats")}
+      </.button>
+      <.dropdown_menu
+        id="conversation-list"
+        button_id="conversation-list-button"
+        position="right"
+      >
+        <:item
+          on_click={JS.patch(~p"/strands/lesson/#{@lesson}/chat")}
+          text={gettext("New lesson chat")}
+        />
+        <:item
+          :for={conversation <- @conversations}
+          on_click={JS.patch(~p"/strands/lesson/#{@lesson}/chat/#{conversation}")}
+          text={conversation.name || gettext("Unnamed chat")}
+        />
+      </.dropdown_menu>
+    </div>
+  </.header_base>
+  <main class="p-10">
+    <%= if @conversation do %>
+      <%!-- Chat messages area --%>
+      <div class="max-w-[640px] mx-auto space-y-6">
+        <%= for message <- @messages do %>
+          <%= if message.role == "user" do %>
+            <div class="flex justify-end">
+              <div class="rounded-sm p-4 text-white bg-ltrn-dark">
+                <.markdown text={message.content} invert />
+              </div>
+            </div>
+          <% else %>
+            <.markdown text={message.content} />
+          <% end %>
+        <% end %>
+
+        <%!-- Loading indicator --%>
+        <%= if @loading do %>
+          <div class="flex justify-start">
+            <div class="bg-white border border-ltrn-light rounded-lg px-4 py-3">
+              <div class="flex items-center gap-2">
+                <div class="w-2 h-2 rounded-full bg-ltrn-subtle animate-bounce"></div>
+                <div
+                  class="w-2 h-2 rounded-full bg-ltrn-subtle animate-bounce"
+                  style="animation-delay: 0.1s"
+                >
+                </div>
+                <div
+                  class="w-2 h-2 rounded-full bg-ltrn-subtle animate-bounce"
+                  style="animation-delay: 0.2s"
+                >
+                </div>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+    <% else %>
+      <div class="text-center">
+        <p class="text-lg">
+          {gettext(
+            "Select a template and an agent, and give them instructions to help you with the lesson planning."
+          )}
+        </p>
+      </div>
+    <% end %>
+
+    <%!-- Input area (always visible) --%>
+    <div class="sticky bottom-0 left-0 right-0 py-10">
+      <div class="w-full max-w-172 mx-auto bg-white border border-ltrn-light rounded-sm shadow-xl">
+        <form phx-submit="send_message" class="relative">
+          <textarea
+            name="message"
+            phx-change="update_message"
+            value={@message_input}
+            placeholder={
+              if @conversation,
+                do: gettext("Reply..."),
+                else: gettext("How can I help you today?")
+            }
+            disabled={@loading}
+            class={[
+              "w-full h-24 px-4 py-4 font-serif text-base leading-6 text-ltrn-dark placeholder:text-ltrn-subtle resize-none border-0 focus:ring-0 focus:outline-none",
+              @loading && "opacity-50 cursor-not-allowed"
+            ]}
+          ></textarea>
+
+          <%!-- Bottom controls --%>
+          <div class="flex items-center justify-end gap-2 px-4 py-4">
+            <%!-- Template selector button --%>
+            <div class="relative">
+              <.button
+                type="button"
+                id="lesson-template-options-button"
+                size="sm"
+              >
+                {if @selected_lesson_template,
+                  do: @selected_lesson_template.name,
+                  else: gettext("No lesson template")}
+              </.button>
+              <.dropdown_menu
+                id="lesson-template-options"
+                button_id="lesson-template-options-button"
+              >
+                <:item
+                  on_click={JS.push("select_template", value: %{"id" => nil})}
+                  text={gettext("Use without lesson template")}
+                />
+                <:item
+                  :for={template <- @lesson_templates}
+                  on_click={JS.push("select_template", value: %{"id" => template.id})}
+                  text={template.name}
+                />
+              </.dropdown_menu>
+            </div>
+
+            <%!-- Agent selector button --%>
+            <div class="relative">
+              <.button
+                type="button"
+                id="agent-options-button"
+                size="sm"
+              >
+                {gettext("Agent %{name}", name: @selected_agent.name)}
+              </.button>
+              <.dropdown_menu
+                id="agent-options"
+                button_id="agent-options-button"
+              >
+                <:item
+                  :for={agent <- @agents}
+                  on_click={JS.push("select_agent", value: %{"id" => agent.id})}
+                  text={agent.name}
+                />
+              </.dropdown_menu>
+            </div>
+
+            <button
+              type="submit"
+              disabled={@loading || @message_input == ""}
+              class={[
+                "flex items-center justify-center p-2 rounded-full",
+                if(@loading || @message_input == "",
+                  do: "bg-ltrn-subtle cursor-not-allowed",
+                  else: "bg-ltrn-dark hover:bg-ltrn-dark/80"
+                )
+              ]}
+            >
+              <.icon name="hero-arrow-up" class="size-5 text-white" />
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </main>
+</Layouts.app_logged_in>

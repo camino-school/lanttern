@@ -13,24 +13,71 @@ defmodule Lanttern.AgentChat do
   alias Lanttern.AgentChat.Conversation
   alias Lanttern.AgentChat.Message
   alias Lanttern.AgentChat.ModelCall
+  alias Lanttern.AgentChat.StrandConversation
   alias Lanttern.Identity.Scope
 
   @doc """
   Returns the list of conversations for the given scope profile.
+
+  ## Options
+
+    * `:strand_id` - Filters conversations linked to the given strand
+    * `:lesson_id` - Filters conversations linked to the given lesson (requires a strand link)
 
   ## Examples
 
       iex> list_conversations(scope)
       [%Conversation{}, ...]
 
+      iex> list_conversations(scope, strand_id: 1)
+      [%Conversation{}, ...]
+
+      iex> list_conversations(scope, strand_id: 1, lesson_id: 2)
+      [%Conversation{}, ...]
+
   """
-  def list_conversations(%Scope{} = scope) do
+  def list_conversations(%Scope{} = scope, opts \\ []) do
     from(
       c in Conversation,
       where: c.profile_id == ^scope.profile_id,
       order_by: [desc: :updated_at]
     )
+    |> apply_list_conversations_opts(opts)
     |> Repo.all()
+  end
+
+  defp apply_list_conversations_opts(queryable, []),
+    do: queryable
+
+  defp apply_list_conversations_opts(queryable, [{:strand_id, strand_id} | opts]) do
+    queryable
+    |> maybe_join_strand_conversation()
+    |> where([_c, strand_conversation: sc], sc.strand_id == ^strand_id)
+    |> apply_list_conversations_opts(opts)
+  end
+
+  defp apply_list_conversations_opts(queryable, [{:lesson_id, lesson_id} | opts]) do
+    queryable
+    |> maybe_join_strand_conversation()
+    |> where([_c, strand_conversation: sc], sc.lesson_id == ^lesson_id)
+    |> apply_list_conversations_opts(opts)
+  end
+
+  defp apply_list_conversations_opts(queryable, [_ | opts]),
+    do: apply_list_conversations_opts(queryable, opts)
+
+  defp maybe_join_strand_conversation(queryable) do
+    if has_named_binding?(queryable, :strand_conversation) do
+      queryable
+    else
+      join(
+        queryable,
+        :inner,
+        [c],
+        sc in assoc(c, :strand_conversation),
+        as: :strand_conversation
+      )
+    end
   end
 
   @doc """
@@ -77,13 +124,21 @@ defmodule Lanttern.AgentChat do
 
   Returns the conversation and message in a multi result.
 
+  ## Options
+
+    * `:strand_id` - Links the conversation to a strand
+    * `:lesson_id` - Links the conversation to a specific lesson (requires `:strand_id`)
+
   ## Examples
 
       iex> create_conversation_with_message(scope, "Hello")
       {:ok, %{conversation: %Conversation{}, user_message: %Message{}}}
 
+      iex> create_conversation_with_message(scope, "Hello", strand_id: 1, lesson_id: 2)
+      {:ok, %{conversation: %Conversation{}, user_message: %Message{}, strand_conversation: %StrandConversation{}}}
+
   """
-  def create_conversation_with_message(%Scope{} = scope, content) do
+  def create_conversation_with_message(%Scope{} = scope, content, opts \\ []) do
     Multi.new()
     |> Multi.insert(:conversation, Conversation.changeset(%Conversation{}, %{}, scope))
     |> Multi.insert(:user_message, fn %{conversation: conversation} ->
@@ -93,7 +148,24 @@ defmodule Lanttern.AgentChat do
         conversation_id: conversation.id
       })
     end)
+    |> maybe_insert_strand_conversation(opts)
     |> Repo.transaction()
+  end
+
+  defp maybe_insert_strand_conversation(multi, opts) do
+    case Keyword.get(opts, :strand_id) do
+      nil ->
+        multi
+
+      strand_id ->
+        Multi.insert(multi, :strand_conversation, fn %{conversation: conversation} ->
+          StrandConversation.changeset(%StrandConversation{}, %{
+            conversation_id: conversation.id,
+            strand_id: strand_id,
+            lesson_id: Keyword.get(opts, :lesson_id)
+          })
+        end)
+    end
   end
 
   @doc """

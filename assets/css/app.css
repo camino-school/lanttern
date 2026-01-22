@@ -86,15 +86,15 @@ button {
 .ltrn-bg-main {
   background-attachment: fixed;
   background-image:
-    radial-gradient(circle at -9rem -22rem, var(--color-violet-300) 20rem, transparent 30rem),
-    radial-gradient(circle at -4rem -26rem, var(--color-pink-200) 30rem, transparent 40rem);
+    radial-gradient(circle at -9rem -12rem, var(--color-violet-300) 20rem, transparent 30rem),
+    radial-gradient(circle at -4rem -16rem, var(--color-pink-200) 30rem, transparent 40rem);
 }
 
 .ltrn-bg-main-local {
   background-attachment: local;
   background-image:
-    radial-gradient(circle at -9rem -22rem, var(--color-violet-300) 0, transparent 30rem),
-    radial-gradient(circle at -4rem -26rem, var(--color-pink-200) 0, transparent 40rem);
+    radial-gradient(circle at -9rem -12rem, var(--color-violet-300) 0, transparent 30rem),
+    radial-gradient(circle at -4rem -16rem, var(--color-pink-200) 0, transparent 40rem);
 }
 
 .ltrn-bg-landing {

@@ -7,6 +7,7 @@ defmodule Lanttern.AgentChat.Conversation do
   import Ecto.Changeset
 
   alias Lanttern.AgentChat.Message
+  alias Lanttern.AgentChat.StrandConversation
   alias Lanttern.Identity.Profile
   alias Lanttern.Identity.Scope
   alias Lanttern.Schools.School
@@ -20,7 +21,8 @@ defmodule Lanttern.AgentChat.Conversation do
           school: School.t() | Ecto.Association.NotLoaded.t(),
           messages: [Message.t()] | Ecto.Association.NotLoaded.t(),
           inserted_at: NaiveDateTime.t(),
-          updated_at: NaiveDateTime.t()
+          updated_at: NaiveDateTime.t(),
+          strand_conversation: StrandConversation.t() | Ecto.Association.NotLoaded.t()
         }
 
   schema "agent_conversations" do
@@ -28,7 +30,9 @@ defmodule Lanttern.AgentChat.Conversation do
 
     belongs_to :profile, Profile
     belongs_to :school, School
+
     has_many :messages, Message
+    has_one :strand_conversation, StrandConversation
 
     timestamps()
   end

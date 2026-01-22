@@ -367,7 +367,7 @@ defmodule LantternWeb.CoreComponents do
 
   @badge_themes %{
     "default" => "bg-ltrn-lightest text-ltrn-dark",
-    "primary" => "bg-ltrn-primary text-ltrn-dark",
+    "primary" => "bg-ltrn-primary text-white",
     "secondary" => "bg-ltrn-secondary text-white",
     "cyan" => "bg-ltrn-mesh-cyan text-ltrn-dark",
     "dark" => "bg-ltrn-dark text-ltrn-lighter",
@@ -380,7 +380,7 @@ defmodule LantternWeb.CoreComponents do
 
   @badge_themes_hover %{
     "default" => "hover:bg-ltrn-lightest/50",
-    "primary" => "hover:bg-ltrn-primary/50",
+    "primary" => "hover:bg-ltrn-primary/80",
     "secondary" => "hover:bg-ltrn-secondary/50",
     "cyan" => "hover:bg-ltrn-mesh-cyan/50",
     "dark" => "hover:bg-ltrn-dark/50",
@@ -395,7 +395,7 @@ defmodule LantternWeb.CoreComponents do
 
   @badge_icon_themes %{
     "default" => "text-ltrn-subtle",
-    "primary" => "text-ltrn-dark",
+    "primary" => "text-white",
     "secondary" => "text-white",
     "cyan" => "text-ltrn-subtle",
     "dark" => "text-ltrn-lighter",

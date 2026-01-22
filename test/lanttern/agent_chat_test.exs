@@ -5,12 +5,13 @@ defmodule Lanttern.AgentChatTest do
   alias Lanttern.AgentChat.Conversation
   alias Lanttern.AgentChat.Message
   alias Lanttern.AgentChat.ModelCall
+  alias Lanttern.AgentChat.StrandConversation
   alias Lanttern.Identity.Profile
   alias Lanttern.IdentityFixtures
 
   import Lanttern.Factory
 
-  describe "list_conversations/1" do
+  describe "list_conversations/2" do
     test "returns all conversations from scope's profile ordered by updated_at desc" do
       scope = IdentityFixtures.scope_fixture()
       profile = Repo.get!(Profile, scope.profile_id)
@@ -72,6 +73,95 @@ defmodule Lanttern.AgentChatTest do
 
       assert [%Conversation{id: id}] = AgentChat.list_conversations(scope)
       assert id == conversation.id
+    end
+
+    test "filters by strand_id when provided" do
+      scope = IdentityFixtures.scope_fixture()
+      profile = Repo.get!(Profile, scope.profile_id)
+
+      strand_1 = insert(:strand)
+      strand_2 = insert(:strand)
+
+      # Conversation linked to strand_1
+      conversation_1 = insert(:conversation, %{profile: profile})
+      insert(:strand_conversation, %{conversation: conversation_1, strand: strand_1})
+
+      # Conversation linked to strand_2
+      conversation_2 = insert(:conversation, %{profile: profile})
+      insert(:strand_conversation, %{conversation: conversation_2, strand: strand_2})
+
+      # Conversation without strand link
+      _conversation_3 = insert(:conversation, %{profile: profile})
+
+      assert [%Conversation{id: id}] = AgentChat.list_conversations(scope, strand_id: strand_1.id)
+      assert id == conversation_1.id
+    end
+
+    test "filters by lesson_id when provided" do
+      scope = IdentityFixtures.scope_fixture()
+      profile = Repo.get!(Profile, scope.profile_id)
+
+      strand = insert(:strand)
+      lesson_1 = insert(:lesson, strand: strand)
+      lesson_2 = insert(:lesson, strand: strand)
+
+      # Conversation linked to lesson_1
+      conversation_1 = insert(:conversation, %{profile: profile})
+
+      insert(:strand_conversation, %{
+        conversation: conversation_1,
+        strand: strand,
+        lesson: lesson_1
+      })
+
+      # Conversation linked to lesson_2
+      conversation_2 = insert(:conversation, %{profile: profile})
+
+      insert(:strand_conversation, %{
+        conversation: conversation_2,
+        strand: strand,
+        lesson: lesson_2
+      })
+
+      # Conversation linked to strand without specific lesson
+      conversation_3 = insert(:conversation, %{profile: profile})
+      insert(:strand_conversation, %{conversation: conversation_3, strand: strand, lesson: nil})
+
+      assert [%Conversation{id: id}] = AgentChat.list_conversations(scope, lesson_id: lesson_1.id)
+      assert id == conversation_1.id
+    end
+
+    test "filters by both strand_id and lesson_id when provided" do
+      scope = IdentityFixtures.scope_fixture()
+      profile = Repo.get!(Profile, scope.profile_id)
+
+      strand_1 = insert(:strand)
+      strand_2 = insert(:strand)
+      lesson_1 = insert(:lesson, strand: strand_1)
+      lesson_2 = insert(:lesson, strand: strand_2)
+
+      # Conversation linked to strand_1 and lesson_1
+      conversation_1 = insert(:conversation, %{profile: profile})
+
+      insert(:strand_conversation, %{
+        conversation: conversation_1,
+        strand: strand_1,
+        lesson: lesson_1
+      })
+
+      # Conversation linked to strand_2 and lesson_2
+      conversation_2 = insert(:conversation, %{profile: profile})
+
+      insert(:strand_conversation, %{
+        conversation: conversation_2,
+        strand: strand_2,
+        lesson: lesson_2
+      })
+
+      assert [%Conversation{id: id}] =
+               AgentChat.list_conversations(scope, strand_id: strand_1.id, lesson_id: lesson_1.id)
+
+      assert id == conversation_1.id
     end
   end
 
@@ -159,7 +249,7 @@ defmodule Lanttern.AgentChatTest do
     end
   end
 
-  describe "create_conversation_with_message/2" do
+  describe "create_conversation_with_message/3" do
     test "creates a new conversation with an initial user message" do
       scope = IdentityFixtures.scope_fixture()
 
@@ -183,6 +273,57 @@ defmodule Lanttern.AgentChatTest do
                AgentChat.create_conversation_with_message(scope, "Test message")
 
       assert conversation.name == nil
+    end
+
+    test "links conversation to strand when strand_id is provided" do
+      scope = IdentityFixtures.scope_fixture()
+      strand = insert(:strand)
+
+      assert {:ok, result} =
+               AgentChat.create_conversation_with_message(
+                 scope,
+                 "Let's discuss this strand",
+                 strand_id: strand.id
+               )
+
+      assert %Conversation{} = result.conversation
+      assert %Message{} = result.user_message
+      assert %StrandConversation{} = result.strand_conversation
+      assert result.strand_conversation.conversation_id == result.conversation.id
+      assert result.strand_conversation.strand_id == strand.id
+      assert result.strand_conversation.lesson_id == nil
+    end
+
+    test "links conversation to strand and lesson when both are provided" do
+      scope = IdentityFixtures.scope_fixture()
+      strand = insert(:strand)
+      lesson = insert(:lesson, strand: strand)
+
+      assert {:ok, result} =
+               AgentChat.create_conversation_with_message(
+                 scope,
+                 "Let's discuss this lesson",
+                 strand_id: strand.id,
+                 lesson_id: lesson.id
+               )
+
+      assert %Conversation{} = result.conversation
+      assert %Message{} = result.user_message
+      assert %StrandConversation{} = result.strand_conversation
+      assert result.strand_conversation.conversation_id == result.conversation.id
+      assert result.strand_conversation.strand_id == strand.id
+      assert result.strand_conversation.lesson_id == lesson.id
+    end
+
+    test "does not create strand_conversation when no strand_id is provided" do
+      scope = IdentityFixtures.scope_fixture()
+
+      assert {:ok, result} =
+               AgentChat.create_conversation_with_message(scope, "Regular conversation")
+
+      assert %Conversation{} = result.conversation
+      assert %Message{} = result.user_message
+      refute Map.has_key?(result, :strand_conversation)
     end
   end
 

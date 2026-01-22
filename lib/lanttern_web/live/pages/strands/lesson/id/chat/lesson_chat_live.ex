@@ -1,30 +1,29 @@
-defmodule LantternWeb.ChatsLive do
+defmodule LantternWeb.LessonChatLive do
   use LantternWeb, :live_view
 
   alias LangChain.ChatModels.ChatOpenAI
   alias LangChain.Message.ContentPart
 
   alias Lanttern.AgentChat
+  alias Lanttern.Agents
+  alias Lanttern.LearningContext
+  alias Lanttern.Lessons
+  alias Lanttern.LessonTemplates
 
   @model "gpt-5-nano"
 
   # lifecycle
 
   @impl true
-  def mount(_params, _session, socket) do
-    # Mock data for available agents (to be replaced later)
-    agents = [
-      %{id: 1, name: "Agent Foo"},
-      %{id: 2, name: "Agent Bar"}
-    ]
-
+  def mount(params, _session, socket) do
     socket =
       socket
-      |> assign(:page_title, gettext("AI Agents Chat"))
+      |> assign_lesson(params)
+      |> assign_strand()
+      |> handle_lesson_template_assigns()
+      |> handle_agent_assigns()
       |> assign_conversations()
-      |> assign(:agents, agents)
-      |> assign(:selected_agent_id, 1)
-      |> assign(:current_conversation, nil)
+      |> assign(:conversation, nil)
       |> assign(:messages, [])
       |> assign(:message_input, "")
       |> assign(:loading, false)
@@ -32,8 +31,71 @@ defmodule LantternWeb.ChatsLive do
     {:ok, socket}
   end
 
+  defp assign_lesson(socket, %{"lesson_id" => id}) do
+    Lessons.get_lesson(id, preloads: [:moment])
+    |> case do
+      lesson when is_nil(lesson) ->
+        raise(LantternWeb.NotFoundError)
+
+      lesson ->
+        socket
+        |> assign(:lesson, lesson)
+        |> assign(:page_title, "#{gettext("Chat")} | #{lesson.name}")
+    end
+  end
+
+  defp assign_strand(socket) do
+    strand =
+      LearningContext.get_strand(socket.assigns.lesson.strand_id,
+        preloads: [:subjects, :years, :moments]
+      )
+
+    socket
+    |> assign(:strand, strand)
+  end
+
+  defp handle_lesson_template_assigns(socket) do
+    lesson_templates =
+      LessonTemplates.list_lesson_templates(socket.assigns.current_scope)
+      # convert to a lightweight map
+      |> Enum.map(fn template ->
+        template
+        |> Map.from_struct()
+        |> Map.take([:id, :name])
+      end)
+
+    socket
+    |> assign(:lesson_templates, lesson_templates)
+    |> assign(:selected_lesson_template, nil)
+  end
+
+  defp handle_agent_assigns(socket) do
+    agents =
+      Agents.list_ai_agents(socket.assigns.current_scope)
+      # convert to a lightweight map
+      |> Enum.map(fn template ->
+        template
+        |> Map.from_struct()
+        |> Map.take([:id, :name])
+      end)
+
+    # pick the first agent as the starting agent
+    # (change logic in the future, maybe adding a default agent in user preferences)
+    [selected_agent | _] = agents
+
+    socket
+    |> assign(:agents, agents)
+    |> assign(:selected_agent, selected_agent)
+  end
+
   defp assign_conversations(socket) do
-    conversations = AgentChat.list_conversations(socket.assigns.current_scope)
+    conversations =
+      AgentChat.list_conversations(
+        socket.assigns.current_scope,
+        strand_id: socket.assigns.strand.id,
+        lesson_id: socket.assigns.lesson.id
+      )
+
     assign(socket, :conversations, conversations)
   end
 
@@ -43,13 +105,13 @@ defmodule LantternWeb.ChatsLive do
     {:noreply, socket}
   end
 
-  defp apply_action(socket, :index, _params) do
+  defp apply_action(socket, :new, _params) do
     socket
-    |> assign(:current_conversation, nil)
+    |> assign(:conversation, nil)
     |> assign(:messages, [])
   end
 
-  defp apply_action(socket, :show, %{"id" => id}) do
+  defp apply_action(socket, :show, %{"conversation_id" => id}) do
     case AgentChat.get_conversation_with_messages(
            socket.assigns.current_scope,
            id
@@ -57,11 +119,11 @@ defmodule LantternWeb.ChatsLive do
       nil ->
         socket
         |> put_flash(:error, gettext("Conversation not found"))
-        |> push_navigate(to: ~p"/chats")
+        |> push_navigate(to: ~p"/strands/lesson/#{socket.assigns.lesson}/chat")
 
       conversation ->
         socket
-        |> assign(:current_conversation, conversation)
+        |> assign(:conversation, conversation)
         |> assign(:messages, conversation.messages)
     end
   end
@@ -69,12 +131,18 @@ defmodule LantternWeb.ChatsLive do
   # event handlers
 
   @impl true
-  def handle_event("select_conversation", %{"id" => id}, socket) do
-    {:noreply, push_patch(socket, to: ~p"/chats/#{id}")}
+  def handle_event("select_template", %{"id" => id}, socket) do
+    selected_lesson_template =
+      Enum.find(socket.assigns.lesson_templates, &(&1.id == id))
+
+    {:noreply, assign(socket, :selected_lesson_template, selected_lesson_template)}
   end
 
-  def handle_event("new_chat", _params, socket) do
-    {:noreply, push_patch(socket, to: ~p"/chats")}
+  def handle_event("select_agent", %{"id" => id}, socket) do
+    selected_agent =
+      Enum.find(socket.assigns.agents, &(&1.id == id))
+
+    {:noreply, assign(socket, :selected_agent, selected_agent)}
   end
 
   def handle_event("update_message", %{"message" => value}, socket) do
@@ -84,20 +152,23 @@ defmodule LantternWeb.ChatsLive do
   def handle_event("send_message", %{"message" => content}, socket) when content != "" do
     socket = assign(socket, :loading, true)
 
-    case socket.assigns.current_conversation do
+    case socket.assigns.conversation do
       nil ->
-        # Create new conversation with initial message
-        case AgentChat.create_conversation_with_message(socket.assigns.current_scope, content) do
+        # Create new conversation with initial message linked to strand and lesson
+        %{strand: strand, lesson: lesson, current_scope: scope} = socket.assigns
+        opts = [strand_id: strand.id, lesson_id: lesson.id]
+
+        case AgentChat.create_conversation_with_message(scope, content, opts) do
           {:ok, %{conversation: conversation, user_message: user_message}} ->
             send(self(), {:run_llm_chain, conversation.id, [user_message]})
 
             socket =
               socket
-              |> assign(:current_conversation, conversation)
+              |> assign(:conversation, conversation)
               |> assign(:messages, [user_message])
               |> assign(:message_input, "")
               |> update(:conversations, fn convs -> [conversation | convs] end)
-              |> push_patch(to: ~p"/chats/#{conversation.id}")
+              |> push_patch(to: ~p"/strands/lesson/#{lesson}/chat/#{conversation.id}")
 
             {:noreply, socket}
 
@@ -137,10 +208,6 @@ defmodule LantternWeb.ChatsLive do
 
   def handle_event("send_message", _params, socket) do
     {:noreply, socket}
-  end
-
-  def handle_event("select_agent", %{"id" => id}, socket) do
-    {:noreply, assign(socket, :selected_agent_id, String.to_integer(id))}
   end
 
   # info handlers
@@ -190,7 +257,7 @@ defmodule LantternWeb.ChatsLive do
       {:ok, updated_conversation} ->
         socket =
           socket
-          |> assign(:current_conversation, updated_conversation)
+          |> assign(:conversation, updated_conversation)
           |> update_conversation_in_list(updated_conversation)
 
         {:noreply, socket}
@@ -219,7 +286,7 @@ defmodule LantternWeb.ChatsLive do
          conversation_id,
          chain
        ) do
-    conversation = socket.assigns.current_conversation
+    conversation = socket.assigns.conversation
 
     # Trigger async rename for unnamed conversations after first response
     if is_nil(conversation.name) do

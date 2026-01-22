@@ -100,6 +100,9 @@ defmodule LantternWeb.Router do
 
       live "/strands/lesson/:id", LessonLive, :show
 
+      live "/strands/lesson/:lesson_id/chat", LessonChatLive, :new
+      live "/strands/lesson/:lesson_id/chat/:conversation_id", LessonChatLive, :show
+
       live "/strands/moment/:id", MomentLive, :show
       live "/strands/moment/:id/assessment", MomentLive, :assessment
       live "/strands/moment/:id/cards", MomentLive, :cards
@@ -143,11 +146,6 @@ defmodule LantternWeb.Router do
 
       live "/settings/lesson_templates", LessonTemplatesLive, :index
       live "/settings/lesson_templates/:id", LessonTemplatesLive, :show
-
-      # agent chats
-
-      live "/chats", ChatsLive, :index
-      live "/chats/:id", ChatsLive, :show
     end
 
     live_session :authenticated_guardian,
