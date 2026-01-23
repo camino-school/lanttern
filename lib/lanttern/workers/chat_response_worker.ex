@@ -25,7 +25,7 @@ defmodule Lanttern.ChatResponseWorker do
   - `lesson_template_id` - Lesson context for lesson-specific chats
   """
 
-  use Oban.Worker, queue: :ai, max_attempts: 1
+  use Oban.Worker, queue: :ai, max_attempts: 1, unique: true
 
   alias LangChain.ChatModels.ChatOpenAI
   alias LangChain.Message.ContentPart
@@ -106,6 +106,8 @@ defmodule Lanttern.ChatResponseWorker do
 
     {content, usage_attrs}
   end
+
+  defp rename_conversation(_scope, %{name: name}, _chain) when is_binary(name), do: :ok
 
   defp rename_conversation(scope, conversation, chain) do
     with {:ok, updated_conversation} <-
