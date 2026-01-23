@@ -1,6 +1,8 @@
 defmodule LantternWeb.Router do
   use LantternWeb, :router
 
+  import Oban.Web.Router
+
   import LantternWeb.UserAuth
   import LantternWeb.LocalizationHelpers
 
@@ -390,5 +392,12 @@ defmodule LantternWeb.Router do
     #   live "/users/confirm/:token", UserConfirmationLive, :edit
     #   live "/users/confirm", UserConfirmationInstructionsLive, :new
     # end
+  end
+
+  # Oban
+  scope "/oban", LantternWeb do
+    pipe_through [:browser, :require_authenticated_user, :require_root_admin]
+
+    oban_dashboard("/")
   end
 end

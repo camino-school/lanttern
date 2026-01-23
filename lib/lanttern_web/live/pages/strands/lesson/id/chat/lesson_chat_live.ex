@@ -1,9 +1,6 @@
 defmodule LantternWeb.LessonChatLive do
   use LantternWeb, :live_view
 
-  alias LangChain.ChatModels.ChatOpenAI
-  alias LangChain.Message.ContentPart
-
   alias Lanttern.AgentChat
   alias Lanttern.Agents
   alias Lanttern.LearningContext
@@ -23,9 +20,9 @@ defmodule LantternWeb.LessonChatLive do
       |> handle_lesson_template_assigns()
       |> handle_agent_assigns()
       |> assign_conversations()
+      |> assign_empty_message_form()
       |> assign(:conversation, nil)
       |> assign(:messages, [])
-      |> assign(:message_input, "")
       |> assign(:loading, false)
 
     {:ok, socket}
@@ -81,7 +78,11 @@ defmodule LantternWeb.LessonChatLive do
 
     # pick the first agent as the starting agent
     # (change logic in the future, maybe adding a default agent in user preferences)
-    [selected_agent | _] = agents
+    selected_agent =
+      case agents do
+        [] -> nil
+        [agent | _] -> agent
+      end
 
     socket
     |> assign(:agents, agents)
@@ -99,6 +100,14 @@ defmodule LantternWeb.LessonChatLive do
     assign(socket, :conversations, conversations)
   end
 
+  defp assign_empty_message_form(socket) do
+    form =
+      %{"content" => ""}
+      |> to_form(as: :message)
+
+    assign(socket, :message_form, form)
+  end
+
   @impl true
   def handle_params(params, _uri, socket) do
     socket = apply_action(socket, socket.assigns.live_action, params)
@@ -106,9 +115,13 @@ defmodule LantternWeb.LessonChatLive do
   end
 
   defp apply_action(socket, :new, _params) do
+    if connected?(socket) do
+      unsubscribe_all()
+    end
+
     socket
     |> assign(:conversation, nil)
-    |> assign(:messages, [])
+    |> stream(:messages, [], reset: true)
   end
 
   defp apply_action(socket, :show, %{"conversation_id" => id}) do
@@ -122,9 +135,16 @@ defmodule LantternWeb.LessonChatLive do
         |> push_navigate(to: ~p"/strands/lesson/#{socket.assigns.lesson}/chat")
 
       conversation ->
+        if connected?(socket) do
+          unsubscribe_all()
+          AgentChat.subscribe_conversation(conversation.id)
+        end
+
         socket
-        |> assign(:conversation, conversation)
-        |> assign(:messages, conversation.messages)
+        # as messages will be saved in its own assign,
+        # reset the preloaded field in conversation
+        |> assign(:conversation, Ecto.reset_fields(conversation, [:messages]))
+        |> stream(:messages, conversation.messages, reset: true)
     end
   end
 
@@ -145,11 +165,13 @@ defmodule LantternWeb.LessonChatLive do
     {:noreply, assign(socket, :selected_agent, selected_agent)}
   end
 
-  def handle_event("update_message", %{"message" => value}, socket) do
-    {:noreply, assign(socket, :message_input, value)}
+  def handle_event("update_message", %{"message" => params}, socket) do
+    form = params |> to_form(as: :message)
+    {:noreply, assign(socket, :message_form, form)}
   end
 
-  def handle_event("send_message", %{"message" => content}, socket) when content != "" do
+  def handle_event("send_message", %{"message" => %{"content" => content}}, socket)
+      when content not in ["", nil] do
     socket = assign(socket, :loading, true)
 
     case socket.assigns.conversation do
@@ -160,14 +182,13 @@ defmodule LantternWeb.LessonChatLive do
 
         case AgentChat.create_conversation_with_message(scope, content, opts) do
           {:ok, %{conversation: conversation, user_message: user_message}} ->
-            send(self(), {:run_llm_chain, conversation.id, [user_message]})
-
             socket =
               socket
               |> assign(:conversation, conversation)
-              |> assign(:messages, [user_message])
-              |> assign(:message_input, "")
               |> update(:conversations, fn convs -> [conversation | convs] end)
+              |> assign(:messages, [user_message])
+              |> enqueue_chat_response_job()
+              |> assign_empty_message_form()
               |> push_patch(to: ~p"/strands/lesson/#{lesson}/chat/#{conversation.id}")
 
             {:noreply, socket}
@@ -185,13 +206,12 @@ defmodule LantternWeb.LessonChatLive do
         # Add message to existing conversation
         case AgentChat.add_user_message(socket.assigns.current_scope, conversation, content) do
           {:ok, user_message} ->
-            messages = socket.assigns.messages ++ [user_message]
-            send(self(), {:run_llm_chain, conversation.id, messages})
-
             socket =
               socket
-              |> assign(:messages, messages)
-              |> assign(:message_input, "")
+              # update messages (sync)
+              |> stream_insert(:messages, user_message)
+              |> enqueue_chat_response_job()
+              |> assign_empty_message_form()
 
             {:noreply, socket}
 
@@ -210,62 +230,64 @@ defmodule LantternWeb.LessonChatLive do
     {:noreply, socket}
   end
 
+  defp enqueue_chat_response_job(socket) do
+    # request chat response via oban job (async)
+    %{
+      user_id: socket.assigns.current_scope.user_id,
+      conversation_id: socket.assigns.conversation.id,
+      model: @model,
+      agent_id: Map.get(socket.assigns.selected_agent || %{}, :id),
+      lesson_template_id: Map.get(socket.assigns.selected_lesson_template || %{}, :id)
+    }
+    |> Oban.Job.new(queue: :ai, worker: Lanttern.ChatResponseWorker)
+    |> Oban.insert()
+
+    socket
+  end
+
   # info handlers
 
   @impl true
-  def handle_info({:run_llm_chain, conversation_id, messages}, socket) do
-    # Create the LLM chain and run it
-    llm = ChatOpenAI.new!(%{model: @model, stream: false})
+  def handle_info({:conversation, {:message_added, saved_message}}, socket) do
+    conversation = socket.assigns.conversation
 
     socket =
-      case AgentChat.run_llm_chain(messages, llm) do
-        {:ok, updated_chain} ->
-          # Get the last message (assistant response)
-          assistant_message = updated_chain.last_message
+      socket
+      |> stream_insert(:messages, saved_message)
+      |> assign(:loading, false)
+      |> update(:conversations, fn convs ->
+        # Move this conversation to the top
+        case Enum.find(convs, &(&1.id == conversation.id)) do
+          nil ->
+            convs
 
-          # Extract token usage from metadata
-          usage = Map.get(assistant_message.metadata || %{}, :usage, %{})
-
-          usage_attrs = %{
-            prompt_tokens: Map.get(usage, :input, 0),
-            completion_tokens: Map.get(usage, :output, 0),
-            model: @model
-          }
-
-          # Save the assistant message
-          content = ContentPart.content_to_string(assistant_message.content)
-
-          AgentChat.add_assistant_message(conversation_id, content, usage_attrs)
-          |> handle_add_assistant_message(socket, conversation_id, updated_chain)
-
-        {:error, _chain, _reason} ->
-          socket
-          |> assign(:loading, false)
-          |> put_flash(:error, gettext("Failed to get AI response"))
-      end
+          conv ->
+            [
+              %{conv | updated_at: NaiveDateTime.utc_now()}
+              | Enum.reject(convs, &(&1.id == conversation.id))
+            ]
+        end
+      end)
 
     {:noreply, socket}
   end
 
-  def handle_info({:rename_conversation, conversation, chain}, socket) do
-    AgentChat.rename_conversation_based_on_chain(
-      socket.assigns.current_scope,
-      conversation,
-      chain
-    )
-    |> case do
-      {:ok, updated_conversation} ->
-        socket =
-          socket
-          |> assign(:conversation, updated_conversation)
-          |> update_conversation_in_list(updated_conversation)
+  def handle_info({:conversation, {:failed, _}}, socket) do
+    socket =
+      socket
+      |> assign(:loading, false)
+      |> put_flash(:error, gettext("Failed to get AI response"))
 
-        {:noreply, socket}
+    {:noreply, socket}
+  end
 
-      {:error, _reason} ->
-        # Silently fail - naming is not critical
-        {:noreply, socket}
-    end
+  def handle_info({:conversation, {:conversation_renamed, updated_conversation}}, socket) do
+    socket =
+      socket
+      |> assign(:conversation, updated_conversation)
+      |> update_conversation_in_list(updated_conversation)
+
+    {:noreply, socket}
   end
 
   defp update_conversation_in_list(socket, updated_conversation) do
@@ -278,42 +300,5 @@ defmodule LantternWeb.LessonChatLive do
           else: c
       end)
     )
-  end
-
-  defp handle_add_assistant_message(
-         {:ok, %{message: saved_message}},
-         socket,
-         conversation_id,
-         chain
-       ) do
-    conversation = socket.assigns.conversation
-
-    # Trigger async rename for unnamed conversations after first response
-    if is_nil(conversation.name) do
-      send(self(), {:rename_conversation, conversation, chain})
-    end
-
-    socket
-    |> update(:messages, fn msgs -> msgs ++ [saved_message] end)
-    |> assign(:loading, false)
-    |> update(:conversations, fn convs ->
-      # Move this conversation to the top
-      case Enum.find(convs, &(&1.id == conversation_id)) do
-        nil ->
-          convs
-
-        conv ->
-          [
-            %{conv | updated_at: NaiveDateTime.utc_now()}
-            | Enum.reject(convs, &(&1.id == conversation_id))
-          ]
-      end
-    end)
-  end
-
-  defp handle_add_assistant_message({:error, _}, socket, _conversation_id, _chain) do
-    socket
-    |> assign(:loading, false)
-    |> put_flash(:error, gettext("Failed to save response"))
   end
 end

@@ -35,12 +35,15 @@
         position="right"
       >
         <:item
-          on_click={JS.patch(~p"/strands/lesson/#{@lesson}/chat")}
-          text={gettext("New lesson chat")}
+          :if={@conversation}
+          type="link"
+          patch={~p"/strands/lesson/#{@lesson}/chat"}
+          text={gettext("Start a new lesson chat")}
         />
         <:item
           :for={conversation <- @conversations}
-          on_click={JS.patch(~p"/strands/lesson/#{@lesson}/chat/#{conversation}")}
+          type="link"
+          patch={~p"/strands/lesson/#{@lesson}/chat/#{conversation}"}
           text={conversation.name || gettext("Unnamed chat")}
         />
       </.dropdown_menu>
@@ -49,22 +52,24 @@
   <main class="p-10">
     <%= if @conversation do %>
       <%!-- Chat messages area --%>
-      <div class="max-w-[640px] mx-auto space-y-6">
-        <%= for message <- @messages do %>
-          <%= if message.role == "user" do %>
-            <div class="flex justify-end">
-              <div class="rounded-sm p-4 text-white bg-ltrn-dark">
-                <.markdown text={message.content} invert />
+      <div class="max-w-[640px] mx-auto">
+        <div id="messages" phx-update="stream" class="space-y-6">
+          <%= for {dom_id, message} <- @streams.messages do %>
+            <%= if message.role == "user" do %>
+              <div class="flex justify-end" id={dom_id}>
+                <div class="rounded-sm p-4 text-white bg-ltrn-dark">
+                  <.markdown text={message.content} invert />
+                </div>
               </div>
-            </div>
-          <% else %>
-            <.markdown text={message.content} />
+            <% else %>
+              <.markdown text={message.content} id={dom_id} />
+            <% end %>
           <% end %>
-        <% end %>
+        </div>
 
         <%!-- Loading indicator --%>
         <%= if @loading do %>
-          <div class="flex justify-start">
+          <div class="flex justify-start mt-6">
             <div class="bg-white border border-ltrn-light rounded-lg px-4 py-3">
               <div class="flex items-center gap-2">
                 <div class="w-2 h-2 rounded-full bg-ltrn-subtle animate-bounce"></div>
@@ -96,11 +101,15 @@
     <%!-- Input area (always visible) --%>
     <div class="sticky bottom-0 left-0 right-0 py-10">
       <div class="w-full max-w-172 mx-auto bg-white border border-ltrn-light rounded-sm shadow-xl">
-        <form phx-submit="send_message" class="relative">
+        <.form
+          for={@message_form}
+          phx-change="update_message"
+          phx-submit="send_message"
+          id="user-chat-input-form"
+        >
           <textarea
-            name="message"
-            phx-change="update_message"
-            value={@message_input}
+            id={@message_form[:content].id}
+            name={@message_form[:content].name}
             placeholder={
               if @conversation,
                 do: gettext("Reply..."),
@@ -111,74 +120,79 @@
               "w-full h-24 px-4 py-4 font-serif text-base leading-6 text-ltrn-dark placeholder:text-ltrn-subtle resize-none border-0 focus:ring-0 focus:outline-none",
               @loading && "opacity-50 cursor-not-allowed"
             ]}
-          ></textarea>
+            phx-debounce="500"
+          >{@message_form[:content].value}</textarea>
+        </.form>
 
-          <%!-- Bottom controls --%>
-          <div class="flex items-center justify-end gap-2 px-4 py-4">
-            <%!-- Template selector button --%>
-            <div class="relative">
-              <.button
-                type="button"
-                id="lesson-template-options-button"
-                size="sm"
-              >
-                {if @selected_lesson_template,
-                  do: @selected_lesson_template.name,
-                  else: gettext("No lesson template")}
-              </.button>
-              <.dropdown_menu
-                id="lesson-template-options"
-                button_id="lesson-template-options-button"
-              >
-                <:item
-                  on_click={JS.push("select_template", value: %{"id" => nil})}
-                  text={gettext("Use without lesson template")}
-                />
-                <:item
-                  :for={template <- @lesson_templates}
-                  on_click={JS.push("select_template", value: %{"id" => template.id})}
-                  text={template.name}
-                />
-              </.dropdown_menu>
-            </div>
-
-            <%!-- Agent selector button --%>
-            <div class="relative">
-              <.button
-                type="button"
-                id="agent-options-button"
-                size="sm"
-              >
-                {gettext("Agent %{name}", name: @selected_agent.name)}
-              </.button>
-              <.dropdown_menu
-                id="agent-options"
-                button_id="agent-options-button"
-              >
-                <:item
-                  :for={agent <- @agents}
-                  on_click={JS.push("select_agent", value: %{"id" => agent.id})}
-                  text={agent.name}
-                />
-              </.dropdown_menu>
-            </div>
-
-            <button
-              type="submit"
-              disabled={@loading || @message_input == ""}
-              class={[
-                "flex items-center justify-center p-2 rounded-full",
-                if(@loading || @message_input == "",
-                  do: "bg-ltrn-subtle cursor-not-allowed",
-                  else: "bg-ltrn-dark hover:bg-ltrn-dark/80"
-                )
-              ]}
+        <%!-- Bottom controls --%>
+        <div class="flex items-center justify-end gap-2 px-4 py-4">
+          <%!-- Template selector button --%>
+          <div class="relative">
+            <.button
+              type="button"
+              id="lesson-template-options-button"
+              size="sm"
             >
-              <.icon name="hero-arrow-up" class="size-5 text-white" />
-            </button>
+              {if @selected_lesson_template,
+                do: @selected_lesson_template.name,
+                else: gettext("No lesson template")}
+            </.button>
+            <.dropdown_menu
+              id="lesson-template-options"
+              button_id="lesson-template-options-button"
+            >
+              <:item
+                on_click={JS.push("select_template", value: %{"id" => nil})}
+                text={gettext("Use without lesson template")}
+              />
+              <:item
+                :for={template <- @lesson_templates}
+                on_click={JS.push("select_template", value: %{"id" => template.id})}
+                text={template.name}
+              />
+            </.dropdown_menu>
           </div>
-        </form>
+
+          <%!-- Agent selector button --%>
+          <div class="relative">
+            <.button
+              type="button"
+              id="agent-options-button"
+              size="sm"
+            >
+              {if @selected_agent,
+                do: @selected_agent.name,
+                else: gettext("No agents available")}
+            </.button>
+            <.dropdown_menu
+              id="agent-options"
+              button_id="agent-options-button"
+            >
+              <:item
+                :for={agent <- @agents}
+                on_click={JS.push("select_agent", value: %{"id" => agent.id})}
+                text={agent.name}
+              />
+            </.dropdown_menu>
+          </div>
+
+          <button
+            type="submit"
+            form="user-chat-input-form"
+            disabled={@loading || @message_form[:content].value in ["", nil]}
+            class={[
+              "flex items-center justify-center p-2 rounded-full",
+              if(@loading || @message_form[:content].value in ["", nil],
+                do: "bg-ltrn-darkest/50 cursor-not-allowed",
+                else: "bg-ltrn-darkest hover:bg-ltrn-darkest/80"
+              )
+            ]}
+          >
+            <.icon name="hero-arrow-up" class="size-5 text-white" />
+          </button>
+        </div>
       </div>
     </div>
   </main>
+  <%!-- {inspect(@message_form)} --%>
 </Layouts.app_logged_in>

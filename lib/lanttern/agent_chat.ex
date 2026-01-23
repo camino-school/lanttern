@@ -14,7 +14,31 @@ defmodule Lanttern.AgentChat do
   alias Lanttern.AgentChat.Message
   alias Lanttern.AgentChat.ModelCall
   alias Lanttern.AgentChat.StrandConversation
+  alias Lanttern.Agents
   alias Lanttern.Identity.Scope
+  alias Lanttern.LessonTemplates
+
+  @doc """
+  Subscribes to scoped notifications about chain responses in conversations.
+
+  The broadcasted messages match the pattern:
+
+    * {:conversation, {:failed, error}}
+    * {:conversation, {:message_added, %Message{}}}
+    * {:conversation, {:conversation_renamed, %Conversation{}}}
+
+  """
+  def subscribe_conversation(conversation_id) do
+    Phoenix.PubSub.subscribe(Lanttern.PubSub, "conversation:#{conversation_id}")
+  end
+
+  def broadcast_conversation(conversation_id, message) do
+    Phoenix.PubSub.broadcast(
+      Lanttern.PubSub,
+      "conversation:#{conversation_id}",
+      {:conversation, message}
+    )
+  end
 
   @doc """
   Returns the list of conversations for the given scope profile.
@@ -301,9 +325,41 @@ defmodule Lanttern.AgentChat do
     |> Repo.insert()
   end
 
-  @spec run_llm_chain([Message.t()], any()) ::
+  @doc """
+  Executes an LLM chain with the given conversation messages.
+
+  Converts a list of `Message` structs into LangChain message format and runs
+  them through the provided LLM model.
+
+  When adding system messages, this function prepends them to the chain
+  following always the same order to benefit from prompt caching.
+
+  ## Options
+
+    * `:agent_id` - Adds agent info as system messages
+    * `:lesson_template_id` - Adds template info as system messages
+
+  ## Examples
+
+      iex> run_llm_chain(scope, messages, llm)
+      {:ok, %LLMChain{}}
+  """
+  @spec run_llm_chain(Scope.t(), [Message.t()], any(), Keyword.t()) ::
           {:ok, LLMChain.t()} | {:error, LLMChain.t(), LangChain.LangChainError.t()}
-  def run_llm_chain(messages, llm) do
+  def run_llm_chain(%Scope{} = scope, messages, llm, opts \\ []) do
+    # check if last message is a user message (prevent LLM from running improperly)
+    %{role: "user"} = messages |> Enum.at(-1)
+
+    system_messages =
+      add_agent_system_messages(
+        scope,
+        Keyword.get(opts, :agent_id)
+      )
+      |> add_lesson_template_system_messages(
+        scope,
+        Keyword.get(opts, :lesson_template_id)
+      )
+
     # Build LangChain messages from conversation messages
     langchain_messages =
       Enum.map(messages, fn msg ->
@@ -315,9 +371,46 @@ defmodule Lanttern.AgentChat do
       end)
 
     LLMChain.new!(%{llm: llm})
+    |> LLMChain.add_messages(system_messages)
     |> LLMChain.add_messages(langchain_messages)
     |> LLMChain.run()
   end
+
+  defp add_agent_system_messages(system_messages \\ [], scope, agent_id)
+
+  defp add_agent_system_messages(system_messages, scope, agent_id) when is_integer(agent_id) do
+    agent = Agents.get_agent!(scope, agent_id)
+
+    system_messages ++
+      [
+        LangChain.Message.new_system!(
+          "<agent_personality>#{agent.personality}</agent_personality>"
+        ),
+        LangChain.Message.new_system!(
+          "<agent_instructions>#{agent.instructions}</agent_instructions>"
+        ),
+        LangChain.Message.new_system!("<agent_knowledge>#{agent.knowledge}</agent_knowledge>"),
+        LangChain.Message.new_system!("<agent_guardrails>#{agent.guardrails}</agent_guardrails>")
+      ]
+  end
+
+  defp add_agent_system_messages(system_messages, _scope, _agent_id), do: system_messages
+
+  defp add_lesson_template_system_messages(system_messages, scope, lesson_template_id)
+       when is_integer(lesson_template_id) do
+    template = LessonTemplates.get_lesson_template!(scope, lesson_template_id)
+
+    system_messages ++
+      [
+        LangChain.Message.new_system!(
+          "<lesson_template_info>#{template.about}</lesson_template_info>"
+        ),
+        LangChain.Message.new_system!("<lesson_template>#{template.template}</lesson_template>")
+      ]
+  end
+
+  defp add_lesson_template_system_messages(system_messages, _scope, _lesson_template_id),
+    do: system_messages
 
   @doc """
   Adds an assistant message to a conversation with model call tracking.
