@@ -15,7 +15,10 @@ defmodule Lanttern.AgentChat do
   alias Lanttern.AgentChat.ModelCall
   alias Lanttern.AgentChat.StrandConversation
   alias Lanttern.Agents
+  alias Lanttern.Curricula
   alias Lanttern.Identity.Scope
+  alias Lanttern.LearningContext
+  alias Lanttern.Lessons
   alias Lanttern.LessonTemplates
 
   @doc """
@@ -338,6 +341,8 @@ defmodule Lanttern.AgentChat do
 
     * `:agent_id` - Adds agent info as system messages
     * `:lesson_template_id` - Adds template info as system messages
+    * `:strand_id` - Adds strand info as system messages
+    * `:lesson_id` - Adds lesson info as system messages
 
   ## Examples
 
@@ -350,6 +355,8 @@ defmodule Lanttern.AgentChat do
     # check if last message is a user message (prevent LLM from running improperly)
     %{role: "user"} = messages |> Enum.at(-1)
 
+    # we're not using the recursive pattern for opts here
+    # because in this use we want to control messages ordering (prompt caching)
     system_messages =
       add_agent_system_messages(
         scope,
@@ -358,6 +365,14 @@ defmodule Lanttern.AgentChat do
       |> add_lesson_template_system_messages(
         scope,
         Keyword.get(opts, :lesson_template_id)
+      )
+      |> add_strand_system_messages(
+        scope,
+        Keyword.get(opts, :strand_id)
+      )
+      |> add_lesson_system_messages(
+        scope,
+        Keyword.get(opts, :lesson_id)
       )
 
     # Build LangChain messages from conversation messages
@@ -410,6 +425,105 @@ defmodule Lanttern.AgentChat do
   end
 
   defp add_lesson_template_system_messages(system_messages, _scope, _lesson_template_id),
+    do: system_messages
+
+  # strand functions doesn't support scope yet, but keep it around
+  # as it should be implemented in the near future
+  defp add_strand_system_messages(system_messages, _scope, strand_id)
+       when is_integer(strand_id) do
+    strand =
+      LearningContext.get_strand!(strand_id,
+        preloads: [:subjects, :years, :moments]
+      )
+
+    subjects = Enum.map_join(strand.subjects, ", ", & &1.name)
+    years = Enum.map_join(strand.years, ", ", & &1.name)
+
+    moments =
+      strand.moments
+      |> Enum.sort_by(& &1.position)
+      |> Enum.map_join("\n\n", fn moment ->
+        """
+        ### Moment: #{moment.name}
+
+        #{moment.description}
+        """
+      end)
+
+    curriculum_items =
+      Curricula.list_strand_curriculum_items(
+        strand_id,
+        preloads: :curriculum_component
+      )
+      |> Enum.map_join("\n", &"- #{&1.name} (#{&1.curriculum_component.name})")
+
+    system_messages ++
+      [
+        LangChain.Message.new_system!("""
+        <strand_context>
+        # Strand: #{strand.name}
+
+        Subjects: #{subjects}
+
+        Years: #{years}
+
+        Curriculum:
+        #{curriculum_items}
+
+        ## Strand overview
+
+        #{strand.description}
+
+        ### Teacher instructions
+
+        #{strand.teacher_instructions || "Not available"}
+
+        ## Strand moments
+
+        #{moments}
+        </strand_context>
+        """)
+      ]
+  end
+
+  defp add_strand_system_messages(system_messages, _scope, _strand_id),
+    do: system_messages
+
+  # lessons functions doesn't support scope yet, but keep it around
+  # as it should be implemented in the near future
+  defp add_lesson_system_messages(system_messages, _scope, lesson_id)
+       when is_integer(lesson_id) do
+    lesson = Lessons.get_lesson!(lesson_id, preloads: [:subjects, :moment])
+
+    subjects = Enum.map_join(lesson.subjects, ", ", & &1.name)
+
+    system_messages ++
+      [
+        LangChain.Message.new_system!("""
+        <lesson_context>
+        # Lesson: #{lesson.name}
+
+        Subjects: #{subjects}
+
+        Lesson in moment "#{lesson.moment.name}"
+
+        ## Lesson overview
+
+        #{lesson.description}
+
+        ### Teacher notes
+
+        #{lesson.teacher_notes || "Not available"}
+
+        ### Differentiation notes
+
+        #{lesson.differentiation_notes || "Not available"}
+        </lesson_context>
+        """)
+      ]
+  end
+
+  defp add_lesson_system_messages(system_messages, _scope, _lesson_id),
     do: system_messages
 
   @doc """

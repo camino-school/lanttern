@@ -75,14 +75,6 @@
           >
             {gettext("Edit content")}
           </.button>
-          <.button
-            type="link"
-            navigate={~p"/strands/lesson/#{@lesson}/chat"}
-            theme="primary"
-            icon_name="hero-sparkles-mini"
-          >
-            {gettext("Edit with AI")}
-          </.button>
         </div>
         <.form
           :if={@description_form}
@@ -247,6 +239,16 @@
     </section>
   </div>
 </Layouts.app_logged_in>
+<.button
+  type="link"
+  navigate={~p"/strands/lesson/#{@lesson}/chat"}
+  theme="primary"
+  size="sm"
+  icon_name="hero-sparkles-mini"
+  class="fixed right-4 bottom-4"
+>
+  {gettext("Edit with AI")}
+</.button>
 <.modal
   :if={@is_editing}
   id="lesson-form-overlay"

@@ -22,7 +22,9 @@ defmodule Lanttern.ChatResponseWorker do
 
   Optional:
   - `agent_id` - Specific agent configuration to use
-  - `lesson_template_id` - Lesson context for lesson-specific chats
+  - `lesson_template_id` - Lesson template for lesson-specific chats
+  - `strand_id` - Strand context for chats
+  - `lesson_id` - Lesson context for chats
   """
 
   use Oban.Worker, queue: :ai, max_attempts: 1, unique: true
@@ -82,6 +84,18 @@ defmodule Lanttern.ChatResponseWorker do
   defp build_opts(opts, [{"lesson_template_id", lesson_template_id} | args])
        when is_integer(lesson_template_id) do
     [{:lesson_template_id, lesson_template_id} | opts]
+    |> build_opts(args)
+  end
+
+  defp build_opts(opts, [{"strand_id", strand_id} | args])
+       when is_integer(strand_id) do
+    [{:strand_id, strand_id} | opts]
+    |> build_opts(args)
+  end
+
+  defp build_opts(opts, [{"lesson_id", lesson_id} | args])
+       when is_integer(lesson_id) do
+    [{:lesson_id, lesson_id} | opts]
     |> build_opts(args)
   end
 

@@ -684,4 +684,249 @@ defmodule Lanttern.AgentChatTest do
       assert String.length(result.name) == 50
     end
   end
+
+  describe "run_llm_chain/4" do
+    import Lanttern.TaxonomyFixtures
+    import Lanttern.LearningContextFixtures
+
+    alias Lanttern.Lessons
+
+    setup do
+      Mimic.copy(LangChain.Chains.LLMChain)
+
+      scope = IdentityFixtures.scope_fixture()
+      profile = Repo.get!(Profile, scope.profile_id)
+      conversation = insert(:conversation, %{profile: profile})
+
+      user_message =
+        insert(:agent_message, %{
+          conversation: conversation,
+          role: "user",
+          content: "Test question"
+        })
+
+      mock_llm = LangChain.ChatModels.ChatOpenAI.new!(%{model: "gpt-4", api_key: "test-key"})
+
+      %{scope: scope, messages: [user_message], llm: mock_llm}
+    end
+
+    test "runs LLM chain with basic messages", %{scope: scope, messages: messages, llm: llm} do
+      Mimic.expect(LangChain.Chains.LLMChain, :run, fn chain ->
+        # Verify chain structure - should have 1 user message
+        assert length(chain.messages) == 1
+        assert hd(chain.messages).role == :user
+
+        response_chain =
+          LangChain.Chains.LLMChain.add_message(
+            chain,
+            LangChain.Message.new_assistant!("Test response")
+          )
+
+        {:ok, response_chain}
+      end)
+
+      assert {:ok, %LangChain.Chains.LLMChain{} = chain} =
+               AgentChat.run_llm_chain(scope, messages, llm)
+
+      # Verify the chain has both user and assistant messages
+      assert length(chain.messages) == 2
+    end
+
+    test "adds strand system messages when strand_id is provided", %{
+      scope: scope,
+      messages: messages,
+      llm: llm
+    } do
+      subject = subject_fixture(%{name: "Science"})
+      year = year_fixture(%{name: "Year 5"})
+
+      strand =
+        strand_fixture(%{
+          name: "Environmental Science",
+          description: "Study of ecosystems",
+          subjects_ids: [subject.id],
+          years_ids: [year.id]
+        })
+
+      moment_fixture(%{
+        strand_id: strand.id,
+        name: "Introduction",
+        description: "Intro to ecosystems",
+        position: 1
+      })
+
+      Mimic.expect(LangChain.Chains.LLMChain, :run, fn chain ->
+        # Verify that strand system message was added
+        system_messages = Enum.filter(chain.messages, &(&1.role == :system))
+        assert length(system_messages) >= 1
+
+        # Find the strand context message
+        strand_message =
+          Enum.find(system_messages, fn msg ->
+            content = LangChain.Message.ContentPart.content_to_string(msg.content)
+            content =~ "<strand_context>"
+          end)
+
+        assert strand_message != nil
+
+        strand_content = LangChain.Message.ContentPart.content_to_string(strand_message.content)
+        assert strand_content =~ "Environmental Science"
+        assert strand_content =~ "Science"
+        assert strand_content =~ "Year 5"
+        assert strand_content =~ "Introduction"
+
+        response_chain =
+          LangChain.Chains.LLMChain.add_message(
+            chain,
+            LangChain.Message.new_assistant!("Strand-aware response")
+          )
+
+        {:ok, response_chain}
+      end)
+
+      assert {:ok, %LangChain.Chains.LLMChain{}} =
+               AgentChat.run_llm_chain(scope, messages, llm, strand_id: strand.id)
+    end
+
+    test "adds lesson system messages when lesson_id is provided", %{
+      scope: scope,
+      messages: messages,
+      llm: llm
+    } do
+      subject = subject_fixture(%{name: "Mathematics"})
+      strand = strand_fixture()
+      moment = moment_fixture(%{strand_id: strand.id, name: "Week 1", position: 1})
+
+      {:ok, lesson} =
+        Lessons.create_lesson(%{
+          strand_id: strand.id,
+          moment_id: moment.id,
+          name: "Introduction to Algebra",
+          description: "Basic algebraic concepts",
+          teacher_notes: "Focus on variables",
+          differentiation_notes: "Provide extra examples",
+          subjects_ids: [subject.id]
+        })
+
+      Mimic.expect(LangChain.Chains.LLMChain, :run, fn chain ->
+        # Verify that lesson system message was added
+        system_messages = Enum.filter(chain.messages, &(&1.role == :system))
+        assert length(system_messages) >= 1
+
+        # Find the lesson context message
+        lesson_message =
+          Enum.find(system_messages, fn msg ->
+            content = LangChain.Message.ContentPart.content_to_string(msg.content)
+            content =~ "<lesson_context>"
+          end)
+
+        assert lesson_message != nil
+
+        lesson_content = LangChain.Message.ContentPart.content_to_string(lesson_message.content)
+        assert lesson_content =~ "Introduction to Algebra"
+        assert lesson_content =~ "Basic algebraic concepts"
+        assert lesson_content =~ "Mathematics"
+        assert lesson_content =~ "Week 1"
+        assert lesson_content =~ "Focus on variables"
+        assert lesson_content =~ "Provide extra examples"
+
+        response_chain =
+          LangChain.Chains.LLMChain.add_message(
+            chain,
+            LangChain.Message.new_assistant!("Lesson-aware response")
+          )
+
+        {:ok, response_chain}
+      end)
+
+      assert {:ok, %LangChain.Chains.LLMChain{}} =
+               AgentChat.run_llm_chain(scope, messages, llm, lesson_id: lesson.id)
+    end
+
+    test "adds both strand and lesson system messages when both are provided", %{
+      scope: scope,
+      messages: messages,
+      llm: llm
+    } do
+      strand = strand_fixture(%{name: "Biology Strand"})
+      moment = moment_fixture(%{strand_id: strand.id, name: "Week 2", position: 2})
+
+      {:ok, lesson} =
+        Lessons.create_lesson(%{
+          strand_id: strand.id,
+          moment_id: moment.id,
+          name: "Cell Biology",
+          description: "Introduction to cells"
+        })
+
+      Mimic.expect(LangChain.Chains.LLMChain, :run, fn chain ->
+        system_messages = Enum.filter(chain.messages, &(&1.role == :system))
+
+        # Should have both strand and lesson context messages
+        has_strand_context =
+          Enum.any?(system_messages, fn msg ->
+            content = LangChain.Message.ContentPart.content_to_string(msg.content)
+            content =~ "<strand_context>"
+          end)
+
+        has_lesson_context =
+          Enum.any?(system_messages, fn msg ->
+            content = LangChain.Message.ContentPart.content_to_string(msg.content)
+            content =~ "<lesson_context>"
+          end)
+
+        assert has_strand_context
+        assert has_lesson_context
+
+        response_chain =
+          LangChain.Chains.LLMChain.add_message(
+            chain,
+            LangChain.Message.new_assistant!("Context-aware response")
+          )
+
+        {:ok, response_chain}
+      end)
+
+      assert {:ok, %LangChain.Chains.LLMChain{}} =
+               AgentChat.run_llm_chain(scope, messages, llm,
+                 strand_id: strand.id,
+                 lesson_id: lesson.id
+               )
+    end
+
+    test "raises when last message is not a user message", %{
+      scope: scope,
+      llm: llm
+    } do
+      conversation = insert(:conversation)
+
+      messages = [
+        insert(:agent_message, %{
+          conversation: conversation,
+          role: "user",
+          content: "Question"
+        }),
+        insert(:agent_message, %{
+          conversation: conversation,
+          role: "assistant",
+          content: "Answer"
+        })
+      ]
+
+      assert_raise MatchError, fn ->
+        AgentChat.run_llm_chain(scope, messages, llm)
+      end
+    end
+
+    test "returns error when LLM chain fails", %{scope: scope, messages: messages, llm: llm} do
+      error = %LangChain.LangChainError{message: "API error"}
+
+      Mimic.expect(LangChain.Chains.LLMChain, :run, fn _chain ->
+        {:error, %LangChain.Chains.LLMChain{messages: []}, error}
+      end)
+
+      assert {:error, %LangChain.Chains.LLMChain{}, %LangChain.LangChainError{}} =
+               AgentChat.run_llm_chain(scope, messages, llm)
+    end
+  end
 end
