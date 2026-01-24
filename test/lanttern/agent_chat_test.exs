@@ -711,7 +711,7 @@ defmodule Lanttern.AgentChatTest do
     end
 
     test "runs LLM chain with basic messages", %{scope: scope, messages: messages, llm: llm} do
-      Mimic.expect(LangChain.Chains.LLMChain, :run, fn chain ->
+      Mimic.expect(LangChain.Chains.LLMChain, :run, fn chain, _opts ->
         # Verify chain structure - should have 1 user message
         assert length(chain.messages) == 1
         assert hd(chain.messages).role == :user
@@ -755,7 +755,7 @@ defmodule Lanttern.AgentChatTest do
         position: 1
       })
 
-      Mimic.expect(LangChain.Chains.LLMChain, :run, fn chain ->
+      Mimic.expect(LangChain.Chains.LLMChain, :run, fn chain, _opts ->
         # Verify that strand system message was added
         system_messages = Enum.filter(chain.messages, &(&1.role == :system))
         assert length(system_messages) >= 1
@@ -808,7 +808,7 @@ defmodule Lanttern.AgentChatTest do
           subjects_ids: [subject.id]
         })
 
-      Mimic.expect(LangChain.Chains.LLMChain, :run, fn chain ->
+      Mimic.expect(LangChain.Chains.LLMChain, :run, fn chain, _opts ->
         # Verify that lesson system message was added
         system_messages = Enum.filter(chain.messages, &(&1.role == :system))
         assert length(system_messages) >= 1
@@ -859,7 +859,7 @@ defmodule Lanttern.AgentChatTest do
           description: "Introduction to cells"
         })
 
-      Mimic.expect(LangChain.Chains.LLMChain, :run, fn chain ->
+      Mimic.expect(LangChain.Chains.LLMChain, :run, fn chain, _opts ->
         system_messages = Enum.filter(chain.messages, &(&1.role == :system))
 
         # Should have both strand and lesson context messages
@@ -894,6 +894,163 @@ defmodule Lanttern.AgentChatTest do
                )
     end
 
+    test "adds update_lesson tool when enabled_functions includes it", %{
+      scope: scope,
+      messages: messages,
+      llm: llm
+    } do
+      strand = strand_fixture()
+      moment = moment_fixture(%{strand_id: strand.id, name: "Week 1", position: 1})
+
+      {:ok, lesson} =
+        Lessons.create_lesson(%{
+          strand_id: strand.id,
+          moment_id: moment.id,
+          name: "Test Lesson",
+          description: "Original description"
+        })
+
+      Mimic.expect(LangChain.Chains.LLMChain, :run, fn chain, _opts ->
+        # Verify that update_lesson tool was added
+        assert length(chain.tools) == 1
+        [tool] = chain.tools
+        assert tool.name == "update_lesson"
+
+        # Verify tool has the expected parameters
+        param_names = Enum.map(tool.parameters, & &1.name)
+        assert "description" in param_names
+        assert "teacher_notes" in param_names
+        assert "differentiation_notes" in param_names
+
+        # Verify lesson_id is in the custom context
+        assert chain.custom_context.lesson_id == lesson.id
+
+        response_chain =
+          LangChain.Chains.LLMChain.add_message(
+            chain,
+            LangChain.Message.new_assistant!("I can update the lesson")
+          )
+
+        {:ok, response_chain}
+      end)
+
+      assert {:ok, %LangChain.Chains.LLMChain{}} =
+               AgentChat.run_llm_chain(scope, messages, llm,
+                 lesson_id: lesson.id,
+                 enabled_functions: ["update_lesson"]
+               )
+    end
+
+    test "update_lesson tool successfully updates the lesson", %{
+      scope: scope,
+      messages: messages,
+      llm: llm
+    } do
+      strand = strand_fixture()
+      moment = moment_fixture(%{strand_id: strand.id, name: "Week 1", position: 1})
+
+      {:ok, lesson} =
+        Lessons.create_lesson(%{
+          strand_id: strand.id,
+          moment_id: moment.id,
+          name: "Test Lesson",
+          description: "Original description",
+          teacher_notes: "Original notes"
+        })
+
+      Mimic.expect(LangChain.Chains.LLMChain, :run, fn chain, _opts ->
+        # Get the update_lesson tool and call it directly
+        [tool] = chain.tools
+
+        # Simulate the LLM calling the tool
+        args = %{
+          "description" => "Updated description from AI",
+          "teacher_notes" => "Updated teacher notes"
+        }
+
+        result = tool.function.(args, chain.custom_context)
+
+        # Verify the tool returns success
+        assert {:ok, "SUCCESS: lesson was updated successfully", updated_lesson} = result
+        assert updated_lesson.description == "Updated description from AI"
+        assert updated_lesson.teacher_notes == "Updated teacher notes"
+
+        response_chain =
+          LangChain.Chains.LLMChain.add_message(
+            chain,
+            LangChain.Message.new_assistant!("Lesson updated successfully")
+          )
+
+        {:ok, response_chain}
+      end)
+
+      assert {:ok, _chain} =
+               AgentChat.run_llm_chain(scope, messages, llm,
+                 lesson_id: lesson.id,
+                 enabled_functions: ["update_lesson"]
+               )
+
+      # Verify lesson was actually updated in the database
+      updated_lesson = Lessons.get_lesson!(lesson.id)
+      assert updated_lesson.description == "Updated description from AI"
+      assert updated_lesson.teacher_notes == "Updated teacher notes"
+    end
+
+    test "does not add update_lesson tool when not in enabled_functions", %{
+      scope: scope,
+      messages: messages,
+      llm: llm
+    } do
+      strand = strand_fixture()
+      moment = moment_fixture(%{strand_id: strand.id, name: "Week 1", position: 1})
+
+      {:ok, lesson} =
+        Lessons.create_lesson(%{
+          strand_id: strand.id,
+          moment_id: moment.id,
+          name: "Test Lesson",
+          description: "Some description"
+        })
+
+      Mimic.expect(LangChain.Chains.LLMChain, :run, fn chain, _opts ->
+        # Verify no tools were added
+        assert chain.tools == []
+
+        response_chain =
+          LangChain.Chains.LLMChain.add_message(
+            chain,
+            LangChain.Message.new_assistant!("Response without tools")
+          )
+
+        {:ok, response_chain}
+      end)
+
+      assert {:ok, %LangChain.Chains.LLMChain{}} =
+               AgentChat.run_llm_chain(scope, messages, llm, lesson_id: lesson.id)
+    end
+
+    test "does not add update_lesson tool when lesson_id is missing", %{
+      scope: scope,
+      messages: messages,
+      llm: llm
+    } do
+      Mimic.expect(LangChain.Chains.LLMChain, :run, fn chain, _opts ->
+        # Verify no tools were added even though enabled_functions includes update_lesson
+        assert chain.tools == []
+
+        response_chain =
+          LangChain.Chains.LLMChain.add_message(
+            chain,
+            LangChain.Message.new_assistant!("Response without tools")
+          )
+
+        {:ok, response_chain}
+      end)
+
+      assert {:ok, %LangChain.Chains.LLMChain{}} =
+               AgentChat.run_llm_chain(scope, messages, llm, enabled_functions: ["update_lesson"])
+    end
+
     test "raises when last message is not a user message", %{
       scope: scope,
       llm: llm
@@ -921,7 +1078,7 @@ defmodule Lanttern.AgentChatTest do
     test "returns error when LLM chain fails", %{scope: scope, messages: messages, llm: llm} do
       error = %LangChain.LangChainError{message: "API error"}
 
-      Mimic.expect(LangChain.Chains.LLMChain, :run, fn _chain ->
+      Mimic.expect(LangChain.Chains.LLMChain, :run, fn _chain, _opts ->
         {:error, %LangChain.Chains.LLMChain{messages: []}, error}
       end)
 

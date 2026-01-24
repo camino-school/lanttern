@@ -25,6 +25,7 @@ defmodule Lanttern.ChatResponseWorker do
   - `lesson_template_id` - Lesson template for lesson-specific chats
   - `strand_id` - Strand context for chats
   - `lesson_id` - Lesson context for chats
+  - `enabled_functions` - List of functions the LLM will have access to
   """
 
   use Oban.Worker, queue: :ai, max_attempts: 1, unique: true
@@ -96,6 +97,12 @@ defmodule Lanttern.ChatResponseWorker do
   defp build_opts(opts, [{"lesson_id", lesson_id} | args])
        when is_integer(lesson_id) do
     [{:lesson_id, lesson_id} | opts]
+    |> build_opts(args)
+  end
+
+  defp build_opts(opts, [{"enabled_functions", enabled_functions} | args])
+       when is_list(enabled_functions) do
+    [{:enabled_functions, enabled_functions} | opts]
     |> build_opts(args)
   end
 

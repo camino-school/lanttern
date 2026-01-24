@@ -62,7 +62,7 @@ defmodule Lanttern.ChatResponseWorkerTest do
       conversation: conversation
     } do
       # Mock LLMChain.run to return a successful response
-      Mimic.expect(LangChain.Chains.LLMChain, :run, fn chain ->
+      Mimic.expect(LangChain.Chains.LLMChain, :run, fn chain, _opts ->
         assistant_message =
           LangChain.Message.new_assistant!(%{
             content: "The capital of France is Paris.",
@@ -137,7 +137,7 @@ defmodule Lanttern.ChatResponseWorkerTest do
       AgentChat.subscribe_conversation(conversation.id)
 
       # Mock LLMChain.run
-      Mimic.expect(LangChain.Chains.LLMChain, :run, fn chain ->
+      Mimic.expect(LangChain.Chains.LLMChain, :run, fn chain, _opts ->
         assistant_message =
           LangChain.Message.new_assistant!(%{
             content: "Paris is the capital.",
@@ -203,7 +203,7 @@ defmodule Lanttern.ChatResponseWorkerTest do
       error = %LangChain.LangChainError{message: "API error"}
 
       # Mock LLMChain.run to fail
-      Mimic.expect(LangChain.Chains.LLMChain, :run, fn chain ->
+      Mimic.expect(LangChain.Chains.LLMChain, :run, fn chain, _opts ->
         {:error, chain, error}
       end)
 
@@ -233,7 +233,7 @@ defmodule Lanttern.ChatResponseWorkerTest do
       agent = insert(:agent, school: school)
 
       # Expect run to be called with agent system messages
-      Mimic.expect(LangChain.Chains.LLMChain, :run, fn chain ->
+      Mimic.expect(LangChain.Chains.LLMChain, :run, fn chain, _opts ->
         # Verify agent system messages are included
         system_messages = Enum.filter(chain.messages, &(&1.role == :system))
         assert length(system_messages) >= 4
@@ -302,7 +302,7 @@ defmodule Lanttern.ChatResponseWorkerTest do
       lesson_template = insert(:lesson_template, school: school)
 
       # Expect run to be called with lesson template system messages
-      Mimic.expect(LangChain.Chains.LLMChain, :run, fn chain ->
+      Mimic.expect(LangChain.Chains.LLMChain, :run, fn chain, _opts ->
         # Verify lesson template system messages are included
         system_messages = Enum.filter(chain.messages, &(&1.role == :system))
         assert length(system_messages) >= 2
@@ -377,7 +377,7 @@ defmodule Lanttern.ChatResponseWorkerTest do
       })
 
       # Only expect one LLMChain.run call (no rename call)
-      Mimic.expect(LangChain.Chains.LLMChain, :run, fn chain ->
+      Mimic.expect(LangChain.Chains.LLMChain, :run, fn chain, _opts ->
         assistant_message =
           LangChain.Message.new_assistant!(%{
             content: "Hi there!",
@@ -410,7 +410,7 @@ defmodule Lanttern.ChatResponseWorkerTest do
       conversation: conversation
     } do
       # Mock LLMChain.run with missing usage metadata
-      Mimic.expect(LangChain.Chains.LLMChain, :run, fn chain ->
+      Mimic.expect(LangChain.Chains.LLMChain, :run, fn chain, _opts ->
         assistant_message =
           LangChain.Message.new_assistant!(%{
             content: "Response without usage data.",

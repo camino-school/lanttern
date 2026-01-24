@@ -8,6 +8,8 @@ defmodule Lanttern.AgentChat do
   alias Lanttern.Repo
 
   alias LangChain.Chains.LLMChain
+  alias LangChain.Function
+  alias LangChain.FunctionParam
   alias LangChain.Message.ContentPart
 
   alias Lanttern.AgentChat.Conversation
@@ -343,6 +345,11 @@ defmodule Lanttern.AgentChat do
     * `:lesson_template_id` - Adds template info as system messages
     * `:strand_id` - Adds strand info as system messages
     * `:lesson_id` - Adds lesson info as system messages
+    * `:enabled_functions` - Add tools to the chain based on given functions
+
+  ### Available functions
+
+    * `"update_lesson"` - Requires `lesson_id` in opts
 
   ## Examples
 
@@ -375,6 +382,10 @@ defmodule Lanttern.AgentChat do
         Keyword.get(opts, :lesson_id)
       )
 
+    tools = setup_llm_chain_tools(scope, opts)
+
+    context = setup_llm_chain_context(opts)
+
     # Build LangChain messages from conversation messages
     langchain_messages =
       Enum.map(messages, fn msg ->
@@ -385,10 +396,11 @@ defmodule Lanttern.AgentChat do
         end
       end)
 
-    LLMChain.new!(%{llm: llm})
+    LLMChain.new!(%{llm: llm, custom_context: context})
     |> LLMChain.add_messages(system_messages)
     |> LLMChain.add_messages(langchain_messages)
-    |> LLMChain.run()
+    |> LLMChain.add_tools(tools)
+    |> LLMChain.run(mode: :while_needs_response)
   end
 
   defp add_agent_system_messages(system_messages \\ [], scope, agent_id)
@@ -525,6 +537,78 @@ defmodule Lanttern.AgentChat do
 
   defp add_lesson_system_messages(system_messages, _scope, _lesson_id),
     do: system_messages
+
+  # scope is not used in the functions yet, but keep around as
+  # it should be implemented in the near future
+  defp setup_llm_chain_tools(_scope, opts) do
+    enabled_functions = Keyword.get(opts, :enabled_functions, [])
+
+    []
+    |> setup_update_lesson_function(
+      "update_lesson" in enabled_functions,
+      Keyword.get(opts, :lesson_id)
+    )
+  end
+
+  defp setup_update_lesson_function(tools, true, lesson_id) when is_integer(lesson_id) do
+    function =
+      Function.new!(%{
+        name: "update_lesson",
+        description:
+          "Update the current lesson description and/or teacher notes and/or diff notes",
+        parameters: [
+          FunctionParam.new!(%{
+            name: "description",
+            type: :string,
+            description: "The main lesson content, shared with students when lesson is published"
+          }),
+          FunctionParam.new!(%{
+            name: "teacher_notes",
+            type: :string,
+            description: "Instructions and notes for teachers, never shared with students"
+          }),
+          FunctionParam.new!(%{
+            name: "differentiation_notes",
+            type: :string,
+            description: "Instructions for lesson differentiation, never shared with students"
+          })
+        ],
+        function: fn args, %{lesson_id: lesson_id} = _context ->
+          lesson = Lessons.get_lesson!(lesson_id)
+
+          case Lessons.update_lesson(lesson, args) do
+            {:ok, updated_lesson} ->
+              {:ok, "SUCCESS: lesson was updated successfully", updated_lesson}
+
+            {:error, changeset} ->
+              {:error, "ERROR: #{LangChain.Utils.changeset_error_to_string(changeset)}"}
+          end
+        end
+      })
+
+    [function | tools]
+  end
+
+  defp setup_update_lesson_function(tools, _, _), do: tools
+
+  defp setup_llm_chain_context(context \\ %{}, opts)
+
+  defp setup_llm_chain_context(context, []), do: context
+
+  defp setup_llm_chain_context(context, [{:strand_id, strand_id} | opts])
+       when is_integer(strand_id) do
+    Map.put(context, :strand_id, strand_id)
+    |> setup_llm_chain_context(opts)
+  end
+
+  defp setup_llm_chain_context(context, [{:lesson_id, lesson_id} | opts])
+       when is_integer(lesson_id) do
+    Map.put(context, :lesson_id, lesson_id)
+    |> setup_llm_chain_context(opts)
+  end
+
+  defp setup_llm_chain_context(context, [_ | opts]),
+    do: setup_llm_chain_context(context, opts)
 
   @doc """
   Adds an assistant message to a conversation with model call tracking.

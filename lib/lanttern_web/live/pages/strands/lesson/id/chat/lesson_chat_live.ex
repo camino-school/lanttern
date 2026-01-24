@@ -239,7 +239,8 @@ defmodule LantternWeb.LessonChatLive do
       agent_id: Map.get(socket.assigns.selected_agent || %{}, :id),
       lesson_template_id: Map.get(socket.assigns.selected_lesson_template || %{}, :id),
       strand_id: socket.assigns.strand.id,
-      lesson_id: socket.assigns.lesson.id
+      lesson_id: socket.assigns.lesson.id,
+      enabled_functions: ["update_lesson"]
     }
     |> Oban.Job.new(queue: :ai, worker: Lanttern.ChatResponseWorker)
     |> Oban.insert()
