@@ -165,8 +165,8 @@ defmodule Lanttern.AgentChatTest do
     end
   end
 
-  describe "get_conversation_with_messages/2" do
-    test "returns conversation with preloaded messages ordered by inserted_at" do
+  describe "list_conversation_messages/2" do
+    test "returns all messages for a conversation ordered by inserted_at" do
       scope = IdentityFixtures.scope_fixture()
       profile = Repo.get!(Profile, scope.profile_id)
 
@@ -184,21 +184,66 @@ defmodule Lanttern.AgentChatTest do
         insert(:agent_message, %{
           conversation: conversation,
           content: "Second message",
-          inserted_at: ~N[2024-01-01 11:00:00]
+          inserted_at: ~N[2024-01-01 12:00:00]
         })
 
       message_3 =
         insert(:agent_message, %{
           conversation: conversation,
           content: "Third message",
-          inserted_at: ~N[2024-01-01 10:30:00]
+          inserted_at: ~N[2024-01-01 11:00:00]
         })
 
-      result = AgentChat.get_conversation_with_messages(scope, conversation.id)
+      messages = AgentChat.list_conversation_messages(scope, conversation)
 
-      assert %Conversation{messages: messages} = result
       # Should be ordered by inserted_at: message_1, message_3, message_2
       assert [message_1.id, message_3.id, message_2.id] == Enum.map(messages, & &1.id)
+    end
+
+    test "returns empty list when conversation has no messages" do
+      scope = IdentityFixtures.scope_fixture()
+      profile = Repo.get!(Profile, scope.profile_id)
+
+      conversation = insert(:conversation, %{profile: profile})
+
+      assert [] = AgentChat.list_conversation_messages(scope, conversation)
+    end
+
+    test "does not return messages from other conversations" do
+      scope = IdentityFixtures.scope_fixture()
+      profile = Repo.get!(Profile, scope.profile_id)
+
+      conversation = insert(:conversation, %{profile: profile})
+      other_conversation = insert(:conversation, %{profile: profile})
+
+      message = insert(:agent_message, %{conversation: conversation, content: "My message"})
+      _other_message = insert(:agent_message, %{conversation: other_conversation})
+
+      assert [%Message{id: id}] = AgentChat.list_conversation_messages(scope, conversation)
+      assert id == message.id
+    end
+
+    test "raises when scope does not match conversation profile" do
+      scope = IdentityFixtures.scope_fixture()
+      other_profile = insert(:profile)
+
+      conversation = insert(:conversation, %{profile: other_profile})
+
+      assert_raise MatchError, fn ->
+        AgentChat.list_conversation_messages(scope, conversation)
+      end
+    end
+  end
+
+  describe "get_conversation/2" do
+    test "returns conversation when it belongs to scope's profile" do
+      scope = IdentityFixtures.scope_fixture()
+      profile = Repo.get!(Profile, scope.profile_id)
+
+      conversation = insert(:conversation, %{profile: profile})
+
+      assert %Conversation{id: id} = AgentChat.get_conversation(scope, conversation.id)
+      assert id == conversation.id
     end
 
     test "returns nil for conversation from different profile" do
@@ -206,15 +251,14 @@ defmodule Lanttern.AgentChatTest do
       other_profile = insert(:profile)
 
       conversation = insert(:conversation, %{profile: other_profile})
-      insert(:agent_message, %{conversation: conversation})
 
-      assert nil == AgentChat.get_conversation_with_messages(scope, conversation.id)
+      assert nil == AgentChat.get_conversation(scope, conversation.id)
     end
 
     test "returns nil for non-existent conversation" do
       scope = IdentityFixtures.scope_fixture()
 
-      assert nil == AgentChat.get_conversation_with_messages(scope, -1)
+      assert nil == AgentChat.get_conversation(scope, -1)
     end
   end
 

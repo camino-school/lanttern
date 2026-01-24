@@ -52,9 +52,10 @@ defmodule Lanttern.ChatResponseWorker do
       Identity.get_user!(user_id, preload_current_profile: true)
       |> Scope.for_user()
 
-    conversation = AgentChat.get_conversation_with_messages(scope, conversation_id)
+    conversation = AgentChat.get_conversation(scope, conversation_id)
+    messages = AgentChat.list_conversation_messages(scope, conversation)
 
-    with {:ok, updated_chain} <- AgentChat.run_llm_chain(scope, conversation.messages, llm, opts),
+    with {:ok, updated_chain} <- AgentChat.run_llm_chain(scope, messages, llm, opts),
          {content, usage_attrs} <-
            extract_content_and_usage_attrs_from_chain(updated_chain, model),
          {:ok, %{message: assistant_message}} <-
@@ -109,8 +110,6 @@ defmodule Lanttern.ChatResponseWorker do
   defp build_opts(opts, [_ | args]), do: build_opts(opts, args)
 
   defp extract_content_and_usage_attrs_from_chain(chain, model) do
-    # {:ok, updated_chain} = AgentChat.run_llm_chain(scope, conversation.messages, llm, opts)
-
     # Get the last message (assistant response)
     assistant_message = chain.last_message
 

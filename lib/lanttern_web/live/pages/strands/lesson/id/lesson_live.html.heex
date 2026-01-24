@@ -247,7 +247,7 @@
   icon_name="hero-sparkles-mini"
   class="fixed right-4 bottom-4"
 >
-  {gettext("Edit with AI")}
+  {if @lesson.description, do: gettext("Enhance with AI"), else: gettext("Create with AI")}
 </.button>
 <.modal
   :if={@is_editing}

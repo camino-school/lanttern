@@ -110,25 +110,43 @@ defmodule Lanttern.AgentChat do
   end
 
   @doc """
-  Gets a single conversation with preloaded messages.
+  Gets a single conversation.
 
   Returns `nil` if the Conversation does not exist.
 
   ## Examples
 
-      iex> get_conversation_with_messages(scope, 123)
-      %Conversation{messages: [%Message{}, ...]}
+      iex> get_conversation(scope, 123)
+      %Conversation{}
 
   """
-  def get_conversation_with_messages(%Scope{} = scope, id) do
+  def get_conversation(%Scope{} = scope, id) do
     from(
       c in Conversation,
-      where: c.id == ^id and c.profile_id == ^scope.profile_id,
-      join: m in assoc(c, :messages),
-      order_by: m.inserted_at,
-      preload: [messages: m]
+      where: c.id == ^id,
+      where: c.profile_id == ^scope.profile_id
     )
     |> Repo.one()
+  end
+
+  @doc """
+  Lists conversation messages.
+
+  ## Examples
+
+      iex> list_conversation_messages(scope, conversation)
+      [%Message{}, ...]
+
+  """
+  def list_conversation_messages(%Scope{} = scope, %Conversation{} = conversation) do
+    true = scope.profile_id == conversation.profile_id
+
+    from(
+      m in Message,
+      where: m.conversation_id == ^conversation.id,
+      order_by: m.inserted_at
+    )
+    |> Repo.all()
   end
 
   @doc """
