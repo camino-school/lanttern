@@ -51,7 +51,7 @@ defmodule Lanttern.AgentChat do
   ## Options
 
     * `:strand_id` - Filters conversations linked to the given strand
-    * `:lesson_id` - Filters conversations linked to the given lesson (requires a strand link)
+    * `:lesson_id` - Filters conversations linked to the given lesson (requires a strand link). Supports `nil` (useful for listing strand conversations only)
 
   ## Examples
 
@@ -86,9 +86,16 @@ defmodule Lanttern.AgentChat do
   end
 
   defp apply_list_conversations_opts(queryable, [{:lesson_id, lesson_id} | opts]) do
+    conditions =
+      if is_nil(lesson_id) do
+        dynamic([_c, strand_conversation: sc], is_nil(sc.lesson_id))
+      else
+        dynamic([_c, strand_conversation: sc], sc.lesson_id == ^lesson_id)
+      end
+
     queryable
     |> maybe_join_strand_conversation()
-    |> where([_c, strand_conversation: sc], sc.lesson_id == ^lesson_id)
+    |> where(^conditions)
     |> apply_list_conversations_opts(opts)
   end
 
@@ -367,6 +374,7 @@ defmodule Lanttern.AgentChat do
 
   ### Available functions
 
+    * `"create_lesson"` - Requires `strand_id` in opts
     * `"update_lesson"` - Requires `lesson_id` in opts
 
   ## Examples
@@ -414,7 +422,13 @@ defmodule Lanttern.AgentChat do
         end
       end)
 
-    LLMChain.new!(%{llm: llm, custom_context: context})
+    %{
+      llm: llm,
+      custom_context: context,
+      # 5 minutes in milliseconds
+      async_tool_timeout: 5 * 60 * 1000
+    }
+    |> LLMChain.new!()
     |> LLMChain.add_messages(system_messages)
     |> LLMChain.add_messages(langchain_messages)
     |> LLMChain.add_tools(tools)
@@ -487,6 +501,11 @@ defmodule Lanttern.AgentChat do
       )
       |> Enum.map_join("\n", &"- #{&1.name} (#{&1.curriculum_component.name})")
 
+    # tools args
+
+    subjects_ids = Enum.map_join(strand.subjects, "\n", &"- #{&1.name} (id: #{&1.id})")
+    moments_ids = Enum.map_join(strand.moments, "\n", &"- #{&1.name} (id: #{&1.id})")
+
     system_messages ++
       [
         LangChain.Message.new_system!("""
@@ -512,6 +531,19 @@ defmodule Lanttern.AgentChat do
 
         #{moments}
         </strand_context>
+        """),
+        LangChain.Message.new_system!("""
+        <strand_context_tools_args>
+        Internal use for tool calling only. Not sensitive, but not relevant for users.
+
+        # Subjects ids
+
+        #{subjects_ids}
+
+        # Moments ids
+
+        #{moments_ids}
+        </strand_context_tools_args>
         """)
       ]
   end
@@ -562,11 +594,66 @@ defmodule Lanttern.AgentChat do
     enabled_functions = Keyword.get(opts, :enabled_functions, [])
 
     []
+    |> setup_create_lesson_function(
+      "create_lesson" in enabled_functions,
+      Keyword.get(opts, :strand_id)
+    )
     |> setup_update_lesson_function(
       "update_lesson" in enabled_functions,
       Keyword.get(opts, :lesson_id)
     )
   end
+
+  defp setup_create_lesson_function(tools, true, strand_id) when is_integer(strand_id) do
+    function =
+      Function.new!(%{
+        name: "create_lesson",
+        description: "Create a lesson in the current strand",
+        parameters: [
+          FunctionParam.new!(%{
+            name: "moment_id",
+            type: "integer",
+            description: "The moment in which the lesson will be attached to"
+          }),
+          FunctionParam.new!(%{
+            name: "subjects_ids",
+            type: "array",
+            item_type: "integer",
+            description: "The subjects linked to the lesson"
+          }),
+          FunctionParam.new!(%{
+            name: "description",
+            type: "string",
+            description: "The main lesson content, shared with students when lesson is published"
+          }),
+          FunctionParam.new!(%{
+            name: "teacher_notes",
+            type: "string",
+            description: "Instructions and notes for teachers, never shared with students"
+          }),
+          FunctionParam.new!(%{
+            name: "differentiation_notes",
+            type: "string",
+            description: "Instructions for lesson differentiation, never shared with students"
+          })
+        ],
+        function: fn args, %{strand_id: strand_id} = _context ->
+          args = Map.put(args, "strand_id", strand_id)
+
+          case Lessons.create_lesson(args) do
+            {:ok, created_lesson} ->
+              {:ok, "SUCCESS: lesson was created successfully", created_lesson}
+
+            {:error, changeset} ->
+              {:error, "ERROR: #{LangChain.Utils.changeset_error_to_string(changeset)}"}
+          end
+        end
+      })
+
+    [function | tools]
+  end
+
+  defp setup_create_lesson_function(tools, _, _), do: tools
 
   defp setup_update_lesson_function(tools, true, lesson_id) when is_integer(lesson_id) do
     function =
@@ -577,17 +664,17 @@ defmodule Lanttern.AgentChat do
         parameters: [
           FunctionParam.new!(%{
             name: "description",
-            type: :string,
+            type: "string",
             description: "The main lesson content, shared with students when lesson is published"
           }),
           FunctionParam.new!(%{
             name: "teacher_notes",
-            type: :string,
+            type: "string",
             description: "Instructions and notes for teachers, never shared with students"
           }),
           FunctionParam.new!(%{
             name: "differentiation_notes",
-            type: :string,
+            type: "string",
             description: "Instructions for lesson differentiation, never shared with students"
           })
         ],

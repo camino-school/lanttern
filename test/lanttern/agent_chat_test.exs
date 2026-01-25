@@ -163,6 +163,35 @@ defmodule Lanttern.AgentChatTest do
 
       assert id == conversation_1.id
     end
+
+    test "filters by lesson_id: nil to return only strand conversations without lesson" do
+      scope = IdentityFixtures.scope_fixture()
+      profile = Repo.get!(Profile, scope.profile_id)
+
+      strand = insert(:strand)
+      lesson = insert(:lesson, strand: strand)
+
+      # Conversation linked to strand without lesson
+      conversation_strand_only = insert(:conversation, %{profile: profile})
+      insert(:strand_conversation, %{conversation: conversation_strand_only, strand: strand})
+
+      # Conversation linked to strand with lesson
+      conversation_with_lesson = insert(:conversation, %{profile: profile})
+
+      insert(:strand_conversation, %{
+        conversation: conversation_with_lesson,
+        strand: strand,
+        lesson: lesson
+      })
+
+      # Conversation without strand link
+      _conversation_no_strand = insert(:conversation, %{profile: profile})
+
+      assert [%Conversation{id: id}] =
+               AgentChat.list_conversations(scope, strand_id: strand.id, lesson_id: nil)
+
+      assert id == conversation_strand_only.id
+    end
   end
 
   describe "list_conversation_messages/2" do

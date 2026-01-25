@@ -17,6 +17,7 @@ defmodule LantternWeb.AgentChat.ConversationComponent do
     * `class` - Additional CSS classes for the container
     * `strand_id` - Associated strand ID for context in AI responses
     * `lesson_id` - Associated lesson ID for context in AI responses
+    * `enabled_functions` - List of functions the LLM will have access to
     * `notify` - Target for notifications (uses `LantternWeb.CoreComponentsHelper.notify/3`)
 
   ## Notifications
@@ -81,54 +82,47 @@ defmodule LantternWeb.AgentChat.ConversationComponent do
   alias Lanttern.Agents
   alias Lanttern.LessonTemplates
 
-  @model "gpt-5-nano"
+  @model "gpt-5-mini"
 
   @impl true
   def render(assigns) do
     ~H"""
     <div class={@class}>
       <div class="max-w-[640px] mx-auto">
-        <%= if @conversation do %>
-          <%!-- Chat messages area --%>
-          <div id="conversation-messages" phx-update="stream" class="space-y-6">
-            <%= for {dom_id, message} <- @streams.messages do %>
-              <%= if message.role == "user" do %>
-                <div class="flex justify-end" id={dom_id}>
-                  <div class="rounded-sm p-4 text-white bg-ltrn-dark">
-                    <.markdown text={message.content} invert />
-                  </div>
-                </div>
-              <% else %>
-                <.markdown text={message.content} id={dom_id} />
-              <% end %>
-            <% end %>
-          </div>
-
-          <%!-- Loading indicator --%>
-          <div :if={@loading} class="flex justify-start mt-6">
-            <div class="bg-white border border-ltrn-light rounded-lg px-4 py-3">
-              <div class="flex items-center gap-2">
-                <div class="w-2 h-2 rounded-full bg-ltrn-subtle animate-bounce"></div>
-                <div
-                  class="w-2 h-2 rounded-full bg-ltrn-subtle animate-bounce"
-                  style="animation-delay: 0.1s"
-                >
-                </div>
-                <div
-                  class="w-2 h-2 rounded-full bg-ltrn-subtle animate-bounce"
-                  style="animation-delay: 0.2s"
-                >
+        <%!-- Chat messages area --%>
+        <div id="conversation-messages" phx-update="stream" class="space-y-6">
+          <%= for {dom_id, message} <- @streams.messages do %>
+            <%= if message.role == "user" do %>
+              <div class="flex justify-end" id={dom_id}>
+                <div class="rounded-sm p-4 bg-ltrn-dark">
+                  <.markdown text={message.content} invert />
                 </div>
               </div>
-            </div>
+            <% else %>
+              <.markdown text={message.content} id={dom_id} />
+            <% end %>
+          <% end %>
+        </div>
+
+        <%!-- Loading indicator --%>
+        <div :if={@loading} class="flex justify-start mt-6">
+          <div class="bg-ltrn-lighter rounded-sm p-2">
+            <p class="text-sm">
+              {gettext("Thinking")}
+              <span class="inline-block animate-bounce">.</span>
+              <span class="inline-block animate-bounce" style="animation-delay: 0.1s">.</span>
+              <span class="inline-block animate-bounce" style="animation-delay: 0.2s">.</span>
+              <span class="inline-block ml-2">{gettext("(it might take a while)")}</span>
+            </p>
           </div>
-        <% else %>
-          <p class="text-lg text-center">
-            {gettext(
-              "Select a template and an agent, and give them instructions to help you with the lesson planning."
-            )}
-          </p>
-        <% end %>
+        </div>
+
+        <%!-- New conversation instructions --%>
+        <p :if={!@conversation} class="text-lg text-center">
+          {gettext(
+            "Select a template and an agent, and give them instructions to help you with the lesson planning."
+          )}
+        </p>
 
         <%!-- Error --%>
         <.error_block :if={@error} class="mt-10">
@@ -394,11 +388,13 @@ defmodule LantternWeb.AgentChat.ConversationComponent do
                content,
                opts
              ) do
-          {:ok, %{conversation: conversation}} ->
+          {:ok, %{conversation: conversation, user_message: user_message}} ->
             notify(__MODULE__, {:conversation_created, conversation}, socket.assigns)
 
             socket =
               socket
+              # update messages (sync)
+              |> stream_insert(:messages, user_message)
               |> enqueue_chat_response_job(conversation)
               |> assign_empty_prompt_form()
 
@@ -451,9 +447,9 @@ defmodule LantternWeb.AgentChat.ConversationComponent do
       lesson_template_id: Map.get(socket.assigns.selected_lesson_template || %{}, :id),
       strand_id: Map.get(socket.assigns, :strand_id),
       lesson_id: Map.get(socket.assigns, :lesson_id),
-      enabled_functions: ["update_lesson"]
+      enabled_functions: Map.get(socket.assigns, :enabled_functions, [])
     }
-    |> Oban.Job.new(queue: :ai, worker: Lanttern.ChatResponseWorker)
+    |> Lanttern.ChatResponseWorker.new()
     |> Oban.insert()
 
     socket

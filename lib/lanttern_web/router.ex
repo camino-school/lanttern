@@ -100,6 +100,9 @@ defmodule LantternWeb.Router do
 
       live "/strands/:id/overview", StrandOverviewLive, :overview
 
+      live "/strands/:strand_id/chat", StrandChatLive, :new
+      live "/strands/:strand_id/chat/:conversation_id", StrandChatLive, :show
+
       live "/strands/lesson/:id", LessonLive, :show
 
       live "/strands/lesson/:lesson_id/chat", LessonChatLive, :new
