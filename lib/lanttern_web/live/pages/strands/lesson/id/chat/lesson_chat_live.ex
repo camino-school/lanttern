@@ -7,6 +7,7 @@ defmodule LantternWeb.LessonChatLive do
 
   # shared
   alias LantternWeb.AgentChat.ConversationComponent
+  alias LantternWeb.AgentChat.RenameConversationFormComponent
 
   # lifecycle
 
@@ -18,6 +19,7 @@ defmodule LantternWeb.LessonChatLive do
       |> assign_strand()
       |> assign_conversations()
       |> assign(:conversation, nil)
+      |> assign(:is_renaming_conversation, false)
 
     {:ok, socket}
   end
@@ -87,9 +89,40 @@ defmodule LantternWeb.LessonChatLive do
     end
   end
 
+  # event handlers
+
+  @impl true
+  def handle_event("rename_conversation", _params, socket) do
+    {:noreply, assign(socket, :is_renaming_conversation, true)}
+  end
+
+  def handle_event("cancel_rename_conversation", _params, socket) do
+    {:noreply, assign(socket, :is_renaming_conversation, false)}
+  end
+
   # info handlers
 
   @impl true
+  def handle_info(
+        {RenameConversationFormComponent, {:conversation_renamed, conversation}},
+        socket
+      ) do
+    socket =
+      socket
+      |> assign(:conversation, conversation)
+      |> assign(:is_renaming_conversation, false)
+      |> update(
+        :conversations,
+        &Enum.map(&1, fn c ->
+          if c.id == conversation.id,
+            do: conversation,
+            else: c
+        end)
+      )
+
+    {:noreply, socket}
+  end
+
   def handle_info({ConversationComponent, {:conversation_created, conversation}}, socket) do
     socket =
       push_patch(

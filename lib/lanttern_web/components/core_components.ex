@@ -594,7 +594,7 @@ defmodule LantternWeb.CoreComponents do
     <.link
       class={[
         "group",
-        get_button_styles(@theme, @size, @rounded),
+        get_button_styles(@theme, size: @size, rounded: @rounded),
         @class
       ]}
       navigate={@navigate}
@@ -624,7 +624,7 @@ defmodule LantternWeb.CoreComponents do
       type={@type}
       class={[
         "group",
-        get_button_styles(@theme, @size, @rounded),
+        get_button_styles(@theme, size: @size, rounded: @rounded),
         @class
       ]}
       {@rest}
@@ -646,15 +646,21 @@ defmodule LantternWeb.CoreComponents do
 
   Meant to be used while styling links as buttons.
 
+  ## Options
+
+  * `:size` - "sm" | "normal" (default)
+  * `:is_icon` - boolean, defaults to false
+
   ## Examples
 
       <.link patch={~p"/somepath"} class={[get_button_styles()]}>Link</.link>
   """
-  def get_button_styles(theme \\ "default", size \\ "normal", _rounded \\ false) do
+  def get_button_styles(theme \\ "default", opts \\ []) do
     [
-      "inline-flex items-center justify-center gap-2 py-2 px-4 rounded-full font-sans disabled:cursor-not-allowed",
+      "inline-flex items-center justify-center gap-2 rounded-full font-sans disabled:cursor-not-allowed",
       "disabled:shadow-none",
-      if(size == "sm", do: "text-sm", else: "text-base"),
+      if(Keyword.get(opts, :size, "normal") == "sm", do: "text-sm", else: "text-base"),
+      if(Keyword.get(opts, :is_icon, false), do: "p-2", else: "py-2 px-4"),
       # if(rounded, do: "rounded-full", else: "rounded-xs"),
       "phx-submit-loading:opacity-50 phx-click-loading:opacity-50 phx-click-loading:pointer-events-none",
       button_theme(theme)
@@ -1353,7 +1359,7 @@ defmodule LantternWeb.CoreComponents do
       type={@type}
       class={[
         "shrink-0",
-        get_button_styles(@theme, @size, @rounded),
+        get_button_styles(@theme, size: @size, rounded: @rounded, is_icon: true),
         @class
       ]}
       {@rest}

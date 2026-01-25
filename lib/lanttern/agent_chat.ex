@@ -229,7 +229,7 @@ defmodule Lanttern.AgentChat do
     true = Scope.matches_profile?(scope, conversation.profile_id)
 
     conversation
-    |> Conversation.changeset(%{name: name}, scope)
+    |> Conversation.rename_changeset(%{name: name})
     |> Repo.update()
   end
 
@@ -660,5 +660,19 @@ defmodule Lanttern.AgentChat do
       force: true
     )
     |> Repo.transaction()
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking conversation rename changes.
+
+  ## Examples
+
+      iex> change_conversation_name(scope, conversation)
+      %Ecto.Changeset{data: %Conversation{}}
+
+  """
+  def change_conversation_name(%Scope{} = scope, %Conversation{} = conversation, attrs \\ %{}) do
+    true = Scope.matches_profile?(scope, conversation.profile_id)
+    Conversation.rename_changeset(conversation, attrs)
   end
 end

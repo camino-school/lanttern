@@ -44,4 +44,10 @@ defmodule Lanttern.AgentChat.Conversation do
     |> put_change(:profile_id, scope.profile_id)
     |> put_change(:school_id, scope.school_id)
   end
+
+  def rename_changeset(conversation, attrs) do
+    conversation
+    |> cast(attrs, [:name])
+    |> validate_required([:name])
+  end
 end

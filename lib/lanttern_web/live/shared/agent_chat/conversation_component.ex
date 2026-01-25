@@ -78,7 +78,6 @@ defmodule LantternWeb.AgentChat.ConversationComponent do
   use LantternWeb, :live_component
 
   alias Lanttern.AgentChat
-  alias Lanttern.AgentChat.Conversation
   alias Lanttern.Agents
   alias Lanttern.LessonTemplates
 
@@ -288,26 +287,8 @@ defmodule LantternWeb.AgentChat.ConversationComponent do
     {:ok, socket}
   end
 
-  # the conversation was renamed (conversation assign received, but no changes)
-  def update(
-        %{conversation: %Conversation{id: id}} = _assigns,
-        %{assigns: %{conversation: %Conversation{id: id}}} = socket
-      ) do
-    {:ok, socket}
-  end
-
-  # a new conversation was selected or the conversation was renamed
-  def update(%{conversation: conversation} = _assigns, socket) do
-    socket =
-      socket
-      |> assign(:loading, false)
-      |> assign(:error, nil)
-      |> assign_empty_prompt_form()
-      |> assign(:conversation, conversation)
-      |> stream_messages(conversation)
-
-    {:ok, socket}
-  end
+  def update(assigns, socket),
+    do: {:ok, assign(socket, assigns)}
 
   defp handle_lesson_template_assigns(socket) do
     lesson_templates =

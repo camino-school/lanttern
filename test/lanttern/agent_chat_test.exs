@@ -407,6 +407,67 @@ defmodule Lanttern.AgentChatTest do
         AgentChat.rename_conversation(scope, conversation, "New name")
       end
     end
+
+    test "raises FunctionClauseError when name is empty string" do
+      scope = IdentityFixtures.scope_fixture()
+      profile = Repo.get!(Profile, scope.profile_id)
+
+      conversation = insert(:conversation, %{profile: profile, name: "Old name"})
+
+      assert_raise FunctionClauseError, fn ->
+        AgentChat.rename_conversation(scope, conversation, "")
+      end
+    end
+  end
+
+  describe "change_conversation_name/3" do
+    test "returns a changeset for tracking conversation rename changes" do
+      scope = IdentityFixtures.scope_fixture()
+      profile = Repo.get!(Profile, scope.profile_id)
+
+      conversation = insert(:conversation, %{profile: profile, name: "Current name"})
+
+      changeset = AgentChat.change_conversation_name(scope, conversation)
+
+      assert %Ecto.Changeset{} = changeset
+      assert changeset.data == conversation
+    end
+
+    test "returns a changeset with updated attributes" do
+      scope = IdentityFixtures.scope_fixture()
+      profile = Repo.get!(Profile, scope.profile_id)
+
+      conversation = insert(:conversation, %{profile: profile, name: "Current name"})
+
+      changeset = AgentChat.change_conversation_name(scope, conversation, %{name: "New name"})
+
+      assert %Ecto.Changeset{} = changeset
+      assert Ecto.Changeset.get_change(changeset, :name) == "New name"
+    end
+
+    test "validates name is required" do
+      scope = IdentityFixtures.scope_fixture()
+      profile = Repo.get!(Profile, scope.profile_id)
+
+      conversation = insert(:conversation, %{profile: profile, name: "Current name"})
+
+      changeset =
+        AgentChat.change_conversation_name(scope, conversation, %{name: ""})
+        |> Map.put(:action, :validate)
+
+      assert %{name: ["can't be blank"]} = errors_on(changeset)
+    end
+
+    test "raises when scope does not match conversation profile" do
+      scope = IdentityFixtures.scope_fixture()
+      other_profile = insert(:profile)
+
+      conversation = insert(:conversation, %{profile: other_profile})
+
+      assert_raise MatchError, fn ->
+        AgentChat.change_conversation_name(scope, conversation)
+      end
+    end
   end
 
   describe "add_user_message/3" do
