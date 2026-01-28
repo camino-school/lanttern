@@ -5,12 +5,13 @@ defmodule Lanttern.AgentChatTest do
   alias Lanttern.AgentChat.Conversation
   alias Lanttern.AgentChat.Message
   alias Lanttern.AgentChat.ModelCall
+  alias Lanttern.AgentChat.StrandConversation
   alias Lanttern.Identity.Profile
   alias Lanttern.IdentityFixtures
 
   import Lanttern.Factory
 
-  describe "list_conversations/1" do
+  describe "list_conversations/2" do
     test "returns all conversations from scope's profile ordered by updated_at desc" do
       scope = IdentityFixtures.scope_fixture()
       profile = Repo.get!(Profile, scope.profile_id)
@@ -73,10 +74,128 @@ defmodule Lanttern.AgentChatTest do
       assert [%Conversation{id: id}] = AgentChat.list_conversations(scope)
       assert id == conversation.id
     end
+
+    test "filters by strand_id when provided" do
+      scope = IdentityFixtures.scope_fixture()
+      profile = Repo.get!(Profile, scope.profile_id)
+
+      strand_1 = insert(:strand)
+      strand_2 = insert(:strand)
+
+      # Conversation linked to strand_1
+      conversation_1 = insert(:conversation, %{profile: profile})
+      insert(:strand_conversation, %{conversation: conversation_1, strand: strand_1})
+
+      # Conversation linked to strand_2
+      conversation_2 = insert(:conversation, %{profile: profile})
+      insert(:strand_conversation, %{conversation: conversation_2, strand: strand_2})
+
+      # Conversation without strand link
+      _conversation_3 = insert(:conversation, %{profile: profile})
+
+      assert [%Conversation{id: id}] = AgentChat.list_conversations(scope, strand_id: strand_1.id)
+      assert id == conversation_1.id
+    end
+
+    test "filters by lesson_id when provided" do
+      scope = IdentityFixtures.scope_fixture()
+      profile = Repo.get!(Profile, scope.profile_id)
+
+      strand = insert(:strand)
+      lesson_1 = insert(:lesson, strand: strand)
+      lesson_2 = insert(:lesson, strand: strand)
+
+      # Conversation linked to lesson_1
+      conversation_1 = insert(:conversation, %{profile: profile})
+
+      insert(:strand_conversation, %{
+        conversation: conversation_1,
+        strand: strand,
+        lesson: lesson_1
+      })
+
+      # Conversation linked to lesson_2
+      conversation_2 = insert(:conversation, %{profile: profile})
+
+      insert(:strand_conversation, %{
+        conversation: conversation_2,
+        strand: strand,
+        lesson: lesson_2
+      })
+
+      # Conversation linked to strand without specific lesson
+      conversation_3 = insert(:conversation, %{profile: profile})
+      insert(:strand_conversation, %{conversation: conversation_3, strand: strand, lesson: nil})
+
+      assert [%Conversation{id: id}] = AgentChat.list_conversations(scope, lesson_id: lesson_1.id)
+      assert id == conversation_1.id
+    end
+
+    test "filters by both strand_id and lesson_id when provided" do
+      scope = IdentityFixtures.scope_fixture()
+      profile = Repo.get!(Profile, scope.profile_id)
+
+      strand_1 = insert(:strand)
+      strand_2 = insert(:strand)
+      lesson_1 = insert(:lesson, strand: strand_1)
+      lesson_2 = insert(:lesson, strand: strand_2)
+
+      # Conversation linked to strand_1 and lesson_1
+      conversation_1 = insert(:conversation, %{profile: profile})
+
+      insert(:strand_conversation, %{
+        conversation: conversation_1,
+        strand: strand_1,
+        lesson: lesson_1
+      })
+
+      # Conversation linked to strand_2 and lesson_2
+      conversation_2 = insert(:conversation, %{profile: profile})
+
+      insert(:strand_conversation, %{
+        conversation: conversation_2,
+        strand: strand_2,
+        lesson: lesson_2
+      })
+
+      assert [%Conversation{id: id}] =
+               AgentChat.list_conversations(scope, strand_id: strand_1.id, lesson_id: lesson_1.id)
+
+      assert id == conversation_1.id
+    end
+
+    test "filters by lesson_id: nil to return only strand conversations without lesson" do
+      scope = IdentityFixtures.scope_fixture()
+      profile = Repo.get!(Profile, scope.profile_id)
+
+      strand = insert(:strand)
+      lesson = insert(:lesson, strand: strand)
+
+      # Conversation linked to strand without lesson
+      conversation_strand_only = insert(:conversation, %{profile: profile})
+      insert(:strand_conversation, %{conversation: conversation_strand_only, strand: strand})
+
+      # Conversation linked to strand with lesson
+      conversation_with_lesson = insert(:conversation, %{profile: profile})
+
+      insert(:strand_conversation, %{
+        conversation: conversation_with_lesson,
+        strand: strand,
+        lesson: lesson
+      })
+
+      # Conversation without strand link
+      _conversation_no_strand = insert(:conversation, %{profile: profile})
+
+      assert [%Conversation{id: id}] =
+               AgentChat.list_conversations(scope, strand_id: strand.id, lesson_id: nil)
+
+      assert id == conversation_strand_only.id
+    end
   end
 
-  describe "get_conversation_with_messages/2" do
-    test "returns conversation with preloaded messages ordered by inserted_at" do
+  describe "list_conversation_messages/2" do
+    test "returns all messages for a conversation ordered by inserted_at" do
       scope = IdentityFixtures.scope_fixture()
       profile = Repo.get!(Profile, scope.profile_id)
 
@@ -94,21 +213,66 @@ defmodule Lanttern.AgentChatTest do
         insert(:agent_message, %{
           conversation: conversation,
           content: "Second message",
-          inserted_at: ~N[2024-01-01 11:00:00]
+          inserted_at: ~N[2024-01-01 12:00:00]
         })
 
       message_3 =
         insert(:agent_message, %{
           conversation: conversation,
           content: "Third message",
-          inserted_at: ~N[2024-01-01 10:30:00]
+          inserted_at: ~N[2024-01-01 11:00:00]
         })
 
-      result = AgentChat.get_conversation_with_messages(scope, conversation.id)
+      messages = AgentChat.list_conversation_messages(scope, conversation)
 
-      assert %Conversation{messages: messages} = result
       # Should be ordered by inserted_at: message_1, message_3, message_2
       assert [message_1.id, message_3.id, message_2.id] == Enum.map(messages, & &1.id)
+    end
+
+    test "returns empty list when conversation has no messages" do
+      scope = IdentityFixtures.scope_fixture()
+      profile = Repo.get!(Profile, scope.profile_id)
+
+      conversation = insert(:conversation, %{profile: profile})
+
+      assert [] = AgentChat.list_conversation_messages(scope, conversation)
+    end
+
+    test "does not return messages from other conversations" do
+      scope = IdentityFixtures.scope_fixture()
+      profile = Repo.get!(Profile, scope.profile_id)
+
+      conversation = insert(:conversation, %{profile: profile})
+      other_conversation = insert(:conversation, %{profile: profile})
+
+      message = insert(:agent_message, %{conversation: conversation, content: "My message"})
+      _other_message = insert(:agent_message, %{conversation: other_conversation})
+
+      assert [%Message{id: id}] = AgentChat.list_conversation_messages(scope, conversation)
+      assert id == message.id
+    end
+
+    test "raises when scope does not match conversation profile" do
+      scope = IdentityFixtures.scope_fixture()
+      other_profile = insert(:profile)
+
+      conversation = insert(:conversation, %{profile: other_profile})
+
+      assert_raise MatchError, fn ->
+        AgentChat.list_conversation_messages(scope, conversation)
+      end
+    end
+  end
+
+  describe "get_conversation/2" do
+    test "returns conversation when it belongs to scope's profile" do
+      scope = IdentityFixtures.scope_fixture()
+      profile = Repo.get!(Profile, scope.profile_id)
+
+      conversation = insert(:conversation, %{profile: profile})
+
+      assert %Conversation{id: id} = AgentChat.get_conversation(scope, conversation.id)
+      assert id == conversation.id
     end
 
     test "returns nil for conversation from different profile" do
@@ -116,15 +280,14 @@ defmodule Lanttern.AgentChatTest do
       other_profile = insert(:profile)
 
       conversation = insert(:conversation, %{profile: other_profile})
-      insert(:agent_message, %{conversation: conversation})
 
-      assert nil == AgentChat.get_conversation_with_messages(scope, conversation.id)
+      assert nil == AgentChat.get_conversation(scope, conversation.id)
     end
 
     test "returns nil for non-existent conversation" do
       scope = IdentityFixtures.scope_fixture()
 
-      assert nil == AgentChat.get_conversation_with_messages(scope, -1)
+      assert nil == AgentChat.get_conversation(scope, -1)
     end
   end
 
@@ -159,7 +322,7 @@ defmodule Lanttern.AgentChatTest do
     end
   end
 
-  describe "create_conversation_with_message/2" do
+  describe "create_conversation_with_message/3" do
     test "creates a new conversation with an initial user message" do
       scope = IdentityFixtures.scope_fixture()
 
@@ -183,6 +346,57 @@ defmodule Lanttern.AgentChatTest do
                AgentChat.create_conversation_with_message(scope, "Test message")
 
       assert conversation.name == nil
+    end
+
+    test "links conversation to strand when strand_id is provided" do
+      scope = IdentityFixtures.scope_fixture()
+      strand = insert(:strand)
+
+      assert {:ok, result} =
+               AgentChat.create_conversation_with_message(
+                 scope,
+                 "Let's discuss this strand",
+                 strand_id: strand.id
+               )
+
+      assert %Conversation{} = result.conversation
+      assert %Message{} = result.user_message
+      assert %StrandConversation{} = result.strand_conversation
+      assert result.strand_conversation.conversation_id == result.conversation.id
+      assert result.strand_conversation.strand_id == strand.id
+      assert result.strand_conversation.lesson_id == nil
+    end
+
+    test "links conversation to strand and lesson when both are provided" do
+      scope = IdentityFixtures.scope_fixture()
+      strand = insert(:strand)
+      lesson = insert(:lesson, strand: strand)
+
+      assert {:ok, result} =
+               AgentChat.create_conversation_with_message(
+                 scope,
+                 "Let's discuss this lesson",
+                 strand_id: strand.id,
+                 lesson_id: lesson.id
+               )
+
+      assert %Conversation{} = result.conversation
+      assert %Message{} = result.user_message
+      assert %StrandConversation{} = result.strand_conversation
+      assert result.strand_conversation.conversation_id == result.conversation.id
+      assert result.strand_conversation.strand_id == strand.id
+      assert result.strand_conversation.lesson_id == lesson.id
+    end
+
+    test "does not create strand_conversation when no strand_id is provided" do
+      scope = IdentityFixtures.scope_fixture()
+
+      assert {:ok, result} =
+               AgentChat.create_conversation_with_message(scope, "Regular conversation")
+
+      assert %Conversation{} = result.conversation
+      assert %Message{} = result.user_message
+      refute Map.has_key?(result, :strand_conversation)
     end
   end
 
@@ -220,6 +434,67 @@ defmodule Lanttern.AgentChatTest do
 
       assert_raise MatchError, fn ->
         AgentChat.rename_conversation(scope, conversation, "New name")
+      end
+    end
+
+    test "raises FunctionClauseError when name is empty string" do
+      scope = IdentityFixtures.scope_fixture()
+      profile = Repo.get!(Profile, scope.profile_id)
+
+      conversation = insert(:conversation, %{profile: profile, name: "Old name"})
+
+      assert_raise FunctionClauseError, fn ->
+        AgentChat.rename_conversation(scope, conversation, "")
+      end
+    end
+  end
+
+  describe "change_conversation_name/3" do
+    test "returns a changeset for tracking conversation rename changes" do
+      scope = IdentityFixtures.scope_fixture()
+      profile = Repo.get!(Profile, scope.profile_id)
+
+      conversation = insert(:conversation, %{profile: profile, name: "Current name"})
+
+      changeset = AgentChat.change_conversation_name(scope, conversation)
+
+      assert %Ecto.Changeset{} = changeset
+      assert changeset.data == conversation
+    end
+
+    test "returns a changeset with updated attributes" do
+      scope = IdentityFixtures.scope_fixture()
+      profile = Repo.get!(Profile, scope.profile_id)
+
+      conversation = insert(:conversation, %{profile: profile, name: "Current name"})
+
+      changeset = AgentChat.change_conversation_name(scope, conversation, %{name: "New name"})
+
+      assert %Ecto.Changeset{} = changeset
+      assert Ecto.Changeset.get_change(changeset, :name) == "New name"
+    end
+
+    test "validates name is required" do
+      scope = IdentityFixtures.scope_fixture()
+      profile = Repo.get!(Profile, scope.profile_id)
+
+      conversation = insert(:conversation, %{profile: profile, name: "Current name"})
+
+      changeset =
+        AgentChat.change_conversation_name(scope, conversation, %{name: ""})
+        |> Map.put(:action, :validate)
+
+      assert %{name: ["can't be blank"]} = errors_on(changeset)
+    end
+
+    test "raises when scope does not match conversation profile" do
+      scope = IdentityFixtures.scope_fixture()
+      other_profile = insert(:profile)
+
+      conversation = insert(:conversation, %{profile: other_profile})
+
+      assert_raise MatchError, fn ->
+        AgentChat.change_conversation_name(scope, conversation)
       end
     end
   end
@@ -541,6 +816,408 @@ defmodule Lanttern.AgentChatTest do
 
       assert result.name == expected_title
       assert String.length(result.name) == 50
+    end
+  end
+
+  describe "run_llm_chain/4" do
+    import Lanttern.TaxonomyFixtures
+    import Lanttern.LearningContextFixtures
+
+    alias Lanttern.Lessons
+
+    setup do
+      Mimic.copy(LangChain.Chains.LLMChain)
+
+      scope = IdentityFixtures.scope_fixture()
+      profile = Repo.get!(Profile, scope.profile_id)
+      conversation = insert(:conversation, %{profile: profile})
+
+      user_message =
+        insert(:agent_message, %{
+          conversation: conversation,
+          role: "user",
+          content: "Test question"
+        })
+
+      mock_llm = LangChain.ChatModels.ChatOpenAI.new!(%{model: "gpt-4", api_key: "test-key"})
+
+      %{scope: scope, messages: [user_message], llm: mock_llm}
+    end
+
+    test "runs LLM chain with basic messages", %{scope: scope, messages: messages, llm: llm} do
+      Mimic.expect(LangChain.Chains.LLMChain, :run, fn chain, _opts ->
+        # Verify chain structure - should have 1 user message
+        assert length(chain.messages) == 1
+        assert hd(chain.messages).role == :user
+
+        response_chain =
+          LangChain.Chains.LLMChain.add_message(
+            chain,
+            LangChain.Message.new_assistant!("Test response")
+          )
+
+        {:ok, response_chain}
+      end)
+
+      assert {:ok, %LangChain.Chains.LLMChain{} = chain} =
+               AgentChat.run_llm_chain(scope, messages, llm)
+
+      # Verify the chain has both user and assistant messages
+      assert length(chain.messages) == 2
+    end
+
+    test "adds strand system messages when strand_id is provided", %{
+      scope: scope,
+      messages: messages,
+      llm: llm
+    } do
+      subject = subject_fixture(%{name: "Science"})
+      year = year_fixture(%{name: "Year 5"})
+
+      strand =
+        strand_fixture(%{
+          name: "Environmental Science",
+          description: "Study of ecosystems",
+          subjects_ids: [subject.id],
+          years_ids: [year.id]
+        })
+
+      moment_fixture(%{
+        strand_id: strand.id,
+        name: "Introduction",
+        description: "Intro to ecosystems",
+        position: 1
+      })
+
+      Mimic.expect(LangChain.Chains.LLMChain, :run, fn chain, _opts ->
+        # Verify that strand system message was added
+        system_messages = Enum.filter(chain.messages, &(&1.role == :system))
+        assert length(system_messages) >= 1
+
+        # Find the strand context message
+        strand_message =
+          Enum.find(system_messages, fn msg ->
+            content = LangChain.Message.ContentPart.content_to_string(msg.content)
+            content =~ "<strand_context>"
+          end)
+
+        assert strand_message != nil
+
+        strand_content = LangChain.Message.ContentPart.content_to_string(strand_message.content)
+        assert strand_content =~ "Environmental Science"
+        assert strand_content =~ "Science"
+        assert strand_content =~ "Year 5"
+        assert strand_content =~ "Introduction"
+
+        response_chain =
+          LangChain.Chains.LLMChain.add_message(
+            chain,
+            LangChain.Message.new_assistant!("Strand-aware response")
+          )
+
+        {:ok, response_chain}
+      end)
+
+      assert {:ok, %LangChain.Chains.LLMChain{}} =
+               AgentChat.run_llm_chain(scope, messages, llm, strand_id: strand.id)
+    end
+
+    test "adds lesson system messages when lesson_id is provided", %{
+      scope: scope,
+      messages: messages,
+      llm: llm
+    } do
+      subject = subject_fixture(%{name: "Mathematics"})
+      strand = strand_fixture()
+      moment = moment_fixture(%{strand_id: strand.id, name: "Week 1", position: 1})
+
+      {:ok, lesson} =
+        Lessons.create_lesson(%{
+          strand_id: strand.id,
+          moment_id: moment.id,
+          name: "Introduction to Algebra",
+          description: "Basic algebraic concepts",
+          teacher_notes: "Focus on variables",
+          differentiation_notes: "Provide extra examples",
+          subjects_ids: [subject.id]
+        })
+
+      Mimic.expect(LangChain.Chains.LLMChain, :run, fn chain, _opts ->
+        # Verify that lesson system message was added
+        system_messages = Enum.filter(chain.messages, &(&1.role == :system))
+        assert length(system_messages) >= 1
+
+        # Find the lesson context message
+        lesson_message =
+          Enum.find(system_messages, fn msg ->
+            content = LangChain.Message.ContentPart.content_to_string(msg.content)
+            content =~ "<lesson_context>"
+          end)
+
+        assert lesson_message != nil
+
+        lesson_content = LangChain.Message.ContentPart.content_to_string(lesson_message.content)
+        assert lesson_content =~ "Introduction to Algebra"
+        assert lesson_content =~ "Basic algebraic concepts"
+        assert lesson_content =~ "Mathematics"
+        assert lesson_content =~ "Week 1"
+        assert lesson_content =~ "Focus on variables"
+        assert lesson_content =~ "Provide extra examples"
+
+        response_chain =
+          LangChain.Chains.LLMChain.add_message(
+            chain,
+            LangChain.Message.new_assistant!("Lesson-aware response")
+          )
+
+        {:ok, response_chain}
+      end)
+
+      assert {:ok, %LangChain.Chains.LLMChain{}} =
+               AgentChat.run_llm_chain(scope, messages, llm, lesson_id: lesson.id)
+    end
+
+    test "adds both strand and lesson system messages when both are provided", %{
+      scope: scope,
+      messages: messages,
+      llm: llm
+    } do
+      strand = strand_fixture(%{name: "Biology Strand"})
+      moment = moment_fixture(%{strand_id: strand.id, name: "Week 2", position: 2})
+
+      {:ok, lesson} =
+        Lessons.create_lesson(%{
+          strand_id: strand.id,
+          moment_id: moment.id,
+          name: "Cell Biology",
+          description: "Introduction to cells"
+        })
+
+      Mimic.expect(LangChain.Chains.LLMChain, :run, fn chain, _opts ->
+        system_messages = Enum.filter(chain.messages, &(&1.role == :system))
+
+        # Should have both strand and lesson context messages
+        has_strand_context =
+          Enum.any?(system_messages, fn msg ->
+            content = LangChain.Message.ContentPart.content_to_string(msg.content)
+            content =~ "<strand_context>"
+          end)
+
+        has_lesson_context =
+          Enum.any?(system_messages, fn msg ->
+            content = LangChain.Message.ContentPart.content_to_string(msg.content)
+            content =~ "<lesson_context>"
+          end)
+
+        assert has_strand_context
+        assert has_lesson_context
+
+        response_chain =
+          LangChain.Chains.LLMChain.add_message(
+            chain,
+            LangChain.Message.new_assistant!("Context-aware response")
+          )
+
+        {:ok, response_chain}
+      end)
+
+      assert {:ok, %LangChain.Chains.LLMChain{}} =
+               AgentChat.run_llm_chain(scope, messages, llm,
+                 strand_id: strand.id,
+                 lesson_id: lesson.id
+               )
+    end
+
+    test "adds update_lesson tool when enabled_functions includes it", %{
+      scope: scope,
+      messages: messages,
+      llm: llm
+    } do
+      strand = strand_fixture()
+      moment = moment_fixture(%{strand_id: strand.id, name: "Week 1", position: 1})
+
+      {:ok, lesson} =
+        Lessons.create_lesson(%{
+          strand_id: strand.id,
+          moment_id: moment.id,
+          name: "Test Lesson",
+          description: "Original description"
+        })
+
+      Mimic.expect(LangChain.Chains.LLMChain, :run, fn chain, _opts ->
+        # Verify that update_lesson tool was added
+        assert length(chain.tools) == 1
+        [tool] = chain.tools
+        assert tool.name == "update_lesson"
+
+        # Verify tool has the expected parameters
+        param_names = Enum.map(tool.parameters, & &1.name)
+        assert "description" in param_names
+        assert "teacher_notes" in param_names
+        assert "differentiation_notes" in param_names
+
+        # Verify lesson_id is in the custom context
+        assert chain.custom_context.lesson_id == lesson.id
+
+        response_chain =
+          LangChain.Chains.LLMChain.add_message(
+            chain,
+            LangChain.Message.new_assistant!("I can update the lesson")
+          )
+
+        {:ok, response_chain}
+      end)
+
+      assert {:ok, %LangChain.Chains.LLMChain{}} =
+               AgentChat.run_llm_chain(scope, messages, llm,
+                 lesson_id: lesson.id,
+                 enabled_functions: ["update_lesson"]
+               )
+    end
+
+    test "update_lesson tool successfully updates the lesson", %{
+      scope: scope,
+      messages: messages,
+      llm: llm
+    } do
+      strand = strand_fixture()
+      moment = moment_fixture(%{strand_id: strand.id, name: "Week 1", position: 1})
+
+      {:ok, lesson} =
+        Lessons.create_lesson(%{
+          strand_id: strand.id,
+          moment_id: moment.id,
+          name: "Test Lesson",
+          description: "Original description",
+          teacher_notes: "Original notes"
+        })
+
+      Mimic.expect(LangChain.Chains.LLMChain, :run, fn chain, _opts ->
+        # Get the update_lesson tool and call it directly
+        [tool] = chain.tools
+
+        # Simulate the LLM calling the tool
+        args = %{
+          "description" => "Updated description from AI",
+          "teacher_notes" => "Updated teacher notes"
+        }
+
+        result = tool.function.(args, chain.custom_context)
+
+        # Verify the tool returns success
+        assert {:ok, "SUCCESS: lesson was updated successfully", updated_lesson} = result
+        assert updated_lesson.description == "Updated description from AI"
+        assert updated_lesson.teacher_notes == "Updated teacher notes"
+
+        response_chain =
+          LangChain.Chains.LLMChain.add_message(
+            chain,
+            LangChain.Message.new_assistant!("Lesson updated successfully")
+          )
+
+        {:ok, response_chain}
+      end)
+
+      assert {:ok, _chain} =
+               AgentChat.run_llm_chain(scope, messages, llm,
+                 lesson_id: lesson.id,
+                 enabled_functions: ["update_lesson"]
+               )
+
+      # Verify lesson was actually updated in the database
+      updated_lesson = Lessons.get_lesson!(lesson.id)
+      assert updated_lesson.description == "Updated description from AI"
+      assert updated_lesson.teacher_notes == "Updated teacher notes"
+    end
+
+    test "does not add update_lesson tool when not in enabled_functions", %{
+      scope: scope,
+      messages: messages,
+      llm: llm
+    } do
+      strand = strand_fixture()
+      moment = moment_fixture(%{strand_id: strand.id, name: "Week 1", position: 1})
+
+      {:ok, lesson} =
+        Lessons.create_lesson(%{
+          strand_id: strand.id,
+          moment_id: moment.id,
+          name: "Test Lesson",
+          description: "Some description"
+        })
+
+      Mimic.expect(LangChain.Chains.LLMChain, :run, fn chain, _opts ->
+        # Verify no tools were added
+        assert chain.tools == []
+
+        response_chain =
+          LangChain.Chains.LLMChain.add_message(
+            chain,
+            LangChain.Message.new_assistant!("Response without tools")
+          )
+
+        {:ok, response_chain}
+      end)
+
+      assert {:ok, %LangChain.Chains.LLMChain{}} =
+               AgentChat.run_llm_chain(scope, messages, llm, lesson_id: lesson.id)
+    end
+
+    test "does not add update_lesson tool when lesson_id is missing", %{
+      scope: scope,
+      messages: messages,
+      llm: llm
+    } do
+      Mimic.expect(LangChain.Chains.LLMChain, :run, fn chain, _opts ->
+        # Verify no tools were added even though enabled_functions includes update_lesson
+        assert chain.tools == []
+
+        response_chain =
+          LangChain.Chains.LLMChain.add_message(
+            chain,
+            LangChain.Message.new_assistant!("Response without tools")
+          )
+
+        {:ok, response_chain}
+      end)
+
+      assert {:ok, %LangChain.Chains.LLMChain{}} =
+               AgentChat.run_llm_chain(scope, messages, llm, enabled_functions: ["update_lesson"])
+    end
+
+    test "raises when last message is not a user message", %{
+      scope: scope,
+      llm: llm
+    } do
+      conversation = insert(:conversation)
+
+      messages = [
+        insert(:agent_message, %{
+          conversation: conversation,
+          role: "user",
+          content: "Question"
+        }),
+        insert(:agent_message, %{
+          conversation: conversation,
+          role: "assistant",
+          content: "Answer"
+        })
+      ]
+
+      assert_raise MatchError, fn ->
+        AgentChat.run_llm_chain(scope, messages, llm)
+      end
+    end
+
+    test "returns error when LLM chain fails", %{scope: scope, messages: messages, llm: llm} do
+      error = %LangChain.LangChainError{message: "API error"}
+
+      Mimic.expect(LangChain.Chains.LLMChain, :run, fn _chain, _opts ->
+        {:error, %LangChain.Chains.LLMChain{messages: []}, error}
+      end)
+
+      assert {:error, %LangChain.Chains.LLMChain{}, %LangChain.LangChainError{}} =
+               AgentChat.run_llm_chain(scope, messages, llm)
     end
   end
 end

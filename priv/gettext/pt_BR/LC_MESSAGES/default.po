@@ -11,9 +11,9 @@ msgstr ""
 "Language: pt_BR\n"
 "Plural-Forms: nplurals=2; plural=(n>1);\n"
 
-#: lib/lanttern_web/components/core_components.ex:977
-#: lib/lanttern_web/components/core_components.ex:2200
-#: lib/lanttern_web/components/core_components.ex:2262
+#: lib/lanttern_web/components/core_components.ex:983
+#: lib/lanttern_web/components/core_components.ex:2206
+#: lib/lanttern_web/components/core_components.ex:2268
 #, elixir-autogen, elixir-format
 msgid "Actions"
 msgstr "Ações"
@@ -61,7 +61,7 @@ msgstr "Rubricas"
 msgid "Strands"
 msgstr "Trilhas"
 
-#: lib/lanttern_web/components/core_components.ex:1161
+#: lib/lanttern_web/components/core_components.ex:1167
 #: lib/lanttern_web/components/overlay_components.ex:79
 #: lib/lanttern_web/components/overlay_components.ex:339
 #, elixir-autogen, elixir-format
@@ -119,13 +119,14 @@ msgstr "Aplicando filtros..."
 #: lib/lanttern_web/live/pages/settings/lesson_templates/lesson_template_card_component.ex:101
 #: lib/lanttern_web/live/pages/strands/id/lessons_component.ex:229
 #: lib/lanttern_web/live/pages/strands/id/overview/strand_overview_live.html.heex:218
-#: lib/lanttern_web/live/pages/strands/id/strand_live.html.heex:118
-#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:93
-#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:166
-#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:219
+#: lib/lanttern_web/live/pages/strands/id/strand_live.html.heex:129
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:95
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:168
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:221
 #: lib/lanttern_web/live/pages/strands/library/strands_library_live.html.heex:102
 #: lib/lanttern_web/live/pages/strands/moment/id/assessment_component.ex:99
 #: lib/lanttern_web/live/pages/strands/moment/id/moment_live.html.heex:115
+#: lib/lanttern_web/live/shared/agent_chat/rename_conversation_form_component.ex:28
 #: lib/lanttern_web/live/shared/agents/agent_form_component.ex:47
 #: lib/lanttern_web/live/shared/assessments/assessment_point_form_overlay_component.ex:150
 #: lib/lanttern_web/live/shared/assessments/entry_details_overlay_component.ex:266
@@ -196,13 +197,14 @@ msgstr "Nova trilha"
 #: lib/lanttern_web/live/pages/settings/lesson_templates/lesson_template_card_component.ex:104
 #: lib/lanttern_web/live/pages/strands/id/lessons_component.ex:232
 #: lib/lanttern_web/live/pages/strands/id/overview/strand_overview_live.html.heex:221
-#: lib/lanttern_web/live/pages/strands/id/strand_live.html.heex:121
-#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:95
-#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:168
-#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:221
+#: lib/lanttern_web/live/pages/strands/id/strand_live.html.heex:132
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:97
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:170
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:223
 #: lib/lanttern_web/live/pages/strands/library/strands_library_live.html.heex:105
 #: lib/lanttern_web/live/pages/strands/moment/id/assessment_component.ex:102
 #: lib/lanttern_web/live/pages/strands/moment/id/moment_live.html.heex:118
+#: lib/lanttern_web/live/shared/agent_chat/rename_conversation_form_component.ex:31
 #: lib/lanttern_web/live/shared/agents/agent_form_component.ex:50
 #: lib/lanttern_web/live/shared/assessments/assessment_point_form_overlay_component.ex:160
 #: lib/lanttern_web/live/shared/assessments/assessments_grid_component.ex:159
@@ -481,7 +483,7 @@ msgstr "Deletar"
 #: lib/lanttern_web/live/pages/strands/id/overview/strand_overview_live.html.heex:36
 #: lib/lanttern_web/live/pages/strands/id/overview/strand_overview_live.html.heex:204
 #: lib/lanttern_web/live/pages/strands/id/strand_live.html.heex:49
-#: lib/lanttern_web/live/pages/strands/id/strand_live.html.heex:104
+#: lib/lanttern_web/live/pages/strands/id/strand_live.html.heex:115
 #, elixir-autogen, elixir-format
 msgid "Edit strand"
 msgstr "Editar trilha"
@@ -563,7 +565,7 @@ msgstr "Deletar anotação"
 
 #: lib/lanttern_web/live/pages/strands/id/overview/strand_overview_live.html.heex:109
 #: lib/lanttern_web/live/pages/strands/id/strand_rubrics_component.ex:101
-#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:175
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:177
 #: lib/lanttern_web/live/shared/assessments/assessment_point_form_component.ex:87
 #: lib/lanttern_web/live/shared/assessments/assessment_point_form_overlay_component.ex:116
 #: lib/lanttern_web/live/shared/assessments/entry_details_overlay_component.ex:34
@@ -575,7 +577,7 @@ msgid "Differentiation"
 msgstr "Diferenciação"
 
 #: lib/lanttern_web/components/attachments_components.ex:111
-#: lib/lanttern_web/components/core_components.ex:1509
+#: lib/lanttern_web/components/core_components.ex:1515
 #: lib/lanttern_web/components/form_components.ex:280
 #: lib/lanttern_web/components/ilp_components.ex:124
 #: lib/lanttern_web/components/learning_context_components.ex:81
@@ -593,8 +595,8 @@ msgstr "Diferenciação"
 #: lib/lanttern_web/live/pages/strands/id/overview/strand_overview_live.html.heex:161
 #: lib/lanttern_web/live/pages/strands/id/strand_rubrics_component.ex:230
 #: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:37
-#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:137
-#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:190
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:139
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:192
 #: lib/lanttern_web/live/pages/students/settings/tags_component.ex:46
 #: lib/lanttern_web/live/pages/students_records/settings/status_component.ex:61
 #: lib/lanttern_web/live/pages/students_records/settings/tags_component.ex:57
@@ -634,7 +636,7 @@ msgstr "Compreendo. Deletar mesmo assim"
 msgid "You don't have any notes for this strand yet"
 msgstr "Você ainda não poussui anotações para esta trilha"
 
-#: lib/lanttern_web/components/navigation_components.ex:291
+#: lib/lanttern_web/components/navigation_components.ex:306
 #, elixir-autogen, elixir-format
 msgid "collapse"
 msgstr "fechar"
@@ -644,7 +646,7 @@ msgstr "fechar"
 msgid "dismiss"
 msgstr "dispensar"
 
-#: lib/lanttern_web/components/navigation_components.ex:303
+#: lib/lanttern_web/components/navigation_components.ex:318
 #, elixir-autogen, elixir-format
 msgid "expand"
 msgstr "expandir"
@@ -835,7 +837,7 @@ msgstr "Momento atualizado com sucesso"
 msgid "Moments"
 msgstr "Momentos"
 
-#: lib/lanttern_web/components/core_components.ex:2150
+#: lib/lanttern_web/components/core_components.ex:2156
 #, elixir-autogen, elixir-format
 msgid "Move moment down"
 msgstr "Mover momento para baixo"
@@ -1296,7 +1298,7 @@ msgstr "Lista de report cards vinculados a esta trilha"
 msgid "Move down"
 msgstr "Mover para baixo"
 
-#: lib/lanttern_web/components/core_components.ex:2140
+#: lib/lanttern_web/components/core_components.ex:2146
 #: lib/lanttern_web/live/shared/grading/grade_composition_overlay_component.ex:167
 #, elixir-autogen, elixir-format
 msgid "Move up"
@@ -1410,7 +1412,7 @@ msgstr "Recalcular nota"
 
 #: lib/lanttern_web/components/attachments_components.ex:116
 #: lib/lanttern_web/components/core_components.ex:356
-#: lib/lanttern_web/components/core_components.ex:1597
+#: lib/lanttern_web/components/core_components.ex:1603
 #: lib/lanttern_web/components/form_components.ex:843
 #: lib/lanttern_web/live/shared/grading/grade_composition_overlay_component.ex:196
 #, elixir-autogen, elixir-format
@@ -1762,8 +1764,8 @@ msgstr "Limpar seleção"
 msgid "Hey!"
 msgstr "Olá!"
 
-#: lib/lanttern_web/components/core_components.ex:1662
-#: lib/lanttern_web/components/core_components.ex:1684
+#: lib/lanttern_web/components/core_components.ex:1668
+#: lib/lanttern_web/components/core_components.ex:1690
 #, elixir-autogen, elixir-format
 msgid "Selected"
 msgstr "Selecionado"
@@ -2066,7 +2068,7 @@ msgid "No student notes for this strand"
 msgstr "Nenhuma anotação de estudante sobre esta trilha"
 
 #: lib/lanttern_web/live/pages/strands/id/strand_live.html.heex:24
-#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:122
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:124
 #: lib/lanttern_web/live/pages/strands/moment/id/moment_live.html.heex:27
 #: lib/lanttern_web/live/shared/ilp/student_ilp_component.ex:89
 #, elixir-autogen, elixir-format
@@ -4231,8 +4233,8 @@ msgstr "%{student} deletado"
 msgid "%{student} reactivated"
 msgstr "%{student} reativado"
 
-#: lib/lanttern_web/components/core_components.ex:1920
-#: lib/lanttern_web/components/core_components.ex:1928
+#: lib/lanttern_web/components/core_components.ex:1926
+#: lib/lanttern_web/components/core_components.ex:1934
 #, elixir-autogen, elixir-format
 msgid "(Deactivated)"
 msgstr "(Desativado)"
@@ -4560,7 +4562,6 @@ msgstr "Ver report cards"
 msgid "Your %{cycle} report cards"
 msgstr "Seus report cards de %{cycle}"
 
-#: lib/lanttern_web/live/pages/chats/chats_live.html.heex:127
 #: lib/lanttern_web/live/pages/guardian/guardian_home_live.html.heex:3
 #, elixir-autogen, elixir-format
 msgid "Hello!"
@@ -5355,17 +5356,17 @@ msgstr "Acessar utilizando um email diferente"
 msgid "User not found."
 msgstr "Usuário não encontrado."
 
-#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:183
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:185
 #, elixir-autogen, elixir-format
 msgid "Add differentiation notes"
 msgstr "Adicionar notas de diferenciação"
 
-#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:67
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:68
 #, elixir-autogen, elixir-format
 msgid "Add lesson content"
 msgstr "Adicionar conteúdo da aula"
 
-#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:130
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:132
 #, elixir-autogen, elixir-format
 msgid "Add teacher notes"
 msgstr "Adicionar anotações do professor"
@@ -5396,7 +5397,7 @@ msgstr "Cor do card"
 msgid "Configure section"
 msgstr "Configurar seção"
 
-#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:117
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:119
 #, elixir-autogen, elixir-format
 msgid "Content and resources not shared with students and guardians"
 msgstr "Conteúdo e recursos não compartilhados com estudantes e responsáveis"
@@ -5437,13 +5438,13 @@ msgstr "Concluído"
 msgid "Draft"
 msgstr "Rascunho"
 
-#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:75
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:76
 #, elixir-autogen, elixir-format
 msgid "Edit content"
 msgstr "Editar conteúdo"
 
 #: lib/lanttern_web/live/pages/strands/id/lessons_component.ex:548
-#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:246
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:258
 #, elixir-autogen, elixir-format
 msgid "Edit lesson"
 msgstr "Editar aula"
@@ -5488,7 +5489,7 @@ msgstr "Aula criada com sucesso"
 msgid "Lesson deleted"
 msgstr "Aula deletada"
 
-#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:87
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:89
 #, elixir-autogen, elixir-format
 msgid "Lesson description"
 msgstr "Descrição da aula"
@@ -5508,7 +5509,7 @@ msgstr "Nome da aula"
 msgid "Lesson published"
 msgstr "Aula publicada"
 
-#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:102
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:104
 #, elixir-autogen, elixir-format
 msgid "Lesson resources"
 msgstr "Recursos da aula"
@@ -5683,12 +5684,12 @@ msgstr "Visão geral, currículo e report cards da trilha"
 msgid "Subject: %{subject}"
 msgstr "Componente: %{subject}"
 
-#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:114
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:116
 #, elixir-autogen, elixir-format
 msgid "Teacher area"
 msgstr "Área do professor"
 
-#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:228
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:230
 #, elixir-autogen, elixir-format
 msgid "Teacher resources"
 msgstr "Recursos do professor"
@@ -5900,58 +5901,127 @@ msgstr "Nada por aqui ainda"
 msgid "Tell us something about yourself!"
 msgstr "Nos conte algo sobre você!"
 
-#: lib/lanttern_web/live/pages/chats/chats_live.ex:23
-#, elixir-autogen, elixir-format
-msgid "AI Agents Chat"
-msgstr "Chat dos agentes de IA"
-
-#: lib/lanttern_web/live/pages/chats/chats_live.ex:59
+#: lib/lanttern_web/live/pages/strands/id/chat/strand_chat_live.ex:69
+#: lib/lanttern_web/live/pages/strands/lesson/id/chat/lesson_chat_live.ex:79
 #, elixir-autogen, elixir-format
 msgid "Conversation not found"
 msgstr "Conversa não encontrada"
 
-#: lib/lanttern_web/live/pages/chats/chats_live.ex:108
+#: lib/lanttern_web/live/shared/agent_chat/conversation_component.ex:407
 #, elixir-autogen, elixir-format
 msgid "Failed to create conversation"
 msgstr "Falha ao criar conversa"
 
-#: lib/lanttern_web/live/pages/chats/chats_live.ex:177
+#: lib/lanttern_web/live/pages/strands/id/chat/strand_chat_live.ex:165
+#: lib/lanttern_web/live/pages/strands/lesson/id/chat/lesson_chat_live.ex:175
+#: lib/lanttern_web/live/shared/agent_chat/conversation_component.ex:264
 #, elixir-autogen, elixir-format
 msgid "Failed to get AI response"
 msgstr "Falha ao obter resposta da IA"
 
-#: lib/lanttern_web/live/pages/chats/chats_live.ex:250
-#, elixir-autogen, elixir-format
-msgid "Failed to save response"
-msgstr "Falha ao salvar resposta"
-
-#: lib/lanttern_web/live/pages/chats/chats_live.ex:131
+#: lib/lanttern_web/live/shared/agent_chat/conversation_component.ex:429
 #, elixir-autogen, elixir-format
 msgid "Failed to send message"
 msgstr "Falha ao enviar mensagem"
 
-#: lib/lanttern_web/live/pages/chats/chats_live.html.heex:143
+#: lib/lanttern_web/live/shared/agent_chat/conversation_component.ex:149
 #, elixir-autogen, elixir-format
 msgid "How can I help you today?"
 msgstr "Como eu posso ajudar hoje?"
 
-#: lib/lanttern_web/live/pages/chats/chats_live.html.heex:44
-#, elixir-autogen, elixir-format
-msgid "New chat"
-msgstr "Novo chat"
-
-#: lib/lanttern_web/live/pages/chats/chats_live.html.heex:51
-#, elixir-autogen, elixir-format
-msgid "Recents"
-msgstr "Recentes"
-
-#: lib/lanttern_web/live/pages/chats/chats_live.html.heex:142
+#: lib/lanttern_web/live/shared/agent_chat/conversation_component.ex:148
 #, elixir-autogen, elixir-format
 msgid "Reply..."
 msgstr "Responder..."
 
-#: lib/lanttern_web/live/pages/chats/chats_live.html.heex:69
-#: lib/lanttern_web/live/pages/chats/chats_live.html.heex:76
+#: lib/lanttern_web/live/shared/agent_chat/conversation_component.ex:115
 #, elixir-autogen, elixir-format
-msgid "Unnamed conversation"
-msgstr "Conversas não nomeadas"
+msgid "(it might take a while)"
+msgstr "(pode levar um tempo)"
+
+#: lib/lanttern_web/live/pages/strands/id/chat/strand_chat_live.ex:34
+#: lib/lanttern_web/live/pages/strands/lesson/id/chat/lesson_chat_live.ex:36
+#, elixir-autogen, elixir-format
+msgid "Chat"
+msgstr "Conversa"
+
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:250
+#, elixir-autogen, elixir-format
+msgid "Create with AI"
+msgstr "Criar com IA"
+
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:250
+#, elixir-autogen, elixir-format
+msgid "Enhance with AI"
+msgstr "Melhorar com IA"
+
+#: lib/lanttern_web/live/shared/agent_chat/conversation_component.ex:200
+#, elixir-autogen, elixir-format
+msgid "No agents available"
+msgstr "Nenhum agente disponível"
+
+#: lib/lanttern_web/live/shared/agent_chat/conversation_component.ex:171
+#, elixir-autogen, elixir-format
+msgid "No lesson template"
+msgstr "Nenhum template de aula"
+
+#: lib/lanttern_web/live/shared/agent_chat/conversation_component.ex:346
+#, elixir-autogen, elixir-format
+msgid "No messages for conversation"
+msgstr "Nenhuma mensagem para esta conversa"
+
+#: lib/lanttern_web/live/pages/strands/id/chat/strand_chat_live.html.heex:25
+#: lib/lanttern_web/live/pages/strands/lesson/id/chat/lesson_chat_live.html.heex:31
+#, elixir-autogen, elixir-format
+msgid "Past chats"
+msgstr "Conversas anteriores"
+
+#: lib/lanttern_web/live/pages/strands/id/strand_live.html.heex:107
+#, elixir-autogen, elixir-format
+msgid "Plan with AI"
+msgstr "Planejar com IA"
+
+#: lib/lanttern_web/live/pages/strands/id/chat/strand_chat_live.html.heex:52
+#: lib/lanttern_web/live/pages/strands/lesson/id/chat/lesson_chat_live.html.heex:54
+#: lib/lanttern_web/live/shared/agent_chat/rename_conversation_form_component.ex:18
+#, elixir-autogen, elixir-format
+msgid "Rename conversation"
+msgstr "Renomear conversa"
+
+#: lib/lanttern_web/live/shared/agent_chat/conversation_component.ex:122
+#, elixir-autogen, elixir-format
+msgid "Select a template and an agent, and give them instructions to help you with the lesson planning."
+msgstr "Selecione um template e um agente, e dê instruções para ajudar você no planejamento da aula."
+
+#: lib/lanttern_web/live/pages/strands/id/chat/strand_chat_live.html.heex:37
+#, elixir-autogen, elixir-format
+msgid "Start a new %{strand_type} chat"
+msgstr "Iniciar nova conversa de %{strand_type}"
+
+#: lib/lanttern_web/live/pages/strands/lesson/id/chat/lesson_chat_live.html.heex:42
+#, elixir-autogen, elixir-format
+msgid "Start a new lesson chat"
+msgstr "Iniciar nova conversa de aula"
+
+#: lib/lanttern_web/live/shared/agent_chat/conversation_component.ex:111
+#, elixir-autogen, elixir-format
+msgid "Thinking"
+msgstr "Pensando"
+
+#: lib/lanttern_web/live/pages/strands/id/chat/strand_chat_live.html.heex:24
+#: lib/lanttern_web/live/pages/strands/id/chat/strand_chat_live.html.heex:46
+#: lib/lanttern_web/live/pages/strands/lesson/id/chat/lesson_chat_live.html.heex:30
+#: lib/lanttern_web/live/pages/strands/lesson/id/chat/lesson_chat_live.html.heex:48
+#, elixir-autogen, elixir-format
+msgid "Unnamed chat"
+msgstr "Conversa sem nome"
+
+#: lib/lanttern_web/live/shared/agent_chat/conversation_component.ex:179
+#, elixir-autogen, elixir-format
+msgid "Use without lesson template"
+msgstr "Usar sem template de aula"
+
+#: lib/lanttern_web/live/pages/strands/id/chat/strand_chat_live.html.heex:38
+#, elixir-autogen, elixir-format
+msgid "strand"
+msgstr "trilha"

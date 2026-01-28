@@ -58,22 +58,24 @@
       </div>
       <section id="lesson-description" class="mt-10">
         <.markdown :if={!@description_form && @lesson.description} text={@lesson.description} />
-        <.button
-          :if={!@description_form && !@lesson.description}
-          phx-click="edit_description"
-          theme="primary"
-          icon_name="hero-plus-mini"
-        >
-          {gettext("Add lesson content")}
-        </.button>
-        <.button
-          :if={!@description_form && @lesson.description}
-          phx-click="edit_description"
-          class="mt-4"
-          size="sm"
-        >
-          {gettext("Edit content")}
-        </.button>
+        <div :if={!@description_form} class="flex gap-4">
+          <.button
+            :if={!@lesson.description}
+            phx-click="edit_description"
+            theme="primary"
+            icon_name="hero-plus-mini"
+          >
+            {gettext("Add lesson content")}
+          </.button>
+          <.button
+            :if={@lesson.description}
+            phx-click="edit_description"
+            class="mt-4"
+            size="sm"
+          >
+            {gettext("Edit content")}
+          </.button>
+        </div>
         <.form
           :if={@description_form}
           for={@description_form}
@@ -237,6 +239,16 @@
     </section>
   </div>
 </Layouts.app_logged_in>
+<.button
+  type="link"
+  navigate={~p"/strands/lesson/#{@lesson}/chat"}
+  theme="primary"
+  size="sm"
+  icon_name="hero-sparkles-mini"
+  class="fixed right-4 bottom-4"
+>
+  {if @lesson.description, do: gettext("Enhance with AI"), else: gettext("Create with AI")}
+</.button>
 <.modal
   :if={@is_editing}
   id="lesson-form-overlay"

@@ -93,6 +93,7 @@ defmodule Lanttern.MixProject do
       {:multipart, "~> 0.4.0"},
       {:cachex, "~> 4.1"},
       {:oban, "~> 2.20"},
+      {:oban_web, "~> 2.11"},
       {:usage_rules, "~> 0.1", only: [:dev]},
       {:igniter, "~> 0.6", only: [:dev]},
       {:html_sanitize_ex, "~> 1.4"},

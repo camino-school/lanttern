@@ -24,6 +24,7 @@ defmodule Lanttern.Factory do
   use Lanttern.SchoolFactory
   use Lanttern.SectionFactory
   use Lanttern.StaffMemberFactory
+  use Lanttern.StrandConversationFactory
   use Lanttern.StrandFactory
   use Lanttern.StrandNoteRelationshipFactory
   use Lanttern.StudentFactory

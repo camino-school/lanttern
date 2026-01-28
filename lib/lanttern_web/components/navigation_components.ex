@@ -9,6 +9,21 @@ defmodule LantternWeb.NavigationComponents do
   import LantternWeb.CoreComponents
 
   @doc """
+  Renders a basic page header.
+  """
+  attr :class, :any, default: nil
+
+  slot :inner_block, required: true
+
+  def header_base(assigns) do
+    ~H"""
+    <header class={["sticky top-0 z-30 bg-white/80 backdrop-blur-sm", @class]}>
+      {render_slot(@inner_block)}
+    </header>
+    """
+  end
+
+  @doc """
   Renders the page header with navigation items.
   """
   attr :current_user, Lanttern.Identity.User, required: true
@@ -46,7 +61,7 @@ defmodule LantternWeb.NavigationComponents do
       |> assign(:current_cycle, current_cycle)
 
     ~H"""
-    <header class="sticky top-0 z-30 bg-white ltrn-bg-main shadow-lg">
+    <.header_base>
       <div class="flex items-center gap-4 p-4">
         <%!-- min-w-0 to "fix" truncate (https://css-tricks.com/flexbox-truncated-text/) --%>
         <div class="flex-1 flex items-center gap-2 min-w-0">
@@ -93,7 +108,7 @@ defmodule LantternWeb.NavigationComponents do
         </button>
       </div>
       {render_slot(@inner_block)}
-    </header>
+    </.header_base>
     """
   end
 
@@ -188,7 +203,7 @@ defmodule LantternWeb.NavigationComponents do
       tabindex="-1"
       class={[
         "flex items-center gap-2 p-1 rounded-full focus:outline-ltrn-primary",
-        "aria-selected:outline aria-selected:outline-2 aria-selected:outline-ltrn-dark",
+        "aria-selected:outline-2 aria-selected:outline-ltrn-dark",
         person_tab_theme(@theme)
       ]}
       phx-click={
@@ -203,7 +218,7 @@ defmodule LantternWeb.NavigationComponents do
       {@rest}
     >
       <.profile_icon profile_name={@person.name} size="xs" theme={@theme} />
-      <span class="max-w-[7rem] pr-1 text-xs truncate">
+      <span class="max-w-28 pr-1 text-xs truncate">
         {@person.name}
       </span>
     </button>

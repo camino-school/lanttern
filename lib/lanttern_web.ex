@@ -56,6 +56,8 @@ defmodule LantternWeb do
 
       on_mount LantternWeb.LiveViewHelpers
 
+      import LantternWeb.PubSubHelpers
+
       unquote(html_helpers())
     end
   end
