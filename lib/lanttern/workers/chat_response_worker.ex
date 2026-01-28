@@ -28,7 +28,7 @@ defmodule Lanttern.ChatResponseWorker do
   - `enabled_functions` - List of functions the LLM will have access to
   """
 
-  use Oban.Worker, queue: :ai, max_attempts: 1, unique: true
+  use Oban.Worker, queue: :ai, max_attempts: 3, unique: true
 
   alias LangChain.ChatModels.ChatOpenAI
   alias LangChain.Message.ContentPart
@@ -110,19 +110,27 @@ defmodule Lanttern.ChatResponseWorker do
   defp build_opts(opts, [_ | args]), do: build_opts(opts, args)
 
   defp extract_content_and_usage_attrs_from_chain(chain, model) do
-    # Get the last message (assistant response)
-    assistant_message = chain.last_message
+    # Get the last message content (assistant response)
+    content = ContentPart.content_to_string(chain.last_message.content)
 
-    # Extract token usage from metadata
-    usage = Map.get(assistant_message.metadata || %{}, :usage, %{})
+    # Aggregate token usage from all assistant messages exchanged during this run.
+    # A single user prompt may trigger multiple LLM calls (tool calls, retries),
+    # each with its own token usage.
+    {total_input, total_output} =
+      chain.exchanged_messages
+      |> Enum.filter(&(&1.role == :assistant))
+      |> Enum.reduce({0, 0}, fn message, {input_acc, output_acc} ->
+        usage = Map.get(message.metadata || %{}, :usage, %{})
+        input = Map.get(usage, :input, 0)
+        output = Map.get(usage, :output, 0)
+        {input_acc + input, output_acc + output}
+      end)
 
     usage_attrs = %{
-      prompt_tokens: Map.get(usage, :input, 0),
-      completion_tokens: Map.get(usage, :output, 0),
+      prompt_tokens: total_input,
+      completion_tokens: total_output,
       model: model
     }
-
-    content = ContentPart.content_to_string(assistant_message.content)
 
     {content, usage_attrs}
   end

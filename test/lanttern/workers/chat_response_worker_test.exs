@@ -73,7 +73,8 @@ defmodule Lanttern.ChatResponseWorkerTest do
          %{
            chain
            | last_message: assistant_message,
-             messages: chain.messages ++ [assistant_message]
+             messages: chain.messages ++ [assistant_message],
+             exchanged_messages: [assistant_message]
          }}
       end)
 
@@ -148,7 +149,8 @@ defmodule Lanttern.ChatResponseWorkerTest do
          %{
            chain
            | last_message: assistant_message,
-             messages: chain.messages ++ [assistant_message]
+             messages: chain.messages ++ [assistant_message],
+             exchanged_messages: [assistant_message]
          }}
       end)
 
@@ -256,7 +258,8 @@ defmodule Lanttern.ChatResponseWorkerTest do
          %{
            chain
            | last_message: assistant_message,
-             messages: chain.messages ++ [assistant_message]
+             messages: chain.messages ++ [assistant_message],
+             exchanged_messages: [assistant_message]
          }}
       end)
 
@@ -323,7 +326,8 @@ defmodule Lanttern.ChatResponseWorkerTest do
          %{
            chain
            | last_message: assistant_message,
-             messages: chain.messages ++ [assistant_message]
+             messages: chain.messages ++ [assistant_message],
+             exchanged_messages: [assistant_message]
          }}
       end)
 
@@ -388,7 +392,8 @@ defmodule Lanttern.ChatResponseWorkerTest do
          %{
            chain
            | last_message: assistant_message,
-             messages: chain.messages ++ [assistant_message]
+             messages: chain.messages ++ [assistant_message],
+             exchanged_messages: [assistant_message]
          }}
       end)
 
@@ -421,7 +426,8 @@ defmodule Lanttern.ChatResponseWorkerTest do
          %{
            chain
            | last_message: assistant_message,
-             messages: chain.messages ++ [assistant_message]
+             messages: chain.messages ++ [assistant_message],
+             exchanged_messages: [assistant_message]
          }}
       end)
 
@@ -503,7 +509,7 @@ defmodule Lanttern.ChatResponseWorkerTest do
 
       assert get_change(job, :worker) == "Lanttern.ChatResponseWorker"
       assert get_change(job, :queue) == "ai"
-      assert get_change(job, :max_attempts) == 1
+      assert get_change(job, :max_attempts) == 3
     end
 
     test "job can be enqueued", %{user: user, conversation: conversation} do
