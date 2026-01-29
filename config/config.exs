@@ -111,7 +111,7 @@ config :langchain, openai_org_id: System.get_env("OPENAI_ORG_ID")
 # Oban config
 config :lanttern, Oban,
   engine: Oban.Engines.Basic,
-  queues: [cleanup: 1],
+  queues: [cleanup: 1, ai: 10],
   repo: Lanttern.Repo,
   plugins: [
     Oban.Plugins.Pruner,

@@ -1,6 +1,8 @@
 defmodule LantternWeb.Router do
   use LantternWeb, :router
 
+  import Oban.Web.Router
+
   import LantternWeb.UserAuth
   import LantternWeb.LocalizationHelpers
 
@@ -98,7 +100,13 @@ defmodule LantternWeb.Router do
 
       live "/strands/:id/overview", StrandOverviewLive, :overview
 
+      live "/strands/:strand_id/chat", StrandChatLive, :new
+      live "/strands/:strand_id/chat/:conversation_id", StrandChatLive, :show
+
       live "/strands/lesson/:id", LessonLive, :show
+
+      live "/strands/lesson/:lesson_id/chat", LessonChatLive, :new
+      live "/strands/lesson/:lesson_id/chat/:conversation_id", LessonChatLive, :show
 
       live "/strands/moment/:id", MomentLive, :show
       live "/strands/moment/:id/assessment", MomentLive, :assessment
@@ -143,11 +151,6 @@ defmodule LantternWeb.Router do
 
       live "/settings/lesson_templates", LessonTemplatesLive, :index
       live "/settings/lesson_templates/:id", LessonTemplatesLive, :show
-
-      # agent chats
-
-      live "/chats", ChatsLive, :index
-      live "/chats/:id", ChatsLive, :show
     end
 
     live_session :authenticated_guardian,
@@ -392,5 +395,12 @@ defmodule LantternWeb.Router do
     #   live "/users/confirm/:token", UserConfirmationLive, :edit
     #   live "/users/confirm", UserConfirmationInstructionsLive, :new
     # end
+  end
+
+  # Oban
+  scope "/oban", LantternWeb do
+    pipe_through [:browser, :require_authenticated_user, :require_root_admin]
+
+    oban_dashboard("/")
   end
 end

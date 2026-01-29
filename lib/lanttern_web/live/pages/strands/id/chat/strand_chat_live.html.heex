@@ -1,0 +1,86 @@
+<Layouts.app_logged_in
+  flash={@flash}
+  current_user={@current_user}
+  current_path={@current_path}
+>
+  <.header_base class="flex items-center gap-4 w-full max-w-screen p-4 bg-white/40 backdrop-blur-sm">
+    <div class="flex-1">
+      <.link
+        navigate={~p"/strands/#{@strand}"}
+        class="flex items-center gap-2 font-bold text-ltrn-darkest hover:text-ltrn-darkest/50"
+      >
+        <.icon name="hero-arrow-left-mini" />
+        {@strand.name}
+      </.link>
+    </div>
+    <div :if={!Enum.empty?(@conversations)} class="flex items-center gap-1">
+      <div class="relative">
+        <.button
+          type="button"
+          id="conversation-list-button"
+          size="sm"
+        >
+          {if @conversation,
+            do: @conversation.name || gettext("Unnamed chat"),
+            else: gettext("Past chats")}
+        </.button>
+        <.dropdown_menu
+          id="conversation-list"
+          button_id="conversation-list-button"
+          position="right"
+        >
+          <:item
+            :if={@conversation}
+            type="link"
+            navigate={~p"/strands/#{@strand}/chat"}
+            text={
+              gettext("Start a new %{strand_type} chat",
+                strand_type: @strand.type || gettext("strand")
+              )
+            }
+          />
+          <:item
+            :for={conversation <- @conversations}
+            type="link"
+            navigate={~p"/strands/#{@strand}/chat/#{conversation}"}
+            text={conversation.name || gettext("Unnamed chat")}
+          />
+        </.dropdown_menu>
+      </div>
+      <.icon_button
+        name="hero-pencil-mini"
+        sr_text={gettext("Rename conversation")}
+        theme="ghost"
+        phx-click="rename_conversation"
+      />
+    </div>
+  </.header_base>
+  <main class="p-10">
+    <.live_component
+      module={ConversationComponent}
+      id="agent-conversation"
+      conversation={@conversation}
+      strand_id={@strand.id}
+      enabled_functions={["create_lesson"]}
+      current_scope={@current_scope}
+      notify_parent
+    />
+  </main>
+  <%!-- {inspect(@message_form)} --%>
+</Layouts.app_logged_in>
+<.modal
+  :if={@is_renaming_conversation}
+  id="rename-conversation-overlay"
+  show={true}
+  on_cancel={JS.push("cancel_rename_conversation")}
+>
+  <.live_component
+    module={RenameConversationFormComponent}
+    id="rename-conversation-form"
+    class="pt-10"
+    conversation={@conversation}
+    current_scope={@current_scope}
+    on_cancel={JS.exec("data-cancel", to: "#rename-conversation-overlay")}
+    notify_parent
+  />
+</.modal>

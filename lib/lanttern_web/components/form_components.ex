@@ -345,7 +345,7 @@ defmodule LantternWeb.FormComponents do
 
   def label(%{show_optional: true} = assigns) do
     ~H"""
-    <div class={["flex justify-between gap-4 mb-2 text-sm", @class]}>
+    <div class={["flex justify-between gap-4 mb-2 text-sm font-sans", @class]}>
       <label for={@for} class="font-bold">
         <.help_tooltip text={@help_text} class="inline-block font-normal" />
         {render_slot(@inner_block)}
@@ -366,7 +366,7 @@ defmodule LantternWeb.FormComponents do
 
   def label(assigns) do
     ~H"""
-    <label for={@for} class={["flex items-center gap-2 mb-2 text-sm font-bold", @class]}>
+    <label for={@for} class={["flex items-center gap-2 mb-2 text-sm font-sans font-bold", @class]}>
       <.help_tooltip text={@help_text} class="font-normal" />
       {render_slot(@inner_block)}
     </label>
