@@ -23,6 +23,7 @@ defmodule Lanttern.Schools.Student do
   @type t :: %__MODULE__{
           id: pos_integer(),
           name: String.t(),
+          birthdate: DateTime.t() | nil,
           profile_picture_url: String.t(),
           classes_ids: [pos_integer()],
           has_diff_rubric: boolean(),
@@ -42,6 +43,10 @@ defmodule Lanttern.Schools.Student do
 
   schema "students" do
     field :name, :string
+    # stored as UTC datetime
+    field :birthdate, :utc_datetime
+    # virtual field used by the UI (HTML date input returns a date)
+    field :birthdate_date, :date, virtual: true
     field :profile_picture_url, :string
     field :deactivated_at, :utc_datetime
 
@@ -82,6 +87,8 @@ defmodule Lanttern.Schools.Student do
     student
     |> cast(attrs, [
       :name,
+      :birthdate,
+      :birthdate_date,
       :profile_picture_url,
       :deactivated_at,
       :school_id,
@@ -89,8 +96,50 @@ defmodule Lanttern.Schools.Student do
       :tags_ids
     ])
     |> validate_required([:name, :school_id])
+    |> validate_and_build_birthdate()
     |> put_classes(attrs)
     |> cast_tags()
+  end
+
+  defp validate_and_build_birthdate(changeset) do
+    case changeset.changes do
+      %{birthdate: _datetime} ->
+        # Already a datetime, nothing to do
+        changeset
+
+      %{birthdate_date: date} ->
+        # If date is received from the form, convert to DateTime (local midnight -> local timezone)
+        case {changeset.valid?, date} do
+          {true, %Date{} = date} ->
+            time = ~T[00:00:00]
+            tz = Timex.Timezone.local().full_name
+            datetime = DateTime.new!(date, time, tz)
+
+            changeset
+            |> cast(%{birthdate: datetime}, [:birthdate])
+
+          _ ->
+            changeset
+        end
+
+      _ ->
+        # If only loading data (e.g., edit), populate the virtual field from the existing birthdate
+        build_birthdate_ui_from_data(changeset)
+    end
+  end
+
+  defp build_birthdate_ui_from_data(changeset) do
+    case get_field(changeset, :birthdate) do
+      nil ->
+        changeset
+
+      datetime ->
+        local_datetime = Timex.local(datetime)
+        date = DateTime.to_date(local_datetime)
+
+        changeset
+        |> cast(%{birthdate_date: date}, [:birthdate_date])
+    end
   end
 
   defp put_classes(changeset, %{classes: classes}) when is_list(classes),

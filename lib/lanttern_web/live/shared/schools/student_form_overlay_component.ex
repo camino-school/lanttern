@@ -48,6 +48,13 @@ defmodule LantternWeb.Schools.StudentFormOverlayComponent do
             class="mb-6"
             phx-debounce="1500"
           />
+          <.input
+            field={@form[:birthdate_date]}
+            type="date"
+            label={gettext("Date of birth")}
+            class="mb-6"
+            phx-debounce="1500"
+          />
           <.live_component
             module={ClassesFieldComponent}
             id={"student-form-classes-picker-#{@id}"}
