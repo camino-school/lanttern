@@ -49,6 +49,12 @@ defmodule Lanttern.Schools.Class do
       on_replace: :delete,
       preload_order: [asc: :id]
 
+    many_to_many :staff_members, Lanttern.Schools.StaffMember,
+      join_through: Lanttern.Schools.ClassStaffMember,
+      on_replace: :delete
+
+    has_many :classes_staff_members, Lanttern.Schools.ClassStaffMember
+
     timestamps()
   end
 
