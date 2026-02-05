@@ -146,6 +146,8 @@ defmodule LantternWeb.Router do
 
       # settings
 
+      live "/settings/school_ai_config", SchoolAiConfigLive, :index
+
       live "/settings/agents", AgentsSettingsLive, :index
       live "/settings/agents/:id", AgentsSettingsLive, :show
 

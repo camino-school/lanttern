@@ -82,8 +82,6 @@ defmodule LantternWeb.AgentChat.ConversationComponent do
   alias Lanttern.Agents
   alias Lanttern.LessonTemplates
 
-  @model "gpt-5-mini"
-
   @impl true
   def render(assigns) do
     ~H"""
@@ -439,10 +437,10 @@ defmodule LantternWeb.AgentChat.ConversationComponent do
 
   defp enqueue_chat_response_job(socket, conversation) do
     # request chat response via oban job (async)
+    # model is resolved by the worker from school config or application config
     %{
       user_id: socket.assigns.current_scope.user_id,
       conversation_id: conversation.id,
-      model: @model,
       agent_id: Map.get(socket.assigns.selected_agent || %{}, :id),
       lesson_template_id: Map.get(socket.assigns.selected_lesson_template || %{}, :id),
       strand_id: Map.get(socket.assigns, :strand_id),

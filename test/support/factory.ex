@@ -21,6 +21,7 @@ defmodule Lanttern.Factory do
   use Lanttern.MomentFactory
   use Lanttern.NoteFactory
   use Lanttern.ProfileFactory
+  use Lanttern.AiConfigFactory
   use Lanttern.SchoolFactory
   use Lanttern.SectionFactory
   use Lanttern.StaffMemberFactory

@@ -22,6 +22,7 @@ defmodule Lanttern.AgentChat do
   alias Lanttern.LearningContext
   alias Lanttern.Lessons
   alias Lanttern.LessonTemplates
+  alias Lanttern.SchoolConfig
 
   @doc """
   Subscribes to scoped notifications about chain responses in conversations.
@@ -390,8 +391,10 @@ defmodule Lanttern.AgentChat do
 
     # we're not using the recursive pattern for opts here
     # because in this use we want to control messages ordering (prompt caching)
+    # School messages come first to establish baseline that agents build upon
     system_messages =
-      add_agent_system_messages(
+      add_school_system_messages(scope)
+      |> add_agent_system_messages(
         scope,
         Keyword.get(opts, :agent_id)
       )
@@ -435,7 +438,43 @@ defmodule Lanttern.AgentChat do
     |> LLMChain.run(mode: :while_needs_response)
   end
 
-  defp add_agent_system_messages(system_messages \\ [], scope, agent_id)
+  defp add_school_system_messages(scope) do
+    case SchoolConfig.get_ai_config(scope) do
+      nil ->
+        []
+
+      school_ai_config ->
+        messages = []
+
+        messages =
+          if is_binary(school_ai_config.knowledge) and school_ai_config.knowledge != "" do
+            messages ++
+              [
+                LangChain.Message.new_system!(
+                  "<school_knowledge>#{school_ai_config.knowledge}</school_knowledge>"
+                )
+              ]
+          else
+            messages
+          end
+
+        messages =
+          if is_binary(school_ai_config.guardrails) and school_ai_config.guardrails != "" do
+            messages ++
+              [
+                LangChain.Message.new_system!(
+                  "<school_guardrails>#{school_ai_config.guardrails}</school_guardrails>"
+                )
+              ]
+          else
+            messages
+          end
+
+        messages
+    end
+  end
+
+  defp add_agent_system_messages(system_messages, scope, agent_id)
 
   defp add_agent_system_messages(system_messages, scope, agent_id) when is_integer(agent_id) do
     agent = Agents.get_agent!(scope, agent_id)
@@ -516,20 +555,22 @@ defmodule Lanttern.AgentChat do
 
         Years: #{years}
 
-        Curriculum:
+        <curriculum>
         #{curriculum_items}
+        </curriculum>
 
-        ## Strand overview
-
+        <overview>
         #{strand.description}
+        </overview>
 
-        ### Teacher instructions
-
+        <teacher_instructions>
         #{strand.teacher_instructions || "Not available"}
+        </teacher_instructions>
 
-        ## Strand moments
-
+        <moments>
         #{moments}
+        </moments>
+
         </strand_context>
         """),
         LangChain.Message.new_system!("""
@@ -569,17 +610,18 @@ defmodule Lanttern.AgentChat do
 
         Lesson in moment "#{lesson.moment.name}"
 
-        ## Lesson overview
-
+        <overview>
         #{lesson.description}
+        </overview>
 
-        ### Teacher notes
-
+        <teacher_notes>
         #{lesson.teacher_notes || "Not available"}
+        </teacher_notes>
 
-        ### Differentiation notes
-
+        <differentiation_notes>
         #{lesson.differentiation_notes || "Not available"}
+        </differentiation_notes>
+
         </lesson_context>
         """)
       ]

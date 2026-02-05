@@ -1,0 +1,54 @@
+<Layouts.app_settings flash={@flash} current_user={@current_user} current_path={@current_path}>
+  <p class="flex items-center gap-2 mb-10">
+    <.icon name="hero-information-circle-mini" class="text-ltrn-subtle" />
+    {gettext(
+      "Configure school-wide AI settings. These settings apply to all AI agents in your school."
+    )}
+  </p>
+  <%!-- <.card_base class="p-6"> --%>
+  <div class="space-y-8">
+    <%!-- Base Model field --%>
+    <.field_section
+      field={:base_model}
+      field_name={gettext("Default LLM model")}
+      field_description={
+        gettext(
+          "The LLM model used by AI agents when no specific model is requested. Examples: gpt-5-mini, gpt-5-nano"
+        )
+      }
+      ai_config={@ai_config}
+      is_editing={@is_editing_base_model}
+      form={@base_model_form}
+      input_type="text"
+    />
+
+    <%!-- Knowledge field --%>
+    <.field_section
+      field={:knowledge}
+      field_name={gettext("School knowledge")}
+      field_description={
+        gettext(
+          "School-wide knowledge shared with all AI agents. Include information about your school's philosophy, curriculum approach, and other context."
+        )
+      }
+      ai_config={@ai_config}
+      is_editing={@is_editing_knowledge}
+      form={@knowledge_form}
+      input_type="markdown"
+    />
+
+    <%!-- Guardrails field --%>
+    <.field_section
+      field={:guardrails}
+      field_name={gettext("School guardrails")}
+      field_description={
+        gettext("Safety constraints and guidelines for all AI interactions at your school.")
+      }
+      ai_config={@ai_config}
+      is_editing={@is_editing_guardrails}
+      form={@guardrails_form}
+      input_type="markdown"
+    />
+  </div>
+  <%!-- </.card_base> --%>
+</Layouts.app_settings>

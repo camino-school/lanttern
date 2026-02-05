@@ -18,9 +18,9 @@ defmodule Lanttern.ChatResponseWorker do
   Required:
   - `user_id` - The user initiating the chat
   - `conversation_id` - The conversation to continue
-  - `model` - The LLM model identifier (e.g., "gpt-4o")
 
   Optional:
+  - `model` - Override the LLM model (falls back to school config, then application config)
   - `agent_id` - Specific agent configuration to use
   - `lesson_template_id` - Lesson template for lesson-specific chats
   - `strand_id` - Strand context for chats
@@ -36,21 +36,25 @@ defmodule Lanttern.ChatResponseWorker do
   alias Lanttern.AgentChat
   alias Lanttern.Identity
   alias Lanttern.Identity.Scope
+  alias Lanttern.SchoolConfig
+  alias Lanttern.SchoolConfig.AiConfig
 
   @impl Oban.Worker
   def perform(%Oban.Job{args: args}) do
     %{
       "user_id" => user_id,
-      "conversation_id" => conversation_id,
-      "model" => model
+      "conversation_id" => conversation_id
     } = args
 
-    llm = ChatOpenAI.new!(%{model: model, stream: false})
     opts = build_opts(Map.to_list(args))
 
     scope =
       Identity.get_user!(user_id, preload_current_profile: true)
       |> Scope.for_user()
+
+    model = resolve_model(args, scope)
+
+    llm = ChatOpenAI.new!(%{model: model, stream: false})
 
     conversation = AgentChat.get_conversation(scope, conversation_id)
     messages = AgentChat.list_conversation_messages(scope, conversation)
@@ -108,6 +112,19 @@ defmodule Lanttern.ChatResponseWorker do
   end
 
   defp build_opts(opts, [_ | args]), do: build_opts(opts, args)
+
+  defp resolve_model(args, scope) do
+    case {args, SchoolConfig.get_ai_config(scope)} do
+      {%{"model" => model}, _} when is_binary(model) and model != "" ->
+        model
+
+      {_, %AiConfig{base_model: model}} when is_binary(model) and model != "" ->
+        model
+
+      _ ->
+        Application.get_env(:lanttern, :default_llm_model, "gpt-5-nano")
+    end
+  end
 
   defp extract_content_and_usage_attrs_from_chain(chain, model) do
     # Get the last message content (assistant response)
