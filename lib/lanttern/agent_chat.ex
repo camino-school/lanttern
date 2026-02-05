@@ -444,33 +444,14 @@ defmodule Lanttern.AgentChat do
         []
 
       school_ai_config ->
-        messages = []
-
-        messages =
-          if is_binary(school_ai_config.knowledge) and school_ai_config.knowledge != "" do
-            messages ++
-              [
-                LangChain.Message.new_system!(
-                  "<school_knowledge>#{school_ai_config.knowledge}</school_knowledge>"
-                )
-              ]
-          else
-            messages
-          end
-
-        messages =
-          if is_binary(school_ai_config.guardrails) and school_ai_config.guardrails != "" do
-            messages ++
-              [
-                LangChain.Message.new_system!(
-                  "<school_guardrails>#{school_ai_config.guardrails}</school_guardrails>"
-                )
-              ]
-          else
-            messages
-          end
-
-        messages
+        [
+          {"school_knowledge", school_ai_config.knowledge},
+          {"school_guardrails", school_ai_config.guardrails}
+        ]
+        |> Enum.filter(fn {_, value} -> is_binary(value) and value != "" end)
+        |> Enum.map(fn {tag, value} ->
+          LangChain.Message.new_system!("<#{tag}>#{value}</#{tag}>")
+        end)
     end
   end
 
@@ -479,17 +460,19 @@ defmodule Lanttern.AgentChat do
   defp add_agent_system_messages(system_messages, scope, agent_id) when is_integer(agent_id) do
     agent = Agents.get_agent!(scope, agent_id)
 
-    system_messages ++
+    agent_messages =
       [
-        LangChain.Message.new_system!(
-          "<agent_personality>#{agent.personality}</agent_personality>"
-        ),
-        LangChain.Message.new_system!(
-          "<agent_instructions>#{agent.instructions}</agent_instructions>"
-        ),
-        LangChain.Message.new_system!("<agent_knowledge>#{agent.knowledge}</agent_knowledge>"),
-        LangChain.Message.new_system!("<agent_guardrails>#{agent.guardrails}</agent_guardrails>")
+        {"agent_personality", agent.personality},
+        {"agent_instructions", agent.instructions},
+        {"agent_knowledge", agent.knowledge},
+        {"agent_guardrails", agent.guardrails}
       ]
+      |> Enum.filter(fn {_, value} -> is_binary(value) and value != "" end)
+      |> Enum.map(fn {tag, value} ->
+        LangChain.Message.new_system!("<#{tag}>#{value}</#{tag}>")
+      end)
+
+    system_messages ++ agent_messages
   end
 
   defp add_agent_system_messages(system_messages, _scope, _agent_id), do: system_messages
