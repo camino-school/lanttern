@@ -119,7 +119,8 @@ defmodule LantternWeb.SchoolAiConfigLive do
   end
 
   defp assign_field_forms(socket) do
-    changeset = SchoolConfig.change_ai_config(socket.assigns.ai_config)
+    changeset =
+      SchoolConfig.change_ai_config(socket.assigns.current_scope, socket.assigns.ai_config)
 
     socket
     |> assign(:base_model_form, to_form(changeset))
@@ -176,7 +177,11 @@ defmodule LantternWeb.SchoolAiConfigLive do
     field_params = Map.take(params, [Atom.to_string(field)])
 
     changeset =
-      SchoolConfig.change_ai_config(socket.assigns.ai_config, field_params)
+      SchoolConfig.change_ai_config(
+        socket.assigns.current_scope,
+        socket.assigns.ai_config,
+        field_params
+      )
       |> Map.put(:action, :validate)
 
     {:noreply, assign(socket, :"#{field}_form", to_form(changeset))}
@@ -195,9 +200,6 @@ defmodule LantternWeb.SchoolAiConfigLive do
           |> put_flash(:info, gettext("School AI config updated"))
 
         {:noreply, socket}
-
-      {:error, :unauthorized} ->
-        {:noreply, put_flash(socket, :error, gettext("You are not authorized to do this"))}
 
       {:error, changeset} ->
         {:noreply, assign(socket, :"#{field}_form", to_form(changeset))}

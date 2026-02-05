@@ -9,6 +9,7 @@ defmodule Lanttern.SchoolConfig.AiConfig do
   use Ecto.Schema
   import Ecto.Changeset
 
+  alias Lanttern.Identity.Scope
   alias Lanttern.Schools.School
 
   @type t :: %__MODULE__{
@@ -33,10 +34,10 @@ defmodule Lanttern.SchoolConfig.AiConfig do
   end
 
   @doc false
-  def changeset(ai_config, attrs) do
+  def changeset(ai_config, attrs, %Scope{} = scope) do
     ai_config
-    |> cast(attrs, [:base_model, :knowledge, :guardrails, :school_id])
-    |> validate_required([:school_id])
+    |> cast(attrs, [:base_model, :knowledge, :guardrails])
+    |> put_change(:school_id, scope.school_id)
     |> unique_constraint(:school_id)
   end
 end
