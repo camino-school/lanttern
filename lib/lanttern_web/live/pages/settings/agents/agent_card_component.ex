@@ -98,7 +98,7 @@ defmodule LantternWeb.AgentsSettingsLive.AgentCardComponent do
   defp field_section(assigns) do
     ~H"""
     <div>
-      <h4 class="font-display font-bold text-lg mb-2">{@field_name}</h4>
+      <h6 class="font-display font-bold text-lg mb-2">{@field_name}</h6>
       <%= if @is_editing do %>
         <.form
           for={@form}

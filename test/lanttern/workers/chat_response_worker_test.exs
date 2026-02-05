@@ -472,6 +472,286 @@ defmodule Lanttern.ChatResponseWorkerTest do
     end
   end
 
+  describe "model resolution" do
+    setup do
+      Mimic.copy(LangChain.Chains.LLMChain)
+
+      school = SchoolsFixtures.school_fixture()
+      staff_member = SchoolsFixtures.staff_member_fixture(%{school_id: school.id})
+      user = IdentityFixtures.user_fixture()
+
+      profile =
+        IdentityFixtures.staff_member_profile_fixture(%{
+          user_id: user.id,
+          staff_member_id: staff_member.id
+        })
+
+      user
+      |> User.current_profile_id_changeset(%{current_profile_id: profile.id})
+      |> Repo.update!()
+
+      conversation =
+        insert(:conversation, %{
+          profile: profile,
+          school: school,
+          name: "Test Conversation"
+        })
+
+      insert(:agent_message, %{
+        conversation: conversation,
+        role: "user",
+        content: "Test message"
+      })
+
+      %{
+        user: user,
+        profile: profile,
+        school: school,
+        conversation: conversation
+      }
+    end
+
+    test "uses model from args when provided", %{
+      user: user,
+      conversation: conversation
+    } do
+      Mimic.expect(LangChain.Chains.LLMChain, :run, fn chain, _opts ->
+        # Verify the model used is from args
+        assert chain.llm.model == "gpt-5-turbo"
+
+        assistant_message =
+          LangChain.Message.new_assistant!(%{
+            content: "Response",
+            metadata: %{usage: %{input: 10, output: 20}}
+          })
+
+        {:ok,
+         %{
+           chain
+           | last_message: assistant_message,
+             messages: chain.messages ++ [assistant_message],
+             exchanged_messages: [assistant_message]
+         }}
+      end)
+
+      args = %{
+        "user_id" => user.id,
+        "conversation_id" => conversation.id,
+        "model" => "gpt-5-turbo"
+      }
+
+      assert :ok = perform_job(ChatResponseWorker, args)
+
+      # Verify the model was recorded correctly
+      messages = Repo.all(from m in Message, where: m.conversation_id == ^conversation.id)
+      assistant_message = Enum.find(messages, &(&1.role == "assistant"))
+      model_call = Repo.get_by(ModelCall, message_id: assistant_message.id)
+      assert model_call.model == "gpt-5-turbo"
+    end
+
+    test "uses school ai_config base_model when model not in args", %{
+      user: user,
+      school: school,
+      conversation: conversation
+    } do
+      # Create ai_config with base_model for the school
+      insert(:ai_config, school: school, base_model: "school-preferred-model")
+
+      Mimic.expect(LangChain.Chains.LLMChain, :run, fn chain, _opts ->
+        # Verify the model used is from school ai_config
+        assert chain.llm.model == "school-preferred-model"
+
+        assistant_message =
+          LangChain.Message.new_assistant!(%{
+            content: "Response",
+            metadata: %{usage: %{input: 10, output: 20}}
+          })
+
+        {:ok,
+         %{
+           chain
+           | last_message: assistant_message,
+             messages: chain.messages ++ [assistant_message],
+             exchanged_messages: [assistant_message]
+         }}
+      end)
+
+      # No model in args
+      args = %{
+        "user_id" => user.id,
+        "conversation_id" => conversation.id
+      }
+
+      assert :ok = perform_job(ChatResponseWorker, args)
+
+      # Verify the school model was recorded
+      messages = Repo.all(from m in Message, where: m.conversation_id == ^conversation.id)
+      assistant_message = Enum.find(messages, &(&1.role == "assistant"))
+      model_call = Repo.get_by(ModelCall, message_id: assistant_message.id)
+      assert model_call.model == "school-preferred-model"
+    end
+
+    test "uses app config default when no model in args and no school ai_config", %{
+      user: user,
+      conversation: conversation
+    } do
+      # No ai_config for the school, no model in args
+      # Should fall back to app config default (gpt-5-nano)
+
+      Mimic.expect(LangChain.Chains.LLMChain, :run, fn chain, _opts ->
+        # Verify the model used is the default
+        assert chain.llm.model == "gpt-5-nano"
+
+        assistant_message =
+          LangChain.Message.new_assistant!(%{
+            content: "Response",
+            metadata: %{usage: %{input: 10, output: 20}}
+          })
+
+        {:ok,
+         %{
+           chain
+           | last_message: assistant_message,
+             messages: chain.messages ++ [assistant_message],
+             exchanged_messages: [assistant_message]
+         }}
+      end)
+
+      args = %{
+        "user_id" => user.id,
+        "conversation_id" => conversation.id
+      }
+
+      assert :ok = perform_job(ChatResponseWorker, args)
+
+      # Verify the default model was recorded
+      messages = Repo.all(from m in Message, where: m.conversation_id == ^conversation.id)
+      assistant_message = Enum.find(messages, &(&1.role == "assistant"))
+      model_call = Repo.get_by(ModelCall, message_id: assistant_message.id)
+      assert model_call.model == "gpt-5-nano"
+    end
+
+    test "model in args takes precedence over school ai_config", %{
+      user: user,
+      school: school,
+      conversation: conversation
+    } do
+      # Create ai_config with base_model for the school
+      insert(:ai_config, school: school, base_model: "school-model")
+
+      Mimic.expect(LangChain.Chains.LLMChain, :run, fn chain, _opts ->
+        # Should use the model from args, not from school config
+        assert chain.llm.model == "args-model"
+
+        assistant_message =
+          LangChain.Message.new_assistant!(%{
+            content: "Response",
+            metadata: %{usage: %{input: 10, output: 20}}
+          })
+
+        {:ok,
+         %{
+           chain
+           | last_message: assistant_message,
+             messages: chain.messages ++ [assistant_message],
+             exchanged_messages: [assistant_message]
+         }}
+      end)
+
+      args = %{
+        "user_id" => user.id,
+        "conversation_id" => conversation.id,
+        "model" => "args-model"
+      }
+
+      assert :ok = perform_job(ChatResponseWorker, args)
+
+      messages = Repo.all(from m in Message, where: m.conversation_id == ^conversation.id)
+      assistant_message = Enum.find(messages, &(&1.role == "assistant"))
+      model_call = Repo.get_by(ModelCall, message_id: assistant_message.id)
+      assert model_call.model == "args-model"
+    end
+
+    test "ignores empty string model in args and falls back to school config", %{
+      user: user,
+      school: school,
+      conversation: conversation
+    } do
+      insert(:ai_config, school: school, base_model: "school-fallback-model")
+
+      Mimic.expect(LangChain.Chains.LLMChain, :run, fn chain, _opts ->
+        # Empty string model should be ignored, use school config
+        assert chain.llm.model == "school-fallback-model"
+
+        assistant_message =
+          LangChain.Message.new_assistant!(%{
+            content: "Response",
+            metadata: %{usage: %{input: 10, output: 20}}
+          })
+
+        {:ok,
+         %{
+           chain
+           | last_message: assistant_message,
+             messages: chain.messages ++ [assistant_message],
+             exchanged_messages: [assistant_message]
+         }}
+      end)
+
+      args = %{
+        "user_id" => user.id,
+        "conversation_id" => conversation.id,
+        "model" => ""
+      }
+
+      assert :ok = perform_job(ChatResponseWorker, args)
+
+      messages = Repo.all(from m in Message, where: m.conversation_id == ^conversation.id)
+      assistant_message = Enum.find(messages, &(&1.role == "assistant"))
+      model_call = Repo.get_by(ModelCall, message_id: assistant_message.id)
+      assert model_call.model == "school-fallback-model"
+    end
+
+    test "ignores empty string base_model in ai_config and falls back to app default", %{
+      user: user,
+      school: school,
+      conversation: conversation
+    } do
+      insert(:ai_config, school: school, base_model: "")
+
+      Mimic.expect(LangChain.Chains.LLMChain, :run, fn chain, _opts ->
+        # Empty base_model should be ignored, use app default
+        assert chain.llm.model == "gpt-5-nano"
+
+        assistant_message =
+          LangChain.Message.new_assistant!(%{
+            content: "Response",
+            metadata: %{usage: %{input: 10, output: 20}}
+          })
+
+        {:ok,
+         %{
+           chain
+           | last_message: assistant_message,
+             messages: chain.messages ++ [assistant_message],
+             exchanged_messages: [assistant_message]
+         }}
+      end)
+
+      args = %{
+        "user_id" => user.id,
+        "conversation_id" => conversation.id
+      }
+
+      assert :ok = perform_job(ChatResponseWorker, args)
+
+      messages = Repo.all(from m in Message, where: m.conversation_id == ^conversation.id)
+      assistant_message = Enum.find(messages, &(&1.role == "assistant"))
+      model_call = Repo.get_by(ModelCall, message_id: assistant_message.id)
+      assert model_call.model == "gpt-5-nano"
+    end
+  end
+
   describe "integration with Oban" do
     setup do
       school = SchoolsFixtures.school_fixture()

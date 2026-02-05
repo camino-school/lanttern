@@ -22,6 +22,7 @@ defmodule Lanttern.AgentChat do
   alias Lanttern.LearningContext
   alias Lanttern.Lessons
   alias Lanttern.LessonTemplates
+  alias Lanttern.SchoolConfig
 
   @doc """
   Subscribes to scoped notifications about chain responses in conversations.
@@ -390,8 +391,10 @@ defmodule Lanttern.AgentChat do
 
     # we're not using the recursive pattern for opts here
     # because in this use we want to control messages ordering (prompt caching)
+    # School messages come first to establish baseline that agents build upon
     system_messages =
-      add_agent_system_messages(
+      add_school_system_messages(scope)
+      |> add_agent_system_messages(
         scope,
         Keyword.get(opts, :agent_id)
       )
@@ -435,22 +438,41 @@ defmodule Lanttern.AgentChat do
     |> LLMChain.run(mode: :while_needs_response)
   end
 
-  defp add_agent_system_messages(system_messages \\ [], scope, agent_id)
+  defp add_school_system_messages(scope) do
+    case SchoolConfig.get_ai_config(scope) do
+      nil ->
+        []
+
+      school_ai_config ->
+        [
+          {"school_knowledge", school_ai_config.knowledge},
+          {"school_guardrails", school_ai_config.guardrails}
+        ]
+        |> Enum.filter(fn {_, value} -> is_binary(value) and value != "" end)
+        |> Enum.map(fn {tag, value} ->
+          LangChain.Message.new_system!("<#{tag}>#{value}</#{tag}>")
+        end)
+    end
+  end
+
+  defp add_agent_system_messages(system_messages, scope, agent_id)
 
   defp add_agent_system_messages(system_messages, scope, agent_id) when is_integer(agent_id) do
     agent = Agents.get_agent!(scope, agent_id)
 
-    system_messages ++
+    agent_messages =
       [
-        LangChain.Message.new_system!(
-          "<agent_personality>#{agent.personality}</agent_personality>"
-        ),
-        LangChain.Message.new_system!(
-          "<agent_instructions>#{agent.instructions}</agent_instructions>"
-        ),
-        LangChain.Message.new_system!("<agent_knowledge>#{agent.knowledge}</agent_knowledge>"),
-        LangChain.Message.new_system!("<agent_guardrails>#{agent.guardrails}</agent_guardrails>")
+        {"agent_personality", agent.personality},
+        {"agent_instructions", agent.instructions},
+        {"agent_knowledge", agent.knowledge},
+        {"agent_guardrails", agent.guardrails}
       ]
+      |> Enum.filter(fn {_, value} -> is_binary(value) and value != "" end)
+      |> Enum.map(fn {tag, value} ->
+        LangChain.Message.new_system!("<#{tag}>#{value}</#{tag}>")
+      end)
+
+    system_messages ++ agent_messages
   end
 
   defp add_agent_system_messages(system_messages, _scope, _agent_id), do: system_messages
@@ -516,20 +538,22 @@ defmodule Lanttern.AgentChat do
 
         Years: #{years}
 
-        Curriculum:
+        <curriculum>
         #{curriculum_items}
+        </curriculum>
 
-        ## Strand overview
-
+        <overview>
         #{strand.description}
+        </overview>
 
-        ### Teacher instructions
-
+        <teacher_instructions>
         #{strand.teacher_instructions || "Not available"}
+        </teacher_instructions>
 
-        ## Strand moments
-
+        <moments>
         #{moments}
+        </moments>
+
         </strand_context>
         """),
         LangChain.Message.new_system!("""
@@ -569,17 +593,18 @@ defmodule Lanttern.AgentChat do
 
         Lesson in moment "#{lesson.moment.name}"
 
-        ## Lesson overview
-
+        <overview>
         #{lesson.description}
+        </overview>
 
-        ### Teacher notes
-
+        <teacher_notes>
         #{lesson.teacher_notes || "Not available"}
+        </teacher_notes>
 
-        ### Differentiation notes
-
+        <differentiation_notes>
         #{lesson.differentiation_notes || "Not available"}
+        </differentiation_notes>
+
         </lesson_context>
         """)
       ]

@@ -278,6 +278,108 @@ defmodule LantternWeb.NavigationComponents do
   end
 
   @doc """
+  Renders a settings side navigation with grouped links.
+
+  ## Examples
+
+      <.settings_side_nav current_path={@current_path}>
+        <:group title="AI Settings">
+          <:link navigate={~p"/settings/agents"}>AI Agents</:link>
+        </:group>
+        <:group title="Content Settings">
+          <:link navigate={~p"/settings/lesson_templates"}>Lesson Templates</:link>
+        </:group>
+      </.settings_side_nav>
+
+  """
+  attr :current_path, :string, required: true
+  attr :class, :any, default: nil
+
+  slot :group, required: true do
+    attr :title, :string, required: true
+    attr :icon_name, :string
+  end
+
+  slot :link do
+    attr :navigate, :string, required: true
+    attr :icon_name, :string
+  end
+
+  def settings_side_nav(assigns) do
+    ~H"""
+    <nav class={[
+      "w-64 shrink-0 py-10 overflow-y-auto bg-white ltrn-bg-side",
+      @class
+    ]}>
+      <button
+        type="button"
+        class="flex gap-2.5 items-center ml-2.5 mb-10 hover:text-ltrn-subtle"
+        phx-click={JS.exec("data-show", to: "#menu")}
+        aria-label="open menu"
+      >
+        <.icon name="hero-bars-3-mini" class="w-5 h-5" />
+        <p class="font-display font-bold">
+          {gettext("Settings")}
+        </p>
+      </button>
+      <div :for={group <- @group} class="mb-10">
+        <h5 class="flex items-center gap-2 px-10 font-sans text-sm text-ltrn-subtle">
+          <.icon :if={Map.get(group, :icon_name)} name={group.icon_name} class="w-4 h-4" />
+          {group.title}
+        </h5>
+        <ul class="space-y-2 mt-4">
+          {render_slot(group, @current_path)}
+        </ul>
+      </div>
+    </nav>
+    """
+  end
+
+  @doc """
+  Renders a settings side navigation link item.
+
+  This component is used inside a `settings_side_nav` group.
+
+  ## Examples
+
+      <.settings_nav_link navigate={~p"/settings/agents"} current_path={@current_path}>
+        AI Agents
+      </.settings_nav_link>
+
+  """
+  attr :navigate, :string, required: true
+  attr :current_path, :string, required: true
+  attr :icon_name, :string, default: nil
+
+  slot :inner_block, required: true
+
+  def settings_nav_link(assigns) do
+    is_current = String.starts_with?(assigns.current_path, assigns.navigate)
+    assigns = assign(assigns, :is_current, is_current)
+
+    ~H"""
+    <li class={[
+      "flex items-center gap-8"
+    ]}>
+      <div class={["w-2 self-stretch", if(@is_current, do: "bg-ltrn-darkest")]} />
+      <.link
+        navigate={@navigate}
+        class={[
+          "flex items-center gap-2",
+          if(@is_current,
+            do: "text-ltrn-darkest font-bold",
+            else: "text-ltrn-subtle hover:text-ltrn-darkest"
+          )
+        ]}
+      >
+        <.icon :if={@icon_name} name={@icon_name} class="w-5 h-5" />
+        {render_slot(@inner_block)}
+      </.link>
+    </li>
+    """
+  end
+
+  @doc """
   Renders a expand/collapse button
   """
 

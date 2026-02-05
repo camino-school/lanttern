@@ -40,6 +40,50 @@ defmodule LantternWeb.Layouts do
   end
 
   @doc """
+  Renders the layout for settings area.
+  """
+  attr :flash, :map, required: true, doc: "the map of flash messages"
+  attr :current_user, :map, required: true
+  # todo: migrate current_user to current_scope
+  # attr :current_scope, :map,
+  #   default: nil,
+  #   doc: "the current [scope](https://hexdocs.pm/phoenix/scopes.html)"
+  attr :current_path, :string, required: true
+  slot :inner_block, required: true
+
+  def app_settings(assigns) do
+    ~H"""
+    <div class="flex items-stretch min-h-screen max-h-screen">
+      <.settings_side_nav current_path={@current_path}>
+        <:group title={gettext("AI Settings")}>
+          <.settings_nav_link navigate={~p"/settings/school_ai_config"} current_path={@current_path}>
+            {gettext("School AI Config")}
+          </.settings_nav_link>
+          <.settings_nav_link navigate={~p"/settings/agents"} current_path={@current_path}>
+            {gettext("AI Agents")}
+          </.settings_nav_link>
+        </:group>
+        <:group title={gettext("Content Settings")}>
+          <.settings_nav_link navigate={~p"/settings/lesson_templates"} current_path={@current_path}>
+            {gettext("Lesson Templates")}
+          </.settings_nav_link>
+        </:group>
+      </.settings_side_nav>
+      <main class="flex-1 min-w-0 p-10 overflow-y-auto ltrn-bg-main-local">
+        {render_slot(@inner_block)}
+      </main>
+    </div>
+    <.live_component
+      module={LantternWeb.MenuComponent}
+      id="menu"
+      current_user={@current_user}
+      current_path={@current_path}
+    />
+    <.flash_group flash={@flash} />
+    """
+  end
+
+  @doc """
   Renders the layout for root admins.
   """
   attr :flash, :map, required: true, doc: "the map of flash messages"

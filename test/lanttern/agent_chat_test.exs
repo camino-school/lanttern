@@ -1219,5 +1219,219 @@ defmodule Lanttern.AgentChatTest do
       assert {:error, %LangChain.Chains.LLMChain{}, %LangChain.LangChainError{}} =
                AgentChat.run_llm_chain(scope, messages, llm)
     end
+
+    test "adds school system messages when ai_config exists with knowledge", %{
+      messages: messages,
+      llm: llm
+    } do
+      scope = IdentityFixtures.scope_fixture()
+      school = Lanttern.Schools.get_school!(scope.school_id)
+
+      insert(:ai_config,
+        school: school,
+        knowledge: "Our school uses project-based learning",
+        guardrails: nil
+      )
+
+      Mimic.expect(LangChain.Chains.LLMChain, :run, fn chain, _opts ->
+        system_messages = Enum.filter(chain.messages, &(&1.role == :system))
+
+        # Should have school knowledge message
+        knowledge_message =
+          Enum.find(system_messages, fn msg ->
+            content = LangChain.Message.ContentPart.content_to_string(msg.content)
+            content =~ "<school_knowledge>"
+          end)
+
+        assert knowledge_message != nil
+
+        content = LangChain.Message.ContentPart.content_to_string(knowledge_message.content)
+        assert content =~ "Our school uses project-based learning"
+
+        # Should NOT have guardrails message (it's nil)
+        guardrails_message =
+          Enum.find(system_messages, fn msg ->
+            content = LangChain.Message.ContentPart.content_to_string(msg.content)
+            content =~ "<school_guardrails>"
+          end)
+
+        assert guardrails_message == nil
+
+        response_chain =
+          LangChain.Chains.LLMChain.add_message(
+            chain,
+            LangChain.Message.new_assistant!("Response")
+          )
+
+        {:ok, response_chain}
+      end)
+
+      assert {:ok, %LangChain.Chains.LLMChain{}} =
+               AgentChat.run_llm_chain(scope, messages, llm)
+    end
+
+    test "adds school system messages when ai_config exists with guardrails", %{
+      messages: messages,
+      llm: llm
+    } do
+      scope = IdentityFixtures.scope_fixture()
+      school = Lanttern.Schools.get_school!(scope.school_id)
+
+      insert(:ai_config,
+        school: school,
+        knowledge: nil,
+        guardrails: "Always be respectful and supportive"
+      )
+
+      Mimic.expect(LangChain.Chains.LLMChain, :run, fn chain, _opts ->
+        system_messages = Enum.filter(chain.messages, &(&1.role == :system))
+
+        # Should NOT have knowledge message (it's nil)
+        knowledge_message =
+          Enum.find(system_messages, fn msg ->
+            content = LangChain.Message.ContentPart.content_to_string(msg.content)
+            content =~ "<school_knowledge>"
+          end)
+
+        assert knowledge_message == nil
+
+        # Should have guardrails message
+        guardrails_message =
+          Enum.find(system_messages, fn msg ->
+            content = LangChain.Message.ContentPart.content_to_string(msg.content)
+            content =~ "<school_guardrails>"
+          end)
+
+        assert guardrails_message != nil
+
+        content = LangChain.Message.ContentPart.content_to_string(guardrails_message.content)
+        assert content =~ "Always be respectful and supportive"
+
+        response_chain =
+          LangChain.Chains.LLMChain.add_message(
+            chain,
+            LangChain.Message.new_assistant!("Response")
+          )
+
+        {:ok, response_chain}
+      end)
+
+      assert {:ok, %LangChain.Chains.LLMChain{}} =
+               AgentChat.run_llm_chain(scope, messages, llm)
+    end
+
+    test "adds both school knowledge and guardrails when ai_config has both", %{
+      messages: messages,
+      llm: llm
+    } do
+      scope = IdentityFixtures.scope_fixture()
+      school = Lanttern.Schools.get_school!(scope.school_id)
+
+      insert(:ai_config,
+        school: school,
+        knowledge: "School knowledge content",
+        guardrails: "School guardrails content"
+      )
+
+      Mimic.expect(LangChain.Chains.LLMChain, :run, fn chain, _opts ->
+        system_messages = Enum.filter(chain.messages, &(&1.role == :system))
+
+        has_knowledge =
+          Enum.any?(system_messages, fn msg ->
+            content = LangChain.Message.ContentPart.content_to_string(msg.content)
+            content =~ "<school_knowledge>" and content =~ "School knowledge content"
+          end)
+
+        has_guardrails =
+          Enum.any?(system_messages, fn msg ->
+            content = LangChain.Message.ContentPart.content_to_string(msg.content)
+            content =~ "<school_guardrails>" and content =~ "School guardrails content"
+          end)
+
+        assert has_knowledge
+        assert has_guardrails
+
+        response_chain =
+          LangChain.Chains.LLMChain.add_message(
+            chain,
+            LangChain.Message.new_assistant!("Response")
+          )
+
+        {:ok, response_chain}
+      end)
+
+      assert {:ok, %LangChain.Chains.LLMChain{}} =
+               AgentChat.run_llm_chain(scope, messages, llm)
+    end
+
+    test "does not add school system messages when ai_config does not exist", %{
+      messages: messages,
+      llm: llm
+    } do
+      scope = IdentityFixtures.scope_fixture()
+      # No ai_config inserted for this school
+
+      Mimic.expect(LangChain.Chains.LLMChain, :run, fn chain, _opts ->
+        system_messages = Enum.filter(chain.messages, &(&1.role == :system))
+
+        # Should have no school-related system messages
+        school_messages =
+          Enum.filter(system_messages, fn msg ->
+            content = LangChain.Message.ContentPart.content_to_string(msg.content)
+            content =~ "<school_knowledge>" or content =~ "<school_guardrails>"
+          end)
+
+        assert school_messages == []
+
+        response_chain =
+          LangChain.Chains.LLMChain.add_message(
+            chain,
+            LangChain.Message.new_assistant!("Response")
+          )
+
+        {:ok, response_chain}
+      end)
+
+      assert {:ok, %LangChain.Chains.LLMChain{}} =
+               AgentChat.run_llm_chain(scope, messages, llm)
+    end
+
+    test "ignores empty string knowledge and guardrails in ai_config", %{
+      messages: messages,
+      llm: llm
+    } do
+      scope = IdentityFixtures.scope_fixture()
+      school = Lanttern.Schools.get_school!(scope.school_id)
+
+      insert(:ai_config,
+        school: school,
+        knowledge: "",
+        guardrails: ""
+      )
+
+      Mimic.expect(LangChain.Chains.LLMChain, :run, fn chain, _opts ->
+        system_messages = Enum.filter(chain.messages, &(&1.role == :system))
+
+        # Should have no school-related system messages (empty strings are ignored)
+        school_messages =
+          Enum.filter(system_messages, fn msg ->
+            content = LangChain.Message.ContentPart.content_to_string(msg.content)
+            content =~ "<school_knowledge>" or content =~ "<school_guardrails>"
+          end)
+
+        assert school_messages == []
+
+        response_chain =
+          LangChain.Chains.LLMChain.add_message(
+            chain,
+            LangChain.Message.new_assistant!("Response")
+          )
+
+        {:ok, response_chain}
+      end)
+
+      assert {:ok, %LangChain.Chains.LLMChain{}} =
+               AgentChat.run_llm_chain(scope, messages, llm)
+    end
   end
 end

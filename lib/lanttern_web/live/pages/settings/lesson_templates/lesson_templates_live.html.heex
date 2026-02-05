@@ -1,66 +1,56 @@
-<Layouts.app_logged_in flash={@flash} current_user={@current_user} current_path={@current_path}>
-  <.header_nav current_user={@current_user}>
-    <:breadcrumb navigate={~p"/dashboard"}>
-      {gettext("Dashboard")}
-    </:breadcrumb>
-    <:title>{gettext("Lesson Templates")}</:title>
-  </.header_nav>
-  <div class="p-4">
-    <.responsive_container>
-      <div class="flex items-center justify-between gap-4 p-4">
-        <p class="flex items-center gap-2">
-          <.icon name="hero-information-circle-mini" class="text-ltrn-subtle" />
-          {gettext("Manage lesson templates below")}
-        </p>
-        <.button
-          type="button"
-          phx-click="new_lesson_template"
-          icon_name="hero-plus-mini"
-          theme="primary"
-        >
-          {gettext("New template")}
-        </.button>
-      </div>
-      <%= if @has_lesson_templates do %>
-        <div class="p-4" id="lesson-templates-list" phx-update="stream">
-          <.live_component
-            :for={{dom_id, lesson_template} <- @streams.lesson_templates}
-            module={LessonTemplateCardComponent}
-            id={dom_id}
-            lesson_template={lesson_template}
-            selected_lesson_template_id={@selected_lesson_template_id}
-            current_scope={@current_scope}
-          />
-        </div>
-      <% else %>
-        <div class="p-10">
-          <.empty_state>{gettext("No lesson templates created yet")}</.empty_state>
-        </div>
-      <% end %>
-    </.responsive_container>
+<Layouts.app_settings flash={@flash} current_user={@current_user} current_path={@current_path}>
+  <div class="flex items-center justify-between gap-4 mb-10">
+    <p class="flex items-center gap-2">
+      <.icon name="hero-information-circle-mini" class="text-ltrn-subtle" />
+      {gettext("Manage lesson templates below")}
+    </p>
+    <.button
+      type="button"
+      phx-click="new_lesson_template"
+      icon_name="hero-plus-mini"
+      theme="primary"
+    >
+      {gettext("New template")}
+    </.button>
   </div>
-  <.modal
-    :if={@lesson_template}
-    id="lesson-template-form-overlay"
-    show={true}
-    on_cancel={JS.push("close_lesson_template_form")}
-  >
-    <:title>{@lesson_template_overlay_title}</:title>
-    <.live_component
-      module={LantternWeb.LessonTemplates.LessonTemplateFormComponent}
-      id="lesson-template-form"
-      lesson_template={@lesson_template}
-      current_scope={@current_scope}
-      navigate={
-        fn
-          {:deleted, _lesson_template} ->
-            ~p"/settings/lesson_templates"
+  <%= if @has_lesson_templates do %>
+    <div id="lesson-templates-list" phx-update="stream">
+      <.live_component
+        :for={{dom_id, lesson_template} <- @streams.lesson_templates}
+        module={LessonTemplateCardComponent}
+        id={dom_id}
+        lesson_template={lesson_template}
+        selected_lesson_template_id={@selected_lesson_template_id}
+        current_scope={@current_scope}
+      />
+    </div>
+  <% else %>
+    <div class="p-10">
+      <.empty_state>{gettext("No lesson templates created yet")}</.empty_state>
+    </div>
+  <% end %>
+</Layouts.app_settings>
+<.modal
+  :if={@lesson_template}
+  id="lesson-template-form-overlay"
+  show={true}
+  on_cancel={JS.push("close_lesson_template_form")}
+>
+  <:title>{@lesson_template_overlay_title}</:title>
+  <.live_component
+    module={LantternWeb.LessonTemplates.LessonTemplateFormComponent}
+    id="lesson-template-form"
+    lesson_template={@lesson_template}
+    current_scope={@current_scope}
+    navigate={
+      fn
+        {:deleted, _lesson_template} ->
+          ~p"/settings/lesson_templates"
 
-          {_created_or_updated, lesson_template} ->
-            ~p"/settings/lesson_templates/#{lesson_template.id}"
-        end
-      }
-      on_cancel={JS.exec("data-cancel", to: "#lesson-template-form-overlay")}
-    />
-  </.modal>
-</Layouts.app_logged_in>
+        {_created_or_updated, lesson_template} ->
+          ~p"/settings/lesson_templates/#{lesson_template.id}"
+      end
+    }
+    on_cancel={JS.exec("data-cancel", to: "#lesson-template-form-overlay")}
+  />
+</.modal>

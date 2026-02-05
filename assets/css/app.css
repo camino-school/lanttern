@@ -13,11 +13,10 @@
 
 @plugin "./heroicons.tailwind.plugin.js";
 
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@900&family=PT+Mono&family=PT+Sans:ital,wght@0,400;0,700;1,400;1,700&family=PT+Serif:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@900&family=PT+Mono&family=PT+Sans:ital,wght@0,400;0,700;1,400;1,700&family=PT+Serif:ital,wght@0,400;0,700;1,400;1,700&display=swap");
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 @config "./tailwind.config.js";
-
 
 @theme inline {
   --color-ltrn-primary: var(--color-stone-800);
@@ -86,52 +85,84 @@ button {
 .ltrn-bg-main {
   background-attachment: fixed;
   background-image:
-    radial-gradient(circle at -9rem -12rem, var(--color-violet-300) 20rem, transparent 30rem),
-    radial-gradient(circle at -4rem -16rem, var(--color-pink-200) 30rem, transparent 40rem);
+    radial-gradient(
+      circle at -9rem -12rem,
+      var(--color-violet-300) 20rem,
+      transparent 30rem
+    ),
+    radial-gradient(
+      circle at -4rem -16rem,
+      var(--color-pink-200) 30rem,
+      transparent 40rem
+    );
 }
 
 .ltrn-bg-main-local {
-  background-attachment: local;
+  background-attachment: scroll;
   background-image:
-    radial-gradient(circle at -9rem -12rem, var(--color-violet-300) 0, transparent 30rem),
-    radial-gradient(circle at -4rem -16rem, var(--color-pink-200) 0, transparent 40rem);
+    radial-gradient(
+      circle at -9rem -12rem,
+      var(--color-violet-300) 0,
+      transparent 30rem
+    ),
+    radial-gradient(
+      circle at -4rem -16rem,
+      var(--color-pink-200) 0,
+      transparent 40rem
+    );
+}
+
+.ltrn-bg-side {
+  background-attachment: scroll;
+  background-image:
+    radial-gradient(
+      circle at calc(100% + 4rem) calc(100% - 8rem),
+      var(--color-pink-200),
+      transparent 20rem
+    ),
+    radial-gradient(
+      circle at calc(100% + 2rem) 100%,
+      var(--color-violet-300) 5rem,
+      transparent 15rem
+    );
 }
 
 .ltrn-bg-landing {
   background-image:
-    radial-gradient(circle at 80% 25%, #FFE4E6 240px, transparent 360px),
-    radial-gradient(circle at 60% 0, #CCFBF1 240px, transparent 360px),
-    radial-gradient(circle at 15% 110%, #FFEDD5 360px, transparent 480px);
+    radial-gradient(circle at 80% 25%, #ffe4e6 240px, transparent 360px),
+    radial-gradient(circle at 60% 0, #ccfbf1 240px, transparent 360px),
+    radial-gradient(circle at 15% 110%, #ffedd5 360px, transparent 480px);
 }
 
 .ltrn-bg-slide-over {
   background-image:
-    radial-gradient(circle at 10% 70%, #FEF9C3 160px, transparent 240px),
-    radial-gradient(circle at 30% 120%, #ECFCCB 360px, transparent 480px)
+    radial-gradient(circle at 10% 70%, #fef9c3 160px, transparent 240px),
+    radial-gradient(circle at 30% 120%, #ecfccb 360px, transparent 480px);
 }
 
 .ltrn-bg-menu {
   background-image:
-    radial-gradient(circle at 40% 120%, #FEF9C3 200px, transparent 360px),
-    radial-gradient(circle at 10% 130%, #ECFCCB 360px, transparent 480px)
+    radial-gradient(circle at 40% 120%, #fef9c3 200px, transparent 360px),
+    radial-gradient(circle at 10% 130%, #ecfccb 360px, transparent 480px);
 }
 
 .ltrn-bg-profile {
   background-image:
-    radial-gradient(circle at 20% 60%, #ECFEFF 20%, transparent 60%),
-    radial-gradient(circle at 0 0, #FFE4E6 20%, transparent 50%),
-    radial-gradient(circle at 120% 120%, #DDD6FE 40%, transparent 60%);
+    radial-gradient(circle at 20% 60%, #ecfeff 20%, transparent 60%),
+    radial-gradient(circle at 0 0, #ffe4e6 20%, transparent 50%),
+    radial-gradient(circle at 120% 120%, #ddd6fe 40%, transparent 60%);
 }
 
 .ltrn-ai-overlay-border {
   border-image: linear-gradient(
-    to top right,
-    var(--color-ltrn-ai-spectrum-1),
-    var(--color-ltrn-ai-spectrum-main),
-    var(--color-ltrn-ai-spectrum-2),
-    var(--color-ltrn-ai-spectrum-3),
-    var(--color-ltrn-ai-spectrum-4)
-  ) 1;
+      to top right,
+      var(--color-ltrn-ai-spectrum-1),
+      var(--color-ltrn-ai-spectrum-main),
+      var(--color-ltrn-ai-spectrum-2),
+      var(--color-ltrn-ai-spectrum-3),
+      var(--color-ltrn-ai-spectrum-4)
+    )
+    1;
 }
 
 .ltrn-ai-bg {
@@ -150,8 +181,12 @@ button {
 }
 
 @keyframes ltrn-ai-bg {
-  from {background-position: 0%}
-  to {background-position: 100%}
+  from {
+    background-position: 0%;
+  }
+  to {
+    background-position: 100%;
+  }
 }
 
 .ltrn-ai-indicator-bg {
@@ -170,8 +205,12 @@ button {
 }
 
 @keyframes ltrn-ai-indicator {
-  from {background-position: 0%}
-  to {background-position: 400%}
+  from {
+    background-position: 0%;
+  }
+  to {
+    background-position: 400%;
+  }
 }
 
 .ltrn-ai-spot-1-anim {
