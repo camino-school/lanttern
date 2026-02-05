@@ -49,7 +49,7 @@ defmodule LantternWeb.Schools.StudentFormOverlayComponent do
             phx-debounce="1500"
           />
           <.input
-            field={@form[:birthdate_date]}
+            field={@form[:birthdate]}
             type="date"
             label={gettext("Date of birth")}
             class="mb-6"
