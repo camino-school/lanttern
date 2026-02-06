@@ -587,4 +587,156 @@ defmodule Lanttern.LessonsTest do
       assert lesson_attachment.is_teacher_only_resource == false
     end
   end
+
+  describe "lesson_tags" do
+    alias Lanttern.IdentityFixtures
+    alias Lanttern.Lessons.Tag
+
+    @invalid_attrs %{name: nil, position: nil, text_color: nil, bg_color: nil}
+
+    defp create_tag_with_scope do
+      scope = IdentityFixtures.scope_fixture()
+      school = Lanttern.Schools.get_school!(scope.school_id)
+      tag = insert(:lesson_tag, school: school)
+      {scope, tag}
+    end
+
+    test "list_lesson_tags/1 returns all scoped lesson_tags" do
+      {scope, tag} = create_tag_with_scope()
+      {other_scope, other_tag} = create_tag_with_scope()
+
+      assert [result] = Lessons.list_lesson_tags(scope)
+      assert result.id == tag.id
+
+      assert [other_result] = Lessons.list_lesson_tags(other_scope)
+      assert other_result.id == other_tag.id
+    end
+
+    test "get_tag!/2 returns the tag with given id" do
+      {scope, tag} = create_tag_with_scope()
+      {other_scope, _other_tag} = create_tag_with_scope()
+
+      assert Lessons.get_tag!(scope, tag.id).id == tag.id
+      assert_raise Ecto.NoResultsError, fn -> Lessons.get_tag!(other_scope, tag.id) end
+    end
+
+    test "create_tag/2 with valid data creates a tag" do
+      valid_attrs = %{
+        name: "some name",
+        position: 42,
+        text_color: "#112233",
+        bg_color: "#aabbcc"
+      }
+
+      scope = IdentityFixtures.scope_fixture()
+
+      assert {:ok, %Tag{} = tag} = Lessons.create_tag(scope, valid_attrs)
+      assert tag.name == "some name"
+      assert tag.position == 42
+      assert tag.text_color == "#112233"
+      assert tag.bg_color == "#aabbcc"
+      assert tag.school_id == scope.school_id
+    end
+
+    test "create_tag/2 with invalid data returns error changeset" do
+      scope = IdentityFixtures.scope_fixture()
+      assert {:error, %Ecto.Changeset{}} = Lessons.create_tag(scope, @invalid_attrs)
+    end
+
+    test "create_tag/2 auto-calculates position when not provided" do
+      scope = IdentityFixtures.scope_fixture()
+
+      attrs = %{name: "Tag 1", text_color: "#000000", bg_color: "#ffffff"}
+
+      assert {:ok, %Tag{} = tag1} = Lessons.create_tag(scope, attrs)
+      assert tag1.position == 0
+
+      assert {:ok, %Tag{} = tag2} = Lessons.create_tag(scope, %{attrs | name: "Tag 2"})
+      assert tag2.position == 1
+
+      assert {:ok, %Tag{} = tag3} = Lessons.create_tag(scope, %{attrs | name: "Tag 3"})
+      assert tag3.position == 2
+    end
+
+    test "create_tag/2 respects explicitly provided position" do
+      scope = IdentityFixtures.scope_fixture()
+
+      attrs = %{name: "Tag", text_color: "#000000", bg_color: "#ffffff", position: 99}
+
+      assert {:ok, %Tag{} = tag} = Lessons.create_tag(scope, attrs)
+      assert tag.position == 99
+    end
+
+    test "create_tag/2 calculates position independently per school" do
+      scope_a = IdentityFixtures.scope_fixture()
+      scope_b = IdentityFixtures.scope_fixture()
+
+      attrs = %{name: "Tag", text_color: "#000000", bg_color: "#ffffff"}
+
+      # Create tags in school A
+      assert {:ok, %Tag{} = tag_a1} = Lessons.create_tag(scope_a, attrs)
+      assert {:ok, %Tag{} = tag_a2} = Lessons.create_tag(scope_a, attrs)
+
+      # Create tag in school B
+      assert {:ok, %Tag{} = tag_b1} = Lessons.create_tag(scope_b, attrs)
+
+      # Positions are independent per school
+      assert tag_a1.position == 0
+      assert tag_a2.position == 1
+      assert tag_b1.position == 0
+    end
+
+    test "update_tag/3 with valid data updates the tag" do
+      {scope, tag} = create_tag_with_scope()
+
+      update_attrs = %{
+        name: "some updated name",
+        position: 43,
+        text_color: "#445566",
+        bg_color: "#ddeeff"
+      }
+
+      assert {:ok, %Tag{} = updated_tag} = Lessons.update_tag(scope, tag, update_attrs)
+      assert updated_tag.name == "some updated name"
+      assert updated_tag.position == 43
+      assert updated_tag.text_color == "#445566"
+      assert updated_tag.bg_color == "#ddeeff"
+    end
+
+    test "update_tag/3 with invalid scope raises" do
+      {scope, tag} = create_tag_with_scope()
+      {other_scope, _other_tag} = create_tag_with_scope()
+
+      assert scope.school_id != other_scope.school_id
+
+      assert_raise MatchError, fn ->
+        Lessons.update_tag(other_scope, tag, %{})
+      end
+    end
+
+    test "update_tag/3 with invalid data returns error changeset" do
+      {scope, tag} = create_tag_with_scope()
+      assert {:error, %Ecto.Changeset{}} = Lessons.update_tag(scope, tag, @invalid_attrs)
+      assert Lessons.get_tag!(scope, tag.id).id == tag.id
+    end
+
+    test "delete_tag/2 deletes the tag" do
+      {scope, tag} = create_tag_with_scope()
+      assert {:ok, %Tag{}} = Lessons.delete_tag(scope, tag)
+      assert_raise Ecto.NoResultsError, fn -> Lessons.get_tag!(scope, tag.id) end
+    end
+
+    test "delete_tag/2 with invalid scope raises" do
+      {scope, tag} = create_tag_with_scope()
+      {other_scope, _other_tag} = create_tag_with_scope()
+
+      assert scope.school_id != other_scope.school_id
+      assert_raise MatchError, fn -> Lessons.delete_tag(other_scope, tag) end
+    end
+
+    test "change_tag/2 returns a tag changeset" do
+      {scope, tag} = create_tag_with_scope()
+      assert %Ecto.Changeset{} = Lessons.change_tag(scope, tag)
+    end
+  end
 end
