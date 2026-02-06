@@ -1,0 +1,61 @@
+<Layouts.app_settings flash={@flash} current_user={@current_user} current_path={@current_path}>
+  <div class="flex items-center justify-between gap-4 mb-10">
+    <p class="flex items-center gap-2">
+      <.icon name="hero-information-circle-mini" class="text-ltrn-subtle" />
+      {gettext("Manage lesson tags below")}
+    </p>
+    <.button
+      type="button"
+      phx-click="new_lesson_tag"
+      icon_name="hero-plus-mini"
+      theme="primary"
+    >
+      {gettext("New tag")}
+    </.button>
+  </div>
+  <%= if @has_lesson_tags do %>
+    <div
+      id="lesson-tags-list"
+      phx-hook="Sortable"
+      data-sortable-handle=".sortable-handle"
+      data-sortable-event="sortable_update"
+    >
+      <.live_component
+        :for={lesson_tag <- @lesson_tags}
+        module={LessonTagCardComponent}
+        id={"lesson-tags-#{lesson_tag.id}"}
+        lesson_tag={lesson_tag}
+        selected_lesson_tag_id={@selected_lesson_tag_id}
+        current_scope={@current_scope}
+      />
+    </div>
+  <% else %>
+    <div class="p-10">
+      <.empty_state>{gettext("No lesson tags created yet")}</.empty_state>
+    </div>
+  <% end %>
+</Layouts.app_settings>
+<.modal
+  :if={@lesson_tag}
+  id="lesson-tag-form-overlay"
+  show={true}
+  on_cancel={JS.push("close_lesson_tag_form")}
+>
+  <:title>{@lesson_tag_overlay_title}</:title>
+  <.live_component
+    module={LantternWeb.Lessons.LessonTagFormComponent}
+    id="lesson-tag-form"
+    lesson_tag={@lesson_tag}
+    current_scope={@current_scope}
+    navigate={
+      fn
+        {:deleted, _lesson_tag} ->
+          ~p"/settings/lesson_tags"
+
+        {_created_or_updated, lesson_tag} ->
+          ~p"/settings/lesson_tags/#{lesson_tag.id}"
+      end
+    }
+    on_cancel={JS.exec("data-cancel", to: "#lesson-tag-form-overlay")}
+  />
+</.modal>

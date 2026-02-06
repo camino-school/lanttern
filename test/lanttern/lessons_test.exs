@@ -595,7 +595,7 @@ defmodule Lanttern.LessonsTest do
     @invalid_attrs %{name: nil, position: nil, text_color: nil, bg_color: nil}
 
     defp create_tag_with_scope do
-      scope = IdentityFixtures.scope_fixture()
+      scope = IdentityFixtures.scope_fixture(%{permissions: ["content_management"]})
       school = Lanttern.Schools.get_school!(scope.school_id)
       tag = insert(:lesson_tag, school: school)
       {scope, tag}
@@ -628,7 +628,7 @@ defmodule Lanttern.LessonsTest do
         bg_color: "#aabbcc"
       }
 
-      scope = IdentityFixtures.scope_fixture()
+      scope = IdentityFixtures.scope_fixture(%{permissions: ["content_management"]})
 
       assert {:ok, %Tag{} = tag} = Lessons.create_tag(scope, valid_attrs)
       assert tag.name == "some name"
@@ -639,12 +639,12 @@ defmodule Lanttern.LessonsTest do
     end
 
     test "create_tag/2 with invalid data returns error changeset" do
-      scope = IdentityFixtures.scope_fixture()
+      scope = IdentityFixtures.scope_fixture(%{permissions: ["content_management"]})
       assert {:error, %Ecto.Changeset{}} = Lessons.create_tag(scope, @invalid_attrs)
     end
 
     test "create_tag/2 auto-calculates position when not provided" do
-      scope = IdentityFixtures.scope_fixture()
+      scope = IdentityFixtures.scope_fixture(%{permissions: ["content_management"]})
 
       attrs = %{name: "Tag 1", text_color: "#000000", bg_color: "#ffffff"}
 
@@ -659,7 +659,7 @@ defmodule Lanttern.LessonsTest do
     end
 
     test "create_tag/2 respects explicitly provided position" do
-      scope = IdentityFixtures.scope_fixture()
+      scope = IdentityFixtures.scope_fixture(%{permissions: ["content_management"]})
 
       attrs = %{name: "Tag", text_color: "#000000", bg_color: "#ffffff", position: 99}
 
@@ -668,8 +668,8 @@ defmodule Lanttern.LessonsTest do
     end
 
     test "create_tag/2 calculates position independently per school" do
-      scope_a = IdentityFixtures.scope_fixture()
-      scope_b = IdentityFixtures.scope_fixture()
+      scope_a = IdentityFixtures.scope_fixture(%{permissions: ["content_management"]})
+      scope_b = IdentityFixtures.scope_fixture(%{permissions: ["content_management"]})
 
       attrs = %{name: "Tag", text_color: "#000000", bg_color: "#ffffff"}
 

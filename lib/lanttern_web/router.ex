@@ -153,6 +153,9 @@ defmodule LantternWeb.Router do
 
       live "/settings/lesson_templates", LessonTemplatesLive, :index
       live "/settings/lesson_templates/:id", LessonTemplatesLive, :show
+
+      live "/settings/lesson_tags", LessonTagsLive, :index
+      live "/settings/lesson_tags/:id", LessonTagsLive, :show
     end
 
     live_session :authenticated_guardian,

@@ -373,7 +373,11 @@ defmodule Lanttern.Lessons do
 
   """
   def list_lesson_tags(%Scope{} = scope) do
-    Repo.all_by(Tag, school_id: scope.school_id)
+    from(t in Tag,
+      where: t.school_id == ^scope.school_id,
+      order_by: [asc: t.position]
+    )
+    |> Repo.all()
   end
 
   @doc """
@@ -407,6 +411,8 @@ defmodule Lanttern.Lessons do
 
   """
   def create_tag(%Scope{} = scope, attrs) do
+    true = Scope.has_permission?(scope, "content_management")
+
     attrs =
       from(t in Tag, where: t.school_id == ^scope.school_id)
       |> set_position_in_attrs(attrs)
@@ -433,7 +439,8 @@ defmodule Lanttern.Lessons do
 
   """
   def update_tag(%Scope{} = scope, %Tag{} = tag, attrs) do
-    true = tag.school_id == scope.school_id
+    true = Scope.has_permission?(scope, "content_management")
+    true = Scope.belongs_to_school?(scope, tag.school_id)
 
     with {:ok, tag = %Tag{}} <-
            tag
@@ -457,7 +464,8 @@ defmodule Lanttern.Lessons do
 
   """
   def delete_tag(%Scope{} = scope, %Tag{} = tag) do
-    true = tag.school_id == scope.school_id
+    true = Scope.has_permission?(scope, "content_management")
+    true = Scope.belongs_to_school?(scope, tag.school_id)
 
     with {:ok, tag = %Tag{}} <-
            Repo.delete(tag) do
@@ -465,6 +473,20 @@ defmodule Lanttern.Lessons do
       {:ok, tag}
     end
   end
+
+  @doc """
+  Update lesson tag positions based on ids list order.
+
+  ## Examples
+
+      iex> update_lesson_tag_positions([3, 2, 1])
+      :ok
+
+  """
+  @spec update_lesson_tag_positions(tags_ids :: [pos_integer()]) ::
+          :ok | {:error, String.t()}
+  def update_lesson_tag_positions(tags_ids),
+    do: update_positions(Tag, tags_ids)
 
   @doc """
   Returns an `%Ecto.Changeset{}` for tracking tag changes.
@@ -476,7 +498,8 @@ defmodule Lanttern.Lessons do
 
   """
   def change_tag(%Scope{} = scope, %Tag{} = tag, attrs \\ %{}) do
-    true = tag.school_id == scope.school_id
+    true = Scope.has_permission?(scope, "content_management")
+    true = Scope.belongs_to_school?(scope, tag.school_id)
 
     Tag.changeset(tag, attrs, scope)
   end
