@@ -21,17 +21,17 @@ defmodule LantternWeb.Lessons.LessonTagFormComponent do
         />
         <.input
           field={@form[:bg_color]}
-          type="text"
+          type="color"
           label={gettext("Background color (hex)")}
           class="mb-6"
-          phx-debounce="1500"
+          placeholder="#000000"
         />
         <.input
           field={@form[:text_color]}
-          type="text"
+          type="color"
           label={gettext("Text color (hex)")}
           class="mb-6"
-          phx-debounce="1500"
+          placeholder="#ffffff"
         />
         <.card_base class="p-6 mb-6">
           <p class="mb-4 text-ltrn-subtle">{gettext("Preview")}</p>

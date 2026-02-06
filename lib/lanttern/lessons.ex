@@ -499,7 +499,6 @@ defmodule Lanttern.Lessons do
   """
   def change_tag(%Scope{} = scope, %Tag{} = tag, attrs \\ %{}) do
     true = Scope.has_permission?(scope, "content_management")
-    true = Scope.belongs_to_school?(scope, tag.school_id)
 
     Tag.changeset(tag, attrs, scope)
   end

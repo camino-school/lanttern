@@ -76,7 +76,8 @@ defmodule LantternWeb.LessonTagsLive do
   @impl true
   def handle_event("new_lesson_tag", _params, socket) do
     lesson_tag = %Tag{
-      school_id: socket.assigns.current_user.current_profile.school_id
+      bg_color: "#000000",
+      text_color: "#ffffff"
     }
 
     socket =
