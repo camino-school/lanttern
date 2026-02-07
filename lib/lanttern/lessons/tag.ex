@@ -24,7 +24,7 @@ defmodule Lanttern.Lessons.Tag do
           updated_at: DateTime.t()
         }
 
-  schema "lesson_tags" do
+  schema "school_lesson_tags" do
     field :name, :string
     field :agent_description, :string
     field :bg_color, :string

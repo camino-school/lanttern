@@ -26,7 +26,7 @@ defmodule LantternWeb.LessonLive do
   end
 
   defp assign_lesson(socket, %{"id" => id}) do
-    Lessons.get_lesson(id, preloads: [:moment, :subjects])
+    Lessons.get_lesson(id, preloads: [:moment, :subjects, :tags])
     |> case do
       lesson when is_nil(lesson) ->
         raise(LantternWeb.NotFoundError)

@@ -5,12 +5,16 @@ defmodule Lanttern.Lessons.Lesson do
 
   use Ecto.Schema
   import Ecto.Changeset
+  import Ecto.Query, only: [from: 2]
   use Gettext, backend: Lanttern.Gettext
+
+  alias Lanttern.Repo
 
   import Lanttern.SchemaHelpers, only: [put_subjects: 1]
 
   alias Lanttern.LearningContext.Moment
   alias Lanttern.LearningContext.Strand
+  alias Lanttern.Lessons.Tag
   alias Lanttern.Taxonomy.Subject
 
   @type t :: %__MODULE__{
@@ -26,6 +30,7 @@ defmodule Lanttern.Lessons.Lesson do
           moment: Moment.t() | Ecto.Association.NotLoaded.t(),
           moment_id: pos_integer() | nil,
           subjects: [Subject.t()] | Ecto.Association.NotLoaded.t(),
+          tags: [Tag.t() | Ecto.Association.NotLoaded.t()],
           inserted_at: NaiveDateTime.t(),
           updated_at: NaiveDateTime.t()
         }
@@ -39,11 +44,13 @@ defmodule Lanttern.Lessons.Lesson do
     field :position, :integer, default: 0
 
     field :subjects_ids, {:array, :id}, virtual: true
+    field :tags_ids, {:array, :id}, virtual: true
 
     belongs_to :strand, Strand
     belongs_to :moment, Moment
 
     many_to_many :subjects, Subject, join_through: "lessons_subjects", on_replace: :delete
+    many_to_many :tags, Tag, join_through: "lessons_tags", on_replace: :delete
 
     timestamps()
   end
@@ -60,11 +67,13 @@ defmodule Lanttern.Lessons.Lesson do
       :position,
       :strand_id,
       :moment_id,
-      :subjects_ids
+      :subjects_ids,
+      :tags_ids
     ])
     |> validate_required([:name, :position, :strand_id])
     |> validate_published_lesson()
     |> put_subjects()
+    |> put_tags()
   end
 
   defp validate_published_lesson(changeset) do
@@ -80,5 +89,23 @@ defmodule Lanttern.Lessons.Lesson do
     else
       changeset
     end
+  end
+
+  def put_tags(changeset) do
+    put_tags(
+      changeset,
+      get_change(changeset, :tags_ids)
+    )
+  end
+
+  defp put_tags(changeset, nil), do: changeset
+
+  defp put_tags(changeset, tags_ids) do
+    tags =
+      from(t in Tag, where: t.id in ^tags_ids)
+      |> Repo.all()
+
+    changeset
+    |> put_assoc(:tags, tags)
   end
 end

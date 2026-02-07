@@ -17,7 +17,7 @@ defmodule LantternWeb.Lessons.LessonTagFormComponent do
           type="text"
           label={gettext("Lesson tag name")}
           class="mb-6"
-          phx-debounce="1500"
+          phx-debounce="500"
         />
         <.input
           field={@form[:bg_color]}

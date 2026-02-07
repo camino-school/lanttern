@@ -1,6 +1,24 @@
 defmodule LantternWeb.Lessons.LessonFormComponent do
   @moduledoc """
-  Renders a `Lesson` form
+  Renders a `Lesson` form.
+
+  This live component handles creating and editing lessons within a strand.
+  It provides fields for the lesson name, optional moment assignment,
+  subject selection, and tag selection (with color support).
+
+  ## Required assigns
+
+  - `id` - unique form identifier
+  - `lesson` - a `%Lesson{}` struct (new or existing)
+  - `current_scope` - the current user scope for access control
+  - `moments` - list of available moments for the strand
+  - `subjects` - list of available subjects
+  - `on_cancel` - JS command to execute on cancel
+
+  ## Navigation
+
+  After successful save or delete, the component uses `handle_navigation/2`
+  to notify the parent.
   """
 
   use LantternWeb, :live_component
@@ -51,6 +69,15 @@ defmodule LantternWeb.Lessons.LessonFormComponent do
             items={@subjects}
             selected_ids={@selected_subjects_ids}
             on_select={&JS.push("toggle_subject", value: %{subject_id: &1}, target: @myself)}
+          />
+        </div>
+        <div class="mb-6">
+          <.label>{gettext("Tags")}</.label>
+          <.badge_button_picker
+            items={@tags}
+            selected_ids={@selected_tags_ids}
+            on_select={&JS.push("toggle_tag", value: %{tag_id: &1}, target: @myself)}
+            use_color_map_as_active
           />
         </div>
         <.error_block
@@ -108,13 +135,21 @@ defmodule LantternWeb.Lessons.LessonFormComponent do
         subjects -> Enum.map(subjects, & &1.id)
       end
 
+    selected_tags_ids =
+      case lesson.tags do
+        %Ecto.Association.NotLoaded{} -> []
+        tags -> Enum.map(tags, & &1.id)
+      end
+
     socket =
       socket
       |> assign(assigns)
       |> assign(:selected_moment_id, lesson.moment_id)
       |> assign(:selected_subjects_ids, selected_subjects_ids)
+      |> assign(:selected_tags_ids, selected_tags_ids)
       |> assign_form(Lessons.change_lesson(lesson))
       |> assign_current_moment()
+      |> assign_tags()
 
     {:ok, socket}
   end
@@ -130,6 +165,11 @@ defmodule LantternWeb.Lessons.LessonFormComponent do
 
   defp assign_current_moment(socket),
     do: assign(socket, :current_moment, nil)
+
+  defp assign_tags(socket) do
+    tags = Lessons.list_lesson_tags(socket.assigns.current_scope)
+    assign(socket, :tags, tags)
+  end
 
   @impl true
   def handle_event("validate", %{"lesson" => lesson_params}, socket) do
@@ -160,6 +200,15 @@ defmodule LantternWeb.Lessons.LessonFormComponent do
     {:noreply, assign(socket, :selected_subjects_ids, selected_subjects_ids)}
   end
 
+  def handle_event("toggle_tag", %{"tag_id" => tag_id}, socket) do
+    selected_tags_ids =
+      if tag_id in socket.assigns.selected_tags_ids,
+        do: List.delete(socket.assigns.selected_tags_ids, tag_id),
+        else: [tag_id | socket.assigns.selected_tags_ids]
+
+    {:noreply, assign(socket, :selected_tags_ids, selected_tags_ids)}
+  end
+
   def handle_event("delete", _params, socket) do
     socket =
       case Lessons.delete_lesson(socket.assigns.lesson) do
@@ -185,6 +234,7 @@ defmodule LantternWeb.Lessons.LessonFormComponent do
       lesson_params
       |> Map.put("moment_id", socket.assigns.selected_moment_id)
       |> Map.put("subjects_ids", socket.assigns.selected_subjects_ids)
+      |> Map.put("tags_ids", socket.assigns.selected_tags_ids)
 
     save_lesson(socket, socket.assigns.lesson.id, lesson_params)
   end
