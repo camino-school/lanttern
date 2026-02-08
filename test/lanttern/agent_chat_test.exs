@@ -932,7 +932,7 @@ defmodule Lanttern.AgentChatTest do
       moment = moment_fixture(%{strand_id: strand.id, name: "Week 1", position: 1})
 
       {:ok, lesson} =
-        Lessons.create_lesson(%{
+        Lessons.create_lesson(scope, %{
           strand_id: strand.id,
           moment_id: moment.id,
           name: "Introduction to Algebra",
@@ -986,7 +986,7 @@ defmodule Lanttern.AgentChatTest do
       moment = moment_fixture(%{strand_id: strand.id, name: "Week 2", position: 2})
 
       {:ok, lesson} =
-        Lessons.create_lesson(%{
+        Lessons.create_lesson(scope, %{
           strand_id: strand.id,
           moment_id: moment.id,
           name: "Cell Biology",
@@ -1037,7 +1037,7 @@ defmodule Lanttern.AgentChatTest do
       moment = moment_fixture(%{strand_id: strand.id, name: "Week 1", position: 1})
 
       {:ok, lesson} =
-        Lessons.create_lesson(%{
+        Lessons.create_lesson(scope, %{
           strand_id: strand.id,
           moment_id: moment.id,
           name: "Test Lesson",
@@ -1084,7 +1084,7 @@ defmodule Lanttern.AgentChatTest do
       moment = moment_fixture(%{strand_id: strand.id, name: "Week 1", position: 1})
 
       {:ok, lesson} =
-        Lessons.create_lesson(%{
+        Lessons.create_lesson(scope, %{
           strand_id: strand.id,
           moment_id: moment.id,
           name: "Test Lesson",
@@ -1139,7 +1139,7 @@ defmodule Lanttern.AgentChatTest do
       moment = moment_fixture(%{strand_id: strand.id, name: "Week 1", position: 1})
 
       {:ok, lesson} =
-        Lessons.create_lesson(%{
+        Lessons.create_lesson(scope, %{
           strand_id: strand.id,
           moment_id: moment.id,
           name: "Test Lesson",

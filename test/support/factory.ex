@@ -14,6 +14,7 @@ defmodule Lanttern.Factory do
   use Lanttern.ILPTemplateFactory
   use Lanttern.LessonAttachmentFactory
   use Lanttern.LessonFactory
+  use Lanttern.LessonLogFactory
   use Lanttern.LessonTagFactory
   use Lanttern.LessonTemplateFactory
   use Lanttern.MessageBoardFactory

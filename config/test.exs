@@ -60,3 +60,6 @@ config :phoenix_test, :endpoint, LantternWeb.Endpoint
 
 # prevent Oban from running jobs and plugins during test runs
 config :lanttern, Oban, testing: :manual
+
+# Run audit log inserts synchronously in tests (no async tasks)
+config :lanttern, Lanttern.AuditLog, mode: :sync

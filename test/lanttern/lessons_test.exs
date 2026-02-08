@@ -3,6 +3,7 @@ defmodule Lanttern.LessonsTest do
 
   import Lanttern.Factory
 
+  alias Lanttern.IdentityFixtures
   alias Lanttern.Repo
 
   alias Lanttern.Lessons
@@ -11,6 +12,10 @@ defmodule Lanttern.LessonsTest do
     alias Lanttern.Lessons.Lesson
 
     @invalid_attrs %{name: nil, description: nil}
+
+    defp scope_fixture_for_lessons do
+      IdentityFixtures.scope_fixture()
+    end
 
     test "list_lessons/0 returns all lessons" do
       lesson = insert(:lesson)
@@ -144,32 +149,36 @@ defmodule Lanttern.LessonsTest do
       assert_raise Ecto.NoResultsError, fn -> Lessons.get_lesson!(0) end
     end
 
-    test "create_lesson/1 with valid data creates a lesson" do
+    test "create_lesson/2 with valid data creates a lesson" do
+      scope = scope_fixture_for_lessons()
       strand = insert(:strand)
       valid_attrs = %{name: "some name", description: "some description", strand_id: strand.id}
 
-      assert {:ok, %Lesson{} = lesson} = Lessons.create_lesson(valid_attrs)
+      assert {:ok, %Lesson{} = lesson} = Lessons.create_lesson(scope, valid_attrs)
       assert lesson.name == "some name"
       assert lesson.description == "some description"
       assert lesson.strand_id == strand.id
     end
 
-    test "create_lesson/1 with invalid data returns error changeset" do
-      assert {:error, %Ecto.Changeset{}} = Lessons.create_lesson(@invalid_attrs)
+    test "create_lesson/2 with invalid data returns error changeset" do
+      scope = scope_fixture_for_lessons()
+      assert {:error, %Ecto.Changeset{}} = Lessons.create_lesson(scope, @invalid_attrs)
     end
 
-    test "update_lesson/2 with valid data updates the lesson" do
+    test "update_lesson/3 with valid data updates the lesson" do
+      scope = scope_fixture_for_lessons()
       lesson = insert(:lesson)
       update_attrs = %{name: "some updated name", description: "some updated description"}
 
-      assert {:ok, %Lesson{} = lesson} = Lessons.update_lesson(lesson, update_attrs)
+      assert {:ok, %Lesson{} = lesson} = Lessons.update_lesson(scope, lesson, update_attrs)
       assert lesson.name == "some updated name"
       assert lesson.description == "some updated description"
     end
 
-    test "update_lesson/2 with invalid data returns error changeset" do
+    test "update_lesson/3 with invalid data returns error changeset" do
+      scope = scope_fixture_for_lessons()
       lesson = insert(:lesson)
-      assert {:error, %Ecto.Changeset{}} = Lessons.update_lesson(lesson, @invalid_attrs)
+      assert {:error, %Ecto.Changeset{}} = Lessons.update_lesson(scope, lesson, @invalid_attrs)
       expected = Lessons.get_lesson!(lesson.id)
       assert expected.name == lesson.name
       assert expected.description == lesson.description
@@ -201,9 +210,10 @@ defmodule Lanttern.LessonsTest do
       assert expected_4.id == lesson_4.id
     end
 
-    test "delete_lesson/1 deletes the lesson" do
+    test "delete_lesson/2 deletes the lesson" do
+      scope = scope_fixture_for_lessons()
       lesson = insert(:lesson)
-      assert {:ok, %Lesson{}} = Lessons.delete_lesson(lesson)
+      assert {:ok, %Lesson{}} = Lessons.delete_lesson(scope, lesson)
       assert_raise Ecto.NoResultsError, fn -> Lessons.get_lesson!(lesson.id) end
     end
 
@@ -213,18 +223,19 @@ defmodule Lanttern.LessonsTest do
     end
 
     test "create_lesson/2 auto-calculates position scoped to strand and moment" do
+      scope = scope_fixture_for_lessons()
       strand = insert(:strand)
       moment = insert(:moment, strand: strand)
 
       assert {:ok, lesson1} =
-               Lessons.create_lesson(%{
+               Lessons.create_lesson(scope, %{
                  name: "Lesson 1",
                  strand_id: strand.id,
                  moment_id: moment.id
                })
 
       assert {:ok, lesson2} =
-               Lessons.create_lesson(%{
+               Lessons.create_lesson(scope, %{
                  name: "Lesson 2",
                  strand_id: strand.id,
                  moment_id: moment.id
@@ -235,12 +246,13 @@ defmodule Lanttern.LessonsTest do
     end
 
     test "strand-level lessons have independent positions from moment lessons" do
+      scope = scope_fixture_for_lessons()
       strand = insert(:strand)
       moment = insert(:moment, strand: strand)
 
       # Create lesson in moment
       assert {:ok, moment_lesson} =
-               Lessons.create_lesson(%{
+               Lessons.create_lesson(scope, %{
                  name: "Moment Lesson",
                  strand_id: strand.id,
                  moment_id: moment.id
@@ -248,7 +260,7 @@ defmodule Lanttern.LessonsTest do
 
       # Create strand-level lesson
       assert {:ok, strand_lesson} =
-               Lessons.create_lesson(%{
+               Lessons.create_lesson(scope, %{
                  name: "Strand Lesson",
                  strand_id: strand.id,
                  moment_id: nil
@@ -260,13 +272,14 @@ defmodule Lanttern.LessonsTest do
     end
 
     test "lessons in different moments have independent positions" do
+      scope = scope_fixture_for_lessons()
       strand = insert(:strand)
       moment_a = insert(:moment, strand: strand, name: "Moment A")
       moment_b = insert(:moment, strand: strand, name: "Moment B")
 
       # Create lesson in moment A
       assert {:ok, lesson_a1} =
-               Lessons.create_lesson(%{
+               Lessons.create_lesson(scope, %{
                  name: "Lesson A1",
                  strand_id: strand.id,
                  moment_id: moment_a.id
@@ -274,7 +287,7 @@ defmodule Lanttern.LessonsTest do
 
       # Create lesson in moment B
       assert {:ok, lesson_b1} =
-               Lessons.create_lesson(%{
+               Lessons.create_lesson(scope, %{
                  name: "Lesson B1",
                  strand_id: strand.id,
                  moment_id: moment_b.id
@@ -286,7 +299,7 @@ defmodule Lanttern.LessonsTest do
 
       # Create another lesson in moment A
       assert {:ok, lesson_a2} =
-               Lessons.create_lesson(%{
+               Lessons.create_lesson(scope, %{
                  name: "Lesson A2",
                  strand_id: strand.id,
                  moment_id: moment_a.id
@@ -297,10 +310,11 @@ defmodule Lanttern.LessonsTest do
     end
 
     test "create_lesson/2 respects explicitly provided position" do
+      scope = scope_fixture_for_lessons()
       strand = insert(:strand)
 
       assert {:ok, lesson} =
-               Lessons.create_lesson(%{
+               Lessons.create_lesson(scope, %{
                  name: "Lesson",
                  strand_id: strand.id,
                  position: 99
@@ -309,13 +323,14 @@ defmodule Lanttern.LessonsTest do
       assert lesson.position == 99
     end
 
-    test "create_lesson/1 with subjects_ids creates lesson with subjects" do
+    test "create_lesson/2 with subjects_ids creates lesson with subjects" do
+      scope = scope_fixture_for_lessons()
       strand = insert(:strand)
       subject_a = insert(:subject)
       subject_b = insert(:subject)
 
       assert {:ok, %Lesson{} = lesson} =
-               Lessons.create_lesson(%{
+               Lessons.create_lesson(scope, %{
                  name: "Lesson with subjects",
                  strand_id: strand.id,
                  subjects_ids: [subject_a.id, subject_b.id]
@@ -328,11 +343,12 @@ defmodule Lanttern.LessonsTest do
       assert subject_b.id in subject_ids
     end
 
-    test "create_lesson/1 with is_published true requires description" do
+    test "create_lesson/2 with is_published true requires description" do
+      scope = scope_fixture_for_lessons()
       strand = insert(:strand)
 
       assert {:error, %Ecto.Changeset{} = changeset} =
-               Lessons.create_lesson(%{
+               Lessons.create_lesson(scope, %{
                  name: "Published lesson",
                  strand_id: strand.id,
                  is_published: true
@@ -342,11 +358,12 @@ defmodule Lanttern.LessonsTest do
                errors_on(changeset)
     end
 
-    test "create_lesson/1 with is_published true and blank description returns error" do
+    test "create_lesson/2 with is_published true and blank description returns error" do
+      scope = scope_fixture_for_lessons()
       strand = insert(:strand)
 
       assert {:error, %Ecto.Changeset{} = changeset} =
-               Lessons.create_lesson(%{
+               Lessons.create_lesson(scope, %{
                  name: "Published lesson",
                  description: "   ",
                  strand_id: strand.id,
@@ -357,11 +374,12 @@ defmodule Lanttern.LessonsTest do
                errors_on(changeset)
     end
 
-    test "create_lesson/1 with is_published true and description succeeds" do
+    test "create_lesson/2 with is_published true and description succeeds" do
+      scope = scope_fixture_for_lessons()
       strand = insert(:strand)
 
       assert {:ok, %Lesson{} = lesson} =
-               Lessons.create_lesson(%{
+               Lessons.create_lesson(scope, %{
                  name: "Published lesson",
                  description: "A valid description",
                  strand_id: strand.id,
@@ -372,11 +390,12 @@ defmodule Lanttern.LessonsTest do
       assert lesson.description == "A valid description"
     end
 
-    test "create_lesson/1 with is_published false allows nil description" do
+    test "create_lesson/2 with is_published false allows nil description" do
+      scope = scope_fixture_for_lessons()
       strand = insert(:strand)
 
       assert {:ok, %Lesson{} = lesson} =
-               Lessons.create_lesson(%{
+               Lessons.create_lesson(scope, %{
                  name: "Draft lesson",
                  strand_id: strand.id,
                  is_published: false
@@ -386,7 +405,8 @@ defmodule Lanttern.LessonsTest do
       assert lesson.description == nil
     end
 
-    test "update_lesson/2 with subjects_ids updates lesson subjects" do
+    test "update_lesson/3 with subjects_ids updates lesson subjects" do
+      scope = scope_fixture_for_lessons()
       lesson = insert(:lesson) |> Repo.preload(:subjects)
       subject_a = insert(:subject)
       subject_b = insert(:subject)
@@ -394,14 +414,18 @@ defmodule Lanttern.LessonsTest do
 
       # Add initial subjects
       assert {:ok, lesson} =
-               Lessons.update_lesson(lesson, %{subjects_ids: [subject_a.id, subject_b.id]})
+               Lessons.update_lesson(scope, lesson, %{
+                 subjects_ids: [subject_a.id, subject_b.id]
+               })
 
       lesson = Repo.preload(lesson, :subjects, force: true)
       assert [_, _] = lesson.subjects
 
       # Update subjects (replace with different set)
       assert {:ok, lesson} =
-               Lessons.update_lesson(lesson, %{subjects_ids: [subject_b.id, subject_c.id]})
+               Lessons.update_lesson(scope, lesson, %{
+                 subjects_ids: [subject_b.id, subject_c.id]
+               })
 
       lesson = Repo.preload(lesson, :subjects, force: true)
       assert [subj1, subj2] = lesson.subjects
@@ -411,50 +435,56 @@ defmodule Lanttern.LessonsTest do
       refute subject_a.id in subject_ids
     end
 
-    test "update_lesson/2 with empty subjects_ids removes all subjects" do
+    test "update_lesson/3 with empty subjects_ids removes all subjects" do
+      scope = scope_fixture_for_lessons()
       lesson = insert(:lesson) |> Repo.preload(:subjects)
       subject_a = insert(:subject)
       subject_b = insert(:subject)
 
       # Add subjects
       assert {:ok, lesson} =
-               Lessons.update_lesson(lesson, %{subjects_ids: [subject_a.id, subject_b.id]})
+               Lessons.update_lesson(scope, lesson, %{
+                 subjects_ids: [subject_a.id, subject_b.id]
+               })
 
       lesson = Repo.preload(lesson, :subjects, force: true)
       assert [_, _] = lesson.subjects
 
       # Remove all subjects
-      assert {:ok, lesson} = Lessons.update_lesson(lesson, %{subjects_ids: []})
+      assert {:ok, lesson} = Lessons.update_lesson(scope, lesson, %{subjects_ids: []})
 
       lesson = Repo.preload(lesson, :subjects, force: true)
       assert lesson.subjects == []
     end
 
-    test "update_lesson/2 setting is_published to true requires description" do
+    test "update_lesson/3 setting is_published to true requires description" do
+      scope = scope_fixture_for_lessons()
       lesson = insert(:lesson, is_published: false, description: nil)
 
       assert {:error, %Ecto.Changeset{} = changeset} =
-               Lessons.update_lesson(lesson, %{is_published: true})
+               Lessons.update_lesson(scope, lesson, %{is_published: true})
 
       assert %{description: ["Description can't be blank when lesson is published"]} =
                errors_on(changeset)
     end
 
-    test "update_lesson/2 can publish lesson with description" do
+    test "update_lesson/3 can publish lesson with description" do
+      scope = scope_fixture_for_lessons()
       lesson = insert(:lesson, is_published: false, description: "Some description")
 
       assert {:ok, %Lesson{} = updated_lesson} =
-               Lessons.update_lesson(lesson, %{is_published: true})
+               Lessons.update_lesson(scope, lesson, %{is_published: true})
 
       assert updated_lesson.is_published == true
       assert updated_lesson.description == "Some description"
     end
 
-    test "update_lesson/2 can unpublish lesson without description" do
+    test "update_lesson/3 can unpublish lesson without description" do
+      scope = scope_fixture_for_lessons()
       lesson = insert(:lesson, is_published: true, description: "Some description")
 
       assert {:ok, %Lesson{} = updated_lesson} =
-               Lessons.update_lesson(lesson, %{is_published: false, description: nil})
+               Lessons.update_lesson(scope, lesson, %{is_published: false, description: nil})
 
       assert updated_lesson.is_published == false
       assert updated_lesson.description == nil

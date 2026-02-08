@@ -620,23 +620,23 @@ defmodule Lanttern.AgentChat do
   defp add_tools_args_messages(system_messages, _scope, _opts, _strand),
     do: system_messages
 
-  # scope is not used in the functions yet, but keep around as
-  # it should be implemented in the near future
-  defp setup_llm_chain_tools(_scope, opts) do
+  defp setup_llm_chain_tools(scope, opts) do
     enabled_functions = Keyword.get(opts, :enabled_functions, [])
 
     []
     |> setup_create_lesson_function(
       "create_lesson" in enabled_functions,
+      scope,
       Keyword.get(opts, :strand_id)
     )
     |> setup_update_lesson_function(
       "update_lesson" in enabled_functions,
+      scope,
       Keyword.get(opts, :lesson_id)
     )
   end
 
-  defp setup_create_lesson_function(tools, true, strand_id) when is_integer(strand_id) do
+  defp setup_create_lesson_function(tools, true, scope, strand_id) when is_integer(strand_id) do
     function =
       Function.new!(%{
         name: "create_lesson",
@@ -645,7 +645,7 @@ defmodule Lanttern.AgentChat do
         function: fn args, %{strand_id: strand_id} = _context ->
           args = Map.put(args, "strand_id", strand_id)
 
-          case Lessons.create_lesson(args) do
+          case Lessons.create_lesson(scope, args, is_ai_agent: true) do
             {:ok, created_lesson} ->
               {:ok, "SUCCESS: lesson was created successfully", created_lesson}
 
@@ -658,9 +658,9 @@ defmodule Lanttern.AgentChat do
     [function | tools]
   end
 
-  defp setup_create_lesson_function(tools, _, _), do: tools
+  defp setup_create_lesson_function(tools, _, _, _), do: tools
 
-  defp setup_update_lesson_function(tools, true, lesson_id) when is_integer(lesson_id) do
+  defp setup_update_lesson_function(tools, true, scope, lesson_id) when is_integer(lesson_id) do
     function =
       Function.new!(%{
         name: "update_lesson",
@@ -670,7 +670,7 @@ defmodule Lanttern.AgentChat do
         function: fn args, %{lesson_id: lesson_id} = _context ->
           lesson = Lessons.get_lesson!(lesson_id)
 
-          case Lessons.update_lesson(lesson, args) do
+          case Lessons.update_lesson(scope, lesson, args, is_ai_agent: true) do
             {:ok, updated_lesson} ->
               {:ok, "SUCCESS: lesson was updated successfully", updated_lesson}
 
@@ -683,7 +683,7 @@ defmodule Lanttern.AgentChat do
     [function | tools]
   end
 
-  defp setup_update_lesson_function(tools, _, _), do: tools
+  defp setup_update_lesson_function(tools, _, _, _), do: tools
 
   defp lesson_function_params do
     [
