@@ -55,11 +55,12 @@ COPY lib lib
 
 COPY assets assets
 
+# Compile the release (must happen before assets.deploy so that
+# the phoenix_live_view compiler generates colocated hooks JS)
+RUN mix compile
+
 # compile assets
 RUN mix assets.deploy
-
-# Compile the release
-RUN mix compile
 
 # Changes to config/runtime.exs don't require recompiling the code
 COPY config/runtime.exs config/
