@@ -53,6 +53,45 @@ defmodule LantternWeb.StrandLive.LessonsComponentTest do
     end
   end
 
+  describe "Lesson tags" do
+    test "create lesson with tags selected", %{conn: conn, staff_member: staff_member} do
+      school = Lanttern.Repo.get!(Lanttern.Schools.School, staff_member.school_id)
+      insert(:lesson_tag, school: school, name: "Important")
+      strand = insert(:strand)
+
+      conn
+      |> visit("#{@live_view_base_path}/#{strand.id}")
+      |> click_button("Create new lesson")
+      |> within("#lesson-form-overlay", fn session ->
+        session
+        |> fill_in("Lesson name", with: "Tagged lesson")
+        |> click_button("button", "Important")
+        |> click_button("Save")
+      end)
+      # after creation, navigates to lesson detail page where tags are shown as badges
+      |> assert_has("h1", text: "Tagged lesson")
+      |> assert_has("span", text: "Important")
+    end
+
+    test "edit lesson to add tags", %{conn: conn, staff_member: staff_member} do
+      school = Lanttern.Repo.get!(Lanttern.Schools.School, staff_member.school_id)
+      insert(:lesson_tag, school: school, name: "Priority")
+      strand = insert(:strand)
+      lesson = insert(:lesson, strand: strand, name: "Lesson to tag")
+
+      conn
+      |> visit("/strands/lesson/#{lesson.id}")
+      |> refute_has("span", text: "Priority")
+      |> click_button("Edit")
+      |> within("#lesson-form-overlay", fn session ->
+        session
+        |> click_button("button", "Priority")
+        |> click_button("Save")
+      end)
+      |> assert_has("span", text: "Priority")
+    end
+  end
+
   describe "Lessons filtering" do
     test "list all lessons", %{conn: conn} do
       subject_a = insert(:subject, name: "Subject A")

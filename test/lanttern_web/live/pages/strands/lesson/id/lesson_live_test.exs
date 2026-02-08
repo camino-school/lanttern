@@ -24,6 +24,18 @@ defmodule LantternWeb.LessonLiveTest do
       |> assert_has("p", text: "Some diff notes abc")
     end
 
+    test "view lesson with tags", %{conn: conn} do
+      tag_a = insert(:lesson_tag, name: "Homework", bg_color: "#ff0000", text_color: "#ffffff")
+      tag_b = insert(:lesson_tag, name: "Group work", bg_color: "#00ff00", text_color: "#000000")
+      lesson = insert(:lesson, name: "Tagged lesson", tags: [tag_a, tag_b])
+
+      conn
+      |> visit("#{@live_view_base_path}/#{lesson.id}")
+      |> assert_has("h1", text: "Tagged lesson")
+      |> assert_has("span", text: "Homework")
+      |> assert_has("span", text: "Group work")
+    end
+
     test "publish lesson", %{conn: conn} do
       lesson = insert(:lesson)
 

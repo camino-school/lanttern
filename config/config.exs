@@ -16,6 +16,15 @@ config :lanttern,
 
 # Configure Phoenix scopes
 config :lanttern, :scopes,
+  school: [
+    default: true,
+    module: Lanttern.Identity.Scope,
+    assign_key: :current_scope,
+    access_path: [:school_id],
+    schema_key: :school_id,
+    schema_type: :id,
+    schema_table: :schools
+  ],
   user: [
     module: Lanttern.Identity.Scope,
     assign_key: :current_scope,
@@ -23,14 +32,6 @@ config :lanttern, :scopes,
     schema_key: :user_id,
     schema_type: :id,
     schema_table: :users
-  ],
-  school: [
-    module: Lanttern.Identity.Scope,
-    assign_key: :current_scope,
-    access_path: [:school_id],
-    schema_key: :school_id,
-    schema_type: :id,
-    schema_table: :schools
   ]
 
 query_args = ["SET pg_trgm.word_similarity_threshold = 0.4", []]

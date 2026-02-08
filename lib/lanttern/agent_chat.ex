@@ -20,6 +20,7 @@ defmodule Lanttern.AgentChat do
   alias Lanttern.Curricula
   alias Lanttern.Identity.Scope
   alias Lanttern.LearningContext
+  alias Lanttern.LearningContext.Strand
   alias Lanttern.Lessons
   alias Lanttern.LessonTemplates
   alias Lanttern.SchoolConfig
@@ -389,6 +390,19 @@ defmodule Lanttern.AgentChat do
     # check if last message is a user message (prevent LLM from running improperly)
     %{role: "user"} = messages |> Enum.at(-1)
 
+    # as strand is used in different helper functions,
+    # request it once if needed and reuse it in all functions
+    strand =
+      case Keyword.get(opts, :strand_id) do
+        id when is_integer(id) ->
+          LearningContext.get_strand!(id,
+            preloads: [:subjects, :years, :moments]
+          )
+
+        _ ->
+          nil
+      end
+
     # we're not using the recursive pattern for opts here
     # because in this use we want to control messages ordering (prompt caching)
     # School messages come first to establish baseline that agents build upon
@@ -402,14 +416,12 @@ defmodule Lanttern.AgentChat do
         scope,
         Keyword.get(opts, :lesson_template_id)
       )
-      |> add_strand_system_messages(
-        scope,
-        Keyword.get(opts, :strand_id)
-      )
+      |> add_strand_system_messages(scope, strand)
       |> add_lesson_system_messages(
         scope,
         Keyword.get(opts, :lesson_id)
       )
+      |> add_tools_args_messages(scope, opts, strand)
 
     tools = setup_llm_chain_tools(scope, opts)
 
@@ -495,122 +507,117 @@ defmodule Lanttern.AgentChat do
 
   # strand functions doesn't support scope yet, but keep it around
   # as it should be implemented in the near future
-  defp add_strand_system_messages(system_messages, _scope, strand_id)
-       when is_integer(strand_id) do
-    strand =
-      LearningContext.get_strand!(strand_id,
-        preloads: [:subjects, :years, :moments]
-      )
-
-    subjects = Enum.map_join(strand.subjects, ", ", & &1.name)
-    years = Enum.map_join(strand.years, ", ", & &1.name)
+  defp add_strand_system_messages(system_messages, _scope, %Strand{} = strand) do
+    subjects = Enum.map_join(strand.subjects, "\n", &"<subject>#{&1.name}</subject>")
+    years = Enum.map_join(strand.years, "\n", &"<year>#{&1.name}</year>")
 
     moments =
       strand.moments
       |> Enum.sort_by(& &1.position)
-      |> Enum.map_join("\n\n", fn moment ->
+      |> Enum.map_join(fn moment ->
         """
-        ### Moment: #{moment.name}
-
-        #{moment.description}
+        <moment>
+        <name>#{moment.name}</name>
+        <description>#{moment.description}</description>
+        </moment>
         """
       end)
 
     curriculum_items =
       Curricula.list_strand_curriculum_items(
-        strand_id,
+        strand.id,
         preloads: :curriculum_component
       )
-      |> Enum.map_join("\n", &"- #{&1.name} (#{&1.curriculum_component.name})")
-
-    # tools args
-
-    subjects_ids = Enum.map_join(strand.subjects, "\n", &"- #{&1.name} (id: #{&1.id})")
-    moments_ids = Enum.map_join(strand.moments, "\n", &"- #{&1.name} (id: #{&1.id})")
+      |> Enum.map_join(&"<item>#{&1.name} (#{&1.curriculum_component.name})</item>")
 
     system_messages ++
       [
         LangChain.Message.new_system!("""
         <strand_context>
-        # Strand: #{strand.name}
-
-        Subjects: #{subjects}
-
-        Years: #{years}
-
-        <curriculum>
-        #{curriculum_items}
-        </curriculum>
-
-        <overview>
-        #{strand.description}
-        </overview>
-
-        <teacher_instructions>
-        #{strand.teacher_instructions || "Not available"}
-        </teacher_instructions>
-
-        <moments>
-        #{moments}
-        </moments>
-
+        <strand_name>#{strand.name}</strand_name>
+        <subjects>#{subjects}</subjects>
+        <years>#{years}</years>
+        <curriculum>#{curriculum_items}</curriculum>
+        <overview>#{strand.description}</overview>
+        <teacher_instructions>#{strand.teacher_instructions || "No teacher instructions"}</teacher_instructions>
+        <moments>#{moments}</moments>
         </strand_context>
-        """),
-        LangChain.Message.new_system!("""
-        <strand_context_tools_args>
-        Internal use for tool calling only. Not sensitive, but not relevant for users.
-
-        # Subjects ids
-
-        #{subjects_ids}
-
-        # Moments ids
-
-        #{moments_ids}
-        </strand_context_tools_args>
         """)
       ]
   end
 
-  defp add_strand_system_messages(system_messages, _scope, _strand_id),
+  defp add_strand_system_messages(system_messages, _scope, _strand),
     do: system_messages
 
   # lessons functions doesn't support scope yet, but keep it around
   # as it should be implemented in the near future
   defp add_lesson_system_messages(system_messages, _scope, lesson_id)
        when is_integer(lesson_id) do
-    lesson = Lessons.get_lesson!(lesson_id, preloads: [:subjects, :moment])
-
-    subjects = Enum.map_join(lesson.subjects, ", ", & &1.name)
+    lesson = Lessons.get_lesson!(lesson_id, preloads: [:subjects, :tags, :moment])
+    subjects = Enum.map_join(lesson.subjects, &"<subject>#{&1.name}</subject>")
+    tags = Enum.map_join(lesson.tags, &"<tag>#{&1.name}</tag>")
 
     system_messages ++
       [
         LangChain.Message.new_system!("""
         <lesson_context>
-        # Lesson: #{lesson.name}
-
-        Subjects: #{subjects}
-
-        Lesson in moment "#{lesson.moment.name}"
-
-        <overview>
-        #{lesson.description}
-        </overview>
-
-        <teacher_notes>
-        #{lesson.teacher_notes || "Not available"}
-        </teacher_notes>
-
-        <differentiation_notes>
-        #{lesson.differentiation_notes || "Not available"}
-        </differentiation_notes>
-
+        <lesson_name>#{lesson.name}</lesson_name>
+        <moment>#{lesson.moment.name}</moment>
+        <subjects>#{subjects}</subjects>
+        <tags>#{tags}</tags>
+        <overview>#{lesson.description}</overview>
+        <teacher_notes>#{lesson.teacher_notes || "No teacher notes"}</teacher_notes>
+        <differentiation_notes>#{lesson.differentiation_notes || "No differentiation notes"}</differentiation_notes>
         </lesson_context>
         """)
       ]
   end
 
   defp add_lesson_system_messages(system_messages, _scope, _lesson_id),
+    do: system_messages
+
+  defp add_tools_args_messages(system_messages, scope, opts, %Strand{} = strand) do
+    # it's very specific to create/update lessons right now,
+    # but in the future we may extend the same structure to different tools
+    lesson_functions_enabled =
+      Keyword.get(opts, :enabled_functions, [])
+      |> Enum.any?(&(&1 in ["create_lesson", "update_lesson"]))
+
+    if lesson_functions_enabled do
+      moments = Enum.map(strand.moments, &"<moment>name: #{&1.name}, id: #{&1.id}</moment>")
+      subjects = Enum.map(strand.subjects, &"<subject>name: #{&1.name}, id: #{&1.id}</subject>")
+
+      tags =
+        Lessons.list_lesson_tags(scope)
+        |> Enum.map(
+          &"""
+          <tag>
+          name: #{&1.name}, id: #{&1.id}
+
+          <usage>
+          #{&1.agent_description}
+          </usage>
+          </tag>
+          """
+        )
+
+      system_messages ++
+        [
+          LangChain.Message.new_system!("""
+          <tools_args>
+          Internal use for tool calling only. Not sensitive, but not relevant for users.
+          <moments>#{moments}</moments>
+          <subjects>#{subjects}</subjects>
+          <tags>#{tags}</tags>
+          </tools_args>
+          """)
+        ]
+    else
+      system_messages
+    end
+  end
+
+  defp add_tools_args_messages(system_messages, _scope, _opts, _strand),
     do: system_messages
 
   # scope is not used in the functions yet, but keep around as
@@ -634,34 +641,7 @@ defmodule Lanttern.AgentChat do
       Function.new!(%{
         name: "create_lesson",
         description: "Create a lesson in the current strand",
-        parameters: [
-          FunctionParam.new!(%{
-            name: "moment_id",
-            type: "integer",
-            description: "The moment in which the lesson will be attached to"
-          }),
-          FunctionParam.new!(%{
-            name: "subjects_ids",
-            type: "array",
-            item_type: "integer",
-            description: "The subjects linked to the lesson"
-          }),
-          FunctionParam.new!(%{
-            name: "description",
-            type: "string",
-            description: "The main lesson content, shared with students when lesson is published"
-          }),
-          FunctionParam.new!(%{
-            name: "teacher_notes",
-            type: "string",
-            description: "Instructions and notes for teachers, never shared with students"
-          }),
-          FunctionParam.new!(%{
-            name: "differentiation_notes",
-            type: "string",
-            description: "Instructions for lesson differentiation, never shared with students"
-          })
-        ],
+        parameters: lesson_function_params(),
         function: fn args, %{strand_id: strand_id} = _context ->
           args = Map.put(args, "strand_id", strand_id)
 
@@ -686,23 +666,7 @@ defmodule Lanttern.AgentChat do
         name: "update_lesson",
         description:
           "Update the current lesson description and/or teacher notes and/or diff notes",
-        parameters: [
-          FunctionParam.new!(%{
-            name: "description",
-            type: "string",
-            description: "The main lesson content, shared with students when lesson is published"
-          }),
-          FunctionParam.new!(%{
-            name: "teacher_notes",
-            type: "string",
-            description: "Instructions and notes for teachers, never shared with students"
-          }),
-          FunctionParam.new!(%{
-            name: "differentiation_notes",
-            type: "string",
-            description: "Instructions for lesson differentiation, never shared with students"
-          })
-        ],
+        parameters: lesson_function_params(),
         function: fn args, %{lesson_id: lesson_id} = _context ->
           lesson = Lessons.get_lesson!(lesson_id)
 
@@ -720,6 +684,43 @@ defmodule Lanttern.AgentChat do
   end
 
   defp setup_update_lesson_function(tools, _, _), do: tools
+
+  defp lesson_function_params do
+    [
+      FunctionParam.new!(%{
+        name: "moment_id",
+        type: "integer",
+        description: "The moment in which the lesson will be attached to"
+      }),
+      FunctionParam.new!(%{
+        name: "subjects_ids",
+        type: "array",
+        item_type: "integer",
+        description: "The subjects linked to the lesson"
+      }),
+      FunctionParam.new!(%{
+        name: "tags_ids",
+        type: "array",
+        item_type: "integer",
+        description: "Tags linked to the lesson"
+      }),
+      FunctionParam.new!(%{
+        name: "description",
+        type: "string",
+        description: "The main lesson content, shared with students when lesson is published"
+      }),
+      FunctionParam.new!(%{
+        name: "teacher_notes",
+        type: "string",
+        description: "Instructions and notes for teachers, never shared with students"
+      }),
+      FunctionParam.new!(%{
+        name: "differentiation_notes",
+        type: "string",
+        description: "Instructions for lesson differentiation, never shared with students"
+      })
+    ]
+  end
 
   defp setup_llm_chain_context(context \\ %{}, opts)
 

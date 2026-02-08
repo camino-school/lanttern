@@ -247,6 +247,7 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
           moments={@moments}
           subjects={@strand.subjects}
           strand_id={@strand.id}
+          current_scope={@current_scope}
           navigate={
             fn
               {:created, lesson} ->
@@ -280,36 +281,41 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
         <hr class="w-6 h-0.5 border-0 rounded-full bg-ltrn-subtle" />
       </div>
       <.card_base
-        class="flex-1 p-4"
+        class="flex-1 flex items-stretch overflow-hidden"
         bg_class={if !@lesson.is_published, do: "bg-ltrn-lightest"}
         remove_shadow={!@lesson.is_published}
       >
-        <div class="flex items-center gap-4">
-          <h4 class="flex-1 font-display font-bold text-base">
-            <.link
-              navigate={~p"/strands/lesson/#{@lesson.id}"}
-              class="hover:text-ltrn-subtle"
+        <div class="flex-1 p-4">
+          <div class="flex items-center gap-4">
+            <h4 class="flex-1 font-display font-bold text-base">
+              <.link
+                navigate={~p"/strands/lesson/#{@lesson.id}"}
+                class="hover:text-ltrn-subtle"
+              >
+                {@lesson.name}
+                <span :if={!@lesson.is_published} class="font-normal text-ltrn-subtle">
+                  ({gettext("Draft")})
+                </span>
+              </.link>
+            </h4>
+            <.action
+              type="button"
+              phx-click={@on_edit}
+              icon_name="hero-pencil-mini"
+              theme="subtle"
             >
-              {@lesson.name}
-              <span :if={!@lesson.is_published} class="font-normal text-ltrn-subtle">
-                ({gettext("Draft")})
-              </span>
-            </.link>
-          </h4>
-          <.action
-            type="button"
-            phx-click={@on_edit}
-            icon_name="hero-pencil-mini"
-            theme="subtle"
-          >
-            {gettext("Edit")}
-          </.action>
+              {gettext("Edit")}
+            </.action>
+          </div>
+          <div :if={@lesson.description} class="mt-2 text-xs">
+            <.markdown text={@lesson.description} strip_tags class="mt-2 line-clamp-1" />
+          </div>
+          <div :if={!Enum.empty?(@lesson.subjects)} class="mt-2 text-xs">
+            {@lesson.subjects |> Enum.map(& &1.name) |> Enum.join(", ")}
+          </div>
         </div>
-        <div :if={@lesson.description} class="mt-2 text-xs">
-          <.markdown text={@lesson.description} strip_tags class="mt-2 line-clamp-1" />
-        </div>
-        <div :if={@lesson.subjects != []} class="mt-2 text-xs">
-          {@lesson.subjects |> Enum.map(& &1.name) |> Enum.join(", ")}
+        <div class="flex flex-col items-stretch w-2">
+          <div :for={tag <- @lesson.tags} class="flex-1" style={"background: #{tag.bg_color}"} />
         </div>
       </.card_base>
     </div>
@@ -402,7 +408,7 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
       Lessons.list_lessons(
         strand_id: socket.assigns.strand.id,
         subjects_ids: subjects_ids,
-        preloads: [:subjects]
+        preloads: [:subjects, :tags]
       )
 
     # group and stream lessons by moment
@@ -481,7 +487,7 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
   def handle_event("edit_moment", %{"id" => moment_id}, socket) do
     socket =
       if moment_id in socket.assigns.moments_ids do
-        moment = LearningContext.get_moment(moment_id, preloads: :subjects)
+        moment = LearningContext.get_moment(moment_id, preloads: [:subjects])
 
         socket
         |> assign(:moment, moment)
@@ -541,7 +547,7 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
   def handle_event("edit_lesson", %{"id" => lesson_id}, socket) do
     socket =
       if lesson_id in socket.assigns.lessons_ids do
-        lesson = Lessons.get_lesson(lesson_id, preloads: :subjects)
+        lesson = Lessons.get_lesson(lesson_id, preloads: [:subjects, :tags])
 
         socket
         |> assign(:lesson, lesson)

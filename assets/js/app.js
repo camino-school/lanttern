@@ -37,6 +37,9 @@ import scrollToTopHook from "./scroll-to-top-hook";
 import sliderHook from "./slider-hook";
 import sortableHook from "./sortable-hook";
 
+// colocated hooks (Phoenix.LiveView.ColocatedHook)
+import { hooks as colocatedHooks } from "phoenix-colocated/lanttern";
+
 let Hooks = {};
 Hooks.Autocomplete = autocompleteHook;
 Hooks.Cookies = cookiesHook;
@@ -48,6 +51,8 @@ Hooks.NavScrollspy = navScrollspyHook;
 Hooks.ScrollToTop = scrollToTopHook;
 Hooks.Slider = sliderHook;
 Hooks.Sortable = sortableHook;
+
+Object.assign(Hooks, colocatedHooks);
 
 let csrfToken = document
   .querySelector("meta[name='csrf-token']")

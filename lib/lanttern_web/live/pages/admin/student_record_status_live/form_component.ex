@@ -29,8 +29,8 @@ defmodule LantternWeb.Admin.StudentRecordStatusLive.FormComponent do
           class="mb-4"
         />
         <.input field={@form[:name]} type="text" label="Name" />
-        <.input field={@form[:bg_color]} type="text" label="Bg color" />
-        <.input field={@form[:text_color]} type="text" label="Text color" />
+        <.input field={@form[:bg_color]} type="color" label="Bg color" />
+        <.input field={@form[:text_color]} type="color" label="Text color" />
         <:actions>
           <.button phx-disable-with="Saving...">Save Student record status</.button>
         </:actions>

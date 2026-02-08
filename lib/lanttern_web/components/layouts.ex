@@ -67,6 +67,9 @@ defmodule LantternWeb.Layouts do
           <.settings_nav_link navigate={~p"/settings/lesson_templates"} current_path={@current_path}>
             {gettext("Lesson Templates")}
           </.settings_nav_link>
+          <.settings_nav_link navigate={~p"/settings/lesson_tags"} current_path={@current_path}>
+            {gettext("Lesson Tags")}
+          </.settings_nav_link>
         </:group>
       </.settings_side_nav>
       <main class="flex-1 min-w-0 p-10 overflow-y-auto ltrn-bg-main-local">

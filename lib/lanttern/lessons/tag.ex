@@ -1,6 +1,6 @@
-defmodule Lanttern.StudentTags.Tag do
+defmodule Lanttern.Lessons.Tag do
   @moduledoc """
-  The `StudentTags.Tag` schema
+  The `Lessons.Tag` schema
   """
 
   use Ecto.Schema
@@ -9,11 +9,13 @@ defmodule Lanttern.StudentTags.Tag do
 
   use Gettext, backend: Lanttern.Gettext
 
+  alias Lanttern.Identity.Scope
   alias Lanttern.Schools.School
 
   @type t :: %__MODULE__{
           id: pos_integer(),
           name: String.t(),
+          agent_description: String.t() | nil,
           position: non_neg_integer(),
           bg_color: String.t(),
           text_color: String.t(),
@@ -23,11 +25,12 @@ defmodule Lanttern.StudentTags.Tag do
           updated_at: DateTime.t()
         }
 
-  schema "schools_student_tags" do
+  schema "school_lesson_tags" do
     field :name, :string
-    field :position, :integer, default: 0
+    field :agent_description, :string
     field :bg_color, :string
     field :text_color, :string
+    field :position, :integer, default: 0
 
     belongs_to :school, School
 
@@ -35,11 +38,12 @@ defmodule Lanttern.StudentTags.Tag do
   end
 
   @doc false
-  def changeset(student_tag, attrs) do
-    student_tag
-    |> cast(attrs, [:name, :position, :bg_color, :text_color, :school_id])
-    |> validate_required([:name, :bg_color, :text_color, :school_id])
-    |> validate_hex_color(:bg_color, :schools_student_tags_bg_color_should_be_hex)
-    |> validate_hex_color(:text_color, :schools_student_tags_text_color_should_be_hex)
+  def changeset(tag, attrs, %Scope{} = scope) do
+    tag
+    |> cast(attrs, [:name, :agent_description, :bg_color, :text_color, :position])
+    |> validate_required([:name, :bg_color, :text_color, :position])
+    |> put_change(:school_id, scope.school_id)
+    |> validate_hex_color(:bg_color, :lesson_tags_bg_color_should_be_hex)
+    |> validate_hex_color(:text_color, :lesson_tags_text_color_should_be_hex)
   end
 end

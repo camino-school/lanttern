@@ -4,12 +4,14 @@ defmodule Lanttern.Lessons do
   """
 
   import Ecto.Query, warn: false
-  import Lanttern.RepoHelpers, only: [maybe_preload: 2, update_positions: 2, update_positions: 3]
+  import Lanttern.RepoHelpers
   alias Lanttern.Repo
 
   alias Lanttern.Attachments.Attachment
+  alias Lanttern.Identity.Scope
   alias Lanttern.Lessons.Lesson
   alias Lanttern.Lessons.LessonAttachment
+  alias Lanttern.Lessons.Tag
 
   @doc """
   Returns the list of lessons.
@@ -290,21 +292,6 @@ defmodule Lanttern.Lessons do
     end
   end
 
-  defp set_position_in_attrs(query, attrs) do
-    position =
-      query
-      |> select([q], q.position)
-      |> order_by([q], desc: q.position)
-      |> limit(1)
-      |> Repo.one()
-      |> case do
-        nil -> 0
-        pos -> pos + 1
-      end
-
-    Map.put(attrs, :position, position)
-  end
-
   @doc """
   Update lesson attachments positions based on ids list order.
 
@@ -352,5 +339,169 @@ defmodule Lanttern.Lessons do
       {:error, changeset} ->
         {:error, changeset}
     end
+  end
+
+  @doc """
+  Subscribes to scoped notifications about any tag changes.
+
+  The broadcasted messages match the pattern:
+
+    * {:created, %Tag{}}
+    * {:updated, %Tag{}}
+    * {:deleted, %Tag{}}
+
+  """
+  def subscribe_lesson_tags(%Scope{} = scope) do
+    key = scope.school_id
+
+    Phoenix.PubSub.subscribe(Lanttern.PubSub, "school:#{key}:lesson_tags")
+  end
+
+  defp broadcast_tag(%Scope{} = scope, message) do
+    key = scope.school_id
+
+    Phoenix.PubSub.broadcast(Lanttern.PubSub, "school:#{key}:lesson_tags", message)
+  end
+
+  @doc """
+  Returns the list of lesson_tags.
+
+  ## Examples
+
+      iex> list_lesson_tags(scope)
+      [%Tag{}, ...]
+
+  """
+  def list_lesson_tags(%Scope{} = scope) do
+    from(t in Tag,
+      where: t.school_id == ^scope.school_id,
+      order_by: [asc: t.position]
+    )
+    |> Repo.all()
+  end
+
+  @doc """
+  Gets a single tag.
+
+  Raises `Ecto.NoResultsError` if the Tag does not exist.
+
+  ## Examples
+
+      iex> get_tag!(scope, 123)
+      %Tag{}
+
+      iex> get_tag!(scope, 456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_tag!(%Scope{} = scope, id) do
+    Repo.get_by!(Tag, id: id, school_id: scope.school_id)
+  end
+
+  @doc """
+  Creates a tag.
+
+  ## Examples
+
+      iex> create_tag(scope, %{field: value})
+      {:ok, %Tag{}}
+
+      iex> create_tag(scope, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_tag(%Scope{} = scope, attrs) do
+    true = Scope.has_permission?(scope, "content_management")
+
+    attrs =
+      from(t in Tag, where: t.school_id == ^scope.school_id)
+      |> set_position_in_attrs(attrs)
+
+    with {:ok, tag = %Tag{}} <-
+           %Tag{}
+           |> Tag.changeset(attrs, scope)
+           |> Repo.insert() do
+      broadcast_tag(scope, {:created, tag})
+      {:ok, tag}
+    end
+  end
+
+  @doc """
+  Updates a tag.
+
+  ## Examples
+
+      iex> update_tag(scope, tag, %{field: new_value})
+      {:ok, %Tag{}}
+
+      iex> update_tag(scope, tag, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_tag(%Scope{} = scope, %Tag{} = tag, attrs) do
+    true = Scope.has_permission?(scope, "content_management")
+    true = Scope.belongs_to_school?(scope, tag.school_id)
+
+    with {:ok, tag = %Tag{}} <-
+           tag
+           |> Tag.changeset(attrs, scope)
+           |> Repo.update() do
+      broadcast_tag(scope, {:updated, tag})
+      {:ok, tag}
+    end
+  end
+
+  @doc """
+  Deletes a tag.
+
+  ## Examples
+
+      iex> delete_tag(scope, tag)
+      {:ok, %Tag{}}
+
+      iex> delete_tag(scope, tag)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_tag(%Scope{} = scope, %Tag{} = tag) do
+    true = Scope.has_permission?(scope, "content_management")
+    true = Scope.belongs_to_school?(scope, tag.school_id)
+
+    with {:ok, tag = %Tag{}} <-
+           Repo.delete(tag) do
+      broadcast_tag(scope, {:deleted, tag})
+      {:ok, tag}
+    end
+  end
+
+  @doc """
+  Update lesson tag positions based on ids list order.
+
+  ## Examples
+
+      iex> update_lesson_tag_positions(scope, [3, 2, 1])
+      :ok
+
+  """
+  @spec update_lesson_tag_positions(scope :: Scope.t(), tags_ids :: [pos_integer()]) ::
+          :ok | {:error, String.t()}
+  def update_lesson_tag_positions(%Scope{} = scope, tags_ids) do
+    true = Scope.has_permission?(scope, "content_management")
+    update_positions(Tag, tags_ids)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking tag changes.
+
+  ## Examples
+
+      iex> change_tag(scope, tag)
+      %Ecto.Changeset{data: %Tag{}}
+
+  """
+  def change_tag(%Scope{} = scope, %Tag{} = tag, attrs \\ %{}) do
+    true = Scope.has_permission?(scope, "content_management")
+
+    Tag.changeset(tag, attrs, scope)
   end
 end
