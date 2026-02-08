@@ -14,7 +14,7 @@ defmodule Lanttern.Lessons.Tag do
   @type t :: %__MODULE__{
           id: pos_integer(),
           name: String.t(),
-          agent_description: String.t(),
+          agent_description: String.t() | nil,
           position: non_neg_integer(),
           bg_color: String.t(),
           text_color: String.t(),

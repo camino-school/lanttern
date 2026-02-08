@@ -98,7 +98,7 @@ defmodule LantternWeb.LessonTagsLive do
     reordered_tags = List.insert_at(rest, new_index, moved_tag)
 
     reordered_ids = Enum.map(reordered_tags, & &1.id)
-    Lessons.update_lesson_tag_positions(reordered_ids)
+    Lessons.update_lesson_tag_positions(socket.assigns.current_scope, reordered_ids)
 
     {:noreply, assign(socket, :lesson_tags, reordered_tags)}
   end

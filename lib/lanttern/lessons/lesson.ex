@@ -30,7 +30,7 @@ defmodule Lanttern.Lessons.Lesson do
           moment: Moment.t() | Ecto.Association.NotLoaded.t(),
           moment_id: pos_integer() | nil,
           subjects: [Subject.t()] | Ecto.Association.NotLoaded.t(),
-          tags: [Tag.t() | Ecto.Association.NotLoaded.t()],
+          tags: [Tag.t()] | Ecto.Association.NotLoaded.t(),
           inserted_at: NaiveDateTime.t(),
           updated_at: NaiveDateTime.t()
         }
@@ -91,7 +91,7 @@ defmodule Lanttern.Lessons.Lesson do
     end
   end
 
-  def put_tags(changeset) do
+  defp put_tags(changeset) do
     put_tags(
       changeset,
       get_change(changeset, :tags_ids)

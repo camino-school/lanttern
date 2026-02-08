@@ -479,14 +479,16 @@ defmodule Lanttern.Lessons do
 
   ## Examples
 
-      iex> update_lesson_tag_positions([3, 2, 1])
+      iex> update_lesson_tag_positions(scope, [3, 2, 1])
       :ok
 
   """
-  @spec update_lesson_tag_positions(tags_ids :: [pos_integer()]) ::
+  @spec update_lesson_tag_positions(scope :: Scope.t(), tags_ids :: [pos_integer()]) ::
           :ok | {:error, String.t()}
-  def update_lesson_tag_positions(tags_ids),
-    do: update_positions(Tag, tags_ids)
+  def update_lesson_tag_positions(%Scope{} = scope, tags_ids) do
+    true = Scope.has_permission?(scope, "content_management")
+    update_positions(Tag, tags_ids)
+  end
 
   @doc """
   Returns an `%Ecto.Changeset{}` for tracking tag changes.

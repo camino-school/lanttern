@@ -286,7 +286,6 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
         remove_shadow={!@lesson.is_published}
       >
         <div class="flex-1 p-4">
-          
           <div class="flex items-center gap-4">
             <h4 class="flex-1 font-display font-bold text-base">
               <.link
