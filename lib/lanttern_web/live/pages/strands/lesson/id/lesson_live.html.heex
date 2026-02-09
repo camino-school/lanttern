@@ -267,7 +267,12 @@
     subjects={@strand.subjects}
     strand_id={@strand.id}
     current_scope={@current_scope}
-    navigate={~p"/strands/lesson/#{@lesson}"}
+    navigate={
+      fn
+        {:deleted, _lesson} -> ~p"/strands/#{@strand}"
+        _ -> ~p"/strands/lesson/#{@lesson}"
+      end
+    }
     on_cancel={JS.exec("data-cancel", to: "#lesson-form-overlay")}
   />
 </.modal>

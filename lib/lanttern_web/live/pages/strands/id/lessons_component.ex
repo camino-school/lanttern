@@ -613,7 +613,7 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
 
     # update lesson's moment_id
     lesson = Lessons.get_lesson!(lesson_id)
-    Lessons.update_lesson(lesson, %{moment_id: to_moment_id})
+    Lessons.update_lesson(socket.assigns.current_scope, lesson, %{moment_id: to_moment_id})
 
     # and update ids list in assigns
     moments_lessons_ids_map =

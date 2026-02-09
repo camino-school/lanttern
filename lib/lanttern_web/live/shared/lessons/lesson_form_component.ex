@@ -211,7 +211,7 @@ defmodule LantternWeb.Lessons.LessonFormComponent do
 
   def handle_event("delete", _params, socket) do
     socket =
-      case Lessons.delete_lesson(socket.assigns.lesson) do
+      case Lessons.delete_lesson(socket.assigns.current_scope, socket.assigns.lesson) do
         {:ok, lesson} ->
           socket
           |> put_flash(:info, gettext("Lesson deleted"))
@@ -240,7 +240,7 @@ defmodule LantternWeb.Lessons.LessonFormComponent do
   end
 
   defp save_lesson(socket, nil, lesson_params) do
-    case Lessons.create_lesson(lesson_params) do
+    case Lessons.create_lesson(socket.assigns.current_scope, lesson_params) do
       {:ok, lesson} ->
         socket =
           socket
@@ -255,7 +255,7 @@ defmodule LantternWeb.Lessons.LessonFormComponent do
   end
 
   defp save_lesson(socket, _id, lesson_params) do
-    case Lessons.update_lesson(socket.assigns.lesson, lesson_params) do
+    case Lessons.update_lesson(socket.assigns.current_scope, socket.assigns.lesson, lesson_params) do
       {:ok, lesson} ->
         socket =
           socket

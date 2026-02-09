@@ -8,9 +8,11 @@ defmodule Lanttern.Lessons do
   alias Lanttern.Repo
 
   alias Lanttern.Attachments.Attachment
+  alias Lanttern.AuditLog
   alias Lanttern.Identity.Scope
   alias Lanttern.Lessons.Lesson
   alias Lanttern.Lessons.LessonAttachment
+  alias Lanttern.Lessons.LessonLog
   alias Lanttern.Lessons.Tag
 
   @doc """
@@ -117,21 +119,23 @@ defmodule Lanttern.Lessons do
   ## Options
 
   - `:preloads` – preloads associated data
+  - `:is_ai_agent` – marks the audit log entry as AI-generated
 
   ## Examples
 
-      iex> create_lesson(%{field: value})
+      iex> create_lesson(scope, %{field: value})
       {:ok, %Lesson{}}
 
-      iex> create_lesson(%{field: bad_value})
+      iex> create_lesson(scope, %{field: bad_value})
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_lesson(attrs, opts \\ []) do
+  def create_lesson(%Scope{} = scope, attrs, opts \\ []) do
     %Lesson{}
     |> Lesson.changeset(attrs)
     |> set_lesson_position()
     |> Repo.insert()
+    |> AuditLog.maybe_log(LessonLog, "CREATE", scope, Keyword.take(opts, [:is_ai_agent]))
     |> maybe_preload(opts)
   end
 
@@ -170,19 +174,24 @@ defmodule Lanttern.Lessons do
   @doc """
   Updates a lesson.
 
+  ## Options
+
+  - `:is_ai_agent` – marks the audit log entry as AI-generated
+
   ## Examples
 
-      iex> update_lesson(lesson, %{field: new_value})
+      iex> update_lesson(scope, lesson, %{field: new_value})
       {:ok, %Lesson{}}
 
-      iex> update_lesson(lesson, %{field: bad_value})
+      iex> update_lesson(scope, lesson, %{field: bad_value})
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_lesson(%Lesson{} = lesson, attrs) do
+  def update_lesson(%Scope{} = scope, %Lesson{} = lesson, attrs, opts \\ []) do
     lesson
     |> Lesson.changeset(attrs)
     |> Repo.update()
+    |> AuditLog.maybe_log(LessonLog, "UPDATE", scope, Keyword.take(opts, [:is_ai_agent]))
   end
 
   @doc """
@@ -204,15 +213,16 @@ defmodule Lanttern.Lessons do
 
   ## Examples
 
-      iex> delete_lesson(lesson)
+      iex> delete_lesson(scope, lesson)
       {:ok, %Lesson{}}
 
-      iex> delete_lesson(lesson)
+      iex> delete_lesson(scope, lesson)
       {:error, %Ecto.Changeset{}}
 
   """
-  def delete_lesson(%Lesson{} = lesson) do
+  def delete_lesson(%Scope{} = scope, %Lesson{} = lesson) do
     Repo.delete(lesson)
+    |> AuditLog.maybe_log(LessonLog, "DELETE", scope, [])
   end
 
   @doc """

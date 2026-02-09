@@ -59,7 +59,9 @@ defmodule LantternWeb.LessonLive do
 
   def handle_event("publish", _params, socket) do
     socket =
-      Lessons.update_lesson(socket.assigns.lesson, %{is_published: true})
+      Lessons.update_lesson(socket.assigns.current_scope, socket.assigns.lesson, %{
+        is_published: true
+      })
       |> case do
         {:ok, lesson} ->
           socket
@@ -79,7 +81,9 @@ defmodule LantternWeb.LessonLive do
 
   def handle_event("unpublish", _params, socket) do
     socket =
-      Lessons.update_lesson(socket.assigns.lesson, %{is_published: false})
+      Lessons.update_lesson(socket.assigns.current_scope, socket.assigns.lesson, %{
+        is_published: false
+      })
       |> case do
         {:ok, lesson} ->
           socket
@@ -118,7 +122,7 @@ defmodule LantternWeb.LessonLive do
   end
 
   def handle_event("save_description", %{"lesson" => params}, socket) do
-    case Lessons.update_lesson(socket.assigns.lesson, params) do
+    case Lessons.update_lesson(socket.assigns.current_scope, socket.assigns.lesson, params) do
       {:ok, lesson} ->
         socket =
           socket
@@ -157,7 +161,7 @@ defmodule LantternWeb.LessonLive do
   end
 
   def handle_event("save_teacher_notes", %{"lesson" => params}, socket) do
-    case Lessons.update_lesson(socket.assigns.lesson, params) do
+    case Lessons.update_lesson(socket.assigns.current_scope, socket.assigns.lesson, params) do
       {:ok, lesson} ->
         socket =
           socket
@@ -196,7 +200,7 @@ defmodule LantternWeb.LessonLive do
   end
 
   def handle_event("save_differentiation", %{"lesson" => params}, socket) do
-    case Lessons.update_lesson(socket.assigns.lesson, params) do
+    case Lessons.update_lesson(socket.assigns.current_scope, socket.assigns.lesson, params) do
       {:ok, lesson} ->
         socket =
           socket
