@@ -12,7 +12,7 @@ defmodule Lanttern.Repo.Migrations.AddGuardiansTable do
     # create relationship many to many in table students_guardians
     create table(:students_guardians, primary_key: false) do
       add :student_id,
-          references(:students, with: [school_id: :school_id], on_delete: :delete_all),
+          references(:students, on_delete: :delete_all),
           primary_key: true
       add :guardian_id,
           references(:guardians, on_delete: :delete_all),

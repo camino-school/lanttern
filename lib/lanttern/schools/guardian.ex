@@ -20,7 +20,6 @@ defmodule Lanttern.Schools.Guardian do
 
   schema "guardians" do
     field :name, :string
-    field :school_id, :id
 
     belongs_to :school, Lanttern.Schools.School
 
