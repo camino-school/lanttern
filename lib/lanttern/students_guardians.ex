@@ -7,7 +7,7 @@ defmodule Lanttern.StudentsGuardians do
   import Lanttern.RepoHelpers
   alias Lanttern.Repo
 
-  alias Lanttern.Guardian
+  alias Lanttern.Schools.Guardian
   alias Lanttern.Schools.Student
 
   @doc """
@@ -44,16 +44,24 @@ defmodule Lanttern.StudentsGuardians do
 
   ## Examples
 
-      iex> get_guardians_for_student(student_id)
+      iex> get_guardians_for_student(current_user, student)
       [%Guardian{}, ...]
 
   """
-  def get_guardians_for_student(student_id) do
-    Repo.all(
-      from g in Guardian,
-        join: s in Student,
-        on: fragment("EXISTS (SELECT 1 FROM students_guardians WHERE student_id = ? AND guardian_id = ?)", ^student_id, g.id)
-    )
+  def get_guardians_for_student(current_user, %Student{} = student) do
+    user_school_id = current_user.current_profile.school_id
+
+    if student.school_id == user_school_id do
+      Repo.all(
+        from g in Guardian,
+          join: sg in "students_guardians",
+          on: g.id == sg.guardian_id,
+          where: sg.student_id == ^student.id,
+          select: g
+      )
+    else
+      []
+    end
   end
 
   @doc """
@@ -61,15 +69,21 @@ defmodule Lanttern.StudentsGuardians do
 
   ## Examples
 
-      iex> add_guardian_to_student(student, guardian)
+      iex> add_guardian_to_student(current_user, student, guardian)
       {:ok, %Student{}}
 
   """
   def add_guardian_to_student(current_user, %Student{} = student, %Guardian{} = guardian) do
-    student
-    |> Ecto.Changeset.change()
-    |> Ecto.Changeset.put_assoc(:guardians, (student.guardians || []) ++ [guardian])
-    |> Repo.update()
+    user_school_id = current_user.current_profile.school_id
+
+    if student.school_id == user_school_id && guardian.school_id == user_school_id do
+      student
+      |> Ecto.Changeset.change()
+      |> Ecto.Changeset.put_assoc(:guardians, (student.guardians || []) ++ [guardian])
+      |> Repo.update()
+    else
+      {:error, :unauthorized}
+    end
   end
 
   @doc """
@@ -82,12 +96,18 @@ defmodule Lanttern.StudentsGuardians do
 
   """
   def remove_guardian_from_student(current_user, %Student{} = student, guardian_id) do
-    student
-    |> Ecto.Changeset.change()
-    |> Ecto.Changeset.put_assoc(
-      :guardians,
-      Enum.reject(student.guardians, &(&1.id == guardian_id))
-    )
-    |> Repo.update()
+    user_school_id = current_user.current_profile.school_id
+
+    if student.school_id == user_school_id do
+      student
+      |> Ecto.Changeset.change()
+      |> Ecto.Changeset.put_assoc(
+        :guardians,
+        Enum.reject(student.guardians, &(&1.id == guardian_id))
+      )
+      |> Repo.update()
+    else
+      {:error, :unauthorized}
+    end
   end
 end

@@ -4,6 +4,7 @@ defmodule Lanttern.Repo.Migrations.AddGuardiansTable do
   def change do
     create table(:guardians) do
       add :name, :string, null: false
+      add :school_id, references(:schools, on_delete: :nothing), null: false
 
       timestamps()
     end
@@ -16,7 +17,6 @@ defmodule Lanttern.Repo.Migrations.AddGuardiansTable do
       add :guardian_id,
           references(:guardians, on_delete: :delete_all),
           primary_key: true
-      add :school_id, references(:schools, on_delete: :nothing), null: false
     end
   end
 
