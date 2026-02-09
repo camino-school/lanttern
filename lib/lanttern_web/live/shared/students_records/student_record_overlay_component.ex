@@ -13,6 +13,7 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
 
   # shared
 
+  alias LantternWeb.Attachments.AttachmentAreaComponent
   alias LantternWeb.Schools.ClassesFieldComponent
   alias LantternWeb.Schools.StaffMemberSearchComponent
   alias LantternWeb.Schools.StudentSearchComponent
@@ -313,6 +314,15 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
                 {gettext("This record is visible to all school staff")}
               </div>
             </div>
+            <.live_component
+              module={AttachmentAreaComponent}
+              id="student-record-attachments"
+              student_record_id={@student_record.id}
+              title={gettext("Attachments")}
+              allow_editing={@has_update_permissions}
+              current_user={@current_user}
+              class="mt-10"
+            />
             <%= if @is_deleted do %>
               <.error_block class="mt-10">
                 {gettext("This record was deleted")}
@@ -427,6 +437,8 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
   end
 
   @impl true
+  def update(%{action: {AttachmentAreaComponent, _}}, socket), do: {:ok, socket}
+
   def update(%{action: {StudentSearchComponent, {:selected, student}}}, socket) do
     selected_students =
       (socket.assigns.selected_students ++ [student])

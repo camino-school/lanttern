@@ -84,6 +84,13 @@ defmodule LantternWeb.StudentsRecordsComponents do
               <.badge :for={class <- student_record.classes}>
                 {class_with_cycle(class, @current_user)}
               </.badge>
+              <.badge
+                :if={Map.get(student_record, :attachments_count, 0) > 0}
+                icon_name="hero-paper-clip-mini"
+                class="max-w-full"
+              >
+                {student_record.attachments_count}
+              </.badge>
             </div>
           </div>
           <div class="mt-6 md:mt-0 md:flex-1">
