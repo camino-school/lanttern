@@ -138,7 +138,7 @@ msgstr ""
 #: lib/lanttern_web/live/shared/schools/class_form_overlay_component.ex:114
 #: lib/lanttern_web/live/shared/schools/cycle_form_overlay_component.ex:58
 #: lib/lanttern_web/live/shared/schools/staff_member_form_overlay_component.ex:96
-#: lib/lanttern_web/live/shared/schools/student_form_overlay_component.ex:132
+#: lib/lanttern_web/live/shared/schools/student_form_overlay_component.ex:139
 #: lib/lanttern_web/live/shared/students/student_tag_form_overlay_component.ex:84
 #: lib/lanttern_web/live/shared/students_cycle_info/student_cycle_info_form_component.ex:40
 #: lib/lanttern_web/live/shared/students_records/student_record_overlay_component.ex:194
@@ -205,7 +205,7 @@ msgstr ""
 #: lib/lanttern_web/live/shared/schools/class_form_overlay_component.ex:117
 #: lib/lanttern_web/live/shared/schools/cycle_form_overlay_component.ex:61
 #: lib/lanttern_web/live/shared/schools/staff_member_form_overlay_component.ex:105
-#: lib/lanttern_web/live/shared/schools/student_form_overlay_component.ex:141
+#: lib/lanttern_web/live/shared/schools/student_form_overlay_component.ex:148
 #: lib/lanttern_web/live/shared/students/student_tag_form_overlay_component.ex:93
 #: lib/lanttern_web/live/shared/students_cycle_info/student_cycle_info_form_component.ex:43
 #: lib/lanttern_web/live/shared/students_records/student_record_overlay_component.ex:203
@@ -442,7 +442,7 @@ msgstr ""
 #: lib/lanttern_web/live/shared/school_config/moment_card_template_overlay_component.ex:111
 #: lib/lanttern_web/live/shared/schools/class_form_overlay_component.ex:109
 #: lib/lanttern_web/live/shared/schools/cycle_form_overlay_component.ex:53
-#: lib/lanttern_web/live/shared/schools/student_form_overlay_component.ex:112
+#: lib/lanttern_web/live/shared/schools/student_form_overlay_component.ex:119
 #: lib/lanttern_web/live/shared/students/student_tag_form_overlay_component.ex:74
 #: lib/lanttern_web/live/shared/students_records/student_record_overlay_component.ex:334
 #: lib/lanttern_web/live/shared/students_records/student_record_status_form_overlay.ex:92
@@ -512,7 +512,7 @@ msgstr ""
 #: lib/lanttern_web/live/shared/school_config/moment_card_template_overlay_component.ex:109
 #: lib/lanttern_web/live/shared/schools/class_form_overlay_component.ex:107
 #: lib/lanttern_web/live/shared/schools/cycle_form_overlay_component.ex:51
-#: lib/lanttern_web/live/shared/schools/student_form_overlay_component.ex:110
+#: lib/lanttern_web/live/shared/schools/student_form_overlay_component.ex:117
 #: lib/lanttern_web/live/shared/students/student_tag_form_overlay_component.ex:72
 #: lib/lanttern_web/live/shared/students_records/student_record_overlay_component.ex:332
 #: lib/lanttern_web/live/shared/students_records/student_record_status_form_overlay.ex:90
@@ -2529,7 +2529,7 @@ msgstr ""
 #: lib/lanttern_web/live/pages/students_records/students_records_live.html.heex:30
 #: lib/lanttern_web/live/shared/message_board/message_form_overlay_component.ex:95
 #: lib/lanttern_web/live/shared/message_board/message_form_overlay_component_v2.ex:140
-#: lib/lanttern_web/live/shared/schools/student_form_overlay_component.ex:55
+#: lib/lanttern_web/live/shared/schools/student_form_overlay_component.ex:62
 #: lib/lanttern_web/live/shared/students_records/student_record_overlay_component.ex:124
 #: lib/lanttern_web/live/shared/students_records/student_record_overlay_component.ex:242
 #, elixir-autogen, elixir-format
@@ -3704,7 +3704,7 @@ msgid "Edit staff member"
 msgstr ""
 
 #: lib/lanttern_web/live/shared/schools/staff_member_form_overlay_component.ex:73
-#: lib/lanttern_web/live/shared/schools/student_form_overlay_component.ex:87
+#: lib/lanttern_web/live/shared/schools/student_form_overlay_component.ex:94
 #, elixir-autogen, elixir-format
 msgid "Enables the user to login at Lanttern via Google Sign In"
 msgstr ""
@@ -3726,7 +3726,7 @@ msgid "Invalid staff member"
 msgstr ""
 
 #: lib/lanttern_web/live/shared/schools/staff_member_form_overlay_component.ex:68
-#: lib/lanttern_web/live/shared/schools/student_form_overlay_component.ex:82
+#: lib/lanttern_web/live/shared/schools/student_form_overlay_component.ex:89
 #, elixir-autogen, elixir-format
 msgid "Lanttern user email"
 msgstr ""
@@ -3743,7 +3743,7 @@ msgstr ""
 
 #: lib/lanttern_web/components/schools_components.ex:191
 #: lib/lanttern_web/live/pages/school/staff/deactivated/deactivated_staff_live.html.heex:41
-#: lib/lanttern_web/live/shared/schools/student_form_overlay_component.ex:122
+#: lib/lanttern_web/live/shared/schools/student_form_overlay_component.ex:129
 #, elixir-autogen, elixir-format
 msgid "Reactivate"
 msgstr ""
@@ -3787,7 +3787,7 @@ msgstr[0] ""
 msgstr[1] ""
 
 #: lib/lanttern_web/live/shared/schools/staff_member_form_overlay_component.ex:86
-#: lib/lanttern_web/live/shared/schools/student_form_overlay_component.ex:101
+#: lib/lanttern_web/live/shared/schools/student_form_overlay_component.ex:108
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Deactivate"
 msgstr ""
@@ -4235,7 +4235,7 @@ msgstr[1] ""
 msgid "All classes"
 msgstr ""
 
-#: lib/lanttern_web/live/shared/schools/student_form_overlay_component.ex:99
+#: lib/lanttern_web/live/shared/schools/student_form_overlay_component.ex:106
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Are you sure? You can reactive the student later."
 msgstr ""
@@ -4453,7 +4453,7 @@ msgid "No messages matching current filters created yet"
 msgstr ""
 
 #: lib/lanttern_web/live/shared/schools/classes_field_component.ex:48
-#: lib/lanttern_web/live/shared/schools/student_form_overlay_component.ex:75
+#: lib/lanttern_web/live/shared/schools/student_form_overlay_component.ex:82
 #, elixir-autogen, elixir-format, fuzzy
 msgid "No selected classes"
 msgstr ""
@@ -5147,7 +5147,7 @@ msgid "Student settings"
 msgstr ""
 
 #: lib/lanttern_web/live/pages/students_records/students_records_live.html.heex:210
-#: lib/lanttern_web/live/shared/schools/student_form_overlay_component.ex:62
+#: lib/lanttern_web/live/shared/schools/student_form_overlay_component.ex:69
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Student tags"
 msgstr ""
@@ -5493,4 +5493,9 @@ msgstr ""
 #: lib/lanttern_web/live/shared/message_board/message_form_overlay_component_v2.ex:84
 #, elixir-autogen, elixir-format
 msgid "what appears in the card preview"
+msgstr ""
+
+#: lib/lanttern_web/live/shared/schools/student_form_overlay_component.ex:54
+#, elixir-autogen, elixir-format
+msgid "Date of birth"
 msgstr ""
