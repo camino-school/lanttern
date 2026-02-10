@@ -1,0 +1,93 @@
+<Layouts.app_logged_in flash={@flash} current_user={@current_user} current_path={@current_path}>
+  <div>
+    <.header_nav current_user={@current_user}>
+      <:breadcrumb navigate={~p"/school/guardians"}>
+        {gettext("Guardians")}
+      </:breadcrumb>
+      <:title>{@guardian.name}</:title>
+      <div class="flex items-center justify-between gap-4 px-4">
+        <.neo_tabs id="guardian-nav-tabs">
+          <:tab patch={~p"/school/guardians/#{@guardian}"} is_current={@live_action == :show}>
+            {gettext("About")}
+          </:tab>
+        </.neo_tabs>
+        <.action
+          :if={@is_school_manager}
+          type="link"
+          patch={"#{@current_path}?edit=true"}
+          icon_name="hero-pencil-mini"
+        >
+          {gettext("Edit guardian")}
+        </.action>
+      </div>
+    </.header_nav>
+    <div class="p-10">
+      <div class="sm:flex sm:items-center sm:gap-6">
+        <.profile_picture
+          class="shadow-lg"
+          picture_url={nil}
+          profile_name={@guardian.name}
+          size="xl"
+        />
+        <div class="mt-6 sm:mt-0">
+          <h2 class="font-display font-black text-2xl">
+            {@guardian.name}
+          </h2>
+        </div>
+      </div>
+
+      <div class="grid gap-6 md:grid-cols-2 mt-12">
+        <.card_base>
+          <div class="p-6">
+            <p class="text-sm text-ltrn-subtle mb-2">{gettext("School")}</p>
+            <.link
+              navigate={~p"/school"}
+              class="text-lg font-semibold hover:text-ltrn-subtle"
+            >
+              {@guardian.school.name}
+            </.link>
+          </div>
+        </.card_base>
+
+        <.card_base>
+          <div class="p-6">
+            <p class="text-sm text-ltrn-subtle mb-2">{gettext("Linked Students")}</p>
+            <p class="text-lg font-semibold">
+              {ngettext("1 student", "%{count} students", length(@guardian.students))}
+            </p>
+          </div>
+        </.card_base>
+      </div>
+
+      <div :if={length(@guardian.students) > 0} class="mt-12">
+        <h3 class="font-display font-black text-lg mb-4">{gettext("Students")}</h3>
+        <.fluid_grid is_full_width class="gap-4">
+          <.card_base :for={student <- @guardian.students} class="flex items-center gap-4 p-4">
+            <.profile_picture
+              picture_url={student.profile_picture_url}
+              profile_name={student.name}
+              size="md"
+            />
+            <div class="min-w-0 flex-1">
+              <.link
+                navigate={~p"/school/students/#{student}"}
+                class="font-semibold hover:text-ltrn-subtle"
+              >
+                {student.name}
+              </.link>
+            </div>
+          </.card_base>
+        </.fluid_grid>
+      </div>
+    </div>
+  </div>
+  <.live_component
+    :if={@is_editing}
+    module={LantternWeb.Schools.GuardianFormOverlayComponent}
+    id="guardian-form-overlay"
+    guardian={@guardian}
+    title={gettext("Edit guardian")}
+    on_cancel={JS.patch(@current_path)}
+    notify_component={@myself}
+  />
+</Layouts.app_logged_in>

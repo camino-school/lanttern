@@ -203,4 +203,58 @@ defmodule LantternWeb.SchoolsComponents do
     </.card_base>
     """
   end
+
+  @doc """
+  Renders a guardian card.
+  """
+
+  attr :id, :any, required: true
+  attr :guardian, Lanttern.Schools.Guardian, required: true
+  attr :navigate, :string, default: nil
+  attr :show_edit, :boolean, default: false
+  attr :edit_patch, :string, default: nil
+  attr :on_delete, Phoenix.LiveView.JS, default: nil
+
+  def guardian_card(assigns) do
+    ~H"""
+    <.card_base id={@id} class="flex items-center justify-between gap-4 p-4">
+      <.profile_picture
+        picture_url={}
+        profile_name={@guardian.name}
+        size="lg"
+      />
+      <div class="min-w-0 flex-1">
+        <%= if @navigate do %>
+          <.link navigate={@navigate} class="font-bold hover:text-ltrn-subtle">
+            {@guardian.name}
+          </.link>
+        <% else %>
+          <div class="font-bold">
+            {@guardian.name}
+          </div>
+        <% end %>
+      </div>
+      <div class="flex items-center gap-2">
+        <.button
+          :if={@show_edit}
+          type="link"
+          icon_name="hero-pencil-mini"
+          sr_text={gettext("Edit guardian")}
+          rounded
+          size="sm"
+          theme="ghost"
+          patch={@edit_patch}
+        />
+        <.button
+          icon_name="hero-trash-mini"
+          sr_text={gettext("Delete guardian")}
+          rounded
+          size="sm"
+          theme="ghost"
+          phx-click={@on_delete}
+        />
+      </div>
+    </.card_base>
+    """
+  end
 end

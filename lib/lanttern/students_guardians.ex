@@ -4,7 +4,6 @@ defmodule Lanttern.StudentsGuardians do
   """
 
   import Ecto.Query, warn: false
-  import Lanttern.RepoHelpers
   alias Lanttern.Repo
 
   alias Lanttern.Schools.Guardian

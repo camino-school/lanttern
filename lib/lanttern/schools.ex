@@ -14,6 +14,7 @@ defmodule Lanttern.Schools do
   alias Lanttern.Identity.User
   alias Lanttern.Schools.Class
   alias Lanttern.Schools.Cycle
+  alias Lanttern.Schools.Guardian
   alias Lanttern.Schools.School
   alias Lanttern.Schools.StaffMember
   alias Lanttern.Schools.Student
@@ -1557,6 +1558,145 @@ defmodule Lanttern.Schools do
   """
   def change_staff_member(%StaffMember{} = staff_member, attrs \\ %{}) do
     StaffMember.changeset(staff_member, attrs)
+  end
+
+  @doc """
+  Returns the list of guardians.
+
+  ### Options:
+
+  - `:school_id` – filter guardians by school
+  - `:preloads` – preloads associated data
+
+  ## Examples
+
+      iex> list_guardians()
+      [%Guardian{}, ...]
+
+  """
+  def list_guardians(opts \\ []) do
+    queryable = Keyword.get(opts, :base_query, Guardian)
+
+    from(
+      g in queryable,
+      order_by: g.name
+    )
+    |> apply_list_guardians_opts(opts)
+    |> Repo.all()
+    |> maybe_preload(opts)
+  end
+
+  defp apply_list_guardians_opts(queryable, []), do: queryable
+
+  defp apply_list_guardians_opts(queryable, [{:school_id, school_id} | opts]) do
+    from(
+      g in queryable,
+      where: g.school_id == ^school_id
+    )
+    |> apply_list_guardians_opts(opts)
+  end
+
+  defp apply_list_guardians_opts(queryable, [_ | opts]),
+    do: apply_list_guardians_opts(queryable, opts)
+
+  @doc """
+  Gets a single guardian.
+
+  Returns `nil` if the Guardian does not exist.
+
+  ### Options:
+
+  - `:preloads` – preloads associated data
+
+  ## Examples
+
+      iex> get_guardian(123)
+      %Guardian{}
+
+      iex> get_guardian(456)
+      nil
+
+  """
+  def get_guardian(id, opts \\ []) do
+    Guardian
+    |> Repo.get(id)
+    |> maybe_preload(opts)
+  end
+
+  @doc """
+  Gets a single guardian.
+
+  Same as `get_guardian/2`, but raises `Ecto.NoResultsError` if the Guardian does not exist.
+  """
+  def get_guardian!(id, opts \\ []) do
+    Guardian
+    |> Repo.get!(id)
+    |> maybe_preload(opts)
+  end
+
+  @doc """
+  Creates a guardian.
+
+  ## Examples
+
+      iex> create_guardian(%{field: value})
+      {:ok, %Guardian{}}
+
+      iex> create_guardian(%{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_guardian(attrs \\ %{}) do
+    %Guardian{}
+    |> Guardian.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a guardian.
+
+  ## Examples
+
+      iex> update_guardian(guardian, %{field: new_value})
+      {:ok, %Guardian{}}
+
+      iex> update_guardian(guardian, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_guardian(%Guardian{} = guardian, attrs) do
+    guardian
+    |> Guardian.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a guardian.
+
+  ## Examples
+
+      iex> delete_guardian(guardian)
+      {:ok, %Guardian{}}
+
+      iex> delete_guardian(guardian)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_guardian(%Guardian{} = guardian) do
+    Repo.delete(guardian)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking guardian changes.
+
+  ## Examples
+
+      iex> change_guardian(guardian)
+      %Ecto.Changeset{data: %Guardian{}}
+
+  """
+  def change_guardian(%Guardian{} = guardian, attrs \\ %{}) do
+    Guardian.changeset(guardian, attrs)
   end
 
   @doc """

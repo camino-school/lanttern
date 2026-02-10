@@ -62,6 +62,8 @@ defmodule LantternWeb.Router do
       live "/dashboard", DashboardLive, :index
 
       live "/school/students", SchoolLive, :manage_students
+      live "/school/guardians", SchoolLive, :manage_guardians
+      live "/school/guardians/:id", GuardianLive, :show
       live "/school/classes", SchoolLive, :manage_classes
       live "/school/staff", SchoolLive, :manage_staff
       live "/school/cycles", SchoolLive, :manage_cycles
