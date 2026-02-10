@@ -57,14 +57,16 @@ defmodule LantternWeb.Schools.GuardianFormOverlayComponent do
           <.action
             type="button"
             theme="ghost"
-            phx-click={JS.exec("phx-remove", to: "##{@id}")}
+            phx-click={@on_cancel}
           >
             {gettext("Cancel")}
           </.action>
           <.action
-            type="button"
+            type="submit"
             theme="primary"
-            phx-click={JS.push("save", target: ~s(#guardian-form))}
+            size="md"
+            icon_name="hero-check"
+            form="guardian-form"
           >
             {gettext("Save")}
           </.action>
@@ -96,50 +98,59 @@ defmodule LantternWeb.Schools.GuardianFormOverlayComponent do
     {:noreply, assign_form(socket, changeset)}
   end
 
-  def handle_event("save", _params, socket) do
-    save_guardian(socket, socket.assigns.guardian.id)
+  def handle_event("save", %{"guardian" => params}, socket) do
+    save_guardian(socket, socket.assigns.guardian.id, params)
   end
 
   def handle_event("delete", _params, socket) do
     case Schools.delete_guardian(socket.assigns.guardian) do
-      {:ok, guardian} ->
-        notify_parent(socket, {:deleted, guardian})
-        {:noreply, socket}
+      {:ok, _guardian} ->
+        send_update(socket.assigns.notify_component, action: :reload_guardians)
+        {:noreply, push_patch(socket, to: ~p"/school/guardians")}
 
       {:error, _changeset} ->
         {:noreply, socket}
     end
   end
 
-  defp save_guardian(socket, nil) do
+  defp save_guardian(socket, nil, params) do
     changeset = socket.assigns.form.source
-    params = changeset_to_params(changeset)
+    params = changeset_to_params(changeset, params)
 
     case Schools.create_guardian(params) do
-      {:ok, guardian} ->
-        notify_parent(socket, {:created, guardian})
-        {:noreply, socket}
+      {:ok, _guardian} ->
+        send_update(socket.assigns.notify_component, action: :reload_guardians)
+        {:noreply, push_patch(socket, to: ~p"/school/guardians")}
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign_form(socket, changeset)}
     end
   end
 
-  defp save_guardian(socket, _id) do
+  defp save_guardian(socket, _id, params) do
     changeset = socket.assigns.form.source
-    params = changeset_to_params(changeset)
+    params = changeset_to_params(changeset, params)
 
     case Schools.update_guardian(socket.assigns.guardian, params) do
-      {:ok, guardian} ->
-        notify_parent(socket, {:updated, guardian})
-        {:noreply, socket}
+      {:ok, _guardian} ->
+        send_update(socket.assigns.notify_component, action: :reload_guardians)
+        {:noreply, push_patch(socket, to: ~p"/school/guardians")}
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign_form(socket, changeset)}
     end
   end
 
-  defp changeset_to_params(changeset) do
+  defp changeset_to_params(%Ecto.Changeset{} = changeset, params) do
+    data = changeset.data
+
+    %{
+      name: Ecto.Changeset.get_field(changeset, :name, params["name"] || data.name),
+      school_id: Ecto.Changeset.get_field(changeset, :school_id, data.school_id)
+    }
+  end
+
+  defp changeset_to_params(changeset, _params) do
     data = changeset.data
 
     %{
@@ -150,9 +161,5 @@ defmodule LantternWeb.Schools.GuardianFormOverlayComponent do
 
   defp assign_form(socket, changeset) do
     assign(socket, :form, to_form(changeset))
-  end
-
-  defp notify_parent(socket, msg) do
-    send_update(socket.assigns.notify_component, action: {__MODULE__, msg})
   end
 end

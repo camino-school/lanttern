@@ -52,40 +52,24 @@ defmodule LantternWeb.SchoolLive.GuardiansComponent do
   end
 
   @impl true
-  def update(%{action: {LantternWeb.Schools.GuardianFormComponent, {:created, guardian}}}, socket) do
-    socket =
-      socket
-      |> put_flash(:info, gettext("Guardian created successfully"))
-      |> push_patch(to: ~p"/school/guardians")
-
-    {:ok, socket}
-  end
-
-  def update(%{action: {LantternWeb.Schools.GuardianFormComponent, {action, _guardian}}}, socket)
-      when action in [:updated, :deleted] do
-    message =
-      case action do
-        :updated -> gettext("Guardian updated successfully")
-        :deleted -> gettext("Guardian deleted successfully")
-      end
-
-    socket =
-      socket
-      |> put_flash(:info, message)
-      |> push_patch(to: ~p"/school/guardians")
-
-    {:ok, socket}
-  end
-
   def update(assigns, socket) do
     socket =
       socket
       |> assign(assigns)
+      |> update_with_action(Map.get(assigns, :action))
       |> initialize()
       |> assign_guardian()
 
     {:ok, socket}
   end
+
+  defp update_with_action(socket, :reload_guardians) do
+    socket
+    |> stream_guardians()
+    |> put_flash(:info, gettext("Guardian saved successfully"))
+  end
+
+  defp update_with_action(socket, _action), do: socket
 
   defp initialize(%{assigns: %{initialized: false}} = socket) do
     socket
@@ -104,6 +88,11 @@ defmodule LantternWeb.SchoolLive.GuardiansComponent do
     socket
     |> stream(:guardians, guardians, reset: true)
     |> assign(:guardians_length, length(guardians))
+  end
+
+  defp update_guardians_length(socket) do
+    length = Enum.count(socket.assigns.streams.guardians || [])
+    assign(socket, :guardians_length, length)
   end
 
   defp assign_guardian(%{assigns: %{is_school_manager: false}} = socket),
@@ -138,7 +127,7 @@ defmodule LantternWeb.SchoolLive.GuardiansComponent do
       socket
       |> put_flash(:info, gettext("Guardian deleted successfully"))
       |> stream_delete(:guardians, guardian)
-      |> assign(:guardians_length, socket.assigns.guardians_length - 1)
+      |> update_guardians_length()
 
     {:noreply, socket}
   end
