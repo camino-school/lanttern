@@ -25,7 +25,7 @@
       <div class="sm:flex sm:items-center sm:gap-6">
         <.profile_picture
           class="shadow-lg"
-          picture_url={nil}
+          picture_url={}
           profile_name={@guardian.name}
           size="xl"
         />
@@ -37,18 +37,6 @@
       </div>
 
       <div class="grid gap-6 md:grid-cols-2 mt-12">
-        <.card_base>
-          <div class="p-6">
-            <p class="text-sm text-ltrn-subtle mb-2">{gettext("School")}</p>
-            <.link
-              navigate={~p"/school"}
-              class="text-lg font-semibold hover:text-ltrn-subtle"
-            >
-              {@guardian.school.name}
-            </.link>
-          </div>
-        </.card_base>
-
         <.card_base>
           <div class="p-6">
             <p class="text-sm text-ltrn-subtle mb-2">{gettext("Linked Students")}</p>

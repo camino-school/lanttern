@@ -252,6 +252,7 @@ defmodule LantternWeb.SchoolsComponents do
           size="sm"
           theme="ghost"
           phx-click={@on_delete}
+          data-confirm={gettext("Are you sure?")}
         />
       </div>
     </.card_base>

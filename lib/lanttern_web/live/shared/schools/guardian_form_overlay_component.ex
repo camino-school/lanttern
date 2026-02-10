@@ -48,7 +48,7 @@ defmodule LantternWeb.Schools.GuardianFormOverlayComponent do
               JS.push("delete", target: @myself)
               |> JS.exec("phx-remove", to: "##{@id}")
             }
-            onclick="return confirm('Are you sure?')"
+            data-confirm={gettext("Are you sure?")}
           >
             {gettext("Delete")}
           </.action>
