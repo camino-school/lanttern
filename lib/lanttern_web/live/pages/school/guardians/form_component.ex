@@ -1,8 +1,11 @@
 defmodule LantternWeb.Schools.GuardianFormComponent do
+  @moduledoc """
+  A live component for creating and editing guardians in the school management interface.
+  """
+
   use LantternWeb, :live_component
 
   alias Lanttern.Schools
-  alias Lanttern.Schools.Guardian
 
   @impl true
   def render(assigns) do
