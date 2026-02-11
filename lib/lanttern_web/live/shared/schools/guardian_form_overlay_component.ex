@@ -104,8 +104,8 @@ defmodule LantternWeb.Schools.GuardianFormOverlayComponent do
 
   def handle_event("delete", _params, socket) do
     case Schools.delete_guardian(socket.assigns.guardian) do
-      {:ok, _guardian} ->
-        send_update(socket.assigns.notify_component, action: :reload_guardians)
+      {:ok, guardian} ->
+        notify_parent(socket.assigns.notify_component, {:deleted, guardian})
         {:noreply, push_patch(socket, to: ~p"/school/guardians")}
 
       {:error, _changeset} ->
@@ -118,8 +118,8 @@ defmodule LantternWeb.Schools.GuardianFormOverlayComponent do
     params = changeset_to_params(changeset, params)
 
     case Schools.create_guardian(params) do
-      {:ok, _guardian} ->
-        send_update(socket.assigns.notify_component, action: :reload_guardians)
+      {:ok, guardian} ->
+        notify_parent(socket.assigns.notify_component, {:created, guardian})
         {:noreply, push_patch(socket, to: ~p"/school/guardians")}
 
       {:error, %Ecto.Changeset{} = changeset} ->
@@ -132,8 +132,8 @@ defmodule LantternWeb.Schools.GuardianFormOverlayComponent do
     params = changeset_to_params(changeset, params)
 
     case Schools.update_guardian(socket.assigns.guardian, params) do
-      {:ok, _guardian} ->
-        send_update(socket.assigns.notify_component, action: :reload_guardians)
+      {:ok, guardian} ->
+        notify_parent(socket.assigns.notify_component, {:updated, guardian})
         {:noreply, push_patch(socket, to: ~p"/school/guardians")}
 
       {:error, %Ecto.Changeset{} = changeset} ->
@@ -161,5 +161,9 @@ defmodule LantternWeb.Schools.GuardianFormOverlayComponent do
 
   defp assign_form(socket, changeset) do
     assign(socket, :form, to_form(changeset))
+  end
+
+  defp notify_parent(component_pid, message) do
+    send(component_pid, {__MODULE__, message})
   end
 end

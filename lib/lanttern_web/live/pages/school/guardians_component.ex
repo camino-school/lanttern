@@ -56,20 +56,11 @@ defmodule LantternWeb.SchoolLive.GuardiansComponent do
     socket =
       socket
       |> assign(assigns)
-      |> update_with_action(Map.get(assigns, :action))
       |> initialize()
       |> assign_guardian()
 
     {:ok, socket}
   end
-
-  defp update_with_action(socket, :reload_guardians) do
-    socket
-    |> stream_guardians()
-    |> put_flash(:info, gettext("Guardian saved successfully"))
-  end
-
-  defp update_with_action(socket, _action), do: socket
 
   defp initialize(%{assigns: %{initialized: false}} = socket) do
     socket
@@ -130,5 +121,27 @@ defmodule LantternWeb.SchoolLive.GuardiansComponent do
       |> update_guardians_length()
 
     {:noreply, socket}
+  end
+
+  @impl true
+  def handle_info({GuardianFormOverlayComponent, {:created, _guardian}}, socket) do
+    {:noreply,
+     socket
+     |> stream_guardians()
+     |> put_flash(:info, gettext("Guardian created successfully"))}
+  end
+
+  def handle_info({GuardianFormOverlayComponent, {:updated, _guardian}}, socket) do
+    {:noreply,
+     socket
+     |> stream_guardians()
+     |> put_flash(:info, gettext("Guardian updated successfully"))}
+  end
+
+  def handle_info({GuardianFormOverlayComponent, {:deleted, _guardian}}, socket) do
+    {:noreply,
+     socket
+     |> stream_guardians()
+     |> put_flash(:info, gettext("Guardian deleted successfully"))}
   end
 end
