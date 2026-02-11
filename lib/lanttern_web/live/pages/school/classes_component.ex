@@ -40,7 +40,7 @@ defmodule LantternWeb.SchoolLive.ClassesComponent do
           >
             <div class="flex items-center justify-between gap-4">
               <.link
-                navigate={~p"/school/classes/#{class}/students"}
+                navigate={~p"/school/classes/#{class}/people"}
                 class="font-display font-black hover:text-ltrn-subtle"
               >
                 {class.name}

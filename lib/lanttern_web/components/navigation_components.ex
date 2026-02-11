@@ -308,4 +308,59 @@ defmodule LantternWeb.NavigationComponents do
     </div>
     """
   end
+
+  @doc """
+  Renders a collapsible section with a title and expandable content.
+
+  ## Examples
+
+      <.collapsible_section id="my-section" title="Section Title" initial_expanded={true}>
+        <p>Content goes here</p>
+      </.collapsible_section>
+
+  """
+  attr :id, :string, required: true
+  attr :title, :string, required: true
+  attr :initial_expanded, :boolean, default: true
+  slot :inner_block, required: true
+
+  def collapsible_section(assigns) do
+    ~H"""
+    <div class="border-b border-ltrn-lighter">
+      <button
+        type="button"
+        class="flex items-center justify-between w-full p-4 hover:bg-ltrn-lightest transition-colors"
+        aria-expanded={@initial_expanded |> to_string()}
+        aria-controls={"#{@id}-content"}
+        phx-click={
+          JS.toggle(to: "##{@id}-content")
+          |> JS.toggle(to: "##{@id}-icon-expanded")
+          |> JS.toggle(to: "##{@id}-icon-collapsed")
+          |> JS.set_attribute({"aria-expanded", "false"}, to: "##{@id}-button-toggle")
+        }
+        id={"#{@id}-button-toggle"}
+      >
+        <h3 class="font-display font-bold text-lg">{@title}</h3>
+        <div>
+          <.icon
+            id={"#{@id}-icon-expanded"}
+            name="hero-chevron-up"
+            class={unless @initial_expanded, do: "hidden"}
+          />
+          <.icon
+            id={"#{@id}-icon-collapsed"}
+            name="hero-chevron-down"
+            class={if @initial_expanded, do: "hidden"}
+          />
+        </div>
+      </button>
+      <div
+        id={"#{@id}-content"}
+        class={unless @initial_expanded, do: "hidden"}
+      >
+        {render_slot(@inner_block)}
+      </div>
+    </div>
+    """
+  end
 end

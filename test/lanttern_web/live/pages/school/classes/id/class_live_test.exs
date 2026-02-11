@@ -19,7 +19,7 @@ defmodule LantternWeb.ClassLiveTest do
           name: "some class abc xyz"
         })
 
-      conn = get(conn, "#{@live_view_base_path}/#{class.id}/students")
+      conn = get(conn, "#{@live_view_base_path}/#{class.id}/people")
 
       assert html_response(conn, 200) =~ ~r/<h1 .+>\s*some class abc xyz \(.+\)\s*<\/h1>/
 
@@ -47,7 +47,7 @@ defmodule LantternWeb.ClassLiveTest do
           classes_ids: [class.id]
         })
 
-      {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{class.id}/students")
+      {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{class.id}/people")
 
       assert view |> has_element?("a", student_a.name)
       assert view |> has_element?("a", student_b.name)
@@ -58,6 +58,38 @@ defmodule LantternWeb.ClassLiveTest do
 
       assert_redirect(view, ~p"/school/students/#{student_a}")
     end
+
+    test "displays both staff and students sections in people tab", %{conn: conn, user: user} do
+      school_id = user.current_profile.school_id
+      cycle_id = user.current_profile.current_school_cycle.id
+
+      class = SchoolsFixtures.class_fixture(%{school_id: school_id, cycle_id: cycle_id})
+
+      student =
+        SchoolsFixtures.student_fixture(%{
+          school_id: school_id,
+          classes_ids: [class.id]
+        })
+
+      {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{class.id}/people")
+
+      assert view |> has_element?("#staff-section")
+      assert view |> has_element?("#students-section")
+      assert view |> has_element?("a", student.name)
+    end
+
+    test "sections are expanded by default", %{conn: conn, user: user} do
+      school_id = user.current_profile.school_id
+      cycle_id = user.current_profile.current_school_cycle.id
+
+      class = SchoolsFixtures.class_fixture(%{school_id: school_id, cycle_id: cycle_id})
+
+      {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{class.id}/people")
+
+      # Check that content divs are visible (not hidden)
+      assert view |> has_element?("#staff-section-content:not(.hidden)")
+      assert view |> has_element?("#students-section-content:not(.hidden)")
+    end
   end
 
   describe "Class management permissions" do
@@ -66,7 +98,7 @@ defmodule LantternWeb.ClassLiveTest do
       school_id = user.current_profile.school_id
       class = SchoolsFixtures.class_fixture(%{school_id: school_id, name: "class abc"})
 
-      {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{class.id}/students?edit=true")
+      {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{class.id}/people?edit=true")
 
       assert view |> has_element?("#class-form-overlay h2", "Edit class")
     end
@@ -78,7 +110,7 @@ defmodule LantternWeb.ClassLiveTest do
       school_id = user.current_profile.school_id
       class = SchoolsFixtures.class_fixture(%{school_id: school_id, name: "class abc"})
 
-      {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{class.id}/students?edit=true")
+      {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{class.id}/people?edit=true")
 
       refute view |> has_element?("#class-form-overlay h2", "Edit class")
     end

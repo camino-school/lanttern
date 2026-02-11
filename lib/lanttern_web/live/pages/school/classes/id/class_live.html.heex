@@ -7,14 +7,8 @@
       <:title>{@class.name} ({@class.cycle.name})</:title>
       <div class="flex items-center justify-between gap-4 px-4">
         <.neo_tabs id="student-nav-tabs">
-          <:tab
-            patch={~p"/school/classes/#{@class}/students"}
-            is_current={@live_action == :students}
-          >
-            {gettext("Students")}
-          </:tab>
-          <:tab patch={~p"/school/classes/#{@class}/staff_members"} is_current={@live_action == :staff_members}>
-            {gettext("Staff Members")}
+          <:tab patch={~p"/school/classes/#{@class}/people"} is_current={@live_action == :people}>
+            {gettext("People")}
           </:tab>
           <:tab patch={~p"/school/classes/#{@class}/ilp"} is_current={@live_action == :ilp}>
             {gettext("ILPs")}
@@ -47,20 +41,12 @@
     />
   </div>
   <.live_component
-    :if={@live_action == :students}
-    module={StudentsComponent}
-    id="class-students-tab"
+    :if={@live_action == :people}
+    module={PeopleComponent}
+    id="class-people-tab"
     class={@class}
     current_user={@current_user}
     is_school_manager={@is_school_manager}
-    params={@params}
-  />
-  <.live_component
-    :if={@live_action == :staff_members}
-    module={StaffMembersComponent}
-    id="class-staff-members-tab"
-    class={@class}
-    current_user={@current_user}
     params={@params}
   />
   <%!-- <.live_component
