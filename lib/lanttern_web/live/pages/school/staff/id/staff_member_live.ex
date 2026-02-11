@@ -7,7 +7,6 @@ defmodule LantternWeb.StaffMemberLive do
 
   # page components
 
-  alias __MODULE__.ClassesComponent
   alias __MODULE__.StudentsRecordsComponent
 
   # shared components
@@ -149,18 +148,6 @@ defmodule LantternWeb.StaffMemberLive do
       |> put_flash(:info, gettext("Staff member deleted successfully"))
       |> push_navigate(to: ~p"/school/staff")
 
-    {:noreply, socket}
-  end
-
-  def handle_info({ClassesComponent, {:class_added, _class}}, socket) do
-    {:noreply, socket}
-  end
-
-  def handle_info({ClassesComponent, {:class_removed, _csm}}, socket) do
-    {:noreply, socket}
-  end
-
-  def handle_info({ClassesComponent, {:role_updated, _csm}}, socket) do
     {:noreply, socket}
   end
 

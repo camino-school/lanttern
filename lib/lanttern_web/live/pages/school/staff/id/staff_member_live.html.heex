@@ -100,14 +100,6 @@
         <% end %>
       </section>
     </.responsive_container>
-    <.live_component
-      :if={@live_action == :show}
-      module={ClassesComponent}
-      id="staff-member-classes"
-      staff_member={@staff_member}
-      current_user={@current_user}
-      is_school_manager={@is_school_manager}
-    />
   </div>
   <.live_component
     :if={@live_action == :students_records}
