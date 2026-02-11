@@ -137,6 +137,7 @@ msgstr "Aplicando filtros..."
 #: lib/lanttern_web/live/shared/school_config/moment_card_template_overlay_component.ex:79
 #: lib/lanttern_web/live/shared/schools/class_form_overlay_component.ex:114
 #: lib/lanttern_web/live/shared/schools/cycle_form_overlay_component.ex:58
+#: lib/lanttern_web/live/shared/schools/guardian_form_overlay_component.ex:62
 #: lib/lanttern_web/live/shared/schools/staff_member_form_overlay_component.ex:96
 #: lib/lanttern_web/live/shared/schools/student_form_overlay_component.ex:132
 #: lib/lanttern_web/live/shared/students/student_tag_form_overlay_component.ex:84
@@ -178,6 +179,7 @@ msgstr "Nova trilha"
 #: lib/lanttern_web/live/pages/report_cards/id/strands_reports_component.ex:195
 #: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:136
 #: lib/lanttern_web/live/pages/report_cards/report_cards_live.html.heex:107
+#: lib/lanttern_web/live/pages/school/guardians/form_component.ex:50
 #: lib/lanttern_web/live/pages/school/moment_cards_templates_component.ex:112
 #: lib/lanttern_web/live/pages/school/staff/id/staff_member_live.html.heex:91
 #: lib/lanttern_web/live/pages/strands/id/moments_component.ex:94
@@ -204,6 +206,7 @@ msgstr "Nova trilha"
 #: lib/lanttern_web/live/shared/school_config/moment_card_template_overlay_component.ex:82
 #: lib/lanttern_web/live/shared/schools/class_form_overlay_component.ex:117
 #: lib/lanttern_web/live/shared/schools/cycle_form_overlay_component.ex:61
+#: lib/lanttern_web/live/shared/schools/guardian_form_overlay_component.ex:71
 #: lib/lanttern_web/live/shared/schools/staff_member_form_overlay_component.ex:105
 #: lib/lanttern_web/live/shared/schools/student_form_overlay_component.ex:141
 #: lib/lanttern_web/live/shared/students/student_tag_form_overlay_component.ex:93
@@ -253,6 +256,7 @@ msgstr "Descrição"
 msgid "File \"%{file}\" is invalid."
 msgstr "O arquivo \"%{file}\" é inválido."
 
+#: lib/lanttern_web/live/pages/school/guardians/form_component.ex:34
 #: lib/lanttern_web/live/shared/curricula/curriculum_item_form_component.ex:33
 #: lib/lanttern_web/live/shared/grades_reports/grades_report_form_component.ex:31
 #: lib/lanttern_web/live/shared/learning_context/moment_card_overlay_component.ex:131
@@ -261,6 +265,7 @@ msgstr "O arquivo \"%{file}\" é inválido."
 #: lib/lanttern_web/live/shared/reporting/report_card_form_component.ex:55
 #: lib/lanttern_web/live/shared/school_config/moment_card_template_overlay_component.ex:45
 #: lib/lanttern_web/live/shared/schools/class_form_overlay_component.ex:34
+#: lib/lanttern_web/live/shared/schools/guardian_form_overlay_component.ex:37
 #: lib/lanttern_web/live/shared/schools/staff_member_form_overlay_component.ex:53
 #: lib/lanttern_web/live/shared/schools/student_form_overlay_component.ex:47
 #: lib/lanttern_web/live/shared/students/student_tag_form_overlay_component.ex:38
@@ -297,6 +302,7 @@ msgstr "Nenhum ano selecionado"
 #: lib/lanttern_web/live/shared/school_config/moment_card_template_overlay_component.ex:40
 #: lib/lanttern_web/live/shared/schools/class_form_overlay_component.ex:29
 #: lib/lanttern_web/live/shared/schools/cycle_form_overlay_component.ex:26
+#: lib/lanttern_web/live/shared/schools/guardian_form_overlay_component.ex:32
 #: lib/lanttern_web/live/shared/schools/staff_member_form_overlay_component.ex:35
 #: lib/lanttern_web/live/shared/schools/student_form_overlay_component.ex:42
 #: lib/lanttern_web/live/shared/students/student_tag_form_overlay_component.ex:33
@@ -319,6 +325,7 @@ msgstr "Alterar imagem"
 msgid "Save Strand"
 msgstr "Salvar Trilha"
 
+#: lib/lanttern_web/live/pages/school/guardians/form_component.ex:49
 #: lib/lanttern_web/live/shared/assessments/assessment_point_form_overlay_component.ex:158
 #: lib/lanttern_web/live/shared/attachments/attachment_area_component.ex:118
 #: lib/lanttern_web/live/shared/curricula/curriculum_item_form_component.ex:55
@@ -395,6 +402,7 @@ msgstr "Não conseguimos nos conectar"
 msgid "Something went wrong!"
 msgstr "Algo deu errado!"
 
+#: lib/lanttern_web/live/pages/school/guardians/id/guardian_live.html.heex:11
 #: lib/lanttern_web/live/pages/school/staff/id/staff_member_live.html.heex:11
 #: lib/lanttern_web/live/pages/school/staff/id/staff_member_live.html.heex:49
 #: lib/lanttern_web/live/pages/school/staff/id/staff_member_live.html.heex:83
@@ -428,6 +436,7 @@ msgstr "Não foi possível encontrar a trilha"
 #: lib/lanttern_web/live/pages/report_cards/id/report_card_live.html.heex:47
 #: lib/lanttern_web/live/pages/report_cards/id/strands_reports_component.ex:133
 #: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:124
+#: lib/lanttern_web/live/pages/school/guardians/form_component.ex:47
 #: lib/lanttern_web/live/pages/school/staff/deactivated/deactivated_staff_live.html.heex:50
 #: lib/lanttern_web/live/pages/strands/id/strand_live.html.heex:57
 #: lib/lanttern_web/live/shared/assessments/assessment_point_form_overlay_component.ex:140
@@ -442,6 +451,7 @@ msgstr "Não foi possível encontrar a trilha"
 #: lib/lanttern_web/live/shared/school_config/moment_card_template_overlay_component.ex:111
 #: lib/lanttern_web/live/shared/schools/class_form_overlay_component.ex:109
 #: lib/lanttern_web/live/shared/schools/cycle_form_overlay_component.ex:53
+#: lib/lanttern_web/live/shared/schools/guardian_form_overlay_component.ex:53
 #: lib/lanttern_web/live/shared/schools/student_form_overlay_component.ex:112
 #: lib/lanttern_web/live/shared/students/student_tag_form_overlay_component.ex:74
 #: lib/lanttern_web/live/shared/students_records/student_record_overlay_component.ex:334
@@ -487,6 +497,7 @@ msgstr "Adicione suas anotações..."
 #: lib/lanttern_web/components/form_components.ex:834
 #: lib/lanttern_web/components/message_board_components.ex:41
 #: lib/lanttern_web/components/schools_components.ex:197
+#: lib/lanttern_web/components/schools_components.ex:255
 #: lib/lanttern_web/live/pages/curriculum/component/id/curriculum_component_live.html.heex:157
 #: lib/lanttern_web/live/pages/grades_report/grades_reports_live.html.heex:112
 #: lib/lanttern_web/live/pages/grades_report/id/grades_report_live.html.heex:116
@@ -512,6 +523,7 @@ msgstr "Adicione suas anotações..."
 #: lib/lanttern_web/live/shared/school_config/moment_card_template_overlay_component.ex:109
 #: lib/lanttern_web/live/shared/schools/class_form_overlay_component.ex:107
 #: lib/lanttern_web/live/shared/schools/cycle_form_overlay_component.ex:51
+#: lib/lanttern_web/live/shared/schools/guardian_form_overlay_component.ex:51
 #: lib/lanttern_web/live/shared/schools/student_form_overlay_component.ex:110
 #: lib/lanttern_web/live/shared/students/student_tag_form_overlay_component.ex:72
 #: lib/lanttern_web/live/shared/students_records/student_record_overlay_component.ex:332
@@ -1542,6 +1554,7 @@ msgstr "Report card de estudante deletado"
 
 #: lib/lanttern_web/live/pages/report_cards/id/report_card_live.html.heex:15
 #: lib/lanttern_web/live/pages/school/classes/id/class_live.html.heex:14
+#: lib/lanttern_web/live/pages/school/guardians/id/guardian_live.html.heex:51
 #: lib/lanttern_web/live/pages/school/school_live.html.heex:10
 #: lib/lanttern_web/live/shared/students_records/student_record_overlay_component.ex:105
 #: lib/lanttern_web/live/shared/students_records/student_record_overlay_component.ex:253
@@ -3050,7 +3063,7 @@ msgstr "Nome do ciclo"
 msgid "Cycle updated successfully"
 msgstr "Ciclo atualizado com sucesso"
 
-#: lib/lanttern_web/live/pages/school/school_live.html.heex:16
+#: lib/lanttern_web/live/pages/school/school_live.html.heex:19
 #, elixir-autogen, elixir-format
 msgid "Cycles"
 msgstr "Ciclos"
@@ -3253,7 +3266,7 @@ msgstr "Turmas de outros ciclos"
 msgid "Parent cycle"
 msgstr "Ciclo pai"
 
-#: lib/lanttern/schools.ex:362
+#: lib/lanttern/schools.ex:363
 #, elixir-autogen, elixir-format
 msgid "Parent cycle does not exist"
 msgstr "Ciclo pai não existe"
@@ -3360,7 +3373,7 @@ msgstr "Utilize cards para adicionar uma camada extra de organização aos momen
 msgid "Using a parent cycle from a different school is not allowed"
 msgstr "Utilizar um ciclo pai de uma escola diferente não é permitido"
 
-#: lib/lanttern/schools.ex:355
+#: lib/lanttern/schools.ex:356
 #, elixir-autogen, elixir-format
 msgid "You can't use a subcycle as a parent cycle"
 msgstr "Você não pode utilizar um subciclo como um ciclo pai"
@@ -3567,7 +3580,7 @@ msgstr "Instruções do template"
 msgid "Template: %{template}"
 msgstr "Template: %{template}"
 
-#: lib/lanttern_web/live/pages/school/school_live.html.heex:25
+#: lib/lanttern_web/live/pages/school/school_live.html.heex:28
 #, elixir-autogen, elixir-format
 msgid "Templates"
 msgstr "Templates"
@@ -3758,7 +3771,7 @@ msgstr "Função"
 msgid "School management"
 msgstr "Gerenciamento da escola"
 
-#: lib/lanttern_web/live/pages/school/school_live.html.heex:13
+#: lib/lanttern_web/live/pages/school/school_live.html.heex:16
 #, elixir-autogen, elixir-format
 msgid "Staff"
 msgstr "Equipe"
@@ -4411,7 +4424,7 @@ msgid "Message archived successfully"
 msgstr "Mensagem arquivada com sucesso"
 
 #: lib/lanttern_web/live/pages/message_board/index_live.ex:339
-#: lib/lanttern_web/live/pages/school/school_live.html.heex:19
+#: lib/lanttern_web/live/pages/school/school_live.html.heex:22
 #: lib/lanttern_web/live/shared/message_board/message_board_viewer_component.ex:28
 #, elixir-autogen, elixir-format
 msgid "Message board"
@@ -5494,3 +5507,72 @@ msgstr ""
 #, elixir-autogen, elixir-format
 msgid "what appears in the card preview"
 msgstr ""
+
+#: lib/lanttern_web/live/pages/school/guardians_component.ex:15
+#, elixir-autogen, elixir-format, fuzzy
+msgid "1 guardian"
+msgid_plural "%{count} guardians"
+msgstr[0] "Responsável"
+msgstr[1] "Responsável"
+
+#: lib/lanttern_web/live/pages/school/guardians/id/guardian_live.html.heex:44
+#, elixir-autogen, elixir-format, fuzzy
+msgid "1 student"
+msgid_plural "%{count} students"
+msgstr[0] "Novo estudante"
+msgstr[1] "Novo estudante"
+
+#: lib/lanttern_web/live/pages/school/guardians_component.ex:19
+#, elixir-autogen, elixir-format
+msgid "Add guardian"
+msgstr ""
+
+#: lib/lanttern_web/components/schools_components.ex:250
+#, elixir-autogen, elixir-format
+msgid "Delete guardian"
+msgstr ""
+
+#: lib/lanttern_web/components/schools_components.ex:242
+#: lib/lanttern_web/live/pages/school/guardians/id/guardian_live.html.heex:20
+#: lib/lanttern_web/live/pages/school/guardians/id/guardian_live.html.heex:77
+#: lib/lanttern_web/live/pages/school/guardians_component.ex:116
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Edit guardian"
+msgstr "Editar card"
+
+#: lib/lanttern_web/live/pages/school/guardians/form_component.ex:35
+#, elixir-autogen, elixir-format
+msgid "Enter guardian name"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/school/guardians/id/guardian_live.ex:75
+#: lib/lanttern_web/live/pages/school/guardians_component.ex:128
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Guardian deleted successfully"
+msgstr "Rubrica deletada com sucesso"
+
+#: lib/lanttern_web/live/pages/school/guardians_component.ex:69
+#, elixir-autogen, elixir-format
+msgid "Guardian saved successfully"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/school/guardians/id/guardian_live.ex:66
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Guardian updated successfully"
+msgstr "Rubrica atualizada com sucesso"
+
+#: lib/lanttern_web/live/pages/school/guardians/id/guardian_live.html.heex:5
+#: lib/lanttern_web/live/pages/school/school_live.html.heex:13
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Guardians"
+msgstr "Responsável"
+
+#: lib/lanttern_web/live/pages/school/guardians/id/guardian_live.html.heex:42
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Linked Students"
+msgstr "Estudantes vinculados"
+
+#: lib/lanttern_web/live/pages/school/guardians_component.ex:108
+#, elixir-autogen, elixir-format, fuzzy
+msgid "New guardian"
+msgstr "Responsável"
