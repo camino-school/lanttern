@@ -53,7 +53,7 @@ defmodule LantternWeb.DateTimeHelpers do
   def format_simple_time(time) do
     {:ok, time} =
       time
-      |> Lanttern.Cldr.DateTime.to_string(format: "hh:mm")
+      |> Lanttern.Cldr.DateTime.to_string(format: "HH:mm")
 
     time
   end
@@ -102,31 +102,40 @@ defmodule LantternWeb.DateTimeHelpers do
     today = Date.utc_today()
 
     # Return nil if birthdate is in the future
-    if Date.compare(birthdate, today) == :gt do
-      nil
-    else
-      years = today.year - birthdate.year
-      months = today.month - birthdate.month
-
-      # Adjust if birthday hasn't occurred this year
-      {years, months} =
-        if months < 0 do
-          {years - 1, months + 12}
-        else
-          {years, months}
-        end
-
-      # Adjust if birthday is later this month
-      if today.day < birthdate.day do
-        if months == 0 do
-          {years - 1, 11}
-        else
-          {years, months - 1}
-        end
-      else
-        {years, months}
-      end
+    case Date.compare(birthdate, today) do
+      :gt -> nil
+      _ -> do_calculate_age(birthdate, today)
     end
+  end
+
+  defp do_calculate_age(%Date{} = birthdate, %Date{} = today) do
+    years = today.year - birthdate.year
+    months = today.month - birthdate.month
+
+    {years, months} = adjust_for_year_boundary(years, months)
+    adjust_for_day_of_month(years, months, today.day, birthdate.day)
+  end
+
+  defp adjust_for_year_boundary(years, months) when months < 0 do
+    {years - 1, months + 12}
+  end
+
+  defp adjust_for_year_boundary(years, months) do
+    {years, months}
+  end
+
+  defp adjust_for_day_of_month(years, months, today_day, birthdate_day)
+       when today_day < birthdate_day and months == 0 do
+    {years - 1, 11}
+  end
+
+  defp adjust_for_day_of_month(years, months, today_day, birthdate_day)
+       when today_day < birthdate_day do
+    {years, months - 1}
+  end
+
+  defp adjust_for_day_of_month(years, months, _today_day, _birthdate_day) do
+    {years, months}
   end
 
   @doc """
@@ -152,17 +161,8 @@ defmodule LantternWeb.DateTimeHelpers do
   def format_age_full(nil), do: ""
 
   def format_age_full({years, months}) do
-    years_text =
-      case years do
-        1 -> gettext("1 year")
-        _ -> ngettext("%{count} year", "%{count} years", years, count: years)
-      end
-
-    months_text =
-      case months do
-        1 -> gettext("1 month")
-        _ -> ngettext("%{count} month", "%{count} months", months, count: months)
-      end
+    years_text = ngettext("%{count} year", "%{count} years", years, count: years)
+    months_text = ngettext("%{count} month", "%{count} months", months, count: months)
 
     "#{years_text}, #{months_text}"
   end
@@ -185,10 +185,7 @@ defmodule LantternWeb.DateTimeHelpers do
 
     format = Map.get(format_map, locale, format_map["en"])
 
-    {:ok, formatted} =
-      birthdate
-      |> Timex.to_datetime()
-      |> Lanttern.Cldr.Date.to_string(format: format, locale: locale)
+    {:ok, formatted} = Lanttern.Cldr.Date.to_string(birthdate, format: format, locale: locale)
 
     formatted
   end

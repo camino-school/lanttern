@@ -89,7 +89,6 @@ defmodule LantternWeb.SchoolsComponents do
 
   def student_card(assigns) do
     age = calculate_age(assigns.student.birthdate)
-    birthdate_formatted = format_birthdate(assigns.student.birthdate)
 
     has_badge =
       age != nil ||
@@ -100,7 +99,6 @@ defmodule LantternWeb.SchoolsComponents do
       assigns
       |> assign(:has_badge, has_badge)
       |> assign(:age, age)
-      |> assign(:birthdate_formatted, birthdate_formatted)
 
     ~H"""
     <.card_base id={@id} class={["flex items-center gap-4 p-4", @class]}>
