@@ -1,7 +1,7 @@
 defmodule Lanttern.Repo.Migrations.AddGuardiansTable do
   use Ecto.Migration
 
-  def change do
+  def up do
     create table(:guardians) do
       add :name, :string, null: false
       add :school_id, references(:schools, on_delete: :nothing), null: false
