@@ -5509,63 +5509,63 @@ msgid "what appears in the card preview"
 msgstr ""
 
 #: lib/lanttern_web/live/pages/school/guardians_component.ex:15
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "1 guardian"
 msgid_plural "%{count} guardians"
-msgstr[0] "Responsável"
-msgstr[1] "Responsável"
+msgstr[0] "1 responsável"
+msgstr[1] "%{count} responsáveis"
 
 #: lib/lanttern_web/live/pages/school/guardians/id/guardian_live.html.heex:44
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "1 student"
 msgid_plural "%{count} students"
-msgstr[0] "Novo estudante"
-msgstr[1] "Novo estudante"
+msgstr[0] "%{count} estudantes"
+msgstr[1] "%{count} estudantes"
 
 #: lib/lanttern_web/live/pages/school/guardians_component.ex:19
 #, elixir-autogen, elixir-format
 msgid "Add guardian"
-msgstr ""
+msgstr "Adicionar responsável"
 
 #: lib/lanttern_web/components/schools_components.ex:250
 #, elixir-autogen, elixir-format
 msgid "Delete guardian"
-msgstr ""
+msgstr "Deletar responsável"
 
 #: lib/lanttern_web/components/schools_components.ex:242
 #: lib/lanttern_web/live/pages/school/guardians/id/guardian_live.html.heex:20
 #: lib/lanttern_web/live/pages/school/guardians/id/guardian_live.html.heex:77
 #: lib/lanttern_web/live/pages/school/guardians_component.ex:116
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "Edit guardian"
-msgstr "Editar card"
+msgstr "Editar responsável"
 
 #: lib/lanttern_web/live/pages/school/guardians/form_component.ex:35
 #, elixir-autogen, elixir-format
 msgid "Enter guardian name"
-msgstr ""
+msgstr "Digitar nome do responsável"
 
 #: lib/lanttern_web/live/pages/school/guardians/id/guardian_live.ex:75
 #: lib/lanttern_web/live/pages/school/guardians_component.ex:128
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "Guardian deleted successfully"
-msgstr "Rubrica deletada com sucesso"
+msgstr "Responsável deletado com sucesso"
 
 #: lib/lanttern_web/live/pages/school/guardians_component.ex:69
 #, elixir-autogen, elixir-format
 msgid "Guardian saved successfully"
-msgstr ""
+msgstr "Responsável salvo com sucesso"
 
 #: lib/lanttern_web/live/pages/school/guardians/id/guardian_live.ex:66
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "Guardian updated successfully"
-msgstr "Rubrica atualizada com sucesso"
+msgstr "Responsável atualizado com sucesso"
 
 #: lib/lanttern_web/live/pages/school/guardians/id/guardian_live.html.heex:5
 #: lib/lanttern_web/live/pages/school/school_live.html.heex:13
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "Guardians"
-msgstr "Responsável"
+msgstr "Responsáveis"
 
 #: lib/lanttern_web/live/pages/school/guardians/id/guardian_live.html.heex:42
 #, elixir-autogen, elixir-format, fuzzy
@@ -5573,6 +5573,6 @@ msgid "Linked Students"
 msgstr "Estudantes vinculados"
 
 #: lib/lanttern_web/live/pages/school/guardians_component.ex:108
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "New guardian"
-msgstr "Responsável"
+msgstr "Novo responsável"

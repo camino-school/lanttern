@@ -41,7 +41,7 @@
           <div class="p-6">
             <p class="text-sm text-ltrn-subtle mb-2">{gettext("Linked Students")}</p>
             <p class="text-lg font-semibold">
-              {ngettext("1 student", "%{count} students", length(@guardian.students))}
+              {ngettext("1 student", "%{count} students", length(@guardian.students), count: length(@guardian.students))}
             </p>
           </div>
         </.card_base>
