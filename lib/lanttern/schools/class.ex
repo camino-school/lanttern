@@ -20,6 +20,7 @@ defmodule Lanttern.Schools.Class do
           name: String.t(),
           students_ids: [pos_integer()],
           years_ids: [pos_integer()],
+          staff_members_ids: [pos_integer()],
           school: School.t(),
           school_id: pos_integer(),
           cycle: Cycle.t(),
@@ -34,6 +35,7 @@ defmodule Lanttern.Schools.Class do
     field :name, :string
     field :students_ids, {:array, :id}, virtual: true
     field :years_ids, {:array, :id}, virtual: true
+    field :staff_members_ids, {:array, :id}, virtual: true
     field :active_students_count, :integer, virtual: true
 
     belongs_to :school, School
@@ -61,7 +63,7 @@ defmodule Lanttern.Schools.Class do
   @doc false
   def changeset(class, attrs) do
     class
-    |> cast(attrs, [:name, :school_id, :students_ids, :years_ids, :cycle_id])
+    |> cast(attrs, [:name, :school_id, :students_ids, :years_ids, :staff_members_ids, :cycle_id])
     |> validate_required([:name, :school_id, :cycle_id])
     |> foreign_key_constraint(
       :cycle_id,
@@ -74,6 +76,7 @@ defmodule Lanttern.Schools.Class do
     )
     |> put_students()
     |> put_years()
+    |> put_staff_members()
   end
 
   defp put_students(changeset) do
@@ -110,5 +113,23 @@ defmodule Lanttern.Schools.Class do
 
     changeset
     |> put_assoc(:years, years)
+  end
+
+  defp put_staff_members(changeset) do
+    put_staff_members(
+      changeset,
+      get_change(changeset, :staff_members_ids)
+    )
+  end
+
+  defp put_staff_members(changeset, nil), do: changeset
+
+  defp put_staff_members(changeset, staff_members_ids) do
+    staff_members =
+      from(sm in Lanttern.Schools.StaffMember, where: sm.id in ^staff_members_ids)
+      |> Repo.all()
+
+    changeset
+    |> put_assoc(:staff_members, staff_members)
   end
 end

@@ -13,6 +13,7 @@ defmodule Lanttern.Schools do
   alias Lanttern.Identity.Profile
   alias Lanttern.Identity.User
   alias Lanttern.Schools.Class
+  alias Lanttern.Schools.ClassStaffMember
   alias Lanttern.Schools.Cycle
   alias Lanttern.Schools.School
   alias Lanttern.Schools.StaffMember
@@ -659,7 +660,7 @@ defmodule Lanttern.Schools do
   """
   def update_class(%Class{} = class, attrs) do
     class
-    |> Repo.preload([:students, :years])
+    |> Repo.preload([:students, :years, :staff_members])
     |> Class.changeset(attrs)
     |> Repo.update()
   end
@@ -1544,6 +1545,184 @@ defmodule Lanttern.Schools do
     staff_member
     |> StaffMember.changeset(%{deactivated_at: nil})
     |> Repo.update()
+  end
+
+  @doc """
+  Returns the list of staff members for a class, ordered by position.
+
+  ### Options:
+
+  - `:preloads` – preloads associated data
+  - `:load_email` - boolean, will add the email field based on staff member profile/user
+
+  ## Examples
+
+      iex> list_class_staff_members(class_id)
+      [%StaffMember{}, ...]
+
+  """
+  def list_class_staff_members(class_id, opts \\ []) do
+    load_email? = Keyword.get(opts, :load_email, false)
+
+    query =
+      from(csm in ClassStaffMember,
+        join: sm in assoc(csm, :staff_member),
+        where: csm.class_id == ^class_id,
+        where: is_nil(sm.deactivated_at),
+        order_by: [asc: csm.position]
+      )
+
+    query =
+      if load_email? do
+        from([csm, sm] in query,
+          left_join: p in assoc(sm, :profile),
+          left_join: u in assoc(p, :user),
+          select: %{
+            sm
+            | class_role: csm.role,
+              class_staff_member_id: csm.id,
+              position: csm.position,
+              email: u.email
+          }
+        )
+      else
+        from([csm, sm] in query,
+          select: %{
+            sm
+            | class_role: csm.role,
+              class_staff_member_id: csm.id,
+              position: csm.position
+          }
+        )
+      end
+
+    query
+    |> Repo.all()
+    |> maybe_preload(opts)
+  end
+
+  @doc """
+  Returns the list of classes for a staff member, ordered by position.
+
+  ## Examples
+
+      iex> list_staff_member_classes(staff_member_id)
+      [%ClassStaffMember{}, ...]
+
+  """
+  def list_staff_member_classes(staff_member_id, _opts \\ []) do
+    from(csm in ClassStaffMember,
+      join: c in assoc(csm, :class),
+      where: csm.staff_member_id == ^staff_member_id,
+      order_by: [asc: csm.position],
+      preload: [class: {c, [:school, :cycle]}]
+    )
+    |> Repo.all()
+  end
+
+  @doc """
+  Gets a single class staff member relationship.
+
+  Returns `nil` if not found.
+
+  ## Examples
+
+      iex> get_class_staff_member!(id)
+      %ClassStaffMember{}
+
+  """
+  def get_class_staff_member!(id, opts \\ []) do
+    ClassStaffMember
+    |> Repo.get!(id)
+    |> maybe_preload(opts)
+  end
+
+  @doc """
+  Adds a staff member to a class.
+
+  Position is auto-assigned using RepoHelpers.set_position_in_attrs/2.
+
+  ## Examples
+
+      iex> add_staff_member_to_class(%{class_id: 1, staff_member_id: 2})
+      {:ok, %ClassStaffMember{}}
+
+      iex> add_staff_member_to_class(%{class_id: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def add_staff_member_to_class(attrs) do
+    position_queryable =
+      from(csm in ClassStaffMember,
+        where: csm.class_id == ^attrs.class_id or csm.class_id == ^attrs["class_id"]
+      )
+
+    attrs
+    |> set_position_in_attrs(position_queryable)
+    |> then(&ClassStaffMember.changeset(%ClassStaffMember{}, &1))
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a class staff member relationship (role and/or position).
+
+  ## Examples
+
+      iex> update_class_staff_member(class_staff_member, %{role: "Lead Teacher"})
+      {:ok, %ClassStaffMember{}}
+
+      iex> update_class_staff_member(class_staff_member, %{role: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_class_staff_member(%ClassStaffMember{} = class_staff_member, attrs) do
+    class_staff_member
+    |> ClassStaffMember.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Removes a staff member from a class.
+
+  ## Examples
+
+      iex> remove_staff_member_from_class(class_staff_member)
+      {:ok, %ClassStaffMember{}}
+
+      iex> remove_staff_member_from_class(class_staff_member)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def remove_staff_member_from_class(%ClassStaffMember{} = class_staff_member) do
+    Repo.delete(class_staff_member)
+  end
+
+  @doc """
+  Updates class staff members positions based on ids list order.
+
+  ## Examples
+
+      iex> update_class_staff_members_positions(class_id, [3, 2, 1])
+      :ok
+
+  """
+  def update_class_staff_members_positions(class_id, ids_list) do
+    queryable = from(csm in ClassStaffMember, where: csm.class_id == ^class_id)
+    update_positions(queryable, ids_list)
+  end
+
+  @doc """
+  Updates staff member classes positions based on ids list order.
+
+  ## Examples
+
+      iex> update_staff_member_classes_positions(staff_member_id, [3, 2, 1])
+      :ok
+
+  """
+  def update_staff_member_classes_positions(staff_member_id, ids_list) do
+    queryable = from(csm in ClassStaffMember, where: csm.staff_member_id == ^staff_member_id)
+    update_positions(queryable, ids_list)
   end
 
   @doc """
