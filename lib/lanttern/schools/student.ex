@@ -24,6 +24,7 @@ defmodule Lanttern.Schools.Student do
   @type t :: %__MODULE__{
           id: pos_integer(),
           name: String.t(),
+          birthdate: Date.t() | nil,
           profile_picture_url: String.t(),
           classes_ids: [pos_integer()],
           has_diff_rubric: boolean(),
@@ -44,6 +45,7 @@ defmodule Lanttern.Schools.Student do
 
   schema "students" do
     field :name, :string
+    field :birthdate, :date
     field :profile_picture_url, :string
     field :deactivated_at, :utc_datetime
 
@@ -89,6 +91,7 @@ defmodule Lanttern.Schools.Student do
     student
     |> cast(attrs, [
       :name,
+      :birthdate,
       :profile_picture_url,
       :deactivated_at,
       :school_id,
