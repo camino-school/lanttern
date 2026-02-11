@@ -10,19 +10,6 @@ defmodule Lanttern.StudentsGuardians do
   alias Lanttern.Schools.Student
 
   @doc """
-  Returns the list of students_guardians.
-
-  ## Examples
-
-      iex> list_students_guardians()
-      [%Guardian{}, ...]
-
-  """
-  def list_students_guardians do
-    Repo.all(Guardian)
-  end
-
-  @doc """
   Gets a single guardian.
 
   Raises `Ecto.NoResultsError` if the Guardian does not exist.
@@ -37,6 +24,31 @@ defmodule Lanttern.StudentsGuardians do
 
   """
   def get_guardian!(id), do: Repo.get!(Guardian, id)
+
+  @doc """
+  Gets students for a given guardian.
+
+  ## Examples
+
+      iex> get_students_for_guardian(current_user, guardian)
+      [%Student{}, ...]
+
+  """
+  def get_students_for_guardian(current_user, %Guardian{} = guardian) do
+    user_school_id = current_user.current_profile.school_id
+
+    if guardian.school_id == user_school_id do
+      Repo.all(
+        from s in Student,
+          join: sg in "students_guardians",
+          on: s.id == sg.student_id,
+          where: sg.guardian_id == ^guardian.id,
+          select: s
+      )
+    else
+      []
+    end
+  end
 
   @doc """
   Gets guardians for a given student.
