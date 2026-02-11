@@ -88,6 +88,7 @@ defmodule LantternWeb.Schools.StaffMemberSearchComponent do
       |> assign(:label, nil)
       |> assign(:class, nil)
       |> assign(:school_id, nil)
+      |> assign(:exclude_ids, [])
       |> assign(:refocus_on_select, "false")
       |> stream(:results, [])
 
@@ -105,6 +106,9 @@ defmodule LantternWeb.Schools.StaffMemberSearchComponent do
       if String.length(query) >= 3,
         do: Schools.search_staff_members(query, search_opts),
         else: []
+
+    # Filter out already selected staff members
+    results = Enum.reject(results, &(&1.id in socket.assigns.exclude_ids))
 
     results_simplified = Enum.map(results, fn s -> %{id: s.id} end)
 

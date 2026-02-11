@@ -11,6 +11,7 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponent do
 
   # shared
   alias LantternWeb.Schools.StudentSearchComponent
+  alias LantternWeb.Schools.StaffMemberSearchComponent
 
   @impl true
   def render(assigns) do
@@ -65,7 +66,50 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponent do
               <.error :for={{msg, _} <- @form[:years_ids].errors}>{msg}</.error>
             </div>
           </div>
-          <div>
+          <div class="mb-6">
+            <.live_component
+              module={StaffMemberSearchComponent}
+              id="staff-member-search"
+              notify_component={@myself}
+              label={gettext("Staff members in this class")}
+              refocus_on_select="true"
+              school_id={@class.school_id}
+              exclude_ids={Enum.map(@staff_members, & &1.id)}
+            />
+            <%= if @staff_members != [] do %>
+              <ol
+                class="mt-4 text-sm leading-relaxed list-decimal list-inside"
+                id="staff-members-list"
+                phx-hook="Sortable"
+                phx-target={@myself}
+              >
+                <li
+                  :for={staff_member <- @staff_members}
+                  id={"selected-staff-member-#{staff_member.id}"}
+                  data-id={staff_member.id}
+                  class="cursor-move"
+                >
+                  {staff_member.name}
+                  <.button
+                    type="button"
+                    icon_name="hero-x-mark-mini"
+                    class="align-middle"
+                    size="sm"
+                    theme="ghost"
+                    rounded
+                    phx-click={
+                      JS.push("remove_staff_member", value: %{"id" => staff_member.id}, target: @myself)
+                    }
+                  />
+                </li>
+              </ol>
+            <% else %>
+              <.empty_state_simple class="mt-4">
+                {gettext("No staff members added to this class")}
+              </.empty_state_simple>
+            <% end %>
+          </div>
+          <div class="mb-6">
             <.live_component
               module={StudentSearchComponent}
               id="student-search"
@@ -73,10 +117,21 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponent do
               label={gettext("Students in this class")}
               refocus_on_select="true"
               school_id={@class.school_id}
+              exclude_ids={Enum.map(@students, & &1.id)}
             />
             <%= if @students != [] do %>
-              <ol class="mt-4 text-sm leading-relaxed list-decimal list-inside">
-                <li :for={student <- @students} id={"selected-student-#{student.id}"}>
+              <ol
+                class="mt-4 text-sm leading-relaxed list-decimal list-inside"
+                id="students-list"
+                phx-hook="Sortable"
+                phx-target={@myself}
+              >
+                <li
+                  :for={student <- @students}
+                  id={"selected-student-#{student.id}"}
+                  data-id={student.id}
+                  class="cursor-move"
+                >
                   {student.name}
                   <.button
                     type="button"
@@ -138,6 +193,15 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponent do
     {:ok, assign(socket, :students, students)}
   end
 
+  def update(%{action: {StaffMemberSearchComponent, {:selected, staff_member}}}, socket) do
+    staff_members =
+      [staff_member | socket.assigns.staff_members]
+      |> Enum.uniq()
+      |> Enum.sort_by(& &1.name)
+
+    {:ok, assign(socket, :staff_members, staff_members)}
+  end
+
   def update(%{class: %Class{}} = assigns, socket) do
     socket =
       socket
@@ -146,6 +210,7 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponent do
       |> assign_cycles()
       |> assign_years()
       |> assign_students()
+      |> assign_staff_members()
       |> assign(:initialized, true)
 
     {:ok, socket}
@@ -190,6 +255,23 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponent do
 
   defp assign_students(socket), do: socket
 
+  defp assign_staff_members(%{assigns: %{initialized: false}} = socket) do
+    staff_members =
+      case socket.assigns.class.id do
+        nil ->
+          []
+
+        _class_id ->
+          # Load the class with staff_members preloaded to get the actual associated staff members
+          class = Schools.get_class!(socket.assigns.class.id, preloads: [:staff_members])
+          class.staff_members
+      end
+
+    assign(socket, :staff_members, staff_members)
+  end
+
+  defp assign_staff_members(socket), do: socket
+
   # event handlers
 
   @impl true
@@ -199,6 +281,38 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponent do
       |> Enum.reject(&(&1.id == id))
 
     {:noreply, assign(socket, :students, students)}
+  end
+
+  def handle_event("remove_staff_member", %{"id" => id}, socket) do
+    staff_members =
+      socket.assigns.staff_members
+      |> Enum.reject(&(&1.id == id))
+
+    {:noreply, assign(socket, :staff_members, staff_members)}
+  end
+
+  def handle_event("reorder", %{"ids" => ids, "sortableId" => "students-list"}, socket) do
+    # Reorder students based on the new order
+    students =
+      ids
+      |> Enum.map(fn id ->
+        Enum.find(socket.assigns.students, &(&1.id == String.to_integer(id)))
+      end)
+      |> Enum.reject(&is_nil/1)
+
+    {:noreply, assign(socket, :students, students)}
+  end
+
+  def handle_event("reorder", %{"ids" => ids, "sortableId" => "staff-members-list"}, socket) do
+    # Reorder staff members based on the new order
+    staff_members =
+      ids
+      |> Enum.map(fn id ->
+        Enum.find(socket.assigns.staff_members, &(&1.id == String.to_integer(id)))
+      end)
+      |> Enum.reject(&is_nil/1)
+
+    {:noreply, assign(socket, :staff_members, staff_members)}
   end
 
   def handle_event("select_cycle", %{"id" => id}, socket) do
@@ -264,14 +378,15 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponent do
     |> Map.put("cycle_id", socket.assigns.selected_cycle_id)
     |> Map.put("years_ids", socket.assigns.selected_years_ids)
     |> Map.put("students_ids", socket.assigns.students |> Enum.map(& &1.id))
-
-    # |> Map.put("students_ids", socket.assigns.selected_students_ids)
+    |> Map.put("staff_members_ids", socket.assigns.staff_members |> Enum.map(& &1.id))
   end
 
   defp save_class(socket, nil, class_params) do
     Schools.create_class(class_params)
     |> case do
       {:ok, class} ->
+        # Update positions after creating
+        update_positions_after_save(class.id, socket)
         notify(__MODULE__, {:created, class}, socket.assigns)
         {:noreply, socket}
 
@@ -287,11 +402,23 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponent do
     )
     |> case do
       {:ok, class} ->
+        # Update positions after updating
+        update_positions_after_save(class.id, socket)
         notify(__MODULE__, {:updated, class}, socket.assigns)
         {:noreply, socket}
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign(socket, :form, to_form(changeset))}
     end
+  end
+
+  defp update_positions_after_save(class_id, socket) do
+    # Update staff members positions based on order
+    staff_member_ids = Enum.map(socket.assigns.staff_members, & &1.id)
+    Schools.update_class_staff_members_positions(class_id, staff_member_ids)
+
+    # Update students positions if there's a function for it
+    # (similar to staff members)
+    :ok
   end
 end
