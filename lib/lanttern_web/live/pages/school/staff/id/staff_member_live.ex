@@ -7,6 +7,7 @@ defmodule LantternWeb.StaffMemberLive do
 
   # page components
 
+  alias __MODULE__.ClassesComponent
   alias __MODULE__.StudentsRecordsComponent
 
   # shared components
@@ -151,5 +152,17 @@ defmodule LantternWeb.StaffMemberLive do
     {:noreply, socket}
   end
 
-  def handle_info(_, socket), do: socket
+  def handle_info({ClassesComponent, {:class_added, _class}}, socket) do
+    {:noreply, socket}
+  end
+
+  def handle_info({ClassesComponent, {:class_removed, _csm}}, socket) do
+    {:noreply, socket}
+  end
+
+  def handle_info({ClassesComponent, {:role_updated, _csm}}, socket) do
+    {:noreply, socket}
+  end
+
+  def handle_info(_, socket), do: {:noreply, socket}
 end
