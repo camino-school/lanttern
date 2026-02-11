@@ -19,7 +19,7 @@ defmodule Lanttern.Schools.Student do
   alias Lanttern.StudentsCycleInfo.StudentCycleInfo
   alias Lanttern.StudentTags.StudentTagRelationship
   alias Lanttern.StudentTags.Tag
-  alias Lanttern.Guardian
+  alias Lanttern.Schools.Guardian
 
   @type t :: %__MODULE__{
           id: pos_integer(),

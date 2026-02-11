@@ -5573,8 +5573,9 @@ msgid "Linked Students"
 msgstr ""
 
 #: lib/lanttern_web/live/pages/school/guardians_component.ex:108
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "New guardian"
+msgstr "New guardian"
 
 #: lib/lanttern_web/live/shared/schools/student_form_overlay_component.ex:54
 #, elixir-autogen, elixir-format
