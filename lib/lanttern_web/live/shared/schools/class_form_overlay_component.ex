@@ -80,7 +80,7 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponent do
               <ol
                 class="mt-4 text-sm leading-relaxed list-decimal list-inside"
                 id="staff-members-list"
-                data-group="staff-members-list"
+                data-group-id="staff-members-list"
                 phx-hook="Sortable"
                 phx-target={@myself}
               >
@@ -124,7 +124,7 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponent do
               <ol
                 class="mt-4 text-sm leading-relaxed list-decimal list-inside"
                 id="students-list"
-                data-group="students-list"
+                data-group-id="students-list"
                 phx-hook="Sortable"
                 phx-target={@myself}
               >
@@ -381,8 +381,14 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponent do
   defp assign_validated_form(socket, params) do
     params = inject_extra_params(socket, params)
 
-    changeset =
+    # Preload associations before creating changeset
+    # This is required for put_assoc to work
+    class =
       socket.assigns.class
+      |> Lanttern.Repo.preload([:students, :years, :staff_members])
+
+    changeset =
+      class
       |> Schools.change_class(params)
       |> Map.put(:action, :validate)
 

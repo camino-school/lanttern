@@ -167,28 +167,41 @@ defmodule Lanttern.RepoHelpers do
   @spec update_positions(Ecto.Queryable.t(), [pos_integer()], Keyword.t()) ::
           :ok | {:error, String.t()}
   def update_positions(queryable, ids, opts \\ []) do
-    ids
-    |> Enum.with_index()
-    |> Enum.reduce(
-      Ecto.Multi.new(),
-      fn {id, i}, multi ->
-        filter = [{Keyword.get(opts, :id_field, :id), id}]
+    require Logger
+    id_field = Keyword.get(opts, :id_field, :id)
+    Logger.debug("update_positions called with #{length(ids)} ids, id_field=#{id_field}")
 
-        multi
-        |> Ecto.Multi.update_all(
-          "update-#{id}",
-          from(
-            q in queryable,
-            where: ^filter
-          ),
-          set: [position: i]
-        )
-      end
-    )
-    |> Repo.transaction()
-    |> case do
-      {:ok, _} -> :ok
-      _ -> {:error, gettext("Something went wrong")}
+    multi =
+      ids
+      |> Enum.with_index()
+      |> Enum.reduce(
+        Ecto.Multi.new(),
+        fn {id, i}, multi ->
+          filter = [{id_field, id}]
+          Logger.debug("  Position #{i} -> #{id_field}=#{id}")
+
+          multi
+          |> Ecto.Multi.update_all(
+            "update-#{id}",
+            from(
+              q in queryable,
+              where: ^filter
+            ),
+            set: [position: i]
+          )
+        end
+      )
+
+    result = Repo.transaction(multi)
+
+    case result do
+      {:ok, updates} ->
+        Logger.debug("Successfully updated #{map_size(updates)} positions")
+        :ok
+
+      {:error, operation, reason, _changes} ->
+        Logger.error("Failed at operation #{operation}: #{inspect(reason)}")
+        {:error, gettext("Something went wrong")}
     end
   end
 end

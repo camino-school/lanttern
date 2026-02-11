@@ -89,9 +89,17 @@ defmodule Lanttern.Schools.Class do
   defp put_students(changeset, nil), do: changeset
 
   defp put_students(changeset, students_ids) do
-    students =
+    # Fetch students from database
+    students_map =
       from(s in Student, where: s.id in ^students_ids)
       |> Repo.all()
+      |> Map.new(&{&1.id, &1})
+
+    # Preserve the order of IDs by mapping them in sequence
+    students =
+      students_ids
+      |> Enum.map(&Map.get(students_map, &1))
+      |> Enum.reject(&is_nil/1)
 
     changeset
     |> put_assoc(:students, students)
@@ -125,9 +133,17 @@ defmodule Lanttern.Schools.Class do
   defp put_staff_members(changeset, nil), do: changeset
 
   defp put_staff_members(changeset, staff_members_ids) do
-    staff_members =
+    # Fetch staff members from database
+    staff_members_map =
       from(sm in Lanttern.Schools.StaffMember, where: sm.id in ^staff_members_ids)
       |> Repo.all()
+      |> Map.new(&{&1.id, &1})
+
+    # Preserve the order of IDs by mapping them in sequence
+    staff_members =
+      staff_members_ids
+      |> Enum.map(&Map.get(staff_members_map, &1))
+      |> Enum.reject(&is_nil/1)
 
     changeset
     |> put_assoc(:staff_members, staff_members)
