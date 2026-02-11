@@ -81,17 +81,33 @@ defmodule Lanttern.StudentsGuardians do
   ## Examples
 
       iex> add_guardian_to_student(current_user, student, guardian)
-      {:ok, %Student{}}
+      {:ok, :created}
 
   """
   def add_guardian_to_student(current_user, %Student{} = student, %Guardian{} = guardian) do
     user_school_id = current_user.current_profile.school_id
 
     if student.school_id == user_school_id && guardian.school_id == user_school_id do
-      student
-      |> Ecto.Changeset.change()
-      |> Ecto.Changeset.put_assoc(:guardians, (student.guardians || []) ++ [guardian])
-      |> Repo.update()
+      existing_association =
+        Repo.one(
+          from sg in "students_guardians",
+            where: sg.student_id == ^student.id and sg.guardian_id == ^guardian.id,
+            select: 1
+        )
+
+      case existing_association do
+        nil ->
+          {1, _} =
+            Repo.insert_all(
+              "students_guardians",
+              [%{student_id: student.id, guardian_id: guardian.id}]
+            )
+
+          {:ok, :created}
+
+        _ ->
+          {:ok, :already_exists}
+      end
     else
       {:error, :unauthorized}
     end
@@ -103,20 +119,24 @@ defmodule Lanttern.StudentsGuardians do
   ## Examples
 
       iex> remove_guardian_from_student(current_user, student, guardian_id)
-      {:ok, %Student{}}
+      {:ok, :deleted}
 
   """
   def remove_guardian_from_student(current_user, %Student{} = student, guardian_id) do
     user_school_id = current_user.current_profile.school_id
 
     if student.school_id == user_school_id do
-      student
-      |> Ecto.Changeset.change()
-      |> Ecto.Changeset.put_assoc(
-        :guardians,
-        Enum.reject(student.guardians, &(&1.id == guardian_id))
-      )
-      |> Repo.update()
+      # Delete directly from join table
+      {count, _} =
+        Repo.delete_all(
+          from sg in "students_guardians",
+            where: sg.student_id == ^student.id and sg.guardian_id == ^guardian_id
+        )
+
+      case count do
+        0 -> {:ok, :not_found}
+        _ -> {:ok, :deleted}
+      end
     else
       {:error, :unauthorized}
     end
