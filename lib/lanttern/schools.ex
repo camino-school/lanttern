@@ -1564,40 +1564,35 @@ defmodule Lanttern.Schools do
   def list_class_staff_members(class_id, opts \\ []) do
     load_email? = Keyword.get(opts, :load_email, false)
 
-    query =
+    base_query =
       from(csm in ClassStaffMember,
         join: sm in assoc(csm, :staff_member),
         where: csm.class_id == ^class_id,
         where: is_nil(sm.deactivated_at),
-        order_by: [asc: csm.position]
+        order_by: [asc: csm.position],
+        select: %{sm | class_role: csm.role, class_staff_member_id: csm.id, position: csm.position}
       )
 
     query =
       if load_email? do
-        from([csm, sm] in query,
+        from([csm, sm] in base_query,
           left_join: p in assoc(sm, :profile),
           left_join: u in assoc(p, :user),
-          select: %{
-            sm
-            | class_role: csm.role,
-              class_staff_member_id: csm.id,
-              position: csm.position,
-              email: u.email
-          }
+          select_merge: %{email: u.email}
         )
       else
-        from([csm, sm] in query,
-          select: %{
-            sm
-            | class_role: csm.role,
-              class_staff_member_id: csm.id,
-              position: csm.position
-          }
-        )
+        base_query
       end
 
-    query
-    |> Repo.all()
+    result =
+      query
+      |> Repo.all()
+
+    # Temporary debug log
+    require Logger
+    Logger.debug("list_class_staff_members for class_id=#{class_id}: found #{length(result)} staff members")
+
+    result
     |> maybe_preload(opts)
   end
 
@@ -1708,7 +1703,7 @@ defmodule Lanttern.Schools do
   """
   def update_class_staff_members_positions(class_id, ids_list) do
     queryable = from(csm in ClassStaffMember, where: csm.class_id == ^class_id)
-    update_positions(queryable, ids_list)
+    update_positions(queryable, ids_list, id_field: :staff_member_id)
   end
 
   @doc """

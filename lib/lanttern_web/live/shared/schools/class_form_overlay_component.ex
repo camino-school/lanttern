@@ -80,6 +80,7 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponent do
               <ol
                 class="mt-4 text-sm leading-relaxed list-decimal list-inside"
                 id="staff-members-list"
+                data-group="staff-members-list"
                 phx-hook="Sortable"
                 phx-target={@myself}
               >
@@ -123,6 +124,7 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponent do
               <ol
                 class="mt-4 text-sm leading-relaxed list-decimal list-inside"
                 id="students-list"
+                data-group="students-list"
                 phx-hook="Sortable"
                 phx-target={@myself}
               >
@@ -194,10 +196,10 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponent do
   end
 
   def update(%{action: {StaffMemberSearchComponent, {:selected, staff_member}}}, socket) do
+    # Add new staff member to the end of the list, maintaining current order
     staff_members =
-      [staff_member | socket.assigns.staff_members]
-      |> Enum.uniq()
-      |> Enum.sort_by(& &1.name)
+      (socket.assigns.staff_members ++ [staff_member])
+      |> Enum.uniq_by(& &1.id)
 
     {:ok, assign(socket, :staff_members, staff_members)}
   end
@@ -261,10 +263,26 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponent do
         nil ->
           []
 
-        _class_id ->
-          # Load the class with staff_members preloaded to get the actual associated staff members
-          class = Schools.get_class!(socket.assigns.class.id, preloads: [:staff_members])
-          class.staff_members
+        class_id ->
+          # Get staff members with position info (ordered by position)
+          staff_with_position = Schools.list_class_staff_members(class_id)
+
+          # Extract the staff member IDs in order
+          staff_member_ids = Enum.map(staff_with_position, & &1.id)
+
+          # Fetch clean staff member structs for these IDs
+          # This ensures we get clean structs without the virtual fields
+          staff_list = Schools.list_staff_members(staff_members_ids: staff_member_ids)
+
+          # Temporary debug log
+          require Logger
+          Logger.debug("assign_staff_members for class_id=#{class_id}: staff_with_position count=#{length(staff_with_position)}, staff_list count=#{length(staff_list)}")
+
+          staff_list
+          |> Enum.sort_by(fn sm ->
+            # Sort by the position from the original list
+            Enum.find_index(staff_member_ids, &(&1 == sm.id))
+          end)
       end
 
     assign(socket, :staff_members, staff_members)
@@ -291,26 +309,26 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponent do
     {:noreply, assign(socket, :staff_members, staff_members)}
   end
 
-  def handle_event("reorder", %{"ids" => ids, "sortableId" => "students-list"}, socket) do
-    # Reorder students based on the new order
+  def handle_event("sortable_update", %{"groupId" => "students-list"} = payload, socket) do
+    %{"oldIndex" => old_index, "newIndex" => new_index} = payload
+
+    # Reorder students based on the drag and drop
     students =
-      ids
-      |> Enum.map(fn id ->
-        Enum.find(socket.assigns.students, &(&1.id == String.to_integer(id)))
-      end)
-      |> Enum.reject(&is_nil/1)
+      socket.assigns.students
+      |> List.delete_at(old_index)
+      |> List.insert_at(new_index, Enum.at(socket.assigns.students, old_index))
 
     {:noreply, assign(socket, :students, students)}
   end
 
-  def handle_event("reorder", %{"ids" => ids, "sortableId" => "staff-members-list"}, socket) do
-    # Reorder staff members based on the new order
+  def handle_event("sortable_update", %{"groupId" => "staff-members-list"} = payload, socket) do
+    %{"oldIndex" => old_index, "newIndex" => new_index} = payload
+
+    # Reorder staff members based on the drag and drop
     staff_members =
-      ids
-      |> Enum.map(fn id ->
-        Enum.find(socket.assigns.staff_members, &(&1.id == String.to_integer(id)))
-      end)
-      |> Enum.reject(&is_nil/1)
+      socket.assigns.staff_members
+      |> List.delete_at(old_index)
+      |> List.insert_at(new_index, Enum.at(socket.assigns.staff_members, old_index))
 
     {:noreply, assign(socket, :staff_members, staff_members)}
   end
@@ -414,8 +432,23 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponent do
 
   defp update_positions_after_save(class_id, socket) do
     # Update staff members positions based on order
+    # Use class_staff_member_id for existing staff members, otherwise use staff_member_id
+    # The update_class_staff_members_positions function will use staff_member_id to find the records
     staff_member_ids = Enum.map(socket.assigns.staff_members, & &1.id)
-    Schools.update_class_staff_members_positions(class_id, staff_member_ids)
+
+    # Temporary debug log
+    require Logger
+    Logger.debug("update_positions_after_save for class_id=#{class_id}: updating positions for #{length(staff_member_ids)} staff members: #{inspect(staff_member_ids)}")
+
+    case Schools.update_class_staff_members_positions(class_id, staff_member_ids) do
+      :ok ->
+        Logger.debug("Successfully updated staff member positions")
+        :ok
+
+      {:error, reason} ->
+        Logger.error("Failed to update staff member positions: #{inspect(reason)}")
+        :ok
+    end
 
     # Update students positions if there's a function for it
     # (similar to staff members)
