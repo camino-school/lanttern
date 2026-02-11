@@ -99,6 +99,23 @@ defmodule Lanttern.SchoolsFixtures do
     staff_member
   end
 
+  @doc """
+  Generate a class staff member relationship.
+  """
+  def class_staff_member_fixture(attrs \\ %{}) do
+    {:ok, class_staff_member} =
+      attrs
+      |> Enum.into(%{
+        class_id: maybe_gen_class_id(attrs),
+        staff_member_id: maybe_gen_staff_member_id(attrs),
+        position: 0,
+        role: nil
+      })
+      |> Lanttern.Schools.add_staff_member_to_class()
+
+    class_staff_member
+  end
+
   # generator helpers
 
   def maybe_gen_school_id(%{school_id: school_id} = _attrs), do: school_id
@@ -112,4 +129,9 @@ defmodule Lanttern.SchoolsFixtures do
 
   def maybe_gen_student_id(%{student_id: student_id} = _attrs), do: student_id
   def maybe_gen_student_id(_attrs), do: student_fixture().id
+
+  def maybe_gen_staff_member_id(%{staff_member_id: staff_member_id} = _attrs),
+    do: staff_member_id
+
+  def maybe_gen_staff_member_id(_attrs), do: staff_member_fixture().id
 end

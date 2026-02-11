@@ -1504,6 +1504,298 @@ defmodule Lanttern.SchoolsTest do
     end
   end
 
+  describe "class staff members" do
+    alias Lanttern.Schools.ClassStaffMember
+
+    test "list_class_staff_members/1 returns all staff members for a class ordered by position" do
+      school = school_fixture()
+      class = class_fixture(%{school_id: school.id})
+      staff_member_1 = staff_member_fixture(%{school_id: school.id, name: "Staff A"})
+      staff_member_2 = staff_member_fixture(%{school_id: school.id, name: "Staff B"})
+      staff_member_3 = staff_member_fixture(%{school_id: school.id, name: "Staff C"})
+
+      # Create associations with specific positions
+      class_staff_member_fixture(%{
+        class_id: class.id,
+        staff_member_id: staff_member_2.id,
+        position: 1
+      })
+
+      class_staff_member_fixture(%{
+        class_id: class.id,
+        staff_member_id: staff_member_1.id,
+        position: 0
+      })
+
+      class_staff_member_fixture(%{
+        class_id: class.id,
+        staff_member_id: staff_member_3.id,
+        position: 2
+      })
+
+      result = Schools.list_class_staff_members(class.id)
+
+      # Should be ordered by position
+      assert length(result) == 3
+      assert Enum.at(result, 0).id == staff_member_1.id
+      assert Enum.at(result, 1).id == staff_member_2.id
+      assert Enum.at(result, 2).id == staff_member_3.id
+    end
+
+    test "list_class_staff_members/1 filters out deactivated staff members" do
+      school = school_fixture()
+      class = class_fixture(%{school_id: school.id})
+      active_staff = staff_member_fixture(%{school_id: school.id})
+
+      deactivated_staff =
+        staff_member_fixture(%{school_id: school.id, deactivated_at: DateTime.utc_now()})
+
+      class_staff_member_fixture(%{class_id: class.id, staff_member_id: active_staff.id})
+
+      class_staff_member_fixture(%{
+        class_id: class.id,
+        staff_member_id: deactivated_staff.id
+      })
+
+      result = Schools.list_class_staff_members(class.id)
+
+      assert length(result) == 1
+      assert hd(result).id == active_staff.id
+    end
+
+    test "list_class_staff_members/1 includes class_role and position virtual fields" do
+      school = school_fixture()
+      class = class_fixture(%{school_id: school.id})
+      staff_member = staff_member_fixture(%{school_id: school.id})
+
+      class_staff_member_fixture(%{
+        class_id: class.id,
+        staff_member_id: staff_member.id,
+        role: "Lead Teacher",
+        position: 5
+      })
+
+      [result] = Schools.list_class_staff_members(class.id)
+
+      assert result.class_role == "Lead Teacher"
+      assert result.position == 5
+      assert result.class_staff_member_id != nil
+    end
+
+    test "list_class_staff_members/1 with load_email opt loads staff member email" do
+      school = school_fixture()
+      class = class_fixture(%{school_id: school.id})
+      user = Lanttern.IdentityFixtures.user_fixture(%{email: "teacher@school.com"})
+
+      profile =
+        Lanttern.IdentityFixtures.staff_member_profile_fixture(%{user_id: user.id})
+
+      staff_member = Schools.get_staff_member!(profile.staff_member_id)
+
+      class_staff_member_fixture(%{
+        class_id: class.id,
+        staff_member_id: staff_member.id
+      })
+
+      [result] = Schools.list_class_staff_members(class.id, load_email: true)
+
+      assert result.email == "teacher@school.com"
+    end
+
+    test "list_staff_member_classes/1 returns all classes for a staff member ordered by position" do
+      school = school_fixture()
+      staff_member = staff_member_fixture(%{school_id: school.id})
+      cycle = cycle_fixture(%{school_id: school.id})
+
+      class_1 = class_fixture(%{school_id: school.id, cycle_id: cycle.id, name: "Class A"})
+      class_2 = class_fixture(%{school_id: school.id, cycle_id: cycle.id, name: "Class B"})
+      class_3 = class_fixture(%{school_id: school.id, cycle_id: cycle.id, name: "Class C"})
+
+      # Create associations with specific positions
+      class_staff_member_fixture(%{
+        class_id: class_2.id,
+        staff_member_id: staff_member.id,
+        position: 1
+      })
+
+      class_staff_member_fixture(%{
+        class_id: class_1.id,
+        staff_member_id: staff_member.id,
+        position: 0
+      })
+
+      class_staff_member_fixture(%{
+        class_id: class_3.id,
+        staff_member_id: staff_member.id,
+        position: 2
+      })
+
+      result = Schools.list_staff_member_classes(staff_member.id)
+
+      # Should be ordered by position
+      assert length(result) == 3
+      assert Enum.at(result, 0).class.id == class_1.id
+      assert Enum.at(result, 1).class.id == class_2.id
+      assert Enum.at(result, 2).class.id == class_3.id
+    end
+
+    test "add_staff_member_to_class/1 creates a class staff member relationship" do
+      school = school_fixture()
+      class = class_fixture(%{school_id: school.id})
+      staff_member = staff_member_fixture(%{school_id: school.id})
+
+      assert {:ok, %ClassStaffMember{} = csm} =
+               Schools.add_staff_member_to_class(%{
+                 class_id: class.id,
+                 staff_member_id: staff_member.id,
+                 role: "Assistant"
+               })
+
+      assert csm.class_id == class.id
+      assert csm.staff_member_id == staff_member.id
+      assert csm.role == "Assistant"
+      assert csm.position == 0
+    end
+
+    test "add_staff_member_to_class/1 auto-assigns position based on existing entries" do
+      school = school_fixture()
+      class = class_fixture(%{school_id: school.id})
+      staff_1 = staff_member_fixture(%{school_id: school.id})
+      staff_2 = staff_member_fixture(%{school_id: school.id})
+
+      {:ok, csm_1} =
+        Schools.add_staff_member_to_class(%{
+          class_id: class.id,
+          staff_member_id: staff_1.id
+        })
+
+      {:ok, csm_2} =
+        Schools.add_staff_member_to_class(%{
+          class_id: class.id,
+          staff_member_id: staff_2.id
+        })
+
+      assert csm_1.position == 0
+      assert csm_2.position == 1
+    end
+
+    test "add_staff_member_to_class/1 fails if staff and class are from different schools" do
+      school_1 = school_fixture()
+      school_2 = school_fixture()
+      class = class_fixture(%{school_id: school_1.id})
+      staff_member = staff_member_fixture(%{school_id: school_2.id})
+
+      assert {:error, %Ecto.Changeset{} = changeset} =
+               Schools.add_staff_member_to_class(%{
+                 class_id: class.id,
+                 staff_member_id: staff_member.id
+               })
+
+      assert "must belong to the same school as the class" in errors_on(changeset).staff_member_id
+    end
+
+    test "add_staff_member_to_class/1 fails if duplicate relationship" do
+      school = school_fixture()
+      class = class_fixture(%{school_id: school.id})
+      staff_member = staff_member_fixture(%{school_id: school.id})
+
+      Schools.add_staff_member_to_class(%{
+        class_id: class.id,
+        staff_member_id: staff_member.id
+      })
+
+      assert {:error, %Ecto.Changeset{}} =
+               Schools.add_staff_member_to_class(%{
+                 class_id: class.id,
+                 staff_member_id: staff_member.id
+               })
+    end
+
+    test "update_class_staff_member/2 updates role" do
+      csm = class_staff_member_fixture(%{role: "Teacher"})
+
+      assert {:ok, %ClassStaffMember{} = updated_csm} =
+               Schools.update_class_staff_member(csm, %{role: "Lead Teacher"})
+
+      assert updated_csm.role == "Lead Teacher"
+    end
+
+    test "update_class_staff_member/2 updates position" do
+      csm = class_staff_member_fixture(%{position: 0})
+
+      assert {:ok, %ClassStaffMember{} = updated_csm} =
+               Schools.update_class_staff_member(csm, %{position: 5})
+
+      assert updated_csm.position == 5
+    end
+
+    test "remove_staff_member_from_class/1 deletes the relationship" do
+      csm = class_staff_member_fixture()
+
+      assert {:ok, %ClassStaffMember{}} = Schools.remove_staff_member_from_class(csm)
+      assert_raise Ecto.NoResultsError, fn -> Schools.get_class_staff_member!(csm.id) end
+    end
+
+    test "update_class_staff_members_positions/2 updates positions based on ids order" do
+      school = school_fixture()
+      class = class_fixture(%{school_id: school.id})
+      staff_1 = staff_member_fixture(%{school_id: school.id})
+      staff_2 = staff_member_fixture(%{school_id: school.id})
+      staff_3 = staff_member_fixture(%{school_id: school.id})
+
+      csm_1 = class_staff_member_fixture(%{class_id: class.id, staff_member_id: staff_1.id})
+      csm_2 = class_staff_member_fixture(%{class_id: class.id, staff_member_id: staff_2.id})
+      csm_3 = class_staff_member_fixture(%{class_id: class.id, staff_member_id: staff_3.id})
+
+      # Reorder: 3, 1, 2
+      assert :ok =
+               Schools.update_class_staff_members_positions(class.id, [
+                 csm_3.id,
+                 csm_1.id,
+                 csm_2.id
+               ])
+
+      result = Schools.list_class_staff_members(class.id)
+
+      assert Enum.at(result, 0).id == staff_3.id
+      assert Enum.at(result, 1).id == staff_1.id
+      assert Enum.at(result, 2).id == staff_2.id
+    end
+
+    test "update_staff_member_classes_positions/2 updates positions based on ids order" do
+      school = school_fixture()
+      staff_member = staff_member_fixture(%{school_id: school.id})
+      cycle = cycle_fixture(%{school_id: school.id})
+
+      class_1 = class_fixture(%{school_id: school.id, cycle_id: cycle.id})
+      class_2 = class_fixture(%{school_id: school.id, cycle_id: cycle.id})
+      class_3 = class_fixture(%{school_id: school.id, cycle_id: cycle.id})
+
+      csm_1 =
+        class_staff_member_fixture(%{class_id: class_1.id, staff_member_id: staff_member.id})
+
+      csm_2 =
+        class_staff_member_fixture(%{class_id: class_2.id, staff_member_id: staff_member.id})
+
+      csm_3 =
+        class_staff_member_fixture(%{class_id: class_3.id, staff_member_id: staff_member.id})
+
+      # Reorder: 3, 1, 2
+      assert :ok =
+               Schools.update_staff_member_classes_positions(staff_member.id, [
+                 csm_3.id,
+                 csm_1.id,
+                 csm_2.id
+               ])
+
+      result = Schools.list_staff_member_classes(staff_member.id)
+
+      assert Enum.at(result, 0).class.id == class_3.id
+      assert Enum.at(result, 1).class.id == class_1.id
+      assert Enum.at(result, 2).class.id == class_2.id
+    end
+  end
+
   describe "csv parsing" do
     test "create_students_from_csv/3 creates classes and students, and returns a list with the registration status for each row" do
       school = school_fixture()
