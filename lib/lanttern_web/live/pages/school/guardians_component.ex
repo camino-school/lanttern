@@ -27,6 +27,7 @@ defmodule LantternWeb.SchoolLive.GuardiansComponent do
           guardian={guardian}
           navigate={~p"/school/guardians/#{guardian}"}
           show_edit={@is_school_manager}
+          show_delete={@is_school_manager}
           edit_patch={~p"/school/guardians?edit=#{guardian.id}"}
           on_delete={JS.push("delete", value: %{id: guardian.id}, target: @myself) |> hide("##{dom_id}")}
         />

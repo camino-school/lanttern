@@ -212,6 +212,7 @@ defmodule LantternWeb.SchoolsComponents do
   attr :guardian, Lanttern.Schools.Guardian, required: true
   attr :navigate, :string, default: nil
   attr :show_edit, :boolean, default: false
+  attr :show_delete, :boolean, default: false
   attr :edit_patch, :string, default: nil
   attr :on_delete, Phoenix.LiveView.JS, default: nil
 
@@ -246,6 +247,7 @@ defmodule LantternWeb.SchoolsComponents do
           patch={@edit_patch}
         />
         <.button
+          :if={@show_delete}
           icon_name="hero-trash-mini"
           sr_text={gettext("Delete guardian")}
           rounded
