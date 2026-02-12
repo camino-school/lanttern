@@ -128,20 +128,23 @@ defmodule LantternWeb.SchoolLive.GuardiansComponent do
     {:noreply,
      socket
      |> stream_guardians()
-     |> put_flash(:info, gettext("Guardian created successfully"))}
+     |> put_flash(:info, gettext("Guardian created successfully"))
+     |> push_patch(to: ~p"/school/guardians")}
   end
 
   def handle_info({GuardianFormOverlayComponent, {:updated, _guardian}}, socket) do
     {:noreply,
      socket
      |> stream_guardians()
-     |> put_flash(:info, gettext("Guardian updated successfully"))}
+     |> put_flash(:info, gettext("Guardian updated successfully"))
+     |> push_patch(to: ~p"/school/guardians")}
   end
 
   def handle_info({GuardianFormOverlayComponent, {:deleted, _guardian}}, socket) do
     {:noreply,
      socket
      |> stream_guardians()
-     |> put_flash(:info, gettext("Guardian deleted successfully"))}
+     |> put_flash(:info, gettext("Guardian deleted successfully"))
+     |> push_patch(to: ~p"/school/guardians")}
   end
 end

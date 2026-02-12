@@ -106,7 +106,7 @@ defmodule LantternWeb.Schools.GuardianFormOverlayComponent do
     case Schools.delete_guardian(socket.assigns.guardian) do
       {:ok, guardian} ->
         notify_parent(socket.assigns.notify_component, {:deleted, guardian})
-        {:noreply, push_patch(socket, to: ~p"/school/guardians")}
+        {:noreply, socket}
 
       {:error, _changeset} ->
         {:noreply, socket}
@@ -120,7 +120,7 @@ defmodule LantternWeb.Schools.GuardianFormOverlayComponent do
     case Schools.create_guardian(params) do
       {:ok, guardian} ->
         notify_parent(socket.assigns.notify_component, {:created, guardian})
-        {:noreply, push_patch(socket, to: ~p"/school/guardians")}
+        {:noreply, socket}
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign_form(socket, changeset)}
@@ -134,7 +134,7 @@ defmodule LantternWeb.Schools.GuardianFormOverlayComponent do
     case Schools.update_guardian(socket.assigns.guardian, params) do
       {:ok, guardian} ->
         notify_parent(socket.assigns.notify_component, {:updated, guardian})
-        {:noreply, push_patch(socket, to: ~p"/school/guardians")}
+        {:noreply, socket}
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign_form(socket, changeset)}
