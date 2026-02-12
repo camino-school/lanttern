@@ -95,12 +95,12 @@ defmodule LantternWeb.DateTimeHelpers do
 
   Returns a tuple {years, months} or nil if birthdate is nil.
   """
-  @spec calculate_age(Date.t() | nil) :: {non_neg_integer(), non_neg_integer()} | nil
-  def calculate_age(nil), do: nil
+  @spec calculate_age(Date.t() | nil, Date.t()) :: {non_neg_integer(), non_neg_integer()} | nil
+  def calculate_age(birthdate, today \\ Date.utc_today())
 
-  def calculate_age(%Date{} = birthdate) do
-    today = Date.utc_today()
+  def calculate_age(nil, _today), do: nil
 
+  def calculate_age(%Date{} = birthdate, today) do
     # Return nil if birthdate is in the future
     case Date.compare(birthdate, today) do
       :gt -> nil

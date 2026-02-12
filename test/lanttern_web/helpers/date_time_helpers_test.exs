@@ -14,91 +14,78 @@ defmodule LantternWeb.DateTimeHelpersTest do
     :ok
   end
 
-  describe "calculate_age/1" do
+  describe "calculate_age/2" do
     test "returns nil when birthdate is nil" do
-      assert calculate_age(nil) == nil
+      today = ~D[2026-02-12]
+      assert calculate_age(nil, today) == nil
     end
 
     test "returns nil when birthdate is in the future" do
-      tomorrow = Date.add(Date.utc_today(), 1)
-      assert calculate_age(tomorrow) == nil
+      today = ~D[2026-02-12]
+      future_date = ~D[2026-02-13]
+      assert calculate_age(future_date, today) == nil
     end
 
     test "calculates exact age with matching day of month" do
-      today = Date.utc_today()
-      birthdate = Date.new!(today.year - 25, today.month, today.day)
-      assert calculate_age(birthdate) == {25, 0}
+      today = ~D[2026-02-12]
+      birthdate = ~D[2001-02-12]
+      assert calculate_age(birthdate, today) == {25, 0}
     end
 
     test "calculates age correctly when birthday hasn't occurred this month" do
-      today = Date.utc_today()
+      today = ~D[2026-02-12]
+      birthdate = ~D[1996-02-15]
 
-      birthdate =
-        if today.day == 1 do
-          Date.new!(today.year - 30, today.month, 2)
-        else
-          Date.new!(today.year - 30, today.month, today.day + 1)
-        end
-
-      {years, months} = calculate_age(birthdate)
-      assert years == 29
-      assert months in [10, 11, 12]
+      assert calculate_age(birthdate, today) == {29, 11}
     end
 
     test "calculates age correctly when birthday hasn't occurred this year" do
-      today = Date.utc_today()
-      previous_month = if today.month == 1, do: 12, else: today.month - 1
-      year = if today.month == 1, do: today.year - 1, else: today.year
+      today = ~D[2026-02-12]
+      birthdate = ~D[2006-01-12]
 
-      birthdate = Date.new!(year - 20, previous_month, today.day)
-      {years, months} = calculate_age(birthdate)
-
-      assert years == 20
-      assert months == 1
+      assert calculate_age(birthdate, today) == {20, 1}
     end
 
-    test "handles leap year birthdate" do
-      # Use 2004 which is a leap year
-      birthdate = Date.new!(2004, 2, 29)
+    test "handles leap year birthdate on a non-leap year" do
+      today = ~D[2026-03-01]
+      birthdate = ~D[2004-02-29]
 
-      # Should not crash when calculating age for leap year birthdate
-      result = calculate_age(birthdate)
-      assert is_tuple(result) or result == nil
+      assert calculate_age(birthdate, today) == {22, 0}
     end
 
     test "calculates age when birthday is today" do
-      today = Date.utc_today()
-      birthdate = Date.new!(today.year - 18, today.month, today.day)
-      assert calculate_age(birthdate) == {18, 0}
+      today = ~D[2026-02-12]
+      birthdate = ~D[2008-02-12]
+      assert calculate_age(birthdate, today) == {18, 0}
     end
 
     test "calculates age with months when birthday hasn't passed this month" do
-      today = Date.utc_today()
+      today = ~D[2026-02-12]
+      birthdate = ~D[2021-02-15]
 
-      birthdate =
-        if today.day == 28 do
-          Date.new!(today.year - 5, today.month, 29)
-        else
-          Date.new!(today.year - 5, today.month, today.day + 1)
-        end
-
-      {years, months} = calculate_age(birthdate)
-      assert years == 4
-      assert months in [11, 12]
+      assert calculate_age(birthdate, today) == {4, 11}
     end
 
-    test "calculates age for someone born on a leap year" do
-      # Person born on 2004-02-29, a leap year
-      birthdate = Date.new!(2004, 2, 29)
-      result = calculate_age(birthdate)
+    test "handles last day of month edge case" do
+      today = ~D[2026-01-31]
+      birthdate = ~D[2000-01-15]
 
-      # Should return a valid age tuple
-      assert is_tuple(result)
-      {years, months} = result
-      # Should be at least 21 years old as of 2026
-      assert years >= 21
-      assert months >= 0
-      assert months < 12
+      assert calculate_age(birthdate, today) == {26, 0}
+    end
+
+    test "handles end of year calculation" do
+      today = ~D[2026-12-31]
+      birthdate = ~D[2000-12-31]
+
+      assert calculate_age(birthdate, today) == {26, 0}
+    end
+
+    test "uses default today when not provided" do
+      # This test uses the default Date.utc_today()
+      birthdate = Date.add(Date.utc_today(), -365 * 5)
+      {years, _months} = calculate_age(birthdate)
+
+      assert years >= 4 and years <= 5
     end
   end
 
