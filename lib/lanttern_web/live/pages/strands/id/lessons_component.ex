@@ -25,9 +25,11 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
           empty_state_text={gettext("Edit strand to add a cover image")}
           size="sm"
         />
-        <hgroup class="mt-10 font-display font-black">
-          <h1 class="text-4xl sm:text-5xl">{@strand.name}</h1>
-          <p :if={@strand.type} class="mt-2 text-xl sm:text-2xl">{@strand.type}</p>
+        <hgroup class="mt-10">
+          <h1 class="font-display font-black text-ltrn-darkest text-4xl sm:text-5xl">
+            {@strand.name}
+          </h1>
+          <p :if={@strand.type} class="mt-2 font-bold text-xl sm:text-2xl">{@strand.type}</p>
         </hgroup>
         <div class="flex flex-wrap gap-2 mt-6">
           <.badge :for={subject <- @strand.subjects} theme="dark">

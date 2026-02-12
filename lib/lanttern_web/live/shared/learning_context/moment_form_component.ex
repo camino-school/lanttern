@@ -44,7 +44,8 @@ defmodule LantternWeb.LearningContext.MomentFormComponent do
           class="mb-6"
           phx-debounce="1500"
         />
-        <.live_component
+        <%!-- moments subjects are deprecated in favor of lesson subjects --%>
+        <%!-- <.live_component
           module={MultiSelectComponent}
           id="moment-subjects-select"
           field={@form[:subject_id]}
@@ -55,7 +56,7 @@ defmodule LantternWeb.LearningContext.MomentFormComponent do
           prompt={gettext("Select subject")}
           empty_message={gettext("No subject selected")}
           notify_component={@myself}
-        />
+        /> --%>
         <div :if={@is_admin} class="mt-6">
           <.input field={@form[:position]} type="number" label={gettext("Position")} class="mb-6" />
           <div class="flex justify-end">

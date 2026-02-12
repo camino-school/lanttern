@@ -438,7 +438,7 @@ defmodule LantternWeb.OverlayComponents do
           id={item.id}
           type="button"
           class={[
-            "block w-full px-3 py-1 text-sm text-left focus:bg-ltrn-lighter",
+            "block w-full px-3 py-1 font-sans text-sm text-left focus:bg-ltrn-lighter",
             menu_button_item_theme_classes(Map.get(item, :theme, "default"))
           ]}
           role="menuitem"
@@ -536,7 +536,7 @@ defmodule LantternWeb.OverlayComponents do
       patch={Map.get(@item, :patch)}
       phx-click={JS.exec("data-close", to: "##{@menu_id}")}
       class={[
-        "block w-full px-3 py-1 text-sm text-left focus:bg-ltrn-lighter",
+        "block w-full px-3 py-1 font-sans text-sm text-left focus:bg-ltrn-lighter",
         menu_button_item_theme_classes(Map.get(@item, :theme, "default"))
       ]}
       role="menuitem"
@@ -552,7 +552,7 @@ defmodule LantternWeb.OverlayComponents do
     <button
       type="button"
       class={[
-        "block w-full px-3 py-1 text-sm text-left focus:bg-ltrn-lighter",
+        "block w-full px-3 py-1 font-sans text-sm text-left focus:bg-ltrn-lighter",
         menu_button_item_theme_classes(Map.get(@item, :theme, "default"))
       ]}
       role="menuitem"

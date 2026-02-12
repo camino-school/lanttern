@@ -827,10 +827,10 @@ defmodule LantternWeb.CoreComponents do
         />
       </div>
       <p class="sr-only">{@alt_text}</p>
-      <div class={[
+      <%!-- <div class={[
         "absolute inset-0 bg-linear-to-b pointer-events-none",
         cover_overlay(@theme)
-      ]} />
+      ]} /> --%>
       <div :if={@has_multiple_images} class="absolute bottom-2 flex justify-center w-full">
         <div class="slider-dots px-1 rounded-full bg-white" />
       </div>
@@ -851,10 +851,10 @@ defmodule LantternWeb.CoreComponents do
       <p :if={@empty_state_text} class="font-display font-black text-2xl text-ltrn-subtle">
         {@empty_state_text}
       </p>
-      <div class={[
+      <%!-- <div class={[
         "absolute inset-0 bg-linear-to-b",
         cover_overlay(@theme)
-      ]} />
+      ]} /> --%>
     </div>
     """
   end
@@ -1490,7 +1490,7 @@ defmodule LantternWeb.CoreComponents do
       aria-label="open menu"
     >
       <.icon name="hero-bars-3 text-ltrn-subtle" />
-      <div class="w-6 h-6 rounded-full bg-ltrn-mesh-primary blur-xs group-hover:blur-none transition-[filter]" />
+      <%!-- <div class="w-6 h-6 rounded-full bg-ltrn-mesh-1 blur-xs group-hover:blur-none transition-[filter]" /> --%>
     </button>
     """
   end
