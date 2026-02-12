@@ -99,6 +99,21 @@ defmodule Lanttern.SchoolsFixtures do
     staff_member
   end
 
+  @doc """
+  Generate a guardian.
+  """
+  def guardian_fixture(attrs \\ %{}) do
+    {:ok, guardian} =
+      attrs
+      |> Enum.into(%{
+        school_id: maybe_gen_school_id(attrs),
+        name: "some guardian name #{Ecto.UUID.generate()}"
+      })
+      |> Lanttern.Schools.create_guardian()
+
+    guardian
+  end
+
   # generator helpers
 
   def maybe_gen_school_id(%{school_id: school_id} = _attrs), do: school_id

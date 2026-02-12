@@ -1694,4 +1694,164 @@ defmodule Lanttern.SchoolsTest do
       |> Lanttern.Repo.one!()
     end
   end
+
+  describe "guardians" do
+    alias Lanttern.Schools.Guardian
+
+    @invalid_attrs %{name: nil, school_id: nil}
+
+    test "list_guardians/1 returns all guardians" do
+      guardian = guardian_fixture()
+      assert Schools.list_guardians() == [guardian]
+    end
+
+    test "list_guardians/1 with school_id filter returns only guardians from that school" do
+      school_1 = school_fixture()
+      school_2 = school_fixture()
+
+      guardian_1 = guardian_fixture(%{school_id: school_1.id})
+      _guardian_2 = guardian_fixture(%{school_id: school_2.id})
+
+      assert [guardian_1] == Schools.list_guardians(school_id: school_1.id)
+    end
+
+    test "get_guardian!/1 returns the guardian with given id" do
+      guardian = guardian_fixture()
+      assert Schools.get_guardian!(guardian.id) == guardian
+    end
+
+    test "get_guardian/2 returns the guardian with given id" do
+      guardian = guardian_fixture()
+      assert Schools.get_guardian(guardian.id) == guardian
+    end
+
+    test "get_guardian/2 with preloads returns the guardian with preloaded associations" do
+      guardian = guardian_fixture()
+      result = Schools.get_guardian(guardian.id, preloads: [:school])
+
+      assert result.id == guardian.id
+      assert %Lanttern.Schools.School{} = result.school
+    end
+
+    test "create_guardian/1 with valid data creates a guardian" do
+      school = school_fixture()
+      valid_attrs = %{name: "John Doe", school_id: school.id}
+
+      assert {:ok, %Guardian{} = guardian} = Schools.create_guardian(valid_attrs)
+      assert guardian.name == "John Doe"
+      assert guardian.school_id == school.id
+    end
+
+    test "create_guardian/1 with invalid data returns error changeset" do
+      assert {:error, %Ecto.Changeset{}} = Schools.create_guardian(@invalid_attrs)
+    end
+
+    test "update_guardian/2 with valid data updates the guardian" do
+      guardian = guardian_fixture()
+      update_attrs = %{name: "Jane Doe"}
+
+      assert {:ok, %Guardian{} = guardian} = Schools.update_guardian(guardian, update_attrs)
+      assert guardian.name == "Jane Doe"
+    end
+
+    test "update_guardian/2 with invalid data returns error changeset" do
+      guardian = guardian_fixture()
+      assert {:error, %Ecto.Changeset{}} = Schools.update_guardian(guardian, @invalid_attrs)
+      assert guardian == Schools.get_guardian!(guardian.id)
+    end
+
+    test "delete_guardian/1 deletes the guardian" do
+      guardian = guardian_fixture()
+      assert {:ok, %Guardian{}} = Schools.delete_guardian(guardian)
+      assert_raise Ecto.NoResultsError, fn -> Schools.get_guardian!(guardian.id) end
+    end
+
+    test "change_guardian/1 returns a guardian changeset" do
+      guardian = guardian_fixture()
+      assert %Ecto.Changeset{} = Schools.change_guardian(guardian)
+    end
+
+    test "get_guardian!/2 with preloads returns the guardian with preloaded associations" do
+      guardian = guardian_fixture()
+      result = Schools.get_guardian!(guardian.id, preloads: [:school])
+
+      assert result.id == guardian.id
+      assert %Lanttern.Schools.School{} = result.school
+    end
+
+    test "get_guardian/2 with students preload returns guardian with students" do
+      guardian = guardian_fixture()
+      student = student_fixture(%{school_id: guardian.school_id})
+
+      # Link student to guardian via students_guardians table
+      Lanttern.Repo.insert_all("students_guardians", [
+        %{student_id: student.id, guardian_id: guardian.id}
+      ])
+
+      result = Schools.get_guardian(guardian.id, preloads: [:students])
+
+      assert result.id == guardian.id
+      assert length(result.students) == 1
+      assert hd(result.students).id == student.id
+    end
+
+    test "delete_guardian/1 removes associated students_guardians but keeps students" do
+      guardian = guardian_fixture()
+      student = student_fixture(%{school_id: guardian.school_id})
+
+      # Link student to guardian
+      Lanttern.Repo.insert_all("students_guardians", [
+        %{student_id: student.id, guardian_id: guardian.id}
+      ])
+
+      # Verify relationship exists
+      assert Lanttern.Repo.one(
+               from sg in "students_guardians",
+                 where: sg.student_id == ^student.id and sg.guardian_id == ^guardian.id,
+                 select: 1
+             ) == 1
+
+      # Delete guardian
+      assert {:ok, %Guardian{}} = Schools.delete_guardian(guardian)
+
+      # Verify guardian is deleted
+      assert_raise Ecto.NoResultsError, fn -> Schools.get_guardian!(guardian.id) end
+
+      # Verify relationship is removed (cascade delete)
+      assert Lanttern.Repo.one(
+               from sg in "students_guardians",
+                 where: sg.student_id == ^student.id and sg.guardian_id == ^guardian.id,
+                 select: 1
+             ) == nil
+
+      # Verify student still exists
+      assert Schools.get_student!(student.id)
+    end
+
+    test "create_guardian/1 requires school_id" do
+      result = Schools.create_guardian(%{name: "Test Guardian"})
+      assert {:error, changeset} = result
+      assert "can't be blank" in errors_on(changeset).school_id
+    end
+
+    test "create_guardian/1 requires name" do
+      school = school_fixture()
+      result = Schools.create_guardian(%{school_id: school.id})
+      assert {:error, changeset} = result
+      assert "can't be blank" in errors_on(changeset).name
+    end
+
+    test "list_guardians/1 returns empty list when no guardians exist" do
+      assert Schools.list_guardians() == []
+    end
+
+    test "list_guardians/1 with non-existent school_id returns empty list" do
+      _guardian = guardian_fixture()
+      assert Schools.list_guardians(school_id: -1) == []
+    end
+
+    test "get_guardian/2 returns nil for non-existent id" do
+      assert Schools.get_guardian(-1) == nil
+    end
+  end
 end
