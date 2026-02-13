@@ -50,7 +50,11 @@ defmodule Lanttern.Lessons.Lesson do
     belongs_to :moment, Moment
 
     many_to_many :subjects, Subject, join_through: "lessons_subjects", on_replace: :delete
-    many_to_many :tags, Tag, join_through: "lessons_tags", on_replace: :delete
+
+    many_to_many :tags, Tag,
+      join_through: "lessons_tags",
+      on_replace: :delete,
+      preload_order: [asc: :position]
 
     timestamps()
   end

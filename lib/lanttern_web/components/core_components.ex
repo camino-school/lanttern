@@ -2353,6 +2353,7 @@ defmodule LantternWeb.CoreComponents do
   defp get_tooltip_pos_class(assigns) do
     v_class =
       case assigns do
+        %{v_pos: "middle"} -> "top-1/2"
         %{v_pos: "bottom"} -> "top-full mt-2"
         _v_pos_top -> "bottom-full mb-2"
       end

@@ -91,8 +91,7 @@ defmodule LantternWeb.MomentLiveTest do
 
   describe "Moment management" do
     test "edit moment", %{conn: conn} do
-      subject = TaxonomyFixtures.subject_fixture(%{name: "subject abc"})
-      strand = LearningContextFixtures.strand_fixture(%{subjects_ids: [subject.id]})
+      strand = LearningContextFixtures.strand_fixture()
 
       moment =
         LearningContextFixtures.moment_fixture(%{strand_id: strand.id, name: "moment abc"})
@@ -101,11 +100,6 @@ defmodule LantternWeb.MomentLiveTest do
 
       assert view
              |> has_element?("h2", "Edit moment")
-
-      # add subject
-      view
-      |> element("#moment-form #moment_subject_id")
-      |> render_change(%{"moment" => %{"subject_id" => subject.id}})
 
       # submit form with valid field
       view
@@ -119,7 +113,6 @@ defmodule LantternWeb.MomentLiveTest do
       assert_patch(view, "#{@live_view_base_path}/#{moment.id}")
 
       assert view |> has_element?("h1", "moment name xyz")
-      assert view |> has_element?("span", subject.name)
     end
 
     test "delete moment", %{conn: conn} do

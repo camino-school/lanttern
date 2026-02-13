@@ -278,6 +278,38 @@ defmodule LantternWeb.NavigationComponents do
   end
 
   @doc """
+  Renders a side navigation panel.
+
+  ## Examples
+
+      <.side_nav title="Some page">
+        Custom content
+      </.settings_side_nav>
+
+  """
+  attr :menu_title, :string, default: nil
+
+  slot :inner_block, required: true
+
+  def side_nav(assigns) do
+    ~H"""
+    <nav class="fixed top-0 left-0 w-64 h-screen overflow-y-auto bg-white ltrn-bg-side">
+      <button
+        :if={@menu_title}
+        type="button"
+        class="flex gap-2.5 items-center ml-2.5 my-10 hover:text-ltrn-subtle"
+        phx-click={JS.exec("data-show", to: "#menu")}
+        aria-label="open menu"
+      >
+        <.icon name="hero-bars-3-mini" class="w-5 h-5" />
+        <p class="font-display font-bold">{@menu_title}</p>
+      </button>
+      {render_slot(@inner_block)}
+    </nav>
+    """
+  end
+
+  @doc """
   Renders a settings side navigation with grouped links.
 
   ## Examples
@@ -293,7 +325,6 @@ defmodule LantternWeb.NavigationComponents do
 
   """
   attr :current_path, :string, required: true
-  attr :class, :any, default: nil
 
   slot :group, required: true do
     attr :title, :string, required: true
@@ -307,21 +338,7 @@ defmodule LantternWeb.NavigationComponents do
 
   def settings_side_nav(assigns) do
     ~H"""
-    <nav class={[
-      "w-64 shrink-0 py-10 overflow-y-auto bg-white ltrn-bg-side",
-      @class
-    ]}>
-      <button
-        type="button"
-        class="flex gap-2.5 items-center ml-2.5 mb-10 hover:text-ltrn-subtle"
-        phx-click={JS.exec("data-show", to: "#menu")}
-        aria-label="open menu"
-      >
-        <.icon name="hero-bars-3-mini" class="w-5 h-5" />
-        <p class="font-display font-bold">
-          {gettext("Settings")}
-        </p>
-      </button>
+    <.side_nav menu_title={gettext("Settings")}>
       <div :for={group <- @group} class="mb-10">
         <h5 class="flex items-center gap-2 px-10 font-sans text-sm text-ltrn-subtle">
           <.icon :if={Map.get(group, :icon_name)} name={group.icon_name} class="w-4 h-4" />
@@ -331,7 +348,7 @@ defmodule LantternWeb.NavigationComponents do
           {render_slot(group, @current_path)}
         </ul>
       </div>
-    </nav>
+    </.side_nav>
     """
   end
 
@@ -372,7 +389,7 @@ defmodule LantternWeb.NavigationComponents do
           )
         ]}
       >
-        <.icon :if={@icon_name} name={@icon_name} class="w-5 h-5" />
+        <.icon :if={@icon_name} name={@icon_name} />
         {render_slot(@inner_block)}
       </.link>
     </li>

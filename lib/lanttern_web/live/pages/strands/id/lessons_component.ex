@@ -312,8 +312,22 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
           <div :if={@lesson.description} class="mt-2 text-xs">
             <.markdown text={@lesson.description} strip_tags class="mt-2 line-clamp-1" />
           </div>
-          <div :if={!Enum.empty?(@lesson.subjects)} class="mt-2 text-xs">
-            {@lesson.subjects |> Enum.map(& &1.name) |> Enum.join(", ")}
+          <div
+            :if={!Enum.empty?(@lesson.subjects) || !Enum.empty?(@lesson.tags)}
+            class="flex items-center gap-4 mt-2 font-sans text-xs"
+          >
+            <div :if={!Enum.empty?(@lesson.subjects)}>
+              {@lesson.subjects |> Enum.map_join(", ", & &1.name)}
+            </div>
+            <div :if={!Enum.empty?(@lesson.tags)} class="flex gap-4">
+              <div
+                :for={tag <- @lesson.tags}
+                class="flex items-center gap-1"
+              >
+                <.icon name="hero-tag-micro" style={"color: #{tag.bg_color}"} />
+                {tag.name}
+              </div>
+            </div>
           </div>
         </div>
         <div class="flex flex-col items-stretch w-2">

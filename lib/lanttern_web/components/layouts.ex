@@ -40,6 +40,42 @@ defmodule LantternWeb.Layouts do
   end
 
   @doc """
+  Renders a layout with side nav.
+  """
+  attr :menu_title, :string, default: nil, doc: "the side nav menu title"
+  attr :flash, :map, required: true, doc: "the map of flash messages"
+  attr :current_user, :map, doc: "required when rendering menu with `menu_title`"
+  # todo: migrate current_user to current_scope
+  # attr :current_scope, :map,
+  #   default: nil,
+  #   doc: "the current [scope](https://hexdocs.pm/phoenix/scopes.html)"
+  attr :current_path, :string, doc: "required when rendering menu with `menu_title`"
+
+  slot :side_nav, required: true
+  slot :inner_block, required: true
+
+  def app_with_side_nav(assigns) do
+    ~H"""
+    <div class="h-screen pl-64">
+      <.side_nav menu_title={@menu_title}>
+        {render_slot(@side_nav)}
+      </.side_nav>
+      <main class="min-h-screen overflow-y-auto ltrn-bg-main-local">
+        {render_slot(@inner_block)}
+      </main>
+    </div>
+    <.live_component
+      :if={@menu_title}
+      module={LantternWeb.MenuComponent}
+      id="menu"
+      current_user={@current_user}
+      current_path={@current_path}
+    />
+    <.flash_group flash={@flash} />
+    """
+  end
+
+  @doc """
   Renders the layout for settings area.
   """
   attr :flash, :map, required: true, doc: "the map of flash messages"
@@ -53,7 +89,7 @@ defmodule LantternWeb.Layouts do
 
   def app_settings(assigns) do
     ~H"""
-    <div class="flex items-stretch min-h-screen max-h-screen">
+    <div class="h-screen pl-64">
       <.settings_side_nav current_path={@current_path}>
         <:group title={gettext("AI Settings")}>
           <.settings_nav_link navigate={~p"/settings/school_ai_config"} current_path={@current_path}>
@@ -72,7 +108,7 @@ defmodule LantternWeb.Layouts do
           </.settings_nav_link>
         </:group>
       </.settings_side_nav>
-      <main class="flex-1 min-w-0 p-10 overflow-y-auto ltrn-bg-main-local">
+      <main class="min-h-screen p-10 ltrn-bg-main-local">
         {render_slot(@inner_block)}
       </main>
     </div>

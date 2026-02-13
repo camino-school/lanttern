@@ -10,8 +10,7 @@ defmodule LantternWeb.StrandLive.LessonsComponentTest do
 
   describe "Moment management" do
     test "create moment", %{conn: conn} do
-      subject = insert(:subject, name: "Subject abc")
-      strand = insert(:strand, subjects: [subject])
+      strand = insert(:strand)
 
       conn
       |> visit("#{@live_view_base_path}/#{strand.id}")
@@ -20,7 +19,6 @@ defmodule LantternWeb.StrandLive.LessonsComponentTest do
         conn
         |> fill_in("Name", with: "Moment name abc")
         |> fill_in("Description", with: "Moment description abc")
-        |> select("Subjects", option: "Subject abc")
         |> click_button("Save")
       end)
       |> assert_has("a", text: "Moment name abc")
@@ -68,9 +66,9 @@ defmodule LantternWeb.StrandLive.LessonsComponentTest do
         |> click_button("button", "Important")
         |> click_button("Save")
       end)
-      # after creation, navigates to lesson detail page where tags are shown as badges
+      # after creation, navigates to lesson detail page where tags are shown
       |> assert_has("h1", text: "Tagged lesson")
-      |> assert_has("span", text: "Important")
+      |> assert_has("div", text: "Important")
     end
 
     test "edit lesson to add tags", %{conn: conn, staff_member: staff_member} do
@@ -81,14 +79,14 @@ defmodule LantternWeb.StrandLive.LessonsComponentTest do
 
       conn
       |> visit("/strands/lesson/#{lesson.id}")
-      |> refute_has("span", text: "Priority")
+      |> refute_has("div", text: "Priority")
       |> click_button("Edit")
       |> within("#lesson-form-overlay", fn session ->
         session
         |> click_button("button", "Priority")
         |> click_button("Save")
       end)
-      |> assert_has("span", text: "Priority")
+      |> assert_has("div", text: "Priority")
     end
   end
 

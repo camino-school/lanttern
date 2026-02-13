@@ -81,7 +81,7 @@
     class="pt-10"
     conversation={@conversation}
     current_scope={@current_scope}
-    on_cancel={JS.exec("data-cancel", to: "#rename-conversation-overlay")}
+    on_cancel={JS.push("cancel_rename_conversation")}
     notify_parent
   />
 </.modal>

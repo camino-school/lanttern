@@ -4,8 +4,10 @@ defmodule LantternWeb.LessonLive do
   alias Lanttern.LearningContext
   alias Lanttern.Lessons
 
+  # view components
+  alias __MODULE__.LessonsSideNavComponent
+
   # shared components
-  import LantternWeb.LearningContextComponents, only: [mini_strand_card: 1]
   alias LantternWeb.Attachments.AttachmentAreaComponent
   alias LantternWeb.Lessons.LessonFormComponent
 
@@ -65,7 +67,7 @@ defmodule LantternWeb.LessonLive do
       |> case do
         {:ok, lesson} ->
           socket
-          |> assign(:lesson, lesson)
+          |> push_navigate(to: ~p"/strands/lesson/#{lesson}")
           |> put_flash(:info, gettext("Lesson published"))
 
         # missing description validation
