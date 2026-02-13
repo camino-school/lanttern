@@ -292,7 +292,10 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
             <h4 class="flex-1 font-display font-bold text-base">
               <.link
                 navigate={~p"/strands/lesson/#{@lesson.id}"}
-                class="hover:text-ltrn-subtle"
+                class={[
+                  "hover:text-ltrn-subtle",
+                  if(@lesson.is_published, do: "text-ltrn-darkest", else: "text-ltrn-dark")
+                ]}
               >
                 {@lesson.name}
                 <span :if={!@lesson.is_published} class="font-normal text-ltrn-subtle">
@@ -309,12 +312,15 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
               {gettext("Edit")}
             </.action>
           </div>
-          <div :if={@lesson.description} class="mt-2 text-xs">
-            <.markdown text={@lesson.description} strip_tags class="mt-2 line-clamp-1" />
-          </div>
+          <.markdown
+            :if={@lesson.description}
+            text={@lesson.description}
+            strip_tags
+            class="mt-2 text-ltrn-subtle line-clamp-1"
+          />
           <div
             :if={!Enum.empty?(@lesson.subjects) || !Enum.empty?(@lesson.tags)}
-            class="flex items-center gap-4 mt-2 font-sans text-xs"
+            class="flex items-center gap-4 mt-2 font-sans text-sm text-ltrn-subtle"
           >
             <div :if={!Enum.empty?(@lesson.subjects)}>
               {@lesson.subjects |> Enum.map_join(", ", & &1.name)}

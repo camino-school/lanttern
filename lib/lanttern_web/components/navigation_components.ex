@@ -287,13 +287,29 @@ defmodule LantternWeb.NavigationComponents do
       </.settings_side_nav>
 
   """
+  attr :id, :string, default: nil
   attr :menu_title, :string, default: nil
+  attr :collapsible, :boolean, default: false
 
   slot :inner_block, required: true
 
   def side_nav(assigns) do
     ~H"""
-    <nav class="fixed top-0 left-0 w-64 h-screen overflow-y-auto bg-white ltrn-bg-side">
+    <button
+      :if={@collapsible}
+      id={"#{@id}-toggle"}
+      type="button"
+      class="fixed top-1/2 -translate-y-1/2 left-70 z-40 flex items-center justify-center w-8 h-14 rounded-r-full bg-white shadow-xl hover:bg-ltrn-lighter transition-[left] duration-300"
+      phx-click={toggle_side_nav(@id)}
+      aria-label={gettext("toggle side navigation")}
+    >
+      <.icon name="hero-chevron-left-mini" class="-translate-x-1 toggle-collapse" />
+      <.icon name="hero-chevron-right-mini" class="-translate-x-1 toggle-expand hidden" />
+    </button>
+    <nav
+      id={@id}
+      class="fixed top-0 left-0 w-70 h-screen overflow-y-auto bg-white ltrn-bg-side transition-transform duration-300"
+    >
       <button
         :if={@menu_title}
         type="button"
@@ -307,6 +323,16 @@ defmodule LantternWeb.NavigationComponents do
       {render_slot(@inner_block)}
     </nav>
     """
+  end
+
+  defp toggle_side_nav(id) do
+    JS.toggle_class("-translate-x-full", to: "##{id}")
+    |> JS.toggle_attribute({"inert", "true"}, to: "##{id}")
+    |> JS.toggle_class("pl-70", to: "##{id}-layout")
+    |> JS.toggle_class("left-70", to: "##{id}-toggle")
+    |> JS.toggle_class("left-0", to: "##{id}-toggle")
+    |> JS.toggle(to: "##{id}-toggle .toggle-collapse")
+    |> JS.toggle(to: "##{id}-toggle .toggle-expand")
   end
 
   @doc """
@@ -324,7 +350,9 @@ defmodule LantternWeb.NavigationComponents do
       </.settings_side_nav>
 
   """
+  attr :id, :string, default: nil
   attr :current_path, :string, required: true
+  attr :collapsible, :boolean, default: false
 
   slot :group, required: true do
     attr :title, :string, required: true
@@ -338,7 +366,7 @@ defmodule LantternWeb.NavigationComponents do
 
   def settings_side_nav(assigns) do
     ~H"""
-    <.side_nav menu_title={gettext("Settings")}>
+    <.side_nav id={@id} menu_title={gettext("Settings")} collapsible={@collapsible}>
       <div :for={group <- @group} class="mb-10">
         <h5 class="flex items-center gap-2 px-10 font-sans text-sm text-ltrn-subtle">
           <.icon :if={Map.get(group, :icon_name)} name={group.icon_name} class="w-4 h-4" />

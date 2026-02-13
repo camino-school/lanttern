@@ -42,6 +42,8 @@ defmodule LantternWeb.Layouts do
   @doc """
   Renders a layout with side nav.
   """
+  attr :side_nav_id, :string, default: nil, doc: "the side nav id, required when collapsible"
+  attr :collapsible, :boolean, default: false, doc: "whether the side nav can be collapsed"
   attr :menu_title, :string, default: nil, doc: "the side nav menu title"
   attr :flash, :map, required: true, doc: "the map of flash messages"
   attr :current_user, :map, doc: "required when rendering menu with `menu_title`"
@@ -56,8 +58,8 @@ defmodule LantternWeb.Layouts do
 
   def app_with_side_nav(assigns) do
     ~H"""
-    <div class="h-screen pl-64">
-      <.side_nav menu_title={@menu_title}>
+    <div id={"#{@side_nav_id}-layout"} class="h-screen pl-70 transition-[padding] duration-300">
+      <.side_nav id={@side_nav_id} menu_title={@menu_title} collapsible={@collapsible}>
         {render_slot(@side_nav)}
       </.side_nav>
       <main class="min-h-screen overflow-y-auto ltrn-bg-main-local">
@@ -78,6 +80,8 @@ defmodule LantternWeb.Layouts do
   @doc """
   Renders the layout for settings area.
   """
+  attr :side_nav_id, :string, default: nil, doc: "the side nav id, required when collapsible"
+  attr :collapsible, :boolean, default: false, doc: "whether the side nav can be collapsed"
   attr :flash, :map, required: true, doc: "the map of flash messages"
   attr :current_user, :map, required: true
   # todo: migrate current_user to current_scope
@@ -89,8 +93,8 @@ defmodule LantternWeb.Layouts do
 
   def app_settings(assigns) do
     ~H"""
-    <div class="h-screen pl-64">
-      <.settings_side_nav current_path={@current_path}>
+    <div id={"#{@side_nav_id}-layout"} class="h-screen pl-70 transition-[padding] duration-300">
+      <.settings_side_nav id={@side_nav_id} current_path={@current_path} collapsible={@collapsible}>
         <:group title={gettext("AI Settings")}>
           <.settings_nav_link navigate={~p"/settings/school_ai_config"} current_path={@current_path}>
             {gettext("School AI Config")}
