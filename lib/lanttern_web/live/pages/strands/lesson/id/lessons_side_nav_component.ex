@@ -162,10 +162,12 @@ defmodule LantternWeb.LessonLive.LessonsSideNavComponent do
           "flex-1 truncate hover:text-ltrn-subtle",
           @link_style
         ]}
-        title={"#{@lesson.name}#{if(!@lesson.is_published, do: gettext(" (Draft)"))}"}
       >
         {@lesson.name}
       </.link>
+      <.tooltip id={"lesson-#{@lesson.id}-details-tooltip"}>
+        {"#{@lesson.name}#{if(!@lesson.is_published, do: gettext(" (Draft)"))}"}
+      </.tooltip>
       <div class="absolute right-2 flex flex-col justify-center gap-1 w-1 h-full">
         <div
           :for={tag <- @lesson.tags}

@@ -658,7 +658,7 @@ defmodule LantternWeb.FormComponents do
     ~H"""
     <div class={["flex justify-between gap-4 mb-2 text-sm font-sans", @class]}>
       <label for={@for} class="font-bold">
-        <.help_tooltip text={@help_text} class="inline-block font-normal" />
+        <.help_tooltip text={@help_text} id={"#{@for}-help-tooltip"} class="inline-block font-normal" />
         {render_slot(@inner_block)}
       </label>
       <span class="text-ltrn-subtle">{gettext("Optional")}</span>
@@ -669,7 +669,7 @@ defmodule LantternWeb.FormComponents do
   def label(%{custom: true} = assigns) do
     ~H"""
     <label for={@for} class={["block mb-2", @class]}>
-      <.help_tooltip text={@help_text} class="inline-block font-normal" />
+      <.help_tooltip text={@help_text} id={"#{@for}-help-tooltip"} class="inline-block font-normal" />
       {render_slot(@inner_block)}
     </label>
     """
@@ -678,7 +678,7 @@ defmodule LantternWeb.FormComponents do
   def label(assigns) do
     ~H"""
     <label for={@for} class={["flex items-center gap-2 mb-2 text-sm font-sans font-bold", @class]}>
-      <.help_tooltip text={@help_text} class="font-normal" />
+      <.help_tooltip text={@help_text} id={"#{@for}-help-tooltip"} class="font-normal" />
       {render_slot(@inner_block)}
     </label>
     """
@@ -690,12 +690,13 @@ defmodule LantternWeb.FormComponents do
 
   attr :text, :string, required: true
   attr :class, :any, default: nil
+  attr :id, :string, required: true
 
   def help_tooltip(assigns) do
     ~H"""
-    <div :if={@text} class={["group relative", @class]}>
+    <div :if={@text} class={@class}>
       <.icon name="hero-question-mark-circle" class={@class} />
-      <.tooltip>{@text}</.tooltip>
+      <.tooltip id={@id}>{@text}</.tooltip>
     </div>
     """
   end

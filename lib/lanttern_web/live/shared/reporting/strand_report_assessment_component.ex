@@ -229,17 +229,23 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
               <.assessment_metadata_icon
                 :if={@goal.is_differentiation || @goal.has_diff_rubric_for_student}
                 type={:diff}
+                id={@id}
               />
-              <.assessment_metadata_icon :if={@entry && @entry.report_note} type={:teacher_comment} />
+              <.assessment_metadata_icon
+                :if={@entry && @entry.report_note}
+                type={:teacher_comment}
+                id={@id}
+              />
               <.assessment_metadata_icon
                 :if={@entry && @entry.student_report_note}
                 type={:student_comment}
+                id={@id}
               />
-              <.assessment_metadata_icon :if={@has_evidence} type={:evidences} />
-              <.assessment_metadata_icon :if={@goal.report_info} type={:info} />
-              <.assessment_metadata_icon :if={@goal.rubric_id} type={:rubric} />
+              <.assessment_metadata_icon :if={@has_evidence} type={:evidences} id={@id} />
+              <.assessment_metadata_icon :if={@goal.report_info} type={:info} id={@id} />
+              <.assessment_metadata_icon :if={@goal.rubric_id} type={:rubric} id={@id} />
             </div>
-            <div class="group relative flex-1 flex flex-wrap gap-1">
+            <div class="flex-1 flex flex-wrap gap-1">
               <.live_component
                 :for={moment_entry <- @moment_entries}
                 module={EntryParticleComponent}
@@ -247,7 +253,9 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
                 entry={moment_entry}
                 class="flex-1"
               />
-              <.tooltip>{gettext("Formative assessment pattern")}</.tooltip>
+              <.tooltip id={"#{@id}-pattern-tooltip"}>
+                {gettext("Formative assessment pattern")}
+              </.tooltip>
             </div>
           </div>
         </div>
@@ -263,12 +271,13 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
   end
 
   attr :type, :atom, required: true
+  attr :id, :string, required: true
 
   defp assessment_metadata_icon(%{type: :diff} = assigns) do
     ~H"""
-    <div class="group relative flex items-center justify-center w-6 h-6 rounded-full bg-ltrn-diff-lighter">
+    <div class="flex items-center justify-center w-6 h-6 rounded-full bg-ltrn-diff-lighter">
       <span class="font-display font-black text-sm text-ltrn-diff-accent">D</span>
-      <.tooltip>{gettext("Differentiation")}</.tooltip>
+      <.tooltip id={"#{@id}-diff-tooltip"}>{gettext("Differentiation")}</.tooltip>
     </div>
     """
   end
@@ -285,9 +294,9 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
       |> assign(:color, color)
 
     ~H"""
-    <div class={["group relative flex items-center justify-center w-6 h-6 rounded-full", @bg]}>
+    <div class={["flex items-center justify-center w-6 h-6 rounded-full", @bg]}>
       <.icon name={@icon_name} class={@color} />
-      <.tooltip>{@text}</.tooltip>
+      <.tooltip id={"#{@id}-#{@type}-tooltip"}>{@text}</.tooltip>
     </div>
     """
   end

@@ -295,17 +295,6 @@ defmodule LantternWeb.NavigationComponents do
 
   def side_nav(assigns) do
     ~H"""
-    <button
-      :if={@collapsible}
-      id={"#{@id}-toggle"}
-      type="button"
-      class="fixed top-1/2 -translate-y-1/2 left-70 z-40 flex items-center justify-center w-8 h-14 rounded-r-full bg-white shadow-xl hover:bg-ltrn-lighter transition-[left] duration-300"
-      phx-click={toggle_side_nav(@id)}
-      aria-label={gettext("toggle side navigation")}
-    >
-      <.icon name="hero-chevron-left-mini" class="-translate-x-1 toggle-collapse" />
-      <.icon name="hero-chevron-right-mini" class="-translate-x-1 toggle-expand hidden" />
-    </button>
     <nav
       id={@id}
       class="fixed top-0 left-0 w-70 h-screen overflow-y-auto bg-white ltrn-bg-side transition-transform duration-300"
@@ -322,6 +311,17 @@ defmodule LantternWeb.NavigationComponents do
       </button>
       {render_slot(@inner_block)}
     </nav>
+    <button
+      :if={@collapsible}
+      id={"#{@id}-toggle"}
+      type="button"
+      class="fixed top-1/2 -translate-y-1/2 left-70 z-40 flex items-center justify-center w-8 h-14 rounded-r-full bg-white shadow-xl hover:bg-ltrn-lighter transition-[left] duration-300"
+      phx-click={toggle_side_nav(@id)}
+      aria-label={gettext("toggle side navigation")}
+    >
+      <.icon name="hero-chevron-left-mini" class="-translate-x-1 toggle-collapse" />
+      <.icon name="hero-chevron-right-mini" class="-translate-x-1 toggle-expand hidden" />
+    </button>
     """
   end
 

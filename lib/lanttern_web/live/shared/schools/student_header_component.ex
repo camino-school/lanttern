@@ -71,11 +71,11 @@ defmodule LantternWeb.Schools.StudentHeaderComponent do
               {tag.name}
             </.badge>
           <% end %>
-          <div class="group relative" {if(@cycle_tooltip, do: %{"tabindex" => "0"}, else: %{})}>
+          <div {if(@cycle_tooltip, do: %{"tabindex" => "0"}, else: %{})}>
             <.badge theme="dark">
               {@cycle.name}
             </.badge>
-            <.tooltip :if={@cycle_tooltip} v_pos="bottom">
+            <.tooltip :if={@cycle_tooltip} id={"#{@id}-cycle-tooltip"}>
               {@cycle_tooltip}
             </.tooltip>
           </div>

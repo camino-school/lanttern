@@ -1423,7 +1423,7 @@ defmodule LantternWeb.CoreComponents do
   Parses markdown text to HTML and renders it
   """
   attr :text, :string, required: true
-  attr :theme, :string, default: "slate"
+  attr :theme, :string, default: "stone"
   attr :size, :string, default: "base", doc: "sm | base"
   attr :invert, :boolean, default: false
   attr :strip_tags, :boolean, default: false
@@ -2316,60 +2316,95 @@ defmodule LantternWeb.CoreComponents do
   end
 
   @doc """
-  Renders a tooltip.
+  Renders a mouse-following tooltip (similar to native browser `title` tooltips).
 
-  Tooltip parent should have `"group relative"` class.
+  The tooltip appears near the mouse cursor and follows it. It automatically
+  flips above the cursor when near the bottom of the viewport, and shifts
+  left when near the right edge.
+
+  The parent element needs no special classes for this tooltip to work.
   """
 
-  attr :h_pos, :string, default: "left", doc: "left | center | right"
-  attr :v_pos, :string, default: "top", doc: "top | bottom"
   attr :class, :any, default: nil
+  attr :id, :string, required: true
 
   slot :inner_block, required: true
 
   def tooltip(assigns) do
-    assigns =
-      assigns
-      |> assign(:tooltip_pos_class, get_tooltip_pos_class(assigns))
-      |> assign(:inner_pos_class, get_tooltip_inner_pos_class(assigns))
-
     ~H"""
-    <div class={[
-      "pointer-events-none absolute w-80 max-w-max",
-      "opacity-0 transition-opacity group-hover:opacity-100 group-focus:opacity-100",
-      @tooltip_pos_class,
-      @class
-    ]}>
-      <div class={[
-        "relative p-2 rounded-sm text-sm bg-ltrn-dark text-white",
-        @inner_pos_class
-      ]}>
+    <div
+      id={@id}
+      role="tooltip"
+      phx-hook=".Tooltip"
+      class={[
+        "pointer-events-none fixed z-[9999] hidden w-80 max-w-max",
+        @class
+      ]}
+    >
+      <div class="p-2 rounded-sm text-sm bg-ltrn-dark text-white">
         {render_slot(@inner_block)}
       </div>
     </div>
+    <script :type={Phoenix.LiveView.ColocatedHook} name=".Tooltip">
+      export default {
+        mounted() {
+          this.parent = this.el.parentElement;
+          this.offset = { x: 8, y: 12 };
+
+          // Link parent to tooltip for screen readers
+          this.parent.setAttribute("aria-describedby", this.el.id);
+
+          // Move to body to escape any parent stacking contexts
+          document.body.appendChild(this.el);
+
+          this._show = () => {
+            this.el.style.display = "block";
+          };
+
+          this._hide = () => {
+            this.el.style.display = "none";
+          };
+
+          this._onMouseMove = (e) => {
+            const rect = this.el.getBoundingClientRect();
+            const vw = window.innerWidth;
+            const vh = window.innerHeight;
+
+            let x = e.clientX + this.offset.x;
+            let y = e.clientY + this.offset.y;
+
+            // Flip above cursor if near bottom
+            if (y + rect.height > vh) {
+              y = e.clientY - rect.height - this.offset.y;
+            }
+
+            // Shift left if near right edge
+            if (x + rect.width > vw) {
+              x = vw - rect.width - 4;
+            }
+
+            this.el.style.left = x + "px";
+            this.el.style.top = y + "px";
+          };
+
+          this.parent.addEventListener("mouseenter", this._show);
+          this.parent.addEventListener("mousemove", this._onMouseMove);
+          this.parent.addEventListener("mouseleave", this._hide);
+        },
+        destroyed() {
+          this.parent.removeEventListener("mouseenter", this._show);
+          this.parent.removeEventListener("mousemove", this._onMouseMove);
+          this.parent.removeEventListener("mouseleave", this._hide);
+          this.parent.removeAttribute("aria-describedby");
+          // Clean up the element we moved to body
+          if (this.el.parentElement === document.body) {
+            document.body.removeChild(this.el);
+          }
+        }
+      }
+    </script>
     """
   end
-
-  defp get_tooltip_pos_class(assigns) do
-    v_class =
-      case assigns do
-        %{v_pos: "middle"} -> "top-1/2"
-        %{v_pos: "bottom"} -> "top-full mt-2"
-        _v_pos_top -> "bottom-full mb-2"
-      end
-
-    h_class =
-      case assigns do
-        %{h_pos: "center"} -> "left-1/2"
-        %{h_pos: "right"} -> "right-0"
-        _h_pos_left -> "left-0"
-      end
-
-    v_class <> " " <> h_class
-  end
-
-  defp get_tooltip_inner_pos_class(%{h_pos: "center"}), do: "-left-1/2"
-  defp get_tooltip_inner_pos_class(_assigns), do: ""
 
   @doc """
   Renders a block with a profile icon.

@@ -101,9 +101,11 @@
             <div class="flex items-center gap-6">
               <div class="flex-1">
                 <div class="flex items-center gap-4">
-                  <div :if={curriculum_item.has_rubric} class="group relative">
+                  <div :if={curriculum_item.has_rubric}>
                     <.icon name="hero-view-columns" class="w-6 h-6" />
-                    <.tooltip>{gettext("Uses rubric in final assessment")}</.tooltip>
+                    <.tooltip id={"#{dom_id}-rubric-tooltip"}>
+                      {gettext("Uses rubric in final assessment")}
+                    </.tooltip>
                   </div>
                   <.badge :if={curriculum_item.is_differentiation} theme="diff">
                     {gettext("Differentiation")}
