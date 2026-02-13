@@ -419,7 +419,7 @@ msgid "Couldn't find strand"
 msgstr ""
 
 #: lib/lanttern_web/components/message_board_components.ex:53
-#: lib/lanttern_web/components/schools_components.ex:217
+#: lib/lanttern_web/components/schools_components.ex:215
 #: lib/lanttern_web/live/pages/curriculum/component/id/curriculum_component_live.html.heex:159
 #: lib/lanttern_web/live/pages/grades_report/grades_reports_live.html.heex:114
 #: lib/lanttern_web/live/pages/grades_report/id/grades_report_live.html.heex:118
@@ -486,7 +486,7 @@ msgstr ""
 
 #: lib/lanttern_web/components/form_components.ex:834
 #: lib/lanttern_web/components/message_board_components.ex:41
-#: lib/lanttern_web/components/schools_components.ex:215
+#: lib/lanttern_web/components/schools_components.ex:213
 #: lib/lanttern_web/live/pages/curriculum/component/id/curriculum_component_live.html.heex:157
 #: lib/lanttern_web/live/pages/grades_report/grades_reports_live.html.heex:112
 #: lib/lanttern_web/live/pages/grades_report/id/grades_report_live.html.heex:116
@@ -2876,7 +2876,7 @@ msgstr ""
 msgid "Edit class"
 msgstr ""
 
-#: lib/lanttern_web/components/schools_components.ex:156
+#: lib/lanttern_web/components/schools_components.ex:154
 #: lib/lanttern_web/live/pages/school/classes/id/students_component.ex:165
 #: lib/lanttern_web/live/pages/school/students/id/student_live.html.heex:41
 #: lib/lanttern_web/live/pages/school/students/id/student_live.html.heex:89
@@ -3741,7 +3741,7 @@ msgstr ""
 msgid "No staff members found"
 msgstr ""
 
-#: lib/lanttern_web/components/schools_components.ex:209
+#: lib/lanttern_web/components/schools_components.ex:207
 #: lib/lanttern_web/live/pages/school/staff/deactivated/deactivated_staff_live.html.heex:41
 #: lib/lanttern_web/live/shared/schools/student_form_overlay_component.ex:129
 #, elixir-autogen, elixir-format
@@ -5500,36 +5500,26 @@ msgstr ""
 msgid "Date of birth"
 msgstr ""
 
-#: lib/lanttern_web/helpers/date_time_helpers.ex:164
+#: lib/lanttern_web/helpers/date_time_helpers.ex:165
 #, elixir-autogen, elixir-format
-msgid "%{count} month"
+msgid "1 month"
 msgid_plural "%{count} months"
 msgstr[0] ""
 msgstr[1] ""
 
-#: lib/lanttern_web/helpers/date_time_helpers.ex:158
+#: lib/lanttern_web/helpers/date_time_helpers.ex:164
 #, elixir-autogen, elixir-format
-msgid "%{count} year"
+msgid "1 year"
 msgid_plural "%{count} years"
 msgstr[0] ""
 msgstr[1] ""
 
-#: lib/lanttern_web/helpers/date_time_helpers.ex:163
-#, elixir-autogen, elixir-format
-msgid "1 month"
-msgstr ""
-
-#: lib/lanttern_web/helpers/date_time_helpers.ex:157
-#, elixir-autogen, elixir-format
-msgid "1 year"
-msgstr ""
-
-#: lib/lanttern_web/helpers/date_time_helpers.ex:142
+#: lib/lanttern_web/helpers/date_time_helpers.ex:151
 #, elixir-autogen, elixir-format
 msgid "m"
 msgstr ""
 
-#: lib/lanttern_web/helpers/date_time_helpers.ex:141
+#: lib/lanttern_web/helpers/date_time_helpers.ex:150
 #, elixir-autogen, elixir-format
 msgid "y"
 msgstr ""

@@ -161,8 +161,8 @@ defmodule LantternWeb.DateTimeHelpers do
   def format_age_full(nil), do: ""
 
   def format_age_full({years, months}) do
-    years_text = ngettext("%{count} year", "%{count} years", years, count: years)
-    months_text = ngettext("%{count} month", "%{count} months", months, count: months)
+    years_text = ngettext("1 year", "%{count} years", years)
+    months_text = ngettext("1 month", "%{count} months", months)
 
     "#{years_text}, #{months_text}"
   end

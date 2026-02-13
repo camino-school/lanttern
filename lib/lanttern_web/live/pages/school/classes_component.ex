@@ -72,7 +72,7 @@ defmodule LantternWeb.SchoolLive.ClassesComponent do
               <ul class="mt-4 text-sm leading-relaxed">
                 <li :for={std <- class.students} class="flex items-center gap-2 w-full">
                   <% age = calculate_age(std.birthdate) %>
-                  <div class="group relative inline-block" tabindex="0">
+                  <div class="group relative inline-block">
                     <.link
                       navigate={~p"/school/students/#{std}"}
                       class={[
