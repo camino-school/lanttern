@@ -419,7 +419,7 @@ msgid "Couldn't find strand"
 msgstr ""
 
 #: lib/lanttern_web/components/message_board_components.ex:53
-#: lib/lanttern_web/components/schools_components.ex:199
+#: lib/lanttern_web/components/schools_components.ex:215
 #: lib/lanttern_web/live/pages/curriculum/component/id/curriculum_component_live.html.heex:159
 #: lib/lanttern_web/live/pages/grades_report/grades_reports_live.html.heex:114
 #: lib/lanttern_web/live/pages/grades_report/id/grades_report_live.html.heex:118
@@ -486,7 +486,7 @@ msgstr ""
 
 #: lib/lanttern_web/components/form_components.ex:834
 #: lib/lanttern_web/components/message_board_components.ex:41
-#: lib/lanttern_web/components/schools_components.ex:197
+#: lib/lanttern_web/components/schools_components.ex:213
 #: lib/lanttern_web/live/pages/curriculum/component/id/curriculum_component_live.html.heex:157
 #: lib/lanttern_web/live/pages/grades_report/grades_reports_live.html.heex:112
 #: lib/lanttern_web/live/pages/grades_report/id/grades_report_live.html.heex:116
@@ -2536,12 +2536,12 @@ msgstr ""
 msgid "Classes"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/school/classes_component.ex:111
+#: lib/lanttern_web/live/pages/school/classes_component.ex:124
 #, elixir-autogen, elixir-format
 msgid "Filter classes by year"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/school/classes_component.ex:95
+#: lib/lanttern_web/live/pages/school/classes_component.ex:108
 #, elixir-autogen, elixir-format
 msgid "No students in this class"
 msgstr ""
@@ -2841,13 +2841,13 @@ msgstr ""
 msgid "Add student"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/school/classes_component.ex:138
+#: lib/lanttern_web/live/pages/school/classes_component.ex:151
 #, elixir-autogen, elixir-format
 msgid "Class created successfully"
 msgstr ""
 
 #: lib/lanttern_web/live/pages/school/classes/id/class_live.ex:99
-#: lib/lanttern_web/live/pages/school/classes_component.ex:161
+#: lib/lanttern_web/live/pages/school/classes_component.ex:174
 #, elixir-autogen, elixir-format
 msgid "Class deleted successfully"
 msgstr ""
@@ -2858,12 +2858,12 @@ msgid "Class name already in use in this cycle"
 msgstr ""
 
 #: lib/lanttern_web/live/pages/school/classes/id/class_live.ex:90
-#: lib/lanttern_web/live/pages/school/classes_component.ex:147
+#: lib/lanttern_web/live/pages/school/classes_component.ex:160
 #, elixir-autogen, elixir-format
 msgid "Class updated successfully"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/school/classes_component.ex:225
+#: lib/lanttern_web/live/pages/school/classes_component.ex:238
 #, elixir-autogen, elixir-format
 msgid "Create class"
 msgstr ""
@@ -2871,12 +2871,12 @@ msgstr ""
 #: lib/lanttern_web/live/pages/school/classes/id/class_live.html.heex:33
 #: lib/lanttern_web/live/pages/school/classes/id/class_live.html.heex:68
 #: lib/lanttern_web/live/pages/school/classes_component.ex:52
-#: lib/lanttern_web/live/pages/school/classes_component.ex:237
+#: lib/lanttern_web/live/pages/school/classes_component.ex:250
 #, elixir-autogen, elixir-format
 msgid "Edit class"
 msgstr ""
 
-#: lib/lanttern_web/components/schools_components.ex:138
+#: lib/lanttern_web/components/schools_components.ex:154
 #: lib/lanttern_web/live/pages/school/classes/id/students_component.ex:165
 #: lib/lanttern_web/live/pages/school/students/id/student_live.html.heex:41
 #: lib/lanttern_web/live/pages/school/students/id/student_live.html.heex:89
@@ -2896,7 +2896,7 @@ msgstr ""
 msgid "New student"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/school/classes_component.ex:103
+#: lib/lanttern_web/live/pages/school/classes_component.ex:116
 #, elixir-autogen, elixir-format
 msgid "No classes matching current filters"
 msgstr ""
@@ -3427,7 +3427,7 @@ msgid "Check the student and school relationship"
 msgstr ""
 
 #: lib/lanttern_web/live/pages/school/staff_component.ex:64
-#: lib/lanttern_web/live/shared/schools/student_header_component.ex:39
+#: lib/lanttern_web/live/shared/schools/student_header_component.ex:40
 #: lib/lanttern_web/live/shared/students_cycle_info/student_cycle_info_header_component.ex:38
 #, elixir-autogen, elixir-format
 msgid "Edit cycle profile picture"
@@ -3444,7 +3444,7 @@ msgstr ""
 msgid "No classes"
 msgstr ""
 
-#: lib/lanttern_web/live/shared/schools/student_header_component.ex:84
+#: lib/lanttern_web/live/shared/schools/student_header_component.ex:90
 #: lib/lanttern_web/live/shared/students_cycle_info/student_cycle_info_header_component.ex:81
 #, elixir-autogen, elixir-format
 msgid "No classes linked to student in cycle"
@@ -3741,7 +3741,7 @@ msgstr ""
 msgid "No staff members found"
 msgstr ""
 
-#: lib/lanttern_web/components/schools_components.ex:191
+#: lib/lanttern_web/components/schools_components.ex:207
 #: lib/lanttern_web/live/pages/school/staff/deactivated/deactivated_staff_live.html.heex:41
 #: lib/lanttern_web/live/shared/schools/student_form_overlay_component.ex:129
 #, elixir-autogen, elixir-format
@@ -4240,8 +4240,8 @@ msgstr ""
 msgid "Are you sure? You can reactive the student later."
 msgstr ""
 
-#: lib/lanttern_web/live/pages/school/classes_component.ex:89
-#: lib/lanttern_web/live/shared/schools/student_header_component.ex:65
+#: lib/lanttern_web/live/pages/school/classes_component.ex:102
+#: lib/lanttern_web/live/shared/schools/student_header_component.ex:66
 #: lib/lanttern_web/live/shared/students_cycle_info/student_cycle_info_header_component.ex:55
 #, elixir-autogen, elixir-format
 msgid "Deactivated"
@@ -5498,4 +5498,28 @@ msgstr ""
 #: lib/lanttern_web/live/shared/schools/student_form_overlay_component.ex:54
 #, elixir-autogen, elixir-format
 msgid "Date of birth"
+msgstr ""
+
+#: lib/lanttern_web/helpers/date_time_helpers.ex:165
+#, elixir-autogen, elixir-format
+msgid "1 month"
+msgid_plural "%{count} months"
+msgstr[0] ""
+msgstr[1] ""
+
+#: lib/lanttern_web/helpers/date_time_helpers.ex:164
+#, elixir-autogen, elixir-format
+msgid "1 year"
+msgid_plural "%{count} years"
+msgstr[0] ""
+msgstr[1] ""
+
+#: lib/lanttern_web/helpers/date_time_helpers.ex:151
+#, elixir-autogen, elixir-format
+msgid "m"
+msgstr ""
+
+#: lib/lanttern_web/helpers/date_time_helpers.ex:150
+#, elixir-autogen, elixir-format
+msgid "y"
 msgstr ""
