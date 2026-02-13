@@ -784,8 +784,15 @@ defmodule LantternWeb.FormComponents do
         @errors != [] && "ring-rose-400 focus:ring-rose-400",
         @class
       ]}
+      phx-hook=".MaintainHeight"
       {@rest}
     >{Phoenix.HTML.Form.normalize_value("textarea", @value)}</textarea>
+    <script :type={Phoenix.LiveView.ColocatedHook} name=".MaintainHeight">
+      export default {
+        beforeUpdate() {this.prevHeight = this.el.style.height},
+        updated() {if (this.prevHeight) this.el.style.height = this.prevHeight}
+      }
+    </script>
     """
   end
 
