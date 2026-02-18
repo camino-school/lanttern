@@ -67,16 +67,6 @@ defmodule LantternWeb.MomentLiveTest do
       assert view
              |> has_element?("p", "Use cards to add an extra layer of organization to moments")
 
-      # notes tab
-
-      view
-      |> element("#moment-nav-tabs a", "Notes")
-      |> render_click()
-
-      assert_patch(view)
-
-      assert view |> has_element?("button", "Add a moment note")
-
       # back to details tab
 
       view

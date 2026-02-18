@@ -6,7 +6,6 @@ defmodule LantternWeb.MomentLive do
   # page components
   alias LantternWeb.MomentLive.AssessmentComponent
   alias LantternWeb.MomentLive.CardsComponent
-  alias LantternWeb.MomentLive.NotesComponent
   alias LantternWeb.MomentLive.OverviewComponent
 
   # shared components

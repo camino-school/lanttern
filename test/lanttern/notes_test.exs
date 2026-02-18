@@ -228,23 +228,6 @@ defmodule Lanttern.NotesTest do
                Notes.create_strand_note(%{current_profile: author}, strand.id, attrs)
     end
 
-    test "list_user_notes/2 returns all user moments notes in a strand" do
-      author = staff_member_profile_fixture()
-      strand = strand_fixture()
-      moment_1 = moment_fixture(%{strand_id: strand.id, position: 1})
-      note_1 = moment_note_fixture(%{current_profile: author}, moment_1.id)
-      moment_2 = moment_fixture(%{strand_id: strand.id, position: 2})
-      note_2 = moment_note_fixture(%{current_profile: author}, moment_2.id)
-
-      assert [expected_1, expected_2] =
-               Notes.list_user_notes(%{current_profile: author}, strand_id: strand.id)
-
-      assert expected_1.id == note_1.id
-      assert expected_1.moment.id == moment_1.id
-      assert expected_2.id == note_2.id
-      assert expected_2.moment.id == moment_2.id
-    end
-
     test "list_classes_strand_notes/2 returns the list of classes students and their strand notes" do
       class_a = Lanttern.SchoolsFixtures.class_fixture(%{name: "A"})
       class_b = Lanttern.SchoolsFixtures.class_fixture(%{name: "B"})
@@ -309,85 +292,6 @@ defmodule Lanttern.NotesTest do
 
       assert expected_note.id == note.id
       assert expected_note.strand.id == strand.id
-    end
-  end
-
-  describe "moment notes" do
-    alias Lanttern.Notes.Note
-    alias Lanttern.NotesLog.NoteLog
-
-    import Lanttern.NotesFixtures
-    import Lanttern.IdentityFixtures
-    import Lanttern.LearningContextFixtures
-
-    test "create_moment_note/4 with valid data creates a note linked to a moment" do
-      author = staff_member_profile_fixture()
-      moment = moment_fixture()
-      valid_attrs = %{"author_id" => author.id, "description" => "some moment note"}
-
-      assert {:ok, %Note{} = note} =
-               Notes.create_moment_note(
-                 %{current_profile: author},
-                 moment.id,
-                 valid_attrs,
-                 log_operation: true
-               )
-
-      assert note.author_id == author.id
-      assert note.description == "some moment note"
-
-      expected =
-        Notes.get_user_note(%{current_profile: author}, moment_id: moment.id)
-
-      assert expected.id == note.id
-
-      on_exit(fn ->
-        assert_supervised_tasks_are_down()
-
-        note_log =
-          Repo.get_by!(NoteLog,
-            note_id: note.id
-          )
-
-        assert note_log.note_id == note.id
-        assert note_log.author_id == author.id
-        assert note_log.operation == "CREATE"
-        assert note_log.description == note.description
-        assert note_log.type == "moment"
-        assert note_log.type_id == moment.id
-      end)
-    end
-
-    test "create_moment_note/2 with invalid data returns error changeset" do
-      moment = moment_fixture()
-      invalid_attrs = %{"description" => "some moment note"}
-
-      assert {:error, %Ecto.Changeset{}} =
-               Notes.create_moment_note(
-                 %{current_profile: nil},
-                 moment.id,
-                 invalid_attrs
-               )
-    end
-
-    test "create_moment_note/2 prevents multiple notes in the same moment" do
-      author = staff_member_profile_fixture()
-      moment = moment_fixture()
-      attrs = %{"author_id" => author.id, "description" => "some moment note"}
-
-      assert {:ok, %Note{}} =
-               Notes.create_moment_note(
-                 %{current_profile: author},
-                 moment.id,
-                 attrs
-               )
-
-      assert {:error, %Ecto.Changeset{}} =
-               Notes.create_moment_note(
-                 %{current_profile: author},
-                 moment.id,
-                 attrs
-               )
     end
   end
 

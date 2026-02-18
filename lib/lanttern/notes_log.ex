@@ -67,7 +67,6 @@ defmodule Lanttern.NotesLog do
 
   - `:log_operation` – boolean. use `true` to log the operation
   - `:strand_id` – adds type "strand" and the strand_id as type_id
-  - `:moment_id` – adds type "moment" and the moment_id as type_id
 
   """
   @spec maybe_create_note_log(
@@ -123,13 +122,6 @@ defmodule Lanttern.NotesLog do
     attrs
     |> Map.put(:type, "strand")
     |> Map.put(:type_id, strand_id)
-    |> maybe_put_external_id(opts)
-  end
-
-  defp maybe_put_external_id(attrs, [{:moment_id, moment_id} | opts]) do
-    attrs
-    |> Map.put(:type, "moment")
-    |> Map.put(:type_id, moment_id)
     |> maybe_put_external_id(opts)
   end
 

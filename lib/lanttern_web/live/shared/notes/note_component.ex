@@ -10,7 +10,6 @@ defmodule LantternWeb.Notes.NoteComponent do
   - `:empty_msg` - Message to display when empty
   - `:empty_add_note_msg` - Add note message to display when empty
   - `:strand_id` - When creating strand notes
-  - `:moment_id` - When creating moment notes
 
   ### Optional attrs
 
@@ -202,15 +201,6 @@ defmodule LantternWeb.Notes.NoteComponent do
     Notes.create_strand_note(
       socket.assigns.current_user,
       strand_id,
-      params,
-      log_operation: true
-    )
-  end
-
-  defp save_note(%{assigns: %{note: nil, moment_id: moment_id}} = socket, params) do
-    Notes.create_moment_note(
-      socket.assigns.current_user,
-      moment_id,
       params,
       log_operation: true
     )

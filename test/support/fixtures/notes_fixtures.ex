@@ -37,22 +37,6 @@ defmodule Lanttern.NotesFixtures do
     note
   end
 
-  @doc """
-  Generate a moment note.
-  """
-  def moment_note_fixture(user, moment_id, attrs \\ %{}) do
-    attrs =
-      attrs
-      |> Enum.into(%{
-        "description" => "some description"
-      })
-
-    {:ok, note} =
-      Notes.create_moment_note(user, moment_id, attrs)
-
-    note
-  end
-
   # generator helpers
 
   def maybe_gen_note_id(%{note_id: note_id} = _attrs),

@@ -4,7 +4,6 @@ defmodule LantternWeb.StrandLive.NotesComponentTest do
   import Lanttern.Factory
 
   alias Lanttern.LearningContextFixtures
-  alias Lanttern.NotesFixtures
 
   @live_view_base_path "/strands"
 
@@ -33,26 +32,8 @@ defmodule LantternWeb.StrandLive.NotesComponentTest do
         author: user.current_profile
       })
 
-      moment_1 = LearningContextFixtures.moment_fixture(%{strand_id: strand.id, position: 1})
-
-      moment_note_1 =
-        NotesFixtures.moment_note_fixture(user, moment_1.id, %{
-          "description" => "moment 1 note desc abc"
-        })
-
-      moment_2 = LearningContextFixtures.moment_fixture(%{strand_id: strand.id, position: 2})
-
-      moment_note_2 =
-        NotesFixtures.moment_note_fixture(user, moment_2.id, %{
-          "description" => "moment 2 note desc abc"
-        })
-
       {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{strand.id}/notes")
       assert view |> has_element?("p", note.description)
-      assert view |> has_element?("a", moment_1.name)
-      assert view |> has_element?("p", moment_note_1.description)
-      assert view |> has_element?("a", moment_2.name)
-      assert view |> has_element?("p", moment_note_2.description)
       assert render(view) =~ "Created at May 19, 2025, 10:00"
     end
 

@@ -11,9 +11,7 @@ defmodule Lanttern.Notes do
   alias Lanttern.Attachments
   alias Lanttern.Attachments.Attachment
   alias Lanttern.Identity.User
-  alias Lanttern.LearningContext.Moment
   alias Lanttern.LearningContext.Strand
-  alias Lanttern.Notes.MomentNoteRelationship
   alias Lanttern.Notes.Note
   alias Lanttern.Notes.NoteAttachment
   alias Lanttern.Notes.StrandNoteRelationship
@@ -36,34 +34,6 @@ defmodule Lanttern.Notes do
   def list_notes(opts \\ []) do
     Repo.all(Note)
     |> maybe_preload(opts)
-  end
-
-  @doc """
-  Returns the list of user notes.
-
-  ### Options (required):
-
-  `:strand_id` – list all moments notes for given strand. with preloaded moment and ordered by its position
-
-  ## Examples
-
-      iex> list_user_notes(user, opts)
-      [%Note{}, ...]
-
-  """
-  def list_user_notes(%{current_profile: profile} = _user, strand_id: strand_id) do
-    from(
-      n in Note,
-      join: mn in MomentNoteRelationship,
-      on: mn.note_id == n.id,
-      join: m in Moment,
-      on: m.id == mn.moment_id,
-      where: n.author_id == ^profile.id,
-      where: m.strand_id == ^strand_id,
-      order_by: m.position,
-      select: %{n | moment: m}
-    )
-    |> Repo.all()
   end
 
   @doc """
@@ -141,8 +111,6 @@ defmodule Lanttern.Notes do
 
   `:strand_id` – get user strand note with preloaded strand
 
-  `:moment_id` – get user moment note with preloaded moment
-
   ## Examples
 
       iex> get_user_note(user, opts)
@@ -159,17 +127,6 @@ defmodule Lanttern.Notes do
       where: n.author_id == ^profile.id,
       where: s.id == ^strand_id,
       select: %{n | strand: s}
-    )
-    |> Repo.one()
-  end
-
-  def get_user_note(%{current_profile: profile} = _user, moment_id: moment_id) do
-    from(
-      n in Note,
-      join: m in assoc(n, :moment),
-      where: n.author_id == ^profile.id,
-      where: m.id == ^moment_id,
-      select: %{n | moment: m}
     )
     |> Repo.one()
   end
@@ -277,49 +234,6 @@ defmodule Lanttern.Notes do
       {:ok, %{insert_note: note}} -> {:ok, note}
     end
     |> NotesLog.maybe_create_note_log("CREATE", [{:strand_id, strand_id} | opts])
-  end
-
-  @doc """
-  Creates a user moment note.
-
-  ### Options:
-
-  - `:log_operation` - use `true` to log the operation
-
-  ## Examples
-
-      iex> create_moment_note(user, 1, %{field: value})
-      {:ok, %Note{}}
-
-      iex> create_moment_note(user, 1, %{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
-  """
-  def create_moment_note(%{current_profile: profile} = _user, moment_id, attrs \\ %{}, opts \\ []) do
-    insert_query =
-      %Note{}
-      |> Note.changeset(Map.put(attrs, "author_id", profile && profile.id))
-
-    Ecto.Multi.new()
-    |> Ecto.Multi.insert(:insert_note, insert_query)
-    |> Ecto.Multi.run(
-      :link_moment,
-      fn _repo, %{insert_note: note} ->
-        %MomentNoteRelationship{}
-        |> MomentNoteRelationship.changeset(%{
-          note_id: note.id,
-          author_id: note.author_id,
-          moment_id: moment_id
-        })
-        |> Repo.insert()
-      end
-    )
-    |> Repo.transaction()
-    |> case do
-      {:error, _multi, changeset, _changes} -> {:error, changeset}
-      {:ok, %{insert_note: note}} -> {:ok, note}
-    end
-    |> NotesLog.maybe_create_note_log("CREATE", [{:moment_id, moment_id} | opts])
   end
 
   @doc """

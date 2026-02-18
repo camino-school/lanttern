@@ -7,9 +7,7 @@ defmodule Lanttern.Notes.Note do
   import Ecto.Changeset
 
   alias Lanttern.Identity.Profile
-  alias Lanttern.LearningContext.Moment
   alias Lanttern.LearningContext.Strand
-  alias Lanttern.Notes.MomentNoteRelationship
   alias Lanttern.Notes.StrandNoteRelationship
 
   @type t :: %__MODULE__{
@@ -18,7 +16,6 @@ defmodule Lanttern.Notes.Note do
           author: Profile.t(),
           author_id: pos_integer(),
           strand: Strand.t(),
-          moment: Moment.t(),
           inserted_at: DateTime.t(),
           updated_at: DateTime.t()
         }
@@ -29,8 +26,6 @@ defmodule Lanttern.Notes.Note do
     belongs_to :author, Profile
     has_one :strand_note_relationship, StrandNoteRelationship
     has_one :strand, through: [:strand_note_relationship, :strand]
-    has_one :moment_note_relationship, MomentNoteRelationship
-    has_one :moment, through: [:moment_note_relationship, :moment]
 
     timestamps()
   end

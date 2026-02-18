@@ -23,22 +23,6 @@ defmodule LantternWeb.StrandLive.NotesComponent do
           empty_add_note_msg={gettext("Add a strand note")}
           allow_editing={true}
         />
-        <%= if @has_moments_notes do %>
-          <h4 class="mt-10 font-display font-bold text-lg">
-            {gettext("Moments notes in this strand")}
-          </h4>
-          <div :for={{dom_id, note} <- @streams.moments_notes} class="mt-6" id={dom_id}>
-            <.link
-              navigate={~p"/strands/moment/#{note.moment.id}?tab=notes"}
-              class="font-display text-base hover:text-ltrn-subtle"
-            >
-              {note.moment.name}
-            </.link>
-            <div class="mt-4 line-clamp-4">
-              <.markdown text={note.description} />
-            </div>
-          </div>
-        <% end %>
         <.hr class="my-10" />
         <h4 class="font-display font-black text-xl text-ltrn-subtle">
           {gettext("Student notes")}
@@ -112,17 +96,10 @@ defmodule LantternWeb.StrandLive.NotesComponent do
     note =
       Notes.get_user_note(assigns.current_user, strand_id: assigns.strand.id)
 
-    moments_notes =
-      Notes.list_user_notes(assigns.current_user, strand_id: assigns.strand.id)
-
-    has_moments_notes = moments_notes != []
-
     socket =
       socket
       |> assign(assigns)
       |> assign(:note, note)
-      |> stream(:moments_notes, moments_notes)
-      |> assign(:has_moments_notes, has_moments_notes)
       |> stream_students_strand_notes()
 
     {:ok, socket}

@@ -111,7 +111,6 @@ defmodule LantternWeb.Router do
       live "/strands/moment/:id", MomentLive, :show
       live "/strands/moment/:id/assessment", MomentLive, :assessment
       live "/strands/moment/:id/cards", MomentLive, :cards
-      live "/strands/moment/:id/notes", MomentLive, :notes
 
       live "/curriculum", CurriculaLive, :index
       live "/curriculum/bncc_ef", BnccEfLive, :index

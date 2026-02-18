@@ -23,9 +23,6 @@
           <:tab patch={~p"/strands/moment/#{@moment}/cards"} is_current={@live_action == :cards}>
             {gettext("Cards")}
           </:tab>
-          <:tab patch={~p"/strands/moment/#{@moment}/notes"} is_current={@live_action == :notes}>
-            {gettext("Notes")}
-          </:tab>
         </.neo_tabs>
         <div class="flex items-center gap-4">
           <.action
@@ -72,13 +69,6 @@
       params={@params}
       current_user={@current_user}
       current_scope={@current_scope}
-    />
-    <.live_component
-      :if={@live_action == :notes}
-      module={NotesComponent}
-      id="moment-details-notes"
-      moment={@moment}
-      current_user={@current_user}
     />
   </div>
   <.live_component
