@@ -39,6 +39,7 @@ defmodule LantternWeb.SchoolLive.GuardiansComponent do
         guardian={@guardian}
         title={@guardian_overlay_title}
         on_cancel={JS.patch(~p"/school/guardians")}
+        close_path={~p"/school/guardians"}
         notify_component={@myself}
       />
     </div>
@@ -125,26 +126,31 @@ defmodule LantternWeb.SchoolLive.GuardiansComponent do
   end
 
   @impl true
-  def handle_info({GuardianFormOverlayComponent, {:created, _guardian}}, socket) do
+  def handle_info({GuardianFormOverlayComponent, {:created, guardian}}, socket) do
     {:noreply,
      socket
-     |> stream_guardians()
+     |> assign(:guardian, nil)
+     |> stream(:guardians, [guardian], reset: false)
+     |> update_guardians_length()
      |> put_flash(:info, gettext("Guardian created successfully"))
      |> push_patch(to: ~p"/school/guardians")}
   end
 
-  def handle_info({GuardianFormOverlayComponent, {:updated, _guardian}}, socket) do
+  def handle_info({GuardianFormOverlayComponent, {:updated, guardian}}, socket) do
     {:noreply,
      socket
-     |> stream_guardians()
+     |> assign(:guardian, nil)
+     |> stream(:guardians, [guardian])
      |> put_flash(:info, gettext("Guardian updated successfully"))
      |> push_patch(to: ~p"/school/guardians")}
   end
 
-  def handle_info({GuardianFormOverlayComponent, {:deleted, _guardian}}, socket) do
+  def handle_info({GuardianFormOverlayComponent, {:deleted, guardian}}, socket) do
     {:noreply,
      socket
-     |> stream_guardians()
+     |> assign(:guardian, nil)
+     |> stream_delete(:guardians, guardian)
+     |> update_guardians_length()
      |> put_flash(:info, gettext("Guardian deleted successfully"))
      |> push_patch(to: ~p"/school/guardians")}
   end

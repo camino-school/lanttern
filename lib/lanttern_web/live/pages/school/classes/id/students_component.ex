@@ -59,6 +59,7 @@ defmodule LantternWeb.ClassLive.StudentsComponent do
         current_cycle={@current_user.current_profile.current_school_cycle}
         title={@student_overlay_title}
         on_cancel={JS.patch(~p"/school/classes/#{@class}/students")}
+        close_path={~p"/school/classes/#{@class}/students"}
         notify_component={@myself}
       />
     </div>

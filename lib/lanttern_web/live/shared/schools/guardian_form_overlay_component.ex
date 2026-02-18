@@ -6,8 +6,7 @@ defmodule LantternWeb.Schools.GuardianFormOverlayComponent do
 
       attr :guardian, Guardian, required: true
       attr :title, :string, required: true
-      attr :on_cancel, :any, required: true, doc: "`<.slide_over>` `on_cancel` attr"
-      attr :notify_component, Phoenix.LiveComponent.CID
+      attr :on_cancel, :any, required: true, doc: "`<.slide_over>` `on_cancel` attr"      attr :close_path, :string, required: true, doc: \"Path to navigate to after successful save\"      attr :notify_component, Phoenix.LiveComponent.CID
 
   """
 
@@ -106,7 +105,7 @@ defmodule LantternWeb.Schools.GuardianFormOverlayComponent do
     case Schools.delete_guardian(socket.assigns.guardian) do
       {:ok, guardian} ->
         notify_parent(socket.assigns.notify_component, {:deleted, guardian})
-        {:noreply, socket}
+        {:noreply, push_patch(socket, to: socket.assigns.close_path)}
 
       {:error, _changeset} ->
         {:noreply, socket}
@@ -120,7 +119,7 @@ defmodule LantternWeb.Schools.GuardianFormOverlayComponent do
     case Schools.create_guardian(params) do
       {:ok, guardian} ->
         notify_parent(socket.assigns.notify_component, {:created, guardian})
-        {:noreply, socket}
+        {:noreply, push_patch(socket, to: socket.assigns.close_path)}
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign_form(socket, changeset)}
@@ -134,7 +133,7 @@ defmodule LantternWeb.Schools.GuardianFormOverlayComponent do
     case Schools.update_guardian(socket.assigns.guardian, params) do
       {:ok, guardian} ->
         notify_parent(socket.assigns.notify_component, {:updated, guardian})
-        {:noreply, socket}
+        {:noreply, push_patch(socket, to: socket.assigns.close_path)}
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign_form(socket, changeset)}
@@ -146,15 +145,6 @@ defmodule LantternWeb.Schools.GuardianFormOverlayComponent do
 
     %{
       name: Ecto.Changeset.get_field(changeset, :name, params["name"] || data.name),
-      school_id: Ecto.Changeset.get_field(changeset, :school_id, data.school_id)
-    }
-  end
-
-  defp changeset_to_params(changeset, _params) do
-    data = changeset.data
-
-    %{
-      name: Ecto.Changeset.get_field(changeset, :name, data.name),
       school_id: Ecto.Changeset.get_field(changeset, :school_id, data.school_id)
     }
   end

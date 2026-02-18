@@ -8,6 +8,7 @@ defmodule LantternWeb.Schools.StudentFormOverlayComponent do
       attr :current_cycle, Cycle, doc: "used to separate current cycle from other classes"
       attr :title, :string, required: true
       attr :on_cancel, :any, required: true, doc: "`<.slide_over>` `on_cancel` attr"
+      attr :close_path, :string, required: true, doc: "Path to navigate to after successful save"
       attr :notify_parent, :boolean
       attr :notify_component, Phoenix.LiveComponent.CID
 
@@ -258,7 +259,7 @@ defmodule LantternWeb.Schools.StudentFormOverlayComponent do
     |> case do
       {:ok, student} ->
         notify(__MODULE__, {:deactivated, student}, socket.assigns)
-        {:noreply, socket}
+        {:noreply, push_patch(socket, to: socket.assigns.close_path)}
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign(socket, :form, to_form(changeset))}
@@ -270,7 +271,7 @@ defmodule LantternWeb.Schools.StudentFormOverlayComponent do
     |> case do
       {:ok, student} ->
         notify(__MODULE__, {:deleted, student}, socket.assigns)
-        {:noreply, socket}
+        {:noreply, push_patch(socket, to: socket.assigns.close_path)}
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign(socket, :form, to_form(changeset))}
@@ -282,7 +283,7 @@ defmodule LantternWeb.Schools.StudentFormOverlayComponent do
     |> case do
       {:ok, student} ->
         notify(__MODULE__, {:reactivated, student}, socket.assigns)
-        {:noreply, socket}
+        {:noreply, push_patch(socket, to: socket.assigns.close_path)}
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign(socket, :form, to_form(changeset))}
@@ -313,7 +314,7 @@ defmodule LantternWeb.Schools.StudentFormOverlayComponent do
     |> case do
       {:ok, student} ->
         notify(__MODULE__, {:created, student}, socket.assigns)
-        {:noreply, socket}
+        {:noreply, push_patch(socket, to: socket.assigns.close_path)}
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign(socket, :form, to_form(changeset))}
@@ -328,7 +329,7 @@ defmodule LantternWeb.Schools.StudentFormOverlayComponent do
     |> case do
       {:ok, student} ->
         notify(__MODULE__, {:updated, student}, socket.assigns)
-        {:noreply, socket}
+        {:noreply, push_patch(socket, to: socket.assigns.close_path)}
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign(socket, :form, to_form(changeset))}

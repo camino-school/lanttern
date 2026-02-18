@@ -88,6 +88,7 @@
     current_cycle={@current_user.current_profile.current_school_cycle}
     title={gettext("Edit student")}
     on_cancel={JS.patch(@current_path)}
+    close_path={@current_path}
     notify_parent
   />
 </Layouts.app_logged_in>
