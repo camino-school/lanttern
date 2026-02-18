@@ -20,9 +20,6 @@
           >
             {gettext("Assessment")}
           </:tab>
-          <:tab patch={~p"/strands/#{@strand}/notes"} is_current={@live_action == :notes}>
-            {gettext("Notes")}
-          </:tab>
         </.neo_tabs>
         <div class="flex items-center gap-4">
           <.live_component
@@ -77,14 +74,6 @@
       current_user={@current_user}
       selected_classes_ids={@selected_classes_ids}
       params={@params}
-    />
-    <.live_component
-      :if={@live_action == :notes}
-      module={NotesComponent}
-      id="strand-notes"
-      strand={@strand}
-      current_user={@current_user}
-      selected_classes_ids={@selected_classes_ids}
     />
   </div>
   <.live_component

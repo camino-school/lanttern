@@ -20,14 +20,12 @@ defmodule LantternWeb.StrandOverviewLive do
 
   @live_action_select_classes_overlay_title %{
     rubrics: gettext("Select classes to view students differentiation rubrics"),
-    assessment: gettext("Select classes to view assessments info"),
-    notes: gettext("Select classes to view students notes")
+    assessment: gettext("Select classes to view assessments info")
   }
 
   @live_action_select_classes_overlay_navigate_path %{
     rubrics: "rubrics",
-    assessment: "assessment",
-    notes: "notes"
+    assessment: "assessment"
   }
 
   # lifecycle

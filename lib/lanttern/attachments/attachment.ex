@@ -16,8 +16,6 @@ defmodule Lanttern.Attachments.Attachment do
   alias Lanttern.LearningContext.MomentCardAttachment
   alias Lanttern.Lessons.Lesson
   alias Lanttern.Lessons.LessonAttachment
-  alias Lanttern.Notes.Note
-  alias Lanttern.Notes.NoteAttachment
   alias Lanttern.StudentsCycleInfo.StudentCycleInfo
   alias Lanttern.StudentsCycleInfo.StudentCycleInfoAttachment
 
@@ -29,8 +27,6 @@ defmodule Lanttern.Attachments.Attachment do
           is_external: boolean(),
           owner: Profile.t(),
           owner_id: pos_integer(),
-          note_attachment: NoteAttachment.t(),
-          note: Note.t(),
           assessment_point_entry_evidence: AssessmentPointEntryEvidence.t(),
           assessment_point_entry: AssessmentPointEntry.t(),
           student_cycle_info_attachment: StudentCycleInfoAttachment.t(),
@@ -62,9 +58,6 @@ defmodule Lanttern.Attachments.Attachment do
     field :is_teacher_only, :boolean, virtual: true
 
     belongs_to :owner, Profile
-
-    has_one :note_attachment, NoteAttachment
-    has_one :note, through: [:note_attachment, :note]
 
     has_one :assessment_point_entry_evidence, AssessmentPointEntryEvidence
 

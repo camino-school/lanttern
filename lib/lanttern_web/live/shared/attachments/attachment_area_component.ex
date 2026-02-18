@@ -4,7 +4,6 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
 
   ### Supported contexts:
 
-  - notes attachments (use `note_id` assign)
   - assessment point entry evidences (use `assessment_point_entry_id` assign)
   - student cycle info attachments (use `student_cycle_info_id` assign and `shared_with_student` assign)
   - moment card attachments (use `moment_card_id` assign and `shared_with_student` assign)
@@ -17,7 +16,6 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
   - `class` (optional, any)
   - `allow_editing` (optional, boolean)
   - `current_user` (optional, `%User{}`) - required when `allow_editing` is `true`
-  - `note_id` (optional, integer) - view supported contexts above
   - `assessment_point_entry_id` (optional, integer) - view supported contexts above
   - `student_cycle_info_id` (optional, integer) - view supported contexts above
   - `moment_card_id` (optional, integer) - view supported contexts above
@@ -37,7 +35,6 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
   alias Lanttern.ILP
   alias Lanttern.LearningContext
   alias Lanttern.Lessons
-  alias Lanttern.Notes
   alias Lanttern.StudentsCycleInfo
   alias Lanttern.SupabaseHelpers
 
@@ -286,9 +283,6 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
 
   defp initialize(socket), do: socket
 
-  defp assign_type(%{assigns: %{note_id: _}} = socket),
-    do: assign(socket, :type, :note_attachments)
-
   defp assign_type(%{assigns: %{assessment_point_entry_id: _}} = socket),
     do: assign(socket, :type, :entry_evidences)
 
@@ -303,11 +297,6 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
 
   defp assign_type(%{assigns: %{ilp_comment_id: _}} = socket),
     do: assign(socket, :type, :ilp_comment_attachments)
-
-  defp stream_attachments(%{assigns: %{type: :note_attachments, note_id: id}} = socket) do
-    attachments = Attachments.list_attachments(note_id: id)
-    handle_stream_attachments_socket_assigns(socket, attachments)
-  end
 
   defp stream_attachments(
          %{assigns: %{type: :entry_evidences, assessment_point_entry_id: id}} = socket
@@ -502,9 +491,6 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
       |> reorder(old_index, new_index)
 
     case socket.assigns.type do
-      :note_attachments ->
-        Notes.update_note_attachments_positions(attachments_ids)
-
       :entry_evidences ->
         Assessments.update_assessment_point_entry_evidences_positions(attachments_ids)
 
@@ -609,28 +595,6 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
   # save attachment clauses:
   # :new -> when is_adding_external or uploading attachment
   # :edit -> when is_editing
-
-  defp save_attachment(%{assigns: %{type: :note_attachments}} = socket, :new, params) do
-    %{
-      current_user: current_user,
-      note_id: note_id
-    } = socket.assigns
-
-    case Notes.create_note_attachment(current_user, note_id, params) do
-      {:ok, attachment} ->
-        notify(__MODULE__, {:created, attachment}, socket.assigns)
-
-        socket =
-          socket
-          |> assign(:is_adding_external, false)
-          |> stream_attachments()
-
-        {:noreply, socket}
-
-      {:error, %Ecto.Changeset{} = changeset} ->
-        {:noreply, assign_form(socket, changeset)}
-    end
-  end
 
   defp save_attachment(%{assigns: %{type: :entry_evidences}} = socket, :new, params) do
     %{

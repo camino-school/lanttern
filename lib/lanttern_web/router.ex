@@ -96,7 +96,6 @@ defmodule LantternWeb.Router do
       live "/strands/:id", StrandLive, :lessons
       live "/strands/:id/rubrics", StrandLive, :rubrics
       live "/strands/:id/assessment", StrandLive, :assessment
-      live "/strands/:id/notes", StrandLive, :notes
 
       live "/strands/:id/overview", StrandOverviewLive, :overview
 
@@ -279,14 +278,6 @@ defmodule LantternWeb.Router do
 
     live "/moments/:id", Admin.MomentLive.Show, :show
     live "/moments/:id/show/edit", Admin.MomentLive.Show, :edit
-
-    # Personalization context
-    live "/notes", Admin.NoteLive.Index, :index
-    live "/notes/new", Admin.NoteLive.Index, :new
-    live "/notes/:id/edit", Admin.NoteLive.Index, :edit
-
-    live "/notes/:id", Admin.NoteLive.Show, :show
-    live "/notes/:id/show/edit", Admin.NoteLive.Show, :edit
 
     # Reporting context
     live "/report_cards", Admin.ReportCardLive.Index, :index
