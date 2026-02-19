@@ -11,9 +11,13 @@ defmodule Lanttern.LearningContext do
   import Lanttern.RepoHelpers
 
   alias Lanttern.Assessments.AssessmentPointEntry
+  alias Lanttern.AuditLog
+  alias Lanttern.Identity.Scope
   alias Lanttern.LearningContext.Moment
   alias Lanttern.LearningContext.StarredStrand
   alias Lanttern.LearningContext.Strand
+  alias Lanttern.Lessons.Lesson
+  alias Lanttern.Lessons.LessonLog
 
   @doc """
   Returns the list of strands ordered alphabetically.
@@ -667,6 +671,75 @@ defmodule Lanttern.LearningContext do
     moment
     |> Moment.delete_changeset()
     |> Repo.delete()
+  end
+
+  @doc """
+  Deletes a moment, detaching its linked lessons (sets `moment_id = nil`).
+
+  All lessons that reference the moment will have their `moment_id` cleared
+  before the moment is deleted.
+  """
+  def delete_moment_detaching_lessons(%Scope{} = scope, %Moment{} = moment) do
+    lesson_ids = Repo.all(from l in Lesson, where: l.moment_id == ^moment.id, select: l.id)
+
+    result =
+      Repo.transaction(fn ->
+        from(l in Lesson, where: l.moment_id == ^moment.id)
+        |> Repo.update_all(set: [moment_id: nil])
+
+        moment
+        |> Moment.delete_changeset()
+        |> Repo.delete()
+        |> case do
+          {:ok, moment} -> moment
+          {:error, changeset} -> Repo.rollback(changeset)
+        end
+      end)
+
+    if match?({:ok, _}, result) do
+      lessons = Repo.all(from l in Lesson, where: l.id in ^lesson_ids)
+
+      for lesson <- lessons do
+        AuditLog.maybe_log({:ok, lesson}, LessonLog, "UPDATE", scope, [])
+      end
+    end
+
+    result
+  end
+
+  @doc """
+  Deletes a moment together with all its linked lessons.
+
+  Lesson-related join tables (`lessons_subjects`, `lessons_tags`,
+  `lessons_attachments`) cascade-delete via their `on_delete: :delete_all`
+  constraints, so deleting the lessons is safe.
+
+  Uses `scope` to log each lesson deletion individually.
+  """
+  def delete_moment_with_lessons(%Scope{} = scope, %Moment{} = moment) do
+    lessons = Repo.all(from l in Lesson, where: l.moment_id == ^moment.id)
+
+    result =
+      Repo.transaction(fn ->
+        from(l in Lesson, where: l.moment_id == ^moment.id)
+        |> Repo.delete_all()
+
+        moment
+        |> Moment.delete_changeset()
+        |> Repo.delete()
+        |> case do
+          {:ok, moment} -> moment
+          {:error, changeset} -> Repo.rollback(changeset)
+        end
+      end)
+
+    if match?({:ok, _}, result) do
+      for lesson <- lessons do
+        AuditLog.maybe_log({:ok, lesson}, LessonLog, "DELETE", scope, [])
+      end
+    end
+
+    result
   end
 
   @doc """

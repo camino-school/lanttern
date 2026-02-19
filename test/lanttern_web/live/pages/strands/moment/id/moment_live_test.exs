@@ -68,6 +68,59 @@ defmodule LantternWeb.MomentLiveTest do
       end)
       |> assert_has("h1", text: "strand abc")
     end
+
+    test "delete moment with linked lessons shows confirmation options", %{conn: conn} do
+      strand = insert(:strand)
+      moment = insert(:moment, strand: strand)
+      insert(:lesson, strand: strand, moment: moment)
+
+      conn
+      |> visit("#{@live_view_base_path}/#{moment.id}")
+      |> click_button("Edit")
+      |> within("#moment-form-overlay", fn conn ->
+        conn
+        |> click_button("Delete")
+        |> assert_has("p", text: "This moment has linked lessons. What would you like to do?")
+        |> assert_has("button", text: "Keep lessons (detach from moment)")
+        |> assert_has("button", text: "Delete lessons too")
+      end)
+    end
+
+    test "delete moment and detach lessons keeps lessons in db", %{conn: conn} do
+      strand = insert(:strand, name: "strand abc")
+      moment = insert(:moment, strand: strand)
+      lesson = insert(:lesson, strand: strand, moment: moment)
+
+      conn
+      |> visit("#{@live_view_base_path}/#{moment.id}")
+      |> click_button("Edit")
+      |> within("#moment-form-overlay", fn conn ->
+        conn
+        |> click_button("Delete")
+        |> click_button("Keep lessons (detach from moment)")
+      end)
+      |> assert_has("h1", text: "strand abc")
+
+      assert Lanttern.Repo.get!(Lanttern.Lessons.Lesson, lesson.id).moment_id == nil
+    end
+
+    test "delete moment and its lessons removes lessons from db", %{conn: conn} do
+      strand = insert(:strand, name: "strand abc")
+      moment = insert(:moment, strand: strand)
+      lesson = insert(:lesson, strand: strand, moment: moment)
+
+      conn
+      |> visit("#{@live_view_base_path}/#{moment.id}")
+      |> click_button("Edit")
+      |> within("#moment-form-overlay", fn conn ->
+        conn
+        |> click_button("Delete")
+        |> click_button("Delete lessons too")
+      end)
+      |> assert_has("h1", text: "strand abc")
+
+      assert Lanttern.Repo.get(Lanttern.Lessons.Lesson, lesson.id) == nil
+    end
   end
 
   describe "Moment description" do

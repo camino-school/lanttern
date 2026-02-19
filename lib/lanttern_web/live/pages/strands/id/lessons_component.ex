@@ -210,6 +210,7 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
         <.live_component
           module={MomentFormComponent}
           id="moment-form"
+          current_scope={@current_scope}
           moment={@moment}
           strand_id={@strand.id}
           navigate={

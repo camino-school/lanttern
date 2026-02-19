@@ -55,5 +55,10 @@ defmodule Lanttern.LearningContext.Moment do
       name: :assessment_points_moment_id_fkey,
       message: gettext("Moment has linked assessment points.")
     )
+    |> foreign_key_constraint(
+      :id,
+      name: :lessons_moment_id_fkey,
+      message: gettext("Moment has linked lessons.")
+    )
   end
 end

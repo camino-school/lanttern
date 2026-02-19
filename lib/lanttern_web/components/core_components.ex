@@ -1158,7 +1158,7 @@ defmodule LantternWeb.CoreComponents do
           </div>
           <div class="ml-3 w-0 flex-1 pt-0.5">
             <p :if={@title} class="mb-1 text-sm font-bold">{@title}</p>
-            <p class="text-sm text-ltrn-subtle">{msg}</p>
+            <p class="font-sans text-sm text-ltrn-subtle">{msg}</p>
           </div>
           <div class="ml-4 flex shrink-0">
             <button

@@ -749,6 +749,47 @@ defmodule Lanttern.LearningContextTest do
       assert_raise Ecto.NoResultsError, fn -> LearningContext.get_moment!(moment.id) end
     end
 
+    test "delete_moment_detaching_lessons/2 deletes the moment and sets moment_id to nil on linked lessons" do
+      import Lanttern.Factory
+
+      scope = Lanttern.IdentityFixtures.scope_fixture()
+      strand = insert(:strand)
+      moment = insert(:moment, strand: strand)
+      lesson_1 = insert(:lesson, strand: strand, moment: moment)
+      lesson_2 = insert(:lesson, strand: strand, moment: moment)
+
+      assert {:ok, %Moment{}} = LearningContext.delete_moment_detaching_lessons(scope, moment)
+      assert_raise Ecto.NoResultsError, fn -> LearningContext.get_moment!(moment.id) end
+
+      assert Lanttern.Repo.get!(Lanttern.Lessons.Lesson, lesson_1.id).moment_id == nil
+      assert Lanttern.Repo.get!(Lanttern.Lessons.Lesson, lesson_2.id).moment_id == nil
+
+      logs = Repo.all(Lanttern.Lessons.LessonLog)
+      assert [%{operation: "UPDATE"}, %{operation: "UPDATE"}] = logs
+      assert Enum.all?(logs, &(&1.profile_id == scope.profile_id))
+      assert Enum.all?(logs, &is_nil(&1.moment_id))
+    end
+
+    test "delete_moment_with_lessons/2 deletes the moment and all its linked lessons" do
+      import Lanttern.Factory
+
+      scope = Lanttern.IdentityFixtures.scope_fixture()
+      strand = insert(:strand)
+      moment = insert(:moment, strand: strand)
+      lesson_1 = insert(:lesson, strand: strand, moment: moment)
+      lesson_2 = insert(:lesson, strand: strand, moment: moment)
+
+      assert {:ok, %Moment{}} = LearningContext.delete_moment_with_lessons(scope, moment)
+      assert_raise Ecto.NoResultsError, fn -> LearningContext.get_moment!(moment.id) end
+
+      assert Lanttern.Repo.get(Lanttern.Lessons.Lesson, lesson_1.id) == nil
+      assert Lanttern.Repo.get(Lanttern.Lessons.Lesson, lesson_2.id) == nil
+
+      logs = Repo.all(Lanttern.Lessons.LessonLog)
+      assert [%{operation: "DELETE"}, %{operation: "DELETE"}] = logs
+      assert Enum.all?(logs, &(&1.profile_id == scope.profile_id))
+    end
+
     test "change_moment/1 returns a moment changeset" do
       moment = moment_fixture()
       assert %Ecto.Changeset{} = LearningContext.change_moment(moment)
