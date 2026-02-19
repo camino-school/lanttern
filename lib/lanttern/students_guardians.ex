@@ -30,14 +30,12 @@ defmodule Lanttern.StudentsGuardians do
 
   ## Examples
 
-      iex> get_students_for_guardian(current_user, guardian)
+      iex> get_students_for_guardian(scope, guardian)
       [%Student{}, ...]
 
   """
-  def get_students_for_guardian(current_user, %Guardian{} = guardian) do
-    user_school_id = current_user.current_profile.school_id
-
-    if guardian.school_id == user_school_id do
+  def get_students_for_guardian(scope, %Guardian{} = guardian) do
+    if guardian.school_id == scope.school_id && has_permission?(scope, "school_management") do
       Repo.all(
         from s in Student,
           join: sg in "students_guardians",
@@ -55,19 +53,17 @@ defmodule Lanttern.StudentsGuardians do
 
   ## Examples
 
-      iex> get_guardians_for_student(current_user, student)
+      iex> get_guardians_for_student(scope, student)
       [%Guardian{}, ...]
 
   """
-  def get_guardians_for_student(current_user, %Student{} = student) do
-    user_school_id = current_user.current_profile.school_id
-
-    if student.school_id == user_school_id do
+  def get_guardians_for_student(scope, %Student{} = student) do
+    if student.school_id == scope.school_id && has_permission?(scope, "school_management") do
       Repo.all(
         from g in Guardian,
           join: sg in "students_guardians",
           on: g.id == sg.guardian_id,
-          where: sg.student_id == ^student.id,
+          where: sg.student_id == ^student.id and sg.school_id == ^scope.school_id,
           select: g
       )
     else
@@ -80,14 +76,13 @@ defmodule Lanttern.StudentsGuardians do
 
   ## Examples
 
-      iex> add_guardian_to_student(current_user, student, guardian)
+      iex> add_guardian_to_student(scope, student, guardian)
       {:ok, :created}
 
   """
-  def add_guardian_to_student(current_user, %Student{} = student, %Guardian{} = guardian) do
-    user_school_id = current_user.current_profile.school_id
-
-    if student.school_id == user_school_id && guardian.school_id == user_school_id do
+  def add_guardian_to_student(scope, %Student{} = student, %Guardian{} = guardian) do
+    if student.school_id == scope.school_id && guardian.school_id == scope.school_id &&
+         has_permission?(scope, "school_management") do
       existing_association =
         Repo.one(
           from sg in "students_guardians",
@@ -118,14 +113,12 @@ defmodule Lanttern.StudentsGuardians do
 
   ## Examples
 
-      iex> remove_guardian_from_student(current_user, student, guardian_id)
+      iex> remove_guardian_from_student(scope, student, guardian_id)
       {:ok, :deleted}
 
   """
-  def remove_guardian_from_student(current_user, %Student{} = student, guardian_id) do
-    user_school_id = current_user.current_profile.school_id
-
-    if student.school_id == user_school_id do
+  def remove_guardian_from_student(scope, %Student{} = student, guardian_id) do
+    if student.school_id == scope.school_id && has_permission?(scope, "school_management") do
       # Delete directly from join table
       {count, _} =
         Repo.delete_all(
@@ -140,5 +133,9 @@ defmodule Lanttern.StudentsGuardians do
     else
       {:error, :unauthorized}
     end
+  end
+
+  defp has_permission?(scope, permission) do
+    permission in scope.permissions
   end
 end

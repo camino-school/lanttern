@@ -133,14 +133,23 @@ defmodule LantternWeb.SchoolLive.GuardiansComponent do
   @impl true
   def handle_event("delete", %{"id" => id}, socket) do
     guardian = Schools.get_guardian!(id)
-    {:ok, _} = Schools.delete_guardian(guardian)
 
-    socket =
-      socket
-      |> put_flash(:info, gettext("Guardian deleted successfully"))
-      |> stream_delete(:guardians, guardian)
-      |> assign(:guardians_length, socket.assigns.guardians_length - 1)
+    case Schools.delete_guardian(guardian) do
+      {:ok, _} ->
+        socket =
+          socket
+          |> put_flash(:info, gettext("Guardian deleted successfully"))
+          |> stream_delete(:guardians, guardian)
+          |> assign(:guardians_length, socket.assigns.guardians_length - 1)
 
-    {:noreply, socket}
+        {:noreply, socket}
+
+      {:error, _changeset} ->
+        socket =
+          socket
+          |> put_flash(:error, gettext("Failed to delete guardian"))
+
+        {:noreply, socket}
+    end
   end
 end
