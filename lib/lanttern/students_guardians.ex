@@ -10,22 +10,6 @@ defmodule Lanttern.StudentsGuardians do
   alias Lanttern.Schools.Student
 
   @doc """
-  Gets a single guardian.
-
-  Raises `Ecto.NoResultsError` if the Guardian does not exist.
-
-  ## Examples
-
-      iex> get_guardian!(123)
-      %Guardian{}
-
-      iex> get_guardian!(456)
-      ** (Ecto.NoResultsError)
-
-  """
-  def get_guardian!(id), do: Repo.get!(Guardian, id)
-
-  @doc """
   Gets students for a given guardian.
 
   ## Examples

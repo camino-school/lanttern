@@ -97,10 +97,8 @@ defmodule LantternWeb.SchoolLive.GuardiansComponent do
   defp initialize(socket), do: socket
 
   defp stream_guardians(socket) do
-    guardians =
-      Schools.list_guardians(
-        school_id: socket.assigns.current_user.current_profile.school_id
-      )
+    scope = socket.assigns.current_user.current_profile
+    guardians = Schools.list_guardians(scope)
 
     socket
     |> stream(:guardians, guardians, reset: true)

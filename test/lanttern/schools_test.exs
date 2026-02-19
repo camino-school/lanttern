@@ -3,6 +3,7 @@ defmodule Lanttern.SchoolsTest do
 
   alias Lanttern.Schools
   import Lanttern.SchoolsFixtures
+  import Lanttern.IdentityFixtures
   import Ecto.Query, only: [from: 2]
 
   describe "schools" do
@@ -1701,8 +1702,9 @@ defmodule Lanttern.SchoolsTest do
     @invalid_attrs %{name: nil, school_id: nil}
 
     test "list_guardians/1 returns all guardians" do
-      guardian = guardian_fixture()
-      assert Schools.list_guardians() == [guardian]
+      scope = scope_fixture(permissions: ["school_management"])
+      guardian = guardian_fixture(%{school_id: scope.school_id})
+      assert Schools.list_guardians(scope) == [guardian]
     end
 
     test "list_guardians/1 with school_id filter returns only guardians from that school" do
@@ -1712,75 +1714,88 @@ defmodule Lanttern.SchoolsTest do
       guardian_1 = guardian_fixture(%{school_id: school_1.id})
       _guardian_2 = guardian_fixture(%{school_id: school_2.id})
 
-      assert [guardian_1] == Schools.list_guardians(school_id: school_1.id)
+      scope_1 = scope_fixture(permissions: ["school_management"])
+      scope_1 = %{scope_1 | school_id: school_1.id}
+
+      assert [guardian_1] == Schools.list_guardians(scope_1)
     end
 
     test "get_guardian!/1 returns the guardian with given id" do
-      guardian = guardian_fixture()
-      assert Schools.get_guardian!(guardian.id) == guardian
+      scope = scope_fixture(permissions: ["school_management"])
+      guardian = guardian_fixture(%{school_id: scope.school_id})
+      assert Schools.get_guardian!(scope, guardian.id) == guardian
     end
 
     test "get_guardian/2 returns the guardian with given id" do
-      guardian = guardian_fixture()
-      assert Schools.get_guardian(guardian.id) == guardian
+      scope = scope_fixture(permissions: ["school_management"])
+      guardian = guardian_fixture(%{school_id: scope.school_id})
+      assert Schools.get_guardian(scope, guardian.id) == guardian
     end
 
     test "get_guardian/2 with preloads returns the guardian with preloaded associations" do
-      guardian = guardian_fixture()
-      result = Schools.get_guardian(guardian.id, preloads: [:school])
+      scope = scope_fixture(permissions: ["school_management"])
+      guardian = guardian_fixture(%{school_id: scope.school_id})
+      result = Schools.get_guardian(scope, guardian.id, preloads: [:school])
 
       assert result.id == guardian.id
       assert %Lanttern.Schools.School{} = result.school
     end
 
     test "create_guardian/1 with valid data creates a guardian" do
-      school = school_fixture()
-      valid_attrs = %{name: "John Doe", school_id: school.id}
+      scope = scope_fixture(permissions: ["school_management"])
+      valid_attrs = %{name: "John Doe"}
 
-      assert {:ok, %Guardian{} = guardian} = Schools.create_guardian(valid_attrs)
+      assert {:ok, %Guardian{} = guardian} = Schools.create_guardian(scope, valid_attrs)
       assert guardian.name == "John Doe"
-      assert guardian.school_id == school.id
+      assert guardian.school_id == scope.school_id
     end
 
     test "create_guardian/1 with invalid data returns error changeset" do
-      assert {:error, %Ecto.Changeset{}} = Schools.create_guardian(@invalid_attrs)
+      scope = scope_fixture(permissions: ["school_management"])
+      assert {:error, %Ecto.Changeset{}} = Schools.create_guardian(scope, @invalid_attrs)
     end
 
     test "update_guardian/2 with valid data updates the guardian" do
-      guardian = guardian_fixture()
+      scope = scope_fixture(permissions: ["school_management"])
+      guardian = guardian_fixture(%{school_id: scope.school_id})
       update_attrs = %{name: "Jane Doe"}
 
-      assert {:ok, %Guardian{} = guardian} = Schools.update_guardian(guardian, update_attrs)
+      assert {:ok, %Guardian{} = guardian} = Schools.update_guardian(scope, guardian, update_attrs)
       assert guardian.name == "Jane Doe"
     end
 
     test "update_guardian/2 with invalid data returns error changeset" do
-      guardian = guardian_fixture()
-      assert {:error, %Ecto.Changeset{}} = Schools.update_guardian(guardian, @invalid_attrs)
-      assert guardian == Schools.get_guardian!(guardian.id)
+      scope = scope_fixture(permissions: ["school_management"])
+      guardian = guardian_fixture(%{school_id: scope.school_id})
+      assert {:error, %Ecto.Changeset{}} = Schools.update_guardian(scope, guardian, @invalid_attrs)
+      assert guardian == Schools.get_guardian!(scope, guardian.id)
     end
 
     test "delete_guardian/1 deletes the guardian" do
-      guardian = guardian_fixture()
-      assert {:ok, %Guardian{}} = Schools.delete_guardian(guardian)
-      assert_raise Ecto.NoResultsError, fn -> Schools.get_guardian!(guardian.id) end
+      scope = scope_fixture(permissions: ["school_management"])
+      guardian = guardian_fixture(%{school_id: scope.school_id})
+      assert {:ok, %Guardian{}} = Schools.delete_guardian(scope, guardian)
+      assert_raise Ecto.NoResultsError, fn -> Schools.get_guardian!(scope, guardian.id) end
     end
 
     test "change_guardian/1 returns a guardian changeset" do
-      guardian = guardian_fixture()
-      assert %Ecto.Changeset{} = Schools.change_guardian(guardian)
+      scope = scope_fixture(permissions: ["school_management"])
+      guardian = guardian_fixture(%{school_id: scope.school_id})
+      assert %Ecto.Changeset{} = Schools.change_guardian(scope, guardian)
     end
 
     test "get_guardian!/2 with preloads returns the guardian with preloaded associations" do
-      guardian = guardian_fixture()
-      result = Schools.get_guardian!(guardian.id, preloads: [:school])
+      scope = scope_fixture(permissions: ["school_management"])
+      guardian = guardian_fixture(%{school_id: scope.school_id})
+      result = Schools.get_guardian!(scope, guardian.id, preloads: [:school])
 
       assert result.id == guardian.id
       assert %Lanttern.Schools.School{} = result.school
     end
 
     test "get_guardian/2 with students preload returns guardian with students" do
-      guardian = guardian_fixture()
+      scope = scope_fixture(permissions: ["school_management"])
+      guardian = guardian_fixture(%{school_id: scope.school_id})
       student = student_fixture(%{school_id: guardian.school_id})
 
       # Link student to guardian via students_guardians table
@@ -1788,7 +1803,7 @@ defmodule Lanttern.SchoolsTest do
         %{student_id: student.id, guardian_id: guardian.id}
       ])
 
-      result = Schools.get_guardian(guardian.id, preloads: [:students])
+      result = Schools.get_guardian(scope, guardian.id, preloads: [:students])
 
       assert result.id == guardian.id
       assert length(result.students) == 1
@@ -1796,7 +1811,8 @@ defmodule Lanttern.SchoolsTest do
     end
 
     test "delete_guardian/1 removes associated students_guardians but keeps students" do
-      guardian = guardian_fixture()
+      scope = scope_fixture(permissions: ["school_management"])
+      guardian = guardian_fixture(%{school_id: scope.school_id})
       student = student_fixture(%{school_id: guardian.school_id})
 
       # Link student to guardian
@@ -1812,10 +1828,10 @@ defmodule Lanttern.SchoolsTest do
              ) == 1
 
       # Delete guardian
-      assert {:ok, %Guardian{}} = Schools.delete_guardian(guardian)
+      assert {:ok, %Guardian{}} = Schools.delete_guardian(scope, guardian)
 
       # Verify guardian is deleted
-      assert_raise Ecto.NoResultsError, fn -> Schools.get_guardian!(guardian.id) end
+      assert_raise Ecto.NoResultsError, fn -> Schools.get_guardian!(scope, guardian.id) end
 
       # Verify relationship is removed (cascade delete)
       assert Lanttern.Repo.one(
@@ -1828,30 +1844,34 @@ defmodule Lanttern.SchoolsTest do
       assert Schools.get_student!(student.id)
     end
 
-    test "create_guardian/1 requires school_id" do
-      result = Schools.create_guardian(%{name: "Test Guardian"})
-      assert {:error, changeset} = result
-      assert "can't be blank" in errors_on(changeset).school_id
+    test "create_guardian/1 requires school_id (via scope)" do
+      scope = scope_fixture(permissions: ["school_management"])
+      {:ok, guardian} = Schools.create_guardian(scope, %{name: "Test Guardian"})
+      assert guardian.school_id == scope.school_id
     end
 
     test "create_guardian/1 requires name" do
-      school = school_fixture()
-      result = Schools.create_guardian(%{school_id: school.id})
+      scope = scope_fixture(permissions: ["school_management"])
+      result = Schools.create_guardian(scope, %{})
       assert {:error, changeset} = result
       assert "can't be blank" in errors_on(changeset).name
     end
 
     test "list_guardians/1 returns empty list when no guardians exist" do
-      assert Schools.list_guardians() == []
+      scope = scope_fixture(permissions: ["school_management"])
+      assert Schools.list_guardians(scope) == []
     end
 
     test "list_guardians/1 with non-existent school_id returns empty list" do
       _guardian = guardian_fixture()
-      assert Schools.list_guardians(school_id: -1) == []
+      scope = scope_fixture(permissions: ["school_management"])
+      scope = %{scope | school_id: -1}
+      assert Schools.list_guardians(scope) == []
     end
 
     test "get_guardian/2 returns nil for non-existent id" do
-      assert Schools.get_guardian(-1) == nil
+      scope = scope_fixture(permissions: ["school_management"])
+      assert Schools.get_guardian(scope, -1) == nil
     end
   end
 end

@@ -1563,38 +1563,36 @@ defmodule Lanttern.Schools do
   @doc """
   Returns the list of guardians.
 
+  Requires "school_management" permission in scope.
+
   ### Options:
 
-  - `:school_id` – filter guardians by school
   - `:preloads` – preloads associated data
 
   ## Examples
 
-      iex> list_guardians()
+      iex> list_guardians(scope)
       [%Guardian{}, ...]
 
   """
-  def list_guardians(opts \\ []) do
-    queryable = Keyword.get(opts, :base_query, Guardian)
+  def list_guardians(scope, opts \\ []) do
+    if has_permission?(scope, "school_management") do
+      queryable = Keyword.get(opts, :base_query, Guardian)
 
-    from(
-      g in queryable,
-      order_by: g.name
-    )
-    |> apply_list_guardians_opts(opts)
-    |> Repo.all()
-    |> maybe_preload(opts)
+      from(
+        g in queryable,
+        where: g.school_id == ^scope.school_id,
+        order_by: g.name
+      )
+      |> apply_list_guardians_opts(opts)
+      |> Repo.all()
+      |> maybe_preload(opts)
+    else
+      []
+    end
   end
 
   defp apply_list_guardians_opts(queryable, []), do: queryable
-
-  defp apply_list_guardians_opts(queryable, [{:school_id, school_id} | opts]) do
-    from(
-      g in queryable,
-      where: g.school_id == ^school_id
-    )
-    |> apply_list_guardians_opts(opts)
-  end
 
   defp apply_list_guardians_opts(queryable, [_ | opts]),
     do: apply_list_guardians_opts(queryable, opts)
@@ -1602,7 +1600,9 @@ defmodule Lanttern.Schools do
   @doc """
   Gets a single guardian.
 
-  Returns `nil` if the Guardian does not exist.
+  Returns `nil` if the Guardian does not exist or scope doesn't match.
+
+  Requires "school_management" permission in scope.
 
   ### Options:
 
@@ -1610,94 +1610,141 @@ defmodule Lanttern.Schools do
 
   ## Examples
 
-      iex> get_guardian(123)
+      iex> get_guardian(scope, 123)
       %Guardian{}
 
-      iex> get_guardian(456)
+      iex> get_guardian(scope, 456)
       nil
 
   """
-  def get_guardian(id, opts \\ []) do
-    Guardian
-    |> Repo.get(id)
-    |> maybe_preload(opts)
+  def get_guardian(scope, id, opts \\ []) do
+    if has_permission?(scope, "school_management") do
+      guardian =
+        Guardian
+        |> Repo.get(id)
+        |> maybe_preload(opts)
+
+      case guardian do
+        %Guardian{school_id: ^school_id} when school_id == scope.school_id -> guardian
+        _ -> nil
+      end
+    else
+      nil
+    end
   end
 
   @doc """
   Gets a single guardian.
 
-  Same as `get_guardian/2`, but raises `Ecto.NoResultsError` if the Guardian does not exist.
+  Same as `get_guardian/3`, but raises `Ecto.NoResultsError` if the Guardian does not exist
+  or if scope doesn't match.
+
+  Requires "school_management" permission in scope.
   """
-  def get_guardian!(id, opts \\ []) do
-    Guardian
-    |> Repo.get!(id)
-    |> maybe_preload(opts)
+  def get_guardian!(scope, id, opts \\ []) do
+    if has_permission?(scope, "school_management") do
+      guardian =
+        Guardian
+        |> Repo.get!(id)
+        |> maybe_preload(opts)
+
+      if guardian.school_id == scope.school_id do
+        guardian
+      else
+        raise Ecto.NoResultsError, queryable: Guardian
+      end
+    else
+      raise Ecto.NoResultsError, queryable: Guardian
+    end
   end
 
   @doc """
   Creates a guardian.
 
+  Requires "school_management" permission in scope.
+
   ## Examples
 
-      iex> create_guardian(%{field: value})
+      iex> create_guardian(scope, %{field: value})
       {:ok, %Guardian{}}
 
-      iex> create_guardian(%{field: bad_value})
+      iex> create_guardian(scope, %{field: bad_value})
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_guardian(attrs \\ %{}) do
-    %Guardian{}
-    |> Guardian.changeset(attrs)
-    |> Repo.insert()
+  def create_guardian(scope, attrs \\ %{}) do
+    if has_permission?(scope, "school_management") do
+      %Guardian{}
+      |> Guardian.changeset(attrs, scope)
+      |> Repo.insert()
+    else
+      {:error, :unauthorized}
+    end
   end
 
   @doc """
   Updates a guardian.
 
+  Requires "school_management" permission in scope.
+
   ## Examples
 
-      iex> update_guardian(current_user, guardian, %{field: new_value})
+      iex> update_guardian(scope, guardian, %{field: new_value})
       {:ok, %Guardian{}}
 
-      iex> update_guardian(current_user, guardian, %{field: bad_value})
+      iex> update_guardian(scope, guardian, %{field: bad_value})
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_guardian(current_user, %Guardian{} = guardian, attrs) do
-    guardian
-    |> Guardian.changeset(attrs, current_user.current_profile)
-    |> Repo.update()
+  def update_guardian(scope, %Guardian{} = guardian, attrs) do
+    if has_permission?(scope, "school_management") && guardian.school_id == scope.school_id do
+      guardian
+      |> Guardian.changeset(attrs, scope)
+      |> Repo.update()
+    else
+      {:error, :unauthorized}
+    end
   end
 
   @doc """
   Deletes a guardian.
 
+  Requires "school_management" permission in scope.
+
   ## Examples
 
-      iex> delete_guardian(guardian)
+      iex> delete_guardian(scope, guardian)
       {:ok, %Guardian{}}
 
-      iex> delete_guardian(guardian)
+      iex> delete_guardian(scope, guardian)
       {:error, %Ecto.Changeset{}}
 
   """
-  def delete_guardian(%Guardian{} = guardian) do
-    Repo.delete(guardian)
+  def delete_guardian(scope, %Guardian{} = guardian) do
+    if has_permission?(scope, "school_management") && guardian.school_id == scope.school_id do
+      Repo.delete(guardian)
+    else
+      {:error, :unauthorized}
+    end
   end
 
   @doc """
-  @doc """
   Returns an `%Ecto.Changeset{}` for tracking guardian changes.
+
+  Requires "school_management" permission in scope.
 
   ## Examples
 
-      iex> change_guardian(current_user, guardian)
+      iex> change_guardian(scope, guardian)
       %Ecto.Changeset{data: %Guardian{}}
 
   """
-  def change_guardian(current_user, %Guardian{} = guardian, attrs \\ %{}) do
-    Guardian.changeset(guardian, attrs, current_user.current_profile)
+  def change_guardian(scope, %Guardian{} = guardian, attrs \\ %{}) do
+    if has_permission?(scope, "school_management") && guardian.school_id == scope.school_id do
+      Guardian.changeset(guardian, attrs, scope)
+    else
+      Guardian.changeset(guardian, attrs, scope)
+    end
   end
 
   @doc """
@@ -1953,5 +2000,9 @@ defmodule Lanttern.Schools do
       )
 
     {:ok, response}
+  end
+
+  defp has_permission?(scope, permission) do
+    permission in scope.permissions
   end
 end

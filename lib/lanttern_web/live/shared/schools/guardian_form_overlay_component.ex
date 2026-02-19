@@ -80,7 +80,7 @@ defmodule LantternWeb.Schools.GuardianFormOverlayComponent do
 
   @impl true
   def update(%{guardian: guardian} = assigns, socket) do
-    changeset = Schools.change_guardian(assigns.current_user, guardian)
+    changeset = Schools.change_guardian(assigns.current_user.current_profile, guardian)
 
     socket =
       socket
@@ -94,7 +94,7 @@ defmodule LantternWeb.Schools.GuardianFormOverlayComponent do
   def handle_event("validate", %{"guardian" => params}, socket) do
     changeset =
       socket.assigns.guardian
-      |> Schools.change_guardian(socket.assigns.current_user, params)
+      |> Schools.change_guardian(socket.assigns.current_user.current_profile, params)
       |> Map.put(:action, :validate)
 
     {:noreply, assign_form(socket, changeset)}
@@ -105,7 +105,7 @@ defmodule LantternWeb.Schools.GuardianFormOverlayComponent do
   end
 
   def handle_event("delete", _params, socket) do
-    case Schools.delete_guardian(socket.assigns.guardian) do
+    case Schools.delete_guardian(socket.assigns.current_user.current_profile, socket.assigns.guardian) do
       {:ok, guardian} ->
         notify_parent(socket.assigns.notify_component, {:deleted, guardian})
         {:noreply, push_patch(socket, to: socket.assigns.close_path)}
@@ -119,7 +119,7 @@ defmodule LantternWeb.Schools.GuardianFormOverlayComponent do
     changeset = socket.assigns.form.source
     params = changeset_to_params(changeset, params)
 
-    case Schools.create_guardian(socket.assigns.current_user, params) do
+    case Schools.create_guardian(socket.assigns.current_user.current_profile, params) do
       {:ok, guardian} ->
         notify_parent(socket.assigns.notify_component, {:created, guardian})
         {:noreply, push_patch(socket, to: socket.assigns.close_path)}
@@ -133,7 +133,7 @@ defmodule LantternWeb.Schools.GuardianFormOverlayComponent do
     changeset = socket.assigns.form.source
     params = changeset_to_params(changeset, params)
 
-    case Schools.update_guardian(socket.assigns.current_user, socket.assigns.guardian, params) do
+    case Schools.update_guardian(socket.assigns.current_user.current_profile, socket.assigns.guardian, params) do
       {:ok, guardian} ->
         notify_parent(socket.assigns.notify_component, {:updated, guardian})
         {:noreply, push_patch(socket, to: socket.assigns.close_path)}
