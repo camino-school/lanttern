@@ -31,9 +31,10 @@ defmodule Lanttern.Schools.Guardian do
   end
 
   @doc false
-  def changeset(guardian, attrs) do
+  def changeset(guardian, attrs, scope) do
     guardian
-    |> cast(attrs, [:name, :school_id])
+    |> cast(attrs, [:name])
+    |> put_change(:school_id, scope.school_id)
     |> validate_required([:name, :school_id])
   end
 end

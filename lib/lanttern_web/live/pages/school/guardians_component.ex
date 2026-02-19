@@ -44,6 +44,7 @@ defmodule LantternWeb.SchoolLive.GuardiansComponent do
         title={@guardian_overlay_title}
         on_cancel={JS.patch(@guardians_path)}
         close_path={@guardians_path}
+        current_user={@current_user}
         notify_component={@myself}
       />
     </div>

@@ -1657,16 +1657,16 @@ defmodule Lanttern.Schools do
 
   ## Examples
 
-      iex> update_guardian(guardian, %{field: new_value})
+      iex> update_guardian(current_user, guardian, %{field: new_value})
       {:ok, %Guardian{}}
 
-      iex> update_guardian(guardian, %{field: bad_value})
+      iex> update_guardian(current_user, guardian, %{field: bad_value})
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_guardian(%Guardian{} = guardian, attrs) do
+  def update_guardian(current_user, %Guardian{} = guardian, attrs) do
     guardian
-    |> Guardian.changeset(attrs)
+    |> Guardian.changeset(attrs, current_user.current_profile)
     |> Repo.update()
   end
 
@@ -1687,16 +1687,17 @@ defmodule Lanttern.Schools do
   end
 
   @doc """
+  @doc """
   Returns an `%Ecto.Changeset{}` for tracking guardian changes.
 
   ## Examples
 
-      iex> change_guardian(guardian)
+      iex> change_guardian(current_user, guardian)
       %Ecto.Changeset{data: %Guardian{}}
 
   """
-  def change_guardian(%Guardian{} = guardian, attrs \\ %{}) do
-    Guardian.changeset(guardian, attrs)
+  def change_guardian(current_user, %Guardian{} = guardian, attrs \\ %{}) do
+    Guardian.changeset(guardian, attrs, current_user.current_profile)
   end
 
   @doc """
