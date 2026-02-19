@@ -5512,7 +5512,7 @@ msgstr ""
 #, elixir-autogen, elixir-format
 msgid "1 guardian"
 msgid_plural "%{count} guardians"
-msgstr[0] "1 responsável"
+msgstr[0] "%{count} responsáveis"
 msgstr[1] "%{count} responsáveis"
 
 #: lib/lanttern_web/live/pages/school/guardians/id/guardian_live.html.heex:44

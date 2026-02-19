@@ -15,31 +15,35 @@ defmodule LantternWeb.SchoolLive.GuardiansComponent do
           {ngettext("1 guardian", "%{count} guardians", @guardians_length)}
         </div>
         <div :if={@is_school_manager} class="flex items-center gap-4">
-          <.action type="link" patch={~p"/school/guardians?new=true"} icon_name="hero-plus-circle-mini">
+          <.action type="link" patch={~p"/school/guardians" <> "?new=true"} icon_name="hero-plus-circle-mini">
             {gettext("Add guardian")}
           </.action>
         </div>
       </div>
-      <.fluid_grid id="guardians" phx-update="stream" is_full_width class="p-4">
-        <.guardian_card
-          :for={{dom_id, guardian} <- @streams.guardians}
-          id={dom_id}
-          guardian={guardian}
-          navigate={~p"/school/guardians/#{guardian}"}
-          show_edit={@is_school_manager}
-          show_delete={@is_school_manager}
-          edit_patch={~p"/school/guardians?edit=#{guardian.id}"}
-          on_delete={JS.push("delete", value: %{id: guardian.id}, target: @myself) |> hide("##{dom_id}")}
-        />
-      </.fluid_grid>
+      <%= if @guardians_length == 0 do %>
+        <.empty_state class="px-4 py-10">{gettext("No guardians found")}</.empty_state>
+      <% else %>
+        <.fluid_grid id="guardians" phx-update="stream" is_full_width class="p-4">
+          <.guardian_card
+            :for={{dom_id, guardian} <- @streams.guardians}
+            id={dom_id}
+            guardian={guardian}
+            navigate={~p"/school/guardians/#{guardian}"}
+            show_edit={@is_school_manager}
+            show_delete={@is_school_manager}
+            edit_patch={~p"/school/guardians" <> "?edit=#{guardian.id}"}
+            on_delete={JS.push("delete", value: %{id: guardian.id}, target: @myself) |> hide("##{dom_id}")}
+          />
+        </.fluid_grid>
+      <% end %>
       <.live_component
         :if={@guardian}
         module={LantternWeb.Schools.GuardianFormOverlayComponent}
         id="guardian-form-overlay"
         guardian={@guardian}
         title={@guardian_overlay_title}
-        on_cancel={JS.patch(~p"/school/guardians")}
-        close_path={~p"/school/guardians"}
+        on_cancel={JS.patch(@guardians_path)}
+        close_path={@guardians_path}
         notify_component={@myself}
       />
     </div>
@@ -54,6 +58,25 @@ defmodule LantternWeb.SchoolLive.GuardiansComponent do
   end
 
   @impl true
+  def update(%{action: {GuardianFormOverlayComponent, {action, guardian}}}, socket)
+      when action in [:created, :updated, :deleted] do
+    message =
+      case action do
+        :created -> gettext("Guardian created successfully")
+        :updated -> gettext("Guardian updated successfully")
+        :deleted -> gettext("Guardian deleted successfully")
+      end
+
+    socket =
+      socket
+      |> assign(:guardian, nil)
+      |> stream_guardians()
+      |> put_flash(:info, message)
+      |> push_patch(to: @guardians_path)
+
+    {:ok, socket}
+  end
+
   def update(assigns, socket) do
     socket =
       socket
@@ -81,11 +104,6 @@ defmodule LantternWeb.SchoolLive.GuardiansComponent do
     socket
     |> stream(:guardians, guardians, reset: true)
     |> assign(:guardians_length, length(guardians))
-  end
-
-  defp update_guardians_length(socket) do
-    length = Enum.count(socket.assigns.streams.guardians || [])
-    assign(socket, :guardians_length, length)
   end
 
   defp assign_guardian(%{assigns: %{is_school_manager: false}} = socket),
@@ -120,38 +138,8 @@ defmodule LantternWeb.SchoolLive.GuardiansComponent do
       socket
       |> put_flash(:info, gettext("Guardian deleted successfully"))
       |> stream_delete(:guardians, guardian)
-      |> update_guardians_length()
+      |> assign(:guardians_length, socket.assigns.guardians_length - 1)
 
     {:noreply, socket}
-  end
-
-  @impl true
-  def handle_info({GuardianFormOverlayComponent, {:created, guardian}}, socket) do
-    {:noreply,
-     socket
-     |> assign(:guardian, nil)
-     |> stream(:guardians, [guardian], reset: false)
-     |> update_guardians_length()
-     |> put_flash(:info, gettext("Guardian created successfully"))
-     |> push_patch(to: ~p"/school/guardians")}
-  end
-
-  def handle_info({GuardianFormOverlayComponent, {:updated, guardian}}, socket) do
-    {:noreply,
-     socket
-     |> assign(:guardian, nil)
-     |> stream(:guardians, [guardian])
-     |> put_flash(:info, gettext("Guardian updated successfully"))
-     |> push_patch(to: ~p"/school/guardians")}
-  end
-
-  def handle_info({GuardianFormOverlayComponent, {:deleted, guardian}}, socket) do
-    {:noreply,
-     socket
-     |> assign(:guardian, nil)
-     |> stream_delete(:guardians, guardian)
-     |> update_guardians_length()
-     |> put_flash(:info, gettext("Guardian deleted successfully"))
-     |> push_patch(to: ~p"/school/guardians")}
   end
 end

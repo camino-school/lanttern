@@ -154,6 +154,6 @@ defmodule LantternWeb.Schools.GuardianFormOverlayComponent do
   end
 
   defp notify_parent(component_pid, message) do
-    send(component_pid, {__MODULE__, message})
+    send_update(component_pid, action: {__MODULE__, message})
   end
 end
