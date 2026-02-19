@@ -10,11 +10,8 @@ defmodule LantternWeb.Lessons.LessonsSideNavComponent do
     * `id` - Component identifier
     * `strand_id` - The strand whose lessons and moments to display
     * `current_scope` - The current user scope for authorization
-
-  Optional:
-
     * `lesson_id` - The currently active lesson ID (used for visual highlighting)
-    * `moment_id` - The currently active moment ID (used for visual highlighting)
+    * `on_moment_click` - Moment click handler function (`moment_id` as arg)
 
   ## Streams
 
@@ -94,19 +91,12 @@ defmodule LantternWeb.Lessons.LessonsSideNavComponent do
             <div class="flex items-center hover:cursor-move drag-handle">
               <hr class="w-4 h-1 border-0 rounded-r-full bg-ltrn-dark" />
             </div>
-            <div class="flex-1">
-              <div class="flex items-center gap-4">
-                <.link
-                  navigate={~p"/strands/moment/#{moment.id}"}
-                  class={[
-                    "font-display hover:text-ltrn-subtle",
-                    if(moment.id == @moment_id, do: "font-bold text-ltrn-darkest")
-                  ]}
-                >
-                  {moment.name}
-                </.link>
-              </div>
-            </div>
+            <button
+              phx-click={@on_moment_click.(moment.id)}
+              class="flex-1 font-display font-bold text-left hover:text-ltrn-subtle"
+            >
+              {moment.name}
+            </button>
           </div>
           <%!-- lessons --%>
           <div

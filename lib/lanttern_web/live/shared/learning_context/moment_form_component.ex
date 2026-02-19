@@ -46,6 +46,7 @@ defmodule LantternWeb.LearningContext.MomentFormComponent do
                   theme="ghost"
                   phx-click="delete"
                   phx-target={@myself}
+                  data-confirm={gettext("Are you sure?")}
                 >
                   {gettext("Delete")}
                 </.button>
@@ -90,23 +91,27 @@ defmodule LantternWeb.LearningContext.MomentFormComponent do
 
   @impl true
   def mount(socket) do
-    {:ok,
-     socket
-     |> assign(:class, nil)
-     |> assign(:on_cancel, nil)
-     |> assign(:save_preloads, [])
-     |> assign(:error, nil)
-     |> assign(:delete_mode, :idle)}
+    socket =
+      socket
+      |> assign(:class, nil)
+      |> assign(:on_cancel, nil)
+      |> assign(:save_preloads, [])
+      |> assign(:error, nil)
+      |> assign(:delete_mode, :idle)
+
+    {:ok, socket}
   end
 
   @impl true
   def update(%{moment: moment} = assigns, socket) do
     changeset = LearningContext.change_moment(moment)
 
-    {:ok,
-     socket
-     |> assign(assigns)
-     |> assign_form(changeset)}
+    socket =
+      socket
+      |> assign(assigns)
+      |> assign_form(changeset)
+
+    {:ok, socket}
   end
 
   # event handlers
@@ -118,7 +123,12 @@ defmodule LantternWeb.LearningContext.MomentFormComponent do
       |> LearningContext.change_moment(moment_params)
       |> Map.put(:action, :validate)
 
-    {:noreply, socket |> assign(:error, nil) |> assign_form(changeset)}
+    socket =
+      socket
+      |> assign(:error, nil)
+      |> assign_form(changeset)
+
+    {:noreply, socket}
   end
 
   def handle_event("delete", _params, socket) do
@@ -126,10 +136,12 @@ defmodule LantternWeb.LearningContext.MomentFormComponent do
       {:ok, moment} ->
         notify(__MODULE__, {:deleted, moment}, socket.assigns)
 
-        {:noreply,
-         socket
-         |> put_flash(:info, gettext("Moment deleted"))
-         |> handle_navigation({:deleted, moment})}
+        socket =
+          socket
+          |> put_flash(:info, gettext("Moment deleted"))
+          |> handle_navigation({:deleted, moment})
+
+        {:noreply, socket}
 
       {:error, changeset} ->
         if has_lessons_constraint_error?(changeset) do

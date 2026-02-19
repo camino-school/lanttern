@@ -1141,24 +1141,28 @@ defmodule LantternWeb.CoreComponents do
       role="alert"
       class={[
         "pointer-events-auto w-full max-w-sm overflow-hidden rounded-lg bg-white shadow-lg ring-1",
-        @kind == :info && "ring-green-500/50",
-        @kind == :error && "bg-rose-50 ring-ltrn-secondary/50"
+        @kind == :info && "ring-ltrn-success-accent/50",
+        @kind == :error && "bg-ltrn-alert-lighter ring-ltrn-alert-accent/50"
       ]}
       {@rest}
     >
       <div class="p-4">
         <div class="flex items-start">
           <div class="shrink-0">
-            <.icon :if={@kind == :info} name="hero-information-circle" class="h-6 w-6 text-green-500" />
+            <.icon
+              :if={@kind == :info}
+              name="hero-information-circle"
+              class="h-6 w-6 text-ltrn-success-accent"
+            />
             <.icon
               :if={@kind == :error}
               name="hero-exclamation-circle"
-              class="h-6 w-6 text-ltrn-secondary"
+              class="text-ltrn-alert-accent"
             />
           </div>
           <div class="ml-3 w-0 flex-1 pt-0.5">
-            <p :if={@title} class="mb-1 text-sm font-bold">{@title}</p>
-            <p class="font-sans text-sm text-ltrn-subtle">{msg}</p>
+            <p :if={@title} class="mb-1 text-sm font-bold text-ltrn-darkest">{@title}</p>
+            <p class="font-sans text-sm">{msg}</p>
           </div>
           <div class="ml-4 flex shrink-0">
             <button

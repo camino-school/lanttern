@@ -45,7 +45,7 @@ defmodule LantternWeb.StrandLiveTest do
       {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{strand.id}")
 
       assert view |> has_element?("p", "strand description abc")
-      assert view |> has_element?("a", "moment abc")
+      assert view |> has_element?("button", "moment abc")
 
       # assessment tab
 

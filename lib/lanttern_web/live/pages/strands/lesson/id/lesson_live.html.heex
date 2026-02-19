@@ -30,6 +30,11 @@
         lesson_id={@lesson.id}
         strand_id={@strand.id}
         current_scope={@current_scope}
+        on_moment_click={
+          fn moment_id ->
+            JS.push("view_moment_details", value: %{"moment_id" => moment_id})
+          end
+        }
       />
     </div>
   </:side_nav>
@@ -307,3 +312,10 @@
     on_cancel={JS.exec("data-cancel", to: "#lesson-form-overlay")}
   />
 </.modal>
+<.live_component
+  :if={@moment_id}
+  id="moment-details-overlay"
+  module={MomentDetailsOverlayComponent}
+  moment_id={@moment_id}
+  on_cancel={JS.push("close_moment_details")}
+/>

@@ -210,13 +210,12 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
 
     ~H"""
     <div class="flex flex-col p-2" id={@id}>
-      <.link
-        patch={~p"/strands/moment/#{@ap_header.moment_id}"}
-        class="flex-1 p-1 rounded-sm text-sm font-bold line-clamp-2 hover:bg-ltrn-mesh-cyan"
+      <span
+        class="flex-1 p-1 rounded-sm text-sm font-bold line-clamp-2"
         title={@ap_header.name}
       >
         {@ap_header.name}
-      </.link>
+      </span>
       <hr class="h-px mt-2 bg-ltrn-light" />
     </div>
     """
@@ -246,12 +245,9 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
 
   def assessment_point_header_struct(%{header_struct: %Moment{}} = assigns) do
     ~H"""
-    <.link
-      class="flex items-center w-full h-full p-1 rounded-sm text-sm font-display font-bold truncate hover:bg-ltrn-mesh-cyan"
-      navigate={~p"/strands/moment/#{@header_struct.id}"}
-    >
+    <span class="flex items-center w-full h-full p-1 rounded-sm text-sm font-display font-bold truncate">
       {@header_struct.name}
-    </.link>
+    </span>
     """
   end
 
@@ -382,17 +378,16 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
   def assessment_point_struct(%{assessment_point: %{moment: %Moment{}}} = assigns) do
     ~H"""
     <div class="text-sm whitespace-nowrap">
-      <.link
-        class="block w-full p-1 rounded-sm overflow-hidden hover:bg-ltrn-mesh-cyan"
+      <div
+        class="block w-full p-1 rounded-sm overflow-hidden"
         title={"#{@assessment_point.moment.name}\n\n#{@assessment_point.name}"}
-        navigate={~p"/strands/moment/#{@assessment_point.moment.id}"}
       >
         <div class="flex items-center gap-2">
           <.icon :if={@assessment_point.rubric_id} name="hero-view-columns-micro" class="w-4 h-4" />
           <span class="font-bold">{@assessment_point.moment.name}</span> <br />
         </div>
         <span class="text-xs">{@assessment_point.name}</span>
-      </.link>
+      </div>
     </div>
     """
   end

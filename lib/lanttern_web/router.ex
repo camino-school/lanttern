@@ -107,8 +107,6 @@ defmodule LantternWeb.Router do
       live "/strands/lesson/:lesson_id/chat", LessonChatLive, :new
       live "/strands/lesson/:lesson_id/chat/:conversation_id", LessonChatLive, :show
 
-      live "/strands/moment/:id", MomentLive, :show
-
       live "/curriculum", CurriculaLive, :index
       live "/curriculum/bncc_ef", BnccEfLive, :index
       live "/curriculum/:id", CurriculumLive, :show
