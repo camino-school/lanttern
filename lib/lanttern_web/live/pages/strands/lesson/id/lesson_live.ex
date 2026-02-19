@@ -4,12 +4,10 @@ defmodule LantternWeb.LessonLive do
   alias Lanttern.LearningContext
   alias Lanttern.Lessons
 
-  # view components
-  alias __MODULE__.LessonsSideNavComponent
-
   # shared components
   alias LantternWeb.Attachments.AttachmentAreaComponent
   alias LantternWeb.Lessons.LessonFormComponent
+  alias LantternWeb.Lessons.LessonsSideNavComponent
 
   # lifecycle
 

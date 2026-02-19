@@ -12,9 +12,15 @@
           {gettext("Lesson")}
         </h2>
         <span class="font-sm italic text-ltrn-subtle">{gettext("in")}</span>
-        <h3 class="line-clamp-3">
+        <h3>
           <.link navigate={~p"/strands/#{@strand}"} class="hover:text-ltrn-subtle">
-            {@strand.name}
+            <span class="line-clamp-3">
+              {@strand.name}
+            </span>
+            <span class="flex items-center gap-1 mt-1 font-sans text-sm text-ltrn-subtle">
+              <.icon name="hero-arrow-left-micro" />
+              {gettext("Back")}
+            </span>
           </.link>
         </h3>
       </div>

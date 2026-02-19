@@ -28,14 +28,14 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
           <.action
             :if={@assessment_points_length > 1}
             type="link"
-            patch={~p"/strands/moment/#{@moment}/assessment?is_reordering=true"}
+            patch={~p"/strands/moment/#{@moment}?is_reordering=true"}
             icon_name="hero-arrows-up-down-mini"
           >
             {gettext("Reorder")}
           </.action>
           <.action
             type="link"
-            patch={~p"/strands/moment/#{@moment}/assessment?new_assessment_point=true"}
+            patch={~p"/strands/moment/#{@moment}?new_assessment_point=true"}
             icon_name="hero-plus-circle-mini"
           >
             {gettext("New assessment point")}
@@ -55,7 +55,7 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
         current_assessment_view={@current_assessment_view}
         moment_id={@moment.id}
         classes_ids={@selected_classes_ids}
-        navigate={~p"/strands/moment/#{@moment}/assessment"}
+        navigate={~p"/strands/moment/#{@moment}"}
         notify_component={@myself}
       />
       <.live_component
@@ -65,14 +65,14 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
         notify_component={@myself}
         assessment_point={@assessment_point}
         title={gettext("Assessment Point")}
-        on_cancel={JS.patch(~p"/strands/moment/#{@moment}/assessment")}
+        on_cancel={JS.patch(~p"/strands/moment/#{@moment}")}
         curriculum_from_strand_id={@moment.strand_id}
       />
       <.slide_over
         :if={Map.get(@params, "is_reordering") == "true"}
         show
         id="moment-assessment-points-order-overlay"
-        on_cancel={JS.patch(~p"/strands/moment/#{@moment}/assessment")}
+        on_cancel={JS.patch(~p"/strands/moment/#{@moment}")}
       >
         <:title>{gettext("Assessment Points Order")}</:title>
         <.sortable_card
@@ -146,7 +146,7 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
 
     nav_opts = [
       put_flash: flash_message,
-      push_navigate: [to: ~p"/strands/moment/#{socket.assigns.moment}/assessment"]
+      push_navigate: [to: ~p"/strands/moment/#{socket.assigns.moment}"]
     ]
 
     {:ok, delegate_navigation(socket, nav_opts)}
@@ -232,7 +232,7 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
         socket =
           socket
           |> assign(:current_assessment_view, view)
-          |> push_navigate(to: ~p"/strands/moment/#{socket.assigns.moment}/assessment")
+          |> push_navigate(to: ~p"/strands/moment/#{socket.assigns.moment}")
 
         {:noreply, socket}
 
@@ -261,7 +261,7 @@ defmodule LantternWeb.MomentLive.AssessmentComponent do
       {:ok, _assessment_points} ->
         {:noreply,
          socket
-         |> push_navigate(to: ~p"/strands/moment/#{socket.assigns.moment}/assessment")}
+         |> push_navigate(to: ~p"/strands/moment/#{socket.assigns.moment}")}
 
       {:error, _} ->
         {:noreply, socket}

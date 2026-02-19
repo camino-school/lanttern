@@ -6,7 +6,6 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
 
   - assessment point entry evidences (use `assessment_point_entry_id` assign)
   - student cycle info attachments (use `student_cycle_info_id` assign and `shared_with_student` assign)
-  - moment card attachments (use `moment_card_id` assign and `shared_with_student` assign)
   - lesson attachments (use `lesson_id` assign and `is_teacher_only_resource` assign)
   - ILP comments attachments (use `ilp_comment_id` assign)
 
@@ -18,9 +17,8 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
   - `current_user` (optional, `%User{}`) - required when `allow_editing` is `true`
   - `assessment_point_entry_id` (optional, integer) - view supported contexts above
   - `student_cycle_info_id` (optional, integer) - view supported contexts above
-  - `moment_card_id` (optional, integer) - view supported contexts above
   - `lesson_id` (optional, integer) - view supported contexts above
-  - `shared_with_student` (optional, boolean) - used with student cycle info and moment card. View supported contexts above
+  - `shared_with_student` (optional, boolean) - used with student cycle info. View supported contexts above
   - `is_teacher_only_resource` (optional, boolean) - used with lesson. View supported contexts above
 
   """
@@ -33,7 +31,6 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
   alias Lanttern.Attachments
   alias Lanttern.Attachments.Attachment
   alias Lanttern.ILP
-  alias Lanttern.LearningContext
   alias Lanttern.Lessons
   alias Lanttern.StudentsCycleInfo
   alias Lanttern.SupabaseHelpers
@@ -65,15 +62,7 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
         attachments_length={@attachments_length}
         sortable_group={@sortable_group}
         component_id={@id}
-        on_toggle_share={
-          if @allow_editing && @type == :moment_card_attachments,
-            do: fn attachment_id ->
-              JS.push("toggle_moment_card_attachment_share",
-                value: %{"attachment_id" => attachment_id},
-                target: @myself
-              )
-            end
-        }
+        on_toggle_share={nil}
         sortable_event="sort_attachments"
         on_edit={&JS.push("edit", value: %{"id" => &1}, target: @myself)}
         on_remove={&JS.push("delete", value: %{"id" => &1}, target: @myself)}
@@ -289,9 +278,6 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
   defp assign_type(%{assigns: %{student_cycle_info_id: _}} = socket),
     do: assign(socket, :type, :student_cycle_info_attachments)
 
-  defp assign_type(%{assigns: %{moment_card_id: _}} = socket),
-    do: assign(socket, :type, :moment_card_attachments)
-
   defp assign_type(%{assigns: %{lesson_id: _}} = socket),
     do: assign(socket, :type, :lesson_attachments)
 
@@ -312,18 +298,6 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
       Attachments.list_attachments(
         student_cycle_info_id: id,
         shared_with_student: {:student_cycle_info, socket.assigns.shared_with_student}
-      )
-
-    handle_stream_attachments_socket_assigns(socket, attachments)
-  end
-
-  defp stream_attachments(
-         %{assigns: %{type: :moment_card_attachments, moment_card_id: id}} = socket
-       ) do
-    attachments =
-      Attachments.list_attachments(
-        moment_card_id: id,
-        shared_with_student: {:moment_card, socket.assigns.shared_with_student}
       )
 
     handle_stream_attachments_socket_assigns(socket, attachments)
@@ -497,9 +471,6 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
       :student_cycle_info_attachments ->
         StudentsCycleInfo.update_student_cycle_info_attachments_positions(attachments_ids)
 
-      :moment_card_attachments ->
-        LearningContext.update_moment_card_attachments_positions(attachments_ids)
-
       :lesson_attachments ->
         Lessons.update_lesson_attachments_positions(attachments_ids)
 
@@ -519,23 +490,6 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
 
   # Catch-all for when indexes are the same (no movement)
   def handle_event("sort_attachments", _payload, socket), do: {:noreply, socket}
-
-  def handle_event(
-        "toggle_moment_card_attachment_share",
-        %{"attachment_id" => attachment_id},
-        socket
-      ) do
-    # as attachment_id is handled in JS call, validate if it's part of the current attachments
-    with true <- attachment_id in socket.assigns.attachments_ids,
-         attachment <- Attachments.get_attachment!(attachment_id),
-         {:ok, attachment} <- toggle_attachment_share(socket.assigns.type, attachment) do
-      notify(__MODULE__, {:updated, attachment}, socket.assigns)
-      {:noreply, stream_insert(socket, :attachments, attachment)}
-    else
-      _ ->
-        {:noreply, put_flash(socket, :error, gettext("Something went wrong"))}
-    end
-  end
 
   def handle_event("validate_upload", _, socket) do
     upload_conf = socket.assigns.uploads.attachment_file
@@ -653,33 +607,6 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
     end
   end
 
-  defp save_attachment(%{assigns: %{type: :moment_card_attachments}} = socket, :new, params) do
-    %{
-      current_user: current_user,
-      moment_card_id: moment_card_id
-    } = socket.assigns
-
-    case LearningContext.create_moment_card_attachment(
-           current_user.current_profile_id,
-           moment_card_id,
-           params,
-           socket.assigns.shared_with_student || false
-         ) do
-      {:ok, attachment} ->
-        notify(__MODULE__, {:created, attachment}, socket.assigns)
-
-        socket =
-          socket
-          |> assign(:is_adding_external, false)
-          |> stream_attachments()
-
-        {:noreply, socket}
-
-      {:error, %Ecto.Changeset{} = changeset} ->
-        {:noreply, assign_form(socket, changeset)}
-    end
-  end
-
   defp save_attachment(%{assigns: %{type: :lesson_attachments}} = socket, :new, params) do
     %{
       current_user: current_user,
@@ -755,12 +682,4 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
 
   defp assign_form(socket, %Ecto.Changeset{} = changeset),
     do: assign(socket, :form, to_form(changeset))
-
-  defp toggle_attachment_share(:moment_card_attachments, attachment),
-    do: LearningContext.toggle_moment_card_attachment_share(attachment)
-
-  defp toggle_attachment_share(:lesson_attachments, attachment),
-    do: Lessons.toggle_lesson_attachment_share(attachment)
-
-  defp toggle_attachment_share(_, _), do: {:error, gettext("Unsupported type")}
 end

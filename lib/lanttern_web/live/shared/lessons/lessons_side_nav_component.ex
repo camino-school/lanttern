@@ -1,4 +1,4 @@
-defmodule LantternWeb.LessonLive.LessonsSideNavComponent do
+defmodule LantternWeb.Lessons.LessonsSideNavComponent do
   @moduledoc """
   A live component that renders a side navigation listing all lessons in a
   strand, grouped by moment, with drag-and-drop reordering support.
@@ -9,8 +9,12 @@ defmodule LantternWeb.LessonLive.LessonsSideNavComponent do
 
     * `id` - Component identifier
     * `strand_id` - The strand whose lessons and moments to display
-    * `lesson_id` - The currently active lesson ID (used for visual highlighting)
     * `current_scope` - The current user scope for authorization
+
+  Optional:
+
+    * `lesson_id` - The currently active lesson ID (used for visual highlighting)
+    * `moment_id` - The currently active moment ID (used for visual highlighting)
 
   ## Streams
 
@@ -94,7 +98,10 @@ defmodule LantternWeb.LessonLive.LessonsSideNavComponent do
               <div class="flex items-center gap-4">
                 <.link
                   navigate={~p"/strands/moment/#{moment.id}"}
-                  class="font-display font-bold text-sm hover:text-ltrn-subtle"
+                  class={[
+                    "font-display hover:text-ltrn-subtle",
+                    if(moment.id == @moment_id, do: "font-bold text-ltrn-darkest")
+                  ]}
                 >
                   {moment.name}
                 </.link>
@@ -207,6 +214,8 @@ defmodule LantternWeb.LessonLive.LessonsSideNavComponent do
       socket
       |> assign(:moment, nil)
       |> assign(:lesson, nil)
+      |> assign(:lesson_id, nil)
+      |> assign(:moment_id, nil)
       |> assign(:initialized, false)
 
     {:ok, socket}

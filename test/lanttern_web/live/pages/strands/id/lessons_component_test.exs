@@ -18,10 +18,10 @@ defmodule LantternWeb.StrandLive.LessonsComponentTest do
       |> within("#moment-form-overlay", fn conn ->
         conn
         |> fill_in("Name", with: "Moment name abc")
-        |> fill_in("Description", with: "Moment description abc")
         |> click_button("Save")
       end)
-      |> assert_has("a", text: "Moment name abc")
+      # after creation, navigates to the moment detail page
+      |> assert_has("h1", text: "Moment name abc")
     end
 
     test "edit moment", %{conn: conn} do

@@ -157,7 +157,16 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
                         {gettext("Edit")}
                       </.action>
                     </div>
-                    <.markdown text={moment.description} strip_tags class="mt-4 line-clamp-3" />
+                    <.link
+                      navigate={~p"/strands/moment/#{moment.id}"}
+                      class="block mt-4"
+                    >
+                      <.markdown
+                        text={moment.description}
+                        strip_tags
+                        class="hover:text-ltrn-subtle line-clamp-3"
+                      />
+                    </.link>
                   </div>
                 </div>
                 <%!-- lessons --%>
@@ -191,7 +200,7 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
           <% end %>
         </section>
       </.responsive_container>
-      <.slide_over
+      <.modal
         :if={@moment}
         id="moment-form-overlay"
         show={true}
@@ -204,37 +213,14 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
           moment={@moment}
           strand_id={@strand.id}
           navigate={
-            fn _moment ->
-              if @subject_filter,
-                do: ~p"/strands/#{@strand}?subject=#{@subject_filter.id}",
-                else: ~p"/strands/#{@strand}"
+            fn
+              {:created, moment} -> ~p"/strands/moment/#{moment}"
+              {_action, _moment} -> ~p"/strands/#{@strand}"
             end
           }
+          on_cancel={JS.exec("data-cancel", to: "#moment-form-overlay")}
         />
-        <:actions_left :if={@moment.id}>
-          <.button
-            type="button"
-            theme="ghost"
-            phx-click="delete_moment"
-            phx-target={@myself}
-            data-confirm={gettext("Are you sure?")}
-          >
-            {gettext("Delete")}
-          </.button>
-        </:actions_left>
-        <:actions>
-          <.button
-            type="button"
-            theme="ghost"
-            phx-click={JS.exec("data-cancel", to: "#moment-form-overlay")}
-          >
-            {gettext("Cancel")}
-          </.button>
-          <.button type="submit" form="moment-form">
-            {gettext("Save")}
-          </.button>
-        </:actions>
-      </.slide_over>
+      </.modal>
       <.modal
         :if={@lesson}
         id="lesson-form-overlay"
@@ -496,7 +482,7 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
 
   @impl true
   def handle_event("new_moment", _params, socket) do
-    moment = %Moment{strand_id: socket.assigns.strand.id, subjects: []}
+    moment = %Moment{strand_id: socket.assigns.strand.id}
 
     socket =
       socket
@@ -509,7 +495,7 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
   def handle_event("edit_moment", %{"id" => moment_id}, socket) do
     socket =
       if moment_id in socket.assigns.moments_ids do
-        moment = LearningContext.get_moment(moment_id, preloads: [:subjects])
+        moment = LearningContext.get_moment(moment_id)
 
         socket
         |> assign(:moment, moment)
@@ -523,31 +509,6 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
 
   def handle_event("close_moment_form", _params, socket),
     do: {:noreply, assign(socket, :moment, nil)}
-
-  def handle_event("delete_moment", _params, socket) do
-    case LearningContext.delete_moment(socket.assigns.moment) do
-      {:ok, _moment} ->
-        socket =
-          socket
-          |> put_flash(:info, gettext("Moment deleted"))
-          |> push_navigate(to: ~p"/strands/#{socket.assigns.strand}")
-
-        {:noreply, socket}
-
-      {:error, _changeset} ->
-        socket =
-          socket
-          |> put_flash(
-            :error,
-            gettext("Moment has linked assessments. Deleting it would cause some data loss.")
-          )
-          |> push_patch(
-            to: ~p"/strands/#{socket.assigns.strand}?moment=#{socket.assigns.moment.id}"
-          )
-
-        {:noreply, socket}
-    end
-  end
 
   def handle_event("new_lesson", _params, socket) do
     subjects =

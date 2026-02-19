@@ -12,8 +12,6 @@ defmodule Lanttern.Attachments.Attachment do
   alias Lanttern.Identity.Profile
   alias Lanttern.ILP.ILPComment
   alias Lanttern.ILP.ILPCommentAttachment
-  alias Lanttern.LearningContext.MomentCard
-  alias Lanttern.LearningContext.MomentCardAttachment
   alias Lanttern.Lessons.Lesson
   alias Lanttern.Lessons.LessonAttachment
   alias Lanttern.StudentsCycleInfo.StudentCycleInfo
@@ -31,8 +29,6 @@ defmodule Lanttern.Attachments.Attachment do
           assessment_point_entry: AssessmentPointEntry.t(),
           student_cycle_info_attachment: StudentCycleInfoAttachment.t(),
           student_cycle_info: StudentCycleInfo.t(),
-          moment_card_attachment: MomentCardAttachment.t(),
-          moment_card: MomentCard.t(),
           lesson_attachment: LessonAttachment.t(),
           lesson: Lesson.t(),
           ilp_comment_attachment: ILPCommentAttachment.t(),
@@ -51,7 +47,7 @@ defmodule Lanttern.Attachments.Attachment do
     field :signed_link, :string, virtual: true
     field :signed_link_error, :boolean, default: false, virtual: true
 
-    # used in the context of moment card attachments and student cycle info
+    # used in the context of student cycle info
     field :is_shared, :boolean, virtual: true
 
     # used in the context of lesson attachments
@@ -66,9 +62,6 @@ defmodule Lanttern.Attachments.Attachment do
 
     has_one :student_cycle_info_attachment, StudentCycleInfoAttachment
     has_one :student_cycle_info, through: [:student_cycle_info_attachment, :student_cycle_info]
-
-    has_one :moment_card_attachment, MomentCardAttachment
-    has_one :moment_card, through: [:moment_card_attachment, :moment_card]
 
     has_one :lesson_attachment, LessonAttachment
     has_one :lesson, through: [:lesson_attachment, :lesson]

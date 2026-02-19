@@ -211,9 +211,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
     ~H"""
     <div class="flex flex-col p-2" id={@id}>
       <.link
-        patch={
-          ~p"/strands/moment/#{@ap_header.moment_id}/assessment?edit_assessment_point=#{@ap_header.id}"
-        }
+        patch={~p"/strands/moment/#{@ap_header.moment_id}"}
         class="flex-1 p-1 rounded-sm text-sm font-bold line-clamp-2 hover:bg-ltrn-mesh-cyan"
         title={@ap_header.name}
       >
@@ -250,7 +248,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
     ~H"""
     <.link
       class="flex items-center w-full h-full p-1 rounded-sm text-sm font-display font-bold truncate hover:bg-ltrn-mesh-cyan"
-      navigate={~p"/strands/moment/#{@header_struct.id}/assessment"}
+      navigate={~p"/strands/moment/#{@header_struct.id}"}
     >
       {@header_struct.name}
     </.link>
@@ -387,7 +385,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
       <.link
         class="block w-full p-1 rounded-sm overflow-hidden hover:bg-ltrn-mesh-cyan"
         title={"#{@assessment_point.moment.name}\n\n#{@assessment_point.name}"}
-        navigate={~p"/strands/moment/#{@assessment_point.moment.id}/assessment"}
+        navigate={~p"/strands/moment/#{@assessment_point.moment.id}"}
       >
         <div class="flex items-center gap-2">
           <.icon :if={@assessment_point.rubric_id} name="hero-view-columns-micro" class="w-4 h-4" />

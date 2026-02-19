@@ -34,7 +34,7 @@ defmodule LantternWeb.Dataviz.LantternVizComponent do
               >
                 <span class="shrink-0 w-4 border-t-2 border-dotted border-ltrn-subtle"></span>
                 <.link
-                  navigate={~p"/strands/moment/#{moment.id}/assessment"}
+                  navigate={~p"/strands/moment/#{moment.id}"}
                   class="underline truncate hover:opacity-50"
                 >
                   {moment.name}

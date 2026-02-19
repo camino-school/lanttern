@@ -636,27 +636,23 @@ defmodule Lanttern.LearningContextTest do
 
     test "list_moments/1 with preloads returns all moments with preloaded data" do
       strand = strand_fixture()
-      subject = subject_fixture()
-      moment = moment_fixture(%{strand_id: strand.id, subjects_ids: [subject.id]})
+      moment = moment_fixture(%{strand_id: strand.id})
 
-      [expected] = LearningContext.list_moments(preloads: [:subjects, :strand])
+      [expected] = LearningContext.list_moments(preloads: :strand)
       assert expected.id == moment.id
       assert expected.strand == strand
-      assert expected.subjects == [subject]
     end
 
     test "list_moments/1 with strands filter returns moments filtered" do
       strand = strand_fixture()
-      subject = subject_fixture()
-      moment = moment_fixture(%{strand_id: strand.id, subjects_ids: [subject.id]})
+      moment = moment_fixture(%{strand_id: strand.id})
 
       # extra moments for filter testing
       moment_fixture()
       moment_fixture()
 
-      [expected] = LearningContext.list_moments(strands_ids: [strand.id], preloads: :subjects)
+      [expected] = LearningContext.list_moments(strands_ids: [strand.id])
       assert expected.id == moment.id
-      assert expected.subjects == [subject]
     end
 
     test "get_moment!/2 returns the moment with given id" do
@@ -666,31 +662,25 @@ defmodule Lanttern.LearningContextTest do
 
     test "get_moment!/2 with preloads returns the moment with given id and preloaded data" do
       strand = strand_fixture()
-      subject = subject_fixture()
-      moment = moment_fixture(%{strand_id: strand.id, subjects_ids: [subject.id]})
+      moment = moment_fixture(%{strand_id: strand.id})
 
-      expected = LearningContext.get_moment!(moment.id, preloads: [:strand, :subjects])
+      expected = LearningContext.get_moment!(moment.id, preloads: :strand)
       assert expected.id == moment.id
       assert expected.strand == strand
-      assert expected.subjects == [subject]
     end
 
     test "create_moment/1 with valid data creates a moment" do
-      subject = subject_fixture()
-
       valid_attrs = %{
         name: "some name",
         position: 42,
         description: "some description",
-        strand_id: strand_fixture().id,
-        subjects_ids: [subject.id]
+        strand_id: strand_fixture().id
       }
 
       assert {:ok, %Moment{} = moment} = LearningContext.create_moment(valid_attrs)
       assert moment.name == "some name"
       assert moment.position == 42
       assert moment.description == "some description"
-      assert moment.subjects == [subject]
     end
 
     test "create_moment/1 with invalid data returns error changeset" do
@@ -698,14 +688,12 @@ defmodule Lanttern.LearningContextTest do
     end
 
     test "update_moment/2 with valid data updates the moment" do
-      moment = moment_fixture(%{subjects_ids: [subject_fixture().id]})
-      subject = subject_fixture()
+      moment = moment_fixture()
 
       update_attrs = %{
         name: "some updated name",
         position: 43,
-        description: "some updated description",
-        subjects_ids: [subject.id]
+        description: "some updated description"
       }
 
       assert {:ok, %Moment{} = moment} =
@@ -714,7 +702,6 @@ defmodule Lanttern.LearningContextTest do
       assert moment.name == "some updated name"
       assert moment.position == 43
       assert moment.description == "some updated description"
-      assert moment.subjects == [subject]
     end
 
     test "update_moment/2 with invalid data returns error changeset" do
@@ -765,233 +752,6 @@ defmodule Lanttern.LearningContextTest do
     test "change_moment/1 returns a moment changeset" do
       moment = moment_fixture()
       assert %Ecto.Changeset{} = LearningContext.change_moment(moment)
-    end
-  end
-
-  describe "moment_cards" do
-    alias Lanttern.LearningContext.MomentCard
-    alias Lanttern.LearningContextLog.MomentCardLog
-
-    import Lanttern.LearningContextFixtures
-    alias Lanttern.Attachments
-    alias Lanttern.IdentityFixtures
-    alias Lanttern.SchoolsFixtures
-
-    @invalid_attrs %{name: nil, position: nil, description: nil}
-
-    setup do
-      [scope: IdentityFixtures.scope_fixture()]
-    end
-
-    test "list_moment_cards/1 returns all moment_cards", %{scope: scope} do
-      moment_card = moment_card_fixture(scope)
-      assert LearningContext.list_moment_cards() == [moment_card]
-    end
-
-    test "list_moment_cards/1 with moments filter returns moment cards filtered and ordered by position",
-         %{scope: scope} do
-      moment = moment_fixture()
-
-      # create moment card should handle positioning
-      moment_card_1 = moment_card_fixture(scope, %{moment_id: moment.id})
-      moment_card_2 = moment_card_fixture(scope, %{moment_id: moment.id})
-
-      # extra moment cards for filter testing
-      another_scope = IdentityFixtures.scope_fixture()
-
-      moment_card_fixture(another_scope)
-
-      assert [moment_card_1, moment_card_2] ==
-               LearningContext.list_moment_cards(
-                 moments_ids: [moment.id],
-                 school_id: scope.school_id
-               )
-    end
-
-    test "list_moment_cards/1 with count_attachments opt returns moment cards with calculated attachments_count field",
-         %{scope: scope} do
-      moment_card = moment_card_fixture(scope)
-      profile = IdentityFixtures.staff_member_profile_fixture()
-
-      {:ok, _attachment} =
-        LearningContext.create_moment_card_attachment(
-          profile.id,
-          moment_card.id,
-          %{"name" => "attachment", "link" => "https://somevaliduri.com"}
-        )
-
-      assert LearningContext.list_moment_cards(count_attachments: true) == [
-               %{moment_card | attachments_count: 1}
-             ]
-    end
-
-    test "get_moment_card!/1 returns the moment_card with given id", %{scope: scope} do
-      moment_card = moment_card_fixture(scope)
-      assert LearningContext.get_moment_card!(moment_card.id) == moment_card
-    end
-
-    test "get_moment_card/2 with count_attachments opt returns moment card with calculated attachments_count field",
-         %{scope: scope} do
-      moment_card = moment_card_fixture(scope)
-      profile = IdentityFixtures.staff_member_profile_fixture()
-
-      {:ok, _attachment} =
-        LearningContext.create_moment_card_attachment(
-          profile.id,
-          moment_card.id,
-          %{"name" => "attachment", "link" => "https://somevaliduri.com"}
-        )
-
-      assert LearningContext.get_moment_card(moment_card.id, count_attachments: true) == %{
-               moment_card
-               | attachments_count: 1
-             }
-    end
-
-    test "create_moment_card/1 with valid data creates a moment_card", %{scope: scope} do
-      moment = moment_fixture()
-
-      valid_attrs = %{
-        name: "some name",
-        position: 42,
-        description: "some description",
-        moment_id: moment.id,
-        school_id: scope.school_id
-      }
-
-      assert {:ok, %MomentCard{} = moment_card} =
-               LearningContext.create_moment_card(scope, valid_attrs)
-
-      assert moment_card.name == "some name"
-      assert moment_card.position == 42
-      assert moment_card.description == "some description"
-      assert moment_card.moment_id == moment.id
-      assert moment_card.school_id == scope.school_id
-
-      on_exit(fn ->
-        assert_supervised_tasks_are_down()
-
-        moment_card_log =
-          Repo.get_by!(MomentCardLog,
-            moment_card_id: moment_card.id
-          )
-
-        assert moment_card_log.moment_card_id == moment_card.id
-        assert moment_card_log.profile_id == scope.profile_id
-        assert moment_card_log.operation == "CREATE"
-
-        assert moment_card_log.name == moment_card.name
-        assert moment_card_log.position == moment_card.position
-        assert moment_card_log.description == moment_card.description
-        assert moment_card_log.moment_id == moment_card.moment_id
-        assert moment_card_log.school_id == moment_card.school_id
-      end)
-    end
-
-    test "create_moment_card/1 with invalid data returns error changeset", %{scope: scope} do
-      assert {:error, %Ecto.Changeset{}} =
-               LearningContext.create_moment_card(scope, @invalid_attrs)
-    end
-
-    test "update_moment_card/2 with valid data updates the moment_card", %{scope: scope} do
-      moment_card = moment_card_fixture(scope)
-
-      update_attrs = %{
-        name: "some updated name",
-        position: 43,
-        description: "some updated description"
-      }
-
-      assert {:ok, %MomentCard{} = moment_card} =
-               LearningContext.update_moment_card(scope, moment_card, update_attrs)
-
-      assert moment_card.name == "some updated name"
-      assert moment_card.position == 43
-      assert moment_card.description == "some updated description"
-
-      on_exit(fn ->
-        assert_supervised_tasks_are_down()
-
-        moment_card_log =
-          Repo.get_by!(MomentCardLog,
-            moment_card_id: moment_card.id,
-            operation: "UPDATE"
-          )
-
-        assert moment_card_log.moment_card_id == moment_card.id
-        assert moment_card_log.profile_id == scope.profile_id
-        assert moment_card_log.operation == "UPDATE"
-
-        assert moment_card_log.name == moment_card.name
-        assert moment_card_log.position == moment_card.position
-        assert moment_card_log.description == moment_card.description
-        assert moment_card_log.moment_id == moment_card.moment_id
-      end)
-    end
-
-    test "update_moment_card/2 with invalid data returns error changeset", %{scope: scope} do
-      moment_card = moment_card_fixture(scope)
-
-      assert {:error, %Ecto.Changeset{}} =
-               LearningContext.update_moment_card(scope, moment_card, @invalid_attrs)
-
-      assert moment_card == LearningContext.get_moment_card!(moment_card.id)
-    end
-
-    test "delete_moment_card/1 deletes the moment_card and its linked attachments", %{
-      scope: scope
-    } do
-      moment_card = moment_card_fixture(scope)
-
-      {:ok, attachment} =
-        LearningContext.create_moment_card_attachment(
-          scope.profile_id,
-          moment_card.id,
-          %{"name" => "attachment", "link" => "https://somevaliduri.com"}
-        )
-
-      assert {:ok, %MomentCard{}} =
-               LearningContext.delete_moment_card(scope, moment_card)
-
-      assert_raise Ecto.NoResultsError, fn -> LearningContext.get_moment_card!(moment_card.id) end
-      assert_raise Ecto.NoResultsError, fn -> Attachments.get_attachment!(attachment.id) end
-
-      on_exit(fn ->
-        assert_supervised_tasks_are_down()
-
-        moment_card_log =
-          Repo.get_by!(MomentCardLog,
-            moment_card_id: moment_card.id,
-            operation: "DELETE"
-          )
-
-        assert moment_card_log.moment_card_id == moment_card.id
-        assert moment_card_log.profile_id == scope.profile_id
-        assert moment_card_log.operation == "DELETE"
-      end)
-    end
-
-    test "change_moment_card/1 returns a moment_card changeset", %{scope: scope} do
-      moment_card = moment_card_fixture(scope)
-      assert %Ecto.Changeset{} = LearningContext.change_moment_card(scope, moment_card)
-    end
-
-    test "toggle_moment_card_attachment_share/1 returns the updated attachment", %{scope: scope} do
-      moment_card = moment_card_fixture(scope)
-
-      {:ok, attachment} =
-        LearningContext.create_moment_card_attachment(
-          scope.profile_id,
-          moment_card.id,
-          %{"name" => "attachment", "link" => "https://somevaliduri.com"}
-        )
-
-      assert attachment.is_shared == false
-
-      {:ok, attachment} =
-        LearningContext.toggle_moment_card_attachment_share(attachment)
-
-      assert attachment.is_shared
     end
   end
 end

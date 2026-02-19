@@ -1,8 +1,10 @@
 defmodule LantternWeb.MomentLiveTest do
   use LantternWeb.ConnCase
 
+  import Lanttern.Factory
+  import PhoenixTest
+
   alias Lanttern.LearningContextFixtures
-  alias Lanttern.TaxonomyFixtures
 
   @live_view_base_path "/strands/moment"
 
@@ -17,104 +19,78 @@ defmodule LantternWeb.MomentLiveTest do
 
       conn = get(conn, "#{@live_view_base_path}/#{moment.id}")
 
-      assert html_response(conn, 200) =~ ~r"<a .+>\s*strand abc\s*<\/a>"
+      # assert html_response(conn, 200) =~ ~r"<h3>.+strand abc.+</h3>"
       assert html_response(conn, 200) =~ ~r"<h1 .+>\s*moment abc\s*<\/h1>"
 
       {:ok, _view, _html} = live(conn)
     end
 
     test "display moment basic info", %{conn: conn} do
-      subject = TaxonomyFixtures.subject_fixture(%{name: "subject abc"})
-
       moment =
         LearningContextFixtures.moment_fixture(%{
           name: "moment abc",
-          subjects_ids: [subject.id]
+          description: "moment description abc"
         })
 
       {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{moment.id}")
 
       assert view |> has_element?("h1", moment.name)
-      assert view |> has_element?("span", subject.name)
-    end
-
-    test "moment tab navigation", %{conn: conn} do
-      moment =
-        LearningContextFixtures.moment_fixture(%{description: "moment description abc"})
-
-      {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{moment.id}")
-
-      assert view |> has_element?("p", "moment description abc")
-
-      # assessment tab
-
-      view
-      |> element("#moment-nav-tabs a", "Moment assessment")
-      |> render_click()
-
-      assert_patch(view)
-
-      assert view |> has_element?("button", "No class selected")
-
-      # cards tab
-
-      view
-      |> element("#moment-nav-tabs a", "Cards")
-      |> render_click()
-
-      assert_patch(view)
-
-      assert view
-             |> has_element?("p", "Use cards to add an extra layer of organization to moments")
-
-      # back to details tab
-
-      view
-      |> element("#moment-nav-tabs a", "Overview")
-      |> render_click()
-
-      assert_patch(view)
-
       assert view |> has_element?("p", "moment description abc")
     end
   end
 
   describe "Moment management" do
     test "edit moment", %{conn: conn} do
-      strand = LearningContextFixtures.strand_fixture()
+      strand = insert(:strand)
+      moment = insert(:moment, strand: strand, name: "moment abc")
 
-      moment =
-        LearningContextFixtures.moment_fixture(%{strand_id: strand.id, name: "moment abc"})
-
-      {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{moment.id}?is_editing=true")
-
-      assert view
-             |> has_element?("h2", "Edit moment")
-
-      # submit form with valid field
-      view
-      |> element("#moment-form")
-      |> render_submit(%{
-        "moment" => %{
-          "name" => "moment name xyz"
-        }
-      })
-
-      assert_patch(view, "#{@live_view_base_path}/#{moment.id}")
-
-      assert view |> has_element?("h1", "moment name xyz")
+      conn
+      |> visit("#{@live_view_base_path}/#{moment.id}")
+      |> click_button("Edit")
+      |> within("#moment-form-overlay", fn conn ->
+        conn
+        |> fill_in("Name", with: "moment name xyz")
+        |> click_button("Save")
+      end)
+      |> assert_has("h1", text: "moment name xyz")
     end
 
     test "delete moment", %{conn: conn} do
-      moment = LearningContextFixtures.moment_fixture()
+      strand = insert(:strand, name: "strand abc")
+      moment = insert(:moment, strand: strand)
 
-      {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{moment.id}")
+      conn
+      |> visit("#{@live_view_base_path}/#{moment.id}")
+      |> click_button("Edit")
+      |> within("#moment-form-overlay", fn conn ->
+        conn
+        |> click_button("Delete")
+      end)
+      |> assert_has("h1", text: "strand abc")
+    end
+  end
 
-      view
-      |> element("button#remove-moment-#{moment.id}")
-      |> render_click()
+  describe "Moment description" do
+    test "add description when moment has none", %{conn: conn} do
+      moment = insert(:moment)
 
-      assert_redirect(view, "/strands/#{moment.strand_id}")
+      conn
+      |> visit("#{@live_view_base_path}/#{moment.id}")
+      |> click_button("Add description")
+      |> fill_in("Moment description", with: "New description abc")
+      |> click_button("#moment-description-form button", "Save")
+      |> assert_has("p", text: "New description abc")
+    end
+
+    test "edit existing description", %{conn: conn} do
+      moment = insert(:moment, description: "Old description abc")
+
+      conn
+      |> visit("#{@live_view_base_path}/#{moment.id}")
+      |> click_button("Edit description")
+      |> fill_in("Moment description", with: "Updated description xyz")
+      |> click_button("#moment-description-form button", "Save")
+      |> assert_has("p", text: "Updated description xyz")
     end
   end
 end

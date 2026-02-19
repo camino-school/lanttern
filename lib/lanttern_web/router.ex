@@ -108,8 +108,6 @@ defmodule LantternWeb.Router do
       live "/strands/lesson/:lesson_id/chat/:conversation_id", LessonChatLive, :show
 
       live "/strands/moment/:id", MomentLive, :show
-      live "/strands/moment/:id/assessment", MomentLive, :assessment
-      live "/strands/moment/:id/cards", MomentLive, :cards
 
       live "/curriculum", CurriculaLive, :index
       live "/curriculum/bncc_ef", BnccEfLive, :index
@@ -271,13 +269,6 @@ defmodule LantternWeb.Router do
 
     live "/strands/:id", Admin.StrandLive.Show, :show
     live "/strands/:id/show/edit", Admin.StrandLive.Show, :edit
-
-    live "/moments", Admin.MomentLive.Index, :index
-    live "/moments/new", Admin.MomentLive.Index, :new
-    live "/moments/:id/edit", Admin.MomentLive.Index, :edit
-
-    live "/moments/:id", Admin.MomentLive.Show, :show
-    live "/moments/:id/show/edit", Admin.MomentLive.Show, :edit
 
     # Reporting context
     live "/report_cards", Admin.ReportCardLive.Index, :index

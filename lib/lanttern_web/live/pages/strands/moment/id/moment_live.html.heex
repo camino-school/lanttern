@@ -1,122 +1,109 @@
-<Layouts.app_logged_in flash={@flash} current_user={@current_user} current_path={@current_path}>
-  <div>
-    <.header_nav current_user={@current_user}>
-      <:breadcrumb navigate={~p"/strands"}>{gettext("Strands")}</:breadcrumb>
-      <:breadcrumb is_info>
-        <.mini_strand_card strand={@strand} class="w-60" />
-      </:breadcrumb>
-      <:breadcrumb navigate={~p"/strands/#{@strand}"} title={@strand.name}>
-        {@strand.name}
-      </:breadcrumb>
-      <:title>{gettext("Moment: %{moment}", moment: @moment.name)}</:title>
-      <div class="flex items-center justify-between gap-4 px-4">
-        <.neo_tabs id="moment-nav-tabs">
-          <:tab patch={~p"/strands/moment/#{@moment}"} is_current={@live_action == :show}>
-            {gettext("Overview")}
-          </:tab>
-          <:tab
-            patch={~p"/strands/moment/#{@moment}/assessment"}
-            is_current={@live_action == :assessment}
-          >
-            {gettext("Moment assessment")}
-          </:tab>
-          <:tab patch={~p"/strands/moment/#{@moment}/cards"} is_current={@live_action == :cards}>
-            {gettext("Cards")}
-          </:tab>
-        </.neo_tabs>
-        <div class="flex items-center gap-4">
-          <.action
-            type="button"
-            phx-click={JS.exec("data-show", to: "#strand-classes-filter-modal")}
-            icon_name="hero-users-mini"
-          >
-            {format_action_items_text(
-              @selected_classes,
-              gettext("No class selected")
-            )}
-          </.action>
-          <.action
-            type="link"
-            patch={"#{@current_path}?is_editing=true"}
-            icon_name="hero-pencil-mini"
-          >
-            {gettext("Edit moment")}
-          </.action>
-          <.menu_button id="strand-menu-more">
-            <:item
-              id={"remove-moment-#{@moment.id}"}
-              text={gettext("Delete moment")}
-              theme="alert"
-              on_click={JS.push("delete_moment")}
-              confirm_msg={gettext("Are you sure?")}
-            />
-          </.menu_button>
-        </div>
+<Layouts.app_with_side_nav
+  flash={@flash}
+  current_user={@current_user}
+  current_path={@current_path}
+  side_nav_id="side-nav"
+  collapsible
+>
+  <:side_nav>
+    <div class="py-10">
+      <div class="px-10 mb-10">
+        <h2 class="inline font-display font-bold text-lg text-ltrn-darkest">
+          {gettext("Moment")}
+        </h2>
+        <span class="font-sm italic text-ltrn-subtle">{gettext("in")}</span>
+        <h3>
+          <.link navigate={~p"/strands/#{@strand}"} class="hover:text-ltrn-subtle">
+            <span class="line-clamp-3">
+              {@strand.name}
+            </span>
+            <span class="flex items-center gap-1 mt-1 font-sans text-sm text-ltrn-subtle">
+              <.icon name="hero-arrow-left-micro" />
+              {gettext("Back")}
+            </span>
+          </.link>
+        </h3>
       </div>
-    </.header_nav>
-    <.live_component
-      :if={@live_action == :show}
-      module={OverviewComponent}
-      id="moment-details-overview"
-      moment={@moment}
-      strand={@strand}
-    />
-    <.live_component
-      :if={@live_action == :cards}
-      module={CardsComponent}
-      id="moment-details-cards"
-      moment={@moment}
-      params={@params}
-      current_user={@current_user}
-      current_scope={@current_scope}
-    />
-  </div>
-  <.live_component
-    :if={@live_action == :assessment}
-    module={AssessmentComponent}
-    id="moment-details-assessment"
-    moment={@moment}
-    strand={@strand}
-    assessment_point_id={@assessment_point_id}
-    current_user={@current_user}
-    params={@params}
-    selected_classes_ids={@selected_classes_ids}
-  />
-  <.slide_over
-    :if={@params["is_editing"] == "true"}
+      <.live_component
+        module={LessonsSideNavComponent}
+        id="lesson-nav"
+        strand_id={@strand.id}
+        moment_id={@moment.id}
+        current_scope={@current_scope}
+      />
+    </div>
+  </:side_nav>
+  <.responsive_container class="py-10">
+    <div class="flex items-center gap-6">
+      <h1 class="flex-1 font-display font-black text-2xl">{@moment.name}</h1>
+      <.button
+        type="button"
+        phx-click="edit_moment"
+      >
+        {gettext("Edit")}
+      </.button>
+    </div>
+    <section id="moment-description" class="mt-10">
+      <.markdown :if={!@description_form && @moment.description} text={@moment.description} />
+      <div :if={!@description_form} class="flex gap-4">
+        <.button
+          :if={!@moment.description}
+          phx-click="edit_description"
+          theme="primary"
+          icon_name="hero-plus-mini"
+        >
+          {gettext("Add description")}
+        </.button>
+        <.button
+          :if={@moment.description}
+          phx-click="edit_description"
+          class="mt-4"
+          size="sm"
+        >
+          {gettext("Edit description")}
+        </.button>
+      </div>
+      <.form
+        :if={@description_form}
+        for={@description_form}
+        phx-submit="save_description"
+        phx-change="validate_description"
+        id="moment-description-form"
+      >
+        <.input
+          field={@description_form[:description]}
+          type="markdown"
+          label={gettext("Moment description")}
+          label_is_sr_only
+          phx-debounce="1500"
+        />
+        <div class="flex justify-end gap-2 mt-2">
+          <.button type="button" theme="ghost" phx-click="cancel_description_edit">
+            {gettext("Cancel")}
+          </.button>
+          <.button type="submit" theme="primary">{gettext("Save")}</.button>
+        </div>
+      </.form>
+    </section>
+  </.responsive_container>
+  <.modal
+    :if={@is_editing_moment}
     id="moment-form-overlay"
     show={true}
-    on_cancel={JS.patch(@current_path)}
+    on_cancel={JS.push("close_moment_form")}
   >
     <:title>{gettext("Edit moment")}</:title>
     <.live_component
       module={MomentFormComponent}
       id="moment-form"
       moment={@moment}
-      patch={@current_path}
-      notify_parent
+      navigate={
+        fn
+          {:deleted, _moment} -> ~p"/strands/#{@strand}"
+          {_action, _moment} -> @current_path
+        end
+      }
+      on_cancel={JS.exec("data-cancel", to: "#moment-form-overlay")}
     />
-    <:actions>
-      <.button
-        type="button"
-        theme="ghost"
-        phx-click={JS.exec("data-cancel", to: "#moment-form-overlay")}
-      >
-        {gettext("Cancel")}
-      </.button>
-      <.button type="submit" form="moment-form">
-        {gettext("Save")}
-      </.button>
-    </:actions>
-  </.slide_over>
-  <.live_component
-    module={LantternWeb.Filters.ClassesFilterOverlayComponent}
-    id="strand-classes-filter-modal"
-    current_user={@current_user}
-    title={@select_classes_overlay_title}
-    profile_filter_opts={[strand_id: @strand.id]}
-    classes={@classes}
-    selected_classes_ids={@selected_classes_ids}
-    navigate={@select_classes_overlay_navigate}
-  />
-</Layouts.app_logged_in>
+  </.modal>
+</Layouts.app_with_side_nav>

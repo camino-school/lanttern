@@ -1,35 +1,31 @@
 defmodule LantternWeb.LearningContext.MomentFormComponent do
   @moduledoc """
   Renders a `Moment` form
+
+  When `on_cancel` is provided, the form renders its own Delete/Cancel/Save buttons.
+  Otherwise (e.g. inside a slide_over with its own `:actions` slot), no buttons are rendered.
+
+  ## Navigation
+
+  After successful save or delete, the component uses `handle_navigation/2` with a tagged tuple:
+
+  - `{:created, moment}` — after creation
+  - `{:updated, moment}` — after update
+  - `{:deleted, moment}` — after deletion
+
+  The `navigate` (or `patch`) callback receives the tuple and can route accordingly.
   """
 
   use LantternWeb, :live_component
 
   alias Lanttern.LearningContext
-  import LantternWeb.LearningContextHelpers
-  alias Lanttern.Taxonomy
-  import LantternWeb.TaxonomyHelpers
-
-  # live components
-  alias LantternWeb.Form.MultiSelectComponent
 
   @impl true
   def render(assigns) do
     ~H"""
     <div class={@class}>
       <.form for={@form} id={@id} phx-target={@myself} phx-change="validate" phx-submit="save">
-        <%= if @is_admin do %>
-          <.input
-            field={@form[:strand_id]}
-            type="select"
-            label={gettext("Strand")}
-            prompt={gettext("Select strand")}
-            options={@strand_options}
-            class="mb-6"
-          />
-        <% else %>
-          <.input field={@form[:strand_id]} type="hidden" />
-        <% end %>
+        <.input field={@form[:strand_id]} type="hidden" />
         <.input
           field={@form[:name]}
           type="text"
@@ -37,32 +33,31 @@ defmodule LantternWeb.LearningContext.MomentFormComponent do
           class="mb-6"
           phx-debounce="1500"
         />
-        <.input
-          field={@form[:description]}
-          type="markdown"
-          label={gettext("Description")}
-          class="mb-6"
-          phx-debounce="1500"
-        />
-        <%!-- moments subjects are deprecated in favor of lesson subjects --%>
-        <%!-- <.live_component
-          module={MultiSelectComponent}
-          id="moment-subjects-select"
-          field={@form[:subject_id]}
-          multi_field={:subjects_ids}
-          options={@subject_options}
-          selected_ids={@selected_subjects_ids}
-          label={gettext("Subjects")}
-          prompt={gettext("Select subject")}
-          empty_message={gettext("No subject selected")}
-          notify_component={@myself}
-        /> --%>
-        <div :if={@is_admin} class="mt-6">
-          <.input field={@form[:position]} type="number" label={gettext("Position")} class="mb-6" />
-          <div class="flex justify-end">
-            <.button type="submit" phx-disable-with={gettext("Saving...")}>
-              {gettext("Save moment")}
-            </.button>
+        <.error_block :if={@error} role="alert" class="mb-6 text-sm text-ltrn-error">
+          {@error}
+        </.error_block>
+        <div :if={@on_cancel} class="mt-10">
+          <div class="flex justify-between gap-2">
+            <div>
+              <.button
+                :if={@form.source.data.id}
+                type="button"
+                theme="ghost"
+                phx-click="delete"
+                phx-target={@myself}
+                data-confirm={gettext("Are you sure?")}
+              >
+                {gettext("Delete")}
+              </.button>
+            </div>
+            <div class="flex gap-2">
+              <.button type="button" theme="ghost" phx-click={@on_cancel}>
+                {gettext("Cancel")}
+              </.button>
+              <.button type="submit">
+                {gettext("Save")}
+              </.button>
+            </div>
           </div>
         </div>
       </.form>
@@ -75,44 +70,19 @@ defmodule LantternWeb.LearningContext.MomentFormComponent do
     {:ok,
      socket
      |> assign(:class, nil)
+     |> assign(:on_cancel, nil)
      |> assign(:save_preloads, [])
-     |> assign(:is_admin, false)}
+     |> assign(:error, nil)}
   end
 
   @impl true
-  def update(%{moment: moment, is_admin: true} = assigns, socket) do
-    selected_subjects_ids = moment.subjects |> Enum.map(& &1.id)
-
-    changeset = LearningContext.change_moment(moment)
-
-    {:ok,
-     socket
-     |> assign(assigns)
-     |> assign(:selected_subjects_ids, selected_subjects_ids)
-     |> assign(:strand_options, generate_strand_options())
-     |> assign(:subject_options, generate_subject_options())
-     |> assign_form(changeset)}
-  end
-
   def update(%{moment: moment} = assigns, socket) do
-    selected_subjects_ids = moment.subjects |> Enum.map(& &1.id)
-
     changeset = LearningContext.change_moment(moment)
-
-    subject_options =
-      Taxonomy.list_strand_subjects(moment.strand_id)
-      |> Enum.map(&{&1.name, &1.id})
 
     {:ok,
      socket
      |> assign(assigns)
-     |> assign(:selected_subjects_ids, selected_subjects_ids)
-     |> assign(:subject_options, subject_options)
      |> assign_form(changeset)}
-  end
-
-  def update(%{action: {MultiSelectComponent, {:change, :subjects_ids, ids}}}, socket) do
-    {:ok, assign(socket, :selected_subjects_ids, ids)}
   end
 
   # event handlers
@@ -124,15 +94,30 @@ defmodule LantternWeb.LearningContext.MomentFormComponent do
       |> LearningContext.change_moment(moment_params)
       |> Map.put(:action, :validate)
 
-    {:noreply, assign_form(socket, changeset)}
+    {:noreply, socket |> assign(:error, nil) |> assign_form(changeset)}
+  end
+
+  def handle_event("delete", _params, socket) do
+    case LearningContext.delete_moment(socket.assigns.moment) do
+      {:ok, moment} ->
+        notify(__MODULE__, {:deleted, moment}, socket.assigns)
+
+        {:noreply,
+         socket
+         |> put_flash(:info, gettext("Moment deleted"))
+         |> handle_navigation({:deleted, moment})}
+
+      {:error, _changeset} ->
+        {:noreply,
+         assign(
+           socket,
+           :error,
+           gettext("Moment has linked assessments. Deleting it would cause some data loss.")
+         )}
+    end
   end
 
   def handle_event("save", %{"moment" => moment_params}, socket) do
-    # add subjects_ids to params
-    moment_params =
-      moment_params
-      |> Map.put("subjects_ids", socket.assigns.selected_subjects_ids)
-
     save_moment(socket, socket.assigns.moment.id, moment_params)
   end
 
@@ -146,7 +131,7 @@ defmodule LantternWeb.LearningContext.MomentFormComponent do
         {:noreply,
          socket
          |> put_flash(:info, gettext("Moment created successfully"))
-         |> handle_navigation(moment)}
+         |> handle_navigation({:created, moment})}
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign_form(socket, changeset)}
@@ -163,7 +148,7 @@ defmodule LantternWeb.LearningContext.MomentFormComponent do
         {:noreply,
          socket
          |> put_flash(:info, gettext("Moment updated successfully"))
-         |> handle_navigation(moment)}
+         |> handle_navigation({:updated, moment})}
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign_form(socket, changeset)}
