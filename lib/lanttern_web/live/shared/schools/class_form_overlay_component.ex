@@ -9,6 +9,8 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponent do
   alias Lanttern.Schools.Class
   alias Lanttern.Taxonomy
 
+  require Logger
+
   # shared
   alias LantternWeb.Schools.StudentSearchComponent
   alias LantternWeb.Schools.StaffMemberSearchComponent
