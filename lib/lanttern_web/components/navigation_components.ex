@@ -344,13 +344,13 @@ defmodule LantternWeb.NavigationComponents do
         <div>
           <.icon
             id={"#{@id}-icon-expanded"}
-            name="hero-chevron-up"
-            class={unless @initial_expanded, do: "hidden"}
+            name="hero-arrows-pointing-in"
+            class={["w-5 h-5", unless(@initial_expanded, do: "hidden")]}
           />
           <.icon
             id={"#{@id}-icon-collapsed"}
-            name="hero-chevron-down"
-            class={if @initial_expanded, do: "hidden"}
+            name="hero-arrows-pointing-out"
+            class={["w-5 h-5", if(@initial_expanded, do: "hidden")]}
           />
         </div>
       </button>

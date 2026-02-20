@@ -7,7 +7,7 @@ defmodule LantternWeb.ClassLive.PeopleComponent do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="container mx-auto lg:max-w-5xl">
+    <div class="container mx-auto">
       <.collapsible_section
         id="staff-section"
         title={gettext("Staff Members")}

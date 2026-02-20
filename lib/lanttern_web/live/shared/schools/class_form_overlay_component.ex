@@ -77,10 +77,11 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponent do
               exclude_ids={Enum.map(@staff_members, & &1.id)}
             />
             <%= if @staff_members != [] do %>
-              <ol
-                class="mt-4 text-sm leading-relaxed list-decimal list-inside"
+              <ul
+                class="mt-4 text-sm leading-relaxed"
                 id="staff-members-list"
                 data-group-id="staff-members-list"
+                data-sortable-handle=".sortable-handle"
                 phx-hook="Sortable"
                 phx-target={@myself}
               >
@@ -88,8 +89,12 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponent do
                   :for={staff_member <- @staff_members}
                   id={"selected-staff-member-#{staff_member.id}"}
                   data-id={staff_member.id}
-                  class="cursor-move"
+                  class="flex items-center gap-2"
                 >
+                  <div class="shrink-0 flex text-ltrn-subtle hover:text-ltrn-dark hover:cursor-move sortable-handle">
+                    <.icon name="hero-ellipsis-vertical-mini" class="w-5 h-5" />
+                    <.icon name="hero-ellipsis-vertical-mini" class="w-5 h-5 -ml-3" />
+                  </div>
                   {staff_member.name}
                   <.button
                     type="button"
@@ -103,7 +108,7 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponent do
                     }
                   />
                 </li>
-              </ol>
+              </ul>
             <% else %>
               <.empty_state_simple class="mt-4">
                 {gettext("No staff members added to this class")}
@@ -267,22 +272,27 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponent do
           # Get staff members with position info (ordered by position)
           staff_with_position = Schools.list_class_staff_members(class_id)
 
-          # Extract the staff member IDs in order
-          staff_member_ids = Enum.map(staff_with_position, & &1.id)
+          # If no staff members in class, return empty list
+          if staff_with_position == [] do
+            []
+          else
+            # Extract the staff member IDs in order
+            staff_member_ids = Enum.map(staff_with_position, & &1.id)
 
-          # Fetch clean staff member structs for these IDs
-          # This ensures we get clean structs without the virtual fields
-          staff_list = Schools.list_staff_members(staff_members_ids: staff_member_ids)
+            # Fetch clean staff member structs for these IDs
+            # This ensures we get clean structs without the virtual fields
+            staff_list = Schools.list_staff_members(staff_members_ids: staff_member_ids)
 
-          # Temporary debug log
-          require Logger
-          Logger.debug("assign_staff_members for class_id=#{class_id}: staff_with_position count=#{length(staff_with_position)}, staff_list count=#{length(staff_list)}")
+            # Temporary debug log
+            require Logger
+            Logger.debug("assign_staff_members for class_id=#{class_id}: staff_with_position count=#{length(staff_with_position)}, staff_list count=#{length(staff_list)}")
 
-          staff_list
-          |> Enum.sort_by(fn sm ->
-            # Sort by the position from the original list
-            Enum.find_index(staff_member_ids, &(&1 == sm.id))
-          end)
+            staff_list
+            |> Enum.sort_by(fn sm ->
+              # Sort by the position from the original list
+              Enum.find_index(staff_member_ids, &(&1 == sm.id))
+            end)
+          end
       end
 
     assign(socket, :staff_members, staff_members)

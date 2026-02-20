@@ -63,6 +63,15 @@ defmodule LantternWeb.SchoolLive.ClassesComponent do
                 class.active_students_count
               )}
             </div>
+            <%= if is_list(class.staff_members) && class.staff_members != [] do %>
+              <div class="group relative flex items-center gap-1 mt-1 text-sm font-bold text-ltrn-subtle cursor-default">
+                {ngettext("1 staff member", "%{count} staff members", length(class.staff_members))}
+                <.icon name="hero-information-circle-mini" />
+                <.tooltip>
+                  {Enum.map_join(class.staff_members, ", ", & &1.name)}
+                </.tooltip>
+              </div>
+            <% end %>
             <div class="flex flex-wrap gap-2 mt-4">
               <.badge :for={year <- class.years}>
                 {year.name}
@@ -202,7 +211,7 @@ defmodule LantternWeb.SchoolLive.ClassesComponent do
         years_ids: socket.assigns.selected_years_ids,
         cycles_ids: cycles_ids,
         count_active_students: true,
-        preloads: [students: :tags]
+        preloads: [:staff_members, students: :tags]
       )
 
     socket
