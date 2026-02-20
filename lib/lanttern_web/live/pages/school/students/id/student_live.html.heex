@@ -85,6 +85,7 @@
     module={StudentFormOverlayComponent}
     id="student-form-overlay"
     student={@student}
+    current_user={@current_user}
     current_cycle={@current_user.current_profile.current_school_cycle}
     title={gettext("Edit student")}
     on_cancel={JS.patch(@current_path)}

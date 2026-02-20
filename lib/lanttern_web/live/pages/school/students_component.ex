@@ -100,6 +100,7 @@ defmodule LantternWeb.SchoolLive.StudentsComponent do
         module={StudentFormOverlayComponent}
         id="student-form-overlay"
         student={@student}
+        current_user={@current_user}
         current_cycle={@current_user.current_profile.current_school_cycle}
         title={@student_overlay_title}
         on_cancel={JS.patch(~p"/school/students")}
