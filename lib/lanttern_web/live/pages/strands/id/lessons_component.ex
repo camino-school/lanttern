@@ -41,8 +41,8 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
           </.badge>
         </div>
         <.markdown text={@strand.description} class="mt-10 line-clamp-3" strip_tags />
-        <.button type="link" navigate={~p"/strands/#{@strand.id}/overview"} class="mt-4">
-          {gettext("Full overview")}
+        <.button type="link" patch={~p"/strands/#{@strand.id}/overview"} class="mt-4">
+          {gettext("Read the full overview")}
         </.button>
         <section class="mt-20" id="lessons-section">
           <h2 class="font-display font-black text-2xl">{gettext("Strand lessons")}</h2>

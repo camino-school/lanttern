@@ -7,6 +7,7 @@ defmodule LantternWeb.StrandLive do
   alias __MODULE__.AssessmentComponent
   alias __MODULE__.LessonsComponent
   alias __MODULE__.MomentAssessmentComponent
+  alias __MODULE__.OverviewComponent
   alias __MODULE__.StrandRubricsComponent
 
   # shared components
@@ -104,11 +105,12 @@ defmodule LantternWeb.StrandLive do
   end
 
   defp assign_select_classes_overlay_navigate(%{assigns: %{live_action: live_action}} = socket)
-       when live_action in [:rubrics, :assessment] do
+       when live_action in [:rubrics, :assessment, :overview] do
     path_final =
       case live_action do
         :rubrics -> "rubrics"
         :assessment -> "assessment"
+        :overview -> "overview"
       end
 
     navigate = "/strands/#{socket.assigns.strand.id}/#{path_final}"

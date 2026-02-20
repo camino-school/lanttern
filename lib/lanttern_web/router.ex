@@ -94,11 +94,10 @@ defmodule LantternWeb.Router do
       live "/strands/library/new", StrandsLibraryLive, :new
 
       live "/strands/:id", StrandLive, :lessons
+      live "/strands/:id/overview", StrandLive, :overview
       live "/strands/:id/rubrics", StrandLive, :rubrics
       live "/strands/:id/assessment", StrandLive, :assessment
       live "/strands/:id/assessment/moment/:moment_id", StrandLive, :moment_assessment
-
-      live "/strands/:id/overview", StrandOverviewLive, :overview
 
       live "/strands/:strand_id/chat", StrandChatLive, :new
       live "/strands/:strand_id/chat/:conversation_id", StrandChatLive, :show

@@ -11,6 +11,9 @@
           <:tab patch={~p"/strands/#{@strand}"} is_current={@live_action == :lessons}>
             {gettext("Lessons")}
           </:tab>
+          <:tab patch={~p"/strands/#{@strand}/overview"} is_current={@live_action == :overview}>
+            {gettext("Overview")}
+          </:tab>
           <:tab patch={~p"/strands/#{@strand}/rubrics"} is_current={@live_action == :rubrics}>
             {gettext("Rubrics")}
           </:tab>
@@ -65,6 +68,14 @@
       params={@params}
       current_profile={@current_user.current_profile}
       current_scope={@current_scope}
+    />
+    <.live_component
+      :if={@live_action == :overview}
+      module={OverviewComponent}
+      id="strand-overview"
+      strand={@strand}
+      current_user={@current_user}
+      params={@params}
     />
     <.live_component
       :if={@live_action == :rubrics}

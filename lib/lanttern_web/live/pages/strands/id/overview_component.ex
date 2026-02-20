@@ -1,52 +1,21 @@
-<Layouts.app_logged_in flash={@flash} current_user={@current_user} current_path={@current_path}>
-  <div>
-    <.header_nav current_user={@current_user}>
-      <:breadcrumb navigate={~p"/strands"}>{gettext("Strands")}</:breadcrumb>
-      <:breadcrumb is_info>
-        <.mini_strand_card strand={@strand} class="w-60" />
-      </:breadcrumb>
-      <:breadcrumb navigate={~p"/strands/#{@strand}"} title={@strand.name}>
-        {@strand.name}
-      </:breadcrumb>
-      <:title>{gettext("Overview")}</:title>
-      <div class="flex items-center justify-between gap-4 px-4 py-2">
-        <p>{gettext("Strand overview, curriculum, and linked report cards")}</p>
-        <div class="flex items-center gap-4">
-          <.live_component
-            module={ToggleStrandStarActionComponent}
-            id={:star_strand_action}
-            strand={@strand}
-            current_user={@current_user}
-          />
-          <.action
-            type="button"
-            phx-click={JS.exec("data-show", to: "#strand-classes-filter-modal")}
-            icon_name="hero-users-mini"
-          >
-            {format_action_items_text(
-              @selected_classes,
-              gettext("No class selected")
-            )}
-          </.action>
-          <.action
-            type="link"
-            patch={"#{@current_path}?is_editing=true"}
-            icon_name="hero-pencil-mini"
-          >
-            {gettext("Edit strand")}
-          </.action>
-          <.menu_button id="strand-menu-more">
-            <:item
-              id={"remove-strand-#{@strand.id}"}
-              text={gettext("Delete")}
-              theme="alert"
-              on_click={JS.push("delete_strand")}
-              confirm_msg={gettext("Are you sure?")}
-            />
-          </.menu_button>
-        </div>
-      </div>
-    </.header_nav>
+defmodule LantternWeb.StrandLive.OverviewComponent do
+  use LantternWeb, :live_component
+
+  alias Lanttern.Assessments
+  alias Lanttern.Assessments.AssessmentPoint
+  alias Lanttern.Curricula
+  alias Lanttern.Reporting
+
+  import Lanttern.SupabaseHelpers, only: [object_url_to_render_url: 2]
+  import Lanttern.Utils, only: [reorder: 3]
+
+  # shared components
+  alias LantternWeb.Assessments.AssessmentPointFormOverlayComponent
+  import LantternWeb.ReportingComponents, only: [report_card_card: 1]
+
+  @impl true
+  def render(assigns) do
+    ~H"""
     <div class="p-4">
       <.cover_image
         image_url={@cover_image_url}
@@ -92,6 +61,7 @@
           data-sortable-handle=".sortable-handle"
           data-sortable-event="sortable_update"
           phx-update="ignore"
+          phx-target={@myself}
         >
           <.draggable_card
             :for={{dom_id, curriculum_item} <- @streams.curriculum_items}
@@ -120,9 +90,7 @@
                   class="p-4 rounded-sm mt-6 bg-ltrn-mesh-cyan"
                 >
                   <div class="flex items-center gap-2 font-bold text-sm text-ltrn-subtle">
-                    <.icon name="hero-information-circle" class="w-6 h-6" /> {gettext(
-                      "Report info"
-                    )}
+                    <.icon name="hero-information-circle" class="w-6 h-6" /> {gettext("Report info")}
                   </div>
                   <.markdown
                     text={hd(curriculum_item.assessment_points).report_info}
@@ -130,35 +98,11 @@
                   />
                 </div>
               </div>
-              <%!-- <div class="shrink-0 flex flex-col justify-center gap-2">
-              <.icon_button
-                type="button"
-                sr_text={gettext("Move curriculum item up")}
-                name="hero-chevron-up-mini"
-                theme="ghost"
-                rounded
-                size="sm"
-                disabled={i == 0}
-                phx-click={JS.push("swap_goal_position", value: %{from: i, to: i - 1})}
-              />
-              <.icon_button
-                type="button"
-                sr_text={gettext("Move curriculum item down")}
-                name="hero-chevron-down-mini"
-                theme="ghost"
-                rounded
-                size="sm"
-                disabled={i + 1 == length(@indexed_curriculum_items)}
-                phx-click={JS.push("swap_goal_position", value: %{from: i, to: i + 1})}
-              />
-            </div> --%>
               <.action
                 type="link"
                 theme="subtle"
                 icon_name="hero-pencil-mini"
-                patch={
-                  ~p"/strands/#{@strand}/overview?goal=#{curriculum_item.assessment_point_id}"
-                }
+                patch={~p"/strands/#{@strand}/overview?goal=#{curriculum_item.assessment_point_id}"}
               >
                 {gettext("Edit")}
               </.action>
@@ -190,48 +134,140 @@
         :if={@goal}
         module={AssessmentPointFormOverlayComponent}
         id={"strand-#{@strand.id}-goal-form-overlay"}
-        notify_parent
+        notify_component={@myself}
         assessment_point={@goal}
         title={gettext("Strand goal")}
         on_cancel={JS.patch(~p"/strands/#{@strand}/overview")}
       />
     </div>
-  </div>
-  <.slide_over
-    :if={@is_editing}
-    id="strand-form-overlay"
-    show={true}
-    on_cancel={JS.patch(@current_path)}
-  >
-    <:title>{gettext("Edit strand")}</:title>
-    <.live_component
-      module={StrandFormComponent}
-      id={@strand.id}
-      strand={@strand}
-      patch={@current_path}
-      notify_parent
-    />
-    <:actions>
-      <.button
-        type="button"
-        theme="ghost"
-        phx-click={JS.exec("data-cancel", to: "#strand-form-overlay")}
-      >
-        {gettext("Cancel")}
-      </.button>
-      <.button type="submit" form="strand-form">
-        {gettext("Save")}
-      </.button>
-    </:actions>
-  </.slide_over>
-  <.live_component
-    module={LantternWeb.Filters.ClassesFilterOverlayComponent}
-    id="strand-classes-filter-modal"
-    current_user={@current_user}
-    title={@select_classes_overlay_title}
-    profile_filter_opts={[strand_id: @strand.id]}
-    classes={@classes}
-    selected_classes_ids={@selected_classes_ids}
-    navigate={~p"/strands/#{@strand}/overview"}
-  />
-</Layouts.app_logged_in>
+    """
+  end
+
+  # lifecycle
+
+  @impl true
+  def mount(socket) do
+    {:ok, assign(socket, :initialized, false)}
+  end
+
+  @impl true
+  def update(
+        %{action: {AssessmentPointFormOverlayComponent, {action, _assessment_point}}},
+        socket
+      )
+      when action in [:created, :updated, :deleted, :deleted_with_entries] do
+    flash_message =
+      case action do
+        :created ->
+          {:info, gettext("Assessment point created successfully")}
+
+        :updated ->
+          {:info, gettext("Assessment point updated successfully")}
+
+        :deleted ->
+          {:info, gettext("Assessment point deleted successfully")}
+
+        :deleted_with_entries ->
+          {:info, gettext("Assessment point and entries deleted successfully")}
+      end
+
+    nav_opts = [
+      put_flash: flash_message,
+      push_navigate: [to: ~p"/strands/#{socket.assigns.strand}/overview"]
+    ]
+
+    {:ok, delegate_navigation(socket, nav_opts)}
+  end
+
+  def update(assigns, socket) do
+    socket =
+      socket
+      |> assign(assigns)
+      |> initialize()
+      |> assign_goal()
+      |> assign_cover_image_url()
+
+    {:ok, socket}
+  end
+
+  defp initialize(%{assigns: %{initialized: false}} = socket) do
+    socket
+    |> stream_curriculum_items()
+    |> stream_report_cards()
+    |> assign(:initialized, true)
+  end
+
+  defp initialize(socket), do: socket
+
+  defp stream_curriculum_items(socket) do
+    curriculum_items =
+      Curricula.list_strand_curriculum_items(
+        socket.assigns.strand.id,
+        preloads: :curriculum_component
+      )
+
+    socket
+    |> stream(:curriculum_items, curriculum_items)
+    |> assign(:goals_ids, Enum.map(curriculum_items, & &1.assessment_point_id))
+  end
+
+  defp stream_report_cards(socket) do
+    report_cards =
+      Reporting.list_report_cards(
+        preloads: :school_cycle,
+        strands_ids: [socket.assigns.strand.id],
+        school_id: socket.assigns.current_user.current_profile.school_id
+      )
+
+    socket
+    |> stream(:report_cards, report_cards)
+    |> assign(:has_report_cards, report_cards != [])
+  end
+
+  defp assign_goal(%{assigns: %{params: %{"goal" => "new"}}} = socket) do
+    goal =
+      %AssessmentPoint{
+        strand_id: socket.assigns.strand.id,
+        datetime: DateTime.utc_now()
+      }
+
+    assign(socket, :goal, goal)
+  end
+
+  defp assign_goal(%{assigns: %{params: %{"goal" => binary_id}}} = socket) do
+    with {id, _} <- Integer.parse(binary_id), true <- id in socket.assigns.goals_ids do
+      goal = Assessments.get_assessment_point(id)
+      assign(socket, :goal, goal)
+    else
+      _ -> assign(socket, :goal, nil)
+    end
+  end
+
+  defp assign_goal(socket), do: assign(socket, :goal, nil)
+
+  defp assign_cover_image_url(socket) do
+    assign(
+      socket,
+      :cover_image_url,
+      object_url_to_render_url(socket.assigns.strand.cover_image_url, width: 1280, height: 640)
+    )
+  end
+
+  # event handlers
+
+  @impl true
+  def handle_event("sortable_update", payload, socket) do
+    %{
+      "oldIndex" => old_index,
+      "newIndex" => new_index
+    } = payload
+
+    goals_ids = reorder(socket.assigns.goals_ids, old_index, new_index)
+
+    # the interface was already updated (optimistic update)
+    # just persist the new order
+    Assessments.update_assessment_points_positions(goals_ids)
+
+    {:noreply, assign(socket, :goals_ids, goals_ids)}
+  end
+end
