@@ -26,9 +26,7 @@ defmodule LantternWeb.SchoolLive do
   defp assign_is_school_manager(socket) do
     permissions = socket.assigns.current_user.current_profile.permissions
 
-    is_school_manager = true
-      # "school_management" in permissions
-      # FIXME: revert this
+    is_school_manager = "school_management" in permissions
 
     assign(socket, :is_school_manager, is_school_manager)
   end

@@ -5,6 +5,7 @@ defmodule LantternWeb.SchoolLive.GuardiansComponent do
 
   alias Lanttern.Schools
   alias Lanttern.Schools.Guardian
+  alias LantternWeb.Schools.GuardianFormOverlayComponent
 
   @impl true
   def render(assigns) do
@@ -59,7 +60,7 @@ defmodule LantternWeb.SchoolLive.GuardiansComponent do
   end
 
   @impl true
-  def update(%{action: {GuardianFormOverlayComponent, {action, guardian}}}, socket)
+  def update(%{action: {GuardianFormOverlayComponent, {action, _guardian}}}, socket)
       when action in [:created, :updated, :deleted] do
     message =
       case action do
@@ -68,14 +69,11 @@ defmodule LantternWeb.SchoolLive.GuardiansComponent do
         :deleted -> gettext("Guardian deleted successfully")
       end
 
-    socket =
-      socket
-      |> assign(:guardian, nil)
-      |> stream_guardians()
-      |> put_flash(:info, message)
-      |> push_patch(to: @guardians_path)
-
-    {:ok, socket}
+    {:ok,
+     socket
+     |> stream_guardians()
+     |> assign(:guardian, nil)
+     |> put_flash(:info, message)}
   end
 
   def update(assigns, socket) do
@@ -90,6 +88,7 @@ defmodule LantternWeb.SchoolLive.GuardiansComponent do
 
   defp initialize(%{assigns: %{initialized: false}} = socket) do
     socket
+    |> assign(:guardians_path, "/school/guardians")
     |> stream_guardians()
     |> assign(:initialized, true)
   end
@@ -119,7 +118,8 @@ defmodule LantternWeb.SchoolLive.GuardiansComponent do
   end
 
   defp assign_guardian(%{assigns: %{params: %{"edit" => guardian_id}}} = socket) do
-    guardian = Schools.get_guardian!(guardian_id)
+    scope = socket.assigns.current_user.current_profile
+    guardian = Schools.get_guardian!(scope, guardian_id)
 
     socket
     |> assign(:guardian, guardian)
@@ -130,9 +130,10 @@ defmodule LantternWeb.SchoolLive.GuardiansComponent do
 
   @impl true
   def handle_event("delete", %{"id" => id}, socket) do
-    guardian = Schools.get_guardian!(id)
+    scope = socket.assigns.current_user.current_profile
+    guardian = Schools.get_guardian!(scope, id)
 
-    case Schools.delete_guardian(guardian) do
+    case Schools.delete_guardian(scope, guardian) do
       {:ok, _} ->
         socket =
           socket

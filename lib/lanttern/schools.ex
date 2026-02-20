@@ -1625,7 +1625,7 @@ defmodule Lanttern.Schools do
         |> maybe_preload(opts)
 
       case guardian do
-        %Guardian{school_id: ^school_id} when school_id == scope.school_id -> guardian
+        %Guardian{school_id: school_id} when school_id == scope.school_id -> guardian
         _ -> nil
       end
     else
@@ -1740,11 +1740,7 @@ defmodule Lanttern.Schools do
 
   """
   def change_guardian(scope, %Guardian{} = guardian, attrs \\ %{}) do
-    if has_permission?(scope, "school_management") && guardian.school_id == scope.school_id do
-      Guardian.changeset(guardian, attrs, scope)
-    else
-      Guardian.changeset(guardian, attrs, scope)
-    end
+    Guardian.changeset(guardian, attrs, scope)
   end
 
   @doc """

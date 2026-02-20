@@ -93,8 +93,7 @@ defmodule LantternWeb.Schools.GuardianFormOverlayComponent do
   @impl true
   def handle_event("validate", %{"guardian" => params}, socket) do
     changeset =
-      socket.assigns.guardian
-      |> Schools.change_guardian(socket.assigns.current_user.current_profile, params)
+      Schools.change_guardian(socket.assigns.current_user.current_profile, socket.assigns.guardian, params)
       |> Map.put(:action, :validate)
 
     {:noreply, assign_form(socket, changeset)}
@@ -110,6 +109,9 @@ defmodule LantternWeb.Schools.GuardianFormOverlayComponent do
         notify_parent(socket.assigns.notify_component, {:deleted, guardian})
         {:noreply, push_patch(socket, to: socket.assigns.close_path)}
 
+      {:error, :unauthorized} ->
+        {:noreply, put_flash(socket, :error, gettext("You don't have permission to delete guardians"))}
+
       {:error, _changeset} ->
         {:noreply, socket}
     end
@@ -118,11 +120,16 @@ defmodule LantternWeb.Schools.GuardianFormOverlayComponent do
   defp save_guardian(socket, nil, params) do
     changeset = socket.assigns.form.source
     params = changeset_to_params(changeset, params)
+    scope = socket.assigns.current_user.current_profile
 
-    case Schools.create_guardian(socket.assigns.current_user.current_profile, params) do
+    case Schools.create_guardian(scope, params) do
       {:ok, guardian} ->
         notify_parent(socket.assigns.notify_component, {:created, guardian})
         {:noreply, push_patch(socket, to: socket.assigns.close_path)}
+
+      {:error, :unauthorized} ->
+        socket = put_flash(socket, :error, gettext("You don't have permission to create guardians"))
+        {:noreply, socket}
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign_form(socket, changeset)}
@@ -132,11 +139,16 @@ defmodule LantternWeb.Schools.GuardianFormOverlayComponent do
   defp save_guardian(socket, _id, params) do
     changeset = socket.assigns.form.source
     params = changeset_to_params(changeset, params)
+    scope = socket.assigns.current_user.current_profile
 
-    case Schools.update_guardian(socket.assigns.current_user.current_profile, socket.assigns.guardian, params) do
+    case Schools.update_guardian(scope, socket.assigns.guardian, params) do
       {:ok, guardian} ->
         notify_parent(socket.assigns.notify_component, {:updated, guardian})
         {:noreply, push_patch(socket, to: socket.assigns.close_path)}
+
+      {:error, :unauthorized} ->
+        socket = put_flash(socket, :error, gettext("You don't have permission to update guardians"))
+        {:noreply, socket}
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign_form(socket, changeset)}
@@ -155,7 +167,7 @@ defmodule LantternWeb.Schools.GuardianFormOverlayComponent do
     assign(socket, :form, to_form(changeset))
   end
 
-  defp notify_parent(component_pid, message) do
-    send_update(component_pid, action: {__MODULE__, message})
+  defp notify_parent(component_cid, message) do
+    send_update(component_cid, action: {__MODULE__, message})
   end
 end

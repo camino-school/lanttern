@@ -5,8 +5,6 @@ defmodule Lanttern.StudentsGuardians do
   This module is kept for backward compatibility. Please use `Lanttern.Schools` instead.
   """
 
-  import Ecto.Query, warn: false
-  alias Lanttern.Repo
   alias Lanttern.Schools
   alias Lanttern.Schools.Guardian
   alias Lanttern.Schools.Student
