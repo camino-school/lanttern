@@ -283,10 +283,6 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponent do
             # This ensures we get clean structs without the virtual fields
             staff_list = Schools.list_staff_members(staff_members_ids: staff_member_ids)
 
-            # Temporary debug log
-            require Logger
-            Logger.debug("assign_staff_members for class_id=#{class_id}: staff_with_position count=#{length(staff_with_position)}, staff_list count=#{length(staff_list)}")
-
             staff_list
             |> Enum.sort_by(fn sm ->
               # Sort by the position from the original list
@@ -451,10 +447,6 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponent do
     # Use class_staff_member_id for existing staff members, otherwise use staff_member_id
     # The update_class_staff_members_positions function will use staff_member_id to find the records
     staff_member_ids = Enum.map(socket.assigns.staff_members, & &1.id)
-
-    # Temporary debug log
-    require Logger
-    Logger.debug("update_positions_after_save for class_id=#{class_id}: updating positions for #{length(staff_member_ids)} staff members: #{inspect(staff_member_ids)}")
 
     case Schools.update_class_staff_members_positions(class_id, staff_member_ids) do
       :ok ->

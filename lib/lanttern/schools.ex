@@ -1588,10 +1588,6 @@ defmodule Lanttern.Schools do
       query
       |> Repo.all()
 
-    # Temporary debug log
-    require Logger
-    Logger.debug("list_class_staff_members for class_id=#{class_id}: found #{length(result)} staff members")
-
     result
     |> maybe_preload(opts)
   end
