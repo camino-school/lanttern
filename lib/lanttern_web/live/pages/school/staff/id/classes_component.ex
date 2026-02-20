@@ -39,6 +39,9 @@ defmodule LantternWeb.StaffMemberLive.ClassesComponent do
           id="staff-classes"
           phx-update="stream"
           phx-hook={if @is_school_manager, do: "Sortable", else: nil}
+          phx-target={@myself}
+          data-group-id="staff-classes"
+          data-group-name="class"
           is_full_width
           class="p-4 bg-white"
         >
@@ -154,6 +157,7 @@ defmodule LantternWeb.StaffMemberLive.ClassesComponent do
     socket
     |> stream(:classes, classes, reset: true)
     |> assign(:classes_length, length(classes))
+    |> assign(:class_ids, Enum.map(classes, & &1.id))
   end
 
   # event handlers
@@ -224,10 +228,21 @@ defmodule LantternWeb.StaffMemberLive.ClassesComponent do
     end
   end
 
-  def handle_event("reorder", %{"ids" => ids}, socket) do
-    case Schools.update_staff_member_classes_positions(socket.assigns.staff_member.id, ids) do
+  def handle_event(
+        "sortable_update",
+        %{"oldIndex" => old_index, "newIndex" => new_index},
+        socket
+      ) do
+    class_ids = socket.assigns.class_ids
+    {id, remaining} = List.pop_at(class_ids, old_index)
+    reordered_ids = List.insert_at(remaining, new_index, id)
+
+    case Schools.update_staff_member_classes_positions(
+           socket.assigns.staff_member.id,
+           reordered_ids
+         ) do
       :ok ->
-        {:noreply, put_flash(socket, :info, gettext("Classes reordered"))}
+        {:noreply, assign(socket, :class_ids, reordered_ids)}
 
       {:error, _} ->
         {:noreply, put_flash(socket, :error, gettext("Failed to reorder classes"))}

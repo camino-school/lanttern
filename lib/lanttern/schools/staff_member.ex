@@ -36,7 +36,7 @@ defmodule Lanttern.Schools.StaffMember do
     # these fields are used when listing staff members for a class
     # (from ClassStaffMember association)
     field :class_role, :string, virtual: true
-    field :class_staff_member_id, :binary_id, virtual: true
+    field :class_staff_member_id, :integer, virtual: true
     field :position, :integer, virtual: true
 
     belongs_to :school, School

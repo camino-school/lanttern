@@ -1750,9 +1750,9 @@ defmodule Lanttern.SchoolsTest do
       # Reorder: 3, 1, 2
       assert :ok =
                Schools.update_class_staff_members_positions(class.id, [
-                 csm_3.id,
-                 csm_1.id,
-                 csm_2.id
+                 staff_3.id,
+                 staff_1.id,
+                 staff_2.id
                ])
 
       result = Schools.list_class_staff_members(class.id)

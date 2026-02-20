@@ -275,11 +275,11 @@ defmodule LantternWeb.SchoolsComponents do
   attr :sortable, :boolean, default: false
   attr :class, :any, default: nil
   attr :id, :string, default: nil
-  attr :"data-id", :string, default: nil
+  attr :rest, :global
 
   def class_card_for_staff(assigns) do
     ~H"""
-    <.card_base id={@id} class={["flex items-center gap-4 p-4", @class]}>
+    <.card_base id={@id} class={["flex items-center gap-4 p-4", @class]} {@rest}>
       <.icon
         :if={@sortable}
         name="hero-bars-3"

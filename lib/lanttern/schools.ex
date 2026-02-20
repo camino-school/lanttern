@@ -1614,7 +1614,7 @@ defmodule Lanttern.Schools do
   @doc """
   Gets a single class staff member relationship.
 
-  Returns `nil` if not found.
+  Raises `Ecto.NoResultsError` if not found.
 
   ## Examples
 
@@ -1643,9 +1643,11 @@ defmodule Lanttern.Schools do
 
   """
   def add_staff_member_to_class(attrs) do
+    class_id = Map.get(attrs, :class_id) || Map.get(attrs, "class_id")
+
     position_queryable =
       from(csm in ClassStaffMember,
-        where: csm.class_id == ^attrs.class_id or csm.class_id == ^attrs["class_id"]
+        where: csm.class_id == ^class_id
       )
 
     attrs

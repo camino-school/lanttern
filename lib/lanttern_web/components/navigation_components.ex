@@ -336,7 +336,9 @@ defmodule LantternWeb.NavigationComponents do
           JS.toggle(to: "##{@id}-content")
           |> JS.toggle(to: "##{@id}-icon-expanded")
           |> JS.toggle(to: "##{@id}-icon-collapsed")
-          |> JS.set_attribute({"aria-expanded", "false"}, to: "##{@id}-button-toggle")
+          |> JS.toggle_attribute({"aria-expanded", "true", "false"},
+            to: "##{@id}-button-toggle"
+          )
         }
         id={"#{@id}-button-toggle"}
       >

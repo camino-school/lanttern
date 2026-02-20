@@ -40,10 +40,10 @@ defmodule Lanttern.Schools.ClassStaffMember do
     staff_member_id = get_field(changeset, :staff_member_id)
 
     if class_id && staff_member_id do
-      class = Lanttern.Repo.get(Lanttern.Schools.Class, class_id) |> Lanttern.Repo.preload(:school)
+      class = Lanttern.Repo.get(Lanttern.Schools.Class, class_id)
       staff = Lanttern.Repo.get(Lanttern.Schools.StaffMember, staff_member_id)
 
-      if class.school_id != staff.school_id do
+      if class && staff && class.school_id != staff.school_id do
         add_error(changeset, :staff_member_id, "must belong to the same school as the class")
       else
         changeset
