@@ -6,6 +6,7 @@ defmodule LantternWeb.StrandLive do
   # page components
   alias __MODULE__.AssessmentComponent
   alias __MODULE__.LessonsComponent
+  alias __MODULE__.MomentAssessmentComponent
   alias __MODULE__.StrandRubricsComponent
 
   # shared components
@@ -16,12 +17,8 @@ defmodule LantternWeb.StrandLive do
 
   @live_action_select_classes_overlay_title %{
     rubrics: gettext("Select classes to view students differentiation rubrics"),
-    assessment: gettext("Select classes to view assessments info")
-  }
-
-  @live_action_select_classes_overlay_navigate_path %{
-    rubrics: "rubrics",
-    assessment: "assessment"
+    assessment: gettext("Select classes to view assessments info"),
+    moment_assessment: gettext("Select classes to view assessments info")
   }
 
   # lifecycle
@@ -59,12 +56,27 @@ defmodule LantternWeb.StrandLive do
     socket =
       socket
       |> assign(:params, params)
+      |> assign_moment(params)
       |> assign_is_editing(params)
       |> assign_select_classes_overlay_title()
       |> assign_select_classes_overlay_navigate()
 
     {:noreply, socket}
   end
+
+  defp assign_moment(socket, %{"moment_id" => moment_id}) do
+    case LearningContext.get_moment(moment_id) do
+      %{strand_id: strand_id} = moment when strand_id == socket.assigns.strand.id ->
+        assign(socket, :moment, moment)
+
+      _ ->
+        socket
+        |> put_flash(:error, gettext("Couldn't find moment"))
+        |> push_navigate(to: ~p"/strands/#{socket.assigns.strand}/assessment")
+    end
+  end
+
+  defp assign_moment(socket, _params), do: assign(socket, :moment, nil)
 
   defp assign_is_editing(socket, %{"is_editing" => "true"}),
     do: assign(socket, :is_editing, true)
@@ -82,16 +94,30 @@ defmodule LantternWeb.StrandLive do
     assign(socket, :select_classes_overlay_title, title)
   end
 
-  defp assign_select_classes_overlay_navigate(socket) do
+  defp assign_select_classes_overlay_navigate(
+         %{assigns: %{live_action: :moment_assessment}} = socket
+       ) do
+    navigate =
+      "/strands/#{socket.assigns.strand.id}/assessment/moment/#{socket.assigns.moment.id}"
+
+    assign(socket, :select_classes_overlay_navigate, navigate)
+  end
+
+  defp assign_select_classes_overlay_navigate(%{assigns: %{live_action: live_action}} = socket)
+       when live_action in [:rubrics, :assessment] do
     path_final =
-      Map.get(
-        @live_action_select_classes_overlay_navigate_path,
-        socket.assigns.live_action
-      )
+      case live_action do
+        :rubrics -> "rubrics"
+        :assessment -> "assessment"
+      end
 
     navigate = "/strands/#{socket.assigns.strand.id}/#{path_final}"
 
     assign(socket, :select_classes_overlay_navigate, navigate)
+  end
+
+  defp assign_select_classes_overlay_navigate(socket) do
+    assign(socket, :select_classes_overlay_navigate, nil)
   end
 
   # event handlers

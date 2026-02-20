@@ -90,6 +90,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
                   id={dom_id}
                   ap_header={ap_header}
                   assessment_view={@current_assessment_view}
+                  strand_id={@strand_id}
                 />
               </div>
               <div
@@ -204,6 +205,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
   attr :id, :string, required: true
   attr :ap_header, :any, required: true
   attr :assessment_view, :string, required: true
+  attr :strand_id, :integer, default: nil
 
   def assessment_point_header(%{ap_header: %AssessmentPoint{}} = assigns) do
     # when in a moment grid, the header is the assessment point
@@ -235,13 +237,26 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
     ~H"""
     <div id={@id} class="group pt-2 px-2" style={@grid_column_span_style}>
       <div class="h-full pb-2 border-b border-ltrn-light" style={@grid_column_span_style}>
-        <.assessment_point_header_struct header_struct={@header_struct} />
+        <.assessment_point_header_struct header_struct={@header_struct} strand_id={@strand_id} />
       </div>
     </div>
     """
   end
 
   attr :header_struct, :any, required: true, doc: "moment, strand, or curriculum item"
+  attr :strand_id, :integer, default: nil
+
+  def assessment_point_header_struct(%{header_struct: %Moment{}, strand_id: strand_id} = assigns)
+      when not is_nil(strand_id) do
+    ~H"""
+    <.link
+      navigate={~p"/strands/#{@strand_id}/assessment/moment/#{@header_struct}"}
+      class="flex items-center w-full h-full p-1 rounded-sm text-sm font-display font-bold truncate hover:bg-ltrn-mesh-cyan"
+    >
+      {@header_struct.name}
+    </.link>
+    """
+  end
 
   def assessment_point_header_struct(%{header_struct: %Moment{}} = assigns) do
     ~H"""
