@@ -16,6 +16,8 @@ defmodule LantternWeb.Schools.GuardiansFieldComponent do
 
   use LantternWeb, :live_component
 
+  require Logger
+
   @impl true
   def render(assigns) do
     ~H"""
@@ -61,10 +63,11 @@ defmodule LantternWeb.Schools.GuardiansFieldComponent do
           <div class="mt-6 space-y-2 max-h-96 overflow-y-auto">
             <%= if @search_results != [] do %>
               <%= for guardian <- @search_results do %>
-                <div class="flex items-center justify-between p-3 border border-ltrn-lighter rounded hover:bg-ltrn-mesh-light cursor-pointer" phx-click={JS.push("toggle_guardian", value: %{"id" => guardian.id}, target: @myself) |> hide_modal("guardians-picker-modal-#{@id}")}>
+                <div class="flex items-center justify-between p-3 border border-ltrn-lighter rounded hover:bg-ltrn-mesh-light cursor-pointer">
                   <span class="font-medium">{guardian.name}</span>
                   <button
                     type="button"
+                    phx-click={JS.push("toggle_guardian", value: %{"id" => guardian.id}, target: @myself)}
                     class={
                       if guardian.id in @selected_guardians_ids,
                         do: "text-ltrn-primary font-semibold",
@@ -160,17 +163,23 @@ defmodule LantternWeb.Schools.GuardiansFieldComponent do
   end
 
   def handle_event("toggle_guardian", %{"id" => guardian_id}, socket) do
-    guardian_id = String.to_integer(guardian_id)
+    guardian_id = if is_binary(guardian_id), do: String.to_integer(guardian_id), else: guardian_id
+    Logger.debug("Toggle guardian: #{guardian_id}, current: #{inspect(socket.assigns.selected_guardians_ids)}")
 
     selected_guardians_ids =
       if guardian_id in socket.assigns.selected_guardians_ids,
         do: Enum.filter(socket.assigns.selected_guardians_ids, fn id -> id != guardian_id end),
         else: [guardian_id | socket.assigns.selected_guardians_ids]
 
+    Logger.debug("New selected: #{inspect(selected_guardians_ids)}")
+
     notify_change(socket, selected_guardians_ids)
   end
 
   def handle_event("unselect_guardian", %{"id" => guardian_id}, socket) do
+    guardian_id = if is_binary(guardian_id), do: String.to_integer(guardian_id), else: guardian_id
+    Logger.debug("Unselect guardian: #{guardian_id}")
+
     selected_guardians_ids =
       Enum.filter(socket.assigns.selected_guardians_ids, fn id -> id != guardian_id end)
 
@@ -178,6 +187,8 @@ defmodule LantternWeb.Schools.GuardiansFieldComponent do
   end
 
   defp notify_change(socket, selected_guardians_ids) do
+    Logger.debug("Notify change with guardians: #{inspect(selected_guardians_ids)}")
+
     socket =
       socket
       |> assign(:selected_guardians_ids, selected_guardians_ids)
