@@ -23,9 +23,11 @@ defmodule LantternWeb.StrandLive.OverviewComponent do
         empty_state_text={gettext("Edit strand to add a cover image")}
       />
       <.responsive_container class="mt-10">
-        <hgroup class="font-display font-black">
-          <h1 class="text-4xl sm:text-5xl">{@strand.name}</h1>
-          <p :if={@strand.type} class="mt-2 text-xl sm:text-2xl">{@strand.type}</p>
+        <hgroup>
+          <h1 class="font-display font-black text-ltrn-darkest text-4xl sm:text-5xl">
+            {@strand.name}
+          </h1>
+          <p :if={@strand.type} class="mt-2 font-bold text-xl sm:text-2xl">{@strand.type}</p>
         </hgroup>
         <div class="flex flex-wrap gap-2 mt-6">
           <.badge :for={subject <- @strand.subjects} theme="dark">
@@ -45,7 +47,7 @@ defmodule LantternWeb.StrandLive.OverviewComponent do
           </p>
           <.markdown text={@strand.teacher_instructions} />
         </div>
-        <div class="flex items-end justify-between gap-6">
+        <div class="flex items-end justify-between gap-6" id="strand-curriculum">
           <h3 class="mt-16 font-display font-black text-3xl">{gettext("Strand Curriculum")}</h3>
           <.action
             type="link"

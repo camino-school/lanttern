@@ -489,6 +489,8 @@ defmodule LantternWeb.OverlayComponents do
       doc: "use for adding a data-confirm attr (only for \"button\" type)"
   end
 
+  slot :instructions, doc: "use for rendering extra text before menu items"
+
   def dropdown_menu(assigns) do
     position_classes =
       case assigns.position do
@@ -523,6 +525,9 @@ defmodule LantternWeb.OverlayComponents do
       data-open={open_dropdown_menu(@id)}
       phx-hook="DropdownMenu"
     >
+      <p :if={@instructions != []} class="px-3 py-2 font-sans text-sm text-ltrn-subtle">
+        {render_slot(@instructions)}
+      </p>
       <.dropdown_menu_item :for={item <- @item} item={item} menu_id={@id} />
     </div>
     """

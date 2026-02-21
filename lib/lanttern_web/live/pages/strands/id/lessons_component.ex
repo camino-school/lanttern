@@ -45,7 +45,7 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
           {gettext("Read the full overview")}
         </.button>
         <section class="mt-20" id="lessons-section">
-          <h2 class="font-display font-black text-2xl">{gettext("Strand lessons")}</h2>
+          <h2 class="font-display font-bold text-2xl">{gettext("Strand lessons")}</h2>
           <div class="flex items-center gap-4 mt-6">
             <div class="relative">
               <.button

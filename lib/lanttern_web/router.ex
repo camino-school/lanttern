@@ -96,6 +96,7 @@ defmodule LantternWeb.Router do
       live "/strands/:id", StrandLive, :lessons
       live "/strands/:id/overview", StrandLive, :overview
       live "/strands/:id/rubrics", StrandLive, :rubrics
+      live "/strands/:id/assessment_management", StrandLive, :assessment_management
       live "/strands/:id/assessment", StrandLive, :assessment
       live "/strands/:id/assessment/moment/:moment_id", StrandLive, :moment_assessment
 

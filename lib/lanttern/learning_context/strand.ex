@@ -21,6 +21,7 @@ defmodule Lanttern.LearningContext.Strand do
           name: String.t(),
           type: String.t(),
           description: String.t(),
+          assessment_info: String.t(),
           teacher_instructions: String.t() | nil,
           cover_image_url: String.t(),
           subject_id: pos_integer(),
@@ -44,6 +45,7 @@ defmodule Lanttern.LearningContext.Strand do
     field :name, :string
     field :type, :string
     field :description, :string
+    field :assessment_info, :string
     field :teacher_instructions, :string
     field :cover_image_url, :string
     field :subject_id, :id, virtual: true
@@ -77,6 +79,7 @@ defmodule Lanttern.LearningContext.Strand do
       :name,
       :type,
       :description,
+      :assessment_info,
       :teacher_instructions,
       :cover_image_url,
       :subjects_ids,

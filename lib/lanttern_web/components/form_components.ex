@@ -570,7 +570,7 @@ defmodule LantternWeb.FormComponents do
         {render_slot(@description)}
       </div>
       <div class="flex items-center justify-between gap-2 px-2 rounded-xs mb-1 bg-ltrn-lightest">
-        <div class="flex">
+        <div class="flex font-sans">
           <button
             type="button"
             id={"edit-btn-#{@id}"}

@@ -2345,7 +2345,7 @@ defmodule LantternWeb.CoreComponents do
         @class
       ]}
     >
-      <div class="p-2 rounded-sm text-sm bg-ltrn-dark text-white">
+      <div class="p-2 rounded-sm font-sans text-sm bg-ltrn-dark text-white">
         {render_slot(@inner_block)}
       </div>
     </div>
@@ -2391,14 +2391,46 @@ defmodule LantternWeb.CoreComponents do
             this.el.style.top = y + "px";
           };
 
+          this._onFocus = () => {
+            const parentRect = this.parent.getBoundingClientRect();
+            const rect = this.el.getBoundingClientRect();
+            const vw = window.innerWidth;
+            const vh = window.innerHeight;
+
+            this.el.style.display = "block";
+
+            // Re-measure after display to get actual dimensions
+            const tooltipRect = this.el.getBoundingClientRect();
+
+            let x = parentRect.left;
+            let y = parentRect.bottom + this.offset.y;
+
+            // Flip above if near bottom
+            if (y + tooltipRect.height > vh) {
+              y = parentRect.top - tooltipRect.height - this.offset.y;
+            }
+
+            // Shift left if near right edge
+            if (x + tooltipRect.width > vw) {
+              x = vw - tooltipRect.width - 4;
+            }
+
+            this.el.style.left = x + "px";
+            this.el.style.top = y + "px";
+          };
+
           this.parent.addEventListener("mouseenter", this._show);
           this.parent.addEventListener("mousemove", this._onMouseMove);
           this.parent.addEventListener("mouseleave", this._hide);
+          this.parent.addEventListener("focusin", this._onFocus);
+          this.parent.addEventListener("focusout", this._hide);
         },
         destroyed() {
           this.parent.removeEventListener("mouseenter", this._show);
           this.parent.removeEventListener("mousemove", this._onMouseMove);
           this.parent.removeEventListener("mouseleave", this._hide);
+          this.parent.removeEventListener("focusin", this._onFocus);
+          this.parent.removeEventListener("focusout", this._hide);
           this.parent.removeAttribute("aria-describedby");
           // Clean up the element we moved to body
           if (this.el.parentElement === document.body) {

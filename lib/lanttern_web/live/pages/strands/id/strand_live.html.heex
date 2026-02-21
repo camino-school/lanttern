@@ -18,6 +18,12 @@
             {gettext("Rubrics")}
           </:tab>
           <:tab
+            patch={~p"/strands/#{@strand}/assessment_management"}
+            is_current={@live_action == :assessment_management}
+          >
+            {gettext("Ast management")}
+          </:tab>
+          <:tab
             patch={~p"/strands/#{@strand}/assessment"}
             is_current={@live_action in [:assessment, :moment_assessment]}
           >
@@ -87,6 +93,15 @@
       params={@params}
     />
   </div>
+  <.live_component
+    :if={@live_action == :assessment_management}
+    module={AssessmentManagementComponent}
+    id="strand-assessment-management"
+    strand={@strand}
+    current_user={@current_user}
+    selected_classes_ids={@selected_classes_ids}
+    params={@params}
+  />
   <.live_component
     :if={@live_action == :assessment}
     module={AssessmentComponent}
