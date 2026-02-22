@@ -97,9 +97,18 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
           </.card_base>
         </div>
         <section id="differentiation-rubrics-section" class="pb-10 mt-10">
-          <h4 class="font-display font-black text-xl text-ltrn-diff-dark">
-            {gettext("Differentiation")}
-          </h4>
+          <div class="flex items-center justify-between gap-4">
+            <h4 class="font-display font-black text-xl text-ltrn-diff-dark">
+              {gettext("Differentiation")}
+            </h4>
+            <.button
+              type="button"
+              phx-click={JS.exec("data-show", to: "#strand-classes-filter-modal")}
+              icon_name="hero-users-mini"
+            >
+              {@selected_classes_text}
+            </.button>
+          </div>
           <div id="strand-diff-rubrics-list" phx-update="stream">
             <.card_base
               :for={

@@ -15,12 +15,6 @@ defmodule LantternWeb.StrandLive do
   import LantternWeb.FiltersHelpers, only: [assign_strand_classes_filter: 1]
   import LantternWeb.LearningContextComponents, only: [mini_strand_card: 1]
 
-  @live_action_select_classes_overlay_title %{
-    rubrics: gettext("Select classes to view students differentiation rubrics"),
-    assessment: gettext("Select classes to view assessments info"),
-    moment_assessment: gettext("Select classes to view assessments info")
-  }
-
   # lifecycle
 
   @impl true
@@ -58,8 +52,6 @@ defmodule LantternWeb.StrandLive do
       |> assign(:params, params)
       |> assign_moment(params)
       |> assign_is_editing(params)
-      |> assign_select_classes_overlay_title()
-      |> assign_select_classes_overlay_navigate()
 
     {:noreply, socket}
   end
@@ -83,43 +75,6 @@ defmodule LantternWeb.StrandLive do
 
   defp assign_is_editing(socket, _params),
     do: assign(socket, :is_editing, false)
-
-  defp assign_select_classes_overlay_title(socket) do
-    title =
-      Map.get(
-        @live_action_select_classes_overlay_title,
-        socket.assigns.live_action
-      )
-
-    assign(socket, :select_classes_overlay_title, title)
-  end
-
-  defp assign_select_classes_overlay_navigate(
-         %{assigns: %{live_action: :moment_assessment}} = socket
-       ) do
-    navigate =
-      "/strands/#{socket.assigns.strand.id}/assessment/moment/#{socket.assigns.moment.id}"
-
-    assign(socket, :select_classes_overlay_navigate, navigate)
-  end
-
-  defp assign_select_classes_overlay_navigate(%{assigns: %{live_action: live_action}} = socket)
-       when live_action in [:rubrics, :assessment, :overview] do
-    path_final =
-      case live_action do
-        :rubrics -> "rubrics"
-        :assessment -> "assessment"
-        :overview -> "overview"
-      end
-
-    navigate = "/strands/#{socket.assigns.strand.id}/#{path_final}"
-
-    assign(socket, :select_classes_overlay_navigate, navigate)
-  end
-
-  defp assign_select_classes_overlay_navigate(socket) do
-    assign(socket, :select_classes_overlay_navigate, nil)
-  end
 
   # event handlers
 

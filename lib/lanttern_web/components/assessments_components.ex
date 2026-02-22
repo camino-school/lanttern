@@ -238,9 +238,21 @@ defmodule LantternWeb.AssessmentsComponents do
         {@text}
       </.button>
       <.dropdown_menu id="group-by-dropdown" button_id="group-by-dropdown-button" z_index="30">
-        <:item text={gettext("Show only goals assessments")} on_click={@on_change.(nil)} />
-        <:item text={gettext("Show all, grouped by curriculum")} on_click={@on_change.("curriculum")} />
-        <:item text={gettext("Show all, grouped by moment")} on_click={@on_change.("moment")} />
+        <:item
+          text={gettext("Show only goals assessments")}
+          is_active={is_nil(@current_assessment_group_by)}
+          on_click={@on_change.(nil)}
+        />
+        <:item
+          text={gettext("Show all, grouped by curriculum")}
+          is_active={@current_assessment_group_by == "curriculum"}
+          on_click={@on_change.("curriculum")}
+        />
+        <:item
+          text={gettext("Show all, grouped by moment")}
+          is_active={@current_assessment_group_by == "moment"}
+          on_click={@on_change.("moment")}
+        />
       </.dropdown_menu>
     </div>
     """

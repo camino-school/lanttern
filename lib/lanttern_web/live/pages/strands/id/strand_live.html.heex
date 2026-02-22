@@ -32,16 +32,6 @@
             current_user={@current_user}
           />
           <.action
-            type="button"
-            phx-click={JS.exec("data-show", to: "#strand-classes-filter-modal")}
-            icon_name="hero-users-mini"
-          >
-            {format_action_items_text(
-              @selected_classes,
-              gettext("No class selected")
-            )}
-          </.action>
-          <.action
             type="link"
             patch={"#{@current_path}?is_editing=true"}
             icon_name="hero-pencil-mini"
@@ -84,6 +74,12 @@
       strand={@strand}
       current_user={@current_user}
       selected_classes_ids={@selected_classes_ids}
+      selected_classes_text={
+        format_action_items_text(
+          @selected_classes,
+          gettext("No class selected")
+        )
+      }
       params={@params}
     />
     <.live_component
@@ -138,9 +134,9 @@
   module={LantternWeb.Filters.ClassesFilterOverlayComponent}
   id="strand-classes-filter-modal"
   current_user={@current_user}
-  title={@select_classes_overlay_title}
+  title={gettext("Select classes to view students differentiation rubrics")}
   profile_filter_opts={[strand_id: @strand.id]}
   classes={@classes}
   selected_classes_ids={@selected_classes_ids}
-  navigate={@select_classes_overlay_navigate}
+  navigate={~p"/strands/#{@strand}/rubrics"}
 />

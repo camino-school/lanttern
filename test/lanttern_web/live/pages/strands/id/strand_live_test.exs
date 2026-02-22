@@ -55,8 +55,6 @@ defmodule LantternWeb.StrandLiveTest do
 
       assert_patch(view)
 
-      assert view |> has_element?("button", "No class selected")
-
       # back to lessons tab
 
       view
