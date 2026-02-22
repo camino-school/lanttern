@@ -686,7 +686,8 @@ defmodule LantternWeb.CoreComponents do
       "bg-ltrn-student-lighter text-ltrn-student-dark hover:opacity-80",
       "disabled:opacity-40"
     ],
-    "white" => "text-ltrn-dark bg-white hover:bg-ltrn-lightest",
+    "white" => "text-ltrn-darkest bg-white hover:bg-ltrn-lightest",
+    "white_outline" => "border border-white text-white bg-transparent hover:bg-white/10",
     "ghost" => [
       "text-ltrn-subtle bg-white/10 shadow-none hover:bg-slate-100",
       "disabled:text-ltrn-lighter"
@@ -1945,7 +1946,7 @@ defmodule LantternWeb.CoreComponents do
             </.badge>
           </div>
         <% end %>
-        <div :if={@extra_info} class="line-clamp-1 text-xs text-ltrn-subtle mt-1">
+        <div :if={@extra_info} class="line-clamp-1 font-sans text-xs text-ltrn-subtle mt-1">
           {@extra_info}
         </div>
       </div>

@@ -139,8 +139,16 @@ button {
 
 .ltrn-bg-slide-over {
   background-image:
-    radial-gradient(circle at 10% 70%, #fef9c3 160px, transparent 240px),
-    radial-gradient(circle at 30% 120%, #ecfccb 360px, transparent 480px);
+    radial-gradient(
+      circle at -30% 90%,
+      var(--color-ltrn-mesh-1) 240px,
+      transparent 360px
+    ),
+    radial-gradient(
+      circle at 0% 140%,
+      var(--color-ltrn-mesh-2) 360px,
+      transparent 480px
+    );
 }
 
 .ltrn-bg-menu {

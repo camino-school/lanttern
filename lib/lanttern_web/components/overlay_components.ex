@@ -484,6 +484,7 @@ defmodule LantternWeb.OverlayComponents do
     attr :navigate, :string, doc: "use with type \"link\" for <.link navigate={...}>"
     attr :patch, :string, doc: "use with type \"link\" for <.link patch={...}>"
     attr :theme, :string
+    attr :is_active, :boolean
 
     attr :confirm_msg, :string,
       doc: "use for adding a data-confirm attr (only for \"button\" type)"
@@ -542,7 +543,8 @@ defmodule LantternWeb.OverlayComponents do
       phx-click={JS.exec("data-close", to: "##{@menu_id}")}
       class={[
         "block w-full px-3 py-1 font-sans text-sm text-left focus:bg-ltrn-lighter",
-        menu_button_item_theme_classes(Map.get(@item, :theme, "default"))
+        menu_button_item_theme_classes(Map.get(@item, :theme, "default")),
+        if(Map.get(@item, :is_active), do: "font-bold")
       ]}
       role="menuitem"
       tabindex="-1"
@@ -558,7 +560,8 @@ defmodule LantternWeb.OverlayComponents do
       type="button"
       class={[
         "block w-full px-3 py-1 font-sans text-sm text-left focus:bg-ltrn-lighter",
-        menu_button_item_theme_classes(Map.get(@item, :theme, "default"))
+        menu_button_item_theme_classes(Map.get(@item, :theme, "default")),
+        if(Map.get(@item, :is_active), do: "font-bold")
       ]}
       role="menuitem"
       tabindex="-1"

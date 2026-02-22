@@ -1,4 +1,4 @@
-defmodule LantternWeb.StrandLive.MomentAssessmentComponent do
+defmodule LantternWeb.MarkingLive.MomentAssessmentComponent do
   use LantternWeb, :live_component
 
   alias Lanttern.Assessments
@@ -19,40 +19,50 @@ defmodule LantternWeb.StrandLive.MomentAssessmentComponent do
   def render(assigns) do
     ~H"""
     <div>
-      <.action_bar class="flex items-center justify-between gap-4">
-        <div class="flex items-center gap-4">
-          <.link
-            navigate={~p"/strands/#{@strand}/assessment"}
-            class="flex items-center gap-2 text-sm font-bold text-ltrn-subtle hover:text-ltrn-dark"
+      <div class="flex items-center justify-center gap-4 px-4 mb-4">
+        <div class="relative">
+          <.button
+            type="button"
+            id="moment-dropdown-button"
+            size="sm"
+            icon_name="hero-bars-3-micro"
           >
-            <.icon name="hero-arrow-left-mini" class="w-4 h-4" />
             {@moment.name}
-          </.link>
-        </div>
-        <div class="flex items-center gap-4">
-          <.assessment_view_dropdow
-            current_assessment_view={@current_assessment_view}
-            on_change={
-              fn view -> JS.push("change_view", value: %{"view" => view}, target: @myself) end
-            }
-          />
-          <.action
-            :if={@assessment_points_length > 1}
-            type="link"
-            patch={~p"/strands/#{@strand}/assessment/moment/#{@moment}?is_reordering=true"}
-            icon_name="hero-arrows-up-down-mini"
+          </.button>
+          <.dropdown_menu
+            id="moment-dropdown"
+            button_id="moment-dropdown-button"
+            z_index="30"
           >
-            {gettext("Reorder")}
-          </.action>
-          <.action
-            type="link"
-            patch={~p"/strands/#{@strand}/assessment/moment/#{@moment}?new_assessment_point=true"}
-            icon_name="hero-plus-circle-mini"
-          >
-            {gettext("New assessment point")}
-          </.action>
+            <:item
+              :for={moment <- @moments}
+              type="link"
+              navigate={~p"/strands/#{@strand}/assessment/marking/moment/#{moment}"}
+              text={moment.name}
+              is_active={moment.id == @moment.id}
+            />
+            <:item
+              type="link"
+              navigate={~p"/strands/#{@strand}/assessment/marking"}
+              text={gettext("Strand goals")}
+            />
+          </.dropdown_menu>
         </div>
-      </.action_bar>
+
+        <.button
+          type="button"
+          phx-click={JS.exec("data-show", to: "#strand-classes-filter-modal")}
+          icon_name="hero-users-micro"
+          size="sm"
+        >
+          {@selected_classes_text}
+        </.button>
+
+        <.assessment_view_dropdow
+          current_assessment_view={@current_assessment_view}
+          on_change={fn view -> JS.push("change_view", value: %{"view" => view}, target: @myself) end}
+        />
+      </div>
       <.responsive_container :if={@selected_classes_ids == []} class="py-10">
         <p class="flex items-center gap-2">
           <.icon name="hero-light-bulb-mini" class="text-ltrn-subtle" />
@@ -66,7 +76,7 @@ defmodule LantternWeb.StrandLive.MomentAssessmentComponent do
         current_assessment_view={@current_assessment_view}
         moment_id={@moment.id}
         classes_ids={@selected_classes_ids}
-        navigate={~p"/strands/#{@strand}/assessment/moment/#{@moment}"}
+        navigate={~p"/strands/#{@strand}/assessment/marking/moment/#{@moment}"}
         notify_component={@myself}
       />
       <.live_component
@@ -76,44 +86,9 @@ defmodule LantternWeb.StrandLive.MomentAssessmentComponent do
         notify_component={@myself}
         assessment_point={@assessment_point}
         title={gettext("Assessment Point")}
-        on_cancel={JS.patch(~p"/strands/#{@strand}/assessment/moment/#{@moment}")}
+        on_cancel={JS.patch(~p"/strands/#{@strand}/assessment/marking/moment/#{@moment}")}
         curriculum_from_strand_id={@moment.strand_id}
       />
-      <.slide_over
-        :if={Map.get(@params, "is_reordering") == "true"}
-        show
-        id="moment-assessment-points-order-overlay"
-        on_cancel={JS.patch(~p"/strands/#{@strand}/assessment/moment/#{@moment}")}
-      >
-        <:title>{gettext("Assessment Points Order")}</:title>
-        <.sortable_card
-          :for={{assessment_point, i} <- @sortable_assessment_points}
-          class="mb-4"
-          id={"sortable-assessment-point-#{assessment_point.id}"}
-          is_move_up_disabled={i == 0}
-          on_move_up={
-            JS.push("swap_assessment_point_position", value: %{from: i, to: i - 1}, target: @myself)
-          }
-          is_move_down_disabled={i + 1 == @assessment_points_length}
-          on_move_down={
-            JS.push("swap_assessment_point_position", value: %{from: i, to: i + 1}, target: @myself)
-          }
-        >
-          <p>{assessment_point.name}</p>
-        </.sortable_card>
-        <:actions>
-          <.button
-            type="button"
-            theme="ghost"
-            phx-click={JS.exec("data-cancel", to: "#moment-assessment-points-order-overlay")}
-          >
-            {gettext("Cancel")}
-          </.button>
-          <.button type="button" phx-click="save_order" phx-target={@myself}>
-            {gettext("Save")}
-          </.button>
-        </:actions>
-      </.slide_over>
     </div>
     """
   end
@@ -158,7 +133,8 @@ defmodule LantternWeb.StrandLive.MomentAssessmentComponent do
     nav_opts = [
       put_flash: flash_message,
       push_navigate: [
-        to: ~p"/strands/#{socket.assigns.strand}/assessment/moment/#{socket.assigns.moment}"
+        to:
+          ~p"/strands/#{socket.assigns.strand}/assessment/marking/moment/#{socket.assigns.moment}"
       ]
     ]
 
@@ -243,7 +219,8 @@ defmodule LantternWeb.StrandLive.MomentAssessmentComponent do
           socket
           |> assign(:current_assessment_view, view)
           |> push_navigate(
-            to: ~p"/strands/#{socket.assigns.strand}/assessment/moment/#{socket.assigns.moment}"
+            to:
+              ~p"/strands/#{socket.assigns.strand}/assessment/marking/moment/#{socket.assigns.moment}"
           )
 
         {:noreply, socket}
@@ -273,7 +250,8 @@ defmodule LantternWeb.StrandLive.MomentAssessmentComponent do
         {:noreply,
          socket
          |> push_navigate(
-           to: ~p"/strands/#{socket.assigns.strand}/assessment/moment/#{socket.assigns.moment}"
+           to:
+             ~p"/strands/#{socket.assigns.strand}/assessment/marking/moment/#{socket.assigns.moment}"
          )}
 
       {:error, _} ->

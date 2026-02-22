@@ -18,14 +18,8 @@
             {gettext("Rubrics")}
           </:tab>
           <:tab
-            patch={~p"/strands/#{@strand}/assessment_management"}
-            is_current={@live_action == :assessment_management}
-          >
-            {gettext("Ast management")}
-          </:tab>
-          <:tab
             patch={~p"/strands/#{@strand}/assessment"}
-            is_current={@live_action in [:assessment, :moment_assessment]}
+            is_current={@live_action == :assessment}
           >
             {gettext("Assessment")}
           </:tab>
@@ -92,35 +86,16 @@
       selected_classes_ids={@selected_classes_ids}
       params={@params}
     />
+    <.live_component
+      :if={@live_action == :assessment}
+      module={AssessmentComponent}
+      id="strand-assessment"
+      strand={@strand}
+      current_user={@current_user}
+      selected_classes_ids={@selected_classes_ids}
+      params={@params}
+    />
   </div>
-  <.live_component
-    :if={@live_action == :assessment_management}
-    module={AssessmentManagementComponent}
-    id="strand-assessment-management"
-    strand={@strand}
-    current_user={@current_user}
-    selected_classes_ids={@selected_classes_ids}
-    params={@params}
-  />
-  <.live_component
-    :if={@live_action == :assessment}
-    module={AssessmentComponent}
-    id="strand-assessment"
-    strand={@strand}
-    current_user={@current_user}
-    selected_classes_ids={@selected_classes_ids}
-    params={@params}
-  />
-  <.live_component
-    :if={@live_action == :moment_assessment}
-    module={MomentAssessmentComponent}
-    id="moment-assessment"
-    strand={@strand}
-    moment={@moment}
-    current_user={@current_user}
-    selected_classes_ids={@selected_classes_ids}
-    params={@params}
-  />
 </Layouts.app_logged_in>
 <.button
   type="link"
