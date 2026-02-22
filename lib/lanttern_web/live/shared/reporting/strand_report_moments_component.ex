@@ -50,11 +50,6 @@ defmodule LantternWeb.Reporting.StrandReportMomentsComponent do
                   <h5 class="font-display font-black text-lg" title={moment.name}>
                     {moment.name}
                   </h5>
-                  <div :if={moment.subjects != []} class="flex gap-2 mt-2">
-                    <.badge :for={subject <- moment.subjects}>
-                      {Gettext.dgettext(Lanttern.Gettext, "taxonomy", subject.name)}
-                    </.badge>
-                  </div>
                   <.markdown
                     :if={moment.description}
                     text={moment.description}
