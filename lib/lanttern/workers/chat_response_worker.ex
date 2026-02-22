@@ -20,7 +20,7 @@ defmodule Lanttern.ChatResponseWorker do
   - `conversation_id` - The conversation to continue
 
   Optional:
-  - `model` - Override the LLM model (falls back to school config, then application config)
+  - `model` - Override the LLM (falls back to school config, then application config)
   - `agent_id` - Specific agent configuration to use
   - `lesson_template_id` - Lesson template for lesson-specific chats
   - `strand_id` - Strand context for chats

@@ -2,7 +2,7 @@ defmodule Lanttern.SchoolConfig.AiConfig do
   @moduledoc """
   School-level AI configuration schema.
 
-  Stores AI settings at the school level including the default LLM model,
+  Stores AI settings at the school level including the default LLM,
   school-wide knowledge base, and guardrails for AI interactions.
   """
 

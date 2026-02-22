@@ -29,7 +29,7 @@ defmodule LantternWeb.SchoolAiConfigLiveTest do
 
       conn
       |> visit(@live_view_path)
-      |> assert_has("h6", text: "Default LLM model")
+      |> assert_has("h6", text: "Default LLM")
       |> assert_has("h6", text: "School knowledge")
       |> assert_has("h6", text: "School guardrails")
       |> assert_has("button", text: "Add")
