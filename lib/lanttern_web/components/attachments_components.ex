@@ -69,7 +69,7 @@ defmodule LantternWeb.AttachmentsComponents do
                 data-clipboard-text={"[#{attachment.name}](#{attachment.link})"}
                 id={"clipboard-#{dom_id}"}
                 class={[
-                  "group relative shrink-0 p-1 rounded-full text-ltrn-subtle hover:bg-ltrn-lighter",
+                  "group shrink-0 p-1 rounded-full text-ltrn-subtle hover:bg-ltrn-lighter",
                   "[&.copied-to-clipboard]:text-ltrn-primary [&.copied-to-clipboard]:bg-ltrn-mesh-cyan"
                 ]}
               >
@@ -78,7 +78,9 @@ defmodule LantternWeb.AttachmentsComponents do
                   class="block group-[.copied-to-clipboard]:hidden w-6 h-6"
                 />
                 <.icon name="hero-check hidden group-[.copied-to-clipboard]:block" class="w-6 h-6" />
-                <.tooltip>{gettext("Copy attachment link markdown")}</.tooltip>
+                <.tooltip id={"#{@id}-#{dom_id}-copy-tooltip"}>
+                  {gettext("Copy attachment link markdown")}
+                </.tooltip>
               </button>
               <div class="flex-1 min-w-0">
                 <.live_component

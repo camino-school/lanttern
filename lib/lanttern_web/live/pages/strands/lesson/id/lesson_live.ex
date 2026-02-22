@@ -2,12 +2,14 @@ defmodule LantternWeb.LessonLive do
   use LantternWeb, :live_view
 
   alias Lanttern.LearningContext
+  alias Lanttern.LearningContext.Moment
   alias Lanttern.Lessons
 
   # shared components
-  import LantternWeb.LearningContextComponents, only: [mini_strand_card: 1]
   alias LantternWeb.Attachments.AttachmentAreaComponent
+  alias LantternWeb.LearningContext.MomentDetailsOverlayComponent
   alias LantternWeb.Lessons.LessonFormComponent
+  alias LantternWeb.Lessons.LessonsSideNavComponent
 
   # lifecycle
 
@@ -21,6 +23,7 @@ defmodule LantternWeb.LessonLive do
       |> assign(:description_form, nil)
       |> assign(:teacher_notes_form, nil)
       |> assign(:differentiation_form, nil)
+      |> assign(:moment_id, nil)
 
     {:ok, socket}
   end
@@ -65,7 +68,7 @@ defmodule LantternWeb.LessonLive do
       |> case do
         {:ok, lesson} ->
           socket
-          |> assign(:lesson, lesson)
+          |> push_navigate(to: ~p"/strands/lesson/#{lesson}")
           |> put_flash(:info, gettext("Lesson published"))
 
         # missing description validation
@@ -213,4 +216,18 @@ defmodule LantternWeb.LessonLive do
         {:noreply, assign(socket, :differentiation_form, to_form(changeset))}
     end
   end
+
+  # -- moment details
+
+  def handle_event("view_moment_details", %{"moment_id" => moment_id}, socket) do
+    with %Moment{} = moment <- LearningContext.get_moment(moment_id),
+         true <- moment.strand_id == socket.assigns.strand.id do
+      {:noreply, assign(socket, :moment_id, moment.id)}
+    else
+      _ -> {:noreply, socket}
+    end
+  end
+
+  def handle_event("close_moment_details", _params, socket),
+    do: {:noreply, assign(socket, :moment_id, nil)}
 end

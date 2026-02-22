@@ -21,9 +21,8 @@ defmodule LantternWeb.MenuComponent do
       >
         <div class="md:flex-1 md:flex md:flex-col-reverse md:justify-between">
           <div class="p-6">
-            <h5 class="relative flex items-center font-display font-black text-3xl text-ltrn-dark">
-              <span class="w-20 h-20 rounded-full bg-ltrn-mesh-primary blur-xs" />
-              <span class="relative -ml-10">Lanttern</span>
+            <h5 class="relative flex items-center font-display font-black text-3xl text-ltrn-darkest">
+              Lanttern
             </h5>
           </div>
           <nav>
@@ -46,26 +45,26 @@ defmodule LantternWeb.MenuComponent do
           </nav>
         </div>
         <div class={[
-          "p-10 font-display overflow-y-auto",
+          "p-10 overflow-y-auto",
           "md:flex md:flex-col md:w-80 lg:w-96"
         ]}>
-          <p class="mb-4 font-black text-lg text-ltrn-primary">
-            {gettext("You're logged in as")}
-          </p>
           <.profile_picture
             picture_url={@current_user.current_profile.profile_picture_url}
             profile_name={@current_user.current_profile.name}
             size="lg"
             class="mb-4"
           />
-          <p class="font-black text-4xl text-ltrn-dark">
+          <p class="font-sans text-sm">
+            {gettext("You're logged in as")}
+          </p>
+          <p class="font-bold text-4xl text-ltrn-darkest">
             {@current_user.current_profile.name}
           </p>
           <div id="profile-select" class="group mt-2">
             <button
               type="button"
               phx-click={toggle_profile_list(@myself)}
-              class="flex items-center gap-2 font-black text-lg text-left hover:text-ltrn-subtle"
+              class="flex items-center gap-2 font-bold text-lg text-left hover:text-ltrn-subtle"
             >
               {Gettext.dgettext(
                 Lanttern.Gettext,
@@ -172,7 +171,7 @@ defmodule LantternWeb.MenuComponent do
             </ul>
           </nav>
           <span class="hidden sm:block sm:flex-1" />
-          <div class="flex items-center gap-4 mt-6 font-bold text-sm text-ltrn-subtle leading-loose">
+          <div class="flex items-center gap-4 mt-6 font-sans text-ltrn-subtle leading-loose">
             <span>{gettext("Language:")}</span>
             <.lang_button
               is_current={@current_user.current_profile.current_locale == "en"}
@@ -202,7 +201,7 @@ defmodule LantternWeb.MenuComponent do
             <a
               href="/docs/politica-de-privacidade-lanttern-20240403.pdf"
               target="_blank"
-              class="mt-4 text-sm font-display font-bold text-ltrn-subtle hover:underline"
+              class="mt-4 text-sm font-sans font-bold text-ltrn-subtle hover:underline"
             >
               {gettext("Privacy policy")}
             </a>
@@ -210,7 +209,7 @@ defmodule LantternWeb.MenuComponent do
             <a
               href="/docs/termos-de-uso-lanttern-20240403.pdf"
               target="_blank"
-              class="mt-4 text-sm font-display font-bold text-ltrn-subtle hover:underline"
+              class="mt-4 text-sm font-sans font-bold text-ltrn-subtle hover:underline"
             >
               {gettext("Terms of service")}
             </a>
@@ -274,7 +273,7 @@ defmodule LantternWeb.MenuComponent do
         />
         <div>
           <span class={[
-            "block font-bold text-sm",
+            "block font-bold font-sans",
             if(@active, do: "text-ltrn-dark", else: "group-hover/item:text-ltrn-dark")
           ]}>
             {@profile.name}
@@ -333,7 +332,6 @@ defmodule LantternWeb.MenuComponent do
     LantternWeb.StrandsLive => :strands,
     LantternWeb.StrandsLibraryLive => :strands,
     LantternWeb.StrandLive => :strands,
-    LantternWeb.StrandOverviewLive => :strands,
     LantternWeb.LessonLive => :strands,
     LantternWeb.MomentLive => :strands,
 

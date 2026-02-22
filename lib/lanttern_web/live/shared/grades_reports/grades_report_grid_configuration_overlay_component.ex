@@ -36,9 +36,11 @@ defmodule LantternWeb.GradesReports.GradesReportGridConfigurationOverlayComponen
             <div class="grid grid-cols-subgrid col-span-3 items-center px-4 py-2 rounded-sm mt-4 text-sm text-ltrn-subtle bg-ltrn-lighter">
               <div>{gettext("Subcycle")}</div>
               <div class="text-center">{gettext("Grading weight")}</div>
-              <div class="group relative text-center">
+              <div class="text-center">
                 <.icon name="hero-eye" class="w-6 h-6" />
-                <.tooltip h_pos="right">{gettext("Visibility in grades reports")}</.tooltip>
+                <.tooltip id="grades-report-visibility-tooltip">
+                  {gettext("Visibility in grades reports")}
+                </.tooltip>
               </div>
             </div>
             <.grades_report_cycle_form

@@ -11,6 +11,9 @@
           <:tab patch={~p"/strands/#{@strand}"} is_current={@live_action == :lessons}>
             {gettext("Lessons")}
           </:tab>
+          <:tab patch={~p"/strands/#{@strand}/overview"} is_current={@live_action == :overview}>
+            {gettext("Overview")}
+          </:tab>
           <:tab patch={~p"/strands/#{@strand}/rubrics"} is_current={@live_action == :rubrics}>
             {gettext("Rubrics")}
           </:tab>
@@ -20,9 +23,6 @@
           >
             {gettext("Assessment")}
           </:tab>
-          <:tab patch={~p"/strands/#{@strand}/notes"} is_current={@live_action == :notes}>
-            {gettext("Notes")}
-          </:tab>
         </.neo_tabs>
         <div class="flex items-center gap-4">
           <.live_component
@@ -31,16 +31,6 @@
             strand={@strand}
             current_user={@current_user}
           />
-          <.action
-            type="button"
-            phx-click={JS.exec("data-show", to: "#strand-classes-filter-modal")}
-            icon_name="hero-users-mini"
-          >
-            {format_action_items_text(
-              @selected_classes,
-              gettext("No class selected")
-            )}
-          </.action>
           <.action
             type="link"
             patch={"#{@current_path}?is_editing=true"}
@@ -70,32 +60,38 @@
       current_scope={@current_scope}
     />
     <.live_component
+      :if={@live_action == :overview}
+      module={OverviewComponent}
+      id="strand-overview"
+      strand={@strand}
+      current_user={@current_user}
+      params={@params}
+    />
+    <.live_component
       :if={@live_action == :rubrics}
       module={StrandRubricsComponent}
       id="strand-rubrics"
       strand={@strand}
       current_user={@current_user}
       selected_classes_ids={@selected_classes_ids}
+      selected_classes_text={
+        format_action_items_text(
+          @selected_classes,
+          gettext("No class selected")
+        )
+      }
       params={@params}
     />
     <.live_component
-      :if={@live_action == :notes}
-      module={NotesComponent}
-      id="strand-notes"
+      :if={@live_action == :assessment}
+      module={AssessmentComponent}
+      id="strand-assessment"
       strand={@strand}
       current_user={@current_user}
       selected_classes_ids={@selected_classes_ids}
+      params={@params}
     />
   </div>
-  <.live_component
-    :if={@live_action == :assessment}
-    module={AssessmentComponent}
-    id="strand-assessment"
-    strand={@strand}
-    current_user={@current_user}
-    selected_classes_ids={@selected_classes_ids}
-    params={@params}
-  />
 </Layouts.app_logged_in>
 <.button
   type="link"
@@ -138,9 +134,9 @@
   module={LantternWeb.Filters.ClassesFilterOverlayComponent}
   id="strand-classes-filter-modal"
   current_user={@current_user}
-  title={@select_classes_overlay_title}
+  title={gettext("Select classes to view students differentiation rubrics")}
   profile_filter_opts={[strand_id: @strand.id]}
   classes={@classes}
   selected_classes_ids={@selected_classes_ids}
-  navigate={@select_classes_overlay_navigate}
+  navigate={~p"/strands/#{@strand}/rubrics"}
 />

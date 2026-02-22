@@ -28,7 +28,7 @@ defmodule LantternWeb.ILPComponents do
   def student_ilp_share_controls(assigns) do
     ~H"""
     <div class={["flex item-center gap-2", @class]} id={@id}>
-      <div class="group relative shrink-0 flex items-center gap-1">
+      <div class="shrink-0 flex items-center gap-1">
         <.toggle
           :if={@show_controls}
           id={"student-ilp-student-toggle-#{@id}"}
@@ -44,13 +44,13 @@ defmodule LantternWeb.ILPComponents do
               else: "text-ltrn-student-dark"
           }
         />
-        <.tooltip h_pos="right">
+        <.tooltip id={"#{@id}-student-share-tooltip"}>
           {if @student_ilp.is_shared_with_student,
             do: gettext("Shared with student"),
             else: gettext("Not shared with student")}
         </.tooltip>
       </div>
-      <div class="group relative shrink-0 flex items-center gap-1">
+      <div class="shrink-0 flex items-center gap-1">
         <.toggle
           :if={@show_controls}
           id={"student-ilp-guardian-toggle-#{@id}"}
@@ -66,7 +66,7 @@ defmodule LantternWeb.ILPComponents do
               else: "text-ltrn-student-dark"
           }
         />
-        <.tooltip h_pos="right">
+        <.tooltip id={"#{@id}-guardians-share-tooltip"}>
           {if @student_ilp.is_shared_with_guardians,
             do: gettext("Shared with guardians"),
             else: gettext("Not shared with guardians")}

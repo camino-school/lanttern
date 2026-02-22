@@ -686,7 +686,8 @@ defmodule LantternWeb.CoreComponents do
       "bg-ltrn-student-lighter text-ltrn-student-dark hover:opacity-80",
       "disabled:opacity-40"
     ],
-    "white" => "text-ltrn-dark bg-white hover:bg-ltrn-lightest",
+    "white" => "text-ltrn-darkest bg-white hover:bg-ltrn-lightest",
+    "white_outline" => "border border-white text-white bg-transparent hover:bg-white/10",
     "ghost" => [
       "text-ltrn-subtle bg-white/10 shadow-none hover:bg-slate-100",
       "disabled:text-ltrn-lighter"
@@ -827,10 +828,10 @@ defmodule LantternWeb.CoreComponents do
         />
       </div>
       <p class="sr-only">{@alt_text}</p>
-      <div class={[
+      <%!-- <div class={[
         "absolute inset-0 bg-linear-to-b pointer-events-none",
         cover_overlay(@theme)
-      ]} />
+      ]} /> --%>
       <div :if={@has_multiple_images} class="absolute bottom-2 flex justify-center w-full">
         <div class="slider-dots px-1 rounded-full bg-white" />
       </div>
@@ -851,10 +852,10 @@ defmodule LantternWeb.CoreComponents do
       <p :if={@empty_state_text} class="font-display font-black text-2xl text-ltrn-subtle">
         {@empty_state_text}
       </p>
-      <div class={[
+      <%!-- <div class={[
         "absolute inset-0 bg-linear-to-b",
         cover_overlay(@theme)
-      ]} />
+      ]} /> --%>
     </div>
     """
   end
@@ -1141,24 +1142,28 @@ defmodule LantternWeb.CoreComponents do
       role="alert"
       class={[
         "pointer-events-auto w-full max-w-sm overflow-hidden rounded-lg bg-white shadow-lg ring-1",
-        @kind == :info && "ring-green-500/50",
-        @kind == :error && "bg-rose-50 ring-ltrn-secondary/50"
+        @kind == :info && "ring-ltrn-success-accent/50",
+        @kind == :error && "bg-ltrn-alert-lighter ring-ltrn-alert-accent/50"
       ]}
       {@rest}
     >
       <div class="p-4">
         <div class="flex items-start">
           <div class="shrink-0">
-            <.icon :if={@kind == :info} name="hero-information-circle" class="h-6 w-6 text-green-500" />
+            <.icon
+              :if={@kind == :info}
+              name="hero-information-circle"
+              class="h-6 w-6 text-ltrn-success-accent"
+            />
             <.icon
               :if={@kind == :error}
               name="hero-exclamation-circle"
-              class="h-6 w-6 text-ltrn-secondary"
+              class="text-ltrn-alert-accent"
             />
           </div>
           <div class="ml-3 w-0 flex-1 pt-0.5">
-            <p :if={@title} class="mb-1 text-sm font-bold">{@title}</p>
-            <p class="text-sm text-ltrn-subtle">{msg}</p>
+            <p :if={@title} class="mb-1 text-sm font-bold text-ltrn-darkest">{@title}</p>
+            <p class="font-sans text-sm">{msg}</p>
           </div>
           <div class="ml-4 flex shrink-0">
             <button
@@ -1423,7 +1428,7 @@ defmodule LantternWeb.CoreComponents do
   Parses markdown text to HTML and renders it
   """
   attr :text, :string, required: true
-  attr :theme, :string, default: "slate"
+  attr :theme, :string, default: "stone"
   attr :size, :string, default: "base", doc: "sm | base"
   attr :invert, :boolean, default: false
   attr :strip_tags, :boolean, default: false
@@ -1490,7 +1495,7 @@ defmodule LantternWeb.CoreComponents do
       aria-label="open menu"
     >
       <.icon name="hero-bars-3 text-ltrn-subtle" />
-      <div class="w-6 h-6 rounded-full bg-ltrn-mesh-primary blur-xs group-hover:blur-none transition-[filter]" />
+      <%!-- <div class="w-6 h-6 rounded-full bg-ltrn-mesh-1 blur-xs group-hover:blur-none transition-[filter]" /> --%>
     </button>
     """
   end
@@ -1941,7 +1946,7 @@ defmodule LantternWeb.CoreComponents do
             </.badge>
           </div>
         <% end %>
-        <div :if={@extra_info} class="line-clamp-1 text-xs text-ltrn-subtle mt-1">
+        <div :if={@extra_info} class="line-clamp-1 font-sans text-xs text-ltrn-subtle mt-1">
           {@extra_info}
         </div>
       </div>
@@ -2316,59 +2321,127 @@ defmodule LantternWeb.CoreComponents do
   end
 
   @doc """
-  Renders a tooltip.
+  Renders a mouse-following tooltip (similar to native browser `title` tooltips).
 
-  Tooltip parent should have `"group relative"` class.
+  The tooltip appears near the mouse cursor and follows it. It automatically
+  flips above the cursor when near the bottom of the viewport, and shifts
+  left when near the right edge.
+
+  The parent element needs no special classes for this tooltip to work.
   """
 
-  attr :h_pos, :string, default: "left", doc: "left | center | right"
-  attr :v_pos, :string, default: "top", doc: "top | bottom"
   attr :class, :any, default: nil
+  attr :id, :string, required: true
 
   slot :inner_block, required: true
 
   def tooltip(assigns) do
-    assigns =
-      assigns
-      |> assign(:tooltip_pos_class, get_tooltip_pos_class(assigns))
-      |> assign(:inner_pos_class, get_tooltip_inner_pos_class(assigns))
-
     ~H"""
-    <div class={[
-      "pointer-events-none absolute w-80 max-w-max",
-      "opacity-0 transition-opacity group-hover:opacity-100 group-focus:opacity-100",
-      @tooltip_pos_class,
-      @class
-    ]}>
-      <div class={[
-        "relative p-2 rounded-sm text-sm bg-ltrn-dark text-white",
-        @inner_pos_class
-      ]}>
+    <div
+      id={@id}
+      role="tooltip"
+      phx-hook=".Tooltip"
+      class={[
+        "pointer-events-none fixed z-[9999] hidden w-80 max-w-max",
+        @class
+      ]}
+    >
+      <div class="p-2 rounded-sm font-sans text-sm bg-ltrn-dark text-white">
         {render_slot(@inner_block)}
       </div>
     </div>
+    <script :type={Phoenix.LiveView.ColocatedHook} name=".Tooltip">
+      export default {
+        mounted() {
+          this.parent = this.el.parentElement;
+          this.offset = { x: 8, y: 12 };
+
+          // Link parent to tooltip for screen readers
+          this.parent.setAttribute("aria-describedby", this.el.id);
+
+          // Move to body to escape any parent stacking contexts
+          document.body.appendChild(this.el);
+
+          this._show = () => {
+            this.el.style.display = "block";
+          };
+
+          this._hide = () => {
+            this.el.style.display = "none";
+          };
+
+          this._onMouseMove = (e) => {
+            const rect = this.el.getBoundingClientRect();
+            const vw = window.innerWidth;
+            const vh = window.innerHeight;
+
+            let x = e.clientX + this.offset.x;
+            let y = e.clientY + this.offset.y;
+
+            // Flip above cursor if near bottom
+            if (y + rect.height > vh) {
+              y = e.clientY - rect.height - this.offset.y;
+            }
+
+            // Shift left if near right edge
+            if (x + rect.width > vw) {
+              x = vw - rect.width - 4;
+            }
+
+            this.el.style.left = x + "px";
+            this.el.style.top = y + "px";
+          };
+
+          this._onFocus = () => {
+            const parentRect = this.parent.getBoundingClientRect();
+            const rect = this.el.getBoundingClientRect();
+            const vw = window.innerWidth;
+            const vh = window.innerHeight;
+
+            this.el.style.display = "block";
+
+            // Re-measure after display to get actual dimensions
+            const tooltipRect = this.el.getBoundingClientRect();
+
+            let x = parentRect.left;
+            let y = parentRect.bottom + this.offset.y;
+
+            // Flip above if near bottom
+            if (y + tooltipRect.height > vh) {
+              y = parentRect.top - tooltipRect.height - this.offset.y;
+            }
+
+            // Shift left if near right edge
+            if (x + tooltipRect.width > vw) {
+              x = vw - tooltipRect.width - 4;
+            }
+
+            this.el.style.left = x + "px";
+            this.el.style.top = y + "px";
+          };
+
+          this.parent.addEventListener("mouseenter", this._show);
+          this.parent.addEventListener("mousemove", this._onMouseMove);
+          this.parent.addEventListener("mouseleave", this._hide);
+          this.parent.addEventListener("focusin", this._onFocus);
+          this.parent.addEventListener("focusout", this._hide);
+        },
+        destroyed() {
+          this.parent.removeEventListener("mouseenter", this._show);
+          this.parent.removeEventListener("mousemove", this._onMouseMove);
+          this.parent.removeEventListener("mouseleave", this._hide);
+          this.parent.removeEventListener("focusin", this._onFocus);
+          this.parent.removeEventListener("focusout", this._hide);
+          this.parent.removeAttribute("aria-describedby");
+          // Clean up the element we moved to body
+          if (this.el.parentElement === document.body) {
+            document.body.removeChild(this.el);
+          }
+        }
+      }
+    </script>
     """
   end
-
-  defp get_tooltip_pos_class(assigns) do
-    v_class =
-      case assigns do
-        %{v_pos: "bottom"} -> "top-full mt-2"
-        _v_pos_top -> "bottom-full mb-2"
-      end
-
-    h_class =
-      case assigns do
-        %{h_pos: "center"} -> "left-1/2"
-        %{h_pos: "right"} -> "right-0"
-        _h_pos_left -> "left-0"
-      end
-
-    v_class <> " " <> h_class
-  end
-
-  defp get_tooltip_inner_pos_class(%{h_pos: "center"}), do: "-left-1/2"
-  defp get_tooltip_inner_pos_class(_assigns), do: ""
 
   @doc """
   Renders a block with a profile icon.

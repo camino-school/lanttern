@@ -1,62 +1,268 @@
 defmodule LantternWeb.StrandLive.AssessmentComponent do
   use LantternWeb, :live_component
 
-  import LantternWeb.FiltersHelpers,
-    only: [assign_user_filters: 2]
-
   alias Lanttern.Assessments
-  alias Lanttern.Curricula
-  alias Lanttern.Filters
+  alias Lanttern.Assessments.AssessmentPoint
+  alias Lanttern.LearningContext
+
+  import Lanttern.Utils, only: [reorder: 3]
 
   # shared components
-  import LantternWeb.AssessmentsComponents
   alias LantternWeb.Assessments.AssessmentPointFormOverlayComponent
-  alias LantternWeb.Assessments.AssessmentsGridComponent
 
   @impl true
   def render(assigns) do
     ~H"""
     <div>
-      <.action_bar class="flex items-center gap-4">
-        <.assessment_group_by_dropdow
-          current_assessment_group_by={@current_assessment_group_by}
-          on_change={
-            fn group_by ->
-              JS.push("change_group_by", value: %{"group_by" => group_by}, target: @myself)
-            end
-          }
-        />
-        <.assessment_view_dropdow
-          current_assessment_view={@current_assessment_view}
-          on_change={fn view -> JS.push("change_view", value: %{"view" => view}, target: @myself) end}
-        />
-      </.action_bar>
-      <.responsive_container :if={@selected_classes_ids == []} class="py-10">
-        <p class="flex items-center gap-2">
-          <.icon name="hero-light-bulb-mini" class="text-ltrn-subtle" />
-          {gettext("Select a class above to view full assessments grid")}
-        </p>
+      <.responsive_container class="py-10">
+        <section id="assessment-info">
+          <div class="flex items-center gap-2 mb-6">
+            <h3 class="font-display font-bold text-2xl">
+              {gettext("Assessment information")}
+            </h3>
+            <button>
+              <.icon name="hero-information-circle-mini" class="text-ltrn-subtle" />
+              <.tooltip id="assessment-info-tooltip">
+                {gettext(
+                  "Use this area to share assessment information with students (e.g. grade composition)"
+                )}
+              </.tooltip>
+            </button>
+          </div>
+          <.markdown
+            :if={!@strand_form && @strand.assessment_info}
+            text={@strand.assessment_info}
+            class="mb-4"
+          />
+          <div :if={!@strand_form}>
+            <.button
+              :if={!@strand.assessment_info}
+              phx-click="edit_assessment_info"
+              phx-target={@myself}
+              icon_name="hero-plus-mini"
+              theme="primary"
+            >
+              {gettext("Add assessment info")}
+            </.button>
+            <.button
+              :if={@strand.assessment_info}
+              phx-click="edit_assessment_info"
+              phx-target={@myself}
+            >
+              {gettext("Edit assessment info")}
+            </.button>
+          </div>
+          <.form
+            :if={@strand_form}
+            for={@strand_form}
+            phx-submit="save_assessment_info"
+            phx-change="validate_assessment_info"
+            phx-target={@myself}
+            id="strand-assessment-info-form"
+          >
+            <.input
+              field={@strand_form[:assessment_info]}
+              type="markdown"
+              label={gettext("Strand assessment info")}
+              label_is_sr_only
+              phx-debounce="1500"
+            />
+            <div class="flex justify-end gap-2 mt-2">
+              <.button
+                type="button"
+                theme="ghost"
+                phx-click="cancel_assessment_info_edit"
+                phx-target={@myself}
+              >
+                {gettext("Cancel")}
+              </.button>
+              <.button type="submit" theme="primary">{gettext("Save")}</.button>
+            </div>
+          </.form>
+        </section>
+        <section id="assessment-points" class="mt-10">
+          <h3 class="font-display font-bold text-2xl">
+            {gettext("Assessment points")}
+          </h3>
+          <div class="flex items-center gap-4 mt-6">
+            <div class="relative">
+              <.button
+                type="button"
+                id="new-moment-assessment-button"
+                icon_name="hero-plus-mini"
+                theme="primary"
+              >
+                {gettext("New")}
+              </.button>
+              <.dropdown_menu
+                id="new-moment-assessment"
+                button_id="new-moment-assessment-button"
+              >
+                <:instructions>
+                  {gettext("Select moment to create the assessment point in")}
+                </:instructions>
+                <:item
+                  :for={moment <- @moments}
+                  on_click={
+                    JS.push("new_assessment_point",
+                      value: %{"moment_id" => moment.id},
+                      target: @myself
+                    )
+                  }
+                  text={moment.name}
+                />
+              </.dropdown_menu>
+            </div>
+            <div class="relative">
+              <.button
+                type="button"
+                id="marking-button"
+                icon_name="hero-pencil-square-mini"
+              >
+                {gettext("Marking")}
+              </.button>
+              <.dropdown_menu
+                id="marking"
+                button_id="marking-button"
+              >
+                <:item
+                  :for={moment <- @moments}
+                  type="link"
+                  navigate={~p"/strands/#{@strand}/assessment/marking/moment/#{moment}"}
+                  text={moment.name}
+                />
+                <:item
+                  type="link"
+                  navigate={~p"/strands/#{@strand}/assessment/marking"}
+                  text={gettext("Strand goals")}
+                />
+              </.dropdown_menu>
+            </div>
+          </div>
+          <div class="mt-6 space-y-10">
+            <%= for moment <- @moments do %>
+              <div id={"moment-#{moment.id}-ap-group"}>
+                <h4 class="font-display font-bold text-lg">{moment.name}</h4>
+                <div
+                  id={"moment-#{moment.id}-sortable-aps"}
+                  phx-hook="Sortable"
+                  phx-update="stream"
+                  phx-target={@myself}
+                  data-sortable-handle=".sortable-handle"
+                  data-sortable-event="sortable_ap_update"
+                  data-moment-id={moment.id}
+                  data-sortable-group="assessment_points"
+                >
+                  <.assessment_point_card
+                    :for={{dom_id, ap} <- @streams["moment_#{moment.id}_assessment_points"] || []}
+                    id={dom_id}
+                    assessment_point={ap}
+                    class="mt-2"
+                    on_edit={JS.push("edit_assessment_point", value: %{id: ap.id}, target: @myself)}
+                  />
+                  <.empty_state_simple
+                    class="p-4 mt-4 hidden only:block"
+                    id={"moment-#{moment.id}-assessment-empty"}
+                  >
+                    {gettext("No assessment points in this moment yet")}
+                  </.empty_state_simple>
+                </div>
+              </div>
+            <% end %>
+            <div id="strand-ap-group">
+              <h4 class="mb-4 font-display font-bold text-lg">{gettext("Goals assessment")}</h4>
+              <p class="mb-4">
+                {gettext("Goals assessment are defined by the strand curriculum.")}
+                <.link
+                  patch={~p"/strands/#{@strand}/overview#strand-curriculum"}
+                  class="hover:text-ltrn-subtle"
+                >
+                  {gettext("You can manage curriculum items in the overview section.")}
+                </.link>
+              </p>
+              <div
+                id="strand-sortable-aps"
+                phx-hook="Sortable"
+                phx-update="stream"
+                phx-target={@myself}
+                data-sortable-handle=".sortable-handle"
+                data-sortable-event="sortable_ap_update"
+                data-moment-id="strand"
+              >
+                <.assessment_point_card
+                  :for={{dom_id, ap} <- @streams.strand_assessment_points}
+                  id={dom_id}
+                  assessment_point={ap}
+                  class="mb-2"
+                  on_edit={JS.push("edit_assessment_point", value: %{id: ap.id}, target: @myself)}
+                />
+              </div>
+            </div>
+          </div>
+        </section>
       </.responsive_container>
       <.live_component
-        module={AssessmentsGridComponent}
-        id={:strand_assessment_grid}
-        current_user={@current_user}
-        current_assessment_group_by={@current_assessment_group_by}
-        current_assessment_view={@current_assessment_view}
-        strand_id={@strand.id}
-        classes_ids={@selected_classes_ids}
-        navigate={~p"/strands/#{@strand}/assessment"}
-      />
-      <.live_component
-        :if={@goal}
+        :if={@assessment_point}
         module={AssessmentPointFormOverlayComponent}
-        id={"strand-#{@strand.id}-goal-form-overlay"}
+        id="assessment-point-form-overlay"
+        assessment_point={@assessment_point}
         notify_component={@myself}
-        assessment_point={@goal}
-        title={gettext("Strand goal")}
-        on_cancel={JS.patch(~p"/strands/#{@strand}/assessment")}
+        title={@assessment_point_overlay_title}
+        on_cancel={JS.push("close_assessment_point_form", target: @myself)}
+        curriculum_from_strand_id={@strand.id}
       />
     </div>
+    """
+  end
+
+  attr :id, :string, required: true
+  attr :assessment_point, :map, required: true
+  attr :on_edit, :any, required: true
+  attr :class, :any, default: nil
+
+  defp assessment_point_card(assigns) do
+    ~H"""
+    <.draggable_card id={@id} class={@class}>
+      <div class="py-4 space-y-4">
+        <button
+          type="button"
+          phx-click={@on_edit}
+          class="flex-1 font-bold text-left text-ltrn-darkest hover:text-ltrn-subtle"
+        >
+          {if @assessment_point.moment_id,
+            do: @assessment_point.name,
+            else:
+              "(#{@assessment_point.curriculum_item.curriculum_component.name}) #{@assessment_point.curriculum_item.name}"}
+        </button>
+
+        <.markdown
+          :if={@assessment_point.report_info}
+          text={@assessment_point.report_info}
+          class="line-clamp-2"
+        />
+        <div class="flex items-center gap-2">
+          <div :if={@assessment_point.rubric_id}>
+            <.icon name="hero-view-columns" />
+            <.tooltip id={"ap-#{@assessment_point.id}-rubric-tooltip"}>
+              {gettext("Uses rubric in assessment")}
+            </.tooltip>
+          </div>
+          <.badge :if={@assessment_point.is_differentiation} theme="diff" class="shrink-0">
+            {gettext("Differentiation")}
+          </.badge>
+          <.badge class="shrink-0">{@assessment_point.scale.name}</.badge>
+          <%!-- render curriculum only for moment assessment poiint --%>
+          <div :if={@assessment_point.moment_id} class="flex-1 min-w-0">
+            <p class="max-w-sm font-sans text-sm text-ltrn-subtle truncate">
+              {@assessment_point.curriculum_item.name}
+            </p>
+            <.tooltip id={"ap-#{@assessment_point.id}-curriculum-tooltip"}>
+              ({@assessment_point.curriculum_item.curriculum_component.name}) {@assessment_point.curriculum_item.name}
+            </.tooltip>
+          </div>
+        </div>
+      </div>
+    </.draggable_card>
     """
   end
 
@@ -66,38 +272,86 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
   def mount(socket) do
     socket =
       socket
+      |> assign(:strand_form, nil)
+      |> assign(:assessment_point, nil)
       |> assign(:initialized, false)
 
     {:ok, socket}
   end
 
   @impl true
-  def update(
-        %{action: {AssessmentPointFormOverlayComponent, {action, _assessment_point}}},
-        socket
+  def update(%{action: {AssessmentPointFormOverlayComponent, {:created, created_ap}}}, socket) do
+    ap =
+      Assessments.get_assessment_point!(created_ap.id,
+        preloads: [:scale, curriculum_item: :curriculum_component]
       )
-      when action in [:created, :updated, :deleted, :deleted_with_entries] do
-    flash_message =
-      case action do
-        :created ->
-          {:info, gettext("Assessment point created successfully")}
 
-        :updated ->
-          {:info, gettext("Assessment point updated successfully")}
+    stream_key = ap_stream_key(ap.moment_id)
 
-        :deleted ->
-          {:info, gettext("Assessment point deleted successfully")}
-
-        :deleted_with_entries ->
-          {:info, gettext("Assessment point and entries deleted successfully")}
-      end
-
-    nav_opts = [
-      put_flash: flash_message,
-      push_navigate: [to: ~p"/strands/#{socket.assigns.strand}/assessment"]
+    ap_ids = [
+      ap.id | Map.get(socket.assigns.moments_assessment_points_ids_map, ap.moment_id, [])
     ]
 
-    {:ok, delegate_navigation(socket, nav_opts)}
+    moments_map =
+      Map.put(socket.assigns.moments_assessment_points_ids_map, ap.moment_id, ap_ids)
+
+    socket =
+      socket
+      |> stream_insert(stream_key, ap)
+      |> assign(:assessment_points_ids, [ap.id | socket.assigns.assessment_points_ids])
+      |> assign(:moments_assessment_points_ids_map, moments_map)
+      |> assign(:assessment_point, nil)
+      |> delegate_navigation(put_flash: {:info, gettext("Assessment point created")})
+
+    {:ok, socket}
+  end
+
+  def update(%{action: {AssessmentPointFormOverlayComponent, {:updated, updated_ap}}}, socket) do
+    ap =
+      Assessments.get_assessment_point!(updated_ap.id,
+        preloads: [:scale, curriculum_item: :curriculum_component]
+      )
+
+    socket =
+      socket
+      |> stream_insert(ap_stream_key(ap.moment_id), ap)
+      |> assign(:assessment_point, nil)
+      |> delegate_navigation(put_flash: {:info, gettext("Assessment point updated")})
+
+    {:ok, socket}
+  end
+
+  def update(
+        %{action: {AssessmentPointFormOverlayComponent, {action, deleted_ap}}},
+        socket
+      )
+      when action in [:deleted, :deleted_with_entries] do
+    old_moment_id =
+      Enum.find_value(socket.assigns.moments_assessment_points_ids_map, fn {moment_id, ids} ->
+        if deleted_ap.id in ids, do: moment_id
+      end)
+
+    old_ids =
+      List.delete(
+        Map.get(socket.assigns.moments_assessment_points_ids_map, old_moment_id, []),
+        deleted_ap.id
+      )
+
+    moments_map =
+      Map.put(socket.assigns.moments_assessment_points_ids_map, old_moment_id, old_ids)
+
+    socket =
+      socket
+      |> stream_delete(ap_stream_key(old_moment_id), deleted_ap)
+      |> assign(
+        :assessment_points_ids,
+        List.delete(socket.assigns.assessment_points_ids, deleted_ap.id)
+      )
+      |> assign(:moments_assessment_points_ids_map, moments_map)
+      |> assign(:assessment_point, nil)
+      |> delegate_navigation(put_flash: {:info, gettext("Assessment point deleted")})
+
+    {:ok, socket}
   end
 
   def update(assigns, socket) do
@@ -105,102 +359,213 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
       socket
       |> assign(assigns)
       |> initialize()
-      |> assign_goal()
 
     {:ok, socket}
   end
 
   defp initialize(%{assigns: %{initialized: false}} = socket) do
     socket
-    |> assign_user_filters([:assessment_view, :assessment_group_by])
-    |> assign_goals_ids()
+    |> load_moments_and_assessment_points()
     |> assign(:initialized, true)
   end
 
   defp initialize(socket), do: socket
 
-  defp assign_goals_ids(socket) do
-    goals_ids =
-      Curricula.list_strand_curriculum_items(socket.assigns.strand.id)
-      |> Enum.map(&"#{&1.assessment_point_id}")
+  defp load_moments_and_assessment_points(socket) do
+    strand = socket.assigns.strand
+
+    moments = LearningContext.list_moments(strands_ids: [strand.id])
+    moments_ids = Enum.map(moments, & &1.id)
+
+    preloads = [:scale, curriculum_item: :curriculum_component]
+
+    # moment-linked APs have strand_id: nil, so we must query by moments_ids
+    moment_aps =
+      if moments_ids == [] do
+        []
+      else
+        Assessments.list_assessment_points(moments_ids: moments_ids, preloads: preloads)
+      end
+
+    # strand-level APs have strand_id set and moment_id: nil
+    strand_aps = Assessments.list_assessment_points(strand_id: strand.id, preloads: preloads)
+
+    assessment_points = moment_aps ++ strand_aps
+    grouped = Enum.group_by(assessment_points, & &1.moment_id)
 
     socket
-    |> assign(:goals_ids, goals_ids)
+    |> assign(:moments, moments)
+    |> assign(:moments_ids, moments_ids)
+    |> assign(:assessment_points_ids, Enum.map(assessment_points, & &1.id))
+    |> stream_assessment_points_by_group(grouped, moments)
+    |> assign_moments_assessment_points_ids_map(grouped, moments)
   end
 
-  defp assign_goal(%{assigns: %{params: %{"edit_assessment_point" => id}}} = socket) do
-    if id in socket.assigns.goals_ids do
-      goal = Assessments.get_assessment_point(id)
-      assign(socket, :goal, goal)
-    else
-      assign(socket, :goal, nil)
-    end
+  defp stream_assessment_points_by_group(socket, grouped, moments) do
+    strand_aps = Map.get(grouped, nil, [])
+    socket = stream(socket, :strand_assessment_points, strand_aps)
+
+    Enum.reduce(moments, socket, fn moment, socket ->
+      moment_aps = Map.get(grouped, moment.id, [])
+      stream(socket, "moment_#{moment.id}_assessment_points", moment_aps)
+    end)
   end
 
-  defp assign_goal(socket), do: assign(socket, :goal, nil)
+  defp assign_moments_assessment_points_ids_map(socket, grouped, moments) do
+    ids_map =
+      [nil | Enum.map(moments, & &1.id)]
+      |> Enum.map(fn moment_id ->
+        {moment_id, grouped |> Map.get(moment_id, []) |> Enum.map(& &1.id)}
+      end)
+      |> Enum.into(%{})
+
+    assign(socket, :moments_assessment_points_ids_map, ids_map)
+  end
 
   # event handlers
 
   @impl true
-  def handle_event(
-        "change_group_by",
-        %{"group_by" => group_by},
-        %{assigns: %{current_assessment_group_by: current_assessment_group_by}} = socket
-      )
-      when group_by == current_assessment_group_by,
-      do: {:noreply, socket}
 
-  def handle_event("change_group_by", %{"group_by" => group_by}, socket) do
-    # TODO
-    # before applying the group_by change, check if there're pending changes
+  # -- assessment info
 
-    Filters.set_profile_current_filters(
-      socket.assigns.current_user,
-      %{assessment_group_by: group_by}
-    )
-    |> case do
-      {:ok, _} ->
+  def handle_event("edit_assessment_info", _params, socket) do
+    form =
+      socket.assigns.strand
+      |> LearningContext.change_strand()
+      |> to_form()
+
+    {:noreply, assign(socket, :strand_form, form)}
+  end
+
+  def handle_event("cancel_assessment_info_edit", _params, socket),
+    do: {:noreply, assign(socket, :strand_form, nil)}
+
+  def handle_event("validate_assessment_info", %{"strand" => params}, socket) do
+    form =
+      socket.assigns.strand
+      |> LearningContext.change_strand(params)
+      |> Map.put(:action, :validate)
+      |> to_form()
+
+    {:noreply, assign(socket, :strand_form, form)}
+  end
+
+  def handle_event("save_assessment_info", %{"strand" => params}, socket) do
+    case LearningContext.update_strand(socket.assigns.strand, params) do
+      {:ok, strand} ->
+        notify(__MODULE__, {:updated, strand}, socket.assigns)
+
         socket =
           socket
-          |> assign(:current_assessment_group_by, group_by)
-          |> push_navigate(to: ~p"/strands/#{socket.assigns.strand}/assessment")
+          |> assign(:strand, strand)
+          |> assign(:strand_form, nil)
 
         {:noreply, socket}
 
-      {:error, _} ->
-        # do something with error?
-        {:noreply, socket}
+      {:error, changeset} ->
+        {:noreply, assign(socket, :strand_form, to_form(changeset))}
     end
   end
 
-  def handle_event(
-        "change_view",
-        %{"view" => view},
-        %{assigns: %{current_assessment_view: current_assessment_view}} = socket
-      )
-      when view == current_assessment_view,
-      do: {:noreply, socket}
+  # -- assessment points
 
-  def handle_event("change_view", %{"view" => view}, socket) do
-    # TODO
-    # before applying the view change, check if there're pending changes
+  def handle_event("new_assessment_point", %{"moment_id" => moment_id}, socket) do
+    assessment_point = %AssessmentPoint{moment_id: moment_id}
 
-    Filters.set_profile_current_filters(
-      socket.assigns.current_user,
-      %{assessment_view: view}
-    )
-    |> case do
-      {:ok, _} ->
-        socket =
-          socket
-          |> assign(:current_assessment_view, view)
-          |> push_navigate(to: ~p"/strands/#{socket.assigns.strand}/assessment")
+    socket =
+      socket
+      |> assign(:assessment_point, assessment_point)
+      |> assign(:assessment_point_overlay_title, gettext("New assessment point"))
 
-        {:noreply, socket}
-
-      {:error, _} ->
-        # do something with error?
-        {:noreply, socket}
-    end
+    {:noreply, socket}
   end
+
+  def handle_event("edit_assessment_point", %{"id" => ap_id}, socket) do
+    socket =
+      if ap_id in socket.assigns.assessment_points_ids do
+        ap = Assessments.get_assessment_point!(ap_id)
+
+        socket
+        |> assign(:assessment_point, ap)
+        |> assign(:assessment_point_overlay_title, gettext("Edit assessment point"))
+      else
+        socket
+      end
+
+    {:noreply, socket}
+  end
+
+  def handle_event("close_assessment_point_form", _params, socket),
+    do: {:noreply, assign(socket, :assessment_point, nil)}
+
+  # -- sortable
+
+  def handle_event(
+        "sortable_ap_update",
+        %{
+          "from" => %{"momentId" => from_moment_id},
+          "to" => %{"momentId" => to_moment_id},
+          "oldIndex" => old_index,
+          "newIndex" => new_index
+        },
+        socket
+      )
+      when from_moment_id != to_moment_id do
+    from_key = parse_ap_moment_key(from_moment_id)
+    to_key = parse_ap_moment_key(to_moment_id)
+
+    {ap_id, from_ids} =
+      socket.assigns.moments_assessment_points_ids_map[from_key]
+      |> List.pop_at(old_index)
+
+    to_ids =
+      socket.assigns.moments_assessment_points_ids_map[to_key]
+      |> List.insert_at(new_index, ap_id)
+
+    # the interface was already updated (optimistic update), just persist the new order and moment
+    Assessments.update_assessment_points_positions(to_ids)
+
+    ap = Assessments.get_assessment_point!(ap_id)
+    Assessments.update_assessment_point(ap, %{moment_id: to_key})
+
+    moments_map =
+      socket.assigns.moments_assessment_points_ids_map
+      |> Map.put(from_key, from_ids)
+      |> Map.put(to_key, to_ids)
+
+    {:noreply, assign(socket, :moments_assessment_points_ids_map, moments_map)}
+  end
+
+  def handle_event(
+        "sortable_ap_update",
+        %{
+          "from" => %{"momentId" => moment_id},
+          "oldIndex" => old_index,
+          "newIndex" => new_index
+        },
+        socket
+      )
+      when old_index != new_index do
+    moment_key = parse_ap_moment_key(moment_id)
+
+    ap_ids =
+      reorder(socket.assigns.moments_assessment_points_ids_map[moment_key], old_index, new_index)
+
+    # the interface was already updated (optimistic update), just persist the new order
+    Assessments.update_assessment_points_positions(ap_ids)
+
+    moments_map = Map.put(socket.assigns.moments_assessment_points_ids_map, moment_key, ap_ids)
+
+    {:noreply, assign(socket, :moments_assessment_points_ids_map, moments_map)}
+  end
+
+  def handle_event("sortable_ap_update", _payload, socket), do: {:noreply, socket}
+
+  # defp helpers
+
+  defp ap_stream_key(nil), do: :strand_assessment_points
+  defp ap_stream_key(moment_id), do: "moment_#{moment_id}_assessment_points"
+
+  defp parse_ap_moment_key("strand"), do: nil
+  defp parse_ap_moment_key(id), do: String.to_integer(id)
 end

@@ -11,6 +11,7 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
   import Lanttern.Utils, only: [reorder: 3]
 
   # shared components
+  alias LantternWeb.LearningContext.MomentDetailsOverlayComponent
   alias LantternWeb.LearningContext.MomentFormComponent
   alias LantternWeb.Lessons.LessonFormComponent
 
@@ -25,9 +26,11 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
           empty_state_text={gettext("Edit strand to add a cover image")}
           size="sm"
         />
-        <hgroup class="mt-10 font-display font-black">
-          <h1 class="text-4xl sm:text-5xl">{@strand.name}</h1>
-          <p :if={@strand.type} class="mt-2 text-xl sm:text-2xl">{@strand.type}</p>
+        <hgroup class="mt-10">
+          <h1 class="font-display font-black text-ltrn-darkest text-4xl sm:text-5xl">
+            {@strand.name}
+          </h1>
+          <p :if={@strand.type} class="mt-2 font-bold text-xl sm:text-2xl">{@strand.type}</p>
         </hgroup>
         <div class="flex flex-wrap gap-2 mt-6">
           <.badge :for={subject <- @strand.subjects} theme="dark">
@@ -38,11 +41,11 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
           </.badge>
         </div>
         <.markdown text={@strand.description} class="mt-10 line-clamp-3" strip_tags />
-        <.button type="link" navigate={~p"/strands/#{@strand.id}/overview"} class="mt-4">
-          {gettext("Full overview")}
+        <.button type="link" patch={~p"/strands/#{@strand.id}/overview"} class="mt-4">
+          {gettext("Read the full overview")}
         </.button>
         <section class="mt-20" id="lessons-section">
-          <h2 class="font-display font-black text-2xl">{gettext("Strand lessons")}</h2>
+          <h2 class="font-display font-bold text-2xl">{gettext("Strand lessons")}</h2>
           <div class="flex items-center gap-4 mt-6">
             <div class="relative">
               <.button
@@ -140,12 +143,15 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
                   </div>
                   <div class="flex-1">
                     <div class="flex items-center gap-4">
-                      <.link
-                        navigate={~p"/strands/moment/#{moment.id}"}
+                      <button
+                        type="button"
+                        phx-click={
+                          JS.push("view_moment_details", value: %{id: moment.id}, target: @myself)
+                        }
                         class="font-display font-bold text-xl hover:text-ltrn-subtle"
                       >
                         {moment.name}
-                      </.link>
+                      </button>
                       <.action
                         type="button"
                         phx-click={JS.push("edit_moment", value: %{id: moment.id}, target: @myself)}
@@ -155,7 +161,19 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
                         {gettext("Edit")}
                       </.action>
                     </div>
-                    <.markdown text={moment.description} strip_tags class="mt-4 line-clamp-3" />
+                    <button
+                      type="button"
+                      phx-click={
+                        JS.push("view_moment_details", value: %{id: moment.id}, target: @myself)
+                      }
+                      class="block mt-4 text-left"
+                    >
+                      <.markdown
+                        text={moment.description}
+                        strip_tags
+                        class="hover:text-ltrn-subtle line-clamp-3"
+                      />
+                    </button>
                   </div>
                 </div>
                 <%!-- lessons --%>
@@ -189,7 +207,15 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
           <% end %>
         </section>
       </.responsive_container>
-      <.slide_over
+      <.live_component
+        :if={@moment_id}
+        module={MomentDetailsOverlayComponent}
+        id="moment-details-overlay"
+        moment_id={@moment_id}
+        on_cancel={JS.push("close_moment_details", target: @myself)}
+        notify_component={@myself}
+      />
+      <.modal
         :if={@moment}
         id="moment-form-overlay"
         show={true}
@@ -199,40 +225,13 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
         <.live_component
           module={MomentFormComponent}
           id="moment-form"
+          current_scope={@current_scope}
           moment={@moment}
           strand_id={@strand.id}
-          navigate={
-            fn _moment ->
-              if @subject_filter,
-                do: ~p"/strands/#{@strand}?subject=#{@subject_filter.id}",
-                else: ~p"/strands/#{@strand}"
-            end
-          }
+          navigate={fn _ -> ~p"/strands/#{@strand}" end}
+          on_cancel={JS.exec("data-cancel", to: "#moment-form-overlay")}
         />
-        <:actions_left :if={@moment.id}>
-          <.button
-            type="button"
-            theme="ghost"
-            phx-click="delete_moment"
-            phx-target={@myself}
-            data-confirm={gettext("Are you sure?")}
-          >
-            {gettext("Delete")}
-          </.button>
-        </:actions_left>
-        <:actions>
-          <.button
-            type="button"
-            theme="ghost"
-            phx-click={JS.exec("data-cancel", to: "#moment-form-overlay")}
-          >
-            {gettext("Cancel")}
-          </.button>
-          <.button type="submit" form="moment-form">
-            {gettext("Save")}
-          </.button>
-        </:actions>
-      </.slide_over>
+      </.modal>
       <.modal
         :if={@lesson}
         id="lesson-form-overlay"
@@ -290,7 +289,10 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
             <h4 class="flex-1 font-display font-bold text-base">
               <.link
                 navigate={~p"/strands/lesson/#{@lesson.id}"}
-                class="hover:text-ltrn-subtle"
+                class={[
+                  "hover:text-ltrn-subtle",
+                  if(@lesson.is_published, do: "text-ltrn-darkest", else: "text-ltrn-dark")
+                ]}
               >
                 {@lesson.name}
                 <span :if={!@lesson.is_published} class="font-normal text-ltrn-subtle">
@@ -307,11 +309,28 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
               {gettext("Edit")}
             </.action>
           </div>
-          <div :if={@lesson.description} class="mt-2 text-xs">
-            <.markdown text={@lesson.description} strip_tags class="mt-2 line-clamp-1" />
-          </div>
-          <div :if={!Enum.empty?(@lesson.subjects)} class="mt-2 text-xs">
-            {@lesson.subjects |> Enum.map(& &1.name) |> Enum.join(", ")}
+          <.markdown
+            :if={@lesson.description}
+            text={@lesson.description}
+            strip_tags
+            class="mt-2 text-ltrn-subtle line-clamp-1"
+          />
+          <div
+            :if={!Enum.empty?(@lesson.subjects) || !Enum.empty?(@lesson.tags)}
+            class="flex items-center gap-4 mt-2 font-sans text-sm text-ltrn-subtle"
+          >
+            <div :if={!Enum.empty?(@lesson.subjects)}>
+              {@lesson.subjects |> Enum.map_join(", ", & &1.name)}
+            </div>
+            <div :if={!Enum.empty?(@lesson.tags)} class="flex gap-4">
+              <div
+                :for={tag <- @lesson.tags}
+                class="flex items-center gap-1"
+              >
+                <.icon name="hero-tag-micro" style={"color: #{tag.bg_color}"} />
+                {tag.name}
+              </div>
+            </div>
           </div>
         </div>
         <div class="flex flex-col items-stretch w-2">
@@ -329,27 +348,16 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
       socket
       |> assign(:moment, nil)
       |> assign(:lesson, nil)
+      |> assign(:moment_id, nil)
+      |> assign(:moment_has_changes, false)
       |> assign(:initialized, false)
 
     {:ok, socket}
   end
 
   @impl true
-  def update(%{action: {MomentFormComponent, {action, moment}}}, socket)
-      when action in [:created, :updated] do
-    message =
-      case action do
-        :created -> gettext("New moment created")
-        :updated -> gettext("Moment updated")
-      end
-
-    socket =
-      socket
-      |> stream_insert(:moments, moment)
-      |> assign(:moment, nil)
-      |> delegate_navigation(put_flash: {:info, message})
-
-    {:ok, socket}
+  def update(%{action: {MomentDetailsOverlayComponent, {:updated, _moment}}}, socket) do
+    {:ok, assign(socket, :moment_has_changes, true)}
   end
 
   def update(assigns, socket) do
@@ -474,7 +482,7 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
 
   @impl true
   def handle_event("new_moment", _params, socket) do
-    moment = %Moment{strand_id: socket.assigns.strand.id, subjects: []}
+    moment = %Moment{strand_id: socket.assigns.strand.id}
 
     socket =
       socket
@@ -484,10 +492,33 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
     {:noreply, socket}
   end
 
+  def handle_event("view_moment_details", %{"id" => moment_id}, socket) do
+    socket =
+      if moment_id in socket.assigns.moments_ids do
+        socket
+        |> assign(:moment_id, moment_id)
+      else
+        socket
+      end
+
+    {:noreply, socket}
+  end
+
+  def handle_event("close_moment_details", _params, socket) do
+    socket =
+      if socket.assigns.moment_has_changes do
+        push_navigate(socket, to: ~p"/strands/#{socket.assigns.strand}")
+      else
+        assign(socket, :moment_id, nil)
+      end
+
+    {:noreply, socket}
+  end
+
   def handle_event("edit_moment", %{"id" => moment_id}, socket) do
     socket =
       if moment_id in socket.assigns.moments_ids do
-        moment = LearningContext.get_moment(moment_id, preloads: [:subjects])
+        moment = LearningContext.get_moment(moment_id)
 
         socket
         |> assign(:moment, moment)
@@ -501,31 +532,6 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
 
   def handle_event("close_moment_form", _params, socket),
     do: {:noreply, assign(socket, :moment, nil)}
-
-  def handle_event("delete_moment", _params, socket) do
-    case LearningContext.delete_moment(socket.assigns.moment) do
-      {:ok, _moment} ->
-        socket =
-          socket
-          |> put_flash(:info, gettext("Moment deleted"))
-          |> push_navigate(to: ~p"/strands/#{socket.assigns.strand}")
-
-        {:noreply, socket}
-
-      {:error, _changeset} ->
-        socket =
-          socket
-          |> put_flash(
-            :error,
-            gettext("Moment has linked assessments. Deleting it would cause some data loss.")
-          )
-          |> push_patch(
-            to: ~p"/strands/#{socket.assigns.strand}?moment=#{socket.assigns.moment.id}"
-          )
-
-        {:noreply, socket}
-    end
-  end
 
   def handle_event("new_lesson", _params, socket) do
     subjects =

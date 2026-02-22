@@ -8,7 +8,6 @@ defmodule Lanttern.MomentFactory do
         moment =
           %Lanttern.LearningContext.Moment{
             name: "Moment",
-            description: "Moment description",
             position: 0,
             strand: strand
           }

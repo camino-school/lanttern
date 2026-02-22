@@ -1,247 +1,283 @@
-<Layouts.app_logged_in flash={@flash} current_user={@current_user} current_path={@current_path}>
-  <div>
-    <.header_nav current_user={@current_user}>
-      <:breadcrumb navigate={~p"/strands"}>{gettext("Strands")}</:breadcrumb>
-      <:breadcrumb is_info>
-        <.mini_strand_card strand={@strand} class="w-60" />
-      </:breadcrumb>
-      <:breadcrumb navigate={~p"/strands/#{@strand}"} title={@strand.name}>
-        {@strand.name}
-      </:breadcrumb>
-      <:title>{gettext("Lesson")}</:title>
-    </.header_nav>
-    <.responsive_container class="py-10">
-      <div class="flex items-start gap-6">
-        <div class="flex-1 pt-2">
-          <h1 class="font-display font-black text-2xl">
-            {@lesson.name}
-            <span :if={!@lesson.is_published} class="font-bold text-ltrn-subtle">
-              ({gettext("Draft")})
+<Layouts.app_with_side_nav
+  flash={@flash}
+  current_user={@current_user}
+  current_path={@current_path}
+  side_nav_id="side-nav"
+  collapsible
+>
+  <:side_nav>
+    <div class="py-10">
+      <div class="px-10 mb-10">
+        <h2 class="inline font-display font-bold text-lg text-ltrn-darkest">
+          {gettext("Lesson")}
+        </h2>
+        <span class="font-sm italic text-ltrn-subtle">{gettext("in")}</span>
+        <h3>
+          <.link navigate={~p"/strands/#{@strand}"} class="hover:text-ltrn-subtle">
+            <span class="line-clamp-3">
+              {@strand.name}
             </span>
-          </h1>
-          <div
-            :if={@lesson.moment || @lesson.subjects != []}
-            class="flex items-center gap-4 mt-2 text-ltrn-subtle"
-          >
-            <p :if={@lesson.moment} class="text-lg font-bold">
-              {@lesson.moment.name}
-            </p>
-            <p :if={@lesson.subjects != []}>
-              {@lesson.subjects
-              |> Enum.map(&Gettext.dgettext(Lanttern.Gettext, "taxonomy", &1.name))
-              |> Enum.join(", ")}
-            </p>
-          </div>
-          <div :if={!Enum.empty?(@lesson.tags)} class="flex gap-2 mt-2">
-            <.badge :for={tag <- @lesson.tags} color_map={tag}>{tag.name}</.badge>
-          </div>
-        </div>
-        <div class="shrink-0 flex gap-2">
-          <.button phx-click="edit">{gettext("Edit")}</.button>
-          <div class="group relative">
-            <%= if @lesson.is_published do %>
-              <.button phx-click="unpublish">
-                {gettext("Unpublish")}
-              </.button>
-              <.tooltip h_pos="right" v_pos="bottom">
-                {gettext("Unpublish to hide lesson from students and guardians")}
-              </.tooltip>
-            <% else %>
-              <.button theme="primary" phx-click="publish">
-                {gettext("Publish")}
-              </.button>
-              <.tooltip h_pos="right" v_pos="bottom">
-                {gettext(
-                  "This lesson is in draft mode. Publish to make it visible to students and guardians"
-                )}
-              </.tooltip>
-            <% end %>
+            <span class="flex items-center gap-1 mt-1 font-sans text-sm text-ltrn-subtle">
+              <.icon name="hero-arrow-left-micro" />
+              {gettext("Back")}
+            </span>
+          </.link>
+        </h3>
+      </div>
+      <.live_component
+        module={LessonsSideNavComponent}
+        id="lesson-nav"
+        lesson_id={@lesson.id}
+        strand_id={@strand.id}
+        current_scope={@current_scope}
+        on_moment_click={
+          fn moment_id ->
+            JS.push("view_moment_details", value: %{"moment_id" => moment_id})
+          end
+        }
+      />
+    </div>
+  </:side_nav>
+  <.responsive_container class="py-10">
+    <div class="flex items-start gap-6">
+      <div class="flex-1 pt-2">
+        <h1 class={[
+          "font-display font-black text-2xl",
+          if(@lesson.is_published, do: "text-ltrn-darkest", else: "text-ltrn-subtle")
+        ]}>
+          {@lesson.name}
+          <span :if={!@lesson.is_published} class="font-bold text-ltrn-subtle">
+            ({gettext("Draft")})
+          </span>
+        </h1>
+        <div
+          :if={@lesson.moment || @lesson.subjects != [] || !Enum.empty?(@lesson.tags)}
+          class="flex items-center gap-4 mt-2"
+        >
+          <p :if={@lesson.moment} class="text-lg font-bold">
+            {@lesson.moment.name}
+          </p>
+          <p :if={@lesson.subjects != []} class="font-sans text-sm">
+            {@lesson.subjects
+            |> Enum.map(&Gettext.dgettext(Lanttern.Gettext, "taxonomy", &1.name))
+            |> Enum.join(", ")}
+          </p>
+          <div :if={!Enum.empty?(@lesson.tags)} class="flex gap-2 font-sans text-sm">
+            <div
+              :for={tag <- @lesson.tags}
+              class="flex items-center gap-1"
+            >
+              <.icon name="hero-tag-micro" style={"color: #{tag.bg_color}"} />
+              {tag.name}
+            </div>
           </div>
         </div>
       </div>
-      <section id="lesson-description" class="mt-10">
-        <.markdown :if={!@description_form && @lesson.description} text={@lesson.description} />
-        <div :if={!@description_form} class="flex gap-4">
+      <div class="shrink-0 flex gap-2">
+        <.button phx-click="edit">{gettext("Edit")}</.button>
+        <div>
+          <%= if @lesson.is_published do %>
+            <.button phx-click="unpublish">
+              {gettext("Unpublish")}
+            </.button>
+            <.tooltip id="lesson-publish-tooltip">
+              {gettext("Unpublish to hide lesson from students and guardians")}
+            </.tooltip>
+          <% else %>
+            <.button theme="primary" phx-click="publish">
+              {gettext("Publish")}
+            </.button>
+            <.tooltip id="lesson-publish-tooltip">
+              {gettext(
+                "This lesson is in draft mode. Publish to make it visible to students and guardians"
+              )}
+            </.tooltip>
+          <% end %>
+        </div>
+      </div>
+    </div>
+    <section id="lesson-description" class="mt-10">
+      <.markdown :if={!@description_form && @lesson.description} text={@lesson.description} />
+      <div :if={!@description_form} class="flex gap-4">
+        <.button
+          :if={!@lesson.description}
+          phx-click="edit_description"
+          theme="primary"
+          icon_name="hero-plus-mini"
+        >
+          {gettext("Add lesson content")}
+        </.button>
+        <.button
+          :if={@lesson.description}
+          phx-click="edit_description"
+          class="mt-4"
+          size="sm"
+        >
+          {gettext("Edit content")}
+        </.button>
+      </div>
+      <.form
+        :if={@description_form}
+        for={@description_form}
+        phx-submit="save_description"
+        phx-change="validate_description"
+        id="lesson-description-form"
+      >
+        <.input
+          field={@description_form[:description]}
+          type="markdown"
+          label={gettext("Lesson description")}
+          label_is_sr_only
+          phx-debounce="1500"
+        />
+        <div class="flex justify-end gap-2 mt-2">
+          <.button type="button" theme="ghost" phx-click="cancel_description_edit">
+            {gettext("Cancel")}
+          </.button>
+          <.button type="submit" theme="primary">{gettext("Save")}</.button>
+        </div>
+      </.form>
+    </section>
+    <.live_component
+      module={AttachmentAreaComponent}
+      id="lesson-resources-student"
+      title={gettext("Lesson resources")}
+      lesson_id={@lesson.id}
+      is_teacher_only_resource={false}
+      allow_editing={true}
+      current_user={@current_user}
+      sortable_group="lesson-resources"
+      class="mt-10"
+    />
+  </.responsive_container>
+  <section id="teacher-area" class="py-10 bg-ltrn-staff-lightest">
+    <.responsive_container>
+      <h4 class="font-display font-black text-2xl text-ltrn-staff-dark">
+        {gettext("Teacher area")}
+      </h4>
+      <p class="mt-2">
+        {gettext("Content and resources not shared with students and guardians")}
+      </p>
+      <div id="teacher-notes" class="p-4 rounded-xs mt-10 border border-ltrn-staff-dark">
+        <div class="flex items-center gap-6">
+          <p class="flex-1 font-display font-bold text-ltrn-staff-dark">
+            {gettext("Notes")}
+          </p>
           <.button
-            :if={!@lesson.description}
-            phx-click="edit_description"
-            theme="primary"
+            :if={!@teacher_notes_form && !@lesson.teacher_notes}
+            phx-click="edit_teacher_notes"
+            size="sm"
             icon_name="hero-plus-mini"
           >
-            {gettext("Add lesson content")}
+            {gettext("Add teacher notes")}
           </.button>
           <.button
-            :if={@lesson.description}
-            phx-click="edit_description"
-            class="mt-4"
+            :if={!@teacher_notes_form && @lesson.teacher_notes}
+            phx-click="edit_teacher_notes"
             size="sm"
           >
-            {gettext("Edit content")}
+            {gettext("Edit")}
           </.button>
         </div>
+        <.markdown
+          :if={!@teacher_notes_form && @lesson.teacher_notes}
+          text={@lesson.teacher_notes}
+          theme="staff"
+          class="mt-6"
+        />
         <.form
-          :if={@description_form}
-          for={@description_form}
-          phx-submit="save_description"
-          phx-change="validate_description"
-          id="lesson-description-form"
+          :if={@teacher_notes_form}
+          for={@teacher_notes_form}
+          phx-submit="save_teacher_notes"
+          phx-change="validate_teacher_notes"
+          class="mt-6"
         >
           <.input
-            field={@description_form[:description]}
+            field={@teacher_notes_form[:teacher_notes]}
             type="markdown"
-            label={gettext("Lesson description")}
-            label_is_sr_only
             phx-debounce="1500"
           />
+          <%!-- <p
+                :if={@teacher_notes_error}
+                class="p-4 rounded-sm mt-4 text-sm text-ltrn-alert-accent bg-ltrn-alert-lighter"
+              >
+                {@teacher_notes_error}
+              </p> --%>
           <div class="flex justify-end gap-2 mt-2">
-            <.button type="button" theme="ghost" phx-click="cancel_description_edit">
+            <.button type="button" theme="ghost" phx-click="cancel_teacher_notes_edit">
               {gettext("Cancel")}
             </.button>
             <.button type="submit" theme="primary">{gettext("Save")}</.button>
           </div>
         </.form>
-      </section>
+      </div>
+      <div id="lesson-differentiation" class="p-4 rounded-xs mt-10 bg-ltrn-diff-lightest">
+        <div class="flex items-center gap-6">
+          <p class="flex-1 font-display font-bold text-ltrn-diff-dark">
+            {gettext("Differentiation")}
+          </p>
+          <.button
+            :if={!@differentiation_form && !@lesson.differentiation_notes}
+            phx-click="edit_differentiation"
+            size="sm"
+            icon_name="hero-plus-mini"
+          >
+            {gettext("Add differentiation notes")}
+          </.button>
+          <.button
+            :if={!@differentiation_form && @lesson.differentiation_notes}
+            phx-click="edit_differentiation"
+            size="sm"
+          >
+            {gettext("Edit")}
+          </.button>
+        </div>
+        <.markdown
+          :if={!@differentiation_form && @lesson.differentiation_notes}
+          text={@lesson.differentiation_notes}
+          theme="staff"
+          class="mt-6"
+        />
+        <.form
+          :if={@differentiation_form}
+          for={@differentiation_form}
+          phx-submit="save_differentiation"
+          phx-change="validate_differentiation"
+          class="mt-6"
+        >
+          <.input
+            field={@differentiation_form[:differentiation_notes]}
+            type="markdown"
+            phx-debounce="1500"
+          />
+          <%!-- <p
+                :if={@differentiation_error}
+                class="p-4 rounded-sm mt-4 text-sm text-ltrn-alert-accent bg-ltrn-alert-lighter"
+              >
+                {@differentiation_error}
+              </p> --%>
+          <div class="flex justify-end gap-2 mt-2">
+            <.button type="button" theme="ghost" phx-click="cancel_differentiation_edit">
+              {gettext("Cancel")}
+            </.button>
+            <.button type="submit" theme="primary">{gettext("Save")}</.button>
+          </div>
+        </.form>
+      </div>
       <.live_component
         module={AttachmentAreaComponent}
-        id="lesson-resources-student"
-        title={gettext("Lesson resources")}
+        id="lesson-resources-teacher"
+        title={gettext("Teacher resources")}
         lesson_id={@lesson.id}
-        is_teacher_only_resource={false}
+        is_teacher_only_resource={true}
         allow_editing={true}
         current_user={@current_user}
         sortable_group="lesson-resources"
         class="mt-10"
       />
     </.responsive_container>
-    <section id="teacher-area" class="py-10 bg-ltrn-staff-lightest">
-      <.responsive_container>
-        <h4 class="font-display font-black text-2xl text-ltrn-staff-dark">
-          {gettext("Teacher area")}
-        </h4>
-        <p class="mt-2">
-          {gettext("Content and resources not shared with students and guardians")}
-        </p>
-        <div id="teacher-notes" class="p-4 rounded-xs mt-10 border border-ltrn-staff-dark">
-          <div class="flex items-center gap-6">
-            <p class="flex-1 font-bold text-ltrn-staff-dark">
-              {gettext("Notes")}
-            </p>
-            <.button
-              :if={!@teacher_notes_form && !@lesson.teacher_notes}
-              phx-click="edit_teacher_notes"
-              size="sm"
-              icon_name="hero-plus-mini"
-            >
-              {gettext("Add teacher notes")}
-            </.button>
-            <.button
-              :if={!@teacher_notes_form && @lesson.teacher_notes}
-              phx-click="edit_teacher_notes"
-              size="sm"
-            >
-              {gettext("Edit")}
-            </.button>
-          </div>
-          <.markdown
-            :if={!@teacher_notes_form && @lesson.teacher_notes}
-            text={@lesson.teacher_notes}
-            theme="staff"
-            class="mt-6"
-          />
-          <.form
-            :if={@teacher_notes_form}
-            for={@teacher_notes_form}
-            phx-submit="save_teacher_notes"
-            phx-change="validate_teacher_notes"
-            class="mt-6"
-          >
-            <.input
-              field={@teacher_notes_form[:teacher_notes]}
-              type="markdown"
-              phx-debounce="1500"
-            />
-            <%!-- <p
-                :if={@teacher_notes_error}
-                class="p-4 rounded-sm mt-4 text-sm text-ltrn-alert-accent bg-ltrn-alert-lighter"
-              >
-                {@teacher_notes_error}
-              </p> --%>
-            <div class="flex justify-end gap-2 mt-2">
-              <.button type="button" theme="ghost" phx-click="cancel_teacher_notes_edit">
-                {gettext("Cancel")}
-              </.button>
-              <.button type="submit" theme="primary">{gettext("Save")}</.button>
-            </div>
-          </.form>
-        </div>
-        <div id="lesson-differentiation" class="p-4 rounded-xs mt-10 bg-ltrn-diff-lightest">
-          <div class="flex items-center gap-6">
-            <p class="flex-1 font-bold text-ltrn-diff-dark">
-              {gettext("Differentiation")}
-            </p>
-            <.button
-              :if={!@differentiation_form && !@lesson.differentiation_notes}
-              phx-click="edit_differentiation"
-              size="sm"
-              icon_name="hero-plus-mini"
-            >
-              {gettext("Add differentiation notes")}
-            </.button>
-            <.button
-              :if={!@differentiation_form && @lesson.differentiation_notes}
-              phx-click="edit_differentiation"
-              size="sm"
-            >
-              {gettext("Edit")}
-            </.button>
-          </div>
-          <.markdown
-            :if={!@differentiation_form && @lesson.differentiation_notes}
-            text={@lesson.differentiation_notes}
-            theme="staff"
-            class="mt-6"
-          />
-          <.form
-            :if={@differentiation_form}
-            for={@differentiation_form}
-            phx-submit="save_differentiation"
-            phx-change="validate_differentiation"
-            class="mt-6"
-          >
-            <.input
-              field={@differentiation_form[:differentiation_notes]}
-              type="markdown"
-              phx-debounce="1500"
-            />
-            <%!-- <p
-                :if={@differentiation_error}
-                class="p-4 rounded-sm mt-4 text-sm text-ltrn-alert-accent bg-ltrn-alert-lighter"
-              >
-                {@differentiation_error}
-              </p> --%>
-            <div class="flex justify-end gap-2 mt-2">
-              <.button type="button" theme="ghost" phx-click="cancel_differentiation_edit">
-                {gettext("Cancel")}
-              </.button>
-              <.button type="submit" theme="primary">{gettext("Save")}</.button>
-            </div>
-          </.form>
-        </div>
-        <.live_component
-          module={AttachmentAreaComponent}
-          id="lesson-resources-teacher"
-          title={gettext("Teacher resources")}
-          lesson_id={@lesson.id}
-          is_teacher_only_resource={true}
-          allow_editing={true}
-          current_user={@current_user}
-          sortable_group="lesson-resources"
-          class="mt-10"
-        />
-      </.responsive_container>
-    </section>
-  </div>
-</Layouts.app_logged_in>
+  </section>
+</Layouts.app_with_side_nav>
 <.button
   type="link"
   navigate={~p"/strands/lesson/#{@lesson}/chat"}
@@ -276,3 +312,10 @@
     on_cancel={JS.exec("data-cancel", to: "#lesson-form-overlay")}
   />
 </.modal>
+<.live_component
+  :if={@moment_id}
+  id="moment-details-overlay"
+  module={MomentDetailsOverlayComponent}
+  moment_id={@moment_id}
+  on_cancel={JS.push("close_moment_details")}
+/>

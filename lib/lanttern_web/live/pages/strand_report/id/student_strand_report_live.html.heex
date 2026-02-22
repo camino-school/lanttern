@@ -33,13 +33,6 @@
         >
           {gettext("Moments")}
         </:tab>
-        <:tab
-          :if={@note || @is_student}
-          patch={~p"/strand_report/#{@strand_report}?tab=student_notes"}
-          is_current={@current_tab == :student_notes && "true"}
-        >
-          {gettext("Student notes")}
-        </:tab>
       </.neo_tabs>
     </div>
   </.header_nav>
@@ -76,28 +69,5 @@
       class="py-10"
       base_path={~p"/strand_report/#{@strand_report.id}?tab=moments"}
     />
-    <div :if={@current_tab == :student_notes} class="py-10">
-      <.responsive_container>
-        <.live_component
-          module={NoteComponent}
-          id="student-strand-notes"
-          note={@note}
-          current_user={@current_user}
-          strand_id={@strand_report.strand_id}
-          title={
-            if @is_student,
-              do: gettext("My strand notes"),
-              else: gettext("Student strand notes")
-          }
-          empty_msg={
-            if @is_student,
-              do: gettext("You don't have any notes for this strand yet"),
-              else: gettext("No student notes for this strand")
-          }
-          empty_add_note_msg={gettext("Add a strand note")}
-          allow_editing={@is_student}
-        />
-      </.responsive_container>
-    </div>
   </div>
 </Layouts.app_logged_in>

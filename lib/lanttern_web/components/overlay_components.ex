@@ -438,7 +438,7 @@ defmodule LantternWeb.OverlayComponents do
           id={item.id}
           type="button"
           class={[
-            "block w-full px-3 py-1 text-sm text-left focus:bg-ltrn-lighter",
+            "block w-full px-3 py-1 font-sans text-sm text-left focus:bg-ltrn-lighter",
             menu_button_item_theme_classes(Map.get(item, :theme, "default"))
           ]}
           role="menuitem"
@@ -484,10 +484,13 @@ defmodule LantternWeb.OverlayComponents do
     attr :navigate, :string, doc: "use with type \"link\" for <.link navigate={...}>"
     attr :patch, :string, doc: "use with type \"link\" for <.link patch={...}>"
     attr :theme, :string
+    attr :is_active, :boolean
 
     attr :confirm_msg, :string,
       doc: "use for adding a data-confirm attr (only for \"button\" type)"
   end
+
+  slot :instructions, doc: "use for rendering extra text before menu items"
 
   def dropdown_menu(assigns) do
     position_classes =
@@ -523,6 +526,9 @@ defmodule LantternWeb.OverlayComponents do
       data-open={open_dropdown_menu(@id)}
       phx-hook="DropdownMenu"
     >
+      <p :if={@instructions != []} class="px-3 py-2 font-sans text-sm text-ltrn-subtle">
+        {render_slot(@instructions)}
+      </p>
       <.dropdown_menu_item :for={item <- @item} item={item} menu_id={@id} />
     </div>
     """
@@ -536,8 +542,9 @@ defmodule LantternWeb.OverlayComponents do
       patch={Map.get(@item, :patch)}
       phx-click={JS.exec("data-close", to: "##{@menu_id}")}
       class={[
-        "block w-full px-3 py-1 text-sm text-left focus:bg-ltrn-lighter",
-        menu_button_item_theme_classes(Map.get(@item, :theme, "default"))
+        "block w-full px-3 py-1 font-sans text-sm text-left focus:bg-ltrn-lighter",
+        menu_button_item_theme_classes(Map.get(@item, :theme, "default")),
+        if(Map.get(@item, :is_active), do: "font-bold")
       ]}
       role="menuitem"
       tabindex="-1"
@@ -552,8 +559,9 @@ defmodule LantternWeb.OverlayComponents do
     <button
       type="button"
       class={[
-        "block w-full px-3 py-1 text-sm text-left focus:bg-ltrn-lighter",
-        menu_button_item_theme_classes(Map.get(@item, :theme, "default"))
+        "block w-full px-3 py-1 font-sans text-sm text-left focus:bg-ltrn-lighter",
+        menu_button_item_theme_classes(Map.get(@item, :theme, "default")),
+        if(Map.get(@item, :is_active), do: "font-bold")
       ]}
       role="menuitem"
       tabindex="-1"

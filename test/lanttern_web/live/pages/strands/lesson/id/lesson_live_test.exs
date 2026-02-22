@@ -32,8 +32,8 @@ defmodule LantternWeb.LessonLiveTest do
       conn
       |> visit("#{@live_view_base_path}/#{lesson.id}")
       |> assert_has("h1", text: "Tagged lesson")
-      |> assert_has("span", text: "Homework")
-      |> assert_has("span", text: "Group work")
+      |> assert_has("div", text: "Homework")
+      |> assert_has("div", text: "Group work")
     end
 
     test "publish lesson", %{conn: conn} do

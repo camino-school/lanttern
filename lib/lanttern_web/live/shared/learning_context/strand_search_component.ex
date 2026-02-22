@@ -53,9 +53,9 @@ defmodule LantternWeb.LearningContext.StrandSearchComponent do
               </div>
             </div>
             <%= if @selected_strands_ids && strand.id in @selected_strands_ids do %>
-              <div class="shrink-0 group relative block text-ltrn-subtle">
+              <div class="shrink-0 block text-ltrn-subtle">
                 <.icon name="hero-check-circle" class="w-10 h-10" />
-                <.tooltip h_pos="right">{gettext("Already selected")}</.tooltip>
+                <.tooltip id={"#{dom_id}-selected-tooltip"}>{gettext("Already selected")}</.tooltip>
               </div>
             <% else %>
               <button

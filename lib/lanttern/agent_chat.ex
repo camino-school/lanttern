@@ -361,7 +361,7 @@ defmodule Lanttern.AgentChat do
   Executes an LLM chain with the given conversation messages.
 
   Converts a list of `Message` structs into LangChain message format and runs
-  them through the provided LLM model.
+  them through the provided LLM.
 
   When adding system messages, this function prepends them to the chain
   following always the same order to benefit from prompt caching.

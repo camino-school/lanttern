@@ -45,7 +45,7 @@ defmodule LantternWeb.StrandLiveTest do
       {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{strand.id}")
 
       assert view |> has_element?("p", "strand description abc")
-      assert view |> has_element?("a", "moment abc")
+      assert view |> has_element?("button", "moment abc")
 
       # assessment tab
 
@@ -54,18 +54,6 @@ defmodule LantternWeb.StrandLiveTest do
       |> render_click()
 
       assert_patch(view)
-
-      assert view |> has_element?("button", "No class selected")
-
-      # notes tab
-
-      view
-      |> element("#strand-nav-tabs a", "Notes")
-      |> render_click()
-
-      assert_patch(view)
-
-      assert view |> has_element?("button", "Add a strand note")
 
       # back to lessons tab
 

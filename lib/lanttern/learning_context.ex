@@ -11,15 +11,13 @@ defmodule Lanttern.LearningContext do
   import Lanttern.RepoHelpers
 
   alias Lanttern.Assessments.AssessmentPointEntry
-  alias Lanttern.Attachments
-  alias Lanttern.Attachments.Attachment
+  alias Lanttern.AuditLog
   alias Lanttern.Identity.Scope
   alias Lanttern.LearningContext.Moment
-  alias Lanttern.LearningContext.MomentCard
-  alias Lanttern.LearningContext.MomentCardAttachment
   alias Lanttern.LearningContext.StarredStrand
   alias Lanttern.LearningContext.Strand
-  alias Lanttern.LearningContextLog
+  alias Lanttern.Lessons.Lesson
+  alias Lanttern.Lessons.LessonLog
 
   @doc """
   Returns the list of strands ordered alphabetically.
@@ -676,6 +674,75 @@ defmodule Lanttern.LearningContext do
   end
 
   @doc """
+  Deletes a moment, detaching its linked lessons (sets `moment_id = nil`).
+
+  All lessons that reference the moment will have their `moment_id` cleared
+  before the moment is deleted.
+  """
+  def delete_moment_detaching_lessons(%Scope{} = scope, %Moment{} = moment) do
+    lesson_ids = Repo.all(from l in Lesson, where: l.moment_id == ^moment.id, select: l.id)
+
+    result =
+      Repo.transaction(fn ->
+        from(l in Lesson, where: l.moment_id == ^moment.id)
+        |> Repo.update_all(set: [moment_id: nil])
+
+        moment
+        |> Moment.delete_changeset()
+        |> Repo.delete()
+        |> case do
+          {:ok, moment} -> moment
+          {:error, changeset} -> Repo.rollback(changeset)
+        end
+      end)
+
+    if match?({:ok, _}, result) do
+      lessons = Repo.all(from l in Lesson, where: l.id in ^lesson_ids)
+
+      for lesson <- lessons do
+        AuditLog.maybe_log({:ok, lesson}, LessonLog, "UPDATE", scope, [])
+      end
+    end
+
+    result
+  end
+
+  @doc """
+  Deletes a moment together with all its linked lessons.
+
+  Lesson-related join tables (`lessons_subjects`, `lessons_tags`,
+  `lessons_attachments`) cascade-delete via their `on_delete: :delete_all`
+  constraints, so deleting the lessons is safe.
+
+  Uses `scope` to log each lesson deletion individually.
+  """
+  def delete_moment_with_lessons(%Scope{} = scope, %Moment{} = moment) do
+    lessons = Repo.all(from l in Lesson, where: l.moment_id == ^moment.id)
+
+    result =
+      Repo.transaction(fn ->
+        from(l in Lesson, where: l.moment_id == ^moment.id)
+        |> Repo.delete_all()
+
+        moment
+        |> Moment.delete_changeset()
+        |> Repo.delete()
+        |> case do
+          {:ok, moment} -> moment
+          {:error, changeset} -> Repo.rollback(changeset)
+        end
+      end)
+
+    if match?({:ok, _}, result) do
+      for lesson <- lessons do
+        AuditLog.maybe_log({:ok, lesson}, LessonLog, "DELETE", scope, [])
+      end
+    end
+
+    result
+  end
+
+  @doc """
   Returns an `%Ecto.Changeset{}` for tracking moment changes.
 
   ## Examples
@@ -686,365 +753,5 @@ defmodule Lanttern.LearningContext do
   """
   def change_moment(%Moment{} = moment, attrs \\ %{}) do
     Moment.changeset(moment, attrs)
-  end
-
-  @doc """
-  Returns the list of moment_cards.
-
-  ## Options:
-
-  - `:ids` – filter cards by ids
-  - `:moments_ids` – filter cards by moment
-  - `:school_id` – filter cards by school
-  - `:count_attachments` – (boolean) calculate virtual `attachments_count` field
-
-  ## Examples
-
-      iex> list_moment_cards()
-      [%MomentCard{}, ...]
-
-  """
-  def list_moment_cards(opts \\ []) do
-    from(
-      mc in MomentCard,
-      order_by: mc.position
-    )
-    |> apply_list_moment_cards_opts(opts)
-    |> Repo.all()
-  end
-
-  defp apply_list_moment_cards_opts(queryable, []), do: queryable
-
-  defp apply_list_moment_cards_opts(queryable, [{:ids, ids} | opts]) do
-    from(mc in queryable, where: mc.id in ^ids)
-    |> apply_list_moment_cards_opts(opts)
-  end
-
-  defp apply_list_moment_cards_opts(queryable, [{:moments_ids, ids} | opts]) do
-    from(mc in queryable, where: mc.moment_id in ^ids)
-    |> apply_list_moment_cards_opts(opts)
-  end
-
-  defp apply_list_moment_cards_opts(queryable, [{:school_id, id} | opts]) do
-    from(mc in queryable, where: mc.school_id == ^id)
-    |> apply_list_moment_cards_opts(opts)
-  end
-
-  defp apply_list_moment_cards_opts(queryable, [{:count_attachments, true} | opts]) do
-    from(
-      mc in queryable,
-      left_join: mca in assoc(mc, :moment_card_attachments),
-      group_by: mc.id,
-      select: %{mc | attachments_count: count(mca.id)}
-    )
-    |> apply_list_moment_cards_opts(opts)
-  end
-
-  defp apply_list_moment_cards_opts(queryable, [_ | opts]),
-    do: apply_list_moment_cards_opts(queryable, opts)
-
-  @doc """
-  Gets a single moment_card.
-
-  Returns `nil` if the Moment card does not exist.
-
-  ## Options:
-
-  - `:count_attachments` – (boolean) calculate virtual `attachments_count` field
-
-  ## Examples
-
-      iex> get_moment_card(123)
-      %MomentCard{}
-
-      iex> get_moment_card(456)
-      nil
-
-  """
-  def get_moment_card(id, opts \\ []) do
-    MomentCard
-    |> apply_get_moment_card_opts(opts)
-    |> Repo.get(id)
-  end
-
-  defp apply_get_moment_card_opts(queryable, []), do: queryable
-
-  defp apply_get_moment_card_opts(queryable, [{:count_attachments, true} | opts]) do
-    from(
-      mc in queryable,
-      left_join: mca in assoc(mc, :moment_card_attachments),
-      group_by: mc.id,
-      select: %{mc | attachments_count: count(mca.id)}
-    )
-    |> apply_get_moment_card_opts(opts)
-  end
-
-  defp apply_get_moment_card_opts(queryable, [_ | opts]),
-    do: apply_get_moment_card_opts(queryable, opts)
-
-  @doc """
-  Gets a single moment_card.
-
-  Same as `get_moment_card/1`, but raises `Ecto.NoResultsError` if the Moment card does not exist.
-
-  """
-  def get_moment_card!(id, opts \\ []) do
-    MomentCard
-    |> apply_get_moment_card_opts(opts)
-    |> Repo.get!(id)
-  end
-
-  @doc """
-  Creates a moment_card.
-
-  Logs the operation linked to profile in current scope.
-
-  ## Examples
-
-      iex> create_moment_card(scope, %{field: value})
-      {:ok, %MomentCard{}}
-
-      iex> create_moment_card(scope, %{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
-  """
-  def create_moment_card(%Scope{} = scope, attrs \\ %{}) do
-    %MomentCard{}
-    |> MomentCard.changeset(attrs, scope)
-    |> set_moment_card_position()
-    |> Repo.insert()
-    |> LearningContextLog.maybe_create_moment_card_log("CREATE", scope)
-  end
-
-  # skip if not valid
-  defp set_moment_card_position(%Ecto.Changeset{valid?: false} = changeset),
-    do: changeset
-
-  # skip if changeset already has position change
-  defp set_moment_card_position(%Ecto.Changeset{changes: %{position: _position}} = changeset),
-    do: changeset
-
-  defp set_moment_card_position(%Ecto.Changeset{} = changeset) do
-    moment_id =
-      Ecto.Changeset.get_field(changeset, :moment_id)
-
-    position =
-      from(
-        c in MomentCard,
-        where: c.moment_id == ^moment_id,
-        select: c.position,
-        order_by: [desc: c.position],
-        limit: 1
-      )
-      |> Repo.one()
-      |> case do
-        nil -> 0
-        pos -> pos + 1
-      end
-
-    changeset
-    |> Ecto.Changeset.put_change(:position, position)
-  end
-
-  @doc """
-  Updates a moment_card.
-
-  Logs the operation linked to profile in current scope.
-
-  ## Examples
-
-      iex> update_moment_card(scope, moment_card, %{field: new_value})
-      {:ok, %MomentCard{}}
-
-      iex> update_moment_card(scope, moment_card, %{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
-  """
-  def update_moment_card(%Scope{} = scope, %MomentCard{} = moment_card, attrs) do
-    moment_card
-    |> MomentCard.changeset(attrs, scope)
-    |> Repo.update()
-    |> LearningContextLog.maybe_create_moment_card_log("UPDATE", scope)
-  end
-
-  @doc """
-  Update moment cards positions based on ids list order.
-
-  ## Examples
-
-      iex> update_moment_cards_positions([3, 2, 1])
-      :ok
-
-  """
-  def update_moment_cards_positions(moment_cards_ids),
-    do: update_positions(MomentCard, moment_cards_ids)
-
-  @doc """
-  Deletes a moment_card.
-
-  Before deleting the moment card, this function tries to delete all linked attachments.
-  After the whole operation, in case of success, we trigger a request for deleting
-  the attachments from the cloud (if they are internal).
-
-  Logs the operation linked to profile in current scope.
-
-  ## Examples
-
-      iex> delete_moment_card(scope, moment_card)
-      {:ok, %MomentCard{}}
-
-      iex> delete_moment_card(scope, moment_card)
-      {:error, %Ecto.Changeset{}}
-
-  """
-  def delete_moment_card(%Scope{} = scope, %MomentCard{} = moment_card) do
-    attachments_query =
-      from(
-        a in Attachment,
-        join: mca in assoc(a, :moment_card_attachment),
-        where: mca.moment_card_id == ^moment_card.id,
-        select: a
-      )
-
-    Ecto.Multi.new()
-    |> Ecto.Multi.delete_all(:delete_attachments, attachments_query)
-    |> Ecto.Multi.delete(:delete_moment_card, moment_card)
-    |> Repo.transaction()
-    |> case do
-      {:ok, %{delete_moment_card: moment_card, delete_attachments: {_qty, attachments}}} ->
-        # if attachment is internal (Supabase),
-        # delete from cloud in an async task (fire and forget)
-        Enum.each(attachments, &Attachments.maybe_delete_attachment_from_cloud(&1))
-
-        {:ok, moment_card}
-
-      {:error, _name, value, _changes_so_far} ->
-        {:error, value}
-    end
-    |> LearningContextLog.maybe_create_moment_card_log("DELETE", scope)
-  end
-
-  @doc """
-  Returns an `%Ecto.Changeset{}` for tracking moment_card changes.
-
-  ## Examples
-
-      iex> change_moment_card(scope, moment_card)
-      %Ecto.Changeset{data: %MomentCard{}}
-
-  """
-  def change_moment_card(%Scope{} = scope, %MomentCard{} = moment_card, attrs \\ %{}) do
-    MomentCard.changeset(moment_card, attrs, scope)
-  end
-
-  @doc """
-  Creates an attachment and links it to an existing moment card in a single transaction.
-
-  ## Examples
-
-      iex> create_moment_card_attachment(profile_id, moment_card_id, %{field: value})
-      {:ok, %Attachment{}}
-
-      iex> create_moment_card_attachment(profile_id, moment_card_id, %{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
-  """
-  @spec create_moment_card_attachment(
-          profile_id :: pos_integer(),
-          moment_card_id :: pos_integer(),
-          attachment_attrs :: map(),
-          shared_with_students :: boolean()
-        ) ::
-          {:ok, Attachment.t()} | {:error, Ecto.Changeset.t()}
-  def create_moment_card_attachment(
-        profile_id,
-        moment_card_id,
-        attachment_attrs,
-        shared_with_students \\ false
-      ) do
-    insert_query =
-      %Attachment{}
-      |> Attachment.changeset(Map.put(attachment_attrs, "owner_id", profile_id))
-
-    Ecto.Multi.new()
-    |> Ecto.Multi.insert(:insert_attachment, insert_query)
-    |> Ecto.Multi.run(
-      :link_moment_card,
-      fn _repo, %{insert_attachment: attachment} ->
-        attrs =
-          from(
-            mca in MomentCardAttachment,
-            where: mca.moment_card_id == ^moment_card_id
-          )
-          |> set_position_in_attrs(%{
-            moment_card_id: moment_card_id,
-            attachment_id: attachment.id,
-            shared_with_students: shared_with_students,
-            owner_id: profile_id
-          })
-
-        %MomentCardAttachment{}
-        |> MomentCardAttachment.changeset(attrs)
-        |> Repo.insert()
-      end
-    )
-    |> Repo.transaction()
-    |> case do
-      {:error, _multi, changeset, _changes} ->
-        {:error, changeset}
-
-      {:ok, %{insert_attachment: attachment}} ->
-        {:ok, %{attachment | is_shared: shared_with_students}}
-    end
-  end
-
-  @doc """
-  Update moment card attachments positions based on ids list order.
-
-  ## Examples
-
-      iex> update_moment_card_attachments_positions([3, 2, 1])
-      :ok
-
-  """
-  @spec update_moment_card_attachments_positions(attachments_ids :: [pos_integer()]) ::
-          :ok | {:error, String.t()}
-  def update_moment_card_attachments_positions(attachments_ids),
-    do: update_positions(MomentCardAttachment, attachments_ids, id_field: :attachment_id)
-
-  @doc """
-  Toggle the moment card `shared_with_students` field and returns the attachment with `is_shared` field updated.
-
-  ## Examples
-
-      iex> toggle_moment_card_attachment_share(attachment_id)
-      {:ok, %Attachment{}}
-
-      iex> toggle_moment_card_attachment_share(attachment_id)
-      {:error, %Ecto.Changeset{}}
-
-  """
-  @spec toggle_moment_card_attachment_share(Attachment.t()) ::
-          {:ok, Attachment.t()} | {:error, Ecto.Changeset.t()}
-  def toggle_moment_card_attachment_share(attachment) do
-    moment_card_attachment =
-      from(
-        mca in MomentCardAttachment,
-        where: mca.attachment_id == ^attachment.id
-      )
-      |> Repo.one!()
-
-    moment_card_attachment
-    |> MomentCardAttachment.changeset(%{
-      shared_with_students: !moment_card_attachment.shared_with_students
-    })
-    |> Repo.update()
-    |> case do
-      {:ok, _} ->
-        {:ok, %{attachment | is_shared: !moment_card_attachment.shared_with_students}}
-
-      {:error, changeset} ->
-        {:error, changeset}
-    end
   end
 end

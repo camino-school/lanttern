@@ -10,35 +10,26 @@ defmodule LantternWeb.StrandLive.LessonsComponentTest do
 
   describe "Moment management" do
     test "create moment", %{conn: conn} do
-      subject = insert(:subject, name: "Subject abc")
-      strand = insert(:strand, subjects: [subject])
+      strand = insert(:strand)
 
       conn
       |> visit("#{@live_view_base_path}/#{strand.id}")
       |> click_button("Create new moment")
-      |> within("#moment-form-overlay", fn conn ->
-        conn
-        |> fill_in("Name", with: "Moment name abc")
-        |> fill_in("Description", with: "Moment description abc")
-        |> select("Subjects", option: "Subject abc")
-        |> click_button("Save")
-      end)
-      |> assert_has("a", text: "Moment name abc")
+      |> fill_in("Name", with: "Moment name abc")
+      |> click_button("#moment-form-overlay button[type=submit]", "Save")
+      |> assert_has("button", text: "Moment name abc")
     end
 
     test "edit moment", %{conn: conn} do
       strand = insert(:strand)
-      moment = insert(:moment, strand: strand)
+      moment = insert(:moment, strand: strand, name: "Moment aaa")
 
       conn
       |> visit("#{@live_view_base_path}/#{strand.id}")
       |> click_button("#moments-#{moment.id} button", "Edit")
-      |> within("#moment-form-overlay", fn conn ->
-        conn
-        |> fill_in("Name", with: "Moment zzz")
-        |> click_button("Save")
-      end)
-      |> assert_has("a", text: "Moment zzz")
+      |> fill_in("Name", with: "Moment zzz")
+      |> click_button("#moment-form-overlay button[type=submit]", "Save")
+      |> assert_has("button", text: "Moment zzz")
     end
 
     test "delete moment", %{conn: conn} do
@@ -50,6 +41,50 @@ defmodule LantternWeb.StrandLive.LessonsComponentTest do
       |> click_button("#moments-#{moment.id} button", "Edit")
       |> click_button("#moment-form-overlay button", "Delete")
       |> refute_has("#moments-#{moment.id}")
+    end
+
+    test "delete moment with linked lessons shows confirmation options", %{conn: conn} do
+      strand = insert(:strand)
+      moment = insert(:moment, strand: strand)
+      insert(:lesson, strand: strand, moment: moment)
+
+      conn
+      |> visit("#{@live_view_base_path}/#{strand.id}")
+      |> click_button("[phx-click*='edit_moment']", "Edit")
+      |> click_button("#moment-form-overlay button", "Delete")
+      |> assert_has("p", text: "This moment has linked lessons. What would you like to do?")
+      |> assert_has("button", text: "Keep lessons (detach from moment)")
+      |> assert_has("button", text: "Delete lessons too")
+    end
+
+    test "delete moment and detach lessons keeps lessons in db", %{conn: conn} do
+      strand = insert(:strand)
+      moment = insert(:moment, strand: strand)
+      lesson = insert(:lesson, strand: strand, moment: moment)
+
+      conn
+      |> visit("#{@live_view_base_path}/#{strand.id}")
+      |> click_button("[phx-click*='edit_moment']", "Edit")
+      |> click_button("#moment-form-overlay button", "Delete")
+      |> click_button("Keep lessons (detach from moment)")
+      |> refute_has("#moments-#{moment.id}")
+
+      assert Lanttern.Repo.get!(Lanttern.Lessons.Lesson, lesson.id).moment_id == nil
+    end
+
+    test "delete moment and its lessons removes lessons from db", %{conn: conn} do
+      strand = insert(:strand)
+      moment = insert(:moment, strand: strand)
+      lesson = insert(:lesson, strand: strand, moment: moment)
+
+      conn
+      |> visit("#{@live_view_base_path}/#{strand.id}")
+      |> click_button("[phx-click*='edit_moment']", "Edit")
+      |> click_button("#moment-form-overlay button", "Delete")
+      |> click_button("Delete lessons too")
+      |> refute_has("#moments-#{moment.id}")
+
+      assert Lanttern.Repo.get(Lanttern.Lessons.Lesson, lesson.id) == nil
     end
   end
 
@@ -68,9 +103,9 @@ defmodule LantternWeb.StrandLive.LessonsComponentTest do
         |> click_button("button", "Important")
         |> click_button("Save")
       end)
-      # after creation, navigates to lesson detail page where tags are shown as badges
+      # after creation, navigates to lesson detail page where tags are shown
       |> assert_has("h1", text: "Tagged lesson")
-      |> assert_has("span", text: "Important")
+      |> assert_has("div", text: "Important")
     end
 
     test "edit lesson to add tags", %{conn: conn, staff_member: staff_member} do
@@ -81,14 +116,14 @@ defmodule LantternWeb.StrandLive.LessonsComponentTest do
 
       conn
       |> visit("/strands/lesson/#{lesson.id}")
-      |> refute_has("span", text: "Priority")
+      |> refute_has("div", text: "Priority")
       |> click_button("Edit")
       |> within("#lesson-form-overlay", fn session ->
         session
         |> click_button("button", "Priority")
         |> click_button("Save")
       end)
-      |> assert_has("span", text: "Priority")
+      |> assert_has("div", text: "Priority")
     end
   end
 

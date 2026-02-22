@@ -13,7 +13,7 @@
 
 @plugin "./heroicons.tailwind.plugin.js";
 
-@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@900&family=PT+Mono&family=PT+Sans:ital,wght@0,400;0,700;1,400;1,700&family=PT+Serif:ital,wght@0,400;0,700;1,400;1,700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@0,100..900;1,100..900&family=PT+Mono&family=PT+Sans:ital,wght@0,400;0,700;1,400;1,700&family=PT+Serif:ital,wght@0,400;0,700;1,400;1,700&display=swap");
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 @config "./tailwind.config.js";
@@ -27,6 +27,9 @@
   --color-ltrn-light: var(--color-stone-300);
   --color-ltrn-lighter: var(--color-stone-200);
   --color-ltrn-lightest: var(--color-stone-100);
+
+  --color-ltrn-mesh-1: var(--color-pink-200);
+  --color-ltrn-mesh-2: var(--color-violet-300);
 
   --color-ltrn-mesh-primary: var(--color-cyan-200);
   --color-ltrn-mesh-cyan: var(--color-cyan-50);
@@ -87,12 +90,12 @@ button {
   background-image:
     radial-gradient(
       circle at -9rem -12rem,
-      var(--color-violet-300) 20rem,
+      var(--color-ltrn-mesh-2) 20rem,
       transparent 30rem
     ),
     radial-gradient(
       circle at -4rem -16rem,
-      var(--color-pink-200) 30rem,
+      var(--color-ltrn-mesh-1) 30rem,
       transparent 40rem
     );
 }
@@ -102,12 +105,12 @@ button {
   background-image:
     radial-gradient(
       circle at -9rem -12rem,
-      var(--color-violet-300) 0,
+      var(--color-ltrn-mesh-2) 0,
       transparent 30rem
     ),
     radial-gradient(
       circle at -4rem -16rem,
-      var(--color-pink-200) 0,
+      var(--color-ltrn-mesh-1) 0,
       transparent 40rem
     );
 }
@@ -117,12 +120,12 @@ button {
   background-image:
     radial-gradient(
       circle at calc(100% + 4rem) calc(100% - 8rem),
-      var(--color-pink-200),
+      var(--color-ltrn-mesh-1),
       transparent 20rem
     ),
     radial-gradient(
       circle at calc(100% + 2rem) 100%,
-      var(--color-violet-300) 5rem,
+      var(--color-ltrn-mesh-2) 5rem,
       transparent 15rem
     );
 }
@@ -136,14 +139,30 @@ button {
 
 .ltrn-bg-slide-over {
   background-image:
-    radial-gradient(circle at 10% 70%, #fef9c3 160px, transparent 240px),
-    radial-gradient(circle at 30% 120%, #ecfccb 360px, transparent 480px);
+    radial-gradient(
+      circle at -30% 90%,
+      var(--color-ltrn-mesh-1) 240px,
+      transparent 360px
+    ),
+    radial-gradient(
+      circle at 0% 140%,
+      var(--color-ltrn-mesh-2) 360px,
+      transparent 480px
+    );
 }
 
 .ltrn-bg-menu {
   background-image:
-    radial-gradient(circle at 40% 120%, #fef9c3 200px, transparent 360px),
-    radial-gradient(circle at 10% 130%, #ecfccb 360px, transparent 480px);
+    radial-gradient(
+      circle at 10% 120%,
+      var(--color-ltrn-mesh-1) 200px,
+      transparent 360px
+    ),
+    radial-gradient(
+      circle at -5% 130%,
+      var(--color-ltrn-mesh-2) 360px,
+      transparent 480px
+    );
 }
 
 .ltrn-bg-profile {

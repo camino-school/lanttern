@@ -94,11 +94,12 @@ defmodule LantternWeb.Router do
       live "/strands/library/new", StrandsLibraryLive, :new
 
       live "/strands/:id", StrandLive, :lessons
+      live "/strands/:id/overview", StrandLive, :overview
       live "/strands/:id/rubrics", StrandLive, :rubrics
       live "/strands/:id/assessment", StrandLive, :assessment
-      live "/strands/:id/notes", StrandLive, :notes
 
-      live "/strands/:id/overview", StrandOverviewLive, :overview
+      live "/strands/:id/assessment/marking", MarkingLive, :goals_assessment
+      live "/strands/:id/assessment/marking/moment/:moment_id", MarkingLive, :moment_assessment
 
       live "/strands/:strand_id/chat", StrandChatLive, :new
       live "/strands/:strand_id/chat/:conversation_id", StrandChatLive, :show
@@ -107,11 +108,6 @@ defmodule LantternWeb.Router do
 
       live "/strands/lesson/:lesson_id/chat", LessonChatLive, :new
       live "/strands/lesson/:lesson_id/chat/:conversation_id", LessonChatLive, :show
-
-      live "/strands/moment/:id", MomentLive, :show
-      live "/strands/moment/:id/assessment", MomentLive, :assessment
-      live "/strands/moment/:id/cards", MomentLive, :cards
-      live "/strands/moment/:id/notes", MomentLive, :notes
 
       live "/curriculum", CurriculaLive, :index
       live "/curriculum/bncc_ef", BnccEfLive, :index
@@ -273,21 +269,6 @@ defmodule LantternWeb.Router do
 
     live "/strands/:id", Admin.StrandLive.Show, :show
     live "/strands/:id/show/edit", Admin.StrandLive.Show, :edit
-
-    live "/moments", Admin.MomentLive.Index, :index
-    live "/moments/new", Admin.MomentLive.Index, :new
-    live "/moments/:id/edit", Admin.MomentLive.Index, :edit
-
-    live "/moments/:id", Admin.MomentLive.Show, :show
-    live "/moments/:id/show/edit", Admin.MomentLive.Show, :edit
-
-    # Personalization context
-    live "/notes", Admin.NoteLive.Index, :index
-    live "/notes/new", Admin.NoteLive.Index, :new
-    live "/notes/:id/edit", Admin.NoteLive.Index, :edit
-
-    live "/notes/:id", Admin.NoteLive.Show, :show
-    live "/notes/:id/show/edit", Admin.NoteLive.Show, :edit
 
     # Reporting context
     live "/report_cards", Admin.ReportCardLive.Index, :index

@@ -85,7 +85,7 @@ defmodule Lanttern.MixProject do
       {:ex_openai, "~> 1.8.0-beta"},
       {:tidewave, "~> 0.1.10", only: :dev},
       {:excoveralls, "~> 0.18", only: :test},
-      {:phoenix_test, "~> 0.7.1", only: :test, runtime: false},
+      {:phoenix_test, "~> 0.9.1", only: :test, runtime: false},
       {:ex_machina, "~> 2.8.0", only: :test},
       {:ex_cldr, "~> 2.37"},
       {:ex_cldr_dates_times, "~> 2.0"},

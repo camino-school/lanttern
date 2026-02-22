@@ -3,7 +3,7 @@
   current_user={@current_user}
   current_path={@current_path}
 >
-  <.header_base class="flex items-center gap-4 w-full max-w-screen p-4 bg-white/40 backdrop-blur-sm">
+  <.header_base class="flex items-center gap-4 p-4">
     <div class="flex-1">
       <p class="text-sm">
         {@strand.name}
@@ -84,7 +84,7 @@
     class="pt-10"
     conversation={@conversation}
     current_scope={@current_scope}
-    on_cancel={JS.exec("data-cancel", to: "#rename-conversation-overlay")}
+    on_cancel={JS.push("cancel_rename_conversation")}
     notify_parent
   />
 </.modal>

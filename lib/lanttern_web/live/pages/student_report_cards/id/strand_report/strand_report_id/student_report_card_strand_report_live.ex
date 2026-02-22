@@ -2,11 +2,8 @@ defmodule LantternWeb.StudentReportCardStrandReportLive do
   use LantternWeb, :live_view
 
   alias Lanttern.Identity.Profile
-  alias Lanttern.Notes
-  alias Lanttern.Notes.Note
   alias Lanttern.Reporting
 
-  alias LantternWeb.Notes.NoteComponent
   alias LantternWeb.Reporting.StrandReportAssessmentComponent
   alias LantternWeb.Reporting.StrandReportMomentsComponent
   alias LantternWeb.Reporting.StrandReportOverviewComponent
@@ -18,8 +15,7 @@ defmodule LantternWeb.StudentReportCardStrandReportLive do
   @tabs %{
     "assessment" => :assessment,
     "moments" => :moments,
-    "overview" => :overview,
-    "student_notes" => :student_notes
+    "overview" => :overview
   }
 
   # lifecycle
@@ -32,8 +28,6 @@ defmodule LantternWeb.StudentReportCardStrandReportLive do
       # check if user can view the strand report
       |> check_if_user_has_access()
       |> assign_strand_report(params)
-      |> assign_student_note()
-      |> assign_is_student()
       |> assign_allow_access()
 
     {:ok, socket}
@@ -113,23 +107,6 @@ defmodule LantternWeb.StudentReportCardStrandReportLive do
     |> assign(:page_title, page_title)
   end
 
-  defp assign_student_note(socket) do
-    student_id = socket.assigns.student_report_card.student_id
-    strand_id = socket.assigns.strand_report.strand_id
-
-    note =
-      Notes.get_student_note(student_id, strand_id: strand_id)
-
-    assign(socket, :note, note)
-  end
-
-  defp assign_is_student(socket) do
-    # flag to control student notes UI
-    is_student = socket.assigns.current_user.current_profile.type == "student"
-
-    assign(socket, :is_student, is_student)
-  end
-
   defp assign_allow_access(socket) do
     allow_access =
       case {socket.assigns.current_user.current_profile.type, socket.assigns.student_report_card} do
@@ -154,17 +131,6 @@ defmodule LantternWeb.StudentReportCardStrandReportLive do
   defp assign_current_tab(socket, %{"tab" => "moments"}) do
     current_tab =
       if socket.assigns.strand_report.has_moments, do: :moments, else: :overview
-
-    assign(socket, :current_tab, current_tab)
-  end
-
-  defp assign_current_tab(socket, %{"tab" => "student_notes"}) do
-    current_tab =
-      case {socket.assigns.note, socket.assigns.current_user.current_profile} do
-        {_, %{type: "student"}} -> :student_notes
-        {%Note{}, _} -> :student_notes
-        _ -> :overview
-      end
 
     assign(socket, :current_tab, current_tab)
   end
