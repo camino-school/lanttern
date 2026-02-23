@@ -2,6 +2,7 @@ defmodule LantternWeb.LessonChatLive do
   use LantternWeb, :live_view
 
   alias Lanttern.AgentChat
+  alias Lanttern.Identity.Scope
   alias Lanttern.LearningContext
   alias Lanttern.Lessons
 
@@ -15,6 +16,7 @@ defmodule LantternWeb.LessonChatLive do
   def mount(params, _session, socket) do
     socket =
       socket
+      |> check_if_user_has_access()
       |> assign_lesson(params)
       |> assign_strand()
       |> assign_conversations()
@@ -22,6 +24,16 @@ defmodule LantternWeb.LessonChatLive do
       |> assign(:is_renaming_conversation, false)
 
     {:ok, socket}
+  end
+
+  defp check_if_user_has_access(socket) do
+    if Scope.has_permission?(socket.assigns.current_scope, "agents_management") do
+      socket
+    else
+      socket
+      |> push_navigate(to: ~p"/dashboard", replace: true)
+      |> put_flash(:error, gettext("You don't have access to this page"))
+    end
   end
 
   defp assign_lesson(socket, %{"lesson_id" => id}) do

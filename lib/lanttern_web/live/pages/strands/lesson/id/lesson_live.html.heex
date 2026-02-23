@@ -279,6 +279,7 @@
   </section>
 </Layouts.app_with_side_nav>
 <.button
+  :if={@has_agents_management_permission}
   type="link"
   navigate={~p"/strands/lesson/#{@lesson}/chat"}
   theme="primary"

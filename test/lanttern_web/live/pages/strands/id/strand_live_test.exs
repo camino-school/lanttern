@@ -1,6 +1,9 @@
 defmodule LantternWeb.StrandLiveTest do
   use LantternWeb.ConnCase
 
+  import Lanttern.Factory
+  import PhoenixTest
+
   alias Lanttern.LearningContextFixtures
   alias Lanttern.TaxonomyFixtures
 
@@ -64,6 +67,25 @@ defmodule LantternWeb.StrandLiveTest do
       assert_patch(view)
 
       assert view |> has_element?("p", "strand description abc")
+    end
+  end
+
+  describe "AI button visibility" do
+    test "Plan with AI button is not visible without agents_management permission", %{conn: conn} do
+      strand = insert(:strand)
+
+      conn
+      |> visit("#{@live_view_base_path}/#{strand.id}")
+      |> refute_has("a", text: "Plan with AI")
+    end
+
+    test "Plan with AI button is visible with agents_management permission", context do
+      %{conn: conn} = set_user_permissions(["agents_management"], context)
+      strand = insert(:strand)
+
+      conn
+      |> visit("#{@live_view_base_path}/#{strand.id}")
+      |> assert_has("a", text: "Plan with AI")
     end
   end
 

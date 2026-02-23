@@ -2,6 +2,7 @@ defmodule LantternWeb.StrandChatLive do
   use LantternWeb, :live_view
 
   alias Lanttern.AgentChat
+  alias Lanttern.Identity.Scope
   alias Lanttern.LearningContext
 
   # shared
@@ -14,12 +15,23 @@ defmodule LantternWeb.StrandChatLive do
   def mount(params, _session, socket) do
     socket =
       socket
+      |> check_if_user_has_access()
       |> assign_strand(params)
       |> assign_conversations()
       |> assign(:conversation, nil)
       |> assign(:is_renaming_conversation, false)
 
     {:ok, socket}
+  end
+
+  defp check_if_user_has_access(socket) do
+    if Scope.has_permission?(socket.assigns.current_scope, "agents_management") do
+      socket
+    else
+      socket
+      |> push_navigate(to: ~p"/dashboard", replace: true)
+      |> put_flash(:error, gettext("You don't have access to this page"))
+    end
   end
 
   defp assign_strand(socket, %{"strand_id" => id}) do

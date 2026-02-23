@@ -1,6 +1,7 @@
 defmodule LantternWeb.LessonLive do
   use LantternWeb, :live_view
 
+  alias Lanttern.Identity.Scope
   alias Lanttern.LearningContext
   alias Lanttern.LearningContext.Moment
   alias Lanttern.Lessons
@@ -24,6 +25,10 @@ defmodule LantternWeb.LessonLive do
       |> assign(:teacher_notes_form, nil)
       |> assign(:differentiation_form, nil)
       |> assign(:moment_id, nil)
+      |> assign(
+        :has_agents_management_permission,
+        Scope.has_permission?(socket.assigns.current_scope, "agents_management")
+      )
 
     {:ok, socket}
   end

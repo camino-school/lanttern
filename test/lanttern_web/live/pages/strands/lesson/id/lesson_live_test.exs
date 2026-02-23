@@ -8,6 +8,25 @@ defmodule LantternWeb.LessonLiveTest do
 
   setup [:register_and_log_in_staff_member]
 
+  describe "AI button visibility" do
+    test "AI button is not visible without agents_management permission", %{conn: conn} do
+      lesson = insert(:lesson)
+
+      conn
+      |> visit("#{@live_view_base_path}/#{lesson.id}")
+      |> refute_has("a", text: "Create with AI")
+    end
+
+    test "AI button is visible with agents_management permission", context do
+      %{conn: conn} = set_user_permissions(["agents_management"], context)
+      lesson = insert(:lesson)
+
+      conn
+      |> visit("#{@live_view_base_path}/#{lesson.id}")
+      |> assert_has("a", text: "Create with AI")
+    end
+  end
+
   describe "Lesson view" do
     test "view lesson", %{conn: conn} do
       lesson =

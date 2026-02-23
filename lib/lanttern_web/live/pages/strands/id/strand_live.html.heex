@@ -94,6 +94,7 @@
   </div>
 </Layouts.app_logged_in>
 <.button
+  :if={@has_agents_management_permission}
   type="link"
   navigate={~p"/strands/#{@strand}/chat"}
   theme="primary"

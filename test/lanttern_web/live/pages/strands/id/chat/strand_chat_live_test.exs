@@ -36,7 +36,21 @@ defmodule LantternWeb.StrandChatLiveTest do
     conversation
   end
 
+  describe "Access control" do
+    test "redirects to dashboard without agents_management permission", %{conn: conn} do
+      strand = insert(:strand)
+
+      conn
+      |> visit("#{@live_view_base_path}/#{strand.id}/chat")
+      |> assert_path("/dashboard")
+    end
+  end
+
   describe "Rename conversation" do
+    setup context do
+      set_user_permissions(["agents_management"], context)
+    end
+
     test "rename button is not visible when there's no conversation selected", %{
       conn: conn
     } do

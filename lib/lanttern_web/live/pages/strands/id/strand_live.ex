@@ -1,6 +1,7 @@
 defmodule LantternWeb.StrandLive do
   use LantternWeb, :live_view
 
+  alias Lanttern.Identity.Scope
   alias Lanttern.LearningContext
 
   # page components
@@ -23,6 +24,10 @@ defmodule LantternWeb.StrandLive do
       socket
       |> assign_strand(params)
       |> assign_strand_classes_filter()
+      |> assign(
+        :has_agents_management_permission,
+        Scope.has_permission?(socket.assigns.current_scope, "agents_management")
+      )
 
     {:ok, socket}
   end
