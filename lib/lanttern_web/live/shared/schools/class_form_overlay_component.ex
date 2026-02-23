@@ -12,8 +12,8 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponent do
   require Logger
 
   # shared
-  alias LantternWeb.Schools.StudentSearchComponent
   alias LantternWeb.Schools.StaffMemberSearchComponent
+  alias LantternWeb.Schools.StudentSearchComponent
 
   @impl true
   def render(assigns) do
@@ -270,34 +270,25 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponent do
   defp assign_staff_members(%{assigns: %{initialized: false}} = socket) do
     staff_members =
       case socket.assigns.class.id do
-        nil ->
-          []
-
-        class_id ->
-          # Get staff members with position info (ordered by position)
-          staff_with_position = Schools.list_class_staff_members(class_id)
-
-          # If no staff members in class, return empty list
-          if staff_with_position == [] do
-            []
-          else
-            # Extract the staff member IDs in order
-            staff_member_ids = Enum.map(staff_with_position, & &1.id)
-
-            # Fetch clean staff member structs for these IDs
-            # This ensures we get clean structs without the virtual fields
-            staff_list =
-              Schools.list_staff_members(staff_members_ids: staff_member_ids, only_active: true)
-
-            staff_list
-            |> Enum.sort_by(fn sm ->
-              # Sort by the position from the original list
-              Enum.find_index(staff_member_ids, &(&1 == sm.id))
-            end)
-          end
+        nil -> []
+        class_id -> list_staff_members_for_class(class_id)
       end
 
     assign(socket, :staff_members, staff_members)
+  end
+
+  defp list_staff_members_for_class(class_id) do
+    staff_with_position = Schools.list_class_staff_members(class_id)
+
+    if staff_with_position == [] do
+      []
+    else
+      staff_member_ids = Enum.map(staff_with_position, & &1.id)
+
+      staff_member_ids
+      |> then(&Schools.list_staff_members(staff_members_ids: &1, only_active: true))
+      |> Enum.sort_by(&Enum.find_index(staff_member_ids, fn id -> id == &1.id end))
+    end
   end
 
   defp assign_staff_members(socket), do: socket
