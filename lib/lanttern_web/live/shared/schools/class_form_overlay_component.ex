@@ -315,7 +315,15 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponent do
     {:noreply, assign(socket, :staff_members, staff_members)}
   end
 
-  def handle_event("sortable_update", %{"from" => %{"groupId" => "students-list"}, "oldIndex" => old_index, "newIndex" => new_index}, socket) do
+  def handle_event(
+        "sortable_update",
+        %{
+          "from" => %{"groupId" => "students-list"},
+          "oldIndex" => old_index,
+          "newIndex" => new_index
+        },
+        socket
+      ) do
     # Reorder students based on the drag and drop
     students =
       socket.assigns.students
@@ -325,7 +333,15 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponent do
     {:noreply, assign(socket, :students, students)}
   end
 
-  def handle_event("sortable_update", %{"from" => %{"groupId" => "staff-members-list"}, "oldIndex" => old_index, "newIndex" => new_index}, socket) do
+  def handle_event(
+        "sortable_update",
+        %{
+          "from" => %{"groupId" => "staff-members-list"},
+          "oldIndex" => old_index,
+          "newIndex" => new_index
+        },
+        socket
+      ) do
     # Reorder staff members based on the drag and drop
     staff_members =
       socket.assigns.staff_members
