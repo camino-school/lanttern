@@ -277,6 +277,8 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponent do
     assign(socket, :staff_members, staff_members)
   end
 
+  defp assign_staff_members(socket), do: socket
+
   defp list_staff_members_for_class(class_id) do
     staff_with_position = Schools.list_class_staff_members(class_id)
 
@@ -290,8 +292,6 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponent do
       |> Enum.sort_by(&Enum.find_index(staff_member_ids, fn id -> id == &1.id end))
     end
   end
-
-  defp assign_staff_members(socket), do: socket
 
   # event handlers
 
