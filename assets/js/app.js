@@ -23,38 +23,44 @@ import { LiveSocket } from "phoenix_live_view";
 import topbar from "../vendor/topbar";
 
 // external imports
-import 'glider-js';
+import "glider-js";
 
 // hooks
 import autocompleteHook from "./autocomplete-hook";
 import copyToClipboardHook from "./copy-to-clipboard-hook";
 import cookiesHook from "./cookies-hook";
 import dropdownMenuHook from "./dropdown-menu-hook";
-import lantternVizHook from "./lanttern-viz-hook";
 import menuButtonrHook from "./menu-button-hook";
 import navScrollspyHook from "./nav-scrollspy-hook";
 import scrollToTopHook from "./scroll-to-top-hook";
 import sliderHook from "./slider-hook";
 import sortableHook from "./sortable-hook";
 
+// colocated hooks (Phoenix.LiveView.ColocatedHook)
+import { hooks as colocatedHooks } from "phoenix-colocated/lanttern";
+
 let Hooks = {};
 Hooks.Autocomplete = autocompleteHook;
 Hooks.Cookies = cookiesHook;
 Hooks.CopyToClipboard = copyToClipboardHook;
 Hooks.DropdownMenu = dropdownMenuHook;
-Hooks.LantternViz = lantternVizHook;
 Hooks.MenuButton = menuButtonrHook;
 Hooks.NavScrollspy = navScrollspyHook;
 Hooks.ScrollToTop = scrollToTopHook;
 Hooks.Slider = sliderHook;
 Hooks.Sortable = sortableHook;
 
+Object.assign(Hooks, colocatedHooks);
+
 let csrfToken = document
   .querySelector("meta[name='csrf-token']")
   .getAttribute("content");
 let liveSocket = new LiveSocket("/live", Socket, {
-  params: { _csrf_token: csrfToken, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone },
-  hooks: Hooks
+  params: {
+    _csrf_token: csrfToken,
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+  },
+  hooks: Hooks,
 });
 
 // Show progress bar on live navigation and form submits

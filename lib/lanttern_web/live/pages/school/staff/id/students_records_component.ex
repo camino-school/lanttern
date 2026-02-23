@@ -390,6 +390,7 @@ defmodule LantternWeb.StaffMemberLive.StudentsRecordsComponent do
           if(socket.assigns.current_student_record_staff_member_view == "assigned_to",
             do: [socket.assigns.staff_member.id]
           ),
+        count_attachments: true,
         preloads: [
           :tags,
           :status,

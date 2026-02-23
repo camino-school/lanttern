@@ -63,6 +63,10 @@ defmodule Lanttern.Identity do
 
   Raises `Ecto.NoResultsError` if the User does not exist.
 
+  ## Options
+
+    * `preload_current_profile` - will preload and prepare user's `current_profile`
+
   ## Examples
 
       iex> get_user!(123)
@@ -72,7 +76,13 @@ defmodule Lanttern.Identity do
       ** (Ecto.NoResultsError)
 
   """
-  def get_user!(id), do: Repo.get!(User, id)
+  def get_user!(id, opts \\ []) do
+    user = Repo.get!(User, id)
+
+    if Keyword.get(opts, :preload_current_profile),
+      do: preload_user_current_profile(user),
+      else: user
+  end
 
   ## User registration
 
@@ -237,28 +247,29 @@ defmodule Lanttern.Identity do
     {:ok, query} = UserToken.verify_session_token_query(token)
 
     case Repo.one(query) do
-      {%User{} = user, _token_inserted_at} ->
-        user = Repo.preload(user, :current_profile)
-
-        profile_settings =
-          case user do
-            %User{current_profile: %Profile{id: profile_id}} ->
-              Personalization.get_profile_settings(profile_id, preloads: :current_school_cycle) ||
-                %{}
-
-            _ ->
-              %{}
-          end
-
-        user
-        |> Map.update!(:current_profile, &put_permissions(&1, profile_settings))
-        |> Map.update!(:current_profile, &build_flat_profile/1)
-        |> Map.update!(:current_profile, &ensure_current_school_cycle(&1, profile_settings))
-        |> Map.update!(:current_profile, &put_student_cycle_info_picture(&1))
-
-      nil ->
-        nil
+      {%User{} = user, _token_inserted_at} -> preload_user_current_profile(user)
+      nil -> nil
     end
+  end
+
+  defp preload_user_current_profile(%User{} = user) do
+    user = Repo.preload(user, :current_profile)
+
+    profile_settings =
+      case user do
+        %User{current_profile: %Profile{id: profile_id}} ->
+          Personalization.get_profile_settings(profile_id, preloads: :current_school_cycle) ||
+            %{}
+
+        _ ->
+          %{}
+      end
+
+    user
+    |> Map.update!(:current_profile, &put_permissions(&1, profile_settings))
+    |> Map.update!(:current_profile, &build_flat_profile/1)
+    |> Map.update!(:current_profile, &ensure_current_school_cycle(&1, profile_settings))
+    |> Map.update!(:current_profile, &put_student_cycle_info_picture(&1))
   end
 
   defp put_permissions(%Profile{} = profile, profile_settings) do

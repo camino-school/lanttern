@@ -229,13 +229,30 @@ defmodule LantternWeb.AssessmentsComponents do
 
     ~H"""
     <div class="relative">
-      <.action type="button" id="group-by-dropdown-button" icon_name="hero-chevron-down-mini">
+      <.button
+        type="button"
+        id="group-by-dropdown-button"
+        size="sm"
+        icon_name="hero-eye-micro"
+      >
         {@text}
-      </.action>
+      </.button>
       <.dropdown_menu id="group-by-dropdown" button_id="group-by-dropdown-button" z_index="30">
-        <:item text={gettext("Show only goals assessments")} on_click={@on_change.(nil)} />
-        <:item text={gettext("Show all, grouped by curriculum")} on_click={@on_change.("curriculum")} />
-        <:item text={gettext("Show all, grouped by moment")} on_click={@on_change.("moment")} />
+        <:item
+          text={gettext("Show only goals assessments")}
+          is_active={is_nil(@current_assessment_group_by)}
+          on_click={@on_change.(nil)}
+        />
+        <:item
+          text={gettext("Show all, grouped by curriculum")}
+          is_active={@current_assessment_group_by == "curriculum"}
+          on_click={@on_change.("curriculum")}
+        />
+        <:item
+          text={gettext("Show all, grouped by moment")}
+          is_active={@current_assessment_group_by == "moment"}
+          on_click={@on_change.("moment")}
+        />
       </.dropdown_menu>
     </div>
     """
@@ -252,7 +269,7 @@ defmodule LantternWeb.AssessmentsComponents do
       case assigns.current_assessment_view do
         "teacher" -> {"staff", gettext("Assessed by teacher")}
         "student" -> {"student", gettext("Assessed by students")}
-        "compare" -> {"primary", gettext("Compare teacher/students")}
+        "compare" -> {"default", gettext("Compare teacher/students")}
       end
 
     assigns =
@@ -262,19 +279,28 @@ defmodule LantternWeb.AssessmentsComponents do
 
     ~H"""
     <div class="relative">
-      <.action
+      <.button
         type="button"
         id="view-dropdown-button"
-        icon_name="hero-chevron-down-mini"
         theme={@theme}
+        size="sm"
       >
         {@text}
-      </.action>
+      </.button>
       <.dropdown_menu id="view-dropdown" button_id="view-dropdown-button" z_index="30">
-        <:item text={gettext("Assessed by teacher")} on_click={@on_change.("teacher")} />
-        <:item text={gettext("Assessed by students")} on_click={@on_change.("student")} />
+        <:item
+          text={gettext("Assessed by teacher")}
+          is_active={@current_assessment_view == "teacher"}
+          on_click={@on_change.("teacher")}
+        />
+        <:item
+          text={gettext("Assessed by students")}
+          is_active={@current_assessment_view == "student"}
+          on_click={@on_change.("student")}
+        />
         <:item
           text={gettext("Compare teacher and students assessments")}
+          is_active={@current_assessment_view == "compare"}
           on_click={@on_change.("compare")}
         />
       </.dropdown_menu>

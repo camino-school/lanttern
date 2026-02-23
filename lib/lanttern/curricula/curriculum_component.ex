@@ -5,6 +5,7 @@ defmodule Lanttern.Curricula.CurriculumComponent do
 
   use Ecto.Schema
   import Ecto.Changeset
+  import Lanttern.SchemaHelpers, only: [validate_hex_color: 3]
 
   use Gettext, backend: Lanttern.Gettext
 
@@ -26,13 +27,7 @@ defmodule Lanttern.Curricula.CurriculumComponent do
     curriculum_component
     |> cast(attrs, [:code, :name, :description, :position, :bg_color, :text_color, :curriculum_id])
     |> validate_required([:name, :curriculum_id])
-    |> check_constraint(:bg_color,
-      name: :bg_color_should_be_hex,
-      message: gettext("Background color format not accepted. Use hex color.")
-    )
-    |> check_constraint(:text_color,
-      name: :text_color_should_be_hex,
-      message: gettext("Text color format not accepted. Use hex color.")
-    )
+    |> validate_hex_color(:bg_color, :bg_color_should_be_hex)
+    |> validate_hex_color(:text_color, :text_color_should_be_hex)
   end
 end

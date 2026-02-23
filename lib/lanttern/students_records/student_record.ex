@@ -15,6 +15,7 @@ defmodule Lanttern.StudentsRecords.StudentRecord do
   alias Lanttern.Schools.StaffMember
   alias Lanttern.Schools.Student
   alias Lanttern.StudentsRecords.AssigneeRelationship
+  alias Lanttern.StudentsRecords.StudentRecordAttachment
   alias Lanttern.StudentsRecords.StudentRecordClassRelationship
   alias Lanttern.StudentsRecords.StudentRecordRelationship
   alias Lanttern.StudentsRecords.StudentRecordStatus
@@ -46,6 +47,9 @@ defmodule Lanttern.StudentsRecords.StudentRecord do
           status_id: pos_integer(),
           tags: [Tag.t()],
           tags_ids: [pos_integer()],
+          student_record_attachments:
+            [StudentRecordAttachment.t()] | Ecto.Association.NotLoaded.t(),
+          attachments_count: non_neg_integer(),
           students_tags: [StudentTags.Tag.t()],
           inserted_at: DateTime.t(),
           updated_at: DateTime.t()
@@ -67,6 +71,7 @@ defmodule Lanttern.StudentsRecords.StudentRecord do
     field :assignees_ids, {:array, :id}, virtual: true
     field :tags_ids, {:array, :id}, virtual: true
     field :students_tags, {:array, :map}, virtual: true
+    field :attachments_count, :integer, virtual: true, default: 0
 
     belongs_to :school, School
     belongs_to :created_by_staff_member, StaffMember
@@ -77,6 +82,7 @@ defmodule Lanttern.StudentsRecords.StudentRecord do
     has_many :students_relationships, StudentRecordRelationship, on_replace: :delete
     has_many :classes_relationships, StudentRecordClassRelationship, on_replace: :delete
     has_many :assignees_relationships, AssigneeRelationship, on_replace: :delete
+    has_many :student_record_attachments, StudentRecordAttachment
 
     many_to_many :tags, Tag,
       join_through: "students_records_tags",

@@ -9,12 +9,28 @@ defmodule LantternWeb.NavigationComponents do
   import LantternWeb.CoreComponents
 
   @doc """
+  Renders a basic page header.
+  """
+  attr :class, :any, default: nil
+
+  slot :inner_block, required: true
+
+  def header_base(assigns) do
+    ~H"""
+    <header class={["sticky top-0 z-30 bg-white/80 backdrop-blur-sm", @class]}>
+      {render_slot(@inner_block)}
+    </header>
+    """
+  end
+
+  @doc """
   Renders the page header with navigation items.
   """
   attr :current_user, Lanttern.Identity.User, required: true
   attr :menu_style, :string, default: "basic", doc: "basic | legacy"
 
   slot :title, required: true
+  slot :action
   slot :inner_block
 
   slot :breadcrumb do
@@ -45,7 +61,7 @@ defmodule LantternWeb.NavigationComponents do
       |> assign(:current_cycle, current_cycle)
 
     ~H"""
-    <header class="sticky top-0 z-30 bg-white ltrn-bg-main shadow-lg">
+    <.header_base>
       <div class="flex items-center gap-4 p-4">
         <%!-- min-w-0 to "fix" truncate (https://css-tricks.com/flexbox-truncated-text/) --%>
         <div class="flex-1 flex items-center gap-2 min-w-0">
@@ -75,6 +91,7 @@ defmodule LantternWeb.NavigationComponents do
             <% end %>
           <% end %>
           <h1 class="font-display font-black text-lg truncate">{render_slot(@title)}</h1>
+          {render_slot(@action)}
         </div>
         <.nav_menu_button :if={@menu_style == "legacy"} />
         <button
@@ -91,7 +108,7 @@ defmodule LantternWeb.NavigationComponents do
         </button>
       </div>
       {render_slot(@inner_block)}
-    </header>
+    </.header_base>
     """
   end
 
@@ -186,7 +203,7 @@ defmodule LantternWeb.NavigationComponents do
       tabindex="-1"
       class={[
         "flex items-center gap-2 p-1 rounded-full focus:outline-ltrn-primary",
-        "aria-selected:outline aria-selected:outline-2 aria-selected:outline-ltrn-dark",
+        "aria-selected:outline-2 aria-selected:outline-ltrn-dark",
         person_tab_theme(@theme)
       ]}
       phx-click={
@@ -201,7 +218,7 @@ defmodule LantternWeb.NavigationComponents do
       {@rest}
     >
       <.profile_icon profile_name={@person.name} size="xs" theme={@theme} />
-      <span class="max-w-[7rem] pr-1 text-xs truncate">
+      <span class="max-w-28 pr-1 text-xs truncate">
         {@person.name}
       </span>
     </button>
@@ -257,6 +274,153 @@ defmodule LantternWeb.NavigationComponents do
         </li>
       </ol>
     </nav>
+    """
+  end
+
+  @doc """
+  Renders a side navigation panel.
+
+  ## Examples
+
+      <.side_nav title="Some page">
+        Custom content
+      </.settings_side_nav>
+
+  """
+  attr :id, :string, default: nil
+  attr :menu_title, :string, default: nil
+  attr :collapsible, :boolean, default: false
+
+  slot :inner_block, required: true
+
+  def side_nav(assigns) do
+    ~H"""
+    <nav
+      id={@id}
+      class="fixed top-0 left-0 w-70 h-screen overflow-y-auto bg-white ltrn-bg-side transition-transform duration-300"
+    >
+      <button
+        :if={@menu_title}
+        type="button"
+        class="flex gap-2.5 items-center ml-2.5 my-10 hover:text-ltrn-subtle"
+        phx-click={JS.exec("data-show", to: "#menu")}
+        aria-label="open menu"
+      >
+        <.icon name="hero-bars-3-mini" class="w-5 h-5" />
+        <p class="font-display font-bold">{@menu_title}</p>
+      </button>
+      {render_slot(@inner_block)}
+    </nav>
+    <button
+      :if={@collapsible}
+      id={"#{@id}-toggle"}
+      type="button"
+      class="fixed top-1/2 -translate-y-1/2 left-70 z-40 flex items-center justify-center w-8 h-14 rounded-r-full bg-white shadow-xl hover:bg-ltrn-lighter transition-[left] duration-300"
+      phx-click={toggle_side_nav(@id)}
+      aria-label={gettext("toggle side navigation")}
+    >
+      <.icon name="hero-chevron-left-mini" class="-translate-x-1 toggle-collapse" />
+      <.icon name="hero-chevron-right-mini" class="-translate-x-1 toggle-expand hidden" />
+    </button>
+    """
+  end
+
+  defp toggle_side_nav(id) do
+    JS.toggle_class("-translate-x-full", to: "##{id}")
+    |> JS.toggle_attribute({"inert", "true"}, to: "##{id}")
+    |> JS.toggle_class("pl-70", to: "##{id}-layout")
+    |> JS.toggle_class("left-70", to: "##{id}-toggle")
+    |> JS.toggle_class("left-0", to: "##{id}-toggle")
+    |> JS.toggle(to: "##{id}-toggle .toggle-collapse")
+    |> JS.toggle(to: "##{id}-toggle .toggle-expand")
+  end
+
+  @doc """
+  Renders a settings side navigation with grouped links.
+
+  ## Examples
+
+      <.settings_side_nav current_path={@current_path}>
+        <:group title="AI Settings">
+          <:link navigate={~p"/settings/agents"}>AI Agents</:link>
+        </:group>
+        <:group title="Content Settings">
+          <:link navigate={~p"/settings/lesson_templates"}>Lesson Templates</:link>
+        </:group>
+      </.settings_side_nav>
+
+  """
+  attr :id, :string, default: nil
+  attr :current_path, :string, required: true
+  attr :collapsible, :boolean, default: false
+
+  slot :group, required: true do
+    attr :title, :string, required: true
+    attr :icon_name, :string
+  end
+
+  slot :link do
+    attr :navigate, :string, required: true
+    attr :icon_name, :string
+  end
+
+  def settings_side_nav(assigns) do
+    ~H"""
+    <.side_nav id={@id} menu_title={gettext("Settings")} collapsible={@collapsible}>
+      <div :for={group <- @group} class="mb-10">
+        <h5 class="flex items-center gap-2 px-10 font-sans text-sm text-ltrn-subtle">
+          <.icon :if={Map.get(group, :icon_name)} name={group.icon_name} class="w-4 h-4" />
+          {group.title}
+        </h5>
+        <ul class="space-y-2 mt-4">
+          {render_slot(group, @current_path)}
+        </ul>
+      </div>
+    </.side_nav>
+    """
+  end
+
+  @doc """
+  Renders a settings side navigation link item.
+
+  This component is used inside a `settings_side_nav` group.
+
+  ## Examples
+
+      <.settings_nav_link navigate={~p"/settings/agents"} current_path={@current_path}>
+        AI Agents
+      </.settings_nav_link>
+
+  """
+  attr :navigate, :string, required: true
+  attr :current_path, :string, required: true
+  attr :icon_name, :string, default: nil
+
+  slot :inner_block, required: true
+
+  def settings_nav_link(assigns) do
+    is_current = String.starts_with?(assigns.current_path, assigns.navigate)
+    assigns = assign(assigns, :is_current, is_current)
+
+    ~H"""
+    <li class={[
+      "flex items-center gap-8"
+    ]}>
+      <div class={["w-2 self-stretch", if(@is_current, do: "bg-ltrn-darkest")]} />
+      <.link
+        navigate={@navigate}
+        class={[
+          "flex items-center gap-2",
+          if(@is_current,
+            do: "text-ltrn-darkest font-bold",
+            else: "text-ltrn-subtle hover:text-ltrn-darkest"
+          )
+        ]}
+      >
+        <.icon :if={@icon_name} name={@icon_name} />
+        {render_slot(@inner_block)}
+      </.link>
+    </li>
     """
   end
 

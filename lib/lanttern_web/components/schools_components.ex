@@ -123,7 +123,7 @@ defmodule LantternWeb.SchoolsComponents do
               <.badge theme="dark">
                 {format_age_short(@age)}
               </.badge>
-              <.tooltip v_pos="top">
+              <.tooltip id={"student-#{@student.id}-birthdate-tooltip"}>
                 {format_birthdate(@student.birthdate)}
               </.tooltip>
             </div>

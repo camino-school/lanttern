@@ -74,7 +74,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
               style={"grid-column: span #{@assessment_points_count + 1} / span #{@assessment_points_count + 1}"}
             >
               <div class={[
-                "sticky left-0 #{@view_bg}",
+                "sticky left-0 z-20 #{@view_bg}",
                 if(@moment_id || !is_nil(@current_assessment_group_by), do: "row-span-2")
               ]}>
               </div>
@@ -90,6 +90,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
                   id={dom_id}
                   ap_header={ap_header}
                   assessment_view={@current_assessment_view}
+                  strand_id={@strand_id}
                 />
               </div>
               <div
@@ -129,21 +130,21 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
         </div>
       </div>
       <.fixed_bar :if={@entries_changes_map != %{}} class="flex items-center gap-6">
-        <div class="flex-1 flex items-center gap-4 text-sm">
+        <div class="flex-1 flex items-center gap-4">
           <p class="text-white text-nowrap">
             {ngettext("1 change", "%{count} changes", map_size(@entries_changes_map))}
           </p>
           <p
             :if={@current_assessment_view == "student"}
-            class="flex items-center gap-2 font-bold text-ltrn-student-accent"
+            class="flex items-center gap-2 font-sans text-sm text-ltrn-student-accent"
           >
-            <.icon name="hero-information-circle" class="w-6 h-6" />
+            <.icon name="hero-information-circle-mini" />
             {gettext("You are registering students self-assessments")}
           </p>
         </div>
         <.button
           phx-click={JS.navigate(@navigate)}
-          theme="ghost"
+          theme="white_outline"
           data-confirm={gettext("Are you sure?")}
         >
           {gettext("Discard")}
@@ -152,7 +153,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
           type="button"
           phx-click="save_changes"
           phx-target={@myself}
-          theme={if @current_assessment_view == "student", do: "student"}
+          theme={if @current_assessment_view == "student", do: "student", else: "white"}
         >
           {if @current_assessment_view == "student",
             do: gettext("Save self-assessments"),
@@ -204,6 +205,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
   attr :id, :string, required: true
   attr :ap_header, :any, required: true
   attr :assessment_view, :string, required: true
+  attr :strand_id, :integer, default: nil
 
   def assessment_point_header(%{ap_header: %AssessmentPoint{}} = assigns) do
     # when in a moment grid, the header is the assessment point
@@ -211,15 +213,23 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
     ~H"""
     <div class="flex flex-col p-2" id={@id}>
       <.link
-        patch={
-          ~p"/strands/moment/#{@ap_header.moment_id}/assessment?edit_assessment_point=#{@ap_header.id}"
-        }
-        class="flex-1 p-1 rounded-sm text-sm font-bold line-clamp-2 hover:bg-ltrn-mesh-cyan"
-        title={@ap_header.name}
+        patch={"?edit_assessment_point=#{@ap_header.id}"}
+        class="flex-1 p-1 rounded-sm font-bold line-clamp-1 hover:bg-ltrn-lightest"
       >
         {@ap_header.name}
       </.link>
       <hr class="h-px mt-2 bg-ltrn-light" />
+      <.tooltip id={"assessment-point-#{@ap_header.id}-header-tooltip"}>
+        <p>{@ap_header.name}</p>
+        <.markdown
+          :if={@ap_header.report_info}
+          text={@ap_header.report_info}
+          invert
+          strip_tags
+          size="sm"
+          class="mt-2"
+        />
+      </.tooltip>
     </div>
     """
   end
@@ -238,22 +248,32 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
     ~H"""
     <div id={@id} class="group pt-2 px-2" style={@grid_column_span_style}>
       <div class="h-full pb-2 border-b border-ltrn-light" style={@grid_column_span_style}>
-        <.assessment_point_header_struct header_struct={@header_struct} />
+        <.assessment_point_header_struct header_struct={@header_struct} strand_id={@strand_id} />
       </div>
     </div>
     """
   end
 
   attr :header_struct, :any, required: true, doc: "moment, strand, or curriculum item"
+  attr :strand_id, :integer, default: nil
 
-  def assessment_point_header_struct(%{header_struct: %Moment{}} = assigns) do
+  def assessment_point_header_struct(%{header_struct: %Moment{}, strand_id: strand_id} = assigns)
+      when not is_nil(strand_id) do
     ~H"""
     <.link
-      class="flex items-center w-full h-full p-1 rounded-sm text-sm font-display font-bold truncate hover:bg-ltrn-mesh-cyan"
-      navigate={~p"/strands/moment/#{@header_struct.id}/assessment"}
+      navigate={~p"/strands/#{@strand_id}/assessment/marking/moment/#{@header_struct}"}
+      class="flex items-center w-full h-full p-1 rounded-sm font-bold truncate hover:bg-ltrn-lightest"
     >
       {@header_struct.name}
     </.link>
+    """
+  end
+
+  def assessment_point_header_struct(%{header_struct: %Moment{}} = assigns) do
+    ~H"""
+    <span class="flex items-center w-full h-full p-1 rounded-sm text-sm font-display font-bold truncate">
+      {@header_struct.name}
+    </span>
     """
   end
 
@@ -267,15 +287,18 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
         {gettext("Diff")}
       </.badge>
     </div>
-    <p class="mt-1 text-sm line-clamp-2" title={@header_struct.name}>
+    <p class="mt-1 font-sans text-sm line-clamp-2">
       {@header_struct.name}
     </p>
+    <.tooltip id={"curriculum-item-#{@header_struct.id}-header-tooltip"}>
+      {@header_struct.name}
+    </.tooltip>
     """
   end
 
   def assessment_point_header_struct(%{header_struct: %Strand{}} = assigns) do
     ~H"""
-    <p class="flex items-center h-full text-sm font-display font-bold">
+    <p class="flex items-center h-full font-bold">
       {gettext("Goals assessment")}
     </p>
     """
@@ -307,29 +330,31 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
         } = assigns
       )
       when not is_nil(moment_id) do
-    tooltip =
-      """
-      #{assigns.assessment_point.name}
-
-      (#{assigns.assessment_point.curriculum_item.curriculum_component.name}) #{assigns.assessment_point.curriculum_item.name}
-      """
-
-    assigns = assign(assigns, :tooltip, tooltip)
-
     ~H"""
     <div class="flex flex-col">
       <div :if={@assessment_point.is_differentiation} class="mb-1">
         <.badge theme="diff">{gettext("Diff")}</.badge>
       </div>
-      <p
-        class={[
-          "flex-1 text-sm",
-          if(@assessment_point.is_differentiation, do: "line-clamp-2", else: "line-clamp-3")
-        ]}
-        title={@tooltip}
-      >
+      <p class={[
+        "flex-1 font-sans text-sm",
+        if(@assessment_point.is_differentiation, do: "line-clamp-2", else: "line-clamp-3")
+      ]}>
         {@assessment_point.name}
       </p>
+      <.tooltip id={"assessment-point-#{@assessment_point.id}-struct-tooltip"}>
+        <p>{@assessment_point.name}</p>
+        <p class="mt-2">
+          ({@assessment_point.curriculum_item.curriculum_component.name}) {@assessment_point.curriculum_item.name}
+        </p>
+        <.markdown
+          :if={@assessment_point.report_info}
+          text={@assessment_point.report_info}
+          invert
+          strip_tags
+          size="sm"
+          class="mt-2"
+        />
+      </.tooltip>
     </div>
     """
   end
@@ -339,10 +364,8 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
       ) do
     ~H"""
     <.link
-      patch={
-        ~p"/strands/#{@assessment_point.strand_id}/assessment?edit_assessment_point=#{@assessment_point.id}"
-      }
-      class="flex flex-col p-1 rounded-sm hover:bg-ltrn-mesh-cyan"
+      patch={"?edit_assessment_point=#{@assessment_point.id}"}
+      class="flex flex-col p-1 rounded-sm hover:bg-ltrn-lightest"
     >
       <div class="flex items-center gap-2">
         <.badge class="truncate">
@@ -353,9 +376,12 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
         </.badge>
         <.icon :if={@assessment_point.rubric_id} name="hero-view-columns-micro" class="w-4 h-4" />
       </div>
-      <p class="flex-1 mt-1 text-sm line-clamp-2" title={@assessment_point.curriculum_item.name}>
+      <p class="flex-1 mt-1 font-sans text-sm line-clamp-2">
         {@assessment_point.curriculum_item.name}
       </p>
+      <.tooltip id={"assessment-point-#{@assessment_point.id}-struct-tooltip"}>
+        {@assessment_point.curriculum_item.name}
+      </.tooltip>
     </.link>
     """
   end
@@ -374,27 +400,38 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
         </.badge>
         <.icon :if={@assessment_point.rubric_id} name="hero-view-columns-micro" class="w-4 h-4" />
       </div>
-      <p class="flex-1 mt-1 text-sm line-clamp-2" title={@assessment_point.curriculum_item.name}>
+      <p class="flex-1 mt-1 font-sans text-sm line-clamp-2">
         {@assessment_point.curriculum_item.name}
       </p>
+      <.tooltip id={"assessment-point-#{@assessment_point.id}-subheader-tooltip"}>
+        {@assessment_point.curriculum_item.name}
+      </.tooltip>
     </div>
     """
   end
 
   def assessment_point_struct(%{assessment_point: %{moment: %Moment{}}} = assigns) do
     ~H"""
-    <div class="text-sm whitespace-nowrap">
-      <.link
-        class="block w-full p-1 rounded-sm overflow-hidden hover:bg-ltrn-mesh-cyan"
-        title={"#{@assessment_point.moment.name}\n\n#{@assessment_point.name}"}
-        navigate={~p"/strands/moment/#{@assessment_point.moment.id}/assessment"}
-      >
+    <div class="font-sans text-sm whitespace-nowrap">
+      <div class="block w-full p-1 rounded-sm overflow-hidden">
         <div class="flex items-center gap-2">
           <.icon :if={@assessment_point.rubric_id} name="hero-view-columns-micro" class="w-4 h-4" />
           <span class="font-bold">{@assessment_point.moment.name}</span> <br />
         </div>
         <span class="text-xs">{@assessment_point.name}</span>
-      </.link>
+      </div>
+      <.tooltip id={"assessment-point-#{@assessment_point.id}-subheader-tooltip"}>
+        <p>{@assessment_point.moment.name}</p>
+        <p class="mt-2">{@assessment_point.name}</p>
+        <.markdown
+          :if={@assessment_point.report_info}
+          text={@assessment_point.report_info}
+          invert
+          strip_tags
+          size="sm"
+          class="mt-2"
+        />
+      </.tooltip>
     </div>
     """
   end
@@ -403,17 +440,21 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
       when not is_nil(strand_id) do
     ~H"""
     <.link
-      patch={
-        ~p"/strands/#{@assessment_point.strand_id}/assessment?edit_assessment_point=#{@assessment_point.id}"
-      }
-      class="flex flex-col p-1 rounded-sm hover:bg-ltrn-mesh-cyan"
+      patch={"?edit_assessment_point=#{@assessment_point.id}"}
+      class="flex flex-col p-1 rounded-sm hover:bg-ltrn-lightest"
     >
-      <div class="whitespace-nowrap overflow-hidden">
+      <div class="font-sans whitespace-nowrap overflow-hidden">
         <div class="flex items-center gap-2">
-          <.icon :if={@assessment_point.rubric_id} name="hero-view-columns-micro" class="w-4 h-4" />
-          <span class="font-bold">{gettext("Goal assessment")}</span>
+          <.icon :if={@assessment_point.rubric_id} name="hero-view-columns-micro" />
+          <span class="font-bold text-sm">{gettext("Goal assessment")}</span>
         </div>
         <span class="text-xs">{gettext("(Strand final assessment)")}</span>
+        <.tooltip
+          :if={@assessment_point.report_info}
+          id={"assessment-point-#{@assessment_point.id}-struct-tooltip"}
+        >
+          <.markdown text={@assessment_point.report_info} invert strip_tags size="sm" />
+        </.tooltip>
       </div>
     </.link>
     """
@@ -421,11 +462,11 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
 
   def compare_header(assigns) do
     ~H"""
-    <div class="flex gap-1 w-full mt-2">
-      <div class="flex-1 pb-1 border-b-2 border-ltrn-staff-accent text-xs text-center text-ltrn-staff-dark">
+    <div class="flex gap-1 w-full mt-2 font-sans text-xs">
+      <div class="flex-1 pb-1 border-b-2 border-ltrn-staff-accent text-center text-ltrn-staff-dark">
         {gettext("Teacher")}
       </div>
-      <div class="flex-1 pb-1 border-b-2 border-ltrn-student-accent text-xs text-center text-ltrn-student-dark">
+      <div class="flex-1 pb-1 border-b-2 border-ltrn-student-accent text-center text-ltrn-student-dark">
         {gettext("Student")}
       </div>
     </div>

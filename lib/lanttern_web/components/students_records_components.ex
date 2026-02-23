@@ -84,6 +84,13 @@ defmodule LantternWeb.StudentsRecordsComponents do
               <.badge :for={class <- student_record.classes}>
                 {class_with_cycle(class, @current_user)}
               </.badge>
+              <.badge
+                :if={Map.get(student_record, :attachments_count, 0) > 0}
+                icon_name="hero-paper-clip-mini"
+                class="max-w-full"
+              >
+                {student_record.attachments_count}
+              </.badge>
             </div>
           </div>
           <div class="mt-6 md:mt-0 md:flex-1">
@@ -147,22 +154,18 @@ defmodule LantternWeb.StudentsRecordsComponents do
               </div>
             </div>
             <div class="flex items-center gap-2">
-              <div
-                :if={student_record.status.is_closed && !student_record.closed_at}
-                class="group relative"
-              >
+              <div :if={student_record.status.is_closed && !student_record.closed_at}>
                 <div
                   class="flex items-center justify-center p-0.5 rounded-full"
                   style={create_color_map_style(student_record.status)}
                 >
                   <.icon name="hero-check-circle-mini" />
                 </div>
-                <.tooltip h_pos="right">{gettext("Closed on creation")}</.tooltip>
+                <.tooltip id={"#{dom_id}-closed-on-creation-tooltip"}>
+                  {gettext("Closed on creation")}
+                </.tooltip>
               </div>
-              <div
-                :if={student_record.status.is_closed && student_record.closed_at}
-                class="group relative"
-              >
+              <div :if={student_record.status.is_closed && student_record.closed_at}>
                 <div
                   class="flex items-center justify-center gap-1 p-0.5 rounded-full"
                   style={create_color_map_style(student_record.status)}
@@ -172,13 +175,13 @@ defmodule LantternWeb.StudentsRecordsComponents do
                   </p>
                   <.icon name="hero-check-circle-mini" />
                 </div>
-                <.tooltip h_pos="right">
+                <.tooltip id={"#{dom_id}-closed-at-tooltip"}>
                   {gettext("Closed at %{datetime}",
                     datetime: format_by_locale(student_record.closed_at, @current_user.tz)
                   )}
                 </.tooltip>
               </div>
-              <div :if={!student_record.status.is_closed} class="group relative">
+              <div :if={!student_record.status.is_closed}>
                 <div
                   class="flex items-center justify-center gap-1 p-0.5 rounded-full"
                   style={create_color_map_style(student_record.status)}
@@ -188,11 +191,15 @@ defmodule LantternWeb.StudentsRecordsComponents do
                   </p>
                   <.icon name="hero-clock-mini" />
                 </div>
-                <.tooltip h_pos="right">{gettext("Duration since creation")}</.tooltip>
+                <.tooltip id={"#{dom_id}-duration-tooltip"}>
+                  {gettext("Duration since creation")}
+                </.tooltip>
               </div>
-              <div :if={student_record.shared_with_school} class="group relative">
+              <div :if={student_record.shared_with_school}>
                 <.icon name="hero-globe-americas" class="w-6 h-6 text-ltrn-staff-accent" />
-                <.tooltip h_pos="right">{gettext("Visible to all school staff")}</.tooltip>
+                <.tooltip id={"#{dom_id}-shared-tooltip"}>
+                  {gettext("Visible to all school staff")}
+                </.tooltip>
               </div>
             </div>
           </div>

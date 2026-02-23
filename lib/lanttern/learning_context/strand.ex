@@ -11,8 +11,6 @@ defmodule Lanttern.LearningContext.Strand do
 
   alias Lanttern.Assessments.AssessmentPoint
   alias Lanttern.LearningContext.Moment
-  alias Lanttern.Notes.Note
-  alias Lanttern.Notes.StrandNoteRelationship
   alias Lanttern.Reporting.StrandReport
   alias Lanttern.Schools.Cycle
   alias Lanttern.Taxonomy.Subject
@@ -23,6 +21,7 @@ defmodule Lanttern.LearningContext.Strand do
           name: String.t(),
           type: String.t(),
           description: String.t(),
+          assessment_info: String.t(),
           teacher_instructions: String.t() | nil,
           cover_image_url: String.t(),
           subject_id: pos_integer(),
@@ -36,8 +35,6 @@ defmodule Lanttern.LearningContext.Strand do
           moments: [Moment.t()],
           assessment_points: [AssessmentPoint.t()],
           strand_reports: [StrandReport.t()],
-          strand_note_relationships: [StrandNoteRelationship.t()],
-          notes: [Note.t()],
           subjects: [Subject.t()],
           years: [Year.t()],
           inserted_at: DateTime.t(),
@@ -48,6 +45,7 @@ defmodule Lanttern.LearningContext.Strand do
     field :name, :string
     field :type, :string
     field :description, :string
+    field :assessment_info, :string
     field :teacher_instructions, :string
     field :cover_image_url, :string
     field :subject_id, :id, virtual: true
@@ -62,8 +60,6 @@ defmodule Lanttern.LearningContext.Strand do
     has_many :moments, Moment
     has_many :assessment_points, AssessmentPoint
     has_many :strand_reports, StrandReport
-    has_many :strand_note_relationships, StrandNoteRelationship
-    has_many :notes, through: [:strand_note_relationships, :note]
 
     many_to_many :subjects, Subject,
       join_through: "strands_subjects",
@@ -83,6 +79,7 @@ defmodule Lanttern.LearningContext.Strand do
       :name,
       :type,
       :description,
+      :assessment_info,
       :teacher_instructions,
       :cover_image_url,
       :subjects_ids,

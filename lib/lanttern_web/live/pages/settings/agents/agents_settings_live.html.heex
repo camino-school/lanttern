@@ -1,0 +1,56 @@
+<Layouts.app_settings flash={@flash} current_user={@current_user} current_path={@current_path}>
+  <div class="flex items-center justify-between gap-4 mb-10">
+    <p class="flex items-center gap-2">
+      <.icon name="hero-information-circle-mini" class="text-ltrn-subtle" />
+      {gettext("Manage AI agents below")}
+    </p>
+    <.button
+      type="button"
+      phx-click="new_agent"
+      icon_name="hero-plus-mini"
+      theme="primary"
+    >
+      {gettext("New agent")}
+    </.button>
+  </div>
+  <%= if @has_agents do %>
+    <div id="agents-list" phx-update="stream">
+      <.live_component
+        :for={{dom_id, agent} <- @streams.agents}
+        module={AgentCardComponent}
+        id={dom_id}
+        agent={agent}
+        selected_agent_id={@selected_agent_id}
+        current_scope={@current_scope}
+      />
+    </div>
+  <% else %>
+    <div class="p-10">
+      <.empty_state>{gettext("No agents created yet")}</.empty_state>
+    </div>
+  <% end %>
+</Layouts.app_settings>
+<.modal
+  :if={@agent}
+  id="agent-form-overlay"
+  show={true}
+  on_cancel={JS.push("close_agent_form")}
+>
+  <:title>{@agent_overlay_title}</:title>
+  <.live_component
+    module={LantternWeb.Agents.AgentFormComponent}
+    id="agent-form"
+    agent={@agent}
+    current_scope={@current_scope}
+    navigate={
+      fn
+        {:deleted, _agent} ->
+          ~p"/settings/agents"
+
+        {_created_or_updated, agent} ->
+          ~p"/settings/agents/#{agent.id}"
+      end
+    }
+    on_cancel={JS.exec("data-cancel", to: "#agent-form-overlay")}
+  />
+</.modal>

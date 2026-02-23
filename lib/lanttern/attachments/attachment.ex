@@ -12,12 +12,12 @@ defmodule Lanttern.Attachments.Attachment do
   alias Lanttern.Identity.Profile
   alias Lanttern.ILP.ILPComment
   alias Lanttern.ILP.ILPCommentAttachment
-  alias Lanttern.LearningContext.MomentCard
-  alias Lanttern.LearningContext.MomentCardAttachment
-  alias Lanttern.Notes.Note
-  alias Lanttern.Notes.NoteAttachment
+  alias Lanttern.Lessons.Lesson
+  alias Lanttern.Lessons.LessonAttachment
   alias Lanttern.StudentsCycleInfo.StudentCycleInfo
   alias Lanttern.StudentsCycleInfo.StudentCycleInfoAttachment
+  alias Lanttern.StudentsRecords.StudentRecord
+  alias Lanttern.StudentsRecords.StudentRecordAttachment
 
   @type t :: %__MODULE__{
           id: pos_integer(),
@@ -27,16 +27,16 @@ defmodule Lanttern.Attachments.Attachment do
           is_external: boolean(),
           owner: Profile.t(),
           owner_id: pos_integer(),
-          note_attachment: NoteAttachment.t(),
-          note: Note.t(),
           assessment_point_entry_evidence: AssessmentPointEntryEvidence.t(),
           assessment_point_entry: AssessmentPointEntry.t(),
           student_cycle_info_attachment: StudentCycleInfoAttachment.t(),
           student_cycle_info: StudentCycleInfo.t(),
-          moment_card_attachment: MomentCardAttachment.t(),
-          moment_card: MomentCard.t(),
+          lesson_attachment: LessonAttachment.t(),
+          lesson: Lesson.t(),
           ilp_comment_attachment: ILPCommentAttachment.t(),
           ilp_comment: ILPComment.t(),
+          student_record_attachment: StudentRecordAttachment.t(),
+          student_record: StudentRecord.t(),
           inserted_at: DateTime.t(),
           updated_at: DateTime.t()
         }
@@ -51,13 +51,13 @@ defmodule Lanttern.Attachments.Attachment do
     field :signed_link, :string, virtual: true
     field :signed_link_error, :boolean, default: false, virtual: true
 
-    # used in the context of moment card attachments
+    # used in the context of student cycle info
     field :is_shared, :boolean, virtual: true
 
-    belongs_to :owner, Profile
+    # used in the context of lesson attachments
+    field :is_teacher_only, :boolean, virtual: true
 
-    has_one :note_attachment, NoteAttachment
-    has_one :note, through: [:note_attachment, :note]
+    belongs_to :owner, Profile
 
     has_one :assessment_point_entry_evidence, AssessmentPointEntryEvidence
 
@@ -67,11 +67,14 @@ defmodule Lanttern.Attachments.Attachment do
     has_one :student_cycle_info_attachment, StudentCycleInfoAttachment
     has_one :student_cycle_info, through: [:student_cycle_info_attachment, :student_cycle_info]
 
-    has_one :moment_card_attachment, MomentCardAttachment
-    has_one :moment_card, through: [:moment_card_attachment, :moment_card]
+    has_one :lesson_attachment, LessonAttachment
+    has_one :lesson, through: [:lesson_attachment, :lesson]
 
     has_one :ilp_comment_attachment, ILPCommentAttachment
     has_one :ilp_comment, through: [:ilp_comment_attachment, :ilp_comment]
+
+    has_one :student_record_attachment, StudentRecordAttachment
+    has_one :student_record, through: [:student_record_attachment, :student_record]
 
     timestamps()
   end

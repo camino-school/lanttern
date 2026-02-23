@@ -147,7 +147,7 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
         </p>
         <div class="flex items-center gap-2">
           <span class="text-sm text-white">{gettext("Student access")}</span>
-          <div class="group relative">
+          <div>
             <.icon_button
               type="button"
               name="hero-lock-closed"
@@ -162,9 +162,9 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
                 )
               }
             />
-            <.tooltip h_pos="center">{gettext("Remove access")}</.tooltip>
+            <.tooltip id="batch-remove-student-access-tooltip">{gettext("Remove access")}</.tooltip>
           </div>
-          <div class="group relative">
+          <div>
             <.icon_button
               type="button"
               name="hero-lock-open"
@@ -178,12 +178,12 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
                 )
               }
             />
-            <.tooltip h_pos="center">{gettext("Allow access")}</.tooltip>
+            <.tooltip id="batch-allow-student-access-tooltip">{gettext("Allow access")}</.tooltip>
           </div>
         </div>
         <div class="flex items-center gap-2">
           <span class="text-sm text-white">{gettext("Guardian access")}</span>
-          <div class="group relative">
+          <div>
             <.icon_button
               type="button"
               name="hero-lock-closed"
@@ -198,9 +198,9 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
                 )
               }
             />
-            <.tooltip h_pos="center">{gettext("Remove access")}</.tooltip>
+            <.tooltip id="batch-remove-guardian-access-tooltip">{gettext("Remove access")}</.tooltip>
           </div>
-          <div class="group relative">
+          <div>
             <.icon_button
               type="button"
               name="hero-lock-open"
@@ -214,7 +214,7 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
                 )
               }
             />
-            <.tooltip h_pos="right">{gettext("Allow access")}</.tooltip>
+            <.tooltip id="batch-allow-guardian-access-tooltip">{gettext("Allow access")}</.tooltip>
           </div>
         </div>
       </.fixed_bar>
@@ -269,35 +269,37 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
       <div class="shrink-0 flex items-center gap-2">
         <div
           :if={@student_report_card.comment}
-          class="group relative flex items-center justify-center w-10 h-10 rounded-full bg-ltrn-diff-lightest"
+          class="flex items-center justify-center w-10 h-10 rounded-full bg-ltrn-diff-lightest"
         >
           <.icon name="hero-chat-bubble-oval-left-mini" class="w-5 h-5 text-ltrn-diff-dark" />
-          <.tooltip h_pos="center">
+          <.tooltip id={"#{@id}-comment-tooltip"}>
             {gettext("Has comments")}
           </.tooltip>
         </div>
         <div
           :if={@student_report_card.footnote}
-          class="group relative flex items-center justify-center w-10 h-10 rounded-full bg-ltrn-diff-lightest"
+          class="flex items-center justify-center w-10 h-10 rounded-full bg-ltrn-diff-lightest"
         >
           <.icon name="hero-document-text-mini" class="w-5 h-5 text-ltrn-diff-dark" />
-          <.tooltip h_pos="center">
+          <.tooltip id={"#{@id}-footnote-tooltip"}>
             {gettext("Has footnote")}
           </.tooltip>
         </div>
         <.access_status
+          id={"#{@id}-student-access"}
           has_access={@student_report_card.allow_student_access}
           icon_name="hero-user-mini"
           with_access_text={gettext("Shared with student")}
           without_access_text={gettext("Not shared with student")}
         />
         <.access_status
+          id={"#{@id}-guardian-access"}
           has_access={@student_report_card.allow_guardian_access}
           icon_name="hero-users-mini"
           with_access_text={gettext("Shared with guardians")}
           without_access_text={gettext("Not shared with guardians")}
         />
-        <div class="group relative">
+        <div>
           <a
             class={get_button_styles("ghost")}
             href={~p"/student_report_cards/#{@student_report_card.id}"}
@@ -306,9 +308,9 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
           >
             <.icon name="hero-eye-mini" class="w-5 h-5" />
           </a>
-          <.tooltip h_pos="center">{gettext("Preview")}</.tooltip>
+          <.tooltip id={"#{@id}-preview-tooltip"}>{gettext("Preview")}</.tooltip>
         </div>
-        <div class="group relative">
+        <div>
           <.link
             class={get_button_styles("ghost")}
             patch={
@@ -317,13 +319,14 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
           >
             <.icon name="hero-pencil-mini" class="w-5 h-5" />
           </.link>
-          <.tooltip h_pos="center">{gettext("Edit")}</.tooltip>
+          <.tooltip id={"#{@id}-edit-tooltip"}>{gettext("Edit")}</.tooltip>
         </div>
       </div>
     </div>
     """
   end
 
+  attr :id, :string, required: true
   attr :has_access, :boolean, required: true
   attr :icon_name, :string, required: true
   attr :with_access_text, :string, required: true
@@ -332,7 +335,7 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
   def access_status(assigns) do
     ~H"""
     <div class={[
-      "group relative flex items-center justify-center w-10 h-10 rounded-full",
+      "relative flex items-center justify-center w-10 h-10 rounded-full",
       if(@has_access, do: "bg-ltrn-mesh-primary", else: "bg-ltrn-lightest")
     ]}>
       <.icon
@@ -347,7 +350,7 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
         name="hero-check-circle-mini"
         class="absolute -top-1 -right-1 text-ltrn-primary"
       />
-      <.tooltip h_pos="center">
+      <.tooltip id={"#{@id}-tooltip"}>
         {if @has_access, do: @with_access_text, else: @without_access_text}
       </.tooltip>
     </div>
