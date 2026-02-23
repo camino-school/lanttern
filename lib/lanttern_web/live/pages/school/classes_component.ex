@@ -67,7 +67,7 @@ defmodule LantternWeb.SchoolLive.ClassesComponent do
               <div class="group relative flex items-center gap-1 mt-1 text-sm font-bold text-ltrn-subtle cursor-default">
                 {ngettext("1 staff member", "%{count} staff members", length(class.staff_members))}
                 <.icon name="hero-information-circle-mini" />
-                <.tooltip>
+                <.tooltip id={"class-#{class.id}-staff-members-tooltip"}>
                   {Enum.map_join(class.staff_members, ", ", & &1.name)}
                 </.tooltip>
               </div>
