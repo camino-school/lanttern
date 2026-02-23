@@ -9,6 +9,7 @@ defmodule LantternWeb.Schools.GuardiansFieldComponent do
       attr :label, :string, required: true
       attr :selected_guardians_ids, :list, required: true, doc: "the selected guardians ids list"
       attr :guardians, :list, required: true, doc: "list of available guardians"
+      attr :form_id, :string, required: true, doc: "the form id to dispatch change events to"
       attr :notify_component, Phoenix.LiveComponent.CID
       attr :class, :any
 
@@ -33,10 +34,10 @@ defmodule LantternWeb.Schools.GuardiansFieldComponent do
 
       <%= if @selected_guardians != [] do %>
         <.badge_button_picker
-          id="selected-guardians-picker"
+          id="selected-guardians-picker-#{@id}"
           on_select={
             &(JS.push("unselect_guardian", value: %{"id" => &1}, target: @myself)
-              |> JS.dispatch("change", to: "#student-form"))
+              |> JS.dispatch("change", to: "##{@form_id}"))
           }
           items={@selected_guardians}
           selected_ids={@selected_guardians_ids}

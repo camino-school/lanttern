@@ -6168,7 +6168,7 @@ msgstr ""
 #: lib/lanttern_web/live/pages/school/guardians/id/guardian_live.html.heex:80
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Shared Guardians"
-msgstr ""
+msgstr "Shared Guardians"
 
 #: lib/lanttern_web/live/shared/schools/guardian_form_overlay_component.ex:131
 #, elixir-autogen, elixir-format, fuzzy

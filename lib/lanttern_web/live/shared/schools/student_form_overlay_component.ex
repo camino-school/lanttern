@@ -182,8 +182,6 @@ defmodule LantternWeb.Schools.StudentFormOverlayComponent do
         %{action: {GuardiansFieldComponent, {:changed, selected_guardians_ids}}},
         socket
       ) do
-    require Logger
-    Logger.debug("Student form received guardians: #{inspect(selected_guardians_ids)}")
     {:ok, assign(socket, :selected_guardians_ids, selected_guardians_ids)}
   end
 

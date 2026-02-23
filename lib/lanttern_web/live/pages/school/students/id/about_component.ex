@@ -279,15 +279,16 @@ defmodule LantternWeb.StudentLive.LessonsComponent do
     do: {:noreply, assign(socket, :is_editing_shared_info, true)}
 
   def handle_event("delete_guardian", %{"guardian_id" => guardian_id}, socket) do
-    scope = %{
-      current_user: socket.assigns.current_user,
-      current_profile: socket.assigns.current_user.current_profile
-    }
+    guardian_id = String.to_integer(guardian_id)
 
-    case Schools.remove_guardian_from_student(scope, socket.assigns.student, guardian_id) do
+    case Schools.remove_guardian_from_student(
+           socket.assigns.current_user.current_profile,
+           socket.assigns.student,
+           guardian_id
+         ) do
       {:ok, _} ->
         # Remove guardian from student list in socket
-        guardians = Enum.reject(socket.assigns.student.guardians, &(&1.id == String.to_integer(guardian_id)))
+        guardians = Enum.reject(socket.assigns.student.guardians, &(&1.id == guardian_id))
         student = Map.put(socket.assigns.student, :guardians, guardians)
 
         {:noreply, assign(socket, :student, student)}
