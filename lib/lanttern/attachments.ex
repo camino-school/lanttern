@@ -18,6 +18,7 @@ defmodule Lanttern.Attachments do
   - `:student_cycle_info_id` - filter attachments linked to given student cycle info. May be used with `:shared_with_student` option.
   - `:lesson_id` - filter results by lesson. May be used with `:is_teacher_only_resource` option.
   - `:ilp_comment_id` - filter results by ILP comment
+  - `:student_record_id` - filter results by student record
   - `:shared_with_student` - expect a tuple with type and boolean (view the section below for accepted types). If not given, will not filter results.
   - `:is_teacher_only_resource` - expect a tuple with type and boolean (view the section below for accepted types). If not given, will not filter results.
 
@@ -93,6 +94,19 @@ defmodule Lanttern.Attachments do
       as: :ilp_comment_attachment,
       where: ica.ilp_comment_id == ^ilp_comment_id,
       order_by: ica.position
+    )
+    |> apply_list_attachments_opts(opts)
+  end
+
+  defp apply_list_attachments_opts(queryable, [
+         {:student_record_id, student_record_id} | opts
+       ])
+       when is_integer(student_record_id) do
+    from(
+      a in queryable,
+      join: sra in assoc(a, :student_record_attachment),
+      where: sra.student_record_id == ^student_record_id,
+      order_by: sra.position
     )
     |> apply_list_attachments_opts(opts)
   end

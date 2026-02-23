@@ -272,6 +272,69 @@ defmodule LantternWeb.StudentLiveTest do
     end
   end
 
+  describe "Student records attachments" do
+    alias Lanttern.StudentsRecordsFixtures
+
+    test "shows attachments in student record detail overlay", %{conn: conn, user: user} do
+      %{staff_member_id: staff_member_id, school_id: school_id} = user.current_profile
+      student = SchoolsFixtures.student_fixture(%{school_id: school_id})
+
+      student_record =
+        StudentsRecordsFixtures.student_record_fixture(%{
+          created_by_staff_member_id: staff_member_id,
+          name: "record with attachments",
+          description: "record desc",
+          school_id: school_id,
+          students_ids: [student.id]
+        })
+
+      attachment =
+        insert(:attachment, %{
+          owner: user.current_profile,
+          name: "My external link",
+          link: "https://example.com",
+          is_external: true
+        })
+
+      insert(:student_record_attachment, %{
+        student_record: student_record,
+        attachment: attachment
+      })
+
+      conn
+      |> visit(
+        "#{@live_view_base_path}/#{student.id}/student_records?student_record=#{student_record.id}"
+      )
+      |> assert_has("h5", text: "Attachments")
+      |> assert_has("a", text: "My external link")
+    end
+
+    test "allows adding external link attachment from detail view", %{conn: conn, user: user} do
+      %{staff_member_id: staff_member_id, school_id: school_id} = user.current_profile
+      student = SchoolsFixtures.student_fixture(%{school_id: school_id})
+
+      student_record =
+        StudentsRecordsFixtures.student_record_fixture(%{
+          created_by_staff_member_id: staff_member_id,
+          name: "record for attaching",
+          description: "record desc",
+          school_id: school_id,
+          students_ids: [student.id]
+        })
+
+      conn
+      |> visit(
+        "#{@live_view_base_path}/#{student.id}/student_records?student_record=#{student_record.id}"
+      )
+      |> assert_has("h5", text: "Attachments")
+      |> click_button("#student-record-attachments-external-link-button", "add a link")
+      |> fill_in("Attachment name", with: "Google Doc")
+      |> fill_in("Link", with: "https://docs.google.com/test")
+      |> click_button("#save-external-attachment", "Save")
+      |> assert_has("a", text: "Google Doc")
+    end
+  end
+
   describe "Student ILP live view access" do
     test "renders ok when create a new ILP comment", ctx do
       school = ctx.user.current_profile.staff_member.school

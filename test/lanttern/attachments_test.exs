@@ -17,6 +17,8 @@ defmodule Lanttern.AttachmentsTest do
     alias Lanttern.ILP
     alias Lanttern.StudentsCycleInfo
     alias Lanttern.StudentsCycleInfoFixtures
+    alias Lanttern.StudentsRecords
+    alias Lanttern.StudentsRecordsFixtures
 
     @invalid_attrs %{name: nil, link: nil, description: nil, is_external: nil}
 
@@ -170,6 +172,58 @@ defmodule Lanttern.AttachmentsTest do
 
       [expected_attachment_2, expected_attachment_1] =
         Attachments.list_attachments(ilp_comment_id: ilp_comment.id)
+
+      assert expected_attachment_1.id == attachment_1.id
+      assert expected_attachment_2.id == attachment_2.id
+    end
+
+    test "list_attachments/1 with student_record_id opts returns all attachments linked to given student record" do
+      profile = IdentityFixtures.staff_member_profile_fixture()
+      current_user = %{current_profile_id: profile.id}
+      student_record = StudentsRecordsFixtures.student_record_fixture()
+
+      {:ok, attachment_1} =
+        StudentsRecords.create_student_record_attachment(
+          current_user,
+          student_record.id,
+          %{"name" => "attachment 1", "link" => "https://somevaliduri.com", "is_external" => true}
+        )
+
+      {:ok, attachment_2} =
+        StudentsRecords.create_student_record_attachment(
+          current_user,
+          student_record.id,
+          %{"name" => "attachment 2", "link" => "https://somevaliduri.com", "is_external" => true}
+        )
+
+      # extra attachments to test filtering
+      attachment_fixture()
+
+      StudentsRecords.create_student_record_attachment(
+        current_user,
+        StudentsRecordsFixtures.student_record_fixture().id,
+        %{
+          "name" => "other attachment",
+          "link" => "https://somevaliduri.com",
+          "is_external" => true
+        }
+      )
+
+      [expected_attachment_1, expected_attachment_2] =
+        Attachments.list_attachments(student_record_id: student_record.id)
+
+      assert expected_attachment_1.id == attachment_1.id
+      assert expected_attachment_2.id == attachment_2.id
+
+      # test update_student_record_attachments_positions/1
+
+      StudentsRecords.update_student_record_attachments_positions([
+        attachment_2.id,
+        attachment_1.id
+      ])
+
+      [expected_attachment_2, expected_attachment_1] =
+        Attachments.list_attachments(student_record_id: student_record.id)
 
       assert expected_attachment_1.id == attachment_1.id
       assert expected_attachment_2.id == attachment_2.id

@@ -30,6 +30,7 @@ defmodule Lanttern.Factory do
   use Lanttern.StrandFactory
   use Lanttern.StudentFactory
   use Lanttern.StudentILPFactory
+  use Lanttern.StudentRecordAttachmentFactory
   use Lanttern.StudentRecordFactory
   use Lanttern.StudentRecordRelationshipFactory
   use Lanttern.StudentRecordStatusFactory

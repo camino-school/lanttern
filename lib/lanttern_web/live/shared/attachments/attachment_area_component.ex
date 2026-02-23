@@ -8,6 +8,7 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
   - student cycle info attachments (use `student_cycle_info_id` assign and `shared_with_student` assign)
   - lesson attachments (use `lesson_id` assign and `is_teacher_only_resource` assign)
   - ILP comments attachments (use `ilp_comment_id` assign)
+  - student record attachments (use `student_record_id` assign)
 
   ### Supported attrs/assigns
 
@@ -33,6 +34,7 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
   alias Lanttern.ILP
   alias Lanttern.Lessons
   alias Lanttern.StudentsCycleInfo
+  alias Lanttern.StudentsRecords
   alias Lanttern.SupabaseHelpers
 
   # shared
@@ -284,6 +286,9 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
   defp assign_type(%{assigns: %{ilp_comment_id: _}} = socket),
     do: assign(socket, :type, :ilp_comment_attachments)
 
+  defp assign_type(%{assigns: %{student_record_id: _}} = socket),
+    do: assign(socket, :type, :student_record_attachments)
+
   defp stream_attachments(
          %{assigns: %{type: :entry_evidences, assessment_point_entry_id: id}} = socket
        ) do
@@ -321,6 +326,13 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
     |> stream(:attachments, attachments, reset: true)
     |> assign(:attachments_length, length(attachments))
     |> assign(:attachments_ids, attachments_ids)
+  end
+
+  defp stream_attachments(%{assigns: %{type: :student_record_attachments}} = socket) do
+    attachments =
+      Attachments.list_attachments(student_record_id: socket.assigns.student_record_id)
+
+    handle_stream_attachments_socket_assigns(socket, attachments)
   end
 
   defp handle_stream_attachments_socket_assigns(socket, attachments) do
@@ -476,6 +488,9 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
 
       :ilp_comment_attachments ->
         ILP.update_ilp_comment_attachments_positions(attachments_ids)
+
+      :student_record_attachments ->
+        StudentsRecords.update_student_record_attachments_positions(attachments_ids)
     end
     |> case do
       :ok ->
@@ -653,6 +668,32 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
           |> stream_attachments()
 
         notify(__MODULE__, {:created, attachment}, socket.assigns)
+
+        {:noreply, socket}
+
+      {:error, %Ecto.Changeset{} = changeset} ->
+        {:noreply, assign_form(socket, changeset)}
+    end
+  end
+
+  defp save_attachment(%{assigns: %{type: :student_record_attachments}} = socket, :new, params) do
+    %{
+      current_user: current_user,
+      student_record_id: student_record_id
+    } = socket.assigns
+
+    case StudentsRecords.create_student_record_attachment(
+           current_user,
+           student_record_id,
+           params
+         ) do
+      {:ok, attachment} ->
+        notify(__MODULE__, {:created, attachment}, socket.assigns)
+
+        socket =
+          socket
+          |> assign(:is_adding_external, false)
+          |> stream_attachments()
 
         {:noreply, socket}
 
