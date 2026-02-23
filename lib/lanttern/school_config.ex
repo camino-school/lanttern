@@ -8,6 +8,7 @@ defmodule Lanttern.SchoolConfig do
   alias Lanttern.Repo
 
   alias Lanttern.Identity.Scope
+  alias Lanttern.SchoolConfig.AiConfig
   alias Lanttern.SchoolConfig.MomentCardTemplate
 
   @doc """
@@ -166,4 +167,87 @@ defmodule Lanttern.SchoolConfig do
           :ok | {:error, String.t()}
   def update_moment_cards_templates_positions(moment_cards_templates_ids),
     do: update_positions(MomentCardTemplate, moment_cards_templates_ids)
+
+  # AI Config
+
+  @doc """
+  Gets the AI config for the given scope's school.
+
+  Returns `nil` if no config exists for the school.
+
+  ## Examples
+
+      iex> get_ai_config(scope)
+      %AiConfig{}
+
+      iex> get_ai_config(scope)
+      nil
+
+  """
+  @spec get_ai_config(Scope.t()) :: AiConfig.t() | nil
+  def get_ai_config(%Scope{school_id: school_id}) when is_integer(school_id) do
+    Repo.get_by(AiConfig, school_id: school_id)
+  end
+
+  def get_ai_config(_scope), do: nil
+
+  @doc """
+  Creates an AI config.
+
+  Requires the `agents_management` permission. Raises `MatchError` if the
+  scope does not have the required permission.
+
+  ## Examples
+
+      iex> create_ai_config(scope, %{base_model: "gpt-5-mini"})
+      {:ok, %AiConfig{}}
+
+  """
+  @spec create_ai_config(Scope.t(), map()) ::
+          {:ok, AiConfig.t()} | {:error, Ecto.Changeset.t()}
+  def create_ai_config(%Scope{} = scope, attrs) do
+    true = Scope.has_permission?(scope, "agents_management")
+
+    attrs = Map.put(attrs, "school_id", scope.school_id)
+
+    %AiConfig{}
+    |> AiConfig.changeset(attrs, scope)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates an AI config.
+
+  Requires the `agents_management` permission. Raises `MatchError` if the
+  scope does not have the required permission.
+
+  ## Examples
+
+      iex> update_ai_config(scope, ai_config, %{base_model: "gpt-5-nano"})
+      {:ok, %AiConfig{}}
+
+  """
+  @spec update_ai_config(Scope.t(), AiConfig.t(), map()) ::
+          {:ok, AiConfig.t()} | {:error, Ecto.Changeset.t()}
+  def update_ai_config(%Scope{} = scope, %AiConfig{} = ai_config, attrs) do
+    true = Scope.has_permission?(scope, "agents_management")
+
+    ai_config
+    |> AiConfig.changeset(attrs, scope)
+    |> Repo.update()
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking AI config changes.
+
+  ## Examples
+
+      iex> change_ai_config(scope, ai_config)
+      %Ecto.Changeset{data: %AiConfig{}}
+
+  """
+  @spec change_ai_config(Scope.t(), AiConfig.t(), map()) :: Ecto.Changeset.t()
+  def change_ai_config(%Scope{} = scope, %AiConfig{} = ai_config, attrs \\ %{}) do
+    AiConfig.changeset(ai_config, attrs, scope)
+  end
 end

@@ -15,7 +15,6 @@ defmodule Lanttern.Reporting do
   alias Lanttern.Assessments.AssessmentPointEntry
   alias Lanttern.Attachments.Attachment
   alias Lanttern.LearningContext.Moment
-  alias Lanttern.LearningContext.MomentCard
   alias Lanttern.LearningContext.Strand
   alias Lanttern.Schools
   alias Lanttern.Schools.Class
@@ -1053,8 +1052,6 @@ defmodule Lanttern.Reporting do
 
   **Preloaded data:**
 
-  - moments: subjects
-
   ## Examples
 
       iex> list_student_strand_report_moments_and_entries(strand_report, student_id)
@@ -1076,10 +1073,8 @@ defmodule Lanttern.Reporting do
 
     moments =
       from(m in Moment,
-        left_join: sub in assoc(m, :subjects),
         where: m.strand_id == ^strand_id,
-        order_by: [asc: m.position, asc: sub.name],
-        preload: [subjects: sub]
+        order_by: [asc: m.position]
       )
       |> Repo.all()
 
@@ -1445,59 +1440,4 @@ defmodule Lanttern.Reporting do
       end
     )
   end
-
-  @doc """
-  Returns the list of moment cards shared with student and linked to given moment.
-
-  **Preloaded data:**
-
-  - attachments: list of linked attachments
-
-  ## Options
-
-  - `:school_id` - filter moment cards by school
-
-  ## Examples
-
-      iex> list_moment_cards_and_attachments_shared_with_students(moment_id)
-      [%MomentCard{}, ...]
-
-  """
-  @spec list_moment_cards_and_attachments_shared_with_students(
-          moment_id :: pos_integer(),
-          opts :: Keyword.t()
-        ) :: [
-          MomentCard.t()
-        ]
-
-  def list_moment_cards_and_attachments_shared_with_students(moment_id, opts \\ []) do
-    from(
-      mc in MomentCard,
-      left_join: mca in assoc(mc, :moment_card_attachments),
-      on: mca.shared_with_students,
-      left_join: a in assoc(mca, :attachment),
-      where: mc.moment_id == ^moment_id,
-      where: mc.shared_with_students,
-      order_by: [asc: mc.position, asc: mca.position],
-      preload: [attachments: a]
-    )
-    |> apply_list_moment_cards_and_attachments_shared_with_students_opts(opts)
-    |> Repo.all()
-  end
-
-  defp apply_list_moment_cards_and_attachments_shared_with_students_opts(queryable, []),
-    do: queryable
-
-  defp apply_list_moment_cards_and_attachments_shared_with_students_opts(queryable, [
-         {:school_id, id} | opts
-       ]) do
-    from(
-      mc in queryable,
-      where: mc.school_id == ^id
-    )
-    |> apply_list_moment_cards_and_attachments_shared_with_students_opts(opts)
-  end
-
-  defp apply_list_moment_cards_and_attachments_shared_with_students_opts(queryable, [_ | opts]),
-    do: apply_list_moment_cards_and_attachments_shared_with_students_opts(queryable, opts)
 end

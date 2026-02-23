@@ -98,7 +98,11 @@ if config_env() == :prod do
   # ex_openai config
   config :ex_openai,
     api_key: System.get_env("OPENAI_API_KEY"),
-    organization_key: System.get_env("OPENAI_ORGANIZATION_KEY")
+    organization_key: System.get_env("OPENAI_ORG_ID")
+
+  # LangChain config
+  config :langchain, openai_key: System.get_env("OPENAI_API_KEY")
+  config :langchain, openai_org_id: System.get_env("OPENAI_ORG_ID")
 
   # ## SSL Support
   #

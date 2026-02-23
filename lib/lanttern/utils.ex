@@ -16,4 +16,12 @@ defmodule Lanttern.Utils do
     |> List.replace_at(i1, e2)
     |> List.replace_at(i2, e1)
   end
+
+  @doc """
+  Changes a list item position, based on the given indexes.
+  """
+  def reorder(list, cur_i, new_i) do
+    {item, rest} = List.pop_at(list, cur_i)
+    List.insert_at(rest, new_i, item)
+  end
 end

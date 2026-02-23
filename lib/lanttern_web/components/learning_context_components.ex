@@ -100,7 +100,7 @@ defmodule LantternWeb.LearningContextComponents do
       ]}>
         <div>
           <h5 class={[
-            "font-display font-black text-xl line-clamp-3",
+            "font-display font-bold text-xl text-ltrn-darkest line-clamp-3",
             "md:text-2xl md:leading-tight"
           ]}>
             <%= if @navigate do %>
@@ -115,7 +115,7 @@ defmodule LantternWeb.LearningContextComponents do
               {@strand.name}
             <% end %>
           </h5>
-          <p :if={@strand.type} class="mt-2 font-display font-black text-base text-ltrn-primary">
+          <p :if={@strand.type} class="mt-2 text-base">
             {@strand.type}
           </p>
         </div>
@@ -127,9 +127,12 @@ defmodule LantternWeb.LearningContextComponents do
             {Gettext.dgettext(Lanttern.Gettext, "taxonomy", year.name)}
           </.badge>
         </div>
-        <div :if={!@hide_description} class="line-clamp-3">
-          <.markdown text={@strand.description} />
-        </div>
+        <.markdown
+          :if={!@hide_description}
+          text={@strand.description}
+          strip_tags
+          class="line-clamp-3"
+        />
       </div>
       {render_slot(@bottom_content)}
     </.card_base>
@@ -159,10 +162,10 @@ defmodule LantternWeb.LearningContextComponents do
         <span class="sr-only">{gettext("Cover image")}</span>
       </div>
       <div class="p-4">
-        <h6 class="font-display font-black text-base leading-tight">
+        <h6 class="font-display font-bold text-ltrn-darkest leading-tight">
           {@strand.name}
         </h6>
-        <p :if={@strand.type} class="mt-2 font-display font-black text-sm text-ltrn-subtle">
+        <p :if={@strand.type} class="mt-2 text-sm">
           {@strand.type}
         </p>
         <div class="flex flex-wrap gap-2 mt-4">

@@ -4,10 +4,9 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
 
   ### Supported contexts:
 
-  - notes attachments (use `note_id` assign)
   - assessment point entry evidences (use `assessment_point_entry_id` assign)
   - student cycle info attachments (use `student_cycle_info_id` assign and `shared_with_student` assign)
-  - moment card attachments (use `moment_card_id` assign and `shared_with_student` assign)
+  - lesson attachments (use `lesson_id` assign and `is_teacher_only_resource` assign)
   - ILP comments attachments (use `ilp_comment_id` assign)
 
   ### Supported attrs/assigns
@@ -16,24 +15,23 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
   - `class` (optional, any)
   - `allow_editing` (optional, boolean)
   - `current_user` (optional, `%User{}`) - required when `allow_editing` is `true`
-  - `note_id` (optional, integer) - view supported contexts above
   - `assessment_point_entry_id` (optional, integer) - view supported contexts above
   - `student_cycle_info_id` (optional, integer) - view supported contexts above
-  - `moment_card_id` (optional, integer) - view supported contexts above
-  - `shared_with_student` (optional, boolean) - used with student cycle info and moment card. View supported contexts above
+  - `lesson_id` (optional, integer) - view supported contexts above
+  - `shared_with_student` (optional, boolean) - used with student cycle info. View supported contexts above
+  - `is_teacher_only_resource` (optional, boolean) - used with lesson. View supported contexts above
 
   """
 
   use LantternWeb, :live_component
 
-  import Lanttern.Utils, only: [swap: 3]
+  import Lanttern.Utils, only: [reorder: 3]
 
   alias Lanttern.Assessments
   alias Lanttern.Attachments
   alias Lanttern.Attachments.Attachment
   alias Lanttern.ILP
-  alias Lanttern.LearningContext
-  alias Lanttern.Notes
+  alias Lanttern.Lessons
   alias Lanttern.StudentsCycleInfo
   alias Lanttern.SupabaseHelpers
 
@@ -62,25 +60,10 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
         attachments={@streams.attachments}
         allow_editing={@allow_editing}
         attachments_length={@attachments_length}
-        on_toggle_share={
-          if @allow_editing && @type == :moment_card_attachments,
-            do: fn attachment_id, i ->
-              JS.push("toggle_moment_card_attachment_share",
-                value: %{"attachment_id" => attachment_id, "index" => i},
-                target: @myself
-              )
-            end
-        }
-        on_move_up={
-          fn i ->
-            JS.push("reorder_attachments", value: %{from: i, to: i - 1}, target: @myself)
-          end
-        }
-        on_move_down={
-          fn i ->
-            JS.push("reorder_attachments", value: %{from: i, to: i + 1}, target: @myself)
-          end
-        }
+        sortable_group={@sortable_group}
+        component_id={@id}
+        on_toggle_share={nil}
+        sortable_event="sort_attachments"
         on_edit={&JS.push("edit", value: %{"id" => &1}, target: @myself)}
         on_remove={&JS.push("delete", value: %{"id" => &1}, target: @myself)}
       />
@@ -224,16 +207,48 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
       |> assign(:is_editing, false)
       |> assign(:upload_error, nil)
       |> assign(:shared_with_student, nil)
-      |> stream_configure(
-        :attachments,
-        dom_id: fn {attachment, _i} -> "attachment-#{attachment.id}" end
-      )
+      |> assign(:is_teacher_only_resource, nil)
+      |> assign(:sortable_group, nil)
       |> allow_upload(:attachment_file,
         accept: :any,
         max_file_size: 5_000_000,
         max_entries: 1
       )
       |> assign(:initialized, false)
+
+    {:ok, socket}
+  end
+
+  @impl true
+  def update(%{action: :receive_attachment} = assigns, socket) do
+    %{attachment_id: attachment_id, new_index: new_index} = assigns
+
+    socket =
+      case socket.assigns.type do
+        :lesson_attachments ->
+          attachment = Attachments.get_attachment!(attachment_id)
+
+          case Lessons.toggle_lesson_attachment_share(attachment) do
+            {:ok, _updated_attachment} ->
+              # Insert at dropped position in ids list
+              attachments_ids =
+                List.insert_at(socket.assigns.attachments_ids, new_index, attachment_id)
+
+              # Update positions in DB
+              Lessons.update_lesson_attachments_positions(attachments_ids)
+
+              # OPTIMIZATION: Just update ids, don't reload all
+              socket
+              |> assign(:attachments_ids, attachments_ids)
+              |> assign(:attachments_length, length(attachments_ids))
+
+            {:error, _} ->
+              put_flash(socket, :error, gettext("Failed to move attachment"))
+          end
+
+        _ ->
+          put_flash(socket, :error, gettext("Operation not supported"))
+      end
 
     {:ok, socket}
   end
@@ -257,25 +272,17 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
 
   defp initialize(socket), do: socket
 
-  defp assign_type(%{assigns: %{note_id: _}} = socket),
-    do: assign(socket, :type, :note_attachments)
-
   defp assign_type(%{assigns: %{assessment_point_entry_id: _}} = socket),
     do: assign(socket, :type, :entry_evidences)
 
   defp assign_type(%{assigns: %{student_cycle_info_id: _}} = socket),
     do: assign(socket, :type, :student_cycle_info_attachments)
 
-  defp assign_type(%{assigns: %{moment_card_id: _}} = socket),
-    do: assign(socket, :type, :moment_card_attachments)
+  defp assign_type(%{assigns: %{lesson_id: _}} = socket),
+    do: assign(socket, :type, :lesson_attachments)
 
   defp assign_type(%{assigns: %{ilp_comment_id: _}} = socket),
     do: assign(socket, :type, :ilp_comment_attachments)
-
-  defp stream_attachments(%{assigns: %{type: :note_attachments, note_id: id}} = socket) do
-    attachments = Attachments.list_attachments(note_id: id)
-    handle_stream_attachments_socket_assigns(socket, attachments)
-  end
 
   defp stream_attachments(
          %{assigns: %{type: :entry_evidences, assessment_point_entry_id: id}} = socket
@@ -296,13 +303,11 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
     handle_stream_attachments_socket_assigns(socket, attachments)
   end
 
-  defp stream_attachments(
-         %{assigns: %{type: :moment_card_attachments, moment_card_id: id}} = socket
-       ) do
+  defp stream_attachments(%{assigns: %{type: :lesson_attachments, lesson_id: id}} = socket) do
     attachments =
       Attachments.list_attachments(
-        moment_card_id: id,
-        shared_with_student: {:moment_card, socket.assigns.shared_with_student}
+        lesson_id: id,
+        is_teacher_only_resource: {:lesson, socket.assigns.is_teacher_only_resource}
       )
 
     handle_stream_attachments_socket_assigns(socket, attachments)
@@ -313,7 +318,7 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
     attachments_ids = Enum.map(attachments, & &1.id)
 
     socket
-    |> stream(:attachments, Enum.with_index(attachments), reset: true)
+    |> stream(:attachments, attachments, reset: true)
     |> assign(:attachments_length, length(attachments))
     |> assign(:attachments_ids, attachments_ids)
   end
@@ -322,7 +327,7 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
     attachments_ids = Enum.map(attachments, & &1.id)
 
     socket
-    |> stream(:attachments, Enum.with_index(attachments), reset: true)
+    |> stream(:attachments, attachments, reset: true)
     |> assign(:attachments_length, length(attachments))
     |> assign(:attachments_ids, attachments_ids)
   end
@@ -410,49 +415,81 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
     end
   end
 
-  def handle_event("reorder_attachments", %{"from" => i, "to" => j}, socket) do
+  # Cross-component drag: from one AttachmentAreaComponent to another
+  def handle_event(
+        "sort_attachments",
+        %{
+          "from" => %{"componentId" => from_id},
+          "to" => %{"componentId" => to_id},
+          "oldIndex" => old_index,
+          "newIndex" => new_index
+        },
+        socket
+      )
+      when from_id != to_id do
+    # SOURCE component: remove and notify target
+
+    {attachment_id, remaining_ids} =
+      List.pop_at(socket.assigns.attachments_ids, old_index)
+
+    # Validate attachment belongs to this component
+    if attachment_id in socket.assigns.attachments_ids do
+      send_update(__MODULE__,
+        id: to_id,
+        action: :receive_attachment,
+        attachment_id: attachment_id,
+        new_index: new_index
+      )
+
+      # Update our state (DON'T update positions in DB per user requirement)
+      socket =
+        socket
+        |> assign(:attachments_ids, remaining_ids)
+        |> assign(:attachments_length, length(remaining_ids))
+
+      {:noreply, socket}
+    else
+      {:noreply, put_flash(socket, :error, gettext("Invalid attachment"))}
+    end
+  end
+
+  # Within-component drag: reordering within the same component
+  def handle_event(
+        "sort_attachments",
+        %{"oldIndex" => old_index, "newIndex" => new_index} = _payload,
+        socket
+      )
+      when old_index != new_index do
     attachments_ids =
       socket.assigns.attachments_ids
-      |> swap(i, j)
+      |> reorder(old_index, new_index)
 
     case socket.assigns.type do
-      :note_attachments ->
-        Notes.update_note_attachments_positions(attachments_ids)
-
       :entry_evidences ->
         Assessments.update_assessment_point_entry_evidences_positions(attachments_ids)
 
       :student_cycle_info_attachments ->
         StudentsCycleInfo.update_student_cycle_info_attachments_positions(attachments_ids)
 
-      :moment_card_attachments ->
-        LearningContext.update_moment_card_attachments_positions(attachments_ids)
+      :lesson_attachments ->
+        Lessons.update_lesson_attachments_positions(attachments_ids)
 
       :ilp_comment_attachments ->
         ILP.update_ilp_comment_attachments_positions(attachments_ids)
     end
     |> case do
-      :ok -> {:noreply, stream_attachments(socket)}
-      {:error, msg} -> {:noreply, put_flash(socket, :error, msg)}
+      :ok ->
+        # OPTIMIZATION: Don't stream attachments (SortableJS already updated UI)
+        # Just update the ids list in assigns
+        {:noreply, assign(socket, :attachments_ids, attachments_ids)}
+
+      {:error, msg} ->
+        {:noreply, put_flash(socket, :error, msg)}
     end
   end
 
-  def handle_event(
-        "toggle_moment_card_attachment_share",
-        %{"attachment_id" => attachment_id, "index" => i},
-        socket
-      ) do
-    # as attachment_id is handled in JS call, validate if it's part of the current attachments
-    with true <- attachment_id in socket.assigns.attachments_ids,
-         attachment <- Attachments.get_attachment!(attachment_id),
-         {:ok, attachment} <- LearningContext.toggle_moment_card_attachment_share(attachment) do
-      notify(__MODULE__, {:updated, attachment}, socket.assigns)
-      {:noreply, stream_insert(socket, :attachments, {attachment, i})}
-    else
-      _ ->
-        {:noreply, put_flash(socket, :error, gettext("Something went wrong"))}
-    end
-  end
+  # Catch-all for when indexes are the same (no movement)
+  def handle_event("sort_attachments", _payload, socket), do: {:noreply, socket}
 
   def handle_event("validate_upload", _, socket) do
     upload_conf = socket.assigns.uploads.attachment_file
@@ -513,28 +550,6 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
   # :new -> when is_adding_external or uploading attachment
   # :edit -> when is_editing
 
-  defp save_attachment(%{assigns: %{type: :note_attachments}} = socket, :new, params) do
-    %{
-      current_user: current_user,
-      note_id: note_id
-    } = socket.assigns
-
-    case Notes.create_note_attachment(current_user, note_id, params) do
-      {:ok, attachment} ->
-        notify(__MODULE__, {:created, attachment}, socket.assigns)
-
-        socket =
-          socket
-          |> assign(:is_adding_external, false)
-          |> stream_attachments()
-
-        {:noreply, socket}
-
-      {:error, %Ecto.Changeset{} = changeset} ->
-        {:noreply, assign_form(socket, changeset)}
-    end
-  end
-
   defp save_attachment(%{assigns: %{type: :entry_evidences}} = socket, :new, params) do
     %{
       current_user: current_user,
@@ -592,17 +607,18 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
     end
   end
 
-  defp save_attachment(%{assigns: %{type: :moment_card_attachments}} = socket, :new, params) do
+  defp save_attachment(%{assigns: %{type: :lesson_attachments}} = socket, :new, params) do
     %{
       current_user: current_user,
-      moment_card_id: moment_card_id
+      lesson_id: lesson_id,
+      is_teacher_only_resource: is_teacher_only_resource
     } = socket.assigns
 
-    case LearningContext.create_moment_card_attachment(
+    case Lessons.create_lesson_attachment(
            current_user.current_profile_id,
-           moment_card_id,
+           lesson_id,
            params,
-           socket.assigns.shared_with_student || false
+           is_teacher_only_resource || false
          ) do
       {:ok, attachment} ->
         notify(__MODULE__, {:created, attachment}, socket.assigns)

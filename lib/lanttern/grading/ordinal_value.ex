@@ -5,6 +5,7 @@ defmodule Lanttern.Grading.OrdinalValue do
 
   use Ecto.Schema
   import Ecto.Changeset
+  import Lanttern.SchemaHelpers, only: [validate_hex_color: 3]
 
   alias Lanttern.Grading.Scale
 
@@ -40,13 +41,7 @@ defmodule Lanttern.Grading.OrdinalValue do
       name: :normalized_value_should_be_between_0_and_1,
       message: "Normalized value should be between 0 and 1"
     )
-    |> check_constraint(:bg_color,
-      name: :ordinal_value_bg_color_should_be_hex,
-      message: "Background color format not accepted. Use hex color."
-    )
-    |> check_constraint(:text_color,
-      name: :ordinal_value_text_color_should_be_hex,
-      message: "Text color format not accepted. Use hex color."
-    )
+    |> validate_hex_color(:bg_color, :ordinal_value_bg_color_should_be_hex)
+    |> validate_hex_color(:text_color, :ordinal_value_text_color_should_be_hex)
   end
 end

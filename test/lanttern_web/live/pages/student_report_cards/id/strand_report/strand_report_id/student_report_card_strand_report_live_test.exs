@@ -3,9 +3,7 @@ defmodule LantternWeb.StudentReportCardStrandReportLiveTest do
 
   import Lanttern.ReportingFixtures
 
-  alias Lanttern.IdentityFixtures
   alias Lanttern.LearningContextFixtures
-  alias Lanttern.NotesFixtures
   alias Lanttern.SchoolsFixtures
   alias Lanttern.TaxonomyFixtures
 
@@ -234,16 +232,18 @@ defmodule LantternWeb.StudentReportCardStrandReportLiveTest do
       assert view |> has_element?("h1", "Strand for report ABC")
     end
 
-    test "hide student notes tab from guardians when empty", context do
-      %{conn: conn, student: student} = register_and_log_in_guardian(context)
+    test "renders moments tab", context do
+      %{conn: conn, staff_member: staff_member} = register_and_log_in_staff_member(context)
+
+      student =
+        SchoolsFixtures.student_fixture(%{school_id: staff_member.school_id})
 
       report_card = report_card_fixture()
 
       student_report_card =
         student_report_card_fixture(%{
           report_card_id: report_card.id,
-          student_id: student.id,
-          allow_guardian_access: true
+          student_id: student.id
         })
 
       strand = LearningContextFixtures.strand_fixture()
@@ -254,30 +254,15 @@ defmodule LantternWeb.StudentReportCardStrandReportLiveTest do
           strand_id: strand.id
         })
 
-      {:ok, view, _html} =
-        live(
-          conn,
-          "#{@live_view_path_base}/#{student_report_card.id}/strand_report/#{strand_report.id}"
-        )
-
-      refute view |> has_element?("a", "Student notes")
-
-      # add note and assert again
-
-      student_profile = IdentityFixtures.student_profile_fixture(%{student_id: student.id})
-
-      NotesFixtures.strand_note_fixture(
-        %{current_profile: student_profile},
-        strand.id
-      )
+      LearningContextFixtures.moment_fixture(%{strand_id: strand.id, name: "Moment ABC"})
 
       {:ok, view, _html} =
         live(
           conn,
-          "#{@live_view_path_base}/#{student_report_card.id}/strand_report/#{strand_report.id}"
+          "#{@live_view_path_base}/#{student_report_card.id}/strand_report/#{strand_report.id}?tab=moments"
         )
 
-      assert view |> has_element?("a", "Student notes")
+      assert view |> has_element?("h5", "Moment ABC")
     end
   end
 end

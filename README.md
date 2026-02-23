@@ -29,11 +29,7 @@ should be inserted directly in the database.
 
 1. Install `direnv`
 
-2. Add the following configuration to your shell configuration file (`~/.bashrc` or `~/.bash_profile`):
-
-```bash
-eval "$(direnv hook bash)"
-```
+2. Add the following configuration to your shell configuration file (`~/.bashrc` or `~/.bash_profile`): `eval "$(direnv hook bash)"`
 
 3. Create a `.envrc` file in the root of your project. Copy the same information from your `.env` file into `.envrc`. This allows the environment variables to be loaded automatically, without needing to run `source .env`.
 
@@ -78,10 +74,10 @@ The main secrets/env vars that we need for this are the following:
 
 - `GOOGLE_CLIENT_ID`
 
-#### OpenAI
+#### OpenAI/LangChain
 
 - `OPENAI_API_KEY`
-- `OPENAI_ORGANIZATION_KEY`
+- `OPENAI_ORG_ID`
 
 #### Mailgun
 

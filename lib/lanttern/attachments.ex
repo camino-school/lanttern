@@ -14,17 +14,20 @@ defmodule Lanttern.Attachments do
 
   ## Options
 
-  - `:note_id` - filter results by attachments linked the note
   - `:assessment_point_entry_id` - filter results by assessment point entry evidences
   - `:student_cycle_info_id` - filter attachments linked to given student cycle info. May be used with `:shared_with_student` option.
-  - `:moment_card_id` - filter results by moment card
+  - `:lesson_id` - filter results by lesson. May be used with `:is_teacher_only_resource` option.
   - `:ilp_comment_id` - filter results by ILP comment
   - `:shared_with_student` - expect a tuple with type and boolean (view the section below for accepted types). If not given, will not filter results.
+  - `:is_teacher_only_resource` - expect a tuple with type and boolean (view the section below for accepted types). If not given, will not filter results.
 
   #### `:shared_with_student` supported types
 
   - `:student_cycle_info` - use with `:student_cycle_info_id` opt
-  - `:moment_card` - use with `:moment_card_id` opt
+
+  #### `:is_teacher_only_resource` supported types
+
+  - `:lesson` - use with `:lesson_id` opt
 
   ## Examples
 
@@ -39,17 +42,6 @@ defmodule Lanttern.Attachments do
   end
 
   defp apply_list_attachments_opts(queryable, []), do: queryable
-
-  defp apply_list_attachments_opts(queryable, [{:note_id, note_id} | opts])
-       when is_integer(note_id) do
-    from(
-      a in queryable,
-      join: na in assoc(a, :note_attachment),
-      where: na.note_id == ^note_id,
-      order_by: na.position
-    )
-    |> apply_list_attachments_opts(opts)
-  end
 
   defp apply_list_attachments_opts(queryable, [
          {:assessment_point_entry_id, assessment_point_entry_id} | opts
@@ -79,17 +71,17 @@ defmodule Lanttern.Attachments do
     |> apply_list_attachments_opts(opts)
   end
 
-  defp apply_list_attachments_opts(queryable, [{:moment_card_id, moment_card_id} | opts])
-       when is_integer(moment_card_id) do
+  defp apply_list_attachments_opts(queryable, [{:lesson_id, lesson_id} | opts])
+       when is_integer(lesson_id) do
     from(
       a in queryable,
-      join: mca in assoc(a, :moment_card_attachment),
-      as: :moment_card_attachment,
-      where: mca.moment_card_id == ^moment_card_id,
-      order_by: mca.position,
-      select: %{a | is_shared: mca.shared_with_students}
+      join: la in assoc(a, :lesson_attachment),
+      as: :lesson_attachment,
+      where: la.lesson_id == ^lesson_id,
+      order_by: la.position,
+      select: %{a | is_teacher_only: la.is_teacher_only_resource}
     )
-    |> maybe_filter_by_shared_with_student(Keyword.get(opts, :shared_with_student))
+    |> maybe_filter_by_is_teacher_only_resource(Keyword.get(opts, :is_teacher_only_resource))
     |> apply_list_attachments_opts(opts)
   end
 
@@ -116,15 +108,18 @@ defmodule Lanttern.Attachments do
     )
   end
 
-  defp maybe_filter_by_shared_with_student(queryable, {:moment_card, shared_with_students})
-       when is_boolean(shared_with_students) do
+  defp maybe_filter_by_shared_with_student(queryable, _shared_tuple),
+    do: queryable
+
+  defp maybe_filter_by_is_teacher_only_resource(queryable, {:lesson, is_teacher_only_resource})
+       when is_boolean(is_teacher_only_resource) do
     from(
-      [_a, moment_card_attachment: mca] in queryable,
-      where: mca.shared_with_students == ^shared_with_students
+      [_a, lesson_attachment: la] in queryable,
+      where: la.is_teacher_only_resource == ^is_teacher_only_resource
     )
   end
 
-  defp maybe_filter_by_shared_with_student(queryable, _shared_tuple),
+  defp maybe_filter_by_is_teacher_only_resource(queryable, _tuple),
     do: queryable
 
   @doc """
