@@ -45,6 +45,14 @@
             </p>
           </div>
         </.card_base>
+        <.card_base>
+          <div class="p-6">
+            <p class="text-sm text-ltrn-subtle mb-2">{gettext("Shared Guardians")}</p>
+            <p class="text-lg font-semibold">
+              {ngettext("1 guardian", "%{count} guardians", length(@shared_guardians), count: length(@shared_guardians))}
+            </p>
+          </div>
+        </.card_base>
       </div>
 
       <div :if={length(@guardian.students) > 0} class="mt-12">
@@ -62,6 +70,27 @@
                 class="font-semibold hover:text-ltrn-subtle"
               >
                 {student.name}
+              </.link>
+            </div>
+          </.card_base>
+        </.fluid_grid>
+      </div>
+
+      <div :if={length(@shared_guardians) > 0} class="mt-12">
+        <h3 class="font-display font-black text-lg mb-4">{gettext("Shared Guardians")}</h3>
+        <.fluid_grid is_full_width class="gap-4">
+          <.card_base :for={shared_guardian <- @shared_guardians} class="flex items-center gap-4 p-4">
+            <.profile_picture
+              picture_url={nil}
+              profile_name={shared_guardian.name}
+              size="md"
+            />
+            <div class="min-w-0 flex-1">
+              <.link
+                navigate={~p"/school/guardians/#{shared_guardian}"}
+                class="font-semibold hover:text-ltrn-subtle"
+              >
+                {shared_guardian.name}
               </.link>
             </div>
           </.card_base>

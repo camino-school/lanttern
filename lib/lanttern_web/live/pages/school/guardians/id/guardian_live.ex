@@ -21,8 +21,11 @@ defmodule LantternWeb.GuardianLive do
       %{} = guardian ->
         check_if_user_has_access(socket.assigns.current_user, guardian)
 
+        shared_guardians = Schools.get_shared_guardians(scope, guardian)
+
         socket
         |> assign(:guardian, guardian)
+        |> assign(:shared_guardians, shared_guardians)
         |> assign(:page_title, guardian.name)
 
       _ ->

@@ -2118,6 +2118,39 @@ defmodule Lanttern.Schools do
     end
   end
 
+  @doc """
+  Gets guardians linked to the same students as the given guardian.
+
+  Requires "school_management" permission in scope.
+
+  Excludes the guardian passed as parameter from the results.
+
+  ## Examples
+
+      iex> get_shared_guardians(scope, guardian)
+      [%Guardian{}, ...]
+
+  """
+  def get_shared_guardians(scope, %Guardian{} = guardian, opts \\ []) do
+    if guardian.school_id == scope.school_id && has_permission?(scope, "school_management") do
+      if Ecto.assoc_loaded?(guardian.students) && guardian.students != [] do
+        students_ids = Enum.map(guardian.students, & &1.id)
+
+        Guardian
+        |> join(:inner, [g], sg in "students_guardians", on: g.id == sg.guardian_id)
+        |> where([g, sg], sg.student_id in ^students_ids and g.id != ^guardian.id)
+        |> select([g], g)
+        |> distinct(true)
+        |> Repo.all()
+        |> maybe_preload(opts)
+      else
+        []
+      end
+    else
+      []
+    end
+  end
+
   defp has_permission?(scope, permission) do
     permission in scope.permissions
   end
