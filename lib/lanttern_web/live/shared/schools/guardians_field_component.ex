@@ -16,8 +16,6 @@ defmodule LantternWeb.Schools.GuardiansFieldComponent do
 
   use LantternWeb, :live_component
 
-  require Logger
-
   @impl true
   def render(assigns) do
     ~H"""
@@ -164,21 +162,17 @@ defmodule LantternWeb.Schools.GuardiansFieldComponent do
 
   def handle_event("toggle_guardian", %{"id" => guardian_id}, socket) do
     guardian_id = if is_binary(guardian_id), do: String.to_integer(guardian_id), else: guardian_id
-    Logger.debug("Toggle guardian: #{guardian_id}, current: #{inspect(socket.assigns.selected_guardians_ids)}")
 
     selected_guardians_ids =
       if guardian_id in socket.assigns.selected_guardians_ids,
         do: Enum.filter(socket.assigns.selected_guardians_ids, fn id -> id != guardian_id end),
         else: [guardian_id | socket.assigns.selected_guardians_ids]
 
-    Logger.debug("New selected: #{inspect(selected_guardians_ids)}")
-
     notify_change(socket, selected_guardians_ids)
   end
 
   def handle_event("unselect_guardian", %{"id" => guardian_id}, socket) do
     guardian_id = if is_binary(guardian_id), do: String.to_integer(guardian_id), else: guardian_id
-    Logger.debug("Unselect guardian: #{guardian_id}")
 
     selected_guardians_ids =
       Enum.filter(socket.assigns.selected_guardians_ids, fn id -> id != guardian_id end)
@@ -187,8 +181,6 @@ defmodule LantternWeb.Schools.GuardiansFieldComponent do
   end
 
   defp notify_change(socket, selected_guardians_ids) do
-    Logger.debug("Notify change with guardians: #{inspect(selected_guardians_ids)}")
-
     socket =
       socket
       |> assign(:selected_guardians_ids, selected_guardians_ids)

@@ -2064,25 +2064,17 @@ defmodule Lanttern.Schools do
   def add_guardian_to_student(scope, %Student{} = student, %Guardian{} = guardian) do
     if student.school_id == scope.school_id && guardian.school_id == scope.school_id &&
          has_permission?(scope, "school_management") do
-      existing_association =
-        Repo.one(
-          from sg in "students_guardians",
-            where: sg.student_id == ^student.id and sg.guardian_id == ^guardian.id,
-            select: 1
+      {count, _} =
+        Repo.insert_all(
+          "students_guardians",
+          [%{student_id: student.id, guardian_id: guardian.id}],
+          on_conflict: :nothing,
+          conflict_target: [:student_id, :guardian_id]
         )
 
-      case existing_association do
-        nil ->
-          {1, _} =
-            Repo.insert_all(
-              "students_guardians",
-              [%{student_id: student.id, guardian_id: guardian.id}]
-            )
-
-          {:ok, :created}
-
-        _ ->
-          {:ok, :already_exists}
+      case count do
+        0 -> {:ok, :already_exists}
+        _ -> {:ok, :created}
       end
     else
       {:error, :unauthorized}
