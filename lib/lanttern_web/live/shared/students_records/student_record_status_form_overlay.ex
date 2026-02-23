@@ -41,17 +41,15 @@ defmodule LantternWeb.StudentsRecords.StudentRecordStatusFormOverlayComponent do
           />
           <.input
             field={@form[:bg_color]}
-            type="text"
-            label={gettext("Background color (hex)")}
+            type="color"
+            label={gettext("Background color")}
             class="mb-6"
-            phx-debounce="1500"
           />
           <.input
             field={@form[:text_color]}
-            type="text"
-            label={gettext("Text color (hex)")}
+            type="color"
+            label={gettext("Text color")}
             class="mb-6"
-            phx-debounce="1500"
           />
           <div class="p-4 rounded-xs bg-ltrn-mesh-cyan">
             <.input

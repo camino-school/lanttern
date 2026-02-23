@@ -5,6 +5,7 @@ defmodule Lanttern.Grading.Scale do
 
   use Ecto.Schema
   import Ecto.Changeset
+  import Lanttern.SchemaHelpers, only: [validate_hex_color: 3]
 
   alias Lanttern.Grading.OrdinalValue
 
@@ -58,22 +59,10 @@ defmodule Lanttern.Grading.Scale do
     |> validate_scale_type()
     |> validate_start_stop()
     |> adjust_breakpoints()
-    |> check_constraint(:start_bg_color,
-      name: :scale_start_bg_color_should_be_hex,
-      message: "Invalid hex color"
-    )
-    |> check_constraint(:start_text_color,
-      name: :scale_start_text_color_should_be_hex,
-      message: "Invalid hex color"
-    )
-    |> check_constraint(:stop_bg_color,
-      name: :scale_stop_bg_color_should_be_hex,
-      message: "Invalid hex color"
-    )
-    |> check_constraint(:stop_text_color,
-      name: :scale_stop_text_color_should_be_hex,
-      message: "Invalid hex color"
-    )
+    |> validate_hex_color(:start_bg_color, :scale_start_bg_color_should_be_hex)
+    |> validate_hex_color(:start_text_color, :scale_start_text_color_should_be_hex)
+    |> validate_hex_color(:stop_bg_color, :scale_stop_bg_color_should_be_hex)
+    |> validate_hex_color(:stop_text_color, :scale_stop_text_color_should_be_hex)
     |> check_constraint(:breakpoints,
       name: :breakpoints_should_be_between_0_and_1,
       message: "Values in breakpoint should be greater than 0 and less than 1"

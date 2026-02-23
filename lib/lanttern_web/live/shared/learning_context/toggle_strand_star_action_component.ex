@@ -12,7 +12,7 @@ defmodule LantternWeb.LearningContext.ToggleStrandStarActionComponent do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="group relative">
+    <div>
       <button
         type="button"
         phx-click={JS.push(@on_click_event, target: @myself)}
@@ -20,7 +20,7 @@ defmodule LantternWeb.LearningContext.ToggleStrandStarActionComponent do
       >
         <.icon name="hero-star-mini" />
       </button>
-      <.tooltip h_pos="center" v_pos="bottom">
+      <.tooltip id={"#{@id}-star-tooltip"}>
         {@tooltip_text}
       </.tooltip>
     </div>

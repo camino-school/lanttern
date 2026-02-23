@@ -129,36 +129,33 @@ defmodule LantternWeb.Assessments.AssessmentPointFormOverlayComponent do
           on_dismiss={JS.push("dismiss_delete_error", target: @myself)}
         />
         <:actions_left :if={@assessment_point.id}>
-          <.action
+          <.button
             type="button"
-            theme="subtle"
-            size="md"
+            theme="ghost"
             phx-click="delete"
             phx-target={@myself}
             data-confirm={gettext("Are you sure?")}
           >
             {gettext("Delete")}
-          </.action>
+          </.button>
         </:actions_left>
         <:actions>
-          <.action
+          <.button
             type="button"
-            theme="subtle"
-            size="md"
+            theme="ghost"
             phx-click={JS.exec("data-cancel", to: "##{@id}")}
           >
             {gettext("Cancel")}
-          </.action>
-          <.action
+          </.button>
+          <.button
             type="submit"
             theme="primary"
-            size="md"
             icon_name="hero-check"
             form={"#{@id}-form"}
             phx-disable-with={gettext("Saving...")}
           >
             {gettext("Save")}
-          </.action>
+          </.button>
         </:actions>
       </.slide_over>
     </div>

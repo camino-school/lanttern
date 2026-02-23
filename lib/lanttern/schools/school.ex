@@ -5,8 +5,7 @@ defmodule Lanttern.Schools.School do
 
   use Ecto.Schema
   import Ecto.Changeset
-
-  use Gettext, backend: Lanttern.Gettext
+  import Lanttern.SchemaHelpers, only: [validate_hex_color: 3]
 
   @type t :: %__MODULE__{
           id: pos_integer(),
@@ -32,13 +31,7 @@ defmodule Lanttern.Schools.School do
     school
     |> cast(attrs, [:name, :logo_image_url, :bg_color, :text_color])
     |> validate_required([:name])
-    |> check_constraint(:bg_color,
-      name: :school_bg_color_should_be_hex,
-      message: gettext("Invalid hex color")
-    )
-    |> check_constraint(:text_color,
-      name: :school_text_color_should_be_hex,
-      message: gettext("Invalid hex color")
-    )
+    |> validate_hex_color(:bg_color, :school_bg_color_should_be_hex)
+    |> validate_hex_color(:text_color, :school_text_color_should_be_hex)
   end
 end

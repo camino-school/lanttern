@@ -40,6 +40,93 @@ defmodule LantternWeb.Layouts do
   end
 
   @doc """
+  Renders a layout with side nav.
+  """
+  attr :side_nav_id, :string, default: nil, doc: "the side nav id, required when collapsible"
+  attr :collapsible, :boolean, default: false, doc: "whether the side nav can be collapsed"
+  attr :menu_title, :string, default: nil, doc: "the side nav menu title"
+  attr :flash, :map, required: true, doc: "the map of flash messages"
+  attr :current_user, :map, doc: "required when rendering menu with `menu_title`"
+  # todo: migrate current_user to current_scope
+  # attr :current_scope, :map,
+  #   default: nil,
+  #   doc: "the current [scope](https://hexdocs.pm/phoenix/scopes.html)"
+  attr :current_path, :string, doc: "required when rendering menu with `menu_title`"
+
+  slot :side_nav, required: true
+  slot :inner_block, required: true
+
+  def app_with_side_nav(assigns) do
+    ~H"""
+    <div id={"#{@side_nav_id}-layout"} class="h-screen pl-70 transition-[padding] duration-300">
+      <.side_nav id={@side_nav_id} menu_title={@menu_title} collapsible={@collapsible}>
+        {render_slot(@side_nav)}
+      </.side_nav>
+      <main class="min-h-screen overflow-y-auto ltrn-bg-main-local">
+        {render_slot(@inner_block)}
+      </main>
+    </div>
+    <.live_component
+      :if={@menu_title}
+      module={LantternWeb.MenuComponent}
+      id="menu"
+      current_user={@current_user}
+      current_path={@current_path}
+    />
+    <.flash_group flash={@flash} />
+    """
+  end
+
+  @doc """
+  Renders the layout for settings area.
+  """
+  attr :side_nav_id, :string, default: nil, doc: "the side nav id, required when collapsible"
+  attr :collapsible, :boolean, default: false, doc: "whether the side nav can be collapsed"
+  attr :flash, :map, required: true, doc: "the map of flash messages"
+  attr :current_user, :map, required: true
+  # todo: migrate current_user to current_scope
+  # attr :current_scope, :map,
+  #   default: nil,
+  #   doc: "the current [scope](https://hexdocs.pm/phoenix/scopes.html)"
+  attr :current_path, :string, required: true
+  slot :inner_block, required: true
+
+  def app_settings(assigns) do
+    ~H"""
+    <div id={"#{@side_nav_id}-layout"} class="h-screen pl-70 transition-[padding] duration-300">
+      <.settings_side_nav id={@side_nav_id} current_path={@current_path} collapsible={@collapsible}>
+        <:group title={gettext("AI Settings")}>
+          <.settings_nav_link navigate={~p"/settings/school_ai_config"} current_path={@current_path}>
+            {gettext("School AI Config")}
+          </.settings_nav_link>
+          <.settings_nav_link navigate={~p"/settings/agents"} current_path={@current_path}>
+            {gettext("AI Agents")}
+          </.settings_nav_link>
+        </:group>
+        <:group title={gettext("Content Settings")}>
+          <.settings_nav_link navigate={~p"/settings/lesson_templates"} current_path={@current_path}>
+            {gettext("Lesson Templates")}
+          </.settings_nav_link>
+          <.settings_nav_link navigate={~p"/settings/lesson_tags"} current_path={@current_path}>
+            {gettext("Lesson Tags")}
+          </.settings_nav_link>
+        </:group>
+      </.settings_side_nav>
+      <main class="min-h-screen p-10 ltrn-bg-main-local">
+        {render_slot(@inner_block)}
+      </main>
+    </div>
+    <.live_component
+      module={LantternWeb.MenuComponent}
+      id="menu"
+      current_user={@current_user}
+      current_path={@current_path}
+    />
+    <.flash_group flash={@flash} />
+    """
+  end
+
+  @doc """
   Renders the layout for root admins.
   """
   attr :flash, :map, required: true, doc: "the map of flash messages"
@@ -81,7 +168,7 @@ defmodule LantternWeb.Layouts do
     <div
       id={@id}
       aria-live="polite"
-      class="z-40 pointer-events-none fixed inset-0 flex items-end px-4 py-6 sm:items-start sm:p-6"
+      class="z-90 pointer-events-none fixed inset-0 flex items-end px-4 py-6 sm:items-start sm:p-6"
     >
       <div class="flex w-full flex-col items-center space-y-4 sm:items-end">
         <.flash kind={:info} flash={@flash} />

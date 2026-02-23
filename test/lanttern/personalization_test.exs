@@ -55,12 +55,13 @@ defmodule Lanttern.PersonalizationTest do
     test "list_valid_permissions/0 returns all valid permissions" do
       valid_permissions = Personalization.list_valid_permissions()
 
-      assert length(valid_permissions) == 5
+      assert length(valid_permissions) == 6
       assert "students_records_full_access" in valid_permissions
       assert "school_management" in valid_permissions
       assert "content_management" in valid_permissions
       assert "communication_management" in valid_permissions
       assert "ilp_management" in valid_permissions
+      assert "agents_management" in valid_permissions
     end
   end
 end

@@ -16,6 +16,15 @@ config :lanttern,
 
 # Configure Phoenix scopes
 config :lanttern, :scopes,
+  school: [
+    default: true,
+    module: Lanttern.Identity.Scope,
+    assign_key: :current_scope,
+    access_path: [:school_id],
+    schema_key: :school_id,
+    schema_type: :id,
+    schema_table: :schools
+  ],
   user: [
     module: Lanttern.Identity.Scope,
     assign_key: :current_scope,
@@ -23,14 +32,6 @@ config :lanttern, :scopes,
     schema_key: :user_id,
     schema_type: :id,
     schema_table: :users
-  ],
-  school: [
-    module: Lanttern.Identity.Scope,
-    assign_key: :current_scope,
-    access_path: [:school_id],
-    schema_key: :school_id,
-    schema_type: :id,
-    schema_table: :schools
   ]
 
 query_args = ["SET pg_trgm.word_similarity_threshold = 0.4", []]
@@ -98,16 +99,20 @@ config :lanttern, LantternWeb.UserAuth, google_client_id: System.get_env("GOOGLE
 # ex_openai config
 config :ex_openai,
   api_key: System.get_env("OPENAI_API_KEY"),
-  organization_key: System.get_env("OPENAI_ORGANIZATION_KEY"),
+  organization_key: System.get_env("OPENAI_ORG_ID"),
   http_options: [
     # 60 seconds timeout
     recv_timeout: 60_000
   ]
 
+# LangChain config
+config :langchain, openai_key: System.get_env("OPENAI_API_KEY")
+config :langchain, openai_org_id: System.get_env("OPENAI_ORG_ID")
+
 # Oban config
 config :lanttern, Oban,
   engine: Oban.Engines.Basic,
-  queues: [cleanup: 1],
+  queues: [cleanup: 1, ai: 10],
   repo: Lanttern.Repo,
   plugins: [
     Oban.Plugins.Pruner,

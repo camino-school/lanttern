@@ -1,0 +1,80 @@
+<Layouts.app_logged_in flash={@flash} current_user={@current_user} current_path={@current_path}>
+  <div class="flex justify-center p-4">
+    <h2 class="font-display font-bold text-lg text-ltrn-darkest">
+      <.link navigate={~p"/strands/#{@strand}/assessment"} class="hover:text-ltrn-subtle">
+        <.icon name="hero-arrow-left-mini" />
+        {@strand.name}
+      </.link>
+      / {gettext("Marking")}
+    </h2>
+  </div>
+
+  <%!-- <div>
+    <.header_nav current_user={@current_user}>
+      <:breadcrumb navigate={~p"/strands"}>{gettext("Strands")}</:breadcrumb>
+      <:breadcrumb is_info>
+        <.mini_strand_card strand={@strand} class="w-60" />
+      </:breadcrumb>
+      <:breadcrumb navigate={~p"/strands/#{@strand}/assessment"}>{@strand.name}</:breadcrumb>
+      <:title>{gettext("Marking")}</:title>
+      <div class="flex items-center justify-between gap-4 px-4">
+        <div class="flex items-center gap-4">
+          <.action
+            type="button"
+            phx-click={JS.exec("data-show", to: "#strand-classes-filter-modal")}
+            icon_name="hero-users-mini"
+          >
+            {format_action_items_text(
+              @selected_classes,
+              gettext("No class selected")
+            )}
+          </.action>
+        </div>
+      </div>
+    </.header_nav>
+  </div> --%>
+
+  <.live_component
+    :if={@live_action == :goals_assessment}
+    module={GoalsAssessmentComponent}
+    id="strand-assessment"
+    strand={@strand}
+    moments={@moments}
+    current_user={@current_user}
+    selected_classes_text={
+      format_action_items_text(
+        @selected_classes,
+        gettext("No class selected")
+      )
+    }
+    selected_classes_ids={@selected_classes_ids}
+    params={@params}
+  />
+  <.live_component
+    :if={@live_action == :moment_assessment}
+    module={MomentAssessmentComponent}
+    id="moment-assessment"
+    strand={@strand}
+    moments={@moments}
+    moment={@moment}
+    current_user={@current_user}
+    selected_classes_text={
+      format_action_items_text(
+        @selected_classes,
+        gettext("No class selected")
+      )
+    }
+    selected_classes_ids={@selected_classes_ids}
+    params={@params}
+  />
+</Layouts.app_logged_in>
+<.live_component
+  module={LantternWeb.Filters.ClassesFilterOverlayComponent}
+  id="strand-classes-filter-modal"
+  current_user={@current_user}
+  title={gettext("Select classes for marking")}
+  profile_filter_opts={[strand_id: @strand.id]}
+  classes={@classes}
+  selected_classes_ids={@selected_classes_ids}
+  navigate={@select_classes_overlay_navigate}
+/>

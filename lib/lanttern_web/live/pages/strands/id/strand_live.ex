@@ -1,13 +1,13 @@
 defmodule LantternWeb.StrandLive do
   use LantternWeb, :live_view
 
+  alias Lanttern.Identity.Scope
   alias Lanttern.LearningContext
 
   # page components
-  alias __MODULE__.AboutComponent
   alias __MODULE__.AssessmentComponent
-  alias __MODULE__.MomentsComponent
-  alias __MODULE__.NotesComponent
+  alias __MODULE__.LessonsComponent
+  alias __MODULE__.OverviewComponent
   alias __MODULE__.StrandRubricsComponent
 
   # shared components
@@ -15,18 +15,6 @@ defmodule LantternWeb.StrandLive do
   alias LantternWeb.LearningContext.ToggleStrandStarActionComponent
   import LantternWeb.FiltersHelpers, only: [assign_strand_classes_filter: 1]
   import LantternWeb.LearningContextComponents, only: [mini_strand_card: 1]
-
-  @live_action_select_classes_overlay_title %{
-    rubrics: gettext("Select classes to view students differentiation rubrics"),
-    assessment: gettext("Select classes to view assessments info"),
-    notes: gettext("Select classes to view students notes")
-  }
-
-  @live_action_select_classes_overlay_navigate_path %{
-    rubrics: "rubrics",
-    assessment: "assessment",
-    notes: "notes"
-  }
 
   # lifecycle
 
@@ -36,6 +24,10 @@ defmodule LantternWeb.StrandLive do
       socket
       |> assign_strand(params)
       |> assign_strand_classes_filter()
+      |> assign(
+        :has_agents_management_permission,
+        Scope.has_permission?(socket.assigns.current_scope, "agents_management")
+      )
 
     {:ok, socket}
   end
@@ -63,40 +55,31 @@ defmodule LantternWeb.StrandLive do
     socket =
       socket
       |> assign(:params, params)
+      |> assign_moment(params)
       |> assign_is_editing(params)
-      |> assign_select_classes_overlay_title()
-      |> assign_select_classes_overlay_navigate()
 
     {:noreply, socket}
   end
+
+  defp assign_moment(socket, %{"moment_id" => moment_id}) do
+    case LearningContext.get_moment(moment_id) do
+      %{strand_id: strand_id} = moment when strand_id == socket.assigns.strand.id ->
+        assign(socket, :moment, moment)
+
+      _ ->
+        socket
+        |> put_flash(:error, gettext("Couldn't find moment"))
+        |> push_navigate(to: ~p"/strands/#{socket.assigns.strand}/assessment")
+    end
+  end
+
+  defp assign_moment(socket, _params), do: assign(socket, :moment, nil)
 
   defp assign_is_editing(socket, %{"is_editing" => "true"}),
     do: assign(socket, :is_editing, true)
 
   defp assign_is_editing(socket, _params),
     do: assign(socket, :is_editing, false)
-
-  defp assign_select_classes_overlay_title(socket) do
-    title =
-      Map.get(
-        @live_action_select_classes_overlay_title,
-        socket.assigns.live_action
-      )
-
-    assign(socket, :select_classes_overlay_title, title)
-  end
-
-  defp assign_select_classes_overlay_navigate(socket) do
-    path_final =
-      Map.get(
-        @live_action_select_classes_overlay_navigate_path,
-        socket.assigns.live_action
-      )
-
-    navigate = "/strands/#{socket.assigns.strand.id}/#{path_final}"
-
-    assign(socket, :select_classes_overlay_navigate, navigate)
-  end
 
   # event handlers
 

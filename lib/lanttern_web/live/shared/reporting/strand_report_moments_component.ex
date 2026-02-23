@@ -14,7 +14,6 @@ defmodule LantternWeb.Reporting.StrandReportMomentsComponent do
 
   use LantternWeb, :live_component
 
-  import LantternWeb.AttachmentsComponents
   import LantternWeb.ReportingComponents
 
   alias Lanttern.LearningContext
@@ -51,11 +50,6 @@ defmodule LantternWeb.Reporting.StrandReportMomentsComponent do
                   <h5 class="font-display font-black text-lg" title={moment.name}>
                     {moment.name}
                   </h5>
-                  <div :if={moment.subjects != []} class="flex gap-2 mt-2">
-                    <.badge :for={subject <- moment.subjects}>
-                      {Gettext.dgettext(Lanttern.Gettext, "taxonomy", subject.name)}
-                    </.badge>
-                  </div>
                   <.markdown
                     :if={moment.description}
                     text={moment.description}
@@ -111,23 +105,6 @@ defmodule LantternWeb.Reporting.StrandReportMomentsComponent do
             {gettext("This moment does not have assessment entries yet")}
           </.empty_state_simple>
         <% end %>
-        <div :if={@moment_has_cards}>
-          <h4 class="mb-4 font-display font-black text-lg text-ltrn-subtle">
-            {gettext("More about this moment")}
-          </h4>
-          <div id="moment-cards" phx-update="stream">
-            <div :for={{dom_id, card} <- @streams.moment_cards} id={dom_id} class="py-6 border-t">
-              <h5 class="font-display font-black text-base mb-4">
-                {card.name}
-              </h5>
-              <.markdown text={card.description} />
-              <.attachments_list
-                id={"#{dom_id}-attachments"}
-                attachments={card.attachments}
-              />
-            </div>
-          </div>
-        </div>
       </.slide_over>
     </div>
     """
@@ -211,20 +188,10 @@ defmodule LantternWeb.Reporting.StrandReportMomentsComponent do
         )
       end
 
-    moment_cards =
-      if moment do
-        Reporting.list_moment_cards_and_attachments_shared_with_students(
-          moment.id,
-          school_id: socket.assigns.current_profile.school_id
-        )
-      end
-
     socket
     |> assign(:moment, moment)
     |> stream(:moment_assessment_points_and_entries, moment_assessment_points_and_entries)
     |> assign(:moment_has_assessment_points, moment_assessment_points_and_entries != [])
-    |> stream(:moment_cards, moment_cards)
-    |> assign(:moment_has_cards, moment_cards != [])
   end
 
   defp assign_moment(socket, _assigns), do: assign(socket, :moment, nil)

@@ -12,8 +12,8 @@
   <.input field={f[:name]} type="text" label="Name" />
   <.input field={f[:normalized_value]} type="number" step="0.01" label="Normalized value" />
   <div class="flex gap-6">
-    <.input field={f[:bg_color]} type="text" label="Background color" class="flex-1" />
-    <.input field={f[:text_color]} type="text" label="Text color" class="flex-1" />
+    <.input field={f[:bg_color]} type="color" label="Background color" class="flex-1" />
+    <.input field={f[:text_color]} type="color" label="Text color" class="flex-1" />
   </div>
   <:actions>
     <.button>Save Ordinal value</.button>

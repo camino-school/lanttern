@@ -6,9 +6,9 @@ defmodule LantternWeb.StudentLive do
 
   # page components
 
-  alias __MODULE__.AboutComponent
   alias __MODULE__.GradesReportsComponent
   alias __MODULE__.ILPComponent
+  alias __MODULE__.LessonsComponent
   alias __MODULE__.StudentRecordsComponent
   alias __MODULE__.StudentReportCardsComponent
 

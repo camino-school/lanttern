@@ -7,24 +7,20 @@ defmodule Lanttern.LearningContext.Moment do
   import Ecto.Changeset
 
   use Gettext, backend: Lanttern.Gettext
-  import Lanttern.SchemaHelpers
 
   alias Lanttern.Assessments.AssessmentPoint
   alias Lanttern.Curricula.CurriculumItem
   alias Lanttern.LearningContext.Strand
-  alias Lanttern.Taxonomy.Subject
 
   @type t :: %__MODULE__{
           id: pos_integer(),
           name: String.t(),
           position: non_neg_integer(),
-          description: String.t(),
-          subjects_ids: [pos_integer()],
-          strand: Strand.t(),
+          description: String.t() | nil,
+          strand: Strand.t() | Ecto.Association.NotLoaded.t(),
           strand_id: pos_integer(),
-          assessment_points: [AssessmentPoint.t()],
-          curriculum_items: [CurriculumItem.t()],
-          subjects: [Subject.t()],
+          assessment_points: [AssessmentPoint.t()] | Ecto.Association.NotLoaded.t(),
+          curriculum_items: [CurriculumItem.t()] | Ecto.Association.NotLoaded.t(),
           inserted_at: DateTime.t(),
           updated_at: DateTime.t()
         }
@@ -33,7 +29,6 @@ defmodule Lanttern.LearningContext.Moment do
     field :name, :string
     field :position, :integer, default: 0
     field :description, :string
-    field :subjects_ids, {:array, :id}, virtual: true
 
     belongs_to :strand, Strand
 
@@ -42,19 +37,14 @@ defmodule Lanttern.LearningContext.Moment do
     has_many :curriculum_items,
       through: [:assessment_points, :curriculum_item]
 
-    many_to_many :subjects, Subject,
-      join_through: "moments_subjects",
-      on_replace: :delete
-
     timestamps()
   end
 
   @doc false
   def changeset(moment, attrs) do
     moment
-    |> cast(attrs, [:name, :description, :position, :strand_id, :subjects_ids])
-    |> validate_required([:name, :description, :position, :strand_id])
-    |> put_subjects()
+    |> cast(attrs, [:name, :description, :position, :strand_id])
+    |> validate_required([:name, :position, :strand_id])
   end
 
   def delete_changeset(moment) do
@@ -64,6 +54,11 @@ defmodule Lanttern.LearningContext.Moment do
       :id,
       name: :assessment_points_moment_id_fkey,
       message: gettext("Moment has linked assessment points.")
+    )
+    |> foreign_key_constraint(
+      :id,
+      name: :lessons_moment_id_fkey,
+      message: gettext("Moment has linked lessons.")
     )
   end
 end

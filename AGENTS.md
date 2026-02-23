@@ -2,17 +2,12 @@ Lanttern is a web application written using the Phoenix web framework for educat
 
 ## Project guidelines
 
-- Run `mix credo --strict` and scoped tests when you are done with all changes and fix any pending issues, and always ask the developer to run the broader `mix precommit` task to ensure everything is ok (and save some tokens)
+- We do use `mix credo` (with `--strict` flag), `mix sobelow`, and tests for code quality, security analysis, and ensuring that everything is working as expected. That being said, use those only when strictly necessary to save some tokens, but always remember the developer to run those tasks
 - Use the already included and available `:req` (`Req`) library for HTTP requests, **avoid** `:httpoison`, `:tesla`, and `:httpc`. Req is included by default and is the preferred HTTP client for Phoenix apps
 - Use Tidewave MCP for development tooling
-- use `mix credo` (also included in `mix precommit`) for code quality
-- use `mix sobelow` for security analysis when needed
 - do not alias the module in itself. prefer using `__MODULE__`
 - do not create test functions in contexts — create them in the test file itself
-- when requested to write commit messages, PR summaries, or PR reviews:
-  - use markdown, and write it to a `_transfer.md` file for copy/paste in GitHub
-  - for PRs, remember that we can see all code changes through diff in the PR UI, so focus on giving information about the context, changes made, expected impacts — the idea is that the summary can complement the code changes. you can still reference the relevant files if needed.
-  - for PRs, do not include a test plan
+- use the developer subagents for code review and commit message writing, if available
 
 ## Design patterns
 
@@ -50,6 +45,8 @@ end
 
 ### Schema type `t()` spec
 
+- Use `pos_integer()` for id fields
+- Use `non_neg_integer()` for position fields
 - Always include `| Ecto.Association.NotLoaded.t()` for preloaded structures
 - Always include `| nil` for nullable fields
 

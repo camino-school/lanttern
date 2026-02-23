@@ -227,9 +227,9 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
                 </div>
               </div>
               <div class="flex items-center gap-2 mt-4">
-                <div class="group relative">
+                <div>
                   <.icon name="hero-tag-mini" class="w-5 h-5 text-ltrn-subtle" />
-                  <.tooltip>{gettext("Tags")}</.tooltip>
+                  <.tooltip id={"#{@id}-tags-tooltip"}>{gettext("Tags")}</.tooltip>
                 </div>
                 <div class="flex flex-wrap gap-2">
                   <.badge :for={tag <- @student_record.tags} color_map={tag}>
@@ -238,9 +238,9 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
                 </div>
               </div>
               <div :if={@student_record.classes != []} class="flex items-center gap-2 mt-4">
-                <div class="group relative">
+                <div>
                   <.icon name="hero-rectangle-group-mini" class="w-5 h-5 text-ltrn-subtle" />
-                  <.tooltip>{gettext("Classes")}</.tooltip>
+                  <.tooltip id={"#{@id}-classes-tooltip"}>{gettext("Classes")}</.tooltip>
                 </div>
                 <div class="flex flex-wrap gap-2">
                   <.badge :for={class <- @student_record.classes} id={"class-#{class.id}"}>
@@ -249,9 +249,9 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
                 </div>
               </div>
               <div class="flex items-center gap-2 mt-4">
-                <div class="group relative">
+                <div>
                   <.icon name="hero-user-group-mini" class="w-5 h-5 text-ltrn-subtle" />
-                  <.tooltip>{gettext("Students")}</.tooltip>
+                  <.tooltip id={"#{@id}-students-tooltip"}>{gettext("Students")}</.tooltip>
                 </div>
                 <div class="flex flex-wrap gap-2">
                   <.person_badge

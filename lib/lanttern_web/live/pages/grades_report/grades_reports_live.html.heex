@@ -10,10 +10,10 @@
         >
           {format_action_items_text(@selected_years, gettext("All years"))}
         </.action>
-        <div class="group relative flex items-center gap-2">
+        <div class="flex items-center gap-2">
           <.icon name="hero-information-circle-mini" class="text-ltrn-subtle" />
           {gettext("Showing %{cycle} grades reports", cycle: Map.get(@current_cycle, :name))}
-          <.tooltip v_pos="bottom">
+          <.tooltip id="grades-reports-cycle-tooltip">
             {gettext("Change current cycle in main menu to view other cyles' grades reports")}
           </.tooltip>
         </div>
