@@ -236,7 +236,7 @@ defmodule LantternWeb.SchoolsComponents do
     ~H"""
     <.card_base id={@id} class="flex items-center justify-between gap-4 p-4">
       <.profile_picture
-        picture_url={nil}
+        picture_url=""
         profile_name={@guardian.name}
         size="lg"
       />
