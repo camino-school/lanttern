@@ -2042,7 +2042,7 @@ defmodule Lanttern.Schools do
         from g in Guardian,
           join: sg in "students_guardians",
           on: g.id == sg.guardian_id,
-          where: sg.student_id == ^student.id and sg.school_id == ^scope.school_id,
+          where: sg.student_id == ^student.id,
           select: g
       )
     else

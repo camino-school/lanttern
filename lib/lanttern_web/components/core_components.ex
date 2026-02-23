@@ -1757,7 +1757,7 @@ defmodule LantternWeb.CoreComponents do
   @doc """
   Renders a profile picture.
   """
-  attr :picture_url, :string, required: true
+  attr :picture_url, :string, default: nil
   attr :profile_name, :string, default: nil, doc: "render initials when there's no image"
   attr :theme, :string, default: "default", doc: "default | clean"
   attr :size, :string, default: "md", doc: "xs | sm | md | lg | xl | 2xl"

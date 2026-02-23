@@ -64,7 +64,7 @@ defmodule LantternWeb.SchoolLive.GuardiansComponent do
       when action in [:created, :updated, :deleted] do
     message =
       case action do
-        :created -> gettext("Guardian created successfully")
+        :created -> gettext("Guardian saved successfully")
         :updated -> gettext("Guardian updated successfully")
         :deleted -> gettext("Guardian deleted successfully")
       end

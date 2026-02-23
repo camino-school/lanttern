@@ -5575,6 +5575,7 @@ msgstr ""
 #: lib/lanttern_web/live/pages/school/guardians_component.ex:108
 #, elixir-autogen, elixir-format
 msgid "New guardian"
+msgstr ""
 
 #: lib/lanttern_web/live/shared/schools/student_form_overlay_component.ex:54
 #, elixir-autogen, elixir-format
