@@ -1843,7 +1843,7 @@ defmodule LantternWeb.CoreComponents do
       ]}
       title={@profile_name}
     >
-      <%= if @picture_url do %>
+      <%= if @picture_url && @picture_url != "" do %>
         <img src={@picture_url} class="object-cover w-full h-full" />
       <% else %>
         {profile_icon_initials(@profile_name)}
