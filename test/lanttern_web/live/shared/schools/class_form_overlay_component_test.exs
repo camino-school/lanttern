@@ -51,10 +51,10 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponentTest do
       assert render(view) =~ staff_member.name
 
       view
-      |> element("button[phx-click*='remove_staff_member'][phx-value-id='#{staff_member.id}']")
+      |> element("#selected-staff-member-#{staff_member.id} button[phx-click*='remove_staff_member']")
       |> render_click()
 
-      refute render(view) =~ staff_member.name
+      refute has_element?(view, "#selected-staff-member-#{staff_member.id}")
     end
 
     test "reorder staff members via sortable_update hook event", context do

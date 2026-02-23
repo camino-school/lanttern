@@ -103,14 +103,31 @@ defmodule Lanttern.SchoolsFixtures do
   Generate a class staff member relationship.
   """
   def class_staff_member_fixture(attrs \\ %{}) do
+    {class_id, staff_member_id} =
+      case {Map.get(attrs, :class_id), Map.get(attrs, :staff_member_id)} do
+        {nil, nil} ->
+          school = school_fixture()
+
+          {class_fixture(%{school_id: school.id}).id,
+           staff_member_fixture(%{school_id: school.id}).id}
+
+        {nil, smid} ->
+          staff = Lanttern.Schools.get_staff_member!(smid)
+          {class_fixture(%{school_id: staff.school_id}).id, smid}
+
+        {cid, nil} ->
+          class = Lanttern.Schools.get_class!(cid)
+          {cid, staff_member_fixture(%{school_id: class.school_id}).id}
+
+        {cid, smid} ->
+          {cid, smid}
+      end
+
     {:ok, class_staff_member} =
       attrs
-      |> Enum.into(%{
-        class_id: maybe_gen_class_id(attrs),
-        staff_member_id: maybe_gen_staff_member_id(attrs),
-        position: 0,
-        role: nil
-      })
+      |> Map.put(:class_id, class_id)
+      |> Map.put(:staff_member_id, staff_member_id)
+      |> Enum.into(%{position: 0, role: nil})
       |> Lanttern.Schools.add_staff_member_to_class()
 
     class_staff_member

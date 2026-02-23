@@ -1587,10 +1587,13 @@ defmodule Lanttern.SchoolsTest do
       class = class_fixture(%{school_id: school.id})
       user = Lanttern.IdentityFixtures.user_fixture(%{email: "teacher@school.com"})
 
-      profile =
-        Lanttern.IdentityFixtures.staff_member_profile_fixture(%{user_id: user.id})
+      staff_member = staff_member_fixture(%{school_id: school.id})
 
-      staff_member = Schools.get_staff_member!(profile.staff_member_id)
+      _profile =
+        Lanttern.IdentityFixtures.staff_member_profile_fixture(%{
+          user_id: user.id,
+          staff_member_id: staff_member.id
+        })
 
       class_staff_member_fixture(%{
         class_id: class.id,
@@ -1743,9 +1746,9 @@ defmodule Lanttern.SchoolsTest do
       staff_2 = staff_member_fixture(%{school_id: school.id})
       staff_3 = staff_member_fixture(%{school_id: school.id})
 
-      csm_1 = class_staff_member_fixture(%{class_id: class.id, staff_member_id: staff_1.id})
-      csm_2 = class_staff_member_fixture(%{class_id: class.id, staff_member_id: staff_2.id})
-      csm_3 = class_staff_member_fixture(%{class_id: class.id, staff_member_id: staff_3.id})
+      _csm_1 = class_staff_member_fixture(%{class_id: class.id, staff_member_id: staff_1.id})
+      _csm_2 = class_staff_member_fixture(%{class_id: class.id, staff_member_id: staff_2.id})
+      _csm_3 = class_staff_member_fixture(%{class_id: class.id, staff_member_id: staff_3.id})
 
       # Reorder: 3, 1, 2
       assert :ok =
