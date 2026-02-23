@@ -490,7 +490,7 @@ defmodule LantternWeb.NavigationComponents do
 
   def collapsible_section(assigns) do
     ~H"""
-    <div class="border-b border-ltrn-lighter">
+    <div id={@id} class="border-b border-ltrn-lighter">
       <button
         type="button"
         class="flex items-center justify-between w-full p-4 hover:bg-ltrn-lightest transition-colors"

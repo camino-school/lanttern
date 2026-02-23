@@ -83,6 +83,7 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponent do
                 class="mt-4 text-sm leading-relaxed"
                 id="staff-members-list"
                 data-group-id="staff-members-list"
+                data-sortable-event="sortable_update"
                 data-sortable-handle=".sortable-handle"
                 phx-hook="Sortable"
                 phx-target={@myself}
@@ -135,6 +136,8 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponent do
                 class="mt-4 text-sm leading-relaxed list-decimal list-inside"
                 id="students-list"
                 data-group-id="students-list"
+                data-sortable-event="sortable_update"
+                data-sortable-handle=".cursor-move"
                 phx-hook="Sortable"
                 phx-target={@myself}
               >
@@ -312,9 +315,7 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponent do
     {:noreply, assign(socket, :staff_members, staff_members)}
   end
 
-  def handle_event("sortable_update", %{"groupId" => "students-list"} = payload, socket) do
-    %{"oldIndex" => old_index, "newIndex" => new_index} = payload
-
+  def handle_event("sortable_update", %{"from" => %{"groupId" => "students-list"}, "oldIndex" => old_index, "newIndex" => new_index}, socket) do
     # Reorder students based on the drag and drop
     students =
       socket.assigns.students
@@ -324,9 +325,7 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponent do
     {:noreply, assign(socket, :students, students)}
   end
 
-  def handle_event("sortable_update", %{"groupId" => "staff-members-list"} = payload, socket) do
-    %{"oldIndex" => old_index, "newIndex" => new_index} = payload
-
+  def handle_event("sortable_update", %{"from" => %{"groupId" => "staff-members-list"}, "oldIndex" => old_index, "newIndex" => new_index}, socket) do
     # Reorder staff members based on the drag and drop
     staff_members =
       socket.assigns.staff_members

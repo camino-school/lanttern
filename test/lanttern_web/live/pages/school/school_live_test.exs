@@ -54,7 +54,7 @@ defmodule LantternWeb.SchoolLiveTest do
       |> element("a", class.name)
       |> render_click()
 
-      assert_redirect(view, "#{@live_view_base_path}/classes/#{class.id}/students")
+      assert_redirect(view, "#{@live_view_base_path}/classes/#{class.id}/people")
     end
   end
 

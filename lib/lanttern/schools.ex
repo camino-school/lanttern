@@ -1655,8 +1655,7 @@ defmodule Lanttern.Schools do
         where: csm.class_id == ^class_id
       )
 
-    attrs
-    |> set_position_in_attrs(position_queryable)
+    set_position_in_attrs(position_queryable, attrs)
     |> then(&ClassStaffMember.changeset(%ClassStaffMember{}, &1))
     |> Repo.insert()
   end
