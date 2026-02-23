@@ -105,6 +105,8 @@
     guardian={@guardian}
     title={gettext("Edit guardian")}
     on_cancel={JS.patch(@current_path)}
-    notify_component={true}
+    notify_component={self()}
+    close_path={@current_path}
+    current_user={@current_user}
   />
 </Layouts.app_logged_in>

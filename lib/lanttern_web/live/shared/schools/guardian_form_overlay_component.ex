@@ -167,7 +167,13 @@ defmodule LantternWeb.Schools.GuardianFormOverlayComponent do
     assign(socket, :form, to_form(changeset))
   end
 
-  defp notify_parent(component_cid, message) do
-    send_update(component_cid, action: {__MODULE__, message})
+  defp notify_parent(nil, _message), do: :ok
+
+  defp notify_parent(notify_target, message) do
+    if is_pid(notify_target) do
+      send(notify_target, {__MODULE__, message})
+    else
+      send_update(notify_target, action: {__MODULE__, message})
+    end
   end
 end
