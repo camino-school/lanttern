@@ -8,7 +8,7 @@ defmodule LantternWeb.SchoolsComponents do
   import Phoenix.HTML, only: [raw: 1]
   use Gettext, backend: Lanttern.Gettext
   import LantternWeb.CoreComponents
-
+  import LantternWeb.DateTimeHelpers
   alias Lanttern.Schools.School
   alias Lanttern.Schools.Student
 
@@ -88,11 +88,17 @@ defmodule LantternWeb.SchoolsComponents do
   attr :id, :string, default: nil
 
   def student_card(assigns) do
+    age = calculate_age(assigns.student.birthdate)
+
     has_badge =
-      (is_list(assigns.student.classes) && assigns.student.classes != []) ||
+      age != nil ||
+        (is_list(assigns.student.classes) && assigns.student.classes != []) ||
         (is_list(assigns.student.tags) && assigns.student.tags != [])
 
-    assigns = assign(assigns, :has_badge, has_badge)
+    assigns =
+      assigns
+      |> assign(:has_badge, has_badge)
+      |> assign(:age, age)
 
     ~H"""
     <.card_base id={@id} class={["flex items-center gap-4 p-4", @class]}>
@@ -112,6 +118,16 @@ defmodule LantternWeb.SchoolsComponents do
           </div>
         <% end %>
         <div :if={@has_badge} class="flex flex-wrap gap-1 mt-2">
+          <%= if @age do %>
+            <div class="group relative" tabindex="0">
+              <.badge theme="dark">
+                {format_age_short(@age)}
+              </.badge>
+              <.tooltip id={"student-#{@student.id}-birthdate-tooltip"}>
+                {format_birthdate(@student.birthdate)}
+              </.tooltip>
+            </div>
+          <% end %>
           <%= if is_list(@student.tags) do %>
             <.badge :for={tag <- @student.tags} color_map={tag}>
               {tag.name}

@@ -53,7 +53,7 @@ defmodule LantternWeb.DateTimeHelpers do
   def format_simple_time(time) do
     {:ok, time} =
       time
-      |> Lanttern.Cldr.DateTime.to_string(format: "hh:mm")
+      |> Lanttern.Cldr.DateTime.to_string(format: "HH:mm")
 
     time
   end
@@ -89,4 +89,104 @@ defmodule LantternWeb.DateTimeHelpers do
 
   def get_default_format(locale),
     do: Map.get(@default_formats_map, locale, @default_format)
+
+  @doc """
+  Calculates age in years and months from a birthdate.
+
+  Returns a tuple {years, months} or nil if birthdate is nil.
+  """
+  @spec calculate_age(Date.t() | nil, Date.t()) :: {non_neg_integer(), non_neg_integer()} | nil
+  def calculate_age(birthdate, today \\ Date.utc_today())
+
+  def calculate_age(nil, _today), do: nil
+
+  def calculate_age(%Date{} = birthdate, today) do
+    # Return nil if birthdate is in the future
+    case Date.compare(birthdate, today) do
+      :gt -> nil
+      _ -> do_calculate_age(birthdate, today)
+    end
+  end
+
+  defp do_calculate_age(%Date{} = birthdate, %Date{} = today) do
+    years = today.year - birthdate.year
+    months = today.month - birthdate.month
+
+    {years, months} = adjust_for_year_boundary(years, months)
+    adjust_for_day_of_month(years, months, today.day, birthdate.day)
+  end
+
+  defp adjust_for_year_boundary(years, months) when months < 0 do
+    {years - 1, months + 12}
+  end
+
+  defp adjust_for_year_boundary(years, months) do
+    {years, months}
+  end
+
+  defp adjust_for_day_of_month(years, months, today_day, birthdate_day)
+       when today_day < birthdate_day and months == 0 do
+    {years - 1, 11}
+  end
+
+  defp adjust_for_day_of_month(years, months, today_day, birthdate_day)
+       when today_day < birthdate_day do
+    {years, months - 1}
+  end
+
+  defp adjust_for_day_of_month(years, months, _today_day, _birthdate_day) do
+    {years, months}
+  end
+
+  @doc """
+  Formats age as abbreviated years and months (e.g., "2y 9m" for en, "2a 9m" for pt_BR).
+
+  Returns empty string if age is nil.
+  """
+  @spec format_age_short({non_neg_integer(), non_neg_integer()} | nil) :: String.t()
+  def format_age_short(nil), do: ""
+
+  def format_age_short({years, months}) do
+    years_abbr = gettext("y")
+    months_abbr = gettext("m")
+    "#{years}#{years_abbr} #{months}#{months_abbr}"
+  end
+
+  @doc """
+  Formats age as full years and months (e.g., "2 years, 9 months").
+
+  Returns empty string if age is nil.
+  """
+  @spec format_age_full({non_neg_integer(), non_neg_integer()} | nil) :: String.t()
+  def format_age_full(nil), do: ""
+
+  def format_age_full({years, months}) do
+    years_text = ngettext("1 year", "%{count} years", years)
+    months_text = ngettext("1 month", "%{count} months", months)
+
+    "#{years_text}, #{months_text}"
+  end
+
+  @doc """
+  Formats birthdate as a localized date string (e.g., "02/20/1988" or "20/02/1988").
+
+  Returns empty string if birthdate is nil.
+  """
+  @spec format_birthdate(Date.t() | nil) :: String.t()
+  def format_birthdate(nil), do: ""
+
+  def format_birthdate(%Date{} = birthdate) do
+    locale = Gettext.get_locale(Lanttern.Gettext)
+
+    format_map = %{
+      "en" => "MM/dd/yyyy",
+      "pt_BR" => "dd/MM/yyyy"
+    }
+
+    format = Map.get(format_map, locale, format_map["en"])
+
+    {:ok, formatted} = Lanttern.Cldr.Date.to_string(birthdate, format: format, locale: locale)
+
+    formatted
+  end
 end

@@ -21,6 +21,7 @@ defmodule LantternWeb.Schools.StudentHeaderComponent do
   use LantternWeb, :live_component
 
   alias Lanttern.Schools
+  import LantternWeb.DateTimeHelpers
 
   @impl true
   def render(assigns) do
@@ -65,6 +66,11 @@ defmodule LantternWeb.Schools.StudentHeaderComponent do
             {gettext("Deactivated")}
           </.badge>
         </div>
+        <%= if @age do %>
+          <div class="mt-2 text-sm text-ltrn-subtle">
+            {format_age_full(@age)} ({format_birthdate(@student.birthdate)})
+          </div>
+        <% end %>
         <div class="flex items-center gap-4 mt-2">
           <%= if @show_tags do %>
             <.badge :for={tag <- @student.tags} color_map={tag}>
@@ -155,6 +161,10 @@ defmodule LantternWeb.Schools.StudentHeaderComponent do
         opts
       )
 
-    assign(socket, :student, student)
+    age = calculate_age(student.birthdate)
+
+    socket
+    |> assign(:student, student)
+    |> assign(:age, age)
   end
 end
