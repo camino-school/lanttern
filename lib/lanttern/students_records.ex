@@ -48,9 +48,11 @@ defmodule Lanttern.StudentsRecords do
   alias Lanttern.Repo
   alias Lanttern.RepoHelpers.Page
 
+  alias Lanttern.Attachments.Attachment
   alias Lanttern.Identity.Profile
   alias Lanttern.StudentsRecords.AssigneeRelationship
   alias Lanttern.StudentsRecords.StudentRecord
+  alias Lanttern.StudentsRecords.StudentRecordAttachment
   alias Lanttern.StudentsRecords.StudentRecordStatus
   alias Lanttern.StudentsRecords.Tag
   alias Lanttern.StudentsRecordsLog
@@ -71,6 +73,7 @@ defmodule Lanttern.StudentsRecords do
   - `:view` - if "open", will return only open records ordered by oldest
   - `:load_students_tags` - load linked students' tags in `student_tags` field
   - `:check_profile_permissions` - filter results based on profile permission
+  - `:count_attachments` - include attachment count in `attachments_count` virtual field
   - `:preloads` - preloads associated data
   - page opts (view `Page.opts()`)
 
@@ -92,6 +95,7 @@ defmodule Lanttern.StudentsRecords do
             assignees_ids: [pos_integer()],
             view: String.t(),
             load_students_tags: boolean(),
+            count_attachments: boolean(),
             check_profile_permissions: Profile.t(),
             preloads: list()
           ]
@@ -247,6 +251,15 @@ defmodule Lanttern.StudentsRecords do
     from(
       sr in queryable,
       where: sr.date < ^date or (sr.date == ^date and sr.id < ^id)
+    )
+    |> apply_list_students_records_opts(opts)
+  end
+
+  defp apply_list_students_records_opts(queryable, [{:count_attachments, true} | opts]) do
+    from(
+      sr in queryable,
+      left_join: sra in assoc(sr, :student_record_attachments),
+      select_merge: %{attachments_count: count(sra.id)}
     )
     |> apply_list_students_records_opts(opts)
   end
@@ -880,4 +893,79 @@ defmodule Lanttern.StudentsRecords do
   @spec update_student_record_statuses_positions([integer()]) :: :ok | {:error, String.t()}
   def update_student_record_statuses_positions(statuses_ids),
     do: update_positions(StudentRecordStatus, statuses_ids)
+
+  # Student record attachments
+
+  @doc """
+  Creates a student record attachment.
+
+  ## Examples
+
+      iex> create_student_record_attachment(current_user, student_record_id, %{field: value})
+      {:ok, %Attachment{}}
+
+      iex> create_student_record_attachment(current_user, student_record_id, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  @spec create_student_record_attachment(
+          current_user :: map(),
+          student_record_id :: pos_integer(),
+          attachment_attrs :: map()
+        ) ::
+          {:ok, Attachment.t()} | {:error, Ecto.Changeset.t()}
+  def create_student_record_attachment(
+        current_user,
+        student_record_id,
+        attachment_attrs
+      ) do
+    insert_query =
+      %Attachment{}
+      |> Attachment.changeset(
+        Map.put(attachment_attrs, "owner_id", current_user.current_profile_id)
+      )
+
+    Ecto.Multi.new()
+    |> Ecto.Multi.insert(:insert_attachment, insert_query)
+    |> Ecto.Multi.run(
+      :link_student_record,
+      fn _repo, %{insert_attachment: attachment} ->
+        attrs =
+          from(
+            sra in StudentRecordAttachment,
+            where: sra.student_record_id == ^student_record_id
+          )
+          |> set_position_in_attrs(%{
+            student_record_id: student_record_id,
+            attachment_id: attachment.id
+          })
+
+        %StudentRecordAttachment{}
+        |> StudentRecordAttachment.changeset(attrs)
+        |> Repo.insert()
+      end
+    )
+    |> Repo.transaction()
+    |> case do
+      {:error, _multi, changeset, _changes} ->
+        {:error, changeset}
+
+      {:ok, %{insert_attachment: attachment}} ->
+        {:ok, attachment}
+    end
+  end
+
+  @doc """
+  Update student record attachments positions based on ids list order.
+
+  ## Examples
+
+      iex> update_student_record_attachments_positions([3, 2, 1])
+      :ok
+
+  """
+  @spec update_student_record_attachments_positions(attachments_ids :: [pos_integer()]) ::
+          :ok | {:error, String.t()}
+  def update_student_record_attachments_positions(attachments_ids),
+    do: update_positions(StudentRecordAttachment, attachments_ids, id_field: :attachment_id)
 end

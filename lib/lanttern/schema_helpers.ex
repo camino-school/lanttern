@@ -56,6 +56,41 @@ defmodule Lanttern.SchemaHelpers do
   end
 
   @doc """
+  Validates a hex color field and optionally adds a `check_constraint`.
+
+  When `constraint_name` is provided, both a `validate_format` and a
+  `check_constraint` are applied. Otherwise only the format validation
+  is added.
+
+  ## Examples
+
+      changeset
+      |> validate_hex_color(:bg_color, :school_bg_color_should_be_hex)
+
+      changeset
+      |> validate_hex_color(:bg_color)
+
+  """
+  def validate_hex_color(changeset, field, constraint_name \\ nil)
+
+  def validate_hex_color(changeset, field, nil) do
+    validate_format(changeset, field, ~r/^#[a-fA-F0-9]{6}$/,
+      message: "must be a valid hex color (e.g. #aabbcc)"
+    )
+  end
+
+  def validate_hex_color(changeset, field, constraint_name) do
+    changeset
+    |> validate_format(field, ~r/^#[a-fA-F0-9]{6}$/,
+      message: "must be a valid hex color (e.g. #aabbcc)"
+    )
+    |> check_constraint(field,
+      name: constraint_name,
+      message: "must be a valid hex color (e.g. #aabbcc)"
+    )
+  end
+
+  @doc """
   Set `:position` in child changeset.
 
   Example:

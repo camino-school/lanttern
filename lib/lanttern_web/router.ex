@@ -1,6 +1,8 @@
 defmodule LantternWeb.Router do
   use LantternWeb, :router
 
+  import Oban.Web.Router
+
   import LantternWeb.UserAuth
   import LantternWeb.LocalizationHelpers
 
@@ -93,16 +95,21 @@ defmodule LantternWeb.Router do
       live "/strands/library", StrandsLibraryLive, :index
       live "/strands/library/new", StrandsLibraryLive, :new
 
-      live "/strands/:id", StrandLive, :show
+      live "/strands/:id", StrandLive, :lessons
+      live "/strands/:id/overview", StrandLive, :overview
       live "/strands/:id/rubrics", StrandLive, :rubrics
       live "/strands/:id/assessment", StrandLive, :assessment
-      live "/strands/:id/moments", StrandLive, :moments
-      live "/strands/:id/notes", StrandLive, :notes
 
-      live "/strands/moment/:id", MomentLive, :show
-      live "/strands/moment/:id/assessment", MomentLive, :assessment
-      live "/strands/moment/:id/cards", MomentLive, :cards
-      live "/strands/moment/:id/notes", MomentLive, :notes
+      live "/strands/:id/assessment/marking", MarkingLive, :goals_assessment
+      live "/strands/:id/assessment/marking/moment/:moment_id", MarkingLive, :moment_assessment
+
+      live "/strands/:strand_id/chat", StrandChatLive, :new
+      live "/strands/:strand_id/chat/:conversation_id", StrandChatLive, :show
+
+      live "/strands/lesson/:id", LessonLive, :show
+
+      live "/strands/lesson/:lesson_id/chat", LessonChatLive, :new
+      live "/strands/lesson/:lesson_id/chat/:conversation_id", LessonChatLive, :show
 
       live "/curriculum", CurriculaLive, :index
       live "/curriculum/bncc_ef", BnccEfLive, :index
@@ -129,10 +136,24 @@ defmodule LantternWeb.Router do
       live "/students_records", StudentsRecordsLive, :index
       live "/students_records/settings/status", StudentsRecordsSettingsLive, :manage_status
       live "/students_records/settings/tags", StudentsRecordsSettingsLive, :manage_tags
+
       # ILP
 
       live "/ilp", ILPLive, :index
       live "/ilp/settings", ILPSettingsLive, :index
+
+      # settings
+
+      live "/settings/school_ai_config", SchoolAiConfigLive, :index
+
+      live "/settings/agents", AgentsSettingsLive, :index
+      live "/settings/agents/:id", AgentsSettingsLive, :show
+
+      live "/settings/lesson_templates", LessonTemplatesLive, :index
+      live "/settings/lesson_templates/:id", LessonTemplatesLive, :show
+
+      live "/settings/lesson_tags", LessonTagsLive, :index
+      live "/settings/lesson_tags/:id", LessonTagsLive, :show
     end
 
     live_session :authenticated_guardian,
@@ -251,21 +272,6 @@ defmodule LantternWeb.Router do
     live "/strands/:id", Admin.StrandLive.Show, :show
     live "/strands/:id/show/edit", Admin.StrandLive.Show, :edit
 
-    live "/moments", Admin.MomentLive.Index, :index
-    live "/moments/new", Admin.MomentLive.Index, :new
-    live "/moments/:id/edit", Admin.MomentLive.Index, :edit
-
-    live "/moments/:id", Admin.MomentLive.Show, :show
-    live "/moments/:id/show/edit", Admin.MomentLive.Show, :edit
-
-    # Personalization context
-    live "/notes", Admin.NoteLive.Index, :index
-    live "/notes/new", Admin.NoteLive.Index, :new
-    live "/notes/:id/edit", Admin.NoteLive.Index, :edit
-
-    live "/notes/:id", Admin.NoteLive.Show, :show
-    live "/notes/:id/show/edit", Admin.NoteLive.Show, :edit
-
     # Reporting context
     live "/report_cards", Admin.ReportCardLive.Index, :index
     live "/report_cards/new", Admin.ReportCardLive.Index, :new
@@ -377,5 +383,12 @@ defmodule LantternWeb.Router do
     #   live "/users/confirm/:token", UserConfirmationLive, :edit
     #   live "/users/confirm", UserConfirmationInstructionsLive, :new
     # end
+  end
+
+  # Oban
+  scope "/oban", LantternWeb do
+    pipe_through [:browser, :require_authenticated_user, :require_root_admin]
+
+    oban_dashboard("/")
   end
 end

@@ -4,6 +4,7 @@ defmodule Lanttern.AttachmentsTest do
   import Lanttern.Factory
 
   alias Lanttern.Attachments
+  alias Lanttern.Lessons
 
   describe "attachments" do
     alias Lanttern.Attachments.Attachment
@@ -14,54 +15,16 @@ defmodule Lanttern.AttachmentsTest do
     alias Lanttern.AssessmentsFixtures
     alias Lanttern.IdentityFixtures
     alias Lanttern.ILP
-    alias Lanttern.LearningContext
-    alias Lanttern.LearningContextFixtures
-    alias Lanttern.Notes
-    alias Lanttern.NotesFixtures
     alias Lanttern.StudentsCycleInfo
     alias Lanttern.StudentsCycleInfoFixtures
+    alias Lanttern.StudentsRecords
+    alias Lanttern.StudentsRecordsFixtures
 
     @invalid_attrs %{name: nil, link: nil, description: nil, is_external: nil}
 
     test "list_attachments/1 returns all attachments" do
       attachment = attachment_fixture()
       assert Attachments.list_attachments() == [attachment]
-    end
-
-    test "list_attachments/1 with note_id opts returns all attachments filtered by given note" do
-      profile = IdentityFixtures.student_profile_fixture()
-      note = NotesFixtures.note_fixture(%{author_id: profile.id})
-
-      {:ok, attachment_1} =
-        Notes.create_note_attachment(
-          %{current_profile: profile},
-          note.id,
-          %{"name" => "attachment 1", "link" => "https://somevaliduri.com", "is_external" => true}
-        )
-
-      {:ok, attachment_2} =
-        Notes.create_note_attachment(
-          %{current_profile: profile},
-          note.id,
-          %{"name" => "attachment 2", "link" => "https://somevaliduri.com", "is_external" => true}
-        )
-
-      {:ok, attachment_3} =
-        Notes.create_note_attachment(
-          %{current_profile: profile},
-          note.id,
-          %{"name" => "attachment 3", "link" => "https://somevaliduri.com", "is_external" => true}
-        )
-
-      assert [attachment_1, attachment_2, attachment_3] ==
-               Attachments.list_attachments(note_id: note.id)
-
-      # use same setup to test update_note_attachments_positions/1
-
-      Notes.update_note_attachments_positions([attachment_2.id, attachment_3.id, attachment_1.id])
-
-      assert [attachment_2, attachment_3, attachment_1] ==
-               Attachments.list_attachments(note_id: note.id)
     end
 
     test "list_attachments/1 with assessment_point_entry_id opts returns all attachments filtered by given assessment point entry" do
@@ -164,80 +127,6 @@ defmodule Lanttern.AttachmentsTest do
                )
     end
 
-    test "list_attachments/1 with moment_card_id opts returns all attachments linked to given moment card" do
-      scope = IdentityFixtures.scope_fixture()
-      moment_card = LearningContextFixtures.moment_card_fixture(scope)
-
-      {:ok, attachment_1} =
-        LearningContext.create_moment_card_attachment(
-          scope.profile_id,
-          moment_card.id,
-          %{"name" => "attachment 1", "link" => "https://somevaliduri.com", "is_external" => true}
-        )
-
-      {:ok, attachment_2} =
-        LearningContext.create_moment_card_attachment(
-          scope.profile_id,
-          moment_card.id,
-          %{"name" => "attachment 2", "link" => "https://somevaliduri.com", "is_external" => true}
-        )
-
-      {:ok, shared_attachment} =
-        LearningContext.create_moment_card_attachment(
-          scope.profile_id,
-          moment_card.id,
-          %{
-            "name" => "family attachment",
-            "link" => "https://somevaliduri.com",
-            "is_external" => true
-          },
-          true
-        )
-
-      # extra attachments to test filtering
-      attachment_fixture()
-
-      another_scope = IdentityFixtures.scope_fixture()
-
-      LearningContext.create_moment_card_attachment(
-        scope.profile_id,
-        LearningContextFixtures.moment_card_fixture(another_scope).id,
-        %{
-          "name" => "other attachment",
-          "link" => "https://somevaliduri.com",
-          "is_external" => true
-        }
-      )
-
-      [expected_attachment_1, expected_attachment_2, expected_shared_attachment] =
-        Attachments.list_attachments(moment_card_id: moment_card.id)
-
-      assert expected_attachment_1.id == attachment_1.id
-      assert expected_attachment_2.id == attachment_2.id
-      assert expected_shared_attachment.id == shared_attachment.id
-
-      # expect is_shared is defined in the context of moment card attachments
-      assert expected_attachment_1.is_shared == false
-      assert expected_attachment_2.is_shared == false
-      assert expected_shared_attachment.is_shared
-
-      # use same setup to test update_moment_card_attachments_positions/1 and shared_with_students filtering
-
-      LearningContext.update_moment_card_attachments_positions([
-        attachment_2.id,
-        attachment_1.id
-      ])
-
-      [expected_attachment_2, expected_attachment_1] =
-        Attachments.list_attachments(
-          moment_card_id: moment_card.id,
-          shared_with_student: {:moment_card, false}
-        )
-
-      assert expected_attachment_1.id == attachment_1.id
-      assert expected_attachment_2.id == attachment_2.id
-    end
-
     test "list_attachments/1 with ilp_comment_id opts returns all attachments linked to given ILP comment" do
       ilp_comment = insert(:ilp_comment)
 
@@ -283,6 +172,58 @@ defmodule Lanttern.AttachmentsTest do
 
       [expected_attachment_2, expected_attachment_1] =
         Attachments.list_attachments(ilp_comment_id: ilp_comment.id)
+
+      assert expected_attachment_1.id == attachment_1.id
+      assert expected_attachment_2.id == attachment_2.id
+    end
+
+    test "list_attachments/1 with student_record_id opts returns all attachments linked to given student record" do
+      profile = IdentityFixtures.staff_member_profile_fixture()
+      current_user = %{current_profile_id: profile.id}
+      student_record = StudentsRecordsFixtures.student_record_fixture()
+
+      {:ok, attachment_1} =
+        StudentsRecords.create_student_record_attachment(
+          current_user,
+          student_record.id,
+          %{"name" => "attachment 1", "link" => "https://somevaliduri.com", "is_external" => true}
+        )
+
+      {:ok, attachment_2} =
+        StudentsRecords.create_student_record_attachment(
+          current_user,
+          student_record.id,
+          %{"name" => "attachment 2", "link" => "https://somevaliduri.com", "is_external" => true}
+        )
+
+      # extra attachments to test filtering
+      attachment_fixture()
+
+      StudentsRecords.create_student_record_attachment(
+        current_user,
+        StudentsRecordsFixtures.student_record_fixture().id,
+        %{
+          "name" => "other attachment",
+          "link" => "https://somevaliduri.com",
+          "is_external" => true
+        }
+      )
+
+      [expected_attachment_1, expected_attachment_2] =
+        Attachments.list_attachments(student_record_id: student_record.id)
+
+      assert expected_attachment_1.id == attachment_1.id
+      assert expected_attachment_2.id == attachment_2.id
+
+      # test update_student_record_attachments_positions/1
+
+      StudentsRecords.update_student_record_attachments_positions([
+        attachment_2.id,
+        attachment_1.id
+      ])
+
+      [expected_attachment_2, expected_attachment_1] =
+        Attachments.list_attachments(student_record_id: student_record.id)
 
       assert expected_attachment_1.id == attachment_1.id
       assert expected_attachment_2.id == attachment_2.id
@@ -353,6 +294,78 @@ defmodule Lanttern.AttachmentsTest do
     test "change_attachment/1 returns a attachment changeset" do
       attachment = attachment_fixture()
       assert %Ecto.Changeset{} = Attachments.change_attachment(attachment)
+    end
+
+    test "list_attachments/1 with lesson_id opts returns all attachments linked to given lesson" do
+      profile = insert(:profile)
+      lesson = insert(:lesson)
+
+      {:ok, teacher_attachment} =
+        Lessons.create_lesson_attachment(
+          profile.id,
+          lesson.id,
+          %{"name" => "teacher doc", "link" => "https://example.com", "is_external" => true},
+          true
+        )
+
+      {:ok, shared_attachment} =
+        Lessons.create_lesson_attachment(
+          profile.id,
+          lesson.id,
+          %{"name" => "student doc", "link" => "https://example.com", "is_external" => true},
+          false
+        )
+
+      # extra attachment to test filtering
+      attachment_fixture()
+
+      [expected_teacher, expected_shared] =
+        Attachments.list_attachments(lesson_id: lesson.id)
+
+      assert expected_teacher.id == teacher_attachment.id
+      assert expected_teacher.is_teacher_only == true
+
+      assert expected_shared.id == shared_attachment.id
+      assert expected_shared.is_teacher_only == false
+    end
+
+    test "list_attachments/1 with lesson_id and is_teacher_only_resource opts filters correctly" do
+      profile = insert(:profile)
+      lesson = insert(:lesson)
+
+      {:ok, teacher_attachment} =
+        Lessons.create_lesson_attachment(
+          profile.id,
+          lesson.id,
+          %{"name" => "teacher doc", "link" => "https://example.com", "is_external" => true},
+          true
+        )
+
+      {:ok, shared_attachment} =
+        Lessons.create_lesson_attachment(
+          profile.id,
+          lesson.id,
+          %{"name" => "student doc", "link" => "https://example.com", "is_external" => true},
+          false
+        )
+
+      # only teacher attachments
+      [expected_teacher] =
+        Attachments.list_attachments(
+          lesson_id: lesson.id,
+          is_teacher_only_resource: {:lesson, true}
+        )
+
+      assert expected_teacher.id == teacher_attachment.id
+
+      # only student attachments
+      [expected_shared] =
+        Attachments.list_attachments(
+          lesson_id: lesson.id,
+          is_teacher_only_resource: {:lesson, false}
+        )
+
+      assert expected_shared.id == shared_attachment.id
     end
   end
 end

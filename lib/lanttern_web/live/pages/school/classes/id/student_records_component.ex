@@ -309,6 +309,7 @@ defmodule LantternWeb.ClassLive.StudentRecordsComponent do
         assignees_ids: assignees_ids,
         view: view,
         load_students_tags: true,
+        count_attachments: true,
         preloads: [
           :tags,
           :status,

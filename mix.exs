@@ -4,7 +4,7 @@ defmodule Lanttern.MixProject do
   def project do
     [
       app: :lanttern,
-      version: "2026.1.20-alpha.78",
+      version: "2026.2.22-alpha.79",
       elixir: "~> 1.18",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
@@ -85,7 +85,7 @@ defmodule Lanttern.MixProject do
       {:ex_openai, "~> 1.8.0-beta"},
       {:tidewave, "~> 0.1.10", only: :dev},
       {:excoveralls, "~> 0.18", only: :test},
-      {:phoenix_test, "~> 0.7.1", only: :test, runtime: false},
+      {:phoenix_test, "~> 0.9.1", only: :test, runtime: false},
       {:ex_machina, "~> 2.8.0", only: :test},
       {:ex_cldr, "~> 2.37"},
       {:ex_cldr_dates_times, "~> 2.0"},
@@ -93,8 +93,11 @@ defmodule Lanttern.MixProject do
       {:multipart, "~> 0.4.0"},
       {:cachex, "~> 4.1"},
       {:oban, "~> 2.20"},
+      {:oban_web, "~> 2.11"},
       {:usage_rules, "~> 0.1", only: [:dev]},
-      {:igniter, "~> 0.6", only: [:dev]}
+      {:igniter, "~> 0.6", only: [:dev]},
+      {:html_sanitize_ex, "~> 1.4"},
+      {:langchain, "0.4.0"}
     ]
   end
 

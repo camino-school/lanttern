@@ -1404,4 +1404,67 @@ defmodule Lanttern.StudentsRecordsTest do
                StudentsRecords.change_student_record_status(student_record_status)
     end
   end
+
+  describe "student_record_attachments" do
+    import Lanttern.StudentsRecordsFixtures
+
+    alias Lanttern.IdentityFixtures
+
+    test "create_student_record_attachment/3 creates an attachment linked to a student record" do
+      profile = IdentityFixtures.staff_member_profile_fixture()
+      current_user = %{current_profile_id: profile.id}
+      student_record = student_record_fixture()
+
+      assert {:ok, attachment} =
+               StudentsRecords.create_student_record_attachment(
+                 current_user,
+                 student_record.id,
+                 %{
+                   "name" => "test attachment",
+                   "link" => "https://example.com",
+                   "is_external" => true
+                 }
+               )
+
+      assert attachment.name == "test attachment"
+      assert attachment.owner_id == profile.id
+    end
+
+    test "create_student_record_attachment/3 returns error for invalid data" do
+      profile = IdentityFixtures.staff_member_profile_fixture()
+      current_user = %{current_profile_id: profile.id}
+      student_record = student_record_fixture()
+
+      assert {:error, %Ecto.Changeset{}} =
+               StudentsRecords.create_student_record_attachment(
+                 current_user,
+                 student_record.id,
+                 %{"name" => nil, "link" => nil}
+               )
+    end
+
+    test "list_students_records/1 with count_attachments opt populates attachments_count" do
+      profile = IdentityFixtures.staff_member_profile_fixture()
+      current_user = %{current_profile_id: profile.id}
+      student_record = student_record_fixture()
+
+      StudentsRecords.create_student_record_attachment(
+        current_user,
+        student_record.id,
+        %{"name" => "att 1", "link" => "https://example.com", "is_external" => true}
+      )
+
+      StudentsRecords.create_student_record_attachment(
+        current_user,
+        student_record.id,
+        %{"name" => "att 2", "link" => "https://example.com/2", "is_external" => true}
+      )
+
+      [result] = StudentsRecords.list_students_records(count_attachments: true)
+      assert result.attachments_count == 2
+
+      [result_without_count] = StudentsRecords.list_students_records()
+      assert result_without_count.attachments_count == 0
+    end
+  end
 end

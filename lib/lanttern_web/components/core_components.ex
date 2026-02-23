@@ -129,7 +129,7 @@ defmodule LantternWeb.CoreComponents do
 
   defp action_styles(theme, size),
     do:
-      "group relative flex items-center gap-2 min-w-0 #{Map.get(@action_themes, theme)} #{Map.get(@action_sizes, size)} disabled:cursor-not-allowed"
+      "group relative flex items-center gap-2 min-w-0 font-sans #{Map.get(@action_themes, theme)} #{Map.get(@action_sizes, size)} disabled:cursor-not-allowed"
 
   defp action_bg_styles(theme, size),
     do:
@@ -328,7 +328,7 @@ defmodule LantternWeb.CoreComponents do
     <span
       id={@id}
       class={[
-        "inline-flex items-center px-1 py-1 font-mono font-normal text-xs truncate",
+        "inline-flex items-center px-1 py-1 font-sans font-normal text-sm truncate",
         if(@rounded, do: "rounded-full", else: "rounded-xs"),
         badge_theme(@theme),
         @class
@@ -367,7 +367,7 @@ defmodule LantternWeb.CoreComponents do
 
   @badge_themes %{
     "default" => "bg-ltrn-lightest text-ltrn-dark",
-    "primary" => "bg-ltrn-primary text-ltrn-dark",
+    "primary" => "bg-ltrn-primary text-white",
     "secondary" => "bg-ltrn-secondary text-white",
     "cyan" => "bg-ltrn-mesh-cyan text-ltrn-dark",
     "dark" => "bg-ltrn-dark text-ltrn-lighter",
@@ -380,7 +380,7 @@ defmodule LantternWeb.CoreComponents do
 
   @badge_themes_hover %{
     "default" => "hover:bg-ltrn-lightest/50",
-    "primary" => "hover:bg-ltrn-primary/50",
+    "primary" => "hover:bg-ltrn-primary/80",
     "secondary" => "hover:bg-ltrn-secondary/50",
     "cyan" => "hover:bg-ltrn-mesh-cyan/50",
     "dark" => "hover:bg-ltrn-dark/50",
@@ -395,7 +395,7 @@ defmodule LantternWeb.CoreComponents do
 
   @badge_icon_themes %{
     "default" => "text-ltrn-subtle",
-    "primary" => "text-ltrn-dark",
+    "primary" => "text-white",
     "secondary" => "text-white",
     "cyan" => "text-ltrn-subtle",
     "dark" => "text-ltrn-lighter",
@@ -421,7 +421,7 @@ defmodule LantternWeb.CoreComponents do
   """
   def get_badge_button_styles(theme \\ "default") do
     [
-      "inline-flex items-center gap-1 rounded-full px-2 py-1 font-mono text-xs shadow-sm",
+      "inline-flex items-center gap-1 rounded-full px-2 py-1 font-sans text-sm shadow-sm",
       badge_theme(theme, true)
     ]
   end
@@ -594,7 +594,7 @@ defmodule LantternWeb.CoreComponents do
     <.link
       class={[
         "group",
-        get_button_styles(@theme, @size, @rounded),
+        get_button_styles(@theme, size: @size, rounded: @rounded),
         @class
       ]}
       navigate={@navigate}
@@ -624,7 +624,7 @@ defmodule LantternWeb.CoreComponents do
       type={@type}
       class={[
         "group",
-        get_button_styles(@theme, @size, @rounded),
+        get_button_styles(@theme, size: @size, rounded: @rounded),
         @class
       ]}
       {@rest}
@@ -646,16 +646,22 @@ defmodule LantternWeb.CoreComponents do
 
   Meant to be used while styling links as buttons.
 
+  ## Options
+
+  * `:size` - "sm" | "normal" (default)
+  * `:is_icon` - boolean, defaults to false
+
   ## Examples
 
       <.link patch={~p"/somepath"} class={[get_button_styles()]}>Link</.link>
   """
-  def get_button_styles(theme \\ "default", size \\ "normal", rounded \\ false) do
+  def get_button_styles(theme \\ "default", opts \\ []) do
     [
-      "inline-flex items-center justify-center font-display text-sm font-bold disabled:cursor-not-allowed shadow-sm",
+      "inline-flex items-center justify-center gap-2 rounded-full font-sans disabled:cursor-not-allowed",
       "disabled:shadow-none",
-      if(size == "sm", do: "gap-1 p-1", else: "gap-2 p-2"),
-      if(rounded, do: "rounded-full", else: "rounded-xs"),
+      if(Keyword.get(opts, :size, "normal") == "sm", do: "text-sm", else: "text-base"),
+      if(Keyword.get(opts, :is_icon, false), do: "p-2", else: "py-2 px-4"),
+      # if(rounded, do: "rounded-full", else: "rounded-xs"),
       "phx-submit-loading:opacity-50 phx-click-loading:opacity-50 phx-click-loading:pointer-events-none",
       button_theme(theme)
     ]
@@ -663,10 +669,11 @@ defmodule LantternWeb.CoreComponents do
 
   @button_themes %{
     "default" => [
-      "bg-ltrn-primary hover:bg-cyan-300",
-      "disabled:text-ltrn-subtle disabled:bg-ltrn-mesh-cyan"
+      "border border-ltrn-darkest text-ltrn-darkest bg-transparent hover:bg-ltrn-darkest/10",
+      "disabled:text-ltrn-subtle disabled:bg-ltrn-darkest/10"
     ],
     "primary_light" => "bg-ltrn-mesh-cyan hover:bg-white text-ltrn-primary",
+    "primary" => "bg-ltrn-darkest hover:bg-ltrn-darkest/90 text-white",
     "diff_light" => [
       "bg-ltrn-diff-lightest hover:bg-ltrn-diff-lighter text-ltrn-diff-dark",
       "disabled:opacity-40"
@@ -679,7 +686,8 @@ defmodule LantternWeb.CoreComponents do
       "bg-ltrn-student-lighter text-ltrn-student-dark hover:opacity-80",
       "disabled:opacity-40"
     ],
-    "white" => "text-ltrn-dark bg-white hover:bg-ltrn-lightest",
+    "white" => "text-ltrn-darkest bg-white hover:bg-ltrn-lightest",
+    "white_outline" => "border border-white text-white bg-transparent hover:bg-white/10",
     "ghost" => [
       "text-ltrn-subtle bg-white/10 shadow-none hover:bg-slate-100",
       "disabled:text-ltrn-lighter"
@@ -701,6 +709,7 @@ defmodule LantternWeb.CoreComponents do
     default: nil,
     doc: "we use a separate attr for bg class to prevent clashing with default bg"
 
+  attr :remove_shadow, :boolean, default: false
   attr :id, :string, default: nil
   attr :rest, :global
 
@@ -708,7 +717,7 @@ defmodule LantternWeb.CoreComponents do
 
   def card_base(assigns) do
     ~H"""
-    <div id={@id} class={[card_base_classes(@bg_class), @class]} {@rest}>
+    <div id={@id} class={[card_base_classes(@bg_class, @remove_shadow), @class]} {@rest}>
       {render_slot(@inner_block)}
     </div>
     """
@@ -721,8 +730,8 @@ defmodule LantternWeb.CoreComponents do
   (not possible with `<.card_base>`).
   """
 
-  def card_base_classes(bg_class \\ nil),
-    do: "rounded-sm shadow-xl #{bg_class || "bg-white"}"
+  def card_base_classes(bg_class \\ nil, remove_shadow \\ false),
+    do: ["rounded-sm #{bg_class || "bg-white"}", if(!remove_shadow, do: "shadow-xl")]
 
   @doc """
   Renders a page cover.
@@ -738,12 +747,12 @@ defmodule LantternWeb.CoreComponents do
     <div
       class={[
         "relative flex flex-col justify-between bg-cover bg-center bg-ltrn-lighter",
-        if(@size == "sm", do: "min-h-96", else: "min-h-[40rem]")
+        if(@size == "sm", do: "min-h-96", else: "min-h-160")
       ]}
       {@rest}
     >
       <div class={[
-        "absolute inset-x-0 bottom-0 bg-gradient-to-b",
+        "absolute inset-x-0 bottom-0 bg-linear-to-b",
         cover_overlay(@theme),
         if(@size == "sm", do: "top-0", else: "top-1/4")
       ]} />
@@ -794,7 +803,7 @@ defmodule LantternWeb.CoreComponents do
     >
       <p class="sr-only">{@alt_text}</p>
       <div class={[
-        "absolute inset-0 bg-gradient-to-b",
+        "absolute inset-0 bg-linear-to-b",
         cover_overlay(@theme)
       ]} />
     </div> --%>
@@ -819,10 +828,10 @@ defmodule LantternWeb.CoreComponents do
         />
       </div>
       <p class="sr-only">{@alt_text}</p>
-      <div class={[
-        "absolute inset-0 bg-gradient-to-b pointer-events-none",
+      <%!-- <div class={[
+        "absolute inset-0 bg-linear-to-b pointer-events-none",
         cover_overlay(@theme)
-      ]} />
+      ]} /> --%>
       <div :if={@has_multiple_images} class="absolute bottom-2 flex justify-center w-full">
         <div class="slider-dots px-1 rounded-full bg-white" />
       </div>
@@ -843,10 +852,10 @@ defmodule LantternWeb.CoreComponents do
       <p :if={@empty_state_text} class="font-display font-black text-2xl text-ltrn-subtle">
         {@empty_state_text}
       </p>
-      <div class={[
-        "absolute inset-0 bg-gradient-to-b",
+      <%!-- <div class={[
+        "absolute inset-0 bg-linear-to-b",
         cover_overlay(@theme)
-      ]} />
+      ]} /> --%>
     </div>
     """
   end
@@ -1030,7 +1039,7 @@ defmodule LantternWeb.CoreComponents do
 
   slot :inner_block, required: true
 
-  def dragable_card(assigns) do
+  def draggable_card(assigns) do
     ~H"""
     <.card_base
       id={@id}
@@ -1133,26 +1142,30 @@ defmodule LantternWeb.CoreComponents do
       role="alert"
       class={[
         "pointer-events-auto w-full max-w-sm overflow-hidden rounded-lg bg-white shadow-lg ring-1",
-        @kind == :info && "ring-green-500/50",
-        @kind == :error && "bg-rose-50 ring-ltrn-secondary/50"
+        @kind == :info && "ring-ltrn-success-accent/50",
+        @kind == :error && "bg-ltrn-alert-lighter ring-ltrn-alert-accent/50"
       ]}
       {@rest}
     >
       <div class="p-4">
         <div class="flex items-start">
-          <div class="flex-shrink-0">
-            <.icon :if={@kind == :info} name="hero-information-circle" class="h-6 w-6 text-green-500" />
+          <div class="shrink-0">
+            <.icon
+              :if={@kind == :info}
+              name="hero-information-circle"
+              class="h-6 w-6 text-ltrn-success-accent"
+            />
             <.icon
               :if={@kind == :error}
               name="hero-exclamation-circle"
-              class="h-6 w-6 text-ltrn-secondary"
+              class="text-ltrn-alert-accent"
             />
           </div>
           <div class="ml-3 w-0 flex-1 pt-0.5">
-            <p :if={@title} class="mb-1 text-sm font-bold">{@title}</p>
-            <p class="text-sm text-ltrn-subtle">{msg}</p>
+            <p :if={@title} class="mb-1 text-sm font-bold text-ltrn-darkest">{@title}</p>
+            <p class="font-sans text-sm">{msg}</p>
           </div>
-          <div class="ml-4 flex flex-shrink-0">
+          <div class="ml-4 flex shrink-0">
             <button
               type="button"
               class="inline-flex rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
@@ -1351,7 +1364,7 @@ defmodule LantternWeb.CoreComponents do
       type={@type}
       class={[
         "shrink-0",
-        get_button_styles(@theme, @size, @rounded),
+        get_button_styles(@theme, size: @size, rounded: @rounded, is_icon: true),
         @class
       ]}
       {@rest}
@@ -1415,25 +1428,39 @@ defmodule LantternWeb.CoreComponents do
   Parses markdown text to HTML and renders it
   """
   attr :text, :string, required: true
-  attr :theme, :string, default: "slate"
-  attr :size, :string, default: "sm", doc: "sm | base"
+  attr :theme, :string, default: "stone"
+  attr :size, :string, default: "base", doc: "sm | base"
+  attr :invert, :boolean, default: false
+  attr :strip_tags, :boolean, default: false
   attr :class, :any, default: nil
   attr :rest, :global
 
-  def markdown(assigns) do
+  def markdown(%{text: text} = assigns) when is_binary(text) do
+    text = Earmark.as_html!(assigns.text)
+
+    text =
+      if assigns.strip_tags,
+        do: "<p>#{HtmlSanitizeEx.strip_tags(text)}</p>",
+        else: text
+
+    assigns = assign(assigns, :text, text)
+
     ~H"""
     <div
       :if={@text}
       class={[
         "prose prose-#{@theme} prose-#{@size}",
+        if(@invert, do: "prose-invert"),
         @class
       ]}
       {@rest}
     >
-      {raw(Earmark.as_html!(@text))}
+      {raw(@text)}
     </div>
     """
   end
+
+  def markdown(assigns), do: ~H""
 
   @doc """
   Renders metadata (basically icon + text).
@@ -1468,7 +1495,7 @@ defmodule LantternWeb.CoreComponents do
       aria-label="open menu"
     >
       <.icon name="hero-bars-3 text-ltrn-subtle" />
-      <div class="w-6 h-6 rounded-full bg-ltrn-mesh-primary blur-xs group-hover:blur-none transition-[filter]" />
+      <%!-- <div class="w-6 h-6 rounded-full bg-ltrn-mesh-1 blur-xs group-hover:blur-none transition-[filter]" /> --%>
     </button>
     """
   end
@@ -1919,7 +1946,7 @@ defmodule LantternWeb.CoreComponents do
             </.badge>
           </div>
         <% end %>
-        <div :if={@extra_info} class="line-clamp-1 text-xs text-ltrn-subtle mt-1">
+        <div :if={@extra_info} class="line-clamp-1 font-sans text-xs text-ltrn-subtle mt-1">
           {@extra_info}
         </div>
       </div>
@@ -2050,7 +2077,7 @@ defmodule LantternWeb.CoreComponents do
     <button
       type="button"
       class={[
-        "relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-hidden focus:ring-2 focus:ring-offset-2",
+        "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-hidden focus:ring-2 focus:ring-offset-2",
         toggle_theme(@theme),
         if(@enabled, do: toggle_enabled_theme(@theme), else: toggle_disabled_theme(@theme)),
         @class
@@ -2176,7 +2203,7 @@ defmodule LantternWeb.CoreComponents do
       end
 
     ~H"""
-    <table class="w-[40rem] sm:w-full">
+    <table class="w-160 sm:w-full">
       <thead class="text-sm text-left leading-6 text-zinc-500">
         <tr>
           <th :for={col <- @col} class="p-2 pr-6 pb-4 font-normal">{col[:label]}</th>
@@ -2238,7 +2265,7 @@ defmodule LantternWeb.CoreComponents do
 
   def stream_table(assigns) do
     ~H"""
-    <table class="w-[40rem] sm:w-full">
+    <table class="w-160 sm:w-full">
       <thead class="text-sm text-left text-ltrn-dark">
         <tr>
           <th :for={col <- @col} class="py-4 px-2 font-bold">{col[:label]}</th>
@@ -2294,59 +2321,127 @@ defmodule LantternWeb.CoreComponents do
   end
 
   @doc """
-  Renders a tooltip.
+  Renders a mouse-following tooltip (similar to native browser `title` tooltips).
 
-  Tooltip parent should have `"group relative"` class.
+  The tooltip appears near the mouse cursor and follows it. It automatically
+  flips above the cursor when near the bottom of the viewport, and shifts
+  left when near the right edge.
+
+  The parent element needs no special classes for this tooltip to work.
   """
 
-  attr :h_pos, :string, default: "left", doc: "left | center | right"
-  attr :v_pos, :string, default: "top", doc: "top | bottom"
   attr :class, :any, default: nil
+  attr :id, :string, required: true
 
   slot :inner_block, required: true
 
   def tooltip(assigns) do
-    assigns =
-      assigns
-      |> assign(:tooltip_pos_class, get_tooltip_pos_class(assigns))
-      |> assign(:inner_pos_class, get_tooltip_inner_pos_class(assigns))
-
     ~H"""
-    <div class={[
-      "pointer-events-none absolute w-80 max-w-max",
-      "opacity-0 transition-opacity group-hover:opacity-100 group-focus:opacity-100",
-      @tooltip_pos_class,
-      @class
-    ]}>
-      <div class={[
-        "relative p-2 rounded-sm text-sm bg-ltrn-dark text-white",
-        @inner_pos_class
-      ]}>
+    <div
+      id={@id}
+      role="tooltip"
+      phx-hook=".Tooltip"
+      class={[
+        "pointer-events-none fixed z-[9999] hidden w-80 max-w-max",
+        @class
+      ]}
+    >
+      <div class="p-2 rounded-sm font-sans text-sm bg-ltrn-dark text-white">
         {render_slot(@inner_block)}
       </div>
     </div>
+    <script :type={Phoenix.LiveView.ColocatedHook} name=".Tooltip">
+      export default {
+        mounted() {
+          this.parent = this.el.parentElement;
+          this.offset = { x: 8, y: 12 };
+
+          // Link parent to tooltip for screen readers
+          this.parent.setAttribute("aria-describedby", this.el.id);
+
+          // Move to body to escape any parent stacking contexts
+          document.body.appendChild(this.el);
+
+          this._show = () => {
+            this.el.style.display = "block";
+          };
+
+          this._hide = () => {
+            this.el.style.display = "none";
+          };
+
+          this._onMouseMove = (e) => {
+            const rect = this.el.getBoundingClientRect();
+            const vw = window.innerWidth;
+            const vh = window.innerHeight;
+
+            let x = e.clientX + this.offset.x;
+            let y = e.clientY + this.offset.y;
+
+            // Flip above cursor if near bottom
+            if (y + rect.height > vh) {
+              y = e.clientY - rect.height - this.offset.y;
+            }
+
+            // Shift left if near right edge
+            if (x + rect.width > vw) {
+              x = vw - rect.width - 4;
+            }
+
+            this.el.style.left = x + "px";
+            this.el.style.top = y + "px";
+          };
+
+          this._onFocus = () => {
+            const parentRect = this.parent.getBoundingClientRect();
+            const rect = this.el.getBoundingClientRect();
+            const vw = window.innerWidth;
+            const vh = window.innerHeight;
+
+            this.el.style.display = "block";
+
+            // Re-measure after display to get actual dimensions
+            const tooltipRect = this.el.getBoundingClientRect();
+
+            let x = parentRect.left;
+            let y = parentRect.bottom + this.offset.y;
+
+            // Flip above if near bottom
+            if (y + tooltipRect.height > vh) {
+              y = parentRect.top - tooltipRect.height - this.offset.y;
+            }
+
+            // Shift left if near right edge
+            if (x + tooltipRect.width > vw) {
+              x = vw - tooltipRect.width - 4;
+            }
+
+            this.el.style.left = x + "px";
+            this.el.style.top = y + "px";
+          };
+
+          this.parent.addEventListener("mouseenter", this._show);
+          this.parent.addEventListener("mousemove", this._onMouseMove);
+          this.parent.addEventListener("mouseleave", this._hide);
+          this.parent.addEventListener("focusin", this._onFocus);
+          this.parent.addEventListener("focusout", this._hide);
+        },
+        destroyed() {
+          this.parent.removeEventListener("mouseenter", this._show);
+          this.parent.removeEventListener("mousemove", this._onMouseMove);
+          this.parent.removeEventListener("mouseleave", this._hide);
+          this.parent.removeEventListener("focusin", this._onFocus);
+          this.parent.removeEventListener("focusout", this._hide);
+          this.parent.removeAttribute("aria-describedby");
+          // Clean up the element we moved to body
+          if (this.el.parentElement === document.body) {
+            document.body.removeChild(this.el);
+          }
+        }
+      }
+    </script>
     """
   end
-
-  defp get_tooltip_pos_class(assigns) do
-    v_class =
-      case assigns do
-        %{v_pos: "bottom"} -> "top-full mt-2"
-        _v_pos_top -> "bottom-full mb-2"
-      end
-
-    h_class =
-      case assigns do
-        %{h_pos: "center"} -> "left-1/2"
-        %{h_pos: "right"} -> "right-0"
-        _h_pos_left -> "left-0"
-      end
-
-    v_class <> " " <> h_class
-  end
-
-  defp get_tooltip_inner_pos_class(%{h_pos: "center"}), do: "-left-1/2"
-  defp get_tooltip_inner_pos_class(_assigns), do: ""
 
   @doc """
   Renders a block with a profile icon.

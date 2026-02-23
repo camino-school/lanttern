@@ -1191,31 +1191,10 @@ defmodule Lanttern.ReportingTest do
     test "list_student_strand_report_moments_and_entries/2 returns all moments and entries for the given strand report and student" do
       strand = LearningContextFixtures.strand_fixture()
 
-      subject_1 = TaxonomyFixtures.subject_fixture(%{name: "AAA"})
-      subject_2 = TaxonomyFixtures.subject_fixture(%{name: "BBB"})
-
-      moment_1 =
-        LearningContextFixtures.moment_fixture(%{
-          strand_id: strand.id,
-          subjects_ids: [subject_1.id]
-        })
-
-      moment_2 =
-        LearningContextFixtures.moment_fixture(%{
-          strand_id: strand.id,
-          subjects_ids: [subject_2.id]
-        })
-
-      moment_3 =
-        LearningContextFixtures.moment_fixture(%{
-          strand_id: strand.id,
-          subjects_ids: [subject_1.id, subject_2.id]
-        })
-
-      moment_4 =
-        LearningContextFixtures.moment_fixture(%{
-          strand_id: strand.id
-        })
+      moment_1 = LearningContextFixtures.moment_fixture(%{strand_id: strand.id})
+      moment_2 = LearningContextFixtures.moment_fixture(%{strand_id: strand.id})
+      moment_3 = LearningContextFixtures.moment_fixture(%{strand_id: strand.id})
+      moment_4 = LearningContextFixtures.moment_fixture(%{strand_id: strand.id})
 
       strand_report = strand_report_fixture(%{strand_id: strand.id})
 
@@ -1307,7 +1286,6 @@ defmodule Lanttern.ReportingTest do
       # moment 1 assertions
 
       assert expected_moment_1.id == moment_1.id
-      assert expected_moment_1.subjects == [subject_1]
 
       assert expected_entry_1_1.id == assessment_point_1_1_entry.id
       assert expected_entry_1_1.scale_id == o_scale.id
@@ -1320,7 +1298,6 @@ defmodule Lanttern.ReportingTest do
       # moment 2 assertions
 
       assert expected_moment_2.id == moment_2.id
-      assert expected_moment_2.subjects == [subject_2]
 
       assert expected_entry_2_1.id == assessment_point_2_1_entry.id
       assert expected_entry_2_1.scale_id == n_scale.id
@@ -1329,12 +1306,10 @@ defmodule Lanttern.ReportingTest do
       # moment 3 assertions
 
       assert expected_moment_3.id == moment_3.id
-      assert expected_moment_3.subjects == [subject_1, subject_2]
 
       # moment 4 assertions
 
       assert expected_moment_4.id == moment_4.id
-      assert expected_moment_4.subjects == []
     end
 
     test "list_student_strand_evidences/2 returns all student evidences linked to the given strand" do
@@ -2052,7 +2027,6 @@ defmodule Lanttern.ReportingTest do
     alias Lanttern.CurriculaFixtures
     alias Lanttern.GradingFixtures
     alias Lanttern.IdentityFixtures
-    alias Lanttern.LearningContext
     alias Lanttern.LearningContextFixtures
     alias Lanttern.SchoolsFixtures
     alias Lanttern.TaxonomyFixtures
@@ -2182,53 +2156,6 @@ defmodule Lanttern.ReportingTest do
 
       assert expected_class_1.id == class_1.id
       assert expected_class_2.id == class_2.id
-    end
-
-    test "list_moment_cards_and_attachments_shared_with_students/1 returns all cards and attachments for the given moment" do
-      scope = IdentityFixtures.scope_fixture()
-      moment = LearningContextFixtures.moment_fixture()
-
-      moment_card =
-        LearningContextFixtures.moment_card_fixture(scope, %{
-          moment_id: moment.id,
-          shared_with_students: true
-        })
-
-      _not_shared_card =
-        LearningContextFixtures.moment_card_fixture(scope, %{
-          moment_id: moment.id,
-          shared_with_students: false
-        })
-
-      _other_school_card =
-        LearningContextFixtures.moment_card_fixture(IdentityFixtures.scope_fixture(), %{
-          moment_id: moment.id,
-          shared_with_students: true
-        })
-
-      {:ok, attachment} =
-        LearningContext.create_moment_card_attachment(
-          scope.profile_id,
-          moment_card.id,
-          %{"name" => "attachment", "link" => "https://somevaliduri.com"},
-          true
-        )
-
-      {:ok, _not_shared_attachment} =
-        LearningContext.create_moment_card_attachment(
-          scope.profile_id,
-          moment_card.id,
-          %{"name" => "attachment", "link" => "https://somevaliduri.com"}
-        )
-
-      [expected_card] =
-        Reporting.list_moment_cards_and_attachments_shared_with_students(moment.id,
-          school_id: scope.school_id
-        )
-
-      assert expected_card.id == moment_card.id
-      [expected_attachment] = expected_card.attachments
-      assert expected_attachment.id == attachment.id
     end
   end
 end

@@ -8,8 +8,11 @@
       <:title>{@strand.name}</:title>
       <div class="flex items-center justify-between gap-4 px-4">
         <.neo_tabs id="strand-nav-tabs">
-          <:tab patch={~p"/strands/#{@strand}"} is_current={@live_action == :show}>
-            {gettext("About")}
+          <:tab patch={~p"/strands/#{@strand}"} is_current={@live_action == :lessons}>
+            {gettext("Lessons")}
+          </:tab>
+          <:tab patch={~p"/strands/#{@strand}/overview"} is_current={@live_action == :overview}>
+            {gettext("Overview")}
           </:tab>
           <:tab patch={~p"/strands/#{@strand}/rubrics"} is_current={@live_action == :rubrics}>
             {gettext("Rubrics")}
@@ -20,12 +23,6 @@
           >
             {gettext("Assessment")}
           </:tab>
-          <:tab patch={~p"/strands/#{@strand}/moments"} is_current={@live_action == :moments}>
-            {gettext("Moments")}
-          </:tab>
-          <:tab patch={~p"/strands/#{@strand}/notes"} is_current={@live_action == :notes}>
-            {gettext("Notes")}
-          </:tab>
         </.neo_tabs>
         <div class="flex items-center gap-4">
           <.live_component
@@ -34,16 +31,6 @@
             strand={@strand}
             current_user={@current_user}
           />
-          <.action
-            type="button"
-            phx-click={JS.exec("data-show", to: "#strand-classes-filter-modal")}
-            icon_name="hero-users-mini"
-          >
-            {format_action_items_text(
-              @selected_classes,
-              gettext("No class selected")
-            )}
-          </.action>
           <.action
             type="link"
             patch={"#{@current_path}?is_editing=true"}
@@ -64,12 +51,21 @@
       </div>
     </.header_nav>
     <.live_component
-      :if={@live_action == :show}
-      module={AboutComponent}
-      id="strand-about"
+      :if={@live_action == :lessons}
+      module={LessonsComponent}
+      id="strand-lessons"
       strand={@strand}
       params={@params}
       current_profile={@current_user.current_profile}
+      current_scope={@current_scope}
+    />
+    <.live_component
+      :if={@live_action == :overview}
+      module={OverviewComponent}
+      id="strand-overview"
+      strand={@strand}
+      current_user={@current_user}
+      params={@params}
     />
     <.live_component
       :if={@live_action == :rubrics}
@@ -78,68 +74,70 @@
       strand={@strand}
       current_user={@current_user}
       selected_classes_ids={@selected_classes_ids}
+      selected_classes_text={
+        format_action_items_text(
+          @selected_classes,
+          gettext("No class selected")
+        )
+      }
       params={@params}
     />
     <.live_component
-      :if={@live_action == :moments}
-      module={MomentsComponent}
-      id="strand-moments"
-      strand={@strand}
-      params={@params}
-    />
-    <.live_component
-      :if={@live_action == :notes}
-      module={NotesComponent}
-      id="strand-notes"
+      :if={@live_action == :assessment}
+      module={AssessmentComponent}
+      id="strand-assessment"
       strand={@strand}
       current_user={@current_user}
       selected_classes_ids={@selected_classes_ids}
+      params={@params}
     />
   </div>
-  <.live_component
-    :if={@live_action == :assessment}
-    module={AssessmentComponent}
-    id="strand-assessment"
-    strand={@strand}
-    current_user={@current_user}
-    selected_classes_ids={@selected_classes_ids}
-    params={@params}
-  />
-  <.slide_over
-    :if={@is_editing}
-    id="strand-form-overlay"
-    show={true}
-    on_cancel={JS.patch(@current_path)}
-  >
-    <:title>{gettext("Edit strand")}</:title>
-    <.live_component
-      module={StrandFormComponent}
-      id={@strand.id}
-      strand={@strand}
-      patch={@current_path}
-      notify_parent
-    />
-    <:actions>
-      <.button
-        type="button"
-        theme="ghost"
-        phx-click={JS.exec("data-cancel", to: "#strand-form-overlay")}
-      >
-        {gettext("Cancel")}
-      </.button>
-      <.button type="submit" form="strand-form">
-        {gettext("Save")}
-      </.button>
-    </:actions>
-  </.slide_over>
-  <.live_component
-    module={LantternWeb.Filters.ClassesFilterOverlayComponent}
-    id="strand-classes-filter-modal"
-    current_user={@current_user}
-    title={@select_classes_overlay_title}
-    profile_filter_opts={[strand_id: @strand.id]}
-    classes={@classes}
-    selected_classes_ids={@selected_classes_ids}
-    navigate={@select_classes_overlay_navigate}
-  />
 </Layouts.app_logged_in>
+<.button
+  :if={@has_agents_management_permission}
+  type="link"
+  navigate={~p"/strands/#{@strand}/chat"}
+  theme="primary"
+  size="sm"
+  icon_name="hero-sparkles-mini"
+  class="fixed right-4 bottom-4"
+>
+  {gettext("Plan with AI")}
+</.button>
+<.slide_over
+  :if={@is_editing}
+  id="strand-form-overlay"
+  show={true}
+  on_cancel={JS.patch(@current_path)}
+>
+  <:title>{gettext("Edit strand")}</:title>
+  <.live_component
+    module={StrandFormComponent}
+    id={@strand.id}
+    strand={@strand}
+    patch={@current_path}
+    notify_parent
+  />
+  <:actions>
+    <.button
+      type="button"
+      theme="ghost"
+      phx-click={JS.exec("data-cancel", to: "#strand-form-overlay")}
+    >
+      {gettext("Cancel")}
+    </.button>
+    <.button type="submit" form="strand-form">
+      {gettext("Save")}
+    </.button>
+  </:actions>
+</.slide_over>
+<.live_component
+  module={LantternWeb.Filters.ClassesFilterOverlayComponent}
+  id="strand-classes-filter-modal"
+  current_user={@current_user}
+  title={gettext("Select classes to view students differentiation rubrics")}
+  profile_filter_opts={[strand_id: @strand.id]}
+  classes={@classes}
+  selected_classes_ids={@selected_classes_ids}
+  navigate={~p"/strands/#{@strand}/rubrics"}
+/>

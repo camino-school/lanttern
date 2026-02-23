@@ -4,7 +4,7 @@ defmodule LantternWeb.SchoolLive.ClassesComponent do
   alias Lanttern.Schools
   alias Lanttern.Schools.Class
   import LantternWeb.FiltersHelpers, only: [assign_user_filters: 2]
-
+  import LantternWeb.DateTimeHelpers
   # shared components
   alias LantternWeb.Schools.ClassFormOverlayComponent
 
@@ -71,15 +71,28 @@ defmodule LantternWeb.SchoolLive.ClassesComponent do
             <%= if class.students != [] do %>
               <ul class="mt-4 text-sm leading-relaxed">
                 <li :for={std <- class.students} class="flex items-center gap-2 w-full">
-                  <.link
-                    navigate={~p"/school/students/#{std}"}
-                    class={[
-                      "truncate hover:text-ltrn-subtle hover:underline",
-                      if(std.deactivated_at, do: "text-ltrn-subtle")
-                    ]}
-                  >
-                    {std.name}
-                  </.link>
+                  <% age = calculate_age(std.birthdate) %>
+                  <div class="relative inline-block">
+                    <.link
+                      navigate={~p"/school/students/#{std}"}
+                      class={[
+                        "truncate hover:text-ltrn-subtle hover:underline",
+                        if(std.deactivated_at, do: "text-ltrn-subtle")
+                      ]}
+                    >
+                      {std.name}
+                      <%= if age do %>
+                        <span class="font-normal text-ltrn-subtle ml-1">
+                          ({format_age_short(age)})
+                        </span>
+                      <% end %>
+                    </.link>
+                    <%= if age do %>
+                      <.tooltip id={"student-#{std.id}-birthdate-tooltip"}>
+                        {format_birthdate(std.birthdate)}
+                      </.tooltip>
+                    <% end %>
+                  </div>
                   <%= if is_list(std.tags) do %>
                     <.badge :for={tag <- std.tags} :if={is_list(std.tags)} color_map={tag}>
                       {tag.name}
