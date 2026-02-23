@@ -6152,17 +6152,17 @@ msgstr ""
 #: lib/lanttern_web/live/shared/schools/guardians_field_component.ex:47
 #, elixir-autogen, elixir-format
 msgid "No guardians selected"
-msgstr ""
+msgstr "Nenhum responsável selecionado"
 
 #: lib/lanttern_web/live/shared/schools/guardians_field_component.ex:57
 #, elixir-autogen, elixir-format
 msgid "Search guardian..."
-msgstr ""
+msgstr "Procurar responsável..."
 
 #: lib/lanttern_web/live/shared/schools/guardians_field_component.ex:52
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Select guardians"
-msgstr "Deletar responsável"
+msgstr "Selecionar responsáveis"
 
 #: lib/lanttern_web/live/pages/school/guardians/id/guardian_live.html.heex:50
 #: lib/lanttern_web/live/pages/school/guardians/id/guardian_live.html.heex:80
