@@ -45,8 +45,7 @@ defmodule Lanttern.Schools.StaffMember do
 
     timestamps()
 
-    many_to_many :classes, Lanttern.Schools.Class,
-      join_through: Lanttern.Schools.ClassStaffMember
+    many_to_many :classes, Lanttern.Schools.Class, join_through: Lanttern.Schools.ClassStaffMember
 
     has_many :classes_staff_members, Lanttern.Schools.ClassStaffMember
   end

@@ -1570,7 +1570,12 @@ defmodule Lanttern.Schools do
         where: csm.class_id == ^class_id,
         where: is_nil(sm.deactivated_at),
         order_by: [asc: csm.position],
-        select: %{sm | class_role: csm.role, class_staff_member_id: csm.id, position: csm.position}
+        select: %{
+          sm
+          | class_role: csm.role,
+            class_staff_member_id: csm.id,
+            position: csm.position
+        }
       )
 
     query =

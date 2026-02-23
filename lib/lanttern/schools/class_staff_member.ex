@@ -1,21 +1,21 @@
 defmodule Lanttern.Schools.ClassStaffMember do
-@moduledoc """
-  The `ClassStaffMember` schema
-"""
+  @moduledoc """
+    The `ClassStaffMember` schema
+  """
   use Ecto.Schema
   import Ecto.Changeset
 
   @type t :: %__MODULE__{
-    id: Ecto.UUID.t(),
-    class_id: Ecto.UUID.t(),
-    staff_member_id: Ecto.UUID.t(),
-    position: integer(),
-    role: String.t() | nil,
-    class: Lanttern.Schools.Class.t() | Ecto.Association.NotLoaded.t(),
-    staff_member: Lanttern.Schools.StaffMember.t() | Ecto.Association.NotLoaded.t(),
-    inserted_at: DateTime.t(),
-    updated_at: DateTime.t()
-  }
+          id: Ecto.UUID.t(),
+          class_id: Ecto.UUID.t(),
+          staff_member_id: Ecto.UUID.t(),
+          position: integer(),
+          role: String.t() | nil,
+          class: Lanttern.Schools.Class.t() | Ecto.Association.NotLoaded.t(),
+          staff_member: Lanttern.Schools.StaffMember.t() | Ecto.Association.NotLoaded.t(),
+          inserted_at: DateTime.t(),
+          updated_at: DateTime.t()
+        }
 
   schema "classes_staff_members" do
     belongs_to :class, Lanttern.Schools.Class

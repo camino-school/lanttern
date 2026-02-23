@@ -106,7 +106,10 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponent do
                     theme="ghost"
                     rounded
                     phx-click={
-                      JS.push("remove_staff_member", value: %{"id" => staff_member.id}, target: @myself)
+                      JS.push("remove_staff_member",
+                        value: %{"id" => staff_member.id},
+                        target: @myself
+                      )
                     }
                   />
                 </li>
@@ -283,7 +286,8 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponent do
 
             # Fetch clean staff member structs for these IDs
             # This ensures we get clean structs without the virtual fields
-            staff_list = Schools.list_staff_members(staff_members_ids: staff_member_ids, only_active: true)
+            staff_list =
+              Schools.list_staff_members(staff_members_ids: staff_member_ids, only_active: true)
 
             staff_list
             |> Enum.sort_by(fn sm ->

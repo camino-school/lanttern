@@ -150,9 +150,7 @@ defmodule LantternWeb.StaffMemberLive.ClassesComponent do
 
   defp stream_staff_classes(socket) do
     classes =
-      Schools.list_staff_member_classes(
-        socket.assigns.staff_member.id
-      )
+      Schools.list_staff_member_classes(socket.assigns.staff_member.id)
 
     socket
     |> stream(:classes, classes, reset: true)
@@ -193,7 +191,8 @@ defmodule LantternWeb.StaffMemberLive.ClassesComponent do
     case Schools.update_class_staff_member(csm, params) do
       {:ok, updated_csm} ->
         # Reload with preloads
-        updated_csm = Schools.get_class_staff_member!(updated_csm.id, preloads: [class: [:school, :cycle]])
+        updated_csm =
+          Schools.get_class_staff_member!(updated_csm.id, preloads: [class: [:school, :cycle]])
 
         socket =
           socket
