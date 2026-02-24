@@ -108,6 +108,7 @@ msgstr ""
 #: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:133
 #: lib/lanttern_web/live/pages/report_cards/report_cards_live.html.heex:104
 #: lib/lanttern_web/live/pages/school/moment_cards_templates_component.ex:109
+#: lib/lanttern_web/live/pages/school/staff/id/classes_component.ex:86
 #: lib/lanttern_web/live/pages/school/staff/id/staff_member_live.html.heex:88
 #: lib/lanttern_web/live/pages/settings/agents/agent_card_component.ex:121
 #: lib/lanttern_web/live/pages/settings/lesson_tags/lesson_tag_card_component.ex:69
@@ -143,7 +144,7 @@ msgstr ""
 #: lib/lanttern_web/live/shared/message_board/message_form_overlay_component_v2.ex:180
 #: lib/lanttern_web/live/shared/rubrics/rubric_form_overlay_component.ex:137
 #: lib/lanttern_web/live/shared/school_config/moment_card_template_overlay_component.ex:79
-#: lib/lanttern_web/live/shared/schools/class_form_overlay_component.ex:114
+#: lib/lanttern_web/live/shared/schools/class_form_overlay_component.ex:184
 #: lib/lanttern_web/live/shared/schools/cycle_form_overlay_component.ex:58
 #: lib/lanttern_web/live/shared/schools/staff_member_form_overlay_component.ex:96
 #: lib/lanttern_web/live/shared/schools/student_form_overlay_component.ex:139
@@ -187,6 +188,7 @@ msgstr ""
 #: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:136
 #: lib/lanttern_web/live/pages/report_cards/report_cards_live.html.heex:107
 #: lib/lanttern_web/live/pages/school/moment_cards_templates_component.ex:112
+#: lib/lanttern_web/live/pages/school/staff/id/classes_component.ex:88
 #: lib/lanttern_web/live/pages/school/staff/id/staff_member_live.html.heex:91
 #: lib/lanttern_web/live/pages/settings/agents/agent_card_component.ex:124
 #: lib/lanttern_web/live/pages/settings/lesson_tags/lesson_tag_card_component.ex:72
@@ -219,7 +221,7 @@ msgstr ""
 #: lib/lanttern_web/live/shared/message_board/message_form_overlay_component_v2.ex:183
 #: lib/lanttern_web/live/shared/rubrics/rubric_form_overlay_component.ex:146
 #: lib/lanttern_web/live/shared/school_config/moment_card_template_overlay_component.ex:82
-#: lib/lanttern_web/live/shared/schools/class_form_overlay_component.ex:117
+#: lib/lanttern_web/live/shared/schools/class_form_overlay_component.ex:187
 #: lib/lanttern_web/live/shared/schools/cycle_form_overlay_component.ex:61
 #: lib/lanttern_web/live/shared/schools/staff_member_form_overlay_component.ex:105
 #: lib/lanttern_web/live/shared/schools/student_form_overlay_component.ex:148
@@ -274,7 +276,7 @@ msgstr ""
 #: lib/lanttern_web/live/shared/learning_context/strand_form_component.ex:35
 #: lib/lanttern_web/live/shared/reporting/report_card_form_component.ex:55
 #: lib/lanttern_web/live/shared/school_config/moment_card_template_overlay_component.ex:45
-#: lib/lanttern_web/live/shared/schools/class_form_overlay_component.ex:34
+#: lib/lanttern_web/live/shared/schools/class_form_overlay_component.ex:37
 #: lib/lanttern_web/live/shared/schools/staff_member_form_overlay_component.ex:53
 #: lib/lanttern_web/live/shared/schools/student_form_overlay_component.ex:47
 #: lib/lanttern_web/live/shared/students/student_tag_form_overlay_component.ex:38
@@ -307,7 +309,7 @@ msgstr ""
 #: lib/lanttern_web/live/shared/message_board/message_form_overlay_component_v2.ex:41
 #: lib/lanttern_web/live/shared/rubrics/rubric_form_overlay_component.ex:66
 #: lib/lanttern_web/live/shared/school_config/moment_card_template_overlay_component.ex:40
-#: lib/lanttern_web/live/shared/schools/class_form_overlay_component.ex:29
+#: lib/lanttern_web/live/shared/schools/class_form_overlay_component.ex:32
 #: lib/lanttern_web/live/shared/schools/cycle_form_overlay_component.ex:26
 #: lib/lanttern_web/live/shared/schools/staff_member_form_overlay_component.ex:35
 #: lib/lanttern_web/live/shared/schools/student_form_overlay_component.ex:42
@@ -455,7 +457,7 @@ msgstr ""
 #: lib/lanttern_web/live/shared/message_board/message_form_overlay_component_v2.ex:170
 #: lib/lanttern_web/live/shared/rubrics/rubric_form_overlay_component.ex:127
 #: lib/lanttern_web/live/shared/school_config/moment_card_template_overlay_component.ex:111
-#: lib/lanttern_web/live/shared/schools/class_form_overlay_component.ex:109
+#: lib/lanttern_web/live/shared/schools/class_form_overlay_component.ex:179
 #: lib/lanttern_web/live/shared/schools/cycle_form_overlay_component.ex:53
 #: lib/lanttern_web/live/shared/schools/student_form_overlay_component.ex:119
 #: lib/lanttern_web/live/shared/students/student_tag_form_overlay_component.ex:72
@@ -510,7 +512,7 @@ msgstr ""
 #: lib/lanttern_web/live/shared/message_board/message_form_overlay_component_v2.ex:168
 #: lib/lanttern_web/live/shared/rubrics/rubric_form_overlay_component.ex:125
 #: lib/lanttern_web/live/shared/school_config/moment_card_template_overlay_component.ex:109
-#: lib/lanttern_web/live/shared/schools/class_form_overlay_component.ex:107
+#: lib/lanttern_web/live/shared/schools/class_form_overlay_component.ex:177
 #: lib/lanttern_web/live/shared/schools/cycle_form_overlay_component.ex:51
 #: lib/lanttern_web/live/shared/schools/student_form_overlay_component.ex:117
 #: lib/lanttern_web/live/shared/students/student_tag_form_overlay_component.ex:70
@@ -790,7 +792,7 @@ msgstr ""
 msgid "No moments for this strand yet"
 msgstr ""
 
-#: lib/lanttern/repo_helpers.ex:191
+#: lib/lanttern/repo_helpers.ex:199
 #: lib/lanttern_web/controllers/privacy_policy_controller.ex:53
 #: lib/lanttern_web/live/pages/grades_report/id/grades_report_live.ex:220
 #: lib/lanttern_web/live/pages/grades_report/id/grades_report_live.ex:248
@@ -974,7 +976,7 @@ msgstr ""
 #: lib/lanttern_web/live/shared/grades_reports/grade_details_overlay_component.ex:49
 #: lib/lanttern_web/live/shared/menu_component.ex:117
 #: lib/lanttern_web/live/shared/reporting/report_card_form_component.ex:37
-#: lib/lanttern_web/live/shared/schools/class_form_overlay_component.ex:39
+#: lib/lanttern_web/live/shared/schools/class_form_overlay_component.ex:42
 #, elixir-autogen, elixir-format
 msgid "Cycle"
 msgstr ""
@@ -1474,7 +1476,7 @@ msgid "Student report card deleted"
 msgstr ""
 
 #: lib/lanttern_web/live/pages/report_cards/id/report_card_live.html.heex:15
-#: lib/lanttern_web/live/pages/school/classes/id/class_live.html.heex:14
+#: lib/lanttern_web/live/pages/school/classes/id/people_component.ex:27
 #: lib/lanttern_web/live/pages/school/school_live.html.heex:10
 #: lib/lanttern_web/live/shared/students_records/student_record_overlay_component.ex:106
 #: lib/lanttern_web/live/shared/students_records/student_record_overlay_component.ex:254
@@ -1523,7 +1525,7 @@ msgstr ""
 
 #: lib/lanttern_web/live/shared/grades_reports/grades_report_form_component.ex:64
 #: lib/lanttern_web/live/shared/reporting/report_card_form_component.ex:46
-#: lib/lanttern_web/live/shared/schools/class_form_overlay_component.ex:54
+#: lib/lanttern_web/live/shared/schools/class_form_overlay_component.ex:57
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Year"
 msgstr ""
@@ -2390,6 +2392,7 @@ msgstr ""
 msgid "No teacher assessment"
 msgstr ""
 
+#: lib/lanttern_web/live/pages/school/staff/id/classes_component.ex:16
 #: lib/lanttern_web/live/pages/school/staff/id/students_records_component.ex:91
 #: lib/lanttern_web/live/pages/students_records/students_records_live.html.heex:30
 #: lib/lanttern_web/live/shared/message_board/message_form_overlay_component.ex:95
@@ -2401,12 +2404,12 @@ msgstr ""
 msgid "Classes"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/school/classes_component.ex:124
+#: lib/lanttern_web/live/pages/school/classes_component.ex:133
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Filter classes by year"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/school/classes_component.ex:108
+#: lib/lanttern_web/live/pages/school/classes_component.ex:117
 #, elixir-autogen, elixir-format, fuzzy
 msgid "No students in this class"
 msgstr ""
@@ -2696,37 +2699,37 @@ msgstr ""
 msgid "Add student"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/school/classes_component.ex:151
+#: lib/lanttern_web/live/pages/school/classes_component.ex:160
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Class created successfully"
 msgstr ""
 
 #: lib/lanttern_web/live/pages/school/classes/id/class_live.ex:99
-#: lib/lanttern_web/live/pages/school/classes_component.ex:174
+#: lib/lanttern_web/live/pages/school/classes_component.ex:191
 #, elixir-autogen, elixir-format
 msgid "Class deleted successfully"
 msgstr ""
 
-#: lib/lanttern/schools/class.ex:67
+#: lib/lanttern/schools/class.ex:76
 #, elixir-autogen, elixir-format
 msgid "Class name already in use in this cycle"
 msgstr ""
 
 #: lib/lanttern_web/live/pages/school/classes/id/class_live.ex:90
-#: lib/lanttern_web/live/pages/school/classes_component.ex:160
+#: lib/lanttern_web/live/pages/school/classes_component.ex:169
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Class updated successfully"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/school/classes_component.ex:238
+#: lib/lanttern_web/live/pages/school/classes_component.ex:255
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Create class"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/school/classes/id/class_live.html.heex:33
-#: lib/lanttern_web/live/pages/school/classes/id/class_live.html.heex:68
+#: lib/lanttern_web/live/pages/school/classes/id/class_live.html.heex:30
+#: lib/lanttern_web/live/pages/school/classes/id/class_live.html.heex:65
 #: lib/lanttern_web/live/pages/school/classes_component.ex:52
-#: lib/lanttern_web/live/pages/school/classes_component.ex:250
+#: lib/lanttern_web/live/pages/school/classes_component.ex:267
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Edit class"
 msgstr ""
@@ -2751,12 +2754,12 @@ msgstr ""
 msgid "New student"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/school/classes_component.ex:116
+#: lib/lanttern_web/live/pages/school/classes_component.ex:125
 #, elixir-autogen, elixir-format
 msgid "No classes matching current filters"
 msgstr ""
 
-#: lib/lanttern_web/live/shared/schools/class_form_overlay_component.ex:96
+#: lib/lanttern_web/live/shared/schools/class_form_overlay_component.ex:166
 #, elixir-autogen, elixir-format, fuzzy
 msgid "No students added to this class"
 msgstr ""
@@ -2779,7 +2782,8 @@ msgstr ""
 msgid "Student updated successfully"
 msgstr ""
 
-#: lib/lanttern_web/live/shared/schools/class_form_overlay_component.ex:73
+#: lib/lanttern_web/controllers/class_html/class_form.html.heex:41
+#: lib/lanttern_web/live/shared/schools/class_form_overlay_component.ex:129
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Students in this class"
 msgstr ""
@@ -3079,7 +3083,7 @@ msgstr ""
 msgid "Parent cycle"
 msgstr ""
 
-#: lib/lanttern/schools.ex:362
+#: lib/lanttern/schools.ex:363
 #, elixir-autogen, elixir-format
 msgid "Parent cycle does not exist"
 msgstr ""
@@ -3176,7 +3180,7 @@ msgstr ""
 msgid "Using a parent cycle from a different school is not allowed"
 msgstr ""
 
-#: lib/lanttern/schools.ex:355
+#: lib/lanttern/schools.ex:356
 #, elixir-autogen, elixir-format
 msgid "You can't use a subcycle as a parent cycle"
 msgstr ""
@@ -3982,7 +3986,7 @@ msgstr ""
 msgid "Are you sure? You can reactive the student later."
 msgstr ""
 
-#: lib/lanttern_web/live/pages/school/classes_component.ex:102
+#: lib/lanttern_web/live/pages/school/classes_component.ex:111
 #: lib/lanttern_web/live/shared/schools/student_header_component.ex:66
 #: lib/lanttern_web/live/shared/students_cycle_info/student_cycle_info_header_component.ex:55
 #, elixir-autogen, elixir-format, fuzzy
@@ -4710,7 +4714,7 @@ msgstr ""
 msgid "ILP creation metrics"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/school/classes/id/class_live.html.heex:17
+#: lib/lanttern_web/live/pages/school/classes/id/class_live.html.heex:14
 #, elixir-autogen, elixir-format, fuzzy
 msgid "ILPs"
 msgstr ""
@@ -6045,6 +6049,117 @@ msgstr ""
 
 #: lib/lanttern_web/live/pages/strands/id/chat/strand_chat_live.ex:33
 #: lib/lanttern_web/live/pages/strands/lesson/id/chat/lesson_chat_live.ex:35
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "You don't have access to this page"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/school/staff/id/classes_component.ex:21
+#, elixir-autogen, elixir-format
+msgid "1 class"
+msgid_plural "%{count} classes"
+msgstr[0] ""
+msgstr[1] ""
+
+#: lib/lanttern_web/live/pages/school/classes/id/staff_members_component.ex:14
+#: lib/lanttern_web/live/pages/school/classes_component.ex:68
+#, elixir-autogen, elixir-format
+msgid "1 staff member"
+msgid_plural "%{count} staff members"
+msgstr[0] ""
+msgstr[1] ""
+
+#: lib/lanttern_web/live/pages/school/staff/id/classes_component.ex:30
+#, elixir-autogen, elixir-format
+msgid "Add to class"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/school/staff/id/classes_component.ex:121
+#, elixir-autogen, elixir-format
+msgid "Added to class successfully"
+msgstr ""
+
+#: lib/lanttern_web/components/schools_components.ex:301
+#, elixir-autogen, elixir-format
+msgid "Edit role"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/school/staff/id/classes_component.ex:74
+#, elixir-autogen, elixir-format
+msgid "Edit role in class"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/school/staff/id/classes_component.ex:130
+#, elixir-autogen, elixir-format
+msgid "Failed to add to class"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/school/staff/id/classes_component.ex:232
+#, elixir-autogen, elixir-format
+msgid "Failed to remove from class"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/school/staff/id/classes_component.ex:254
+#, elixir-autogen, elixir-format
+msgid "Failed to reorder classes"
+msgstr ""
+
+#: lib/lanttern_web/live/shared/schools/class_form_overlay_component.ex:120
+#, elixir-autogen, elixir-format
+msgid "No staff members added to this class"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/school/classes/id/staff_members_component.ex:18
+#, elixir-autogen, elixir-format
+msgid "No staff members linked to this class"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/school/staff/id/classes_component.ex:35
+#, elixir-autogen, elixir-format
+msgid "Not linked to any class"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/school/classes/id/class_live.html.heex:11
+#, elixir-autogen, elixir-format
+msgid "People"
+msgstr ""
+
+#: lib/lanttern_web/components/schools_components.ex:310
+#, elixir-autogen, elixir-format
+msgid "Remove from class"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/school/staff/id/classes_component.ex:226
+#, elixir-autogen, elixir-format
+msgid "Removed from class successfully"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/school/staff/id/classes_component.ex:79
+#, elixir-autogen, elixir-format
+msgid "Role in class"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/school/staff/id/classes_component.ex:207
+#, elixir-autogen, elixir-format
+msgid "Role updated successfully"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/school/classes/id/people_component.ex:13
+#, elixir-autogen, elixir-format
+msgid "Staff Members"
+msgstr ""
+
+#: lib/lanttern_web/controllers/class_html/class_form.html.heex:32
+#: lib/lanttern_web/live/shared/schools/class_form_overlay_component.ex:76
+#, elixir-autogen, elixir-format
+msgid "Staff members in this class"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/school/staff/id/classes_component.ex:80
+#, elixir-autogen, elixir-format
+msgid "e.g., Lead Teacher, Assistant, etc."
+msgstr ""
+
+#: lib/lanttern/schools/class_staff_member.ex:48
+#, elixir-autogen, elixir-format
+msgid "must belong to the same school as the class"
 msgstr ""
