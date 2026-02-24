@@ -1745,22 +1745,53 @@ defmodule Lanttern.SchoolsTest do
                })
     end
 
-    test "update_class_staff_member/2 updates role" do
-      csm = class_staff_member_fixture(%{role: "Teacher"})
+    test "update_class_staff_member/3 updates role" do
+      school = school_fixture()
+      class = class_fixture(%{school_id: school.id})
+      staff_member = staff_member_fixture(%{school_id: school.id})
+      csm = class_staff_member_fixture(%{class_id: class.id, staff_member_id: staff_member.id, role: "Teacher"})
+      scope = %{school_id: school.id, permissions: ["school_management"]}
 
       assert {:ok, %ClassStaffMember{} = updated_csm} =
-               Schools.update_class_staff_member(csm, %{role: "Lead Teacher"})
+               Schools.update_class_staff_member(scope, csm, %{role: "Lead Teacher"})
 
       assert updated_csm.role == "Lead Teacher"
     end
 
-    test "update_class_staff_member/2 updates position" do
-      csm = class_staff_member_fixture(%{position: 0})
+    test "update_class_staff_member/3 updates position" do
+      school = school_fixture()
+      class = class_fixture(%{school_id: school.id})
+      staff_member = staff_member_fixture(%{school_id: school.id})
+      csm = class_staff_member_fixture(%{class_id: class.id, staff_member_id: staff_member.id, position: 0})
+      scope = %{school_id: school.id, permissions: ["school_management"]}
 
       assert {:ok, %ClassStaffMember{} = updated_csm} =
-               Schools.update_class_staff_member(csm, %{position: 5})
+               Schools.update_class_staff_member(scope, csm, %{position: 5})
 
       assert updated_csm.position == 5
+    end
+
+    test "update_class_staff_member/3 returns unauthorized if scope lacks school_management permission" do
+      school = school_fixture()
+      class = class_fixture(%{school_id: school.id})
+      staff_member = staff_member_fixture(%{school_id: school.id})
+      csm = class_staff_member_fixture(%{class_id: class.id, staff_member_id: staff_member.id})
+      scope = %{school_id: school.id, permissions: []}
+
+      assert {:error, :unauthorized} =
+               Schools.update_class_staff_member(scope, csm, %{role: "Lead Teacher"})
+    end
+
+    test "update_class_staff_member/3 returns unauthorized if class belongs to a different school" do
+      school_1 = school_fixture()
+      school_2 = school_fixture()
+      class = class_fixture(%{school_id: school_2.id})
+      staff_member = staff_member_fixture(%{school_id: school_2.id})
+      csm = class_staff_member_fixture(%{class_id: class.id, staff_member_id: staff_member.id})
+      scope = %{school_id: school_1.id, permissions: ["school_management"]}
+
+      assert {:error, :unauthorized} =
+               Schools.update_class_staff_member(scope, csm, %{role: "Lead Teacher"})
     end
 
     test "remove_staff_member_from_class/1 deletes the relationship" do

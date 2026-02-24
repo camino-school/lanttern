@@ -1689,18 +1689,34 @@ defmodule Lanttern.Schools do
 
   ## Examples
 
-      iex> update_class_staff_member(class_staff_member, %{role: "Lead Teacher"})
+      iex> update_class_staff_member(scope, class_staff_member, %{role: "Lead Teacher"})
       {:ok, %ClassStaffMember{}}
 
-      iex> update_class_staff_member(class_staff_member, %{role: bad_value})
+      iex> update_class_staff_member(scope, class_staff_member, %{role: bad_value})
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_class_staff_member(%ClassStaffMember{} = class_staff_member, attrs) do
-    class_staff_member
-    |> ClassStaffMember.changeset(attrs)
-    |> Repo.update()
+  def update_class_staff_member(
+        %{school_id: school_id, permissions: permissions},
+        %ClassStaffMember{} = class_staff_member,
+        attrs
+      ) do
+    if "school_management" in permissions do
+      case Repo.get(Class, class_staff_member.class_id) do
+        %Class{school_id: ^school_id} ->
+          class_staff_member
+          |> ClassStaffMember.changeset(attrs)
+          |> Repo.update()
+
+        _ ->
+          {:error, :unauthorized}
+      end
+    else
+      {:error, :unauthorized}
+    end
   end
+
+  def update_class_staff_member(_scope, _class_staff_member, _attrs), do: {:error, :unauthorized}
 
   @doc """
   Removes a staff member from a class.

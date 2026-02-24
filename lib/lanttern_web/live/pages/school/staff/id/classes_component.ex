@@ -194,7 +194,7 @@ defmodule LantternWeb.StaffMemberLive.ClassesComponent do
   def handle_event("update_role", %{"class_staff_member" => params}, socket) do
     csm = Schools.get_class_staff_member!(socket.assigns.current_user.current_profile, socket.assigns.editing_role_for)
 
-    case Schools.update_class_staff_member(csm, params) do
+    case Schools.update_class_staff_member(socket.assigns.current_user.current_profile, csm, params) do
       {:ok, updated_csm} ->
         # Reload with preloads
         updated_csm =
