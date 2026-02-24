@@ -90,6 +90,7 @@ defmodule LantternWeb.Schools.StudentFormOverlayComponent do
             id={"student-form-guardians-picker-#{@id}"}
             class="mb-6"
             label={gettext("Guardians")}
+            form_id={"student-form-#{@id}"}
             selected_guardians_ids={@selected_guardians_ids}
             guardians={@guardians}
             notify_component={@myself}

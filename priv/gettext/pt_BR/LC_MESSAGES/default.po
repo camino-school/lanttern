@@ -6141,13 +6141,13 @@ msgstr "Falha ao deletar estudante"
 #: lib/lanttern_web/live/pages/school/students/id/about_component.ex:131
 #, elixir-autogen, elixir-format
 msgid "No guardians assigned to this student"
-msgstr ""
+msgstr "Nenhum responsável atribuído para esse estudante"
 
 #: lib/lanttern_web/live/pages/school/guardians_component.ex:25
 #: lib/lanttern_web/live/shared/schools/guardians_field_component.ex:86
 #, elixir-autogen, elixir-format
 msgid "No guardians found"
-msgstr ""
+msgstr "Nenhum responsável encontrado"
 
 #: lib/lanttern_web/live/shared/schools/guardians_field_component.ex:47
 #, elixir-autogen, elixir-format
