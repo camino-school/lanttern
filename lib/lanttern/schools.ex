@@ -640,9 +640,9 @@ defmodule Lanttern.Schools do
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_class(attrs \\ %{}) do
+  def create_class(attrs \\ %{}, current_user) do
     %Class{}
-    |> Class.changeset(attrs)
+    |> Class.changeset(attrs, current_user.current_profile)
     |> Repo.insert()
   end
 
@@ -658,10 +658,10 @@ defmodule Lanttern.Schools do
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_class(%Class{} = class, attrs) do
+  def update_class(%Class{} = class, attrs, current_user) do
     class
     |> Repo.preload([:students, :years, :staff_members])
-    |> Class.changeset(attrs)
+    |> Class.changeset(attrs, current_user.current_profile)
     |> Repo.update()
   end
 
@@ -710,8 +710,12 @@ defmodule Lanttern.Schools do
       %Ecto.Changeset{data: %Class{}}
 
   """
-  def change_class(%Class{} = class, attrs \\ %{}) do
-    Class.changeset(class, attrs)
+  def change_class(%Class{} = class, current_user) do
+    Class.changeset(class, %{}, current_user.current_profile)
+  end
+
+  def change_class(%Class{} = class, attrs, current_user) do
+    Class.changeset(class, attrs, current_user.current_profile)
   end
 
   @doc """

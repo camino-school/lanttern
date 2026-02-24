@@ -61,10 +61,11 @@ defmodule Lanttern.Schools.Class do
   end
 
   @doc false
-  def changeset(class, attrs) do
+  def changeset(class, attrs, scope) do
     class
-    |> cast(attrs, [:name, :school_id, :students_ids, :years_ids, :staff_members_ids, :cycle_id])
-    |> validate_required([:name, :school_id, :cycle_id])
+    |> cast(attrs, [:name, :students_ids, :years_ids, :staff_members_ids, :cycle_id])
+    |> put_change(:school_id, scope.school_id)
+    |> validate_required([:name, :cycle_id])
     |> foreign_key_constraint(
       :cycle_id,
       name: :classes_cycle_id_fkey,

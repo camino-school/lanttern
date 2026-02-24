@@ -41,14 +41,15 @@ defmodule Lanttern.SchoolsFixtures do
   def class_fixture(attrs \\ %{})
 
   def class_fixture(%{cycle_id: cycle_id} = attrs) do
+    school_id = maybe_gen_school_id(attrs)
+
     {:ok, class} =
       attrs
       |> Enum.into(%{
-        school_id: maybe_gen_school_id(attrs),
         cycle_id: cycle_id,
         name: "some class name #{Ecto.UUID.generate()}"
       })
-      |> Lanttern.Schools.create_class()
+      |> Lanttern.Schools.create_class(%{school_id: school_id})
 
     class
   end
@@ -60,11 +61,10 @@ defmodule Lanttern.SchoolsFixtures do
     {:ok, class} =
       attrs
       |> Enum.into(%{
-        school_id: school_id,
         cycle_id: cycle.id,
         name: "some class name #{Ecto.UUID.generate()}"
       })
-      |> Lanttern.Schools.create_class()
+      |> Lanttern.Schools.create_class(%{school_id: school_id})
 
     class
   end

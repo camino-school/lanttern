@@ -563,17 +563,17 @@ defmodule Lanttern.SchoolsTest do
       assert expected_class.students == [student]
     end
 
-    test "create_class/1 with valid data creates a class" do
+    test "create_class/2 with valid data creates a class" do
       school = school_fixture()
       cycle = cycle_fixture(%{school_id: school.id})
-      valid_attrs = %{school_id: school.id, cycle_id: cycle.id, name: "some name"}
+      valid_attrs = %{cycle_id: cycle.id, name: "some name"}
 
-      assert {:ok, %Class{} = class} = Schools.create_class(valid_attrs)
+      assert {:ok, %Class{} = class} = Schools.create_class(valid_attrs, %{school_id: school.id})
       assert class.name == "some name"
       assert class.school_id == school.id
     end
 
-    test "create_class/1 with valid data containing students creates a class with students" do
+    test "create_class/2 with valid data containing students creates a class with students" do
       school = school_fixture()
       cycle = cycle_fixture(%{school_id: school.id})
       student_1 = student_fixture()
@@ -582,7 +582,6 @@ defmodule Lanttern.SchoolsTest do
 
       valid_attrs = %{
         name: "some name",
-        school_id: school.id,
         cycle_id: cycle.id,
         students_ids: [
           student_1.id,
@@ -591,7 +590,7 @@ defmodule Lanttern.SchoolsTest do
         ]
       }
 
-      assert {:ok, %Class{} = class} = Schools.create_class(valid_attrs)
+      assert {:ok, %Class{} = class} = Schools.create_class(valid_attrs, %{school_id: school.id})
       assert class.name == "some name"
       assert class.school_id == school.id
       assert Enum.find(class.students, fn s -> s.id == student_1.id end)
@@ -599,19 +598,20 @@ defmodule Lanttern.SchoolsTest do
       assert Enum.find(class.students, fn s -> s.id == student_3.id end)
     end
 
-    test "create_class/1 with invalid data returns error changeset" do
-      assert {:error, %Ecto.Changeset{}} = Schools.create_class(@invalid_attrs)
+    test "create_class/2 with invalid data returns error changeset" do
+      school = school_fixture()
+      assert {:error, %Ecto.Changeset{}} = Schools.create_class(@invalid_attrs, %{school_id: school.id})
     end
 
-    test "update_class/2 with valid data updates the class" do
+    test "update_class/3 with valid data updates the class" do
       class = class_fixture()
       update_attrs = %{name: "some updated name"}
 
-      assert {:ok, %Class{} = class} = Schools.update_class(class, update_attrs)
+      assert {:ok, %Class{} = class} = Schools.update_class(class, update_attrs, %{school_id: class.school_id})
       assert class.name == "some updated name"
     end
 
-    test "update_class/2 with valid data containing students updates the class" do
+    test "update_class/3 with valid data containing students updates the class" do
       student_1 = student_fixture()
       student_2 = student_fixture()
       student_3 = student_fixture()
@@ -622,16 +622,16 @@ defmodule Lanttern.SchoolsTest do
         students_ids: [student_1.id, student_3.id]
       }
 
-      assert {:ok, %Class{} = class} = Schools.update_class(class, update_attrs)
+      assert {:ok, %Class{} = class} = Schools.update_class(class, update_attrs, %{school_id: class.school_id})
       assert class.name == "some updated name"
       assert length(class.students) == 2
       assert Enum.find(class.students, fn s -> s.id == student_1.id end)
       assert Enum.find(class.students, fn s -> s.id == student_3.id end)
     end
 
-    test "update_class/2 with invalid data returns error changeset" do
+    test "update_class/3 with invalid data returns error changeset" do
       class = class_fixture()
-      assert {:error, %Ecto.Changeset{}} = Schools.update_class(class, @invalid_attrs)
+      assert {:error, %Ecto.Changeset{}} = Schools.update_class(class, @invalid_attrs, %{school_id: class.school_id})
       assert class == Schools.get_class!(class.id)
     end
 
@@ -646,9 +646,9 @@ defmodule Lanttern.SchoolsTest do
       assert_raise Ecto.NoResultsError, fn -> Schools.get_class!(class.id) end
     end
 
-    test "change_class/1 returns a class changeset" do
+    test "change_class/2 returns a class changeset" do
       class = class_fixture()
-      assert %Ecto.Changeset{} = Schools.change_class(class)
+      assert %Ecto.Changeset{} = Schools.change_class(class, %{school_id: class.school_id})
     end
   end
 
