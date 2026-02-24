@@ -6,9 +6,9 @@ defmodule Lanttern.Schools.ClassStaffMember do
   import Ecto.Changeset
 
   @type t :: %__MODULE__{
-          id: Ecto.UUID.t(),
-          class_id: Ecto.UUID.t(),
-          staff_member_id: Ecto.UUID.t(),
+          id: pos_integer(),
+          class_id: pos_integer(),
+          staff_member_id: pos_integer(),
           position: integer(),
           role: String.t() | nil,
           class: Lanttern.Schools.Class.t() | Ecto.Association.NotLoaded.t(),
