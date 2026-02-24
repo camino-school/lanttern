@@ -1612,7 +1612,10 @@ defmodule Lanttern.Schools do
       [%ClassStaffMember{}, ...]
 
   """
-  def list_staff_member_classes(%{school_id: school_id}, %StaffMember{school_id: school_id} = staff_member) do
+  def list_staff_member_classes(
+        %{school_id: school_id},
+        %StaffMember{school_id: school_id} = staff_member
+      ) do
     from(csm in ClassStaffMember,
       join: c in assoc(csm, :class),
       where: csm.staff_member_id == ^staff_member.id,
@@ -1743,7 +1746,11 @@ defmodule Lanttern.Schools do
       :ok
 
   """
-  def update_class_staff_members_positions(%{school_id: school_id, permissions: permissions}, class_id, ids_list) do
+  def update_class_staff_members_positions(
+        %{school_id: school_id, permissions: permissions},
+        class_id,
+        ids_list
+      ) do
     if "school_management" in permissions do
       case Repo.get(Class, class_id) do
         %Class{school_id: ^school_id} ->
@@ -1758,7 +1765,8 @@ defmodule Lanttern.Schools do
     end
   end
 
-  def update_class_staff_members_positions(_scope, _class_id, _ids_list), do: {:error, :unauthorized}
+  def update_class_staff_members_positions(_scope, _class_id, _ids_list),
+    do: {:error, :unauthorized}
 
   @doc """
   Updates staff member classes positions based on ids list order.
@@ -1769,11 +1777,17 @@ defmodule Lanttern.Schools do
       :ok
 
   """
-  def update_staff_member_classes_positions(%{school_id: school_id, permissions: permissions}, staff_member_id, ids_list) do
+  def update_staff_member_classes_positions(
+        %{school_id: school_id, permissions: permissions},
+        staff_member_id,
+        ids_list
+      ) do
     if "school_management" in permissions do
       case Repo.get(StaffMember, staff_member_id) do
         %StaffMember{school_id: ^school_id} ->
-          queryable = from(csm in ClassStaffMember, where: csm.staff_member_id == ^staff_member_id)
+          queryable =
+            from(csm in ClassStaffMember, where: csm.staff_member_id == ^staff_member_id)
+
           update_positions(queryable, ids_list)
 
         _ ->
@@ -1784,7 +1798,8 @@ defmodule Lanttern.Schools do
     end
   end
 
-  def update_staff_member_classes_positions(_scope, _staff_member_id, _ids_list), do: {:error, :unauthorized}
+  def update_staff_member_classes_positions(_scope, _staff_member_id, _ids_list),
+    do: {:error, :unauthorized}
 
   @doc """
   Returns an `%Ecto.Changeset{}` for tracking staff member changes.
@@ -1854,11 +1869,10 @@ defmodule Lanttern.Schools do
 
   defp get_or_insert_csv_class({csv_class_name, ""}, school_id, cycle_id) do
     {:ok, class} =
-      create_class(%{
-        name: csv_class_name,
-        school_id: school_id,
-        cycle_id: cycle_id
-      })
+      create_class(
+        %{name: csv_class_name, cycle_id: cycle_id},
+        %{current_profile: %{school_id: school_id}}
+      )
 
     {csv_class_name, class}
   end

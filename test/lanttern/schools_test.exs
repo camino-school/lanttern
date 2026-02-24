@@ -568,7 +568,9 @@ defmodule Lanttern.SchoolsTest do
       cycle = cycle_fixture(%{school_id: school.id})
       valid_attrs = %{cycle_id: cycle.id, name: "some name"}
 
-      assert {:ok, %Class{} = class} = Schools.create_class(valid_attrs, %{school_id: school.id})
+      assert {:ok, %Class{} = class} =
+               Schools.create_class(valid_attrs, %{current_profile: %{school_id: school.id}})
+
       assert class.name == "some name"
       assert class.school_id == school.id
     end
@@ -590,7 +592,9 @@ defmodule Lanttern.SchoolsTest do
         ]
       }
 
-      assert {:ok, %Class{} = class} = Schools.create_class(valid_attrs, %{school_id: school.id})
+      assert {:ok, %Class{} = class} =
+               Schools.create_class(valid_attrs, %{current_profile: %{school_id: school.id}})
+
       assert class.name == "some name"
       assert class.school_id == school.id
       assert Enum.find(class.students, fn s -> s.id == student_1.id end)
@@ -600,14 +604,20 @@ defmodule Lanttern.SchoolsTest do
 
     test "create_class/2 with invalid data returns error changeset" do
       school = school_fixture()
-      assert {:error, %Ecto.Changeset{}} = Schools.create_class(@invalid_attrs, %{school_id: school.id})
+
+      assert {:error, %Ecto.Changeset{}} =
+               Schools.create_class(@invalid_attrs, %{current_profile: %{school_id: school.id}})
     end
 
     test "update_class/3 with valid data updates the class" do
       class = class_fixture()
       update_attrs = %{name: "some updated name"}
 
-      assert {:ok, %Class{} = class} = Schools.update_class(class, update_attrs, %{school_id: class.school_id})
+      assert {:ok, %Class{} = class} =
+               Schools.update_class(class, update_attrs, %{
+                 current_profile: %{school_id: class.school_id}
+               })
+
       assert class.name == "some updated name"
     end
 
@@ -622,7 +632,11 @@ defmodule Lanttern.SchoolsTest do
         students_ids: [student_1.id, student_3.id]
       }
 
-      assert {:ok, %Class{} = class} = Schools.update_class(class, update_attrs, %{school_id: class.school_id})
+      assert {:ok, %Class{} = class} =
+               Schools.update_class(class, update_attrs, %{
+                 current_profile: %{school_id: class.school_id}
+               })
+
       assert class.name == "some updated name"
       assert length(class.students) == 2
       assert Enum.find(class.students, fn s -> s.id == student_1.id end)
@@ -631,7 +645,12 @@ defmodule Lanttern.SchoolsTest do
 
     test "update_class/3 with invalid data returns error changeset" do
       class = class_fixture()
-      assert {:error, %Ecto.Changeset{}} = Schools.update_class(class, @invalid_attrs, %{school_id: class.school_id})
+
+      assert {:error, %Ecto.Changeset{}} =
+               Schools.update_class(class, @invalid_attrs, %{
+                 current_profile: %{school_id: class.school_id}
+               })
+
       assert class == Schools.get_class!(class.id)
     end
 
@@ -648,7 +667,9 @@ defmodule Lanttern.SchoolsTest do
 
     test "change_class/2 returns a class changeset" do
       class = class_fixture()
-      assert %Ecto.Changeset{} = Schools.change_class(class, %{school_id: class.school_id})
+
+      assert %Ecto.Changeset{} =
+               Schools.change_class(class, %{current_profile: %{school_id: class.school_id}})
     end
   end
 
@@ -1600,7 +1621,8 @@ defmodule Lanttern.SchoolsTest do
         staff_member_id: staff_member.id
       })
 
-      [result] = Schools.list_class_staff_members(%{school_id: school.id}, class.id, load_email: true)
+      [result] =
+        Schools.list_class_staff_members(%{school_id: school.id}, class.id, load_email: true)
 
       assert result.email == "teacher@school.com"
     end
@@ -1749,7 +1771,14 @@ defmodule Lanttern.SchoolsTest do
       school = school_fixture()
       class = class_fixture(%{school_id: school.id})
       staff_member = staff_member_fixture(%{school_id: school.id})
-      csm = class_staff_member_fixture(%{class_id: class.id, staff_member_id: staff_member.id, role: "Teacher"})
+
+      csm =
+        class_staff_member_fixture(%{
+          class_id: class.id,
+          staff_member_id: staff_member.id,
+          role: "Teacher"
+        })
+
       scope = %{school_id: school.id, permissions: ["school_management"]}
 
       assert {:ok, %ClassStaffMember{} = updated_csm} =
@@ -1762,7 +1791,14 @@ defmodule Lanttern.SchoolsTest do
       school = school_fixture()
       class = class_fixture(%{school_id: school.id})
       staff_member = staff_member_fixture(%{school_id: school.id})
-      csm = class_staff_member_fixture(%{class_id: class.id, staff_member_id: staff_member.id, position: 0})
+
+      csm =
+        class_staff_member_fixture(%{
+          class_id: class.id,
+          staff_member_id: staff_member.id,
+          position: 0
+        })
+
       scope = %{school_id: school.id, permissions: ["school_management"]}
 
       assert {:ok, %ClassStaffMember{} = updated_csm} =

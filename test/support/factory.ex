@@ -7,6 +7,7 @@ defmodule Lanttern.Factory do
   use Lanttern.AgentMessageFactory
   use Lanttern.AttachmentFactory
   use Lanttern.ClassFactory
+  use Lanttern.ClassStaffMemberFactory
   use Lanttern.ConversationFactory
   use Lanttern.CycleFactory
   use Lanttern.ILPCommentAttachmentFactory

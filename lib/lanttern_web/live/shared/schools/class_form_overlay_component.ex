@@ -273,8 +273,11 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponent do
   defp assign_staff_members(%{assigns: %{initialized: false}} = socket) do
     staff_members =
       case socket.assigns.class.id do
-        nil -> []
-        class_id -> list_staff_members_for_class(socket.assigns.current_user.current_profile, class_id)
+        nil ->
+          []
+
+        class_id ->
+          list_staff_members_for_class(socket.assigns.current_user.current_profile, class_id)
       end
 
     assign(socket, :staff_members, staff_members)
@@ -460,7 +463,11 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponent do
     # The update_class_staff_members_positions function will use staff_member_id to find the records
     staff_member_ids = Enum.map(socket.assigns.staff_members, & &1.id)
 
-    case Schools.update_class_staff_members_positions(socket.assigns.current_user.current_profile, class_id, staff_member_ids) do
+    case Schools.update_class_staff_members_positions(
+           socket.assigns.current_user.current_profile,
+           class_id,
+           staff_member_ids
+         ) do
       :ok ->
         Logger.debug("Successfully updated staff member positions")
         :ok

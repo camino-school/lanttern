@@ -5,8 +5,8 @@ defmodule Lanttern.CycleFactory do
       def cycle_factory do
         %Lanttern.Schools.Cycle{
           name: "School Cycle",
-          end_at: ~U[2025-12-01 00:00:00Z],
-          start_at: ~U[2025-02-01 00:00:00Z],
+          start_at: ~D[2025-02-01],
+          end_at: ~D[2025-12-01],
           school: build(:school)
         }
       end

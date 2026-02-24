@@ -62,6 +62,7 @@
     module={ClassFormOverlayComponent}
     id="class-form-overlay"
     class={@class}
+    current_user={@current_user}
     title={gettext("Edit class")}
     on_cancel={JS.patch(@current_path)}
     notify_parent

@@ -51,7 +51,9 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponentTest do
       assert render(view) =~ staff_member.name
 
       view
-      |> element("#selected-staff-member-#{staff_member.id} button[phx-click*='remove_staff_member']")
+      |> element(
+        "#selected-staff-member-#{staff_member.id} button[phx-click*='remove_staff_member']"
+      )
       |> render_click()
 
       refute has_element?(view, "#selected-staff-member-#{staff_member.id}")

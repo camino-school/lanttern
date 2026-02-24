@@ -139,6 +139,7 @@ defmodule LantternWeb.SchoolLive.ClassesComponent do
         module={ClassFormOverlayComponent}
         id="class-form-overlay"
         class={@class}
+        current_user={@current_user}
         title={@class_form_overlay_title}
         on_cancel={JS.patch(~p"/school/classes")}
         notify_component={@myself}

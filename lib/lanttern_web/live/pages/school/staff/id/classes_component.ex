@@ -172,7 +172,10 @@ defmodule LantternWeb.StaffMemberLive.ClassesComponent do
   end
 
   def handle_event("edit_role", %{"id" => id}, socket) do
-    csm = Schools.get_class_staff_member!(socket.assigns.current_user.current_profile, id, preloads: :class)
+    csm =
+      Schools.get_class_staff_member!(socket.assigns.current_user.current_profile, id,
+        preloads: :class
+      )
 
     form =
       csm
@@ -192,13 +195,25 @@ defmodule LantternWeb.StaffMemberLive.ClassesComponent do
   end
 
   def handle_event("update_role", %{"class_staff_member" => params}, socket) do
-    csm = Schools.get_class_staff_member!(socket.assigns.current_user.current_profile, socket.assigns.editing_role_for)
+    csm =
+      Schools.get_class_staff_member!(
+        socket.assigns.current_user.current_profile,
+        socket.assigns.editing_role_for
+      )
 
-    case Schools.update_class_staff_member(socket.assigns.current_user.current_profile, csm, params) do
+    case Schools.update_class_staff_member(
+           socket.assigns.current_user.current_profile,
+           csm,
+           params
+         ) do
       {:ok, updated_csm} ->
         # Reload with preloads
         updated_csm =
-          Schools.get_class_staff_member!(socket.assigns.current_user.current_profile, updated_csm.id, preloads: [class: [:school, :cycle]])
+          Schools.get_class_staff_member!(
+            socket.assigns.current_user.current_profile,
+            updated_csm.id,
+            preloads: [class: [:school, :cycle]]
+          )
 
         socket =
           socket
