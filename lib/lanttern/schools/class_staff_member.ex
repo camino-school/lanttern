@@ -4,6 +4,7 @@ defmodule Lanttern.Schools.ClassStaffMember do
   """
   use Ecto.Schema
   import Ecto.Changeset
+  use Gettext, backend: Lanttern.Gettext
 
   @type t :: %__MODULE__{
           id: pos_integer(),
@@ -44,7 +45,7 @@ defmodule Lanttern.Schools.ClassStaffMember do
       staff = Lanttern.Repo.get(Lanttern.Schools.StaffMember, staff_member_id)
 
       if class && staff && class.school_id != staff.school_id do
-        add_error(changeset, :staff_member_id, "must belong to the same school as the class")
+        add_error(changeset, :staff_member_id, gettext("must belong to the same school as the class"))
       else
         changeset
       end
