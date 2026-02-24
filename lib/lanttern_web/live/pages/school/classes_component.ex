@@ -170,10 +170,18 @@ defmodule LantternWeb.SchoolLive.ClassesComponent do
       push_patch: [to: ~p"/school/classes"]
     ]
 
+    [updated_class] =
+      Schools.list_user_classes(
+        socket.assigns.current_user,
+        classes_ids: [class.id],
+        count_active_students: true,
+        preloads: [:staff_members, students: :tags]
+      )
+
     socket =
       socket
       |> delegate_navigation(nav_opts)
-      |> stream_insert(:classes, class)
+      |> stream_insert(:classes, updated_class)
 
     {:ok, socket}
   end
