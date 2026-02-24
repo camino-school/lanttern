@@ -1739,28 +1739,52 @@ defmodule Lanttern.Schools do
 
   ## Examples
 
-      iex> update_class_staff_members_positions(class_id, [3, 2, 1])
+      iex> update_class_staff_members_positions(scope, class_id, [3, 2, 1])
       :ok
 
   """
-  def update_class_staff_members_positions(class_id, ids_list) do
-    queryable = from(csm in ClassStaffMember, where: csm.class_id == ^class_id)
-    update_positions(queryable, ids_list, id_field: :staff_member_id)
+  def update_class_staff_members_positions(%{school_id: school_id, permissions: permissions}, class_id, ids_list) do
+    if "school_management" in permissions do
+      case Repo.get(Class, class_id) do
+        %Class{school_id: ^school_id} ->
+          queryable = from(csm in ClassStaffMember, where: csm.class_id == ^class_id)
+          update_positions(queryable, ids_list, id_field: :staff_member_id)
+
+        _ ->
+          {:error, :unauthorized}
+      end
+    else
+      {:error, :unauthorized}
+    end
   end
+
+  def update_class_staff_members_positions(_scope, _class_id, _ids_list), do: {:error, :unauthorized}
 
   @doc """
   Updates staff member classes positions based on ids list order.
 
   ## Examples
 
-      iex> update_staff_member_classes_positions(staff_member_id, [3, 2, 1])
+      iex> update_staff_member_classes_positions(scope, staff_member_id, [3, 2, 1])
       :ok
 
   """
-  def update_staff_member_classes_positions(staff_member_id, ids_list) do
-    queryable = from(csm in ClassStaffMember, where: csm.staff_member_id == ^staff_member_id)
-    update_positions(queryable, ids_list)
+  def update_staff_member_classes_positions(%{school_id: school_id, permissions: permissions}, staff_member_id, ids_list) do
+    if "school_management" in permissions do
+      case Repo.get(StaffMember, staff_member_id) do
+        %StaffMember{school_id: ^school_id} ->
+          queryable = from(csm in ClassStaffMember, where: csm.staff_member_id == ^staff_member_id)
+          update_positions(queryable, ids_list)
+
+        _ ->
+          {:error, :unauthorized}
+      end
+    else
+      {:error, :unauthorized}
+    end
   end
+
+  def update_staff_member_classes_positions(_scope, _staff_member_id, _ids_list), do: {:error, :unauthorized}
 
   @doc """
   Returns an `%Ecto.Changeset{}` for tracking staff member changes.

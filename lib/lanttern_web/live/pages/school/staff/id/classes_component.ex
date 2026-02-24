@@ -243,6 +243,7 @@ defmodule LantternWeb.StaffMemberLive.ClassesComponent do
     reordered_ids = List.insert_at(remaining, new_index, id)
 
     case Schools.update_staff_member_classes_positions(
+           socket.assigns.current_user.current_profile,
            socket.assigns.staff_member.id,
            reordered_ids
          ) do

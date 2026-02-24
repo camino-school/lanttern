@@ -1807,12 +1807,13 @@ defmodule Lanttern.SchoolsTest do
       end
     end
 
-    test "update_class_staff_members_positions/2 updates positions based on ids order" do
+    test "update_class_staff_members_positions/3 updates positions based on ids order" do
       school = school_fixture()
       class = class_fixture(%{school_id: school.id})
       staff_1 = staff_member_fixture(%{school_id: school.id})
       staff_2 = staff_member_fixture(%{school_id: school.id})
       staff_3 = staff_member_fixture(%{school_id: school.id})
+      scope = %{school_id: school.id, permissions: ["school_management"]}
 
       _csm_1 = class_staff_member_fixture(%{class_id: class.id, staff_member_id: staff_1.id})
       _csm_2 = class_staff_member_fixture(%{class_id: class.id, staff_member_id: staff_2.id})
@@ -1820,7 +1821,7 @@ defmodule Lanttern.SchoolsTest do
 
       # Reorder: 3, 1, 2
       assert :ok =
-               Schools.update_class_staff_members_positions(class.id, [
+               Schools.update_class_staff_members_positions(scope, class.id, [
                  staff_3.id,
                  staff_1.id,
                  staff_2.id
@@ -1833,10 +1834,11 @@ defmodule Lanttern.SchoolsTest do
       assert Enum.at(result, 2).id == staff_2.id
     end
 
-    test "update_staff_member_classes_positions/2 updates positions based on ids order" do
+    test "update_staff_member_classes_positions/3 updates positions based on ids order" do
       school = school_fixture()
       staff_member = staff_member_fixture(%{school_id: school.id})
       cycle = cycle_fixture(%{school_id: school.id})
+      scope = %{school_id: school.id, permissions: ["school_management"]}
 
       class_1 = class_fixture(%{school_id: school.id, cycle_id: cycle.id})
       class_2 = class_fixture(%{school_id: school.id, cycle_id: cycle.id})
@@ -1853,7 +1855,7 @@ defmodule Lanttern.SchoolsTest do
 
       # Reorder: 3, 1, 2
       assert :ok =
-               Schools.update_staff_member_classes_positions(staff_member.id, [
+               Schools.update_staff_member_classes_positions(scope, staff_member.id, [
                  csm_3.id,
                  csm_1.id,
                  csm_2.id
