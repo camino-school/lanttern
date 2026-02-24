@@ -1563,8 +1563,6 @@ defmodule Lanttern.Schools do
   @doc """
   Returns the list of guardians.
 
-  Requires "school_management" permission in scope.
-
   ### Options:
 
   - `:preloads` – preloads associated data
@@ -1576,23 +1574,16 @@ defmodule Lanttern.Schools do
 
   """
   def list_guardians(scope, opts \\ []) do
-    if has_permission?(scope, "school_management") do
-      queryable = Keyword.get(opts, :base_query, Guardian)
-
-      from(
-        g in queryable,
-        where: g.school_id == ^scope.school_id,
-        order_by: g.name
-      )
-      |> apply_list_guardians_opts(opts)
-      |> Repo.all()
-      |> maybe_preload(opts)
-    else
-      []
-    end
+    queryable = Keyword.get(opts, :base_query, Guardian)
+    from(
+      g in queryable,
+      where: g.school_id == ^scope.school_id,
+      order_by: g.name
+    )
+    |> apply_list_guardians_opts(opts)
+    |> Repo.all()
+    |> maybe_preload(opts)
   end
-
-  defp apply_list_guardians_opts(queryable, []), do: queryable
 
   defp apply_list_guardians_opts(queryable, [_ | opts]),
     do: apply_list_guardians_opts(queryable, opts)
@@ -2123,18 +2114,33 @@ defmodule Lanttern.Schools do
   """
   def list_shared_guardians(scope, %Guardian{school_id: scope_school_id} = guardian, opts \\ [])
       when scope_school_id == scope.school_id do
-    if Ecto.assoc_loaded?(guardian.students) && guardian.students != [] do
-      students_ids = Enum.map(guardian.students, & &1.id)
+    students_ids =
+      if Ecto.assoc_loaded?(guardian.students) do
+        Enum.map(guardian.students, & &1.id)
+      else
+        from(
+          sg in "students_guardians",
+          where: sg.guardian_id == ^guardian.id,
+          select: sg.student_id
+        )
+        |> Repo.all()
+      end
 
-      Guardian
-      |> join(:inner, [g], sg in "students_guardians", on: g.id == sg.guardian_id)
-      |> where([g, sg], sg.student_id in ^students_ids and g.id != ^guardian.id)
-      |> select([g], g)
-      |> distinct(true)
-      |> Repo.all()
-      |> maybe_preload(opts)
-    else
-      []
+    case students_ids do
+      [] ->
+        []
+
+      ids ->
+        from(
+          g in Guardian,
+          join: sg in "students_guardians",
+          on: g.id == sg.guardian_id,
+          where: sg.student_id in ^ids,
+          where: g.id != ^guardian.id,
+          distinct: true
+        )
+        |> Repo.all()
+        |> maybe_preload(opts)
     end
   end
 
