@@ -1733,10 +1733,16 @@ defmodule Lanttern.SchoolsTest do
     end
 
     test "remove_staff_member_from_class/1 deletes the relationship" do
-      csm = class_staff_member_fixture()
+      school = school_fixture()
+      class = class_fixture(%{school_id: school.id})
+      staff_member = staff_member_fixture(%{school_id: school.id})
+      csm = class_staff_member_fixture(%{class_id: class.id, staff_member_id: staff_member.id})
 
       assert {:ok, %ClassStaffMember{}} = Schools.remove_staff_member_from_class(csm)
-      assert_raise Ecto.NoResultsError, fn -> Schools.get_class_staff_member!(csm.id) end
+
+      assert_raise Ecto.NoResultsError, fn ->
+        Schools.get_class_staff_member!(%{school_id: school.id}, csm.id)
+      end
     end
 
     test "update_class_staff_members_positions/2 updates positions based on ids order" do

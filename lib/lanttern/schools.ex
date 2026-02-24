@@ -1631,13 +1631,17 @@ defmodule Lanttern.Schools do
 
   ## Examples
 
-      iex> get_class_staff_member!(id)
+      iex> get_class_staff_member!(scope, id)
       %ClassStaffMember{}
 
   """
-  def get_class_staff_member!(id, opts \\ []) do
-    ClassStaffMember
-    |> Repo.get!(id)
+  def get_class_staff_member!(scope, id, opts \\ []) do
+    from(csm in ClassStaffMember,
+      join: cl in assoc(csm, :class),
+      where: csm.id == ^id,
+      where: cl.school_id == ^scope.school_id
+    )
+    |> Repo.one!()
     |> maybe_preload(opts)
   end
 
