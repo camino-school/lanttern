@@ -11,7 +11,7 @@ defmodule Lanttern.Schools.Guardian do
   @type t :: %__MODULE__{
           id: pos_integer(),
           name: String.t(),
-          school_id: pos_integer() | nil,
+          school_id: pos_integer(),
           school: Lanttern.Schools.School.t() | Ecto.Association.NotLoaded.t(),
           students: [Student.t()] | Ecto.Association.NotLoaded.t(),
           inserted_at: DateTime.t(),
