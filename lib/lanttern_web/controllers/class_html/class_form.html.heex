@@ -29,7 +29,7 @@
   <.input
     field={f[:staff_members_ids]}
     type="select"
-    label="Staff members in this class"
+    label={gettext("Staff members in this class")}
     options={@staff_member_options}
     prompt="Select staff members"
     multiple
@@ -38,7 +38,7 @@
   <.input
     field={f[:students_ids]}
     type="select"
-    label="Students in this class"
+    label={gettext("Students in this class")}
     options={@student_options}
     prompt="Select students"
     multiple
