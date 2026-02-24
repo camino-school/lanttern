@@ -16,7 +16,11 @@ defmodule Lanttern.SchoolsFixtures do
   @doc """
   Generate a cycle.
   """
-  def cycle_fixture(attrs \\ %{}) do
+  def cycle_fixture(attrs \\ %{})
+
+  def cycle_fixture(attrs) when is_list(attrs), do: cycle_fixture(Map.new(attrs))
+
+  def cycle_fixture(attrs) do
     {school_id, attrs} = Map.pop(attrs, :school_id)
 
     attrs =
