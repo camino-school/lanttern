@@ -1642,13 +1642,14 @@ defmodule Lanttern.SchoolsTest do
       assert Enum.at(result, 2).class.id == class_3.id
     end
 
-    test "add_staff_member_to_class/1 creates a class staff member relationship" do
+    test "add_staff_member_to_class/2 creates a class staff member relationship" do
       school = school_fixture()
       class = class_fixture(%{school_id: school.id})
       staff_member = staff_member_fixture(%{school_id: school.id})
+      scope = %{school_id: school.id, permissions: ["school_management"]}
 
       assert {:ok, %ClassStaffMember{} = csm} =
-               Schools.add_staff_member_to_class(%{
+               Schools.add_staff_member_to_class(scope, %{
                  class_id: class.id,
                  staff_member_id: staff_member.id,
                  role: "Assistant"
@@ -1660,20 +1661,21 @@ defmodule Lanttern.SchoolsTest do
       assert csm.position == 0
     end
 
-    test "add_staff_member_to_class/1 auto-assigns position based on existing entries" do
+    test "add_staff_member_to_class/2 auto-assigns position based on existing entries" do
       school = school_fixture()
       class = class_fixture(%{school_id: school.id})
       staff_1 = staff_member_fixture(%{school_id: school.id})
       staff_2 = staff_member_fixture(%{school_id: school.id})
+      scope = %{school_id: school.id, permissions: ["school_management"]}
 
       {:ok, csm_1} =
-        Schools.add_staff_member_to_class(%{
+        Schools.add_staff_member_to_class(scope, %{
           class_id: class.id,
           staff_member_id: staff_1.id
         })
 
       {:ok, csm_2} =
-        Schools.add_staff_member_to_class(%{
+        Schools.add_staff_member_to_class(scope, %{
           class_id: class.id,
           staff_member_id: staff_2.id
         })
@@ -1682,14 +1684,15 @@ defmodule Lanttern.SchoolsTest do
       assert csm_2.position == 1
     end
 
-    test "add_staff_member_to_class/1 fails if staff and class are from different schools" do
+    test "add_staff_member_to_class/2 fails if staff and class are from different schools" do
       school_1 = school_fixture()
       school_2 = school_fixture()
       class = class_fixture(%{school_id: school_1.id})
       staff_member = staff_member_fixture(%{school_id: school_2.id})
+      scope = %{school_id: school_1.id, permissions: ["school_management"]}
 
       assert {:error, %Ecto.Changeset{} = changeset} =
-               Schools.add_staff_member_to_class(%{
+               Schools.add_staff_member_to_class(scope, %{
                  class_id: class.id,
                  staff_member_id: staff_member.id
                })
@@ -1697,18 +1700,46 @@ defmodule Lanttern.SchoolsTest do
       assert "must belong to the same school as the class" in errors_on(changeset).staff_member_id
     end
 
-    test "add_staff_member_to_class/1 fails if duplicate relationship" do
+    test "add_staff_member_to_class/2 returns unauthorized if scope lacks school_management permission" do
       school = school_fixture()
       class = class_fixture(%{school_id: school.id})
       staff_member = staff_member_fixture(%{school_id: school.id})
+      scope = %{school_id: school.id, permissions: []}
 
-      Schools.add_staff_member_to_class(%{
+      assert {:error, :unauthorized} =
+               Schools.add_staff_member_to_class(scope, %{
+                 class_id: class.id,
+                 staff_member_id: staff_member.id
+               })
+    end
+
+    test "add_staff_member_to_class/2 returns unauthorized if class belongs to a different school" do
+      school_1 = school_fixture()
+      school_2 = school_fixture()
+      class = class_fixture(%{school_id: school_2.id})
+      staff_member = staff_member_fixture(%{school_id: school_1.id})
+      scope = %{school_id: school_1.id, permissions: ["school_management"]}
+
+      assert {:error, :unauthorized} =
+               Schools.add_staff_member_to_class(scope, %{
+                 class_id: class.id,
+                 staff_member_id: staff_member.id
+               })
+    end
+
+    test "add_staff_member_to_class/2 fails if duplicate relationship" do
+      school = school_fixture()
+      class = class_fixture(%{school_id: school.id})
+      staff_member = staff_member_fixture(%{school_id: school.id})
+      scope = %{school_id: school.id, permissions: ["school_management"]}
+
+      Schools.add_staff_member_to_class(scope, %{
         class_id: class.id,
         staff_member_id: staff_member.id
       })
 
       assert {:error, %Ecto.Changeset{}} =
-               Schools.add_staff_member_to_class(%{
+               Schools.add_staff_member_to_class(scope, %{
                  class_id: class.id,
                  staff_member_id: staff_member.id
                })

@@ -1652,25 +1652,37 @@ defmodule Lanttern.Schools do
 
   ## Examples
 
-      iex> add_staff_member_to_class(%{class_id: 1, staff_member_id: 2})
+      iex> add_staff_member_to_class(scope, %{class_id: 1, staff_member_id: 2})
       {:ok, %ClassStaffMember{}}
 
-      iex> add_staff_member_to_class(%{class_id: bad_value})
+      iex> add_staff_member_to_class(scope, %{class_id: bad_value})
       {:error, %Ecto.Changeset{}}
 
   """
-  def add_staff_member_to_class(attrs) do
-    class_id = Map.get(attrs, :class_id) || Map.get(attrs, "class_id")
+  def add_staff_member_to_class(%{school_id: school_id, permissions: permissions}, attrs) do
+    if "school_management" in permissions do
+      class_id = Map.get(attrs, :class_id) || Map.get(attrs, "class_id")
 
-    position_queryable =
-      from(csm in ClassStaffMember,
-        where: csm.class_id == ^class_id
-      )
+      case Repo.get(Class, class_id) do
+        %Class{school_id: ^school_id} ->
+          position_queryable =
+            from(csm in ClassStaffMember,
+              where: csm.class_id == ^class_id
+            )
 
-    set_position_in_attrs(position_queryable, attrs)
-    |> then(&ClassStaffMember.changeset(%ClassStaffMember{}, &1))
-    |> Repo.insert()
+          set_position_in_attrs(position_queryable, attrs)
+          |> then(&ClassStaffMember.changeset(%ClassStaffMember{}, &1))
+          |> Repo.insert()
+
+        _ ->
+          {:error, :unauthorized}
+      end
+    else
+      {:error, :unauthorized}
+    end
   end
+
+  def add_staff_member_to_class(_scope, _attrs), do: {:error, :unauthorized}
 
   @doc """
   Updates a class staff member relationship (role and/or position).

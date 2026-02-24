@@ -106,10 +106,13 @@ defmodule LantternWeb.StaffMemberLive.ClassesComponent do
 
   @impl true
   def update(%{action: {ClassSearchComponent, {:selected, class}}}, socket) do
-    case Schools.add_staff_member_to_class(%{
-           class_id: class.id,
-           staff_member_id: socket.assigns.staff_member.id
-         }) do
+    case Schools.add_staff_member_to_class(
+           socket.assigns.current_user.current_profile,
+           %{
+             class_id: class.id,
+             staff_member_id: socket.assigns.staff_member.id
+           }
+         ) do
       {:ok, _} ->
         socket =
           socket
