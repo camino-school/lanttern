@@ -1561,17 +1561,19 @@ defmodule Lanttern.Schools do
 
   ## Examples
 
-      iex> list_class_staff_members(class_id)
+      iex> list_class_staff_members(scope, class_id)
       [%StaffMember{}, ...]
 
   """
-  def list_class_staff_members(class_id, opts \\ []) do
+  def list_class_staff_members(scope, class_id, opts \\ []) do
     load_email? = Keyword.get(opts, :load_email, false)
 
     base_query =
       from(csm in ClassStaffMember,
         join: sm in assoc(csm, :staff_member),
+        join: cl in assoc(csm, :class),
         where: csm.class_id == ^class_id,
+        where: cl.school_id == ^scope.school_id,
         where: is_nil(sm.deactivated_at),
         order_by: [asc: csm.position],
         select: %{

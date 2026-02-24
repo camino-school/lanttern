@@ -274,7 +274,7 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponent do
     staff_members =
       case socket.assigns.class.id do
         nil -> []
-        class_id -> list_staff_members_for_class(class_id)
+        class_id -> list_staff_members_for_class(socket.assigns.current_user.current_profile, class_id)
       end
 
     assign(socket, :staff_members, staff_members)
@@ -282,8 +282,8 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponent do
 
   defp assign_staff_members(socket), do: socket
 
-  defp list_staff_members_for_class(class_id) do
-    staff_with_position = Schools.list_class_staff_members(class_id)
+  defp list_staff_members_for_class(scope, class_id) do
+    staff_with_position = Schools.list_class_staff_members(scope, class_id)
 
     if staff_with_position == [] do
       []

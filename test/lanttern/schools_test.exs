@@ -1507,7 +1507,7 @@ defmodule Lanttern.SchoolsTest do
   describe "class staff members" do
     alias Lanttern.Schools.ClassStaffMember
 
-    test "list_class_staff_members/1 returns all staff members for a class ordered by position" do
+    test "list_class_staff_members/2 returns all staff members for a class ordered by position" do
       school = school_fixture()
       class = class_fixture(%{school_id: school.id})
       staff_member_1 = staff_member_fixture(%{school_id: school.id, name: "Staff A"})
@@ -1533,7 +1533,7 @@ defmodule Lanttern.SchoolsTest do
         position: 2
       })
 
-      result = Schools.list_class_staff_members(class.id)
+      result = Schools.list_class_staff_members(%{school_id: school.id}, class.id)
 
       # Should be ordered by position
       assert length(result) == 3
@@ -1542,7 +1542,7 @@ defmodule Lanttern.SchoolsTest do
       assert Enum.at(result, 2).id == staff_member_3.id
     end
 
-    test "list_class_staff_members/1 filters out deactivated staff members" do
+    test "list_class_staff_members/2 filters out deactivated staff members" do
       school = school_fixture()
       class = class_fixture(%{school_id: school.id})
       active_staff = staff_member_fixture(%{school_id: school.id})
@@ -1557,13 +1557,13 @@ defmodule Lanttern.SchoolsTest do
         staff_member_id: deactivated_staff.id
       })
 
-      result = Schools.list_class_staff_members(class.id)
+      result = Schools.list_class_staff_members(%{school_id: school.id}, class.id)
 
       assert length(result) == 1
       assert hd(result).id == active_staff.id
     end
 
-    test "list_class_staff_members/1 includes class_role and position virtual fields" do
+    test "list_class_staff_members/2 includes class_role and position virtual fields" do
       school = school_fixture()
       class = class_fixture(%{school_id: school.id})
       staff_member = staff_member_fixture(%{school_id: school.id})
@@ -1575,14 +1575,14 @@ defmodule Lanttern.SchoolsTest do
         position: 5
       })
 
-      [result] = Schools.list_class_staff_members(class.id)
+      [result] = Schools.list_class_staff_members(%{school_id: school.id}, class.id)
 
       assert result.class_role == "Lead Teacher"
       assert result.position == 5
       assert result.class_staff_member_id != nil
     end
 
-    test "list_class_staff_members/1 with load_email opt loads staff member email" do
+    test "list_class_staff_members/2 with load_email opt loads staff member email" do
       school = school_fixture()
       class = class_fixture(%{school_id: school.id})
       user = Lanttern.IdentityFixtures.user_fixture(%{email: "teacher@school.com"})
@@ -1600,7 +1600,7 @@ defmodule Lanttern.SchoolsTest do
         staff_member_id: staff_member.id
       })
 
-      [result] = Schools.list_class_staff_members(class.id, load_email: true)
+      [result] = Schools.list_class_staff_members(%{school_id: school.id}, class.id, load_email: true)
 
       assert result.email == "teacher@school.com"
     end
@@ -1758,7 +1758,7 @@ defmodule Lanttern.SchoolsTest do
                  staff_2.id
                ])
 
-      result = Schools.list_class_staff_members(class.id)
+      result = Schools.list_class_staff_members(%{school_id: school.id}, class.id)
 
       assert Enum.at(result, 0).id == staff_3.id
       assert Enum.at(result, 1).id == staff_1.id
