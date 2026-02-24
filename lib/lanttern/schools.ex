@@ -2002,8 +2002,9 @@ defmodule Lanttern.Schools do
       [%Student{}, ...]
 
   """
-  def get_students_for_guardian(scope, %Guardian{} = guardian)
-    when guardian.school_id == scope.school_id && has_permission?(scope, "school_management") do
+  def get_students_for_guardian(scope, %Guardian{school_id: school_id} = guardian)
+      when school_id == scope.school_id do
+    if has_permission?(scope, "school_management") do
       Repo.all(
         from s in Student,
           join: sg in "students_guardians",
@@ -2016,6 +2017,8 @@ defmodule Lanttern.Schools do
     end
   end
 
+  def get_students_for_guardian(_scope, _guardian), do: []
+
   @doc """
   Gets guardians for a given student.
 
@@ -2027,8 +2030,9 @@ defmodule Lanttern.Schools do
       [%Guardian{}, ...]
 
   """
-  def get_guardians_for_student(scope, %Student{} = student)
-    when student.school_id == scope.school_id && has_permission?(scope, "school_management") do
+  def get_guardians_for_student(scope, %Student{school_id: school_id} = student)
+      when school_id == scope.school_id do
+    if has_permission?(scope, "school_management") do
       Repo.all(
         from g in Guardian,
           join: sg in "students_guardians",
@@ -2041,6 +2045,8 @@ defmodule Lanttern.Schools do
     end
   end
 
+  def get_guardians_for_student(_scope, _student), do: []
+
   @doc """
   Associates a guardian to a student.
 
@@ -2052,9 +2058,13 @@ defmodule Lanttern.Schools do
       {:ok, :created}
 
   """
-  def add_guardian_to_student(scope, %Student{} = student, %Guardian{} = guardian)
-    when student.school_id == scope.school_id && guardian.school_id == scope.school_id &&
-         has_permission?(scope, "school_management") do
+  def add_guardian_to_student(
+        scope,
+        %Student{school_id: student_school_id} = student,
+        %Guardian{school_id: guardian_school_id} = guardian
+      )
+      when student_school_id == scope.school_id and guardian_school_id == scope.school_id do
+    if has_permission?(scope, "school_management") do
       {count, _} =
         Repo.insert_all(
           "students_guardians",
@@ -2072,6 +2082,9 @@ defmodule Lanttern.Schools do
     end
   end
 
+  def add_guardian_to_student(_scope, _student, _guardian),
+    do: {:error, :unauthorized}
+
   @doc """
   Removes a guardian from a student.
 
@@ -2083,8 +2096,9 @@ defmodule Lanttern.Schools do
       {:ok, :deleted}
 
   """
-  def remove_guardian_from_student(scope, %Student{} = student, guardian_id)
-    when student.school_id == scope.school_id && has_permission?(scope, "school_management") do
+  def remove_guardian_from_student(scope, %Student{school_id: school_id} = student, guardian_id)
+      when school_id == scope.school_id do
+    if has_permission?(scope, "school_management") do
       # Delete directly from join table
       {count, _} =
         Repo.delete_all(
@@ -2101,6 +2115,9 @@ defmodule Lanttern.Schools do
     end
   end
 
+  def remove_guardian_from_student(_scope, _student, _guardian_id),
+    do: {:error, :unauthorized}
+
   @doc """
   Gets guardians linked to the same students as the given guardian.
 
@@ -2112,7 +2129,9 @@ defmodule Lanttern.Schools do
       [%Guardian{}, ...]
 
   """
-  def list_shared_guardians(scope, %Guardian{school_id: scope_school_id} = guardian, opts \\ [])
+  def list_shared_guardians(scope, guardian, opts \\ [])
+
+  def list_shared_guardians(scope, %Guardian{school_id: scope_school_id} = guardian, opts)
       when scope_school_id == scope.school_id do
     students_ids =
       if Ecto.assoc_loaded?(guardian.students) do
