@@ -2002,8 +2002,8 @@ defmodule Lanttern.Schools do
       [%Student{}, ...]
 
   """
-  def get_students_for_guardian(scope, %Guardian{} = guardian) do
-    if guardian.school_id == scope.school_id && has_permission?(scope, "school_management") do
+  def get_students_for_guardian(scope, %Guardian{} = guardian)
+    when guardian.school_id == scope.school_id && has_permission?(scope, "school_management") do
       Repo.all(
         from s in Student,
           join: sg in "students_guardians",
@@ -2027,8 +2027,8 @@ defmodule Lanttern.Schools do
       [%Guardian{}, ...]
 
   """
-  def get_guardians_for_student(scope, %Student{} = student) do
-    if student.school_id == scope.school_id && has_permission?(scope, "school_management") do
+  def get_guardians_for_student(scope, %Student{} = student)
+    when student.school_id == scope.school_id && has_permission?(scope, "school_management") do
       Repo.all(
         from g in Guardian,
           join: sg in "students_guardians",
@@ -2052,8 +2052,8 @@ defmodule Lanttern.Schools do
       {:ok, :created}
 
   """
-  def add_guardian_to_student(scope, %Student{} = student, %Guardian{} = guardian) do
-    if student.school_id == scope.school_id && guardian.school_id == scope.school_id &&
+  def add_guardian_to_student(scope, %Student{} = student, %Guardian{} = guardian)
+    when student.school_id == scope.school_id && guardian.school_id == scope.school_id &&
          has_permission?(scope, "school_management") do
       {count, _} =
         Repo.insert_all(
@@ -2083,8 +2083,8 @@ defmodule Lanttern.Schools do
       {:ok, :deleted}
 
   """
-  def remove_guardian_from_student(scope, %Student{} = student, guardian_id) do
-    if student.school_id == scope.school_id && has_permission?(scope, "school_management") do
+  def remove_guardian_from_student(scope, %Student{} = student, guardian_id)
+    when student.school_id == scope.school_id && has_permission?(scope, "school_management") do
       # Delete directly from join table
       {count, _} =
         Repo.delete_all(
