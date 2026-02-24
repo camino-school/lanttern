@@ -1585,6 +1585,8 @@ defmodule Lanttern.Schools do
     |> maybe_preload(opts)
   end
 
+  defp apply_list_guardians_opts(queryable, []), do: queryable
+
   defp apply_list_guardians_opts(queryable, [_ | opts]),
     do: apply_list_guardians_opts(queryable, opts)
 
