@@ -1605,7 +1605,7 @@ defmodule Lanttern.SchoolsTest do
       assert result.email == "teacher@school.com"
     end
 
-    test "list_staff_member_classes/1 returns all classes for a staff member ordered by position" do
+    test "list_staff_member_classes/2 returns all classes for a staff member ordered by position" do
       school = school_fixture()
       staff_member = staff_member_fixture(%{school_id: school.id})
       cycle = cycle_fixture(%{school_id: school.id})
@@ -1633,7 +1633,7 @@ defmodule Lanttern.SchoolsTest do
         position: 2
       })
 
-      result = Schools.list_staff_member_classes(staff_member.id)
+      result = Schools.list_staff_member_classes(%{school_id: school.id}, staff_member)
 
       # Should be ordered by position
       assert length(result) == 3
@@ -1791,7 +1791,7 @@ defmodule Lanttern.SchoolsTest do
                  csm_2.id
                ])
 
-      result = Schools.list_staff_member_classes(staff_member.id)
+      result = Schools.list_staff_member_classes(%{school_id: school.id}, staff_member)
 
       assert Enum.at(result, 0).class.id == class_3.id
       assert Enum.at(result, 1).class.id == class_1.id

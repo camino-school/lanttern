@@ -1608,19 +1608,21 @@ defmodule Lanttern.Schools do
 
   ## Examples
 
-      iex> list_staff_member_classes(staff_member_id)
+      iex> list_staff_member_classes(scope, staff_member)
       [%ClassStaffMember{}, ...]
 
   """
-  def list_staff_member_classes(staff_member_id, _opts \\ []) do
+  def list_staff_member_classes(%{school_id: school_id}, %StaffMember{school_id: school_id} = staff_member) do
     from(csm in ClassStaffMember,
       join: c in assoc(csm, :class),
-      where: csm.staff_member_id == ^staff_member_id,
+      where: csm.staff_member_id == ^staff_member.id,
       order_by: [asc: csm.position],
       preload: [class: {c, [:school, :cycle]}]
     )
     |> Repo.all()
   end
+
+  def list_staff_member_classes(_scope, _staff_member), do: []
 
   @doc """
   Gets a single class staff member relationship.

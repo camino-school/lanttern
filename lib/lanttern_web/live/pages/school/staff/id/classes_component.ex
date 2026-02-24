@@ -150,7 +150,10 @@ defmodule LantternWeb.StaffMemberLive.ClassesComponent do
 
   defp stream_staff_classes(socket) do
     classes =
-      Schools.list_staff_member_classes(socket.assigns.staff_member.id)
+      Schools.list_staff_member_classes(
+        socket.assigns.current_user.current_profile,
+        socket.assigns.staff_member
+      )
 
     socket
     |> stream(:classes, classes, reset: true)
