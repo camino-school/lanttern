@@ -22,6 +22,7 @@ defmodule Lanttern.Lessons do
 
   - `:strand_id` – filter lessons by strand
   - `:subjects_ids` – filter lessons by subjects
+  - `:is_published` - filter by `is_published` status
   - `:preloads` – preloads associated data
 
   ## Examples
@@ -58,6 +59,15 @@ defmodule Lanttern.Lessons do
       join: ls in "lessons_subjects",
       on: ls.lesson_id == l.id,
       where: ls.subject_id in ^subjects_ids
+    )
+    |> apply_list_lessons_opts(opts)
+  end
+
+  defp apply_list_lessons_opts(queryable, [{:is_published, is_published} | opts])
+       when is_boolean(is_published) do
+    from(
+      l in queryable,
+      where: l.is_published == ^is_published
     )
     |> apply_list_lessons_opts(opts)
   end

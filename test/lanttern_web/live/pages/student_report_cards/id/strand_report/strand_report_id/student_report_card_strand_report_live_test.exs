@@ -81,16 +81,11 @@ defmodule LantternWeb.StudentReportCardStrandReportLiveTest do
           "#{@live_view_path_base}/#{student_report_card.id}/strand_report/#{strand_report.id}"
         )
 
-      # assert view |> has_element?("a", "Student ABC")
-      # assert view |> has_element?("a", "Some report card name abc")
-      assert view |> has_element?("p", "student abc footnote")
-
       # strand report card
       assert view |> has_element?("h1", "Strand for report ABC")
       assert view |> has_element?("p", "Some type XYZ")
       assert view |> has_element?("span", "Some subject SSS")
       assert view |> has_element?("span", "Some year YYY")
-      assert view |> has_element?("p", "Some description for strand report")
     end
 
     test "display student strand report correctly for students", context do
@@ -137,8 +132,6 @@ defmodule LantternWeb.StudentReportCardStrandReportLiveTest do
           "#{@live_view_path_base}/#{student_report_card.id}/strand_report/#{strand_report.id}"
         )
 
-      # assert view |> has_element?("a", student.name)
-      # assert view |> has_element?("a", "Some report card name abc")
       assert view |> has_element?("h1", "Strand for report ABC")
     end
 
@@ -227,8 +220,6 @@ defmodule LantternWeb.StudentReportCardStrandReportLiveTest do
           "#{@live_view_path_base}/#{student_report_card.id}/strand_report/#{strand_report.id}"
         )
 
-      # assert view |> has_element?("a", student.name)
-      # assert view |> has_element?("a", "Some report card name abc")
       assert view |> has_element?("h1", "Strand for report ABC")
     end
 
@@ -259,7 +250,7 @@ defmodule LantternWeb.StudentReportCardStrandReportLiveTest do
       {:ok, view, _html} =
         live(
           conn,
-          "#{@live_view_path_base}/#{student_report_card.id}/strand_report/#{strand_report.id}?tab=moments"
+          "#{@live_view_path_base}/#{student_report_card.id}/strand_report/#{strand_report.id}/moments"
         )
 
       assert view |> has_element?("h5", "Moment ABC")

@@ -1,4 +1,4 @@
-defmodule LantternWeb.Reporting.StrandReportMomentsComponent do
+defmodule LantternWeb.StrandReportLive.StrandReportMomentsComponent do
   @moduledoc """
   Renders moments info related to a `StrandReport`.
 
@@ -39,7 +39,7 @@ defmodule LantternWeb.Reporting.StrandReportMomentsComponent do
             <.link
               :for={{dom_id, {moment, entries}} <- @streams.moments_and_entries}
               id={dom_id}
-              patch={"#{@base_path}&moment_id=#{moment.id}"}
+              patch={"#{@base_path}/#{moment.id}"}
               class="group block mt-4"
             >
               <.card_base class={[

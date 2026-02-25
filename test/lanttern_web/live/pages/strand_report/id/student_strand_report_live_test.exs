@@ -15,7 +15,11 @@ defmodule LantternWeb.StudentStrandReportLiveTest do
       report_card = report_card_fixture(%{name: "Some report card name abc"})
 
       _student_report_card =
-        student_report_card_fixture(%{report_card_id: report_card.id, student_id: student.id})
+        student_report_card_fixture(%{
+          report_card_id: report_card.id,
+          student_id: student.id,
+          allow_student_access: true
+        })
 
       strand = LearningContextFixtures.strand_fixture(%{name: "Some strand name for report"})
 
@@ -45,7 +49,8 @@ defmodule LantternWeb.StudentStrandReportLiveTest do
       _student_report_card =
         student_report_card_fixture(%{
           report_card_id: report_card.id,
-          student_id: student.id
+          student_id: student.id,
+          allow_student_access: true
         })
 
       strand =
@@ -120,7 +125,8 @@ defmodule LantternWeb.StudentStrandReportLiveTest do
       _student_report_card =
         student_report_card_fixture(%{
           report_card_id: report_card.id,
-          student_id: student.id
+          student_id: student.id,
+          allow_guardian_access: true
         })
 
       strand =
@@ -168,7 +174,7 @@ defmodule LantternWeb.StudentStrandReportLiveTest do
       {:ok, view, _html} =
         live(
           conn,
-          "#{@live_view_path_base}/#{strand_report.id}?tab=moments"
+          "#{@live_view_path_base}/#{strand_report.id}/moments"
         )
 
       assert view |> has_element?("h5", "Moment ABC")

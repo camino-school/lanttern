@@ -1,0 +1,36 @@
+<Layouts.app_logged_in
+  flash={@flash}
+  current_user={@current_user}
+  current_path={@current_path}
+>
+  <.header_nav_simple>
+    <:breadcrumb navigate={@base_path}>
+      {@strand_report.strand.name}
+    </:breadcrumb>
+    <:title>{gettext("Overview")}</:title>
+  </.header_nav_simple>
+  <.responsive_container class="pt-6 pb-10">
+    <.cover_image
+      context_image_url={@strand_report.cover_image_url}
+      image_url={@strand_report.strand.cover_image_url}
+      alt_text={gettext("Strand cover image")}
+    />
+    <hgroup class="mt-10">
+      <h1 class="font-display font-black text-ltrn-darkest text-4xl sm:text-5xl">
+        {@strand_report.strand.name}
+      </h1>
+      <p :if={@strand_report.strand.type} class="mt-2 font-bold text-xl sm:text-2xl">
+        {@strand_report.strand.type}
+      </p>
+    </hgroup>
+    <div class="flex flex-wrap gap-2 mt-6">
+      <.badge :for={subject <- @strand_report.strand.subjects} theme="dark">
+        {Gettext.dgettext(Lanttern.Gettext, "taxonomy", subject.name)}
+      </.badge>
+      <.badge :for={year <- @strand_report.strand.years} theme="dark">
+        {Gettext.dgettext(Lanttern.Gettext, "taxonomy", year.name)}
+      </.badge>
+    </div>
+    <.markdown text={@strand_report.strand.description} class="mt-10" />
+  </.responsive_container>
+</Layouts.app_logged_in>

@@ -1,6 +1,6 @@
-defmodule LantternWeb.Reporting.StrandReportOverviewComponent do
+defmodule LantternWeb.StrandReportLive.StrandReportRubricsComponent do
   @moduledoc """
-  Renders the overview content of a `StrandReport`.
+  Renders the rubrics of a `StrandReport`.
 
   ### Required attrs
 
@@ -22,28 +22,10 @@ defmodule LantternWeb.Reporting.StrandReportOverviewComponent do
   def render(assigns) do
     ~H"""
     <div class={@class}>
-      <.cover_image
-        context_image_url={@strand_report.cover_image_url}
-        image_url={@strand_report.strand.cover_image_url}
-        alt_text={gettext("Strand cover image")}
-      />
-      <.responsive_container class="px-2 mt-10" no_default_padding>
-        <hgroup class="font-display font-black">
-          <h1 class="text-4xl sm:text-5xl">{@strand_report.strand.name}</h1>
-          <p :if={@strand_report.strand.type} class="mt-2 text-xl sm:text-2xl">
-            {@strand_report.strand.type}
-          </p>
-        </hgroup>
-        <div class="flex flex-wrap gap-2 mt-6">
-          <.badge :for={subject <- @strand_report.strand.subjects} theme="dark">
-            {Gettext.dgettext(Lanttern.Gettext, "taxonomy", subject.name)}
-          </.badge>
-          <.badge :for={year <- @strand_report.strand.years} theme="dark">
-            {Gettext.dgettext(Lanttern.Gettext, "taxonomy", year.name)}
-          </.badge>
-        </div>
-        <.markdown :if={@description} text={@description} class="mt-10" />
-        <div :if={@has_rubric} id="curriculum-items-student-rubrics" phx-update="stream">
+      <.scroll_to_top id="strand-report-rubrics-scroll-top" />
+      <.responsive_container>
+        <h2 class="font-display font-black text-2xl">{gettext("Strand Rubrics")}</h2>
+        <div :if={@has_rubric} id="curriculum-items-student-rubrics" phx-update="stream" class="mt-10">
           <.card_base
             :for={{dom_id, {goal, rubrics}} <- @streams.goals_rubrics}
             id={dom_id}
@@ -80,8 +62,8 @@ defmodule LantternWeb.Reporting.StrandReportOverviewComponent do
           <.rubric_card :for={{dom_id, rubric} <- @streams.diff_rubrics} id={dom_id} rubric={rubric} />
         </div>
          --%>
-        <.empty_state :if={!@description && !@has_rubric}>
-          {gettext("No strand report info yet.")}
+        <.empty_state :if={!@has_rubric}>
+          {gettext("No rubrics in this strand yet.")}
         </.empty_state>
       </.responsive_container>
     </div>
@@ -139,29 +121,9 @@ defmodule LantternWeb.Reporting.StrandReportOverviewComponent do
     socket =
       socket
       |> assign(assigns)
-      |> assign_description()
       |> stream_goals_rubrics()
 
     {:ok, socket}
-  end
-
-  defp assign_description(socket) do
-    # we try to use the strand report description
-    # and we fall back to the strand description
-
-    description =
-      case socket.assigns.strand_report do
-        %{description: strand_report_desc} when is_binary(strand_report_desc) ->
-          strand_report_desc
-
-        %{strand: %{description: strand_desc}} when is_binary(strand_desc) ->
-          strand_desc
-
-        _ ->
-          nil
-      end
-
-    assign(socket, :description, description)
   end
 
   defp stream_goals_rubrics(socket) do

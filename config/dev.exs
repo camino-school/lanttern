@@ -5,7 +5,7 @@ config :lanttern, Lanttern.Repo,
   username: "postgres",
   password: "postgres",
   hostname: "localhost",
-  database: "lanttern_dev",
+  database: "lanttern",
   stacktrace: true,
   show_sensitive_data_on_connection_error: true,
   pool_size: 10

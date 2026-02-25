@@ -45,6 +45,7 @@ defmodule LantternWeb.Lessons.LessonsSideNavComponent do
 
   use LantternWeb, :live_component
 
+  alias Lanttern.Identity.Scope
   alias Lanttern.LearningContext
   alias Lanttern.Lessons
 
@@ -57,11 +58,18 @@ defmodule LantternWeb.Lessons.LessonsSideNavComponent do
       <div
         id="unattached-strand-lessons"
         phx-update="stream"
-        phx-hook="Sortable"
-        data-sortable-handle=".drag-handle"
-        data-sortable-event="sortable_update"
-        data-moment-id="unattached"
-        data-sortable-group="lessons"
+        {
+        if Scope.profile_type?(@current_scope, "staff") do
+          %{
+            "phx-hook" => "Sortable",
+            "data-sortable-handle" => ".drag-handle",
+            "data-sortable-event" => "sortable_update",
+            "data-moment-id" => "unattached",
+            "data-sortable-group" => "lessons"
+          }
+          else %{}
+        end
+        }
       >
         <.lesson_entry
           :for={{dom_id, lesson} <- @streams.unattached_lessons}
@@ -76,11 +84,18 @@ defmodule LantternWeb.Lessons.LessonsSideNavComponent do
         :if={!Enum.empty?(@moments_ids)}
         id="strand-moments"
         phx-update="stream"
-        phx-hook="Sortable"
-        data-sortable-handle=".drag-handle"
-        data-sortable-event="sortable_update"
-        data-sortable-group="moments"
         class="space-y-10"
+        {
+        if Scope.profile_type?(@current_scope, "staff") do
+          %{
+            "phx-hook" => "Sortable",
+            "data-sortable-handle" => ".drag-handle",
+            "data-sortable-event" => "sortable_update",
+            "data-sortable-group" => "moments"
+          }
+          else %{}
+        end
+        }
       >
         <div
           :for={{dom_id, moment} <- @streams.moments}
@@ -101,12 +116,19 @@ defmodule LantternWeb.Lessons.LessonsSideNavComponent do
           <%!-- lessons --%>
           <div
             id={"moment-#{moment.id}-lessons"}
-            phx-hook="Sortable"
-            data-sortable-handle=".drag-handle"
-            data-sortable-event="sortable_update"
             phx-update="stream"
-            data-moment-id={moment.id}
-            data-sortable-group="lessons"
+            {
+            if Scope.profile_type?(@current_scope, "staff") do
+              %{
+                "phx-hook" => "Sortable",
+                "data-sortable-handle" => ".drag-handle",
+                "data-sortable-event" => "sortable_update",
+                "data-sortable-group" => "lessons",
+                "data-moment-id" => moment.id
+              }
+              else %{}
+            end
+            }
           >
             <.lesson_entry
               :for={{dom_id, lesson} <- @streams["moment_#{moment.id}_lessons"] || []}
@@ -246,13 +268,21 @@ defmodule LantternWeb.Lessons.LessonsSideNavComponent do
     #     %{id: id} -> [id]
     #     _ -> []
     #   end
-
-    lessons =
-      Lessons.list_lessons(
+    #
+    opts =
+      [
         strand_id: socket.assigns.strand_id,
         # subjects_ids: subjects_ids,
         preloads: [:subjects, :tags]
-      )
+      ]
+
+    opts =
+      case socket.assigns.current_scope.profile_type do
+        type when type in ["student", "guardian"] -> [{:is_published, true} | opts]
+        _ -> opts
+      end
+
+    lessons = Lessons.list_lessons(opts)
 
     # group and stream lessons by moment
     moments_lessons_map = Enum.group_by(lessons, &Map.get(&1, :moment_id))

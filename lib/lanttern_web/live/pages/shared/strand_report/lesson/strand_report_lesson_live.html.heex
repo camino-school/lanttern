@@ -1,0 +1,91 @@
+<Layouts.app_with_side_nav
+  flash={@flash}
+  current_user={@current_user}
+  current_path={@current_path}
+  side_nav_id="side-nav"
+  collapsible
+>
+  <:side_nav>
+    <div class="py-10">
+      <div class="px-10 mb-10">
+        <h2 class="inline font-display font-bold text-lg text-ltrn-darkest">
+          {gettext("Lesson")}
+        </h2>
+        <span class="font-sm italic text-ltrn-subtle">{gettext("in")}</span>
+        <h3>
+          <.link navigate={@base_path} class="hover:text-ltrn-subtle">
+            <span class="line-clamp-3">
+              {@strand.name}
+            </span>
+            <span class="flex items-center gap-1 mt-1 font-sans text-sm text-ltrn-subtle">
+              <.icon name="hero-arrow-left-micro" />
+              {gettext("Back")}
+            </span>
+          </.link>
+        </h3>
+      </div>
+      <.live_component
+        module={LessonsSideNavComponent}
+        id="lesson-nav"
+        lesson_id={@lesson.id}
+        strand_id={@strand.id}
+        current_scope={@current_scope}
+        on_moment_click={
+          fn moment_id ->
+            JS.push("view_moment_details", value: %{"moment_id" => moment_id})
+          end
+        }
+      />
+    </div>
+  </:side_nav>
+  <.responsive_container class="py-10">
+    <h1 class="font-display font-black text-2xl text-ltrn-darkest">
+      {@lesson.name}
+    </h1>
+    <div
+      :if={@lesson.moment || @lesson.subjects != [] || !Enum.empty?(@lesson.tags)}
+      class="flex items-center gap-4 mt-2"
+    >
+      <p :if={@lesson.moment} class="text-lg font-bold">
+        {@lesson.moment.name}
+      </p>
+      <p :if={@lesson.subjects != []} class="font-sans text-sm">
+        {@lesson.subjects
+        |> Enum.map(&Gettext.dgettext(Lanttern.Gettext, "taxonomy", &1.name))
+        |> Enum.join(", ")}
+      </p>
+      <div :if={!Enum.empty?(@lesson.tags)} class="flex gap-2 font-sans text-sm">
+        <div
+          :for={tag <- @lesson.tags}
+          class="flex items-center gap-1"
+        >
+          <.icon name="hero-tag-micro" style={"color: #{tag.bg_color}"} />
+          {tag.name}
+        </div>
+      </div>
+    </div>
+    <section id="lesson-description" class="mt-10">
+      <.markdown text={@lesson.description} />
+    </section>
+    <.live_component
+      module={AttachmentAreaComponent}
+      id="lesson-resources-student"
+      title={gettext("Lesson resources")}
+      lesson_id={@lesson.id}
+      is_teacher_only_resource={false}
+      allow_editing={true}
+      current_user={@current_user}
+      sortable_group="lesson-resources"
+      class="mt-10"
+    />
+  </.responsive_container>
+</Layouts.app_with_side_nav>
+<.modal
+  :if={@moment}
+  id="moment-details-overlay"
+  show={true}
+  on_cancel={JS.push("close_moment_details")}
+>
+  <h1 class="font-display font-black text-2xl">{@moment.name}</h1>
+  <.markdown text={@moment.description} class="mt-10" />
+</.modal>

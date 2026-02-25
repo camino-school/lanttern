@@ -127,6 +127,74 @@ defmodule LantternWeb.NavigationComponents do
   end
 
   @doc """
+  Renders a simple page header with navigation items.
+  """
+
+  slot :title, required: true
+  slot :action
+  slot :inner_block
+
+  slot :breadcrumb do
+    attr :navigate, :string
+    attr :title, :string
+
+    attr :is_info, :boolean,
+      doc: "use this attr to render an info icon before the item with hover interaction"
+  end
+
+  def header_nav_simple(assigns) do
+    has_breadcrumb = assigns.breadcrumb != []
+
+    first_breadcrumb =
+      Enum.filter(assigns.breadcrumb, &(!Map.get(&1, :is_info)))
+      |> case do
+        [first | _] -> first
+        _ -> nil
+      end
+
+    assigns =
+      assigns
+      |> assign(:has_breadcrumb, has_breadcrumb)
+      |> assign(:first_breadcrumb, first_breadcrumb)
+
+    ~H"""
+    <.header_base>
+      <%!-- min-w-0 to "fix" truncate (https://css-tricks.com/flexbox-truncated-text/) --%>
+      <div class="flex items-center sm:justify-center gap-2 min-w-0 p-4">
+        <%!-- back button for responsive only --%>
+        <.link
+          :if={@first_breadcrumb}
+          navigate={@first_breadcrumb.navigate}
+          class="sm:hidden text-ltrn-dark hover:text-ltrn-subtle"
+          title={Map.get(@first_breadcrumb, :title)}
+        >
+          <.icon name="hero-chevron-left" />
+        </.link>
+        <%= for breadcrumb <- @breadcrumb do %>
+          <%= if Map.get(breadcrumb, :is_info) do %>
+            <.breadcrumb_floating_info>
+              {render_slot(breadcrumb)}
+            </.breadcrumb_floating_info>
+          <% else %>
+            <.link
+              navigate={breadcrumb.navigate}
+              class="hidden sm:block max-w-60 font-display font-black text-lg text-ltrn-subtle truncate hover:text-ltrn-dark"
+              title={Map.get(breadcrumb, :title)}
+            >
+              {render_slot(breadcrumb)}
+            </.link>
+            <span class="hidden sm:block font-display font-black text-lg text-ltrn-subtle">/</span>
+          <% end %>
+        <% end %>
+        <h1 class="font-display font-black text-lg truncate">{render_slot(@title)}</h1>
+        {render_slot(@action)}
+      </div>
+      {render_slot(@inner_block)}
+    </.header_base>
+    """
+  end
+
+  @doc """
   Renders navigation tabs.
 
   ## Examples

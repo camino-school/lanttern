@@ -1,4 +1,4 @@
-defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
+defmodule LantternWeb.StrandReportLive.StrandReportAssessmentComponent do
   @moduledoc """
   Renders assessment info related to a `StrandReport`.
 
@@ -44,7 +44,7 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
                 @streams.strand_goals_student_entries
             }
             id={dom_id}
-            patch={"#{@base_path}&strand_goal_id=#{goal.id}"}
+            patch={"#{@base_path}/strand_goal/#{goal.id}"}
             goal={goal}
             entry={entry}
             moment_entries={moment_entries}
@@ -75,7 +75,7 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
                   "#{gettext("In the context of")} \"#{moment_name}\"."
                 end}
                 <.link
-                  patch={"#{@base_path}&strand_goal_id=#{goal_id}"}
+                  patch={"#{@base_path}/strand_goal/#{goal_id}"}
                   class="underline hover:text-ltrn-subtle"
                 >
                   {gettext("View assessment details")}
@@ -107,7 +107,7 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
                   module={StudentGradesReportEntryButtonComponent}
                   id={"#{dom_id}-entry-button"}
                   student_grades_report_entry={sgre}
-                  on_click={JS.patch("#{@base_path}&sgre=#{sgre.id}")}
+                  on_click={JS.patch("#{@base_path}/student_grade_report_entry/#{sgre.id}")}
                   class="flex-1 p-2"
                 />
                 <.icon
@@ -138,7 +138,7 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
                   @streams.strand_goals_without_student_entries
               }
               id={dom_id}
-              patch={"#{@base_path}&strand_goal_id=#{goal.id}"}
+              patch={"#{@base_path}/strand_goal/#{goal.id}"}
               goal={goal}
               entry={entry}
               moment_entries={moment_entries}
@@ -495,7 +495,9 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
 
   defp assign_strand_goal_id(socket), do: assign(socket, :strand_goal_id, nil)
 
-  defp assign_student_grades_report_entry_id(%{assigns: %{params: %{"sgre" => sgre_id}}} = socket) do
+  defp assign_student_grades_report_entry_id(
+         %{assigns: %{params: %{"student_grade_report_entry_id" => sgre_id}}} = socket
+       ) do
     # simple guard to prevent viewing details from unrelated entries
     student_grades_report_entry_id =
       if sgre_id in socket.assigns.student_grades_report_entries_ids do
