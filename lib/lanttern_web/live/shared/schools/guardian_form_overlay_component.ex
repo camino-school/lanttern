@@ -15,7 +15,11 @@ defmodule LantternWeb.Schools.GuardianFormOverlayComponent do
 
   use LantternWeb, :live_component
 
+  alias Lanttern.Repo
   alias Lanttern.Schools
+
+  # shared
+  alias LantternWeb.Schools.StudentSearchComponent
 
   @impl true
   def render(assigns) do
@@ -40,6 +44,38 @@ defmodule LantternWeb.Schools.GuardianFormOverlayComponent do
             class="mb-6"
             phx-debounce="1500"
           />
+          <div class="mb-6">
+            <.live_component
+              module={StudentSearchComponent}
+              id="student-search"
+              notify_component={@myself}
+              label={gettext("Students")}
+              refocus_on_select="true"
+              school_id={@guardian.school_id}
+            />
+            <%= if @students != [] do %>
+              <ol class="mt-4 text-sm leading-relaxed list-decimal list-inside">
+                <li :for={student <- @students} id={"selected-student-#{student.id}"}>
+                  {student.name}
+                  <.button
+                    type="button"
+                    icon_name="hero-x-mark-mini"
+                    class="align-middle"
+                    size="sm"
+                    theme="ghost"
+                    rounded
+                    phx-click={
+                      JS.push("remove_student", value: %{"id" => student.id}, target: @myself)
+                    }
+                  />
+                </li>
+              </ol>
+            <% else %>
+              <.empty_state_simple class="mt-4">
+                {gettext("No students added to this guardian")}
+              </.empty_state_simple>
+            <% end %>
+          </div>
         </.form>
         <:actions_left :if={@guardian.id}>
           <.action
@@ -79,6 +115,20 @@ defmodule LantternWeb.Schools.GuardianFormOverlayComponent do
   end
 
   @impl true
+  def update(
+        %{action: {StudentSearchComponent, {:selected, student}}},
+        socket
+      ) do
+    students =
+      [student | socket.assigns.students]
+      |> Enum.uniq()
+      |> Enum.sort_by(& &1.name)
+
+    selected_students_ids = Enum.map(students, & &1.id)
+
+    {:ok, assign(socket, students: students, selected_students_ids: selected_students_ids)}
+  end
+
   def update(%{guardian: guardian} = assigns, socket) do
     changeset = Schools.change_guardian(assigns.current_user.current_profile, guardian)
 
@@ -86,6 +136,7 @@ defmodule LantternWeb.Schools.GuardianFormOverlayComponent do
       socket
       |> assign(assigns)
       |> assign_form(changeset)
+      |> assign_students()
 
     {:ok, socket}
   end
@@ -105,6 +156,17 @@ defmodule LantternWeb.Schools.GuardianFormOverlayComponent do
 
   def handle_event("save", %{"guardian" => params}, socket) do
     save_guardian(socket, socket.assigns.guardian.id, params)
+  end
+
+  def handle_event("remove_student", %{"id" => id}, socket) do
+    students =
+      socket.assigns.students
+      |> Enum.reject(&(&1.id == id))
+
+    selected_students_ids = Enum.map(students, & &1.id)
+
+    {:noreply,
+     assign(socket, students: students, selected_students_ids: selected_students_ids)}
   end
 
   def handle_event("delete", _params, socket) do
@@ -132,6 +194,7 @@ defmodule LantternWeb.Schools.GuardianFormOverlayComponent do
 
     case Schools.create_guardian(scope, params) do
       {:ok, guardian} ->
+        save_students_associations(socket, guardian)
         notify_parent(socket.assigns.notify_component, {:created, guardian})
         {:noreply, push_patch(socket, to: socket.assigns.close_path)}
 
@@ -153,6 +216,7 @@ defmodule LantternWeb.Schools.GuardianFormOverlayComponent do
 
     case Schools.update_guardian(scope, socket.assigns.guardian, params) do
       {:ok, guardian} ->
+        save_students_associations(socket, guardian)
         notify_parent(socket.assigns.notify_component, {:updated, guardian})
         {:noreply, push_patch(socket, to: socket.assigns.close_path)}
 
@@ -177,6 +241,64 @@ defmodule LantternWeb.Schools.GuardianFormOverlayComponent do
 
   defp assign_form(socket, changeset) do
     assign(socket, :form, to_form(changeset))
+  end
+
+  defp assign_students(socket) do
+    # Load students that are currently associated with the guardian
+    students =
+      case socket.assigns.guardian.students do
+        students when is_list(students) ->
+          students
+
+        _ ->
+          socket.assigns.guardian
+          |> Repo.preload(:students)
+          |> Map.get(:students, [])
+      end
+
+    selected_students_ids = Enum.map(students, & &1.id)
+
+    socket
+    |> assign(:students, students)
+    |> assign(:selected_students_ids, selected_students_ids)
+  end
+
+  defp save_students_associations(socket, guardian) do
+    selected_ids = socket.assigns.selected_students_ids
+
+    # Get current student IDs, handling NotLoaded association
+    current_ids =
+      case socket.assigns.guardian.students do
+        %Ecto.Association.NotLoaded{} ->
+          socket.assigns.guardian
+          |> Repo.preload(:students)
+          |> Map.get(:students, [])
+          |> Enum.map(& &1.id)
+        students when is_list(students) ->
+          Enum.map(students, & &1.id)
+        _ ->
+          []
+      end
+
+    # Remove students that were deselected
+    Enum.each(current_ids -- selected_ids, fn student_id ->
+      Schools.remove_guardian_from_student(
+        socket.assigns.current_user.current_profile,
+        Schools.get_student!(student_id),
+        guardian.id
+      )
+    end)
+
+    # Add new students that were selected
+    Enum.each(selected_ids -- current_ids, fn student_id ->
+      student = Schools.get_student!(student_id)
+
+      Schools.add_guardian_to_student(
+        socket.assigns.current_user.current_profile,
+        student,
+        guardian
+      )
+    end)
   end
 
   defp notify_parent(nil, _message), do: :ok
