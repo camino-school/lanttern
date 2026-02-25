@@ -1726,16 +1726,31 @@ defmodule Lanttern.Schools do
 
   ## Examples
 
-      iex> remove_staff_member_from_class(class_staff_member)
+      iex> remove_staff_member_from_class(scope, class_staff_member)
       {:ok, %ClassStaffMember{}}
 
-      iex> remove_staff_member_from_class(class_staff_member)
-      {:error, %Ecto.Changeset{}}
+      iex> remove_staff_member_from_class(scope, class_staff_member)
+      {:error, :unauthorized}
 
   """
-  def remove_staff_member_from_class(%ClassStaffMember{} = class_staff_member) do
-    Repo.delete(class_staff_member)
+  def remove_staff_member_from_class(
+        %{school_id: school_id, permissions: permissions},
+        %ClassStaffMember{} = class_staff_member
+      ) do
+    if "school_management" in permissions do
+      case Repo.get(Class, class_staff_member.class_id) do
+        %Class{school_id: ^school_id} ->
+          Repo.delete(class_staff_member)
+
+        _ ->
+          {:error, :unauthorized}
+      end
+    else
+      {:error, :unauthorized}
+    end
   end
+
+  def remove_staff_member_from_class(_scope, _class_staff_member), do: {:error, :unauthorized}
 
   @doc """
   Updates class staff members positions based on ids list order.

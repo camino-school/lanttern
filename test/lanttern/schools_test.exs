@@ -1830,17 +1830,39 @@ defmodule Lanttern.SchoolsTest do
                Schools.update_class_staff_member(scope, csm, %{role: "Lead Teacher"})
     end
 
-    test "remove_staff_member_from_class/1 deletes the relationship" do
+    test "remove_staff_member_from_class/2 deletes the relationship" do
       school = school_fixture()
       class = class_fixture(%{school_id: school.id})
       staff_member = staff_member_fixture(%{school_id: school.id})
       csm = class_staff_member_fixture(%{class_id: class.id, staff_member_id: staff_member.id})
+      scope = %{school_id: school.id, permissions: ["school_management"]}
 
-      assert {:ok, %ClassStaffMember{}} = Schools.remove_staff_member_from_class(csm)
+      assert {:ok, %ClassStaffMember{}} = Schools.remove_staff_member_from_class(scope, csm)
 
       assert_raise Ecto.NoResultsError, fn ->
         Schools.get_class_staff_member!(%{school_id: school.id}, csm.id)
       end
+    end
+
+    test "remove_staff_member_from_class/2 returns unauthorized if scope lacks school_management permission" do
+      school = school_fixture()
+      class = class_fixture(%{school_id: school.id})
+      staff_member = staff_member_fixture(%{school_id: school.id})
+      csm = class_staff_member_fixture(%{class_id: class.id, staff_member_id: staff_member.id})
+      scope = %{school_id: school.id, permissions: []}
+
+      assert {:error, :unauthorized} = Schools.remove_staff_member_from_class(scope, csm)
+    end
+
+    test "remove_staff_member_from_class/2 returns unauthorized if class belongs to a different school" do
+      school_1 = school_fixture()
+      school_2 = school_fixture()
+      class = class_fixture(%{school_id: school_2.id})
+      staff_member = staff_member_fixture(%{school_id: school_2.id})
+      csm = class_staff_member_fixture(%{class_id: class.id, staff_member_id: staff_member.id})
+      scope = %{school_id: school_1.id, permissions: ["school_management"]}
+
+      assert {:error, :unauthorized} = Schools.remove_staff_member_from_class(scope, csm)
     end
 
     test "update_class_staff_members_positions/3 updates positions based on ids order" do

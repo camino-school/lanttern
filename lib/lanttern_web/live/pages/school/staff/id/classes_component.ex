@@ -232,7 +232,7 @@ defmodule LantternWeb.StaffMemberLive.ClassesComponent do
   def handle_event("remove", %{"id" => id}, socket) do
     csm = Schools.get_class_staff_member!(socket.assigns.current_user.current_profile, id)
 
-    case Schools.remove_staff_member_from_class(csm) do
+    case Schools.remove_staff_member_from_class(socket.assigns.current_user.current_profile, csm) do
       {:ok, _} ->
         socket =
           socket
