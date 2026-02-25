@@ -21,12 +21,14 @@ defmodule LantternWeb.StrandReportLive.StrandReportOverviewComponent do
       <.scroll_to_top id="strand-report-overview-scroll-top" />
       <.responsive_container class="px-2" no_default_padding>
         <.cover_image
+          :if={@strand_report.cover_image_url || @strand_report.strand.cover_image_url}
           context_image_url={@strand_report.cover_image_url}
           image_url={@strand_report.strand.cover_image_url}
           alt_text={gettext("Strand cover image")}
           size="sm"
+          class="mb-10"
         />
-        <hgroup class="mt-10">
+        <hgroup>
           <h1 class="font-display font-black text-ltrn-darkest text-4xl sm:text-5xl">
             {@strand_report.strand.name}
           </h1>

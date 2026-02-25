@@ -159,17 +159,19 @@ defmodule LantternWeb.NavigationComponents do
 
     ~H"""
     <.header_base>
-      <%!-- min-w-0 to "fix" truncate (https://css-tricks.com/flexbox-truncated-text/) --%>
-      <div class="flex items-center sm:justify-center gap-2 min-w-0 p-4">
-        <%!-- back button for responsive only --%>
+    <div class="flex items-center justify-between gap-4">
+      <div class="shrink-0 p-4">
         <.link
           :if={@first_breadcrumb}
           navigate={@first_breadcrumb.navigate}
-          class="sm:hidden text-ltrn-dark hover:text-ltrn-subtle"
+          class="text-ltrn-dark hover:text-ltrn-subtle"
           title={Map.get(@first_breadcrumb, :title)}
         >
-          <.icon name="hero-chevron-left" />
+          <.icon name="hero-arrow-left" />
         </.link>
+      </div>
+      <%!-- min-w-0 to "fix" truncate (https://css-tricks.com/flexbox-truncated-text/) --%>
+      <div class="flex-1 flex items-center justify-center gap-2 min-w-0 p-4">
         <%= for breadcrumb <- @breadcrumb do %>
           <%= if Map.get(breadcrumb, :is_info) do %>
             <.breadcrumb_floating_info>
@@ -188,6 +190,17 @@ defmodule LantternWeb.NavigationComponents do
         <% end %>
         <h1 class="font-display font-black text-lg truncate">{render_slot(@title)}</h1>
         {render_slot(@action)}
+      </div>
+      <div class="shrink-0 p-4">
+        <button
+          type="button"
+          class="hover:text-ltrn-subtle"
+          phx-click={JS.exec("data-show", to: "#menu")}
+          aria-label="open menu"
+        >
+          <.icon name="hero-bars-3-mini" />
+        </button>
+      </div>
       </div>
       {render_slot(@inner_block)}
     </.header_base>
