@@ -1214,6 +1214,52 @@ defmodule Lanttern.Schools do
   end
 
   @doc """
+  Searches for guardians by name.
+
+  Returns a list of guardians matching the search term, ordered by relevance.
+
+  ### Options:
+
+  - `:school_id` – filters guardians by school
+  - `:preloads` – preloads associated data
+
+  ## Examples
+
+      iex> search_guardians("john", school_id: 1)
+      [%Guardian{}, ...]
+
+  """
+  def search_guardians(search_term, opts \\ []) do
+    ilike_search_term = "%#{search_term}%"
+
+    query =
+      from(
+        g in Guardian,
+        where: ilike(g.name, ^ilike_search_term),
+        order_by: {:asc, fragment("? <<-> ?", ^search_term, g.name)}
+      )
+
+    [{:base_query, query} | opts]
+    |> list_guardians_search(opts)
+  end
+
+  # Helper function for search_guardians that handles school_id filtering
+  defp list_guardians_search(_query, opts) do
+    queryable = Keyword.get(opts, :base_query, Guardian)
+    school_id = Keyword.get(opts, :school_id)
+
+    query_with_filter =
+      from(
+        g in queryable,
+        where: g.school_id == ^school_id
+      )
+
+    query_with_filter
+    |> Repo.all()
+    |> maybe_preload(opts)
+  end
+
+  @doc """
   Gets a single staff member.
 
   Raises `Ecto.NoResultsError` if the StaffMember does not exist.
