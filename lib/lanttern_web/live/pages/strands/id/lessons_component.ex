@@ -615,7 +615,7 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
       |> List.insert_at(new_index, lesson_id)
 
     # the inteface was already updated (optimistic update), just persist the new order
-    Lessons.update_lessons_positions(lessons_ids)
+    Lessons.update_lessons_positions(socket.assigns.current_scope, lessons_ids)
 
     # update lesson's moment_id
     lesson = Lessons.get_lesson!(lesson_id)
@@ -645,7 +645,7 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
     lessons_ids = reorder(socket.assigns.moments_lessons_ids_map[moment_id], old_index, new_index)
 
     # the inteface was already updated (optimistic update), just persist the new order
-    Lessons.update_lessons_positions(lessons_ids)
+    Lessons.update_lessons_positions(socket.assigns.current_scope, lessons_ids)
 
     # and update ids list in assigns
     moments_lessons_ids_map =

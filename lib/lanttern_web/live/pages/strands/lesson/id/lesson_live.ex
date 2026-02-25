@@ -109,8 +109,7 @@ defmodule LantternWeb.LessonLive do
 
   def handle_event("edit_description", _params, socket) do
     form =
-      socket.assigns.lesson
-      |> Lessons.change_lesson()
+      Lessons.change_lesson(socket.assigns.current_scope, socket.assigns.lesson)
       |> to_form()
 
     {:noreply, assign(socket, :description_form, form)}
@@ -121,8 +120,7 @@ defmodule LantternWeb.LessonLive do
 
   def handle_event("validate_description", %{"lesson" => params}, socket) do
     form =
-      socket.assigns.lesson
-      |> Lessons.change_lesson(params)
+      Lessons.change_lesson(socket.assigns.current_scope, socket.assigns.lesson, params)
       |> Map.put(:action, :validate)
       |> to_form()
 
@@ -148,8 +146,7 @@ defmodule LantternWeb.LessonLive do
 
   def handle_event("edit_teacher_notes", _params, socket) do
     form =
-      socket.assigns.lesson
-      |> Lessons.change_lesson()
+      Lessons.change_lesson(socket.assigns.current_scope, socket.assigns.lesson)
       |> to_form()
 
     {:noreply, assign(socket, :teacher_notes_form, form)}
@@ -160,8 +157,7 @@ defmodule LantternWeb.LessonLive do
 
   def handle_event("validate_teacher_notes", %{"lesson" => params}, socket) do
     form =
-      socket.assigns.lesson
-      |> Lessons.change_lesson(params)
+      Lessons.change_lesson(socket.assigns.current_scope, socket.assigns.lesson, params)
       |> Map.put(:action, :validate)
       |> to_form()
 
@@ -187,8 +183,7 @@ defmodule LantternWeb.LessonLive do
 
   def handle_event("edit_differentiation", _params, socket) do
     form =
-      socket.assigns.lesson
-      |> Lessons.change_lesson()
+      Lessons.change_lesson(socket.assigns.current_scope, socket.assigns.lesson)
       |> to_form()
 
     {:noreply, assign(socket, :differentiation_form, form)}
@@ -199,8 +194,7 @@ defmodule LantternWeb.LessonLive do
 
   def handle_event("validate_differentiation", %{"lesson" => params}, socket) do
     form =
-      socket.assigns.lesson
-      |> Lessons.change_lesson(params)
+      Lessons.change_lesson(socket.assigns.current_scope, socket.assigns.lesson, params)
       |> Map.put(:action, :validate)
       |> to_form()
 
