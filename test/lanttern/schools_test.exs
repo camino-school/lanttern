@@ -1761,14 +1761,19 @@ defmodule Lanttern.SchoolsTest do
       guardian = insert(:guardian, school_id: scope.school_id)
       update_attrs = %{name: "Jane Doe"}
 
-      assert {:ok, %Guardian{} = guardian} = Schools.update_guardian(scope, guardian, update_attrs)
+      assert {:ok, %Guardian{} = guardian} =
+               Schools.update_guardian(scope, guardian, update_attrs)
+
       assert guardian.name == "Jane Doe"
     end
 
     test "update_guardian/2 with invalid data returns error changeset" do
       scope = scope_fixture(permissions: ["school_management"])
       guardian = insert(:guardian, school_id: scope.school_id)
-      assert {:error, %Ecto.Changeset{}} = Schools.update_guardian(scope, guardian, @invalid_attrs)
+
+      assert {:error, %Ecto.Changeset{}} =
+               Schools.update_guardian(scope, guardian, @invalid_attrs)
+
       assert guardian == Schools.get_guardian!(scope, guardian.id)
     end
 

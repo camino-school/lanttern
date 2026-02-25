@@ -16,7 +16,11 @@ defmodule LantternWeb.SchoolLive.GuardiansComponent do
           {ngettext("1 guardian", "%{count} guardians", @guardians_length)}
         </div>
         <div :if={@is_school_manager} class="flex items-center gap-4">
-          <.action type="link" patch={~p"/school/guardians" <> "?new=true"} icon_name="hero-plus-circle-mini">
+          <.action
+            type="link"
+            patch={~p"/school/guardians" <> "?new=true"}
+            icon_name="hero-plus-circle-mini"
+          >
             {gettext("Add guardian")}
           </.action>
         </div>
@@ -33,7 +37,9 @@ defmodule LantternWeb.SchoolLive.GuardiansComponent do
             show_edit={@is_school_manager}
             show_delete={@is_school_manager}
             edit_patch={~p"/school/guardians" <> "?edit=#{guardian.id}"}
-            on_delete={JS.push("delete", value: %{id: guardian.id}, target: @myself) |> hide("##{dom_id}")}
+            on_delete={
+              JS.push("delete", value: %{id: guardian.id}, target: @myself) |> hide("##{dom_id}")
+            }
           />
         </.fluid_grid>
       <% end %>

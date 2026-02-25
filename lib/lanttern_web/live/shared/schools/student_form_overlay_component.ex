@@ -278,7 +278,8 @@ defmodule LantternWeb.Schools.StudentFormOverlayComponent do
 
   defp ensure_student_tag_relationships_preload(student), do: student
 
-  defp ensure_guardians_preload(%Student{guardians: guardians} = student) when not is_list(guardians) do
+  defp ensure_guardians_preload(%Student{guardians: guardians} = student)
+       when not is_list(guardians) do
     Repo.preload(student, [:guardians])
   end
 
@@ -297,6 +298,7 @@ defmodule LantternWeb.Schools.StudentFormOverlayComponent do
       case socket.assigns.student.guardians do
         guardians when is_list(guardians) ->
           guardians
+
         _ ->
           socket.assigns.student
           |> Repo.preload(:guardians)
@@ -329,7 +331,8 @@ defmodule LantternWeb.Schools.StudentFormOverlayComponent do
 
     selected_guardians_ids = Enum.map(guardians, & &1.id)
 
-    {:noreply, assign(socket, guardians: guardians, selected_guardians_ids: selected_guardians_ids)}
+    {:noreply,
+     assign(socket, guardians: guardians, selected_guardians_ids: selected_guardians_ids)}
   end
 
   def handle_event("save", %{"student" => student_params}, socket) do
@@ -430,13 +433,22 @@ defmodule LantternWeb.Schools.StudentFormOverlayComponent do
 
     # Remove guardians that were deselected
     Enum.each(current_ids -- selected_ids, fn guardian_id ->
-      Schools.remove_guardian_from_student(socket.assigns.current_user.current_profile, student, guardian_id)
+      Schools.remove_guardian_from_student(
+        socket.assigns.current_user.current_profile,
+        student,
+        guardian_id
+      )
     end)
 
     # Add new guardians that were selected
     Enum.each(selected_ids -- current_ids, fn guardian_id ->
       guardian = Schools.get_guardian!(socket.assigns.current_user.current_profile, guardian_id)
-      Schools.add_guardian_to_student(socket.assigns.current_user.current_profile, student, guardian)
+
+      Schools.add_guardian_to_student(
+        socket.assigns.current_user.current_profile,
+        student,
+        guardian
+      )
     end)
   end
 end

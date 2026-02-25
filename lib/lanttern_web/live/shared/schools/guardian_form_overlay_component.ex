@@ -93,7 +93,11 @@ defmodule LantternWeb.Schools.GuardianFormOverlayComponent do
   @impl true
   def handle_event("validate", %{"guardian" => params}, socket) do
     changeset =
-      Schools.change_guardian(socket.assigns.current_user.current_profile, socket.assigns.guardian, params)
+      Schools.change_guardian(
+        socket.assigns.current_user.current_profile,
+        socket.assigns.guardian,
+        params
+      )
       |> Map.put(:action, :validate)
 
     {:noreply, assign_form(socket, changeset)}
@@ -104,13 +108,17 @@ defmodule LantternWeb.Schools.GuardianFormOverlayComponent do
   end
 
   def handle_event("delete", _params, socket) do
-    case Schools.delete_guardian(socket.assigns.current_user.current_profile, socket.assigns.guardian) do
+    case Schools.delete_guardian(
+           socket.assigns.current_user.current_profile,
+           socket.assigns.guardian
+         ) do
       {:ok, guardian} ->
         notify_parent(socket.assigns.notify_component, {:deleted, guardian})
         {:noreply, push_patch(socket, to: socket.assigns.close_path)}
 
       {:error, :unauthorized} ->
-        {:noreply, put_flash(socket, :error, gettext("You don't have permission to delete guardians"))}
+        {:noreply,
+         put_flash(socket, :error, gettext("You don't have permission to delete guardians"))}
 
       {:error, _changeset} ->
         {:noreply, socket}
@@ -128,7 +136,9 @@ defmodule LantternWeb.Schools.GuardianFormOverlayComponent do
         {:noreply, push_patch(socket, to: socket.assigns.close_path)}
 
       {:error, :unauthorized} ->
-        socket = put_flash(socket, :error, gettext("You don't have permission to create guardians"))
+        socket =
+          put_flash(socket, :error, gettext("You don't have permission to create guardians"))
+
         {:noreply, socket}
 
       {:error, %Ecto.Changeset{} = changeset} ->
@@ -147,7 +157,9 @@ defmodule LantternWeb.Schools.GuardianFormOverlayComponent do
         {:noreply, push_patch(socket, to: socket.assigns.close_path)}
 
       {:error, :unauthorized} ->
-        socket = put_flash(socket, :error, gettext("You don't have permission to update guardians"))
+        socket =
+          put_flash(socket, :error, gettext("You don't have permission to update guardians"))
+
         {:noreply, socket}
 
       {:error, %Ecto.Changeset{} = changeset} ->

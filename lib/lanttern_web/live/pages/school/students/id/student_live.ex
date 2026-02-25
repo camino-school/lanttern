@@ -30,7 +30,13 @@ defmodule LantternWeb.StudentLive do
 
   defp assign_student(socket, params) do
     case Schools.get_student(params["id"],
-           preloads: [:school, :student_tag_relationships, :tags, :guardians, classes: [:cycle, :years]],
+           preloads: [
+             :school,
+             :student_tag_relationships,
+             :tags,
+             :guardians,
+             classes: [:cycle, :years]
+           ],
            load_email: true
          ) do
       %Student{} = student ->

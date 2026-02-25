@@ -1621,6 +1621,7 @@ defmodule Lanttern.Schools do
   """
   def list_guardians(scope, opts \\ []) do
     queryable = Keyword.get(opts, :base_query, Guardian)
+
     from(
       g in queryable,
       where: g.school_id == ^scope.school_id,

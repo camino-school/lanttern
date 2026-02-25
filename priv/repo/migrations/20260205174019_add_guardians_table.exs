@@ -16,6 +16,7 @@ defmodule Lanttern.Repo.Migrations.AddGuardiansTable do
       add :student_id,
           references(:students, on_delete: :delete_all),
           primary_key: true
+
       add :guardian_id,
           references(:guardians, on_delete: :delete_all),
           primary_key: true
