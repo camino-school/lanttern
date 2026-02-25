@@ -143,24 +143,7 @@ defmodule Lanttern.Lessons do
   def create_lesson(%Scope{} = scope, attrs, opts \\ []) do
     true = Scope.profile_type?(scope, "staff")
 
-    queryable =
-      case attrs do
-        %{strand_id: strand_id, moment_id: moment_id} ->
-          from(l in Lesson, where: l.strand_id == ^strand_id and l.moment_id == ^moment_id)
-
-        %{"strand_id" => strand_id, "moment_id" => moment_id} ->
-          from(l in Lesson, where: l.strand_id == ^strand_id and l.moment_id == ^moment_id)
-
-        %{strand_id: strand_id} ->
-          from(l in Lesson, where: l.strand_id == ^strand_id and is_nil(l.moment_id))
-
-        %{"strand_id" => strand_id} ->
-          from(l in Lesson, where: l.strand_id == ^strand_id and is_nil(l.moment_id))
-
-        _ ->
-          Lesson
-      end
-
+    queryable = lesson_in_strand_or_moment_query(attrs)
     attrs = set_position_in_attrs(queryable, attrs)
 
     %Lesson{}
@@ -169,6 +152,23 @@ defmodule Lanttern.Lessons do
     |> AuditLog.maybe_log(LessonLog, "CREATE", scope, Keyword.take(opts, [:is_ai_agent]))
     |> maybe_preload(opts)
   end
+
+  defp lesson_in_strand_or_moment_query(%{strand_id: strand_id, moment_id: moment_id})
+       when not is_nil(strand_id) and not is_nil(moment_id),
+       do: from(l in Lesson, where: l.strand_id == ^strand_id and l.moment_id == ^moment_id)
+
+  defp lesson_in_strand_or_moment_query(%{"strand_id" => strand_id, "moment_id" => moment_id})
+       when not is_nil(strand_id) and not is_nil(moment_id),
+       do: from(l in Lesson, where: l.strand_id == ^strand_id and l.moment_id == ^moment_id)
+
+  defp lesson_in_strand_or_moment_query(%{strand_id: strand_id}) when not is_nil(strand_id),
+    do: from(l in Lesson, where: l.strand_id == ^strand_id and is_nil(l.moment_id))
+
+  defp lesson_in_strand_or_moment_query(%{"strand_id" => strand_id}) when not is_nil(strand_id),
+    do: from(l in Lesson, where: l.strand_id == ^strand_id and is_nil(l.moment_id))
+
+  defp lesson_in_strand_or_moment_query(_attrs),
+    do: Lesson
 
   @doc """
   Updates a lesson.
