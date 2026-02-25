@@ -1231,30 +1231,16 @@ defmodule Lanttern.Schools do
   """
   def search_guardians(search_term, opts \\ []) do
     ilike_search_term = "%#{search_term}%"
+    school_id = Keyword.get(opts, :school_id)
 
     query =
       from(
         g in Guardian,
-        where: ilike(g.name, ^ilike_search_term),
+        where: ilike(g.name, ^ilike_search_term) and g.school_id == ^school_id,
         order_by: {:asc, fragment("? <<-> ?", ^search_term, g.name)}
       )
 
-    [{:base_query, query} | opts]
-    |> list_guardians_search(opts)
-  end
-
-  # Helper function for search_guardians that handles school_id filtering
-  defp list_guardians_search(_query, opts) do
-    queryable = Keyword.get(opts, :base_query, Guardian)
-    school_id = Keyword.get(opts, :school_id)
-
-    query_with_filter =
-      from(
-        g in queryable,
-        where: g.school_id == ^school_id
-      )
-
-    query_with_filter
+    query
     |> Repo.all()
     |> maybe_preload(opts)
   end

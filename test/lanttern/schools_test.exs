@@ -1879,5 +1879,38 @@ defmodule Lanttern.SchoolsTest do
       scope = scope_fixture(permissions: ["school_management"])
       assert Schools.get_guardian(scope, -1) == nil
     end
+
+    test "search_guardians/2 returns all items matched by search" do
+      school = school_fixture()
+
+      _guardian_1 = insert(:guardian, school_id: school.id, name: "lorem ipsum xolor sit amet")
+      guardian_2 = insert(:guardian, school_id: school.id, name: "lorem ipsum dolor sit amet")
+      guardian_3 = insert(:guardian, school_id: school.id, name: "lorem ipsum dolorxxx sit amet")
+      _guardian_4 = insert(:guardian, school_id: school.id, name: "lorem ipsum xxxxx sit amet")
+
+      assert [guardian_2, guardian_3] ==
+               Schools.search_guardians("dolor", school_id: school.id)
+    end
+
+    test "search_guardians/2 with school_id filter returns only guardians from given school" do
+      school_1 = school_fixture()
+      school_2 = school_fixture()
+
+      _guardian_1 = insert(:guardian, school_id: school_1.id, name: "lorem ipsum xolor sit amet")
+      guardian_2 = insert(:guardian, school_id: school_1.id, name: "lorem ipsum dolor sit amet")
+      _guardian_3 = insert(:guardian, school_id: school_2.id, name: "lorem ipsum dolorxxx sit amet")
+      _guardian_4 = insert(:guardian, school_id: school_2.id, name: "lorem ipsum xxxxx sit amet")
+
+      assert [guardian_2] ==
+               Schools.search_guardians("dolor", school_id: school_1.id)
+    end
+
+    test "search_guardians/2 with non-matching query returns empty list" do
+      school = school_fixture()
+      _guardian = insert(:guardian, school_id: school.id, name: "John Doe")
+
+      assert [] ==
+               Schools.search_guardians("xyz", school_id: school.id)
+    end
   end
 end
