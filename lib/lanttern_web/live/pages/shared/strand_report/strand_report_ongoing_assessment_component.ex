@@ -42,7 +42,6 @@ defmodule LantternWeb.StrandReportLive.StrandReportOngoingAssessmentComponent do
                   id={dom_id}
                   assessment_point={ap}
                   base_path={@base_path}
-                  on_edit={JS.push("edit_assessment_point", value: %{id: ap.id}, target: @myself)}
                 />
                 <.empty_state_simple
                   class="p-4 mt-4 hidden only:block"
@@ -69,7 +68,6 @@ defmodule LantternWeb.StrandReportLive.StrandReportOngoingAssessmentComponent do
 
   attr :id, :string, required: true
   attr :assessment_point, :map, required: true
-  attr :on_edit, :any, required: true
   attr :base_path, :string, required: true
 
   defp assessment_point_card(assigns) do

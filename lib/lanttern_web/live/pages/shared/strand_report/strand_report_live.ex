@@ -46,14 +46,8 @@ defmodule LantternWeb.StrandReportLive do
         _ ->
           # don't need to worry with other profile types
           # (handled by :ensure_authenticated_student_or_guardian in router)
-          student_id =
-            case socket.assigns.current_user.current_profile do
-              %{type: "student"} = profile -> profile.student_id
-              %{type: "guardian"} = profile -> profile.guardian_of_student_id
-            end
-
           Reporting.get_student_report_card_by_student_and_strand_report(
-            student_id,
+            socket.assigns.current_scope.student_id,
             strand_report_id,
             preloads: [
               :student,
@@ -142,7 +136,7 @@ defmodule LantternWeb.StrandReportLive do
 
   defp assign_allow_access(socket) do
     allow_access =
-      case {socket.assigns.current_user.current_profile.type, socket.assigns.student_report_card} do
+      case {socket.assigns.current_scope.profile_type, socket.assigns.student_report_card} do
         {"student", %{allow_student_access: true}} -> true
         {"guardian", %{allow_guardian_access: true}} -> true
         _ -> false

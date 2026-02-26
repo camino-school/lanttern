@@ -1,7 +1,7 @@
 defmodule LantternWeb.StrandReportOverviewLive do
   use LantternWeb, :live_view
 
-  alias Lanttern.Identity.Profile
+  alias Lanttern.Identity.Scope
   alias Lanttern.Reporting
   import Lanttern.SupabaseHelpers, only: [object_url_to_render_url: 2]
 
@@ -16,7 +16,6 @@ defmodule LantternWeb.StrandReportOverviewLive do
       |> check_if_user_has_access()
       |> assign_strand_report(params)
       |> assign_base_path_and_navigation_context(params)
-      |> assign_allow_access()
 
     {:ok, socket}
   end
@@ -24,21 +23,28 @@ defmodule LantternWeb.StrandReportOverviewLive do
   defp assign_student_report_card(socket, params) do
     %{"strand_report_id" => strand_report_id} = params
 
-    # don't need to worry with other profile types
-    # (handled by :ensure_authenticated_student_or_guardian in router)
-    student_id =
-      case socket.assigns.current_user.current_profile do
-        %{type: "student"} = profile -> profile.student_id
-        %{type: "guardian"} = profile -> profile.guardian_of_student_id
-      end
-
     student_report_card =
-      Reporting.get_student_report_card_by_student_and_strand_report(student_id, strand_report_id,
-        preloads: [
-          :student,
-          report_card: :school_cycle
-        ]
-      )
+      case params do
+        %{"student_report_card_id" => id} ->
+          Reporting.get_student_report_card!(id,
+            preloads: [
+              :student,
+              report_card: :school_cycle
+            ]
+          )
+
+        _ ->
+          # don't need to worry with other profile types
+          # (handled by :ensure_authenticated_student_or_guardian in router)
+          Reporting.get_student_report_card_by_student_and_strand_report(
+            socket.assigns.current_scope.student_id,
+            strand_report_id,
+            preloads: [
+              :student,
+              report_card: :school_cycle
+            ]
+          )
+      end
 
     assign(socket, :student_report_card, student_report_card)
   end
@@ -47,19 +53,25 @@ defmodule LantternWeb.StrandReportOverviewLive do
     do: raise(LantternWeb.NotFoundError)
 
   defp check_if_user_has_access(socket) do
-    %{current_user: current_user, student_report_card: student_report_card} = socket.assigns
+    %{current_scope: current_scope, student_report_card: student_report_card} = socket.assigns
     # check if user can view the student strand report
     # guardian and students can only view their own reports
+    # staff members can view only reports from their school
 
     report_card_student_id = student_report_card.student_id
+    report_card_student_school_id = student_report_card.student.school_id
 
-    case current_user.current_profile do
-      %Profile{type: "guardian", guardian_of_student_id: student_id}
+    case current_scope do
+      %Scope{profile_type: "guardian", student_id: student_id}
       when student_id == report_card_student_id ->
         nil
 
-      %Profile{type: "student", student_id: student_id}
+      %Scope{profile_type: "student", student_id: student_id}
       when student_id == report_card_student_id ->
+        nil
+
+      %Scope{profile_type: "staff", school_id: school_id}
+      when school_id == report_card_student_school_id ->
         nil
 
       _ ->
@@ -111,17 +123,6 @@ defmodule LantternWeb.StrandReportOverviewLive do
     socket
     |> assign(:base_path, base_path)
     |> assign(:navigation_context, navigation_context)
-  end
-
-  defp assign_allow_access(socket) do
-    allow_access =
-      case {socket.assigns.current_user.current_profile.type, socket.assigns.student_report_card} do
-        {"student", %{allow_student_access: true}} -> true
-        {"guardian", %{allow_guardian_access: true}} -> true
-        _ -> false
-      end
-
-    assign(socket, :allow_access, allow_access)
   end
 
   @impl true

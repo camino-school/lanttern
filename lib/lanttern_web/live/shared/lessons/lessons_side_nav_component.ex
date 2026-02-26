@@ -12,6 +12,7 @@ defmodule LantternWeb.Lessons.LessonsSideNavComponent do
     * `current_scope` - The current user scope for authorization
     * `lesson_id` - The currently active lesson ID (used for visual highlighting)
     * `on_moment_click` - Moment click handler function (`moment_id` as arg)
+    * `is_staff` - When false (default), editing is disabled and unpublished moments are filtered. We use this separated from scope because teachers can visualize lessons as students/guardians.
     * `base_path` - Base path for lesson links (e.g. `"/strands/lesson"` or `"/strand_report/123/lesson"`). Defaults to `"/strands/lesson"`
 
   ## Streams
@@ -46,7 +47,6 @@ defmodule LantternWeb.Lessons.LessonsSideNavComponent do
 
   use LantternWeb, :live_component
 
-  alias Lanttern.Identity.Scope
   alias Lanttern.LearningContext
   alias Lanttern.Lessons
 
@@ -60,7 +60,7 @@ defmodule LantternWeb.Lessons.LessonsSideNavComponent do
         id="unattached-strand-lessons"
         phx-update="stream"
         {
-        if Scope.profile_type?(@current_scope, "staff") do
+        if @is_staff do
           %{
             "phx-hook" => "Sortable",
             "data-sortable-handle" => ".drag-handle",
@@ -88,7 +88,7 @@ defmodule LantternWeb.Lessons.LessonsSideNavComponent do
         phx-update="stream"
         class="space-y-10"
         {
-        if Scope.profile_type?(@current_scope, "staff") do
+        if @is_staff do
           %{
             "phx-hook" => "Sortable",
             "data-sortable-handle" => ".drag-handle",
@@ -120,7 +120,7 @@ defmodule LantternWeb.Lessons.LessonsSideNavComponent do
             id={"moment-#{moment.id}-lessons"}
             phx-update="stream"
             {
-            if Scope.profile_type?(@current_scope, "staff") do
+            if @is_staff do
               %{
                 "phx-hook" => "Sortable",
                 "data-sortable-handle" => ".drag-handle",
@@ -232,6 +232,7 @@ defmodule LantternWeb.Lessons.LessonsSideNavComponent do
       |> assign(:lesson, nil)
       |> assign(:lesson_id, nil)
       |> assign(:moment_id, nil)
+      |> assign(:is_staff, false)
       |> assign(:base_path, "/strands/lesson")
       |> assign(:initialized, false)
 
@@ -282,10 +283,7 @@ defmodule LantternWeb.Lessons.LessonsSideNavComponent do
       ]
 
     opts =
-      case socket.assigns.current_scope.profile_type do
-        type when type in ["student", "guardian"] -> [{:is_published, true} | opts]
-        _ -> opts
-      end
+      if socket.assigns.is_staff, do: opts, else: [{:is_published, true} | opts]
 
     lessons = Lessons.list_lessons(opts)
 
