@@ -26,7 +26,7 @@ defmodule LantternWeb.StrandReportLive.StrandReportOngoingAssessmentComponent do
       <.responsive_container>
         <h2 class="font-display font-black text-2xl">{gettext("Ongoing assessment")}</h2>
         <p class="mt-4">
-          {gettext("Information about ongoing assessment points, grouped by strand moments.")}
+          {gettext("Information about ongoing assessment points, grouped by moments.")}
         </p>
 
         <section id="ongoing-assessment-points" class="mt-10">

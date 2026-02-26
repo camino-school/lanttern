@@ -46,13 +46,6 @@
           >
             {gettext("Assessment")}
           </:tab>
-          <:tab
-            :if={@strand_report.has_moments}
-            patch={"#{@base_path}/moments"}
-            is_current={@live_action in [:moments, :moment_details]}
-          >
-            {gettext("Moments")}
-          </:tab>
         </.neo_tabs>
       </div>
     </div>
@@ -144,16 +137,4 @@
       current_profile={@current_user.current_profile}
     />
   </div>
-  <.live_component
-    :if={@live_action in [:moments, :moment_details]}
-    module={StrandReportMomentsComponent}
-    id="student-moments"
-    strand_report={@strand_report}
-    student_id={@student_report_card.student_id}
-    student_report_card_id={@student_report_card.id}
-    current_profile={@current_user.current_profile}
-    params={@params}
-    class="py-10"
-    base_path={"#{@base_path}/moments"}
-  />
 </Layouts.app_logged_in>

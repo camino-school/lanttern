@@ -7,7 +7,6 @@ defmodule LantternWeb.StrandReportLive do
 
   # view components
   alias __MODULE__.StrandReportAssessmentComponent
-  alias __MODULE__.StrandReportMomentsComponent
   alias __MODULE__.StrandReportOngoingAssessmentComponent
   alias __MODULE__.StrandReportOverviewComponent
   alias __MODULE__.StrandReportRubricsComponent
@@ -104,8 +103,7 @@ defmodule LantternWeb.StrandReportLive do
 
     strand_report =
       Reporting.get_strand_report!(strand_report_id,
-        preloads: [strand: [:subjects, :years]],
-        check_if_has_moments: true
+        preloads: [strand: [:subjects, :years]]
       )
 
     cover_image_url =
