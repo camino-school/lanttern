@@ -165,8 +165,7 @@ defmodule LantternWeb.Schools.GuardianFormOverlayComponent do
 
     selected_students_ids = Enum.map(students, & &1.id)
 
-    {:noreply,
-     assign(socket, students: students, selected_students_ids: selected_students_ids)}
+    {:noreply, assign(socket, students: students, selected_students_ids: selected_students_ids)}
   end
 
   def handle_event("delete", _params, socket) do
@@ -274,8 +273,10 @@ defmodule LantternWeb.Schools.GuardianFormOverlayComponent do
           |> Repo.preload(:students)
           |> Map.get(:students, [])
           |> Enum.map(& &1.id)
+
         students when is_list(students) ->
           Enum.map(students, & &1.id)
+
         _ ->
           []
       end

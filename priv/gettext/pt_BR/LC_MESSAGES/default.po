@@ -6156,12 +6156,12 @@ msgstr "Você não tem acesso à esta página"
 #: lib/lanttern_web/live/shared/schools/guardian_form_overlay_component.ex:113
 #, elixir-autogen, elixir-format
 msgid "You don't have permission to delete guardians"
-msgstr ""
+msgstr "Você não tem permissão para excluir responsáveis"
 
 #: lib/lanttern_web/live/shared/schools/guardian_form_overlay_component.ex:150
 #, elixir-autogen, elixir-format
 msgid "You don't have permission to update guardians"
-msgstr ""
+msgstr "Você não tem permissão para atualizar responsáveis"
 
 #: lib/lanttern_web/live/shared/schools/student_form_overlay_component.ex:117
 #, elixir-autogen, elixir-format, fuzzy

@@ -1898,7 +1898,10 @@ defmodule Lanttern.SchoolsTest do
 
       _guardian_1 = insert(:guardian, school_id: school_1.id, name: "lorem ipsum xolor sit amet")
       guardian_2 = insert(:guardian, school_id: school_1.id, name: "lorem ipsum dolor sit amet")
-      _guardian_3 = insert(:guardian, school_id: school_2.id, name: "lorem ipsum dolorxxx sit amet")
+
+      _guardian_3 =
+        insert(:guardian, school_id: school_2.id, name: "lorem ipsum dolorxxx sit amet")
+
       _guardian_4 = insert(:guardian, school_id: school_2.id, name: "lorem ipsum xxxxx sit amet")
 
       assert [guardian_2] ==
