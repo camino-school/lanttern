@@ -378,7 +378,7 @@ defmodule LantternWeb.NavigationComponents do
     ~H"""
     <nav
       id={@id}
-      class="fixed top-0 left-0 w-70 h-screen overflow-y-auto bg-white ltrn-bg-side transition-transform duration-300"
+      class="fixed top-0 left-0 w-70 h-screen overflow-y-auto bg-white ltrn-bg-side transition-transform duration-300 group-[.sidenav-collapsed]/sidenav:-translate-x-full"
     >
       <button
         :if={@menu_title}
@@ -396,24 +396,25 @@ defmodule LantternWeb.NavigationComponents do
       :if={@collapsible}
       id={"#{@id}-toggle"}
       type="button"
-      class="fixed top-1/2 -translate-y-1/2 left-70 z-40 flex items-center justify-center w-8 h-14 rounded-r-full bg-white shadow-xl hover:bg-ltrn-lighter transition-[left] duration-300"
+      class="fixed top-1/2 -translate-y-1/2 left-70 z-40 flex items-center justify-center w-8 h-14 rounded-r-full bg-white shadow-xl hover:bg-ltrn-lighter transition-[left] duration-300 group-[.sidenav-collapsed]/sidenav:left-0"
       phx-click={toggle_side_nav(@id)}
       aria-label={gettext("toggle side navigation")}
     >
-      <.icon name="hero-chevron-left-mini" class="-translate-x-1 toggle-collapse" />
-      <.icon name="hero-chevron-right-mini" class="-translate-x-1 toggle-expand hidden" />
+      <.icon
+        name="hero-chevron-left-mini"
+        class="-translate-x-1 group-[.sidenav-collapsed]/sidenav:hidden"
+      />
+      <.icon
+        name="hero-chevron-right-mini"
+        class="-translate-x-1 hidden group-[.sidenav-collapsed]/sidenav:block"
+      />
     </button>
     """
   end
 
   defp toggle_side_nav(id) do
-    JS.toggle_class("-translate-x-full", to: "##{id}")
+    JS.toggle_class("sidenav-collapsed", to: "##{id}-layout")
     |> JS.toggle_attribute({"inert", "true"}, to: "##{id}")
-    |> JS.toggle_class("pl-70", to: "##{id}-layout")
-    |> JS.toggle_class("left-70", to: "##{id}-toggle")
-    |> JS.toggle_class("left-0", to: "##{id}-toggle")
-    |> JS.toggle(to: "##{id}-toggle .toggle-collapse")
-    |> JS.toggle(to: "##{id}-toggle .toggle-expand")
   end
 
   @doc """
