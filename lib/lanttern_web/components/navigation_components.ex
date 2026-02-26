@@ -127,6 +127,87 @@ defmodule LantternWeb.NavigationComponents do
   end
 
   @doc """
+  Renders a simple page header with navigation items.
+  """
+
+  slot :title, required: true
+  slot :action
+  slot :inner_block
+
+  slot :breadcrumb do
+    attr :navigate, :string
+    attr :title, :string
+
+    attr :is_info, :boolean,
+      doc: "use this attr to render an info icon before the item with hover interaction"
+  end
+
+  def header_nav_simple(assigns) do
+    has_breadcrumb = assigns.breadcrumb != []
+
+    first_breadcrumb =
+      Enum.filter(assigns.breadcrumb, &(!Map.get(&1, :is_info)))
+      |> case do
+        [first | _] -> first
+        _ -> nil
+      end
+
+    assigns =
+      assigns
+      |> assign(:has_breadcrumb, has_breadcrumb)
+      |> assign(:first_breadcrumb, first_breadcrumb)
+
+    ~H"""
+    <.header_base>
+      <div class="flex items-center justify-between gap-4">
+        <div class="shrink-0 p-4">
+          <.link
+            :if={@first_breadcrumb}
+            navigate={@first_breadcrumb.navigate}
+            class="text-ltrn-dark hover:text-ltrn-subtle"
+            title={Map.get(@first_breadcrumb, :title)}
+          >
+            <.icon name="hero-arrow-left" />
+          </.link>
+        </div>
+        <%!-- min-w-0 to "fix" truncate (https://css-tricks.com/flexbox-truncated-text/) --%>
+        <div class="flex-1 flex items-center justify-center gap-2 min-w-0 p-4">
+          <%= for breadcrumb <- @breadcrumb do %>
+            <%= if Map.get(breadcrumb, :is_info) do %>
+              <.breadcrumb_floating_info>
+                {render_slot(breadcrumb)}
+              </.breadcrumb_floating_info>
+            <% else %>
+              <.link
+                navigate={breadcrumb.navigate}
+                class="hidden sm:block max-w-60 font-display font-black text-lg text-ltrn-subtle truncate hover:text-ltrn-dark"
+                title={Map.get(breadcrumb, :title)}
+              >
+                {render_slot(breadcrumb)}
+              </.link>
+              <span class="hidden sm:block font-display font-black text-lg text-ltrn-subtle">/</span>
+            <% end %>
+          <% end %>
+          <h1 class="font-display font-black text-lg truncate">{render_slot(@title)}</h1>
+          {render_slot(@action)}
+        </div>
+        <div class="shrink-0 p-4">
+          <button
+            type="button"
+            class="hover:text-ltrn-subtle"
+            phx-click={JS.exec("data-show", to: "#menu")}
+            aria-label="open menu"
+          >
+            <.icon name="hero-bars-3-mini" />
+          </button>
+        </div>
+      </div>
+      {render_slot(@inner_block)}
+    </.header_base>
+    """
+  end
+
+  @doc """
   Renders navigation tabs.
 
   ## Examples
@@ -297,7 +378,7 @@ defmodule LantternWeb.NavigationComponents do
     ~H"""
     <nav
       id={@id}
-      class="fixed top-0 left-0 w-70 h-screen overflow-y-auto bg-white ltrn-bg-side transition-transform duration-300"
+      class="fixed top-0 left-0 w-70 h-screen overflow-y-auto bg-white ltrn-bg-side transition-transform duration-300 group-[.sidenav-collapsed]/sidenav:-translate-x-full"
     >
       <button
         :if={@menu_title}
@@ -315,24 +396,25 @@ defmodule LantternWeb.NavigationComponents do
       :if={@collapsible}
       id={"#{@id}-toggle"}
       type="button"
-      class="fixed top-1/2 -translate-y-1/2 left-70 z-40 flex items-center justify-center w-8 h-14 rounded-r-full bg-white shadow-xl hover:bg-ltrn-lighter transition-[left] duration-300"
+      class="fixed top-1/2 -translate-y-1/2 left-70 z-40 flex items-center justify-center w-8 h-14 rounded-r-full bg-white shadow-xl hover:bg-ltrn-lighter transition-[left] duration-300 group-[.sidenav-collapsed]/sidenav:left-0"
       phx-click={toggle_side_nav(@id)}
       aria-label={gettext("toggle side navigation")}
     >
-      <.icon name="hero-chevron-left-mini" class="-translate-x-1 toggle-collapse" />
-      <.icon name="hero-chevron-right-mini" class="-translate-x-1 toggle-expand hidden" />
+      <.icon
+        name="hero-chevron-left-mini"
+        class="-translate-x-1 group-[.sidenav-collapsed]/sidenav:hidden"
+      />
+      <.icon
+        name="hero-chevron-right-mini"
+        class="-translate-x-1 hidden group-[.sidenav-collapsed]/sidenav:block"
+      />
     </button>
     """
   end
 
   defp toggle_side_nav(id) do
-    JS.toggle_class("-translate-x-full", to: "##{id}")
+    JS.toggle_class("sidenav-collapsed", to: "##{id}-layout")
     |> JS.toggle_attribute({"inert", "true"}, to: "##{id}")
-    |> JS.toggle_class("pl-70", to: "##{id}-layout")
-    |> JS.toggle_class("left-70", to: "##{id}-toggle")
-    |> JS.toggle_class("left-0", to: "##{id}-toggle")
-    |> JS.toggle(to: "##{id}-toggle .toggle-collapse")
-    |> JS.toggle(to: "##{id}-toggle .toggle-expand")
   end
 
   @doc """

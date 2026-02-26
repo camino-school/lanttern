@@ -182,7 +182,36 @@ defmodule LantternWeb.Router do
         {LantternWeb.LocalizationHelpers, :put_timezone}
       ] do
       live "/student_report_cards", StudentReportCardsLive, :index
-      live "/strand_report/:strand_report_id", StudentStrandReportLive, :show
+
+      # -- strand report
+
+      live "/strand_report/:strand_report_id", StrandReportLive, :overview
+      # live "/strand_report/:strand_report_id/overview", StrandReportLive, :overview
+      live "/strand_report/:strand_report_id/rubrics", StrandReportLive, :rubrics
+      live "/strand_report/:strand_report_id/assessment", StrandReportLive, :assessment
+
+      live "/strand_report/:strand_report_id/ongoing_assessment",
+           StrandReportLive,
+           :ongoing_assessment
+
+      live "/strand_report/:strand_report_id/ongoing_assessment/:assessment_point_id",
+           StrandReportLive,
+           :ongoing_assessment_details
+
+      live "/strand_report/:strand_report_id/assessment/strand_goal/:strand_goal_id",
+           StrandReportLive,
+           :strand_goal
+
+      live "/strand_report/:strand_report_id/assessment/student_grade_report_entry/:student_grade_report_entry_id",
+           StrandReportLive,
+           :student_grade_report_entry
+
+      live "/strand_report/:strand_report_id/overview", StrandReportOverviewLive, :overview
+
+      live "/strand_report/:strand_report_id/lesson/:id", StrandReportLessonLive, :show
+
+      # -- ILP
+
       live "/student_strands", StudentStrandsLive
       live "/student_ilp", StudentILPLive
     end
@@ -196,8 +225,43 @@ defmodule LantternWeb.Router do
       ] do
       live "/student_report_cards/:id", StudentReportCardLive, :show
 
+      # -- strand report
+
       live "/student_report_cards/:student_report_card_id/strand_report/:strand_report_id",
-           StudentReportCardStrandReportLive,
+           StrandReportLive,
+           :overview
+
+      # live "/student_report_cards/:student_report_card_id/strand_report/:strand_report_id/overview", StrandReportLive, :overview
+      live "/student_report_cards/:student_report_card_id/strand_report/:strand_report_id/rubrics",
+           StrandReportLive,
+           :rubrics
+
+      live "/student_report_cards/:student_report_card_id/strand_report/:strand_report_id/ongoing_assessment",
+           StrandReportLive,
+           :ongoing_assessment
+
+      live "/student_report_cards/:student_report_card_id/strand_report/:strand_report_id/ongoing_assessment/:assessment_point_id",
+           StrandReportLive,
+           :ongoing_assessment_details
+
+      live "/student_report_cards/:student_report_card_id/strand_report/:strand_report_id/assessment",
+           StrandReportLive,
+           :assessment
+
+      live "/student_report_cards/:student_report_card_id/strand_report/:strand_report_id/assessment/strand_goal/:strand_goal_id",
+           StrandReportLive,
+           :strand_goal
+
+      live "/student_report_cards/:student_report_card_id/strand_report/:strand_report_id/assessment/student_grade_report_entry/:student_grade_report_entry_id",
+           StrandReportLive,
+           :student_grade_report_entry
+
+      live "/student_report_cards/:student_report_card_id/strand_report/:strand_report_id/overview",
+           StrandReportOverviewLive,
+           :overview
+
+      live "/student_report_cards/:student_report_card_id/strand_report/:strand_report_id/lesson/:id",
+           StrandReportLessonLive,
            :show
     end
   end

@@ -16,6 +16,7 @@ defmodule Lanttern.Assessments do
   alias Lanttern.Attachments.Attachment
   alias Lanttern.Conversation.Comment
   alias Lanttern.Curricula.CurriculumItem
+  alias Lanttern.Identity.Scope
   alias Lanttern.Identity.User
   alias Lanttern.LearningContext.Moment
   alias Lanttern.LearningContext.Strand
@@ -1220,6 +1221,70 @@ defmodule Lanttern.Assessments do
        ) do
     Enum.any?(moments_entries, fn entry ->
       entry.differentiation_rubric_id != nil
+    end)
+  end
+
+  @doc """
+  Returns the list of all moments assessment points and entries for the given student and strand.
+
+  Student entries are loaded in `assessment_point.student_entry`.
+  Entries have `ordinal_value` preloaded and `has_evidences` calculated.
+
+  Scope and student should belong to same school.
+
+  Assessment points without entries are ignored.
+
+  Ordered by `Moment`, then `AssessmentPoint` positions.
+
+  """
+
+  @spec list_strand_moments_assessment_points_with_student_entries(
+          Scope.t(),
+          Student.t(),
+          strand_id :: pos_integer()
+        ) :: [AssessmentPoint.t()]
+  def list_strand_moments_assessment_points_with_student_entries(
+        %Scope{school_id: school_id} = _scope,
+        %Student{school_id: school_id} = student,
+        strand_id
+      ) do
+    assessment_points =
+      from(
+        ap in AssessmentPoint,
+        join: m in assoc(ap, :moment),
+        join: e in assoc(ap, :entries),
+        left_join: ov in assoc(e, :ordinal_value),
+        where: m.strand_id == ^strand_id,
+        where: e.student_id == ^student.id,
+        order_by: [asc: m.position, asc: ap.position],
+        select: %{ap | student_entry: %{e | ordinal_value: ov}}
+      )
+      |> Repo.all()
+
+    assessment_points_ids = Enum.map(assessment_points, & &1.id)
+
+    entry_has_evidences_map =
+      from(
+        ap in AssessmentPoint,
+        join: m in assoc(ap, :moment),
+        join: e in assoc(ap, :entries),
+        left_join: apee in assoc(e, :assessment_point_entry_evidences),
+        where: m.strand_id == ^strand_id,
+        where: e.student_id == ^student.id,
+        where: ap.id in ^assessment_points_ids,
+        select: {e.id, count(apee) > 0},
+        group_by: [ap.id, e.id]
+      )
+      |> Repo.all()
+      |> Enum.into(%{})
+
+    assessment_points
+    |> Enum.map(fn ap ->
+      Map.update!(
+        ap,
+        :student_entry,
+        &%{&1 | has_evidences: Map.get(entry_has_evidences_map, &1.id)}
+      )
     end)
   end
 
