@@ -14,6 +14,7 @@ defmodule Lanttern.Lessons.Lesson do
 
   alias Lanttern.LearningContext.Moment
   alias Lanttern.LearningContext.Strand
+  alias Lanttern.Lessons.LessonAttachment
   alias Lanttern.Lessons.Tag
   alias Lanttern.Taxonomy.Subject
 
@@ -48,6 +49,9 @@ defmodule Lanttern.Lessons.Lesson do
 
     belongs_to :strand, Strand
     belongs_to :moment, Moment
+
+    has_many :lesson_attachments, LessonAttachment
+    has_many :attachments, through: [:lesson_attachments, :attachment]
 
     many_to_many :subjects, Subject, join_through: "lessons_subjects", on_replace: :delete
 

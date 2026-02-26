@@ -47,7 +47,7 @@ defmodule LantternWeb.StudentsRecords.StudentRecordOverlayComponent do
             <.input
               field={@form[:name]}
               type="text"
-              label={gettext("Name")}
+              label={gettext("Student record subject")}
               class="mb-6"
               phx-debounce="1500"
               show_optional

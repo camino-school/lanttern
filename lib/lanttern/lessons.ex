@@ -22,6 +22,7 @@ defmodule Lanttern.Lessons do
 
   - `:strand_id` – filter lessons by strand
   - `:subjects_ids` – filter lessons by subjects
+  - `:is_published` - filter by `is_published` status
   - `:preloads` – preloads associated data
 
   ## Examples
@@ -58,6 +59,15 @@ defmodule Lanttern.Lessons do
       join: ls in "lessons_subjects",
       on: ls.lesson_id == l.id,
       where: ls.subject_id in ^subjects_ids
+    )
+    |> apply_list_lessons_opts(opts)
+  end
+
+  defp apply_list_lessons_opts(queryable, [{:is_published, is_published} | opts])
+       when is_boolean(is_published) do
+    from(
+      l in queryable,
+      where: l.is_published == ^is_published
     )
     |> apply_list_lessons_opts(opts)
   end
@@ -131,45 +141,34 @@ defmodule Lanttern.Lessons do
 
   """
   def create_lesson(%Scope{} = scope, attrs, opts \\ []) do
+    true = Scope.profile_type?(scope, "staff")
+
+    queryable = lesson_in_strand_or_moment_query(attrs)
+    attrs = set_position_in_attrs(queryable, attrs)
+
     %Lesson{}
     |> Lesson.changeset(attrs)
-    |> set_lesson_position()
     |> Repo.insert()
     |> AuditLog.maybe_log(LessonLog, "CREATE", scope, Keyword.take(opts, [:is_ai_agent]))
     |> maybe_preload(opts)
   end
 
-  # skip if not valid
-  defp set_lesson_position(%Ecto.Changeset{valid?: false} = changeset),
-    do: changeset
+  defp lesson_in_strand_or_moment_query(%{strand_id: strand_id, moment_id: moment_id})
+       when not is_nil(strand_id) and not is_nil(moment_id),
+       do: from(l in Lesson, where: l.strand_id == ^strand_id and l.moment_id == ^moment_id)
 
-  # skip if changeset already has position change
-  defp set_lesson_position(%Ecto.Changeset{changes: %{position: _position}} = changeset),
-    do: changeset
+  defp lesson_in_strand_or_moment_query(%{"strand_id" => strand_id, "moment_id" => moment_id})
+       when not is_nil(strand_id) and not is_nil(moment_id),
+       do: from(l in Lesson, where: l.strand_id == ^strand_id and l.moment_id == ^moment_id)
 
-  defp set_lesson_position(%Ecto.Changeset{} = changeset) do
-    strand_id = Ecto.Changeset.get_field(changeset, :strand_id)
-    moment_id = Ecto.Changeset.get_field(changeset, :moment_id)
+  defp lesson_in_strand_or_moment_query(%{strand_id: strand_id}) when not is_nil(strand_id),
+    do: from(l in Lesson, where: l.strand_id == ^strand_id and is_nil(l.moment_id))
 
-    position =
-      from(l in Lesson,
-        where: l.strand_id == ^strand_id,
-        select: l.position,
-        order_by: [desc: l.position],
-        limit: 1
-      )
-      |> where_moment_id(moment_id)
-      |> Repo.one()
-      |> case do
-        nil -> 0
-        pos -> pos + 1
-      end
+  defp lesson_in_strand_or_moment_query(%{"strand_id" => strand_id}) when not is_nil(strand_id),
+    do: from(l in Lesson, where: l.strand_id == ^strand_id and is_nil(l.moment_id))
 
-    Ecto.Changeset.put_change(changeset, :position, position)
-  end
-
-  defp where_moment_id(query, nil), do: where(query, [l], is_nil(l.moment_id))
-  defp where_moment_id(query, moment_id), do: where(query, [l], l.moment_id == ^moment_id)
+  defp lesson_in_strand_or_moment_query(_attrs),
+    do: Lesson
 
   @doc """
   Updates a lesson.
@@ -188,6 +187,8 @@ defmodule Lanttern.Lessons do
 
   """
   def update_lesson(%Scope{} = scope, %Lesson{} = lesson, attrs, opts \\ []) do
+    true = Scope.profile_type?(scope, "staff")
+
     lesson
     |> Lesson.changeset(attrs)
     |> Repo.update()
@@ -199,14 +200,16 @@ defmodule Lanttern.Lessons do
 
   ## Examples
 
-  iex> update_lessons_positions([3, 2, 1])
+  iex> update_lessons_positions(scope, [3, 2, 1])
   :ok
 
   """
-  @spec update_lessons_positions(lessons_ids :: [pos_integer()]) ::
+  @spec update_lessons_positions(scope :: Scope.t(), lessons_ids :: [pos_integer()]) ::
           :ok | {:error, String.t()}
-  def update_lessons_positions(lessons_ids),
-    do: update_positions(Lesson, lessons_ids)
+  def update_lessons_positions(%Scope{} = scope, lessons_ids) do
+    true = Scope.profile_type?(scope, "staff")
+    update_positions(Lesson, lessons_ids)
+  end
 
   @doc """
   Deletes a lesson.
@@ -221,6 +224,8 @@ defmodule Lanttern.Lessons do
 
   """
   def delete_lesson(%Scope{} = scope, %Lesson{} = lesson) do
+    true = Scope.profile_type?(scope, "staff")
+
     Repo.delete(lesson)
     |> AuditLog.maybe_log(LessonLog, "DELETE", scope, [])
   end
@@ -230,11 +235,13 @@ defmodule Lanttern.Lessons do
 
   ## Examples
 
-      iex> change_lesson(lesson)
+      iex> change_lesson(scope, lesson)
       %Ecto.Changeset{data: %Lesson{}}
 
   """
-  def change_lesson(%Lesson{} = lesson, attrs \\ %{}) do
+  def change_lesson(%Scope{} = scope, %Lesson{} = lesson, attrs \\ %{}) do
+    true = Scope.profile_type?(scope, "staff")
+
     Lesson.changeset(lesson, attrs)
   end
 

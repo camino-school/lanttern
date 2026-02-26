@@ -50,7 +50,7 @@ defmodule Lanttern.Identity.Scope do
       profile_id: profile.id,
       profile_type: profile.type,
       staff_member_id: profile.staff_member_id,
-      student_id: profile.student_id,
+      student_id: profile.student_id || profile.guardian_of_student_id,
       school_id: profile.school_id,
       permissions: profile.permissions || []
     }

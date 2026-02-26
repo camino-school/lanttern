@@ -175,33 +175,22 @@ defmodule LantternWeb.ReportingComponents do
   attr :id, :string, default: nil
   attr :class, :any, default: nil
 
-  def report_scale(%{scale: %{type: "ordinal"}, rubric: rubric} = assigns)
-      when not is_nil(rubric) do
-    %{ordinal_values: ordinal_values} = assigns.scale
-    n = length(ordinal_values)
+  def report_scale(%{scale: %{type: "ordinal"}, rubric: %Rubric{} = rubric} = assigns) do
+    n = length(rubric.descriptors)
 
     grid_template_columns_style =
       "grid-template-columns: repeat(#{n}, minmax(200px, 1fr))"
 
-    active_ordinal_value =
-      assigns.scale.ordinal_values
-      |> Enum.find(&(assigns.entry && assigns.entry.ordinal_value_id == &1.id))
-
-    ordinal_values_and_descriptors =
-      Enum.zip(ordinal_values, rubric.descriptors)
-
     assigns =
       assigns
       |> assign(:grid_template_columns_style, grid_template_columns_style)
-      |> assign(:active_ordinal_value, active_ordinal_value)
-      |> assign(:ordinal_values_and_descriptors, ordinal_values_and_descriptors)
 
     ~H"""
     <div class={["grid gap-1 min-w-full", @class]} id={@id} style={@grid_template_columns_style}>
       <.report_scale_descriptor
-        :for={{ordinal_value, descriptor} <- @ordinal_values_and_descriptors}
+        :for={descriptor <- @rubric.descriptors}
         entry={@entry}
-        ordinal_value={ordinal_value}
+        ordinal_value={descriptor.ordinal_value}
         descriptor={descriptor}
       />
     </div>

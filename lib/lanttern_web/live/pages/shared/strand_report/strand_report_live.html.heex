@@ -1,0 +1,139 @@
+<Layouts.app_logged_in
+  flash={@flash}
+  current_user={@current_user}
+  current_path={@current_path}
+>
+  <.header_nav_simple>
+    <:breadcrumb :if={@navigation_context == :strand_report} navigate={~p"/student_strands"}>
+      {gettext("Strands")}
+    </:breadcrumb>
+    <:breadcrumb
+      :if={@navigation_context == :report_card}
+      navigate={~p"/student_report_cards/#{@student_report_card}"}
+    >
+      {gettext("Report card")}
+    </:breadcrumb>
+    <:breadcrumb is_info>
+      <.mini_strand_card strand={@strand_report.strand} class="w-60" />
+    </:breadcrumb>
+    <:title>{@strand_report.strand.name}</:title>
+    <div class="max-w-screen overflow-x-auto">
+      <div class="inline-flex items-center justify-center min-w-full px-4">
+        <.neo_tabs id="strand-nav-tabs">
+          <:tab
+            patch={@base_path}
+            is_current={@live_action == :overview}
+          >
+            {gettext("Overview")}
+          </:tab>
+          <:tab
+            patch={"#{@base_path}/rubrics"}
+            is_current={@live_action == :rubrics}
+          >
+            {gettext("Rubrics")}
+          </:tab>
+          <:tab
+            patch={"#{@base_path}/ongoing_assessment"}
+            is_current={
+              @live_action in [
+                :assessment,
+                :strand_goal,
+                :student_grade_report_entry,
+                :ongoing_assessment,
+                :ongoing_assessment_details
+              ]
+            }
+          >
+            {gettext("Assessment")}
+          </:tab>
+        </.neo_tabs>
+      </div>
+    </div>
+  </.header_nav_simple>
+  <.live_component
+    :if={@live_action == :overview}
+    module={StrandReportOverviewComponent}
+    id="strand-overview"
+    strand_report={@strand_report}
+    student_id={@student_report_card.student_id}
+    base_path={@base_path}
+    live_action={@live_action}
+    class="px-4 py-10"
+  />
+  <.live_component
+    :if={@live_action == :rubrics}
+    module={StrandReportRubricsComponent}
+    id="strand-rubrics"
+    strand_report={@strand_report}
+    student_id={@student_report_card.student_id}
+    allow_access={@allow_access}
+    class="py-10"
+  />
+  <div :if={
+    @live_action in [
+      :assessment,
+      :strand_goal,
+      :student_grade_report_entry,
+      :ongoing_assessment,
+      :ongoing_assessment_details
+    ]
+  }>
+    <.responsive_container class="pt-10">
+      <p>
+        {gettext("Here you'll find information about the strand ongoing and final assessments.")}
+      </p>
+      <p class="mt-4 mb-10">
+        {gettext("You can click assessment cards to view more details about it.")}
+      </p>
+      <.markdown
+        :if={@strand_report.strand.assessment_info}
+        text={@strand_report.strand.assessment_info}
+        class="mt-10"
+      />
+      <div class="flex gap-4 mt-10">
+        <.button
+          type="link"
+          patch={"#{@base_path}/ongoing_assessment"}
+          theme={
+            if @live_action in [:ongoing_assessment, :ongoing_assessment_details], do: "primary"
+          }
+        >
+          {gettext("Ongoing")}
+        </.button>
+        <.button
+          type="link"
+          patch={"#{@base_path}/assessment"}
+          theme={
+            if @live_action in [:assessment, :strand_goal, :student_grade_report_entry],
+              do: "primary"
+          }
+        >
+          {gettext("Final")}
+        </.button>
+      </div>
+    </.responsive_container>
+    <.live_component
+      :if={@live_action in [:ongoing_assessment, :ongoing_assessment_details]}
+      module={StrandReportOngoingAssessmentComponent}
+      id="student-ongoing-assessment"
+      strand_report={@strand_report}
+      student_report_card={@student_report_card}
+      params={@params}
+      current_scope={@current_scope}
+      class="py-10"
+      base_path={"#{@base_path}/ongoing_assessment"}
+      current_profile={@current_user.current_profile}
+    />
+    <.live_component
+      :if={@live_action in [:assessment, :strand_goal, :student_grade_report_entry]}
+      module={StrandReportAssessmentComponent}
+      id="student-assessment"
+      strand_report={@strand_report}
+      student_report_card={@student_report_card}
+      params={@params}
+      class="py-10"
+      base_path={"#{@base_path}/assessment"}
+      current_profile={@current_user.current_profile}
+    />
+  </div>
+</Layouts.app_logged_in>
