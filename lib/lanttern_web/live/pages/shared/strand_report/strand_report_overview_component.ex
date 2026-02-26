@@ -84,7 +84,7 @@ defmodule LantternWeb.StrandReportLive.StrandReportOverviewComponent do
                       phx-click={
                         JS.push("view_moment_details", value: %{id: moment.id}, target: @myself)
                       }
-                      class="font-display font-bold text-xl hover:text-ltrn-subtle"
+                      class="font-display font-bold text-left text-xl hover:text-ltrn-subtle"
                     >
                       {moment.name}
                     </button>

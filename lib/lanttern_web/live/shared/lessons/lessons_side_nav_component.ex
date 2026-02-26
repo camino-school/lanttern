@@ -12,6 +12,7 @@ defmodule LantternWeb.Lessons.LessonsSideNavComponent do
     * `current_scope` - The current user scope for authorization
     * `lesson_id` - The currently active lesson ID (used for visual highlighting)
     * `on_moment_click` - Moment click handler function (`moment_id` as arg)
+    * `base_path` - Base path for lesson links (e.g. `"/strands/lesson"` or `"/strand_report/123/lesson"`). Defaults to `"/strands/lesson"`
 
   ## Streams
 
@@ -75,6 +76,7 @@ defmodule LantternWeb.Lessons.LessonsSideNavComponent do
           :for={{dom_id, lesson} <- @streams.unattached_lessons}
           lesson={lesson}
           current_lesson_id={@lesson_id}
+          base_path={@base_path}
           on_edit={JS.push("edit_lesson", value: %{id: lesson.id}, target: @myself)}
           id={dom_id}
           class="mt-2 last:mb-10"
@@ -134,6 +136,7 @@ defmodule LantternWeb.Lessons.LessonsSideNavComponent do
               :for={{dom_id, lesson} <- @streams["moment_#{moment.id}_lessons"] || []}
               lesson={lesson}
               current_lesson_id={@lesson_id}
+              base_path={@base_path}
               on_edit={JS.push("edit_lesson", value: %{id: lesson.id}, target: @myself)}
               id={dom_id}
               class="mt-2"
@@ -154,6 +157,7 @@ defmodule LantternWeb.Lessons.LessonsSideNavComponent do
   attr :id, :string, required: true
   attr :lesson, :map, required: true
   attr :current_lesson_id, :integer, required: true
+  attr :base_path, :string, default: "/strands/lesson"
   attr :on_edit, :any, required: true
   attr :class, :any, default: nil
 
@@ -176,7 +180,7 @@ defmodule LantternWeb.Lessons.LessonsSideNavComponent do
         <hr class="w-4 h-0.5 border-0 rounded-r-full bg-ltrn-subtle" />
       </div>
       <.link
-        navigate={~p"/strands/lesson/#{@lesson.id}"}
+        navigate={"#{@base_path}/#{@lesson.id}"}
         class={[
           "flex-1 truncate hover:text-ltrn-subtle",
           @link_style
@@ -228,6 +232,7 @@ defmodule LantternWeb.Lessons.LessonsSideNavComponent do
       |> assign(:lesson, nil)
       |> assign(:lesson_id, nil)
       |> assign(:moment_id, nil)
+      |> assign(:base_path, "/strands/lesson")
       |> assign(:initialized, false)
 
     {:ok, socket}

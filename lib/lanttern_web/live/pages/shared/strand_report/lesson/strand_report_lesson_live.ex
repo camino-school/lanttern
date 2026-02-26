@@ -1,13 +1,14 @@
 defmodule LantternWeb.StrandReportLessonLive do
   use LantternWeb, :live_view
 
+  alias Lanttern.Attachments
   alias Lanttern.LearningContext
   alias Lanttern.LearningContext.Moment
   alias Lanttern.Lessons
 
   # shared components
-  alias LantternWeb.Attachments.AttachmentAreaComponent
   alias LantternWeb.Lessons.LessonsSideNavComponent
+  import LantternWeb.AttachmentsComponents, only: [attachments_list: 1]
 
   # lifecycle
 
@@ -16,6 +17,7 @@ defmodule LantternWeb.StrandReportLessonLive do
     socket =
       socket
       |> assign_lesson(params)
+      |> assign_attachments()
       |> assign_strand()
       |> assign(:moment, nil)
       |> assign_base_path(params)
@@ -34,6 +36,16 @@ defmodule LantternWeb.StrandReportLessonLive do
         |> assign(:lesson, lesson)
         |> assign(:page_title, lesson.name)
     end
+  end
+
+  defp assign_attachments(socket) do
+    attachments =
+      Attachments.list_attachments(
+        lesson_id: socket.assigns.lesson.id,
+        is_teacher_only_resource: false
+      )
+
+    assign(socket, :attachments, attachments)
   end
 
   defp assign_strand(socket) do

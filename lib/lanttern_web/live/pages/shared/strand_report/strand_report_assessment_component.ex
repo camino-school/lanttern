@@ -30,12 +30,9 @@ defmodule LantternWeb.StrandReportLive.StrandReportAssessmentComponent do
     ~H"""
     <div class={@class}>
       <.responsive_container>
-        <h2 class="font-display font-black text-2xl">{gettext("Goals assessment entries")}</h2>
+        <h2 class="font-display font-black text-2xl">{gettext("Goals assessment")}</h2>
         <p class="mt-4">
-          {gettext("Here you'll find information about the strand final and formative assessments.")}
-        </p>
-        <p class="mt-4 mb-10">
-          {gettext("You can click the assessment card to view more details about it.")}
+          {gettext("Final assessment points information, grouped by curriculum item.")}
         </p>
         <div id="strand-goals-student-entries" phx-update="stream">
           <.goal_card
@@ -253,9 +250,6 @@ defmodule LantternWeb.StrandReportLive.StrandReportAssessmentComponent do
                 entry={moment_entry}
                 class="flex-1"
               />
-              <.tooltip id={"#{@id}-pattern-tooltip"}>
-                {gettext("Formative assessment pattern")}
-              </.tooltip>
             </div>
           </div>
         </div>
@@ -275,10 +269,9 @@ defmodule LantternWeb.StrandReportLive.StrandReportAssessmentComponent do
 
   defp assessment_metadata_icon(%{type: :diff} = assigns) do
     ~H"""
-    <div class="flex items-center justify-center w-6 h-6 rounded-full bg-ltrn-diff-lighter">
-      <span class="font-display font-black text-sm text-ltrn-diff-accent">D</span>
-      <.tooltip id={"#{@id}-diff-tooltip"}>{gettext("Differentiation")}</.tooltip>
-    </div>
+    <p class="font-sans font-bold text-sm text-ltrn-diff-dark">
+      {gettext("Diff")}
+    </p>
     """
   end
 
@@ -294,10 +287,7 @@ defmodule LantternWeb.StrandReportLive.StrandReportAssessmentComponent do
       |> assign(:color, color)
 
     ~H"""
-    <div class={["flex items-center justify-center w-6 h-6 rounded-full", @bg]}>
-      <.icon name={@icon_name} class={@color} />
-      <.tooltip id={"#{@id}-#{@type}-tooltip"}>{@text}</.tooltip>
-    </div>
+    <.icon name={@icon_name} class="text-ltrn-subtle" />
     """
   end
 

@@ -30,6 +30,7 @@
         lesson_id={@lesson.id}
         strand_id={@strand.id}
         current_scope={@current_scope}
+        base_path={"#{@base_path}/lesson"}
         on_moment_click={
           fn moment_id ->
             JS.push("view_moment_details", value: %{"moment_id" => moment_id})
@@ -67,17 +68,13 @@
     <section id="lesson-description" class="mt-10">
       <.markdown text={@lesson.description} />
     </section>
-    <.live_component
-      module={AttachmentAreaComponent}
-      id="lesson-resources-student"
-      title={gettext("Lesson resources")}
-      lesson_id={@lesson.id}
-      is_teacher_only_resource={false}
-      allow_editing={true}
-      current_user={@current_user}
-      sortable_group="lesson-resources"
-      class="mt-10"
-    />
+    <section :if={@attachments != []} id="lesson-attachments" class="mt-10">
+      <h6 class="font-display font-bold mb-4">{gettext("Lesson attachments")}</h6>
+      <.attachments_list
+        id="strand-lesson-attachments-list"
+        attachments={@attachments}
+      />
+    </section>
   </.responsive_container>
 </Layouts.app_with_side_nav>
 <.modal

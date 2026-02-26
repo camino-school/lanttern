@@ -190,6 +190,14 @@ defmodule LantternWeb.Router do
       live "/strand_report/:strand_report_id/rubrics", StrandReportLive, :rubrics
       live "/strand_report/:strand_report_id/assessment", StrandReportLive, :assessment
 
+      live "/strand_report/:strand_report_id/ongoing_assessment",
+           StrandReportLive,
+           :ongoing_assessment
+
+      live "/strand_report/:strand_report_id/ongoing_assessment/:assessment_point_id",
+           StrandReportLive,
+           :ongoing_assessment_details
+
       live "/strand_report/:strand_report_id/assessment/strand_goal/:strand_goal_id",
            StrandReportLive,
            :strand_goal
@@ -233,6 +241,14 @@ defmodule LantternWeb.Router do
       live "/student_report_cards/:student_report_card_id/strand_report/:strand_report_id/rubrics",
            StrandReportLive,
            :rubrics
+
+      live "/student_report_cards/:student_report_card_id/strand_report/:strand_report_id/ongoing_assessment",
+           StrandReportLive,
+           :ongoing_assessment
+
+      live "/student_report_cards/:student_report_card_id/strand_report/:strand_report_id/ongoing_assessment/:assessment_point_id",
+           StrandReportLive,
+           :ongoing_assessment_details
 
       live "/student_report_cards/:student_report_card_id/strand_report/:strand_report_id/assessment",
            StrandReportLive,

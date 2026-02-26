@@ -8,6 +8,7 @@ defmodule LantternWeb.StrandReportLive do
   # view components
   alias __MODULE__.StrandReportAssessmentComponent
   alias __MODULE__.StrandReportMomentsComponent
+  alias __MODULE__.StrandReportOngoingAssessmentComponent
   alias __MODULE__.StrandReportOverviewComponent
   alias __MODULE__.StrandReportRubricsComponent
 
@@ -76,16 +77,14 @@ defmodule LantternWeb.StrandReportLive do
 
     report_card_student_id = student_report_card.student_id
     report_card_student_school_id = student_report_card.student.school_id
-    allow_student_access = student_report_card.allow_student_access
-    allow_guardian_access = student_report_card.allow_guardian_access
 
     case current_scope do
       %Scope{profile_type: "guardian", student_id: student_id}
-      when student_id == report_card_student_id and allow_guardian_access ->
+      when student_id == report_card_student_id ->
         nil
 
       %Scope{profile_type: "student", student_id: student_id}
-      when student_id == report_card_student_id and allow_student_access ->
+      when student_id == report_card_student_id ->
         nil
 
       %Scope{profile_type: "staff", school_id: school_id}

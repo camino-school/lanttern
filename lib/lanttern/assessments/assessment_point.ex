@@ -45,6 +45,7 @@ defmodule Lanttern.Assessments.AssessmentPoint do
           moment_id: pos_integer(),
           strand: Strand.t(),
           strand_id: pos_integer(),
+          student_entry: AssessmentPointEntry.t() | nil,
           entries: [AssessmentPointEntry.t()],
           feedbacks: [Feedback.t()],
           grade_components: [GradeComponent.t()],
@@ -71,6 +72,7 @@ defmodule Lanttern.Assessments.AssessmentPoint do
     field :students_ids, {:array, :id}, virtual: true
 
     field :has_diff_rubric_for_student, :boolean, virtual: true
+    field :student_entry, :map, virtual: true
 
     belongs_to :curriculum_item, CurriculumItem
     belongs_to :scale, Scale

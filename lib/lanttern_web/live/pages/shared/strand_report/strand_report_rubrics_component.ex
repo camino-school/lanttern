@@ -25,6 +25,24 @@ defmodule LantternWeb.StrandReportLive.StrandReportRubricsComponent do
       <.scroll_to_top id="strand-report-rubrics-scroll-top" />
       <.responsive_container>
         <h2 class="font-display font-black text-2xl">{gettext("Strand Rubrics")}</h2>
+        <div class="mt-6">
+          <blockquote class="max-w-lg text-base italic">
+            {gettext(
+              ~s("A rubric is a coherent set of criteria for students' work that includes descriptions of levels of performance quality on the criteria.")
+            )}
+          </blockquote>
+          <p class="mt-4 text-sm">
+            — Susan M. Brookhart,
+            <cite class="italic">
+              How to create and use rubrics for formative assessment and grading
+            </cite>
+          </p>
+        </div>
+        <p class="mt-6">
+          {gettext(
+            "Rubrics guide the student work based on the assessment criteria and descriptors for each level."
+          )}
+        </p>
         <div :if={@has_rubric} id="curriculum-items-student-rubrics" phx-update="stream" class="mt-10">
           <.card_base
             :for={{dom_id, {goal, rubrics}} <- @streams.goals_rubrics}
