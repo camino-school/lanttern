@@ -89,7 +89,6 @@ defmodule LantternWeb.Schools.GuardiansSearchComponent do
       |> assign(:label, nil)
       |> assign(:class, nil)
       |> assign(:placeholder, gettext("Search guardians..."))
-      |> assign(:school_id, nil)
       |> assign(:scope, nil)
       |> assign(:refocus_on_select, "false")
       |> stream(:results, [])
@@ -110,12 +109,10 @@ defmodule LantternWeb.Schools.GuardiansSearchComponent do
   def handle_event("search", params, socket) do
     query = Map.get(params, "#{socket.assigns.id}-query", "")
 
-    search_opts = [school_id: socket.assigns.school_id]
-
     # search when 3 or more characters were typed
     results =
       if String.length(query) >= 3,
-        do: Schools.search_guardians(query, search_opts),
+        do: Schools.search_guardians(socket.assigns.scope, query),
         else: []
 
     results_simplified = Enum.map(results, fn g -> %{id: g.id} end)

@@ -1218,31 +1218,34 @@ defmodule Lanttern.Schools do
 
   Returns a list of guardians matching the search term, ordered by relevance.
 
+  Requires "school_management" permission in scope.
+
   ### Options:
 
-  - `:school_id` – filters guardians by school
   - `:preloads` – preloads associated data
 
   ## Examples
 
-      iex> search_guardians("john", school_id: 1)
+      iex> search_guardians(scope, "john")
       [%Guardian{}, ...]
 
   """
-  def search_guardians(search_term, opts \\ []) do
-    ilike_search_term = "%#{search_term}%"
-    school_id = Keyword.get(opts, :school_id)
+  def search_guardians(scope, search_term, opts \\ []) do
+    if has_permission?(scope, "school_management") do
+      ilike_search_term = "%#{search_term}%"
 
-    query =
-      from(
-        g in Guardian,
-        where: ilike(g.name, ^ilike_search_term) and g.school_id == ^school_id,
-        order_by: {:asc, fragment("? <<-> ?", ^search_term, g.name)}
-      )
+      query =
+        from(
+          g in Guardian,
+          where: ilike(g.name, ^ilike_search_term),
+          order_by: {:asc, fragment("? <<-> ?", ^search_term, g.name)}
+        )
 
-    query
-    |> Repo.all()
-    |> maybe_preload(opts)
+      [{:base_query, query} | opts]
+      |> list_guardians(scope)
+    else
+      []
+    end
   end
 
   @doc """

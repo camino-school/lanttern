@@ -92,7 +92,6 @@ defmodule LantternWeb.Schools.StudentFormOverlayComponent do
               notify_component={@myself}
               label={gettext("Guardians")}
               refocus_on_select="true"
-              school_id={@student.school_id}
               scope={@current_user.current_profile}
             />
             <%= if @guardians != [] do %>
