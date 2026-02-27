@@ -54,7 +54,7 @@ defmodule LantternWeb.Schools.GuardiansSearchComponent do
             :for={{dom_id, result} <- @streams.results}
             class={[
               "flex items-center cursor-default select-none py-2 px-3 text-ltrn-dark group",
-              "data-[active=true]:bg-ltrn-lighter"
+              "data-[active=true]:bg-ltrn-lightest"
             ]}
             id={dom_id}
             role="option"
