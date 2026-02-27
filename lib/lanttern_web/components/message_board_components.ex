@@ -79,7 +79,7 @@ defmodule LantternWeb.MessageBoardComponents do
         :if={@show_sent_to}
         class="flex flex-row-reverse sm:flex-row items-center gap-2 mt-2 text-xs"
       >
-        <%= if @message.send_to == :classes do %>
+        <%= if @message.send_to == "classes" do %>
           <.icon name="hero-users-mini" class="w-5 h-5 text-ltrn-subtle" />
           <.badge :for={class <- @message.classes}>{class.name}</.badge>
         <% else %>

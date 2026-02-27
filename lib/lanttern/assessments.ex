@@ -1256,6 +1256,7 @@ defmodule Lanttern.Assessments do
         left_join: ov in assoc(e, :ordinal_value),
         where: m.strand_id == ^strand_id,
         where: e.student_id == ^student.id,
+        where: e.has_marking,
         order_by: [asc: m.position, asc: ap.position],
         select: %{ap | student_entry: %{e | ordinal_value: ov}}
       )
