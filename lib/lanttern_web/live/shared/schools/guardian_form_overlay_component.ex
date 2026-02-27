@@ -174,7 +174,7 @@ defmodule LantternWeb.Schools.GuardianFormOverlayComponent do
            socket.assigns.guardian
          ) do
       {:ok, guardian} ->
-        notify_parent(socket.assigns.notify_component, {:deleted, guardian})
+        notify(__MODULE__, {:deleted, guardian}, socket.assigns)
         {:noreply, push_patch(socket, to: socket.assigns.close_path)}
 
       {:error, :unauthorized} ->
@@ -194,7 +194,7 @@ defmodule LantternWeb.Schools.GuardianFormOverlayComponent do
     case Schools.create_guardian(scope, params) do
       {:ok, guardian} ->
         save_students_associations(socket, guardian)
-        notify_parent(socket.assigns.notify_component, {:created, guardian})
+        notify(__MODULE__, {:created, guardian}, socket.assigns)
         {:noreply, push_patch(socket, to: socket.assigns.close_path)}
 
       {:error, :unauthorized} ->
@@ -216,7 +216,7 @@ defmodule LantternWeb.Schools.GuardianFormOverlayComponent do
     case Schools.update_guardian(scope, socket.assigns.guardian, params) do
       {:ok, guardian} ->
         save_students_associations(socket, guardian)
-        notify_parent(socket.assigns.notify_component, {:updated, guardian})
+        notify(__MODULE__, {:updated, guardian}, socket.assigns)
         {:noreply, push_patch(socket, to: socket.assigns.close_path)}
 
       {:error, :unauthorized} ->
@@ -302,13 +302,5 @@ defmodule LantternWeb.Schools.GuardianFormOverlayComponent do
     end)
   end
 
-  defp notify_parent(nil, _message), do: :ok
 
-  defp notify_parent(notify_target, message) do
-    if is_pid(notify_target) do
-      send(notify_target, {__MODULE__, message})
-    else
-      send_update(notify_target, action: {__MODULE__, message})
-    end
-  end
 end
