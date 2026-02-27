@@ -1616,15 +1616,9 @@ defmodule Lanttern.Schools do
       where: g.school_id == ^scope.school_id,
       order_by: g.name
     )
-    |> apply_list_guardians_opts(opts)
     |> Repo.all()
     |> maybe_preload(opts)
   end
-
-  defp apply_list_guardians_opts(queryable, []), do: queryable
-
-  defp apply_list_guardians_opts(queryable, [_ | opts]),
-    do: apply_list_guardians_opts(queryable, opts)
 
   @doc """
   Gets a single guardian.
