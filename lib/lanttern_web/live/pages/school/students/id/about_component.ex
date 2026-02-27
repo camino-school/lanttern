@@ -1,9 +1,11 @@
 defmodule LantternWeb.StudentLive.LessonsComponent do
   use LantternWeb, :live_component
 
+  alias Lanttern.Schools
   alias Lanttern.StudentsCycleInfo
 
   # shared components
+  import LantternWeb.SchoolsComponents
   alias LantternWeb.Attachments.AttachmentAreaComponent
   alias LantternWeb.Schools.StudentHeaderComponent
   alias LantternWeb.StudentsCycleInfo.StudentCycleInfoFormComponent
@@ -120,6 +122,26 @@ defmodule LantternWeb.StudentLive.LessonsComponent do
           />
         </div>
       </div>
+      <div class="mt-12 pt-12 border-t-2 border-ltrn-light">
+        <div class="pb-6 border-b-2 border-ltrn-light">
+          <h4 class="font-display font-black text-lg">{gettext("Guardians")}</h4>
+        </div>
+        <div class="py-10">
+          <.empty_state_simple :if={Enum.empty?(@student.guardians)}>
+            {gettext("No guardians assigned to this student")}
+          </.empty_state_simple>
+          <.fluid_grid :if={!Enum.empty?(@student.guardians)} is_full_width class="gap-4">
+            <.guardian_card
+              :for={guardian <- @student.guardians}
+              id={"guardian-#{guardian.id}"}
+              guardian={guardian}
+              navigate={~p"/school/guardians/#{guardian.id}"}
+              show_edit={false}
+              show_delete={false}
+            />
+          </.fluid_grid>
+        </div>
+      </div>
       <.live_component
         :if={@is_editing_profile_picture}
         module={StudentCycleProfilePictureOverlayComponent}
@@ -178,6 +200,7 @@ defmodule LantternWeb.StudentLive.LessonsComponent do
     socket =
       socket
       |> assign(assigns)
+      |> assign_is_school_manager()
       |> initialize()
       |> assign_is_editing_profile_picture()
 
@@ -193,6 +216,14 @@ defmodule LantternWeb.StudentLive.LessonsComponent do
   end
 
   defp initialize(socket), do: socket
+
+  defp assign_is_school_manager(socket) do
+    permissions = socket.assigns.current_user.current_profile.permissions
+
+    is_school_manager = "school_management" in permissions
+
+    assign(socket, :is_school_manager, is_school_manager)
+  end
 
   defp assign_student_cycle_info(socket) do
     student_cycle_info =
@@ -244,4 +275,24 @@ defmodule LantternWeb.StudentLive.LessonsComponent do
 
   def handle_event("edit_student_shared_info", _params, socket),
     do: {:noreply, assign(socket, :is_editing_shared_info, true)}
+
+  def handle_event("delete_guardian", %{"guardian_id" => guardian_id}, socket) do
+    guardian_id = String.to_integer(guardian_id)
+
+    case Schools.remove_guardian_from_student(
+           socket.assigns.current_user.current_profile,
+           socket.assigns.student,
+           guardian_id
+         ) do
+      {:ok, _} ->
+        # Remove guardian from student list in socket
+        guardians = Enum.reject(socket.assigns.student.guardians, &(&1.id == guardian_id))
+        student = Map.put(socket.assigns.student, :guardians, guardians)
+
+        {:noreply, assign(socket, :student, student)}
+
+      {:error, _reason} ->
+        {:noreply, socket}
+    end
+  end
 end

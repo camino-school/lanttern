@@ -9,6 +9,7 @@ defmodule Lanttern.Factory do
   use Lanttern.ClassFactory
   use Lanttern.ConversationFactory
   use Lanttern.CycleFactory
+  use Lanttern.GuardianFactory
   use Lanttern.ILPCommentAttachmentFactory
   use Lanttern.ILPCommentFactory
   use Lanttern.ILPTemplateFactory

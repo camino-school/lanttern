@@ -19,6 +19,7 @@ defmodule Lanttern.Schools.Student do
   alias Lanttern.StudentsCycleInfo.StudentCycleInfo
   alias Lanttern.StudentTags.StudentTagRelationship
   alias Lanttern.StudentTags.Tag
+  alias Lanttern.Schools.Guardian
 
   @type t :: %__MODULE__{
           id: pos_integer(),
@@ -34,6 +35,7 @@ defmodule Lanttern.Schools.Student do
           cycles_info: [StudentCycleInfo.t()],
           student_report_cards: [StudentReportCard.t()],
           grades_report_entries: [StudentGradesReportEntry.t()],
+          guardians: [Guardian.t()] | Ecto.Association.NotLoaded.t(),
           ilps: [StudentILP.t()],
           tags: [Tag.t()],
           profile: Profile.t(),
@@ -66,6 +68,11 @@ defmodule Lanttern.Schools.Student do
       join_through: "students_tags",
       join_keys: [student_id: :id, tag_id: :id],
       preload_order: [asc: :position]
+
+    many_to_many :guardians, Guardian,
+      join_through: "students_guardians",
+      join_keys: [student_id: :id, guardian_id: :id],
+      on_replace: :delete
 
     has_many :assessment_point_entries, AssessmentPointEntry
     has_many :cycles_info, StudentCycleInfo

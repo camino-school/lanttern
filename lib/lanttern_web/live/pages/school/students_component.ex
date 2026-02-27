@@ -100,9 +100,11 @@ defmodule LantternWeb.SchoolLive.StudentsComponent do
         module={StudentFormOverlayComponent}
         id="student-form-overlay"
         student={@student}
+        current_user={@current_user}
         current_cycle={@current_user.current_profile.current_school_cycle}
         title={@student_overlay_title}
         on_cancel={JS.patch(~p"/school/students")}
+        close_path={~p"/school/students"}
         notify_component={@myself}
       />
     </div>
@@ -149,6 +151,7 @@ defmodule LantternWeb.SchoolLive.StudentsComponent do
     socket =
       socket
       |> assign(assigns)
+      |> assign_is_school_manager()
       |> initialize()
       |> assign_student()
 
@@ -164,6 +167,14 @@ defmodule LantternWeb.SchoolLive.StudentsComponent do
   end
 
   defp initialize(socket), do: socket
+
+  defp assign_is_school_manager(socket) do
+    permissions = socket.assigns.current_user.current_profile.permissions
+
+    is_school_manager = "school_management" in permissions
+
+    assign(socket, :is_school_manager, is_school_manager)
+  end
 
   defp apply_assign_classes_filter(socket) do
     assign_classes_filter_opts =

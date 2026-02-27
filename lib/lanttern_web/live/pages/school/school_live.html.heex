@@ -9,6 +9,9 @@
         <:tab patch={~p"/school/students"} is_current={@live_action == :manage_students}>
           {gettext("Students")}
         </:tab>
+        <:tab patch={~p"/school/guardians"} is_current={@live_action == :manage_guardians}>
+          {gettext("Guardians")}
+        </:tab>
         <:tab patch={~p"/school/staff"} is_current={@live_action == :manage_staff}>
           {gettext("Staff")}
         </:tab>
@@ -39,6 +42,14 @@
     :if={@live_action == :manage_students}
     module={StudentsComponent}
     id={:school_classes}
+    current_user={@current_user}
+    params={@params}
+    is_school_manager={@is_school_manager}
+  />
+  <.live_component
+    :if={@live_action == :manage_guardians}
+    module={GuardiansComponent}
+    id={:school_guardians}
     current_user={@current_user}
     params={@params}
     is_school_manager={@is_school_manager}

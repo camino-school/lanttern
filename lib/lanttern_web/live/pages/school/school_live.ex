@@ -8,6 +8,7 @@ defmodule LantternWeb.SchoolLive do
   alias __MODULE__.MomentCardsTemplatesComponent
   alias __MODULE__.StaffComponent
   alias __MODULE__.StudentsComponent
+  alias __MODULE__.GuardiansComponent
 
   # lifecycle
 
@@ -23,8 +24,9 @@ defmodule LantternWeb.SchoolLive do
   end
 
   defp assign_is_school_manager(socket) do
-    is_school_manager =
-      "school_management" in socket.assigns.current_user.current_profile.permissions
+    permissions = socket.assigns.current_user.current_profile.permissions
+
+    is_school_manager = "school_management" in permissions
 
     assign(socket, :is_school_manager, is_school_manager)
   end
