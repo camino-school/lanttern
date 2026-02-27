@@ -15,6 +15,7 @@ defmodule LantternWeb.Schools.StaffMemberFormOverlayComponent do
   use LantternWeb, :live_component
 
   alias Lanttern.Schools
+  alias LantternWeb.UploadHelpers
 
   import LantternWeb.FormHelpers, only: [consume_uploaded_profile_picture: 2]
 
@@ -116,11 +117,7 @@ defmodule LantternWeb.Schools.StaffMemberFormOverlayComponent do
       socket
       |> assign(:is_removing_profile_picture, false)
       |> assign(:initialized, false)
-      |> allow_upload(:profile_picture,
-        accept: ~w(.jpg .jpeg .png .webp),
-        max_file_size: 3_000_000,
-        max_entries: 1
-      )
+      |> allow_upload(:profile_picture, [max_entries: 1] ++ UploadHelpers.profile_picture())
 
     {:ok, socket}
   end
