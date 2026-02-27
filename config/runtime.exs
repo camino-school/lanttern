@@ -108,7 +108,7 @@ if config_env() == :prod do
   default_profile_picture_accept = ".jpg .jpeg .png .webp"
   default_profile_picture_size = "3000000"
   default_cover_accept = ".jpg .jpeg .png .webp"
-  default_cover_size = "3000000"
+  default_cover_size = "5000000"
   default_attachment_accept = "*"
   default_attachment_size = "20000000"
 
