@@ -1880,8 +1880,10 @@ defmodule Lanttern.SchoolsTest do
       assert Schools.get_guardian(scope, -1) == nil
     end
 
-    test "search_guardians/2 returns all items matched by search" do
+    test "search_guardians/3 returns all items matched by search" do
       school = school_fixture()
+      scope = scope_fixture(permissions: ["school_management"])
+      scope = %{scope | school_id: school.id}
 
       _guardian_1 = insert(:guardian, school_id: school.id, name: "lorem ipsum xolor sit amet")
       guardian_2 = insert(:guardian, school_id: school.id, name: "lorem ipsum dolor sit amet")
@@ -1889,12 +1891,14 @@ defmodule Lanttern.SchoolsTest do
       _guardian_4 = insert(:guardian, school_id: school.id, name: "lorem ipsum xxxxx sit amet")
 
       assert [guardian_2, guardian_3] ==
-               Schools.search_guardians("dolor", school_id: school.id)
+               Schools.search_guardians(scope, "dolor")
     end
 
-    test "search_guardians/2 with school_id filter returns only guardians from given school" do
+    test "search_guardians/3 returns only guardians from the scoped school" do
       school_1 = school_fixture()
       school_2 = school_fixture()
+      scope = scope_fixture(permissions: ["school_management"])
+      scope = %{scope | school_id: school_1.id}
 
       _guardian_1 = insert(:guardian, school_id: school_1.id, name: "lorem ipsum xolor sit amet")
       guardian_2 = insert(:guardian, school_id: school_1.id, name: "lorem ipsum dolor sit amet")
@@ -1905,15 +1909,18 @@ defmodule Lanttern.SchoolsTest do
       _guardian_4 = insert(:guardian, school_id: school_2.id, name: "lorem ipsum xxxxx sit amet")
 
       assert [guardian_2] ==
-               Schools.search_guardians("dolor", school_id: school_1.id)
+               Schools.search_guardians(scope, "dolor")
     end
 
-    test "search_guardians/2 with non-matching query returns empty list" do
+    test "search_guardians/3 with non-matching query returns empty list" do
       school = school_fixture()
+      scope = scope_fixture(permissions: ["school_management"])
+      scope = %{scope | school_id: school.id}
+
       _guardian = insert(:guardian, school_id: school.id, name: "John Doe")
 
       assert [] ==
-               Schools.search_guardians("xyz", school_id: school.id)
+               Schools.search_guardians(scope, "xyz")
     end
   end
 end

@@ -6135,6 +6135,8 @@ msgstr ""
 #: lib/lanttern_web/live/shared/schools/guardian_form_overlay_component.ex:75
 #, elixir-autogen, elixir-format
 msgid "No students added to this guardian"
+msgstr ""
+
 #: lib/lanttern_web/live/pages/shared/strand_report/strand_report_live.html.heex:112
 #, elixir-autogen, elixir-format
 msgid "Final"

@@ -1241,8 +1241,7 @@ defmodule Lanttern.Schools do
           order_by: {:asc, fragment("? <<-> ?", ^search_term, g.name)}
         )
 
-      [{:base_query, query} | opts]
-      |> list_guardians(scope)
+      list_guardians(scope, [{:base_query, query} | opts])
     else
       []
     end

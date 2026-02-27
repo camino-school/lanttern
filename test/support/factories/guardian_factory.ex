@@ -3,27 +3,26 @@ defmodule Lanttern.GuardianFactory do
   defmacro __using__(_opts) do
     quote do
       def guardian_factory(attrs) do
-        # Only build school if neither school nor school_id is provided
+        # Only build school if not providing school_id directly
         school =
-          cond do
-            Map.has_key?(attrs, :school) -> Map.get(attrs, :school)
-            Map.has_key?(attrs, :school_id) -> nil
-            true -> build(:school)
-          end
-
-        guardian =
-          if school do
-            %Lanttern.Schools.Guardian{
-              name: "Jane Guardian",
-              school: school
-            }
+          if Map.has_key?(attrs, :school_id) do
+            nil
           else
-            %Lanttern.Schools.Guardian{
-              name: "Jane Guardian"
-            }
+            Map.get(attrs, :school, build(:school))
           end
 
-        guardian
+        base = %Lanttern.Schools.Guardian{
+          name: "Jane Guardian"
+        }
+
+        base =
+          if school do
+            %{base | school: school, school_id: school.id}
+          else
+            base
+          end
+
+        base
         |> merge_attributes(attrs)
         |> evaluate_lazy_attributes()
       end
