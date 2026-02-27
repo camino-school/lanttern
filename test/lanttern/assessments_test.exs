@@ -2496,7 +2496,8 @@ defmodule Lanttern.AssessmentsTest do
           assessment_point_id: m_1_ap_2.id,
           student_id: student.id,
           scale_id: scale.id,
-          scale_type: scale.type
+          scale_type: scale.type,
+          ordinal_value_id: ov.id
         })
 
       m_2_entry_1 =
@@ -2504,7 +2505,8 @@ defmodule Lanttern.AssessmentsTest do
           assessment_point_id: m_2_ap_1.id,
           student_id: student.id,
           scale_id: scale.id,
-          scale_type: scale.type
+          scale_type: scale.type,
+          ordinal_value_id: ov.id
         })
 
       # entry for a different student – should not appear in results
@@ -2539,6 +2541,61 @@ defmodule Lanttern.AssessmentsTest do
       assert entry_3.id == m_2_entry_1.id
     end
 
+    test "list_strand_moments_assessment_points_with_student_entries/3 excludes assessment points with unmarked entries" do
+      school = SchoolsFixtures.school_fixture()
+      student = SchoolsFixtures.student_fixture(%{school_id: school.id})
+      scope = %Scope{school_id: school.id}
+
+      strand = LearningContextFixtures.strand_fixture()
+      m_1 = LearningContextFixtures.moment_fixture(%{strand_id: strand.id})
+
+      scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
+      ov = GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id})
+      ci = CurriculaFixtures.curriculum_item_fixture()
+
+      ap_marked =
+        assessment_point_fixture(%{
+          moment_id: m_1.id,
+          scale_id: scale.id,
+          curriculum_item_id: ci.id
+        })
+
+      ap_unmarked =
+        assessment_point_fixture(%{
+          moment_id: m_1.id,
+          scale_id: scale.id,
+          curriculum_item_id: ci.id
+        })
+
+      # entry with marking (ordinal_value assigned)
+      _entry_marked =
+        assessment_point_entry_fixture(%{
+          assessment_point_id: ap_marked.id,
+          student_id: student.id,
+          scale_id: scale.id,
+          scale_type: scale.type,
+          ordinal_value_id: ov.id
+        })
+
+      # entry without marking (no ordinal_value, no score) — should be excluded
+      _entry_unmarked =
+        assessment_point_entry_fixture(%{
+          assessment_point_id: ap_unmarked.id,
+          student_id: student.id,
+          scale_id: scale.id,
+          scale_type: scale.type
+        })
+
+      ap_marked_id = ap_marked.id
+
+      assert [%AssessmentPoint{id: ^ap_marked_id}] =
+               Assessments.list_strand_moments_assessment_points_with_student_entries(
+                 scope,
+                 student,
+                 strand.id
+               )
+    end
+
     test "list_strand_moments_assessment_points_with_student_entries/3 calculates has_evidences correctly" do
       school = SchoolsFixtures.school_fixture()
       student = SchoolsFixtures.student_fixture(%{school_id: school.id})
@@ -2550,6 +2607,7 @@ defmodule Lanttern.AssessmentsTest do
       m_1 = LearningContextFixtures.moment_fixture(%{strand_id: strand.id})
 
       scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
+      ov = GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id})
       ci = CurriculaFixtures.curriculum_item_fixture()
 
       # create in order so positions are 0, 1
@@ -2572,7 +2630,8 @@ defmodule Lanttern.AssessmentsTest do
           assessment_point_id: ap_with_evidence.id,
           student_id: student.id,
           scale_id: scale.id,
-          scale_type: scale.type
+          scale_type: scale.type,
+          ordinal_value_id: ov.id
         })
 
       _entry_without_evidence =
@@ -2580,7 +2639,8 @@ defmodule Lanttern.AssessmentsTest do
           assessment_point_id: ap_without_evidence.id,
           student_id: student.id,
           scale_id: scale.id,
-          scale_type: scale.type
+          scale_type: scale.type,
+          ordinal_value_id: ov.id
         })
 
       {:ok, _attachment} =
