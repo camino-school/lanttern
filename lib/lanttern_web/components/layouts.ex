@@ -58,7 +58,16 @@ defmodule LantternWeb.Layouts do
 
   def app_with_side_nav(assigns) do
     ~H"""
-    <div id={"#{@side_nav_id}-layout"} class="h-screen pl-70 transition-[padding] duration-300">
+    <div
+      id={"#{@side_nav_id}-layout"}
+      phx-hook={if @collapsible, do: "LantternWeb.Layouts.SideNavLayout"}
+      data-collapse-cmd={
+        @collapsible &&
+          JS.add_class("sidenav-collapsed")
+          |> JS.set_attribute({"inert", "true"}, to: "##{@side_nav_id}")
+      }
+      class="group/sidenav h-screen max-sm:pl-0 pl-70 [&.sidenav-collapsed]:pl-0 transition-[padding] duration-300"
+    >
       <.side_nav id={@side_nav_id} menu_title={@menu_title} collapsible={@collapsible}>
         {render_slot(@side_nav)}
       </.side_nav>
@@ -74,6 +83,17 @@ defmodule LantternWeb.Layouts do
       current_path={@current_path}
     />
     <.flash_group flash={@flash} />
+    <script :type={Phoenix.LiveView.ColocatedHook} name=".SideNavLayout">
+      export default {
+        mounted() {
+          if (window.innerWidth < 640) {
+            setTimeout(() => {
+              this.liveSocket.execJS(this.el, this.el.dataset.collapseCmd);
+            }, 600);
+          }
+        }
+      }
+    </script>
     """
   end
 
@@ -93,7 +113,16 @@ defmodule LantternWeb.Layouts do
 
   def app_settings(assigns) do
     ~H"""
-    <div id={"#{@side_nav_id}-layout"} class="h-screen pl-70 transition-[padding] duration-300">
+    <div
+      id={"#{@side_nav_id}-layout"}
+      phx-hook={if @collapsible, do: "LantternWeb.Layouts.SideNavLayout"}
+      data-collapse-cmd={
+        @collapsible &&
+          JS.add_class("sidenav-collapsed")
+          |> JS.set_attribute({"inert", "true"}, to: "##{@side_nav_id}")
+      }
+      class="group/sidenav h-screen max-sm:pl-0 pl-70 [&.sidenav-collapsed]:pl-0 transition-[padding] duration-300"
+    >
       <.settings_side_nav id={@side_nav_id} current_path={@current_path} collapsible={@collapsible}>
         <:group title={gettext("AI Settings")}>
           <.settings_nav_link navigate={~p"/settings/school_ai_config"} current_path={@current_path}>

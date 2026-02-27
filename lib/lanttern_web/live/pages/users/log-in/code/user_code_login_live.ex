@@ -5,78 +5,83 @@ defmodule LantternWeb.UserCodeLoginLive do
 
   def render(assigns) do
     ~H"""
-    <div class="mx-auto max-w-sm py-20">
-      <h1 class="font-display font-black text-5xl leading-tight">
-        Lanttern<br />sign in
-      </h1>
-      <p class="mt-10 text-base">
-        {gettext("Enter the 6-digit code sent to %{email}", email: @email)}
-      </p>
-      <.form
-        for={@form}
-        id="code_form"
-        phx-mounted={JS.focus_first()}
-        action={~p"/users/log-in"}
-        class="mt-10"
-      >
-        <.input
-          field={@form[:email]}
-          type="hidden"
-          value={@form[:email].value}
-        />
-        <.input
-          field={@form[:code]}
-          type="access_code"
-          required
-          maxlength="6"
-          pattern="[0-9]{6}"
-          placeholder="______"
-        />
-        <div class="flex items-center gap-2 mt-2">
+    <div class="flex flex-col items-center ltrn-bg-main">
+      <div class="max-w-sm px-10 sm:px-0 py-20">
+        <h1 class="font-display font-black text-5xl text-ltrn-darkest leading-tight">
+          Lanttern<br />sign in
+        </h1>
+        <p class="mt-10 text-base">
+          {gettext("Enter the 6-digit code sent to %{email}", email: @email)}
+        </p>
+        <.form
+          for={@form}
+          id="code_form"
+          phx-mounted={JS.focus_first()}
+          action={~p"/users/log-in"}
+          class="mt-10"
+        >
           <.input
-            field={@form[:remember_me]}
-            type="checkbox"
-            label={gettext("Keep me signed in")}
-            class="flex-1"
+            field={@form[:email]}
+            type="hidden"
+            value={@form[:email].value}
           />
-          <.icon_button
-            type="submit"
-            name="hero-arrow-right-mini"
-            sr_text="Sign in"
-            rounded
-            theme="ghost"
+          <.input
+            field={@form[:code]}
+            type="access_code"
+            required
+            maxlength="6"
+            pattern="[0-9]{6}"
+            placeholder="______"
           />
-        </div>
-      </.form>
-      <p class="mt-10 text-base text-ltrn-subtle">
-        {gettext(
-          "Can't find the code? Check your spam folder and ensure there's a Lanttern account for the provided email."
-        )}
-      </p>
-      <.action
-        type="button"
-        phx-click="resend_code"
-        icon_name={if !@timer_active, do: "hero-arrow-path-mini"}
-        class="mt-10"
-        disabled={@timer_active}
-      >
-        <%= if @timer_active do %>
-          {gettext("Resend code in %{seconds} seconds", seconds: @countdown_seconds)}
-        <% else %>
-          {gettext("Resend code")}
-        <% end %>
-      </.action>
-      <.action
-        type="link"
-        theme="subtle"
-        href={~p"/users/log-in"}
-        icon_name="hero-arrow-uturn-left-mini"
-        class="mt-10"
-      >
-        {gettext("Sign in using a different email")}
-      </.action>
-      <LantternWeb.Layouts.flash_group flash={@flash} />
+          <div class="flex items-center gap-2 mt-2">
+            <.input
+              field={@form[:remember_me]}
+              type="checkbox"
+              label={gettext("Keep me signed in")}
+              class="flex-1"
+            />
+            <.icon_button
+              type="submit"
+              name="hero-arrow-right-mini"
+              sr_text="Sign in"
+              rounded
+              theme="ghost"
+            />
+          </div>
+        </.form>
+        <p class="mt-10 text-base text-ltrn-subtle">
+          {gettext(
+            "Can't find the code? Check your spam folder and ensure there's a Lanttern account for the provided email."
+          )}
+        </p>
+        <.action
+          type="button"
+          phx-click="resend_code"
+          icon_name={if !@timer_active, do: "hero-arrow-path-mini"}
+          class="mt-10"
+          disabled={@timer_active}
+        >
+          <%= if @timer_active do %>
+            {gettext("Resend code in %{seconds} seconds", seconds: @countdown_seconds)}
+          <% else %>
+            {gettext("Resend code")}
+          <% end %>
+        </.action>
+        <.action
+          type="link"
+          theme="subtle"
+          href={~p"/users/log-in"}
+          icon_name="hero-arrow-uturn-left-mini"
+          class="mt-10"
+        >
+          {gettext("Sign in using a different email")}
+        </.action>
+      </div>
+      <div class="pb-10">
+        <.logo size="md" />
+      </div>
     </div>
+    <LantternWeb.Layouts.flash_group flash={@flash} />
     """
   end
 

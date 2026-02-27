@@ -36,6 +36,9 @@ lanttern-*.tar
 npm-debug.log
 /assets/node_modules/
 
+# macOS
+.DS_Store
+
 # env variables
 .env
 .envrc

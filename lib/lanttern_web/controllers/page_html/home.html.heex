@@ -1,19 +1,19 @@
 <div id="landing">
-  <header class="relative px-10 bg-ltrn-dark overflow-hidden">
+  <header class="relative px-10 bg-ltrn-darkest overflow-hidden">
     <div
       id="cover-spot-1"
-      class="absolute left-[-37vw] top-[-37vw] w-[75vw] h-[75vw] rounded-full bg-ltrn-mesh-primary blur-[15vw]"
+      class="absolute left-[-37vw] top-[-37vw] w-[75vw] h-[75vw] rounded-full bg-ltrn-mesh-2 blur-[15vw]"
     />
     <div
       id="cover-spot-2"
-      class="absolute right-[-30vw] top-[-30vw] w-[60vw] h-[60vw] rounded-full bg-ltrn-mesh-violet blur-[15vw]"
+      class="absolute right-[-30vw] top-[-30vw] w-[60vw] h-[60vw] rounded-full bg-ltrn-mesh-lime blur-[15vw]"
     />
     <div
       id="cover-spot-3"
-      class="absolute right-[-37vw] bottom-[-37vw] w-[75vw] h-[75vw] rounded-full bg-ltrn-mesh-lime blur-[15vw]"
+      class="absolute right-[-37vw] bottom-[-37vw] w-[75vw] h-[75vw] rounded-full bg-ltrn-mesh-1 blur-[15vw]"
     />
     <hgroup class="relative z-10 flex flex-col justify-center max-w-3xl min-h-[90vh] py-20 mx-auto font-display">
-      <h1 class="font-black text-6xl md:text-7xl text-ltrn-dark">Lanttern</h1>
+      <h1 class="font-black text-6xl md:text-7xl text-ltrn-darkest">Lanttern</h1>
       <p class="mt-6 font-display text-3xl md:text-4xl text-white drop-shadow-xs">
         An open source <br class="hidden md:inline" />platform built to help
         <br class="hidden md:inline" />learners and educators <br />
@@ -25,22 +25,22 @@
     <%= if @current_user do %>
       <a
         href="/dashboard"
-        class="absolute z-10 top-4 right-4 md:top-10 md:right-10 group flex gap-2 items-center p-2 rounded-sm bg-white shadow-xl hover:bg-slate-100"
+        class="absolute z-10 top-4 right-4 md:top-10 md:right-10 group flex items-center gap-3 py-2 px-3 rounded-full text-white bg-ltrn-primary shadow-xl hover:bg-ltrn-primary/80"
       >
-        <span class="font-display font-bold text-sm text-ltrn-subtle group-hover:text-ltrn-dark">
+        <span class="font-sans">
           Go to app
         </span>
-        <div class="w-6 h-6 rounded-full bg-ltrn-mesh-primary blur-xs group-hover:blur-none transition-[filter]" />
+        <.logo theme="light" />
       </a>
     <% else %>
       <a
         href="/users/log-in"
-        class="absolute z-10 top-4 right-4 md:top-10 md:right-10 group flex gap-2 items-center p-2 rounded-sm bg-white shadow-xl hover:bg-slate-100"
+        class="absolute z-10 top-4 right-4 md:top-10 md:right-10 group flex items-center gap-2 py-2 px-3 rounded-full text-white bg-ltrn-primary shadow-xl hover:bg-ltrn-primary/80"
       >
-        <span class="font-display font-bold text-sm text-ltrn-subtle group-hover:text-ltrn-dark">
+        <span class="font-sans">
           Sign in
         </span>
-        <div class="w-6 h-6 rounded-full bg-ltrn-mesh-primary blur-xs group-hover:blur-none transition-[filter]" />
+        <.icon name="hero-arrow-up-right-mini" />
       </a>
     <% end %>
   </header>
@@ -685,7 +685,7 @@
               ME
             </div>
             <div class="flex-1 md:max-w-md p-6 rounded-lg italic text-lg md:text-xl bg-ltrn-mesh-yellow">
-              Hey Lanttern, can you show me the history of Fernanda’s 2024 ELA reading assessments, highlighting the skills that she still needs to improve before the end of the cycle?
+              Hey Lanttern, can you show me the history of Fernanda’s 2026 ELA reading assessments, highlighting the skills that she still needs to improve before the end of the cycle?
             </div>
           </div>
           <div class="relative flex flex-row-reverse items-start gap-4 mt-6">
@@ -694,7 +694,7 @@
               LN
             </div>
             <div class="relative flex-1 md:max-w-md p-6 rounded-lg italic text-lg md:text-xl bg-ltrn-mesh-primary">
-              Sure! Wait a moment (a couple of months), while I’m learning to analyze Fernanda’s 2024 ELA reading assessments and build a learning plan suggestion for her...
+              Sure! Wait a moment (a couple of months), while I’m learning to analyze Fernanda’s 2026 ELA reading assessments and build a learning plan suggestion for her...
             </div>
           </div>
         </div>
@@ -721,7 +721,7 @@
         <p>Patience is a virtue.</p>
         <br />
         <p>
-          Lanttern is still under development, and its first stable version is scheduled to be released late 2024. That being said, our repository is public and the project is licensed under MIT — if you feel adventurous, just go there, clone the repo and try it on your own.
+          Lanttern is still under development, and its first stable version is scheduled to be released late 2026. That being said, our repository is public and the project is licensed under MIT — if you feel adventurous, just go there, clone the repo and try it on your own.
         </p>
         <br />
         <p>Here's what we have under development:</p>
@@ -742,7 +742,7 @@
           </p>
           <br />
           <p>
-            We're planning to open for external contributors in late 2024, as soon as we reach our MVP.
+            We're planning to open for external contributors in late 2026, as soon as we reach our MVP.
           </p>
           <br />
           <p>
@@ -767,7 +767,7 @@
         "isolate max-w-3xl py-10 px-6 mt-10 mx-auto rounded-lg bg-ltrn-dark shadow-lg",
         "lg:flex-1 lg:px-10 lg:mt-0"
       ]}>
-        <h3 class="font-display font-black text-2xl text-ltrn-primary">Bright</h3>
+        <h3 class="font-display font-black text-2xl text-ltrn-white">Bright</h3>
         <div class="mt-10 text-xl text-white">
           <p>Bright is Lanttern's commercial version.</p>
           <br />
@@ -820,14 +820,14 @@
       >
         Terms of service
       </a>
-      <p class="mt-4 lg:mt-0">Copyright © 2024 Camino School</p>
+      <p class="mt-4 lg:mt-0">Copyright © 2026 Camino School</p>
     </div>
   </footer>
   <div
     id="preview-warning"
     class="fixed z-50 bottom-0 inset-x-0 p-4 text-white text-sm text-center bg-ltrn-dark"
   >
-    🚧 This is a preview. Lanttern official release is scheduled for late 2024.
+    🚧 This is a preview. Lanttern official release is scheduled for late 2026.
     <button
       type="button"
       class="ml-2 text-ltrn-subtle underline hover:text-white"

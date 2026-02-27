@@ -104,6 +104,51 @@ if config_env() == :prod do
   config :langchain, openai_key: System.get_env("OPENAI_API_KEY")
   config :langchain, openai_org_id: System.get_env("OPENAI_ORG_ID")
 
+  # Upload config
+  default_profile_picture_accept = ".jpg .jpeg .png .webp"
+  default_profile_picture_size = "3000000"
+  default_cover_accept = ".jpg .jpeg .png .webp"
+  default_cover_size = "5000000"
+  default_attachment_accept = "*"
+  default_attachment_size = "20000000"
+
+  profile_picture_accept_str =
+    System.get_env("UPLOAD_PROFILE_PICTURE_ACCEPT", default_profile_picture_accept)
+
+  profile_picture_accept =
+    if profile_picture_accept_str == "*", do: :any, else: String.split(profile_picture_accept_str)
+
+  cover_accept_str = System.get_env("UPLOAD_COVER_ACCEPT", default_cover_accept)
+
+  cover_accept =
+    if cover_accept_str == "*", do: :any, else: String.split(cover_accept_str)
+
+  attachment_accept_str = System.get_env("UPLOAD_ATTACHMENT_ACCEPT", default_attachment_accept)
+
+  attachment_accept =
+    if attachment_accept_str == "*", do: :any, else: String.split(attachment_accept_str)
+
+  config :lanttern, :uploads,
+    profile_picture: [
+      max_file_size:
+        String.to_integer(
+          System.get_env("UPLOAD_PROFILE_PICTURE_MAX_FILE_SIZE", default_profile_picture_size)
+        ),
+      accept: profile_picture_accept
+    ],
+    cover: [
+      max_file_size:
+        String.to_integer(System.get_env("UPLOAD_COVER_MAX_FILE_SIZE", default_cover_size)),
+      accept: cover_accept
+    ],
+    attachment: [
+      max_file_size:
+        String.to_integer(
+          System.get_env("UPLOAD_ATTACHMENT_MAX_FILE_SIZE", default_attachment_size)
+        ),
+      accept: attachment_accept
+    ]
+
   # ## SSL Support
   #
   # To get SSL working, you will need to add the `https` key

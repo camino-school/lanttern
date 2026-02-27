@@ -1425,6 +1425,38 @@ defmodule LantternWeb.CoreComponents do
   end
 
   @doc """
+  Renders the Lanttern logo.
+  """
+  attr :theme, :string, default: "dark", doc: "dark | light"
+  attr :size, :string, default: "xs", doc: "xs | sm | md | lg"
+  attr :class, :any, default: nil
+
+  def logo(assigns) do
+    src =
+      case assigns.theme do
+        "light" -> "/images/lanttern-logo-white.svg"
+        _default -> "/images/lanttern-logo.svg"
+      end
+
+    size_class =
+      case assigns.size do
+        "lg" -> "w-15 h-15"
+        "md" -> "w-10 h-10"
+        "sm" -> "w-8 h-8"
+        _xs -> "w-5 h-5"
+      end
+
+    assigns =
+      assigns
+      |> assign(:src, src)
+      |> assign(:size_class, size_class)
+
+    ~H"""
+    <img src={@src} alt="Lanttern logo" class={[@size_class, @class]} />
+    """
+  end
+
+  @doc """
   Parses markdown text to HTML and renders it
   """
   attr :text, :string, required: true
@@ -1511,7 +1543,7 @@ defmodule LantternWeb.CoreComponents do
     ~H"""
     <div class={["flex items-center gap-4 justify-between", @class]}>
       <div class="flex items-center gap-2">
-        <h1 class="font-display font-black text-3xl">
+        <h1 class="font-display font-black text-3xl text-ltrn-darkest">
           {render_slot(@inner_block)}
         </h1>
         <.button

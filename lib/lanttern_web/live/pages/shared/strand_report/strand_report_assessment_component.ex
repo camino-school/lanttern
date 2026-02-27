@@ -1,4 +1,4 @@
-defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
+defmodule LantternWeb.StrandReportLive.StrandReportAssessmentComponent do
   @moduledoc """
   Renders assessment info related to a `StrandReport`.
 
@@ -30,12 +30,9 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
     ~H"""
     <div class={@class}>
       <.responsive_container>
-        <h2 class="font-display font-black text-2xl">{gettext("Goals assessment entries")}</h2>
+        <h2 class="font-display font-black text-2xl">{gettext("Goals assessment")}</h2>
         <p class="mt-4">
-          {gettext("Here you'll find information about the strand final and formative assessments.")}
-        </p>
-        <p class="mt-4 mb-10">
-          {gettext("You can click the assessment card to view more details about it.")}
+          {gettext("Final assessment points information, grouped by curriculum item.")}
         </p>
         <div id="strand-goals-student-entries" phx-update="stream">
           <.goal_card
@@ -44,7 +41,7 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
                 @streams.strand_goals_student_entries
             }
             id={dom_id}
-            patch={"#{@base_path}&strand_goal_id=#{goal.id}"}
+            patch={"#{@base_path}/strand_goal/#{goal.id}"}
             goal={goal}
             entry={entry}
             moment_entries={moment_entries}
@@ -75,7 +72,7 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
                   "#{gettext("In the context of")} \"#{moment_name}\"."
                 end}
                 <.link
-                  patch={"#{@base_path}&strand_goal_id=#{goal_id}"}
+                  patch={"#{@base_path}/strand_goal/#{goal_id}"}
                   class="underline hover:text-ltrn-subtle"
                 >
                   {gettext("View assessment details")}
@@ -107,7 +104,7 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
                   module={StudentGradesReportEntryButtonComponent}
                   id={"#{dom_id}-entry-button"}
                   student_grades_report_entry={sgre}
-                  on_click={JS.patch("#{@base_path}&sgre=#{sgre.id}")}
+                  on_click={JS.patch("#{@base_path}/student_grade_report_entry/#{sgre.id}")}
                   class="flex-1 p-2"
                 />
                 <.icon
@@ -138,7 +135,7 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
                   @streams.strand_goals_without_student_entries
               }
               id={dom_id}
-              patch={"#{@base_path}&strand_goal_id=#{goal.id}"}
+              patch={"#{@base_path}/strand_goal/#{goal.id}"}
               goal={goal}
               entry={entry}
               moment_entries={moment_entries}
@@ -253,9 +250,6 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
                 entry={moment_entry}
                 class="flex-1"
               />
-              <.tooltip id={"#{@id}-pattern-tooltip"}>
-                {gettext("Formative assessment pattern")}
-              </.tooltip>
             </div>
           </div>
         </div>
@@ -275,10 +269,9 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
 
   defp assessment_metadata_icon(%{type: :diff} = assigns) do
     ~H"""
-    <div class="flex items-center justify-center w-6 h-6 rounded-full bg-ltrn-diff-lighter">
-      <span class="font-display font-black text-sm text-ltrn-diff-accent">D</span>
-      <.tooltip id={"#{@id}-diff-tooltip"}>{gettext("Differentiation")}</.tooltip>
-    </div>
+    <p class="font-sans font-bold text-sm text-ltrn-diff-dark">
+      {gettext("Diff")}
+    </p>
     """
   end
 
@@ -294,10 +287,7 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
       |> assign(:color, color)
 
     ~H"""
-    <div class={["flex items-center justify-center w-6 h-6 rounded-full", @bg]}>
-      <.icon name={@icon_name} class={@color} />
-      <.tooltip id={"#{@id}-#{@type}-tooltip"}>{@text}</.tooltip>
-    </div>
+    <.icon name={@icon_name} class="text-ltrn-subtle" />
     """
   end
 
@@ -495,7 +485,9 @@ defmodule LantternWeb.Reporting.StrandReportAssessmentComponent do
 
   defp assign_strand_goal_id(socket), do: assign(socket, :strand_goal_id, nil)
 
-  defp assign_student_grades_report_entry_id(%{assigns: %{params: %{"sgre" => sgre_id}}} = socket) do
+  defp assign_student_grades_report_entry_id(
+         %{assigns: %{params: %{"student_grade_report_entry_id" => sgre_id}}} = socket
+       ) do
     # simple guard to prevent viewing details from unrelated entries
     student_grades_report_entry_id =
       if sgre_id in socket.assigns.student_grades_report_entries_ids do

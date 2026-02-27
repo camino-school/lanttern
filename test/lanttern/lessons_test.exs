@@ -184,7 +184,8 @@ defmodule Lanttern.LessonsTest do
       assert expected.description == lesson.description
     end
 
-    test "update_lessons_positions/1 update lessons position based on list order" do
+    test "update_lessons_positions/2 update lessons position based on list order" do
+      scope = scope_fixture_for_lessons()
       strand = insert(:strand)
       lesson_1 = insert(:lesson, strand: strand)
       lesson_2 = insert(:lesson, strand: strand)
@@ -199,7 +200,7 @@ defmodule Lanttern.LessonsTest do
           lesson_4.id
         ]
 
-      :ok = Lessons.update_lessons_positions(sorted_lessons_ids)
+      :ok = Lessons.update_lessons_positions(scope, sorted_lessons_ids)
 
       [expected_2, expected_3, expected_1, expected_4] =
         Lessons.list_lessons(strand_id: strand.id)
@@ -217,9 +218,55 @@ defmodule Lanttern.LessonsTest do
       assert_raise Ecto.NoResultsError, fn -> Lessons.get_lesson!(lesson.id) end
     end
 
-    test "change_lesson/1 returns a lesson changeset" do
+    test "change_lesson/2 returns a lesson changeset" do
+      scope = scope_fixture_for_lessons()
       lesson = insert(:lesson)
-      assert %Ecto.Changeset{} = Lessons.change_lesson(lesson)
+      assert %Ecto.Changeset{} = Lessons.change_lesson(scope, lesson)
+    end
+
+    test "update_lessons_positions/2 raises when scope is not staff" do
+      scope = IdentityFixtures.student_scope_fixture()
+      lesson = insert(:lesson)
+
+      assert_raise MatchError, fn ->
+        Lessons.update_lessons_positions(scope, [lesson.id])
+      end
+    end
+
+    test "create_lesson/2 raises when scope is not staff" do
+      scope = IdentityFixtures.student_scope_fixture()
+      strand = insert(:strand)
+
+      assert_raise MatchError, fn ->
+        Lessons.create_lesson(scope, %{name: "Lesson", strand_id: strand.id})
+      end
+    end
+
+    test "update_lesson/3 raises when scope is not staff" do
+      scope = IdentityFixtures.student_scope_fixture()
+      lesson = insert(:lesson)
+
+      assert_raise MatchError, fn ->
+        Lessons.update_lesson(scope, lesson, %{name: "Updated"})
+      end
+    end
+
+    test "delete_lesson/2 raises when scope is not staff" do
+      scope = IdentityFixtures.student_scope_fixture()
+      lesson = insert(:lesson)
+
+      assert_raise MatchError, fn ->
+        Lessons.delete_lesson(scope, lesson)
+      end
+    end
+
+    test "change_lesson/2 raises when scope is not staff" do
+      scope = IdentityFixtures.student_scope_fixture()
+      lesson = insert(:lesson)
+
+      assert_raise MatchError, fn ->
+        Lessons.change_lesson(scope, lesson)
+      end
     end
 
     test "create_lesson/2 auto-calculates position scoped to strand and moment" do

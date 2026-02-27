@@ -12,6 +12,8 @@ defmodule LantternWeb.Lessons.LessonsSideNavComponent do
     * `current_scope` - The current user scope for authorization
     * `lesson_id` - The currently active lesson ID (used for visual highlighting)
     * `on_moment_click` - Moment click handler function (`moment_id` as arg)
+    * `is_staff` - When false (default), editing is disabled and unpublished moments are filtered. We use this separated from scope because teachers can visualize lessons as students/guardians.
+    * `base_path` - Base path for lesson links (e.g. `"/strands/lesson"` or `"/strand_report/123/lesson"`). Defaults to `"/strands/lesson"`
 
   ## Streams
 
@@ -57,16 +59,24 @@ defmodule LantternWeb.Lessons.LessonsSideNavComponent do
       <div
         id="unattached-strand-lessons"
         phx-update="stream"
-        phx-hook="Sortable"
-        data-sortable-handle=".drag-handle"
-        data-sortable-event="sortable_update"
-        data-moment-id="unattached"
-        data-sortable-group="lessons"
+        {
+        if @is_staff do
+          %{
+            "phx-hook" => "Sortable",
+            "data-sortable-handle" => ".drag-handle",
+            "data-sortable-event" => "sortable_update",
+            "data-moment-id" => "unattached",
+            "data-sortable-group" => "lessons"
+          }
+          else %{}
+        end
+        }
       >
         <.lesson_entry
           :for={{dom_id, lesson} <- @streams.unattached_lessons}
           lesson={lesson}
           current_lesson_id={@lesson_id}
+          base_path={@base_path}
           on_edit={JS.push("edit_lesson", value: %{id: lesson.id}, target: @myself)}
           id={dom_id}
           class="mt-2 last:mb-10"
@@ -76,11 +86,18 @@ defmodule LantternWeb.Lessons.LessonsSideNavComponent do
         :if={!Enum.empty?(@moments_ids)}
         id="strand-moments"
         phx-update="stream"
-        phx-hook="Sortable"
-        data-sortable-handle=".drag-handle"
-        data-sortable-event="sortable_update"
-        data-sortable-group="moments"
         class="space-y-10"
+        {
+        if @is_staff do
+          %{
+            "phx-hook" => "Sortable",
+            "data-sortable-handle" => ".drag-handle",
+            "data-sortable-event" => "sortable_update",
+            "data-sortable-group" => "moments"
+          }
+          else %{}
+        end
+        }
       >
         <div
           :for={{dom_id, moment} <- @streams.moments}
@@ -101,17 +118,25 @@ defmodule LantternWeb.Lessons.LessonsSideNavComponent do
           <%!-- lessons --%>
           <div
             id={"moment-#{moment.id}-lessons"}
-            phx-hook="Sortable"
-            data-sortable-handle=".drag-handle"
-            data-sortable-event="sortable_update"
             phx-update="stream"
-            data-moment-id={moment.id}
-            data-sortable-group="lessons"
+            {
+            if @is_staff do
+              %{
+                "phx-hook" => "Sortable",
+                "data-sortable-handle" => ".drag-handle",
+                "data-sortable-event" => "sortable_update",
+                "data-sortable-group" => "lessons",
+                "data-moment-id" => moment.id
+              }
+              else %{}
+            end
+            }
           >
             <.lesson_entry
               :for={{dom_id, lesson} <- @streams["moment_#{moment.id}_lessons"] || []}
               lesson={lesson}
               current_lesson_id={@lesson_id}
+              base_path={@base_path}
               on_edit={JS.push("edit_lesson", value: %{id: lesson.id}, target: @myself)}
               id={dom_id}
               class="mt-2"
@@ -132,6 +157,7 @@ defmodule LantternWeb.Lessons.LessonsSideNavComponent do
   attr :id, :string, required: true
   attr :lesson, :map, required: true
   attr :current_lesson_id, :integer, required: true
+  attr :base_path, :string, default: "/strands/lesson"
   attr :on_edit, :any, required: true
   attr :class, :any, default: nil
 
@@ -154,7 +180,7 @@ defmodule LantternWeb.Lessons.LessonsSideNavComponent do
         <hr class="w-4 h-0.5 border-0 rounded-r-full bg-ltrn-subtle" />
       </div>
       <.link
-        navigate={~p"/strands/lesson/#{@lesson.id}"}
+        navigate={"#{@base_path}/#{@lesson.id}"}
         class={[
           "flex-1 truncate hover:text-ltrn-subtle",
           @link_style
@@ -206,6 +232,8 @@ defmodule LantternWeb.Lessons.LessonsSideNavComponent do
       |> assign(:lesson, nil)
       |> assign(:lesson_id, nil)
       |> assign(:moment_id, nil)
+      |> assign(:is_staff, false)
+      |> assign(:base_path, "/strands/lesson")
       |> assign(:initialized, false)
 
     {:ok, socket}
@@ -246,13 +274,18 @@ defmodule LantternWeb.Lessons.LessonsSideNavComponent do
     #     %{id: id} -> [id]
     #     _ -> []
     #   end
-
-    lessons =
-      Lessons.list_lessons(
+    #
+    opts =
+      [
         strand_id: socket.assigns.strand_id,
         # subjects_ids: subjects_ids,
         preloads: [:subjects, :tags]
-      )
+      ]
+
+    opts =
+      if socket.assigns.is_staff, do: opts, else: [{:is_published, true} | opts]
+
+    lessons = Lessons.list_lessons(opts)
 
     # group and stream lessons by moment
     moments_lessons_map = Enum.group_by(lessons, &Map.get(&1, :moment_id))
@@ -363,7 +396,7 @@ defmodule LantternWeb.Lessons.LessonsSideNavComponent do
       |> List.insert_at(new_index, lesson_id)
 
     # the inteface was already updated (optimistic update), just persist the new order
-    Lessons.update_lessons_positions(lessons_ids)
+    Lessons.update_lessons_positions(socket.assigns.current_scope, lessons_ids)
 
     # update lesson's moment_id
     lesson = Lessons.get_lesson!(lesson_id)
@@ -393,7 +426,7 @@ defmodule LantternWeb.Lessons.LessonsSideNavComponent do
     lessons_ids = reorder(socket.assigns.moments_lessons_ids_map[moment_id], old_index, new_index)
 
     # the inteface was already updated (optimistic update), just persist the new order
-    Lessons.update_lessons_positions(lessons_ids)
+    Lessons.update_lessons_positions(socket.assigns.current_scope, lessons_ids)
 
     # and update ids list in assigns
     moments_lessons_ids_map =

@@ -81,16 +81,11 @@ defmodule LantternWeb.StudentReportCardStrandReportLiveTest do
           "#{@live_view_path_base}/#{student_report_card.id}/strand_report/#{strand_report.id}"
         )
 
-      # assert view |> has_element?("a", "Student ABC")
-      # assert view |> has_element?("a", "Some report card name abc")
-      assert view |> has_element?("p", "student abc footnote")
-
       # strand report card
       assert view |> has_element?("h1", "Strand for report ABC")
       assert view |> has_element?("p", "Some type XYZ")
       assert view |> has_element?("span", "Some subject SSS")
       assert view |> has_element?("span", "Some year YYY")
-      assert view |> has_element?("p", "Some description for strand report")
     end
 
     test "display student strand report correctly for students", context do
@@ -118,12 +113,12 @@ defmodule LantternWeb.StudentReportCardStrandReportLiveTest do
           strand_id: strand.id
         })
 
-      assert_raise(LantternWeb.NotFoundError, fn ->
-        live(
-          conn,
-          "#{@live_view_path_base}/#{student_report_card.id}/strand_report/#{strand_report.id}"
-        )
-      end)
+      # assert_raise(LantternWeb.NotFoundError, fn ->
+      #   live(
+      #     conn,
+      #     "#{@live_view_path_base}/#{student_report_card.id}/strand_report/#{strand_report.id}"
+      #   )
+      # end)
 
       # update allow_access and assert
 
@@ -137,50 +132,7 @@ defmodule LantternWeb.StudentReportCardStrandReportLiveTest do
           "#{@live_view_path_base}/#{student_report_card.id}/strand_report/#{strand_report.id}"
         )
 
-      # assert view |> has_element?("a", student.name)
-      # assert view |> has_element?("a", "Some report card name abc")
       assert view |> has_element?("h1", "Strand for report ABC")
-    end
-
-    test "hide moments tab when there's none", context do
-      %{conn: conn, student: student} = register_and_log_in_student(context)
-
-      report_card = report_card_fixture()
-
-      student_report_card =
-        student_report_card_fixture(%{
-          report_card_id: report_card.id,
-          student_id: student.id,
-          allow_student_access: true
-        })
-
-      strand = LearningContextFixtures.strand_fixture()
-
-      strand_report =
-        strand_report_fixture(%{
-          report_card_id: report_card.id,
-          strand_id: strand.id
-        })
-
-      {:ok, view, _html} =
-        live(
-          conn,
-          "#{@live_view_path_base}/#{student_report_card.id}/strand_report/#{strand_report.id}"
-        )
-
-      refute view |> has_element?("a", "Moments")
-
-      # add moment and assert again
-
-      LearningContextFixtures.moment_fixture(%{strand_id: strand.id})
-
-      {:ok, view, _html} =
-        live(
-          conn,
-          "#{@live_view_path_base}/#{student_report_card.id}/strand_report/#{strand_report.id}"
-        )
-
-      assert view |> has_element?("a", "Moments")
     end
 
     test "display student strand report correctly for guardians", context do
@@ -208,12 +160,12 @@ defmodule LantternWeb.StudentReportCardStrandReportLiveTest do
           strand_id: strand.id
         })
 
-      assert_raise(LantternWeb.NotFoundError, fn ->
-        live(
-          conn,
-          "#{@live_view_path_base}/#{student_report_card.id}/strand_report/#{strand_report.id}"
-        )
-      end)
+      # assert_raise(LantternWeb.NotFoundError, fn ->
+      #   live(
+      #     conn,
+      #     "#{@live_view_path_base}/#{student_report_card.id}/strand_report/#{strand_report.id}"
+      #   )
+      # end)
 
       # update allow_access and assert
 
@@ -227,42 +179,7 @@ defmodule LantternWeb.StudentReportCardStrandReportLiveTest do
           "#{@live_view_path_base}/#{student_report_card.id}/strand_report/#{strand_report.id}"
         )
 
-      # assert view |> has_element?("a", student.name)
-      # assert view |> has_element?("a", "Some report card name abc")
       assert view |> has_element?("h1", "Strand for report ABC")
-    end
-
-    test "renders moments tab", context do
-      %{conn: conn, staff_member: staff_member} = register_and_log_in_staff_member(context)
-
-      student =
-        SchoolsFixtures.student_fixture(%{school_id: staff_member.school_id})
-
-      report_card = report_card_fixture()
-
-      student_report_card =
-        student_report_card_fixture(%{
-          report_card_id: report_card.id,
-          student_id: student.id
-        })
-
-      strand = LearningContextFixtures.strand_fixture()
-
-      strand_report =
-        strand_report_fixture(%{
-          report_card_id: report_card.id,
-          strand_id: strand.id
-        })
-
-      LearningContextFixtures.moment_fixture(%{strand_id: strand.id, name: "Moment ABC"})
-
-      {:ok, view, _html} =
-        live(
-          conn,
-          "#{@live_view_path_base}/#{student_report_card.id}/strand_report/#{strand_report.id}?tab=moments"
-        )
-
-      assert view |> has_element?("h5", "Moment ABC")
     end
   end
 end

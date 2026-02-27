@@ -53,7 +53,7 @@ defmodule LantternWeb.Schools.StaffMemberSearchComponent do
             :for={{dom_id, result} <- @streams.results}
             class={[
               "flex items-center cursor-default select-none py-2 px-3 text-ltrn-dark group",
-              "data-[active=true]:bg-ltrn-primary"
+              "data-[active=true]:bg-ltrn-lightest"
             ]}
             id={dom_id}
             role="option"
@@ -69,7 +69,7 @@ defmodule LantternWeb.Schools.StaffMemberSearchComponent do
               name="hero-check"
               class={[
                 "shrink-0 ml-2 text-ltrn-primary hidden",
-                "group-aria-selected:block group-data-[active=true]:text-white"
+                "group-aria-selected:block group-data-[active=true]:text-ltrn-subtle"
               ]}
             />
           </li>

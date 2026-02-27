@@ -147,7 +147,7 @@ defmodule LantternWeb.Lessons.LessonFormComponent do
       |> assign(:selected_moment_id, lesson.moment_id)
       |> assign(:selected_subjects_ids, selected_subjects_ids)
       |> assign(:selected_tags_ids, selected_tags_ids)
-      |> assign_form(Lessons.change_lesson(lesson))
+      |> assign_form(Lessons.change_lesson(assigns.current_scope, lesson))
       |> assign_current_moment()
       |> assign_tags()
 
@@ -174,8 +174,7 @@ defmodule LantternWeb.Lessons.LessonFormComponent do
   @impl true
   def handle_event("validate", %{"lesson" => lesson_params}, socket) do
     changeset =
-      socket.assigns.lesson
-      |> Lessons.change_lesson(lesson_params)
+      Lessons.change_lesson(socket.assigns.current_scope, socket.assigns.lesson, lesson_params)
       |> Map.put(:action, :validate)
 
     {:noreply, assign_form(socket, changeset)}

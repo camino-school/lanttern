@@ -30,6 +30,7 @@
         lesson_id={@lesson.id}
         strand_id={@strand.id}
         current_scope={@current_scope}
+        base_path="/strands/lesson"
         on_moment_click={
           fn moment_id ->
             JS.push("view_moment_details", value: %{"moment_id" => moment_id})
