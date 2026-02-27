@@ -5,8 +5,8 @@ defmodule LantternWeb.UserLoginLive do
 
   def render(assigns) do
     ~H"""
-    <div class="ltrn-bg-main">
-      <div class="mx-auto max-w-sm px-10 sm:px-0 py-20">
+    <div class="flex flex-col items-center ltrn-bg-main">
+      <div class="max-w-sm px-10 sm:px-0 py-20">
         <h1 class="font-display font-black text-5xl text-ltrn-darkest leading-tight">
           Lanttern<br />sign in
         </h1>
@@ -66,37 +66,12 @@ defmodule LantternWeb.UserLoginLive do
           >
           </div>
         </div>
-        <%!-- <.header class="text-center">
-        Sign in to account
-        <:subtitle>
-          Don't have an account?
-          <.link navigate={~p"/users/register"} class="font-semibold text-brand hover:underline">
-            Sign up
-          </.link>
-          for an account now.
-        </:subtitle>
-      </.header>
-
-      <.simple_form for={@form} id="login_form" action={~p"/users/log-in"} phx-update="ignore">
-        <.input field={@form[:email]} type="email" label="Email" required />
-        <.input field={@form[:password]} type="password" label="Password" required />
-
-        <:actions>
-          <.input field={@form[:remember_me]} type="checkbox" label="Keep me logged in" />
-          <.link href={~p"/users/reset_password"} class="text-sm font-semibold">
-            Forgot your password?
-          </.link>
-        </:actions>
-        <:actions>
-          <.button phx-disable-with="Signing in..." class="w-full">
-            Sign in <span aria-hidden="true">→</span>
-          </.button>
-        </:actions>
-      </.simple_form>
-       --%>
-        <LantternWeb.Layouts.flash_group flash={@flash} />
+      </div>
+      <div class="pb-10">
+        <.logo size="md" />
       </div>
     </div>
+    <LantternWeb.Layouts.flash_group flash={@flash} />
     """
   end
 

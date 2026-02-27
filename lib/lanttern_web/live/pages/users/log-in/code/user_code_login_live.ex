@@ -5,8 +5,8 @@ defmodule LantternWeb.UserCodeLoginLive do
 
   def render(assigns) do
     ~H"""
-    <div class="ltrn-bg-main">
-      <div class="mx-auto max-w-sm px-10 sm:px-0 py-20">
+    <div class="flex flex-col items-center ltrn-bg-main">
+      <div class="max-w-sm px-10 sm:px-0 py-20">
         <h1 class="font-display font-black text-5xl text-ltrn-darkest leading-tight">
           Lanttern<br />sign in
         </h1>
@@ -76,9 +76,12 @@ defmodule LantternWeb.UserCodeLoginLive do
         >
           {gettext("Sign in using a different email")}
         </.action>
-        <LantternWeb.Layouts.flash_group flash={@flash} />
+      </div>
+      <div class="pb-10">
+        <.logo size="md" />
       </div>
     </div>
+    <LantternWeb.Layouts.flash_group flash={@flash} />
     """
   end
 
