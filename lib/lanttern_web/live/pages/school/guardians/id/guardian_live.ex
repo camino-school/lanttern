@@ -19,8 +19,6 @@ defmodule LantternWeb.GuardianLive do
 
     case Schools.get_guardian(scope, params["id"], preloads: [:school, :students]) do
       %{} = guardian ->
-        check_if_user_has_access(socket.assigns.current_user, guardian)
-
         shared_guardians = Schools.list_shared_guardians(scope, guardian)
 
         socket
@@ -31,13 +29,6 @@ defmodule LantternWeb.GuardianLive do
       _ ->
         raise(LantternWeb.NotFoundError)
     end
-  end
-
-  # check if user can view the guardian profile
-  # staff members can view only guardians from their school
-  defp check_if_user_has_access(current_user, guardian) do
-    if guardian.school_id != current_user.current_profile.school_id,
-      do: raise(LantternWeb.NotFoundError)
   end
 
   defp assign_is_school_manager(socket) do
