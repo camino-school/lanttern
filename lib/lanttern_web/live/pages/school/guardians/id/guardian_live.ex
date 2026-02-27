@@ -64,12 +64,11 @@ defmodule LantternWeb.GuardianLive do
     do: assign(socket, :is_editing, false)
 
   @impl true
-  def handle_info({GuardianFormOverlayComponent, {:updated, guardian}}, socket) do
+  def handle_info({GuardianFormOverlayComponent, {:updated, _guardian}}, socket) do
     socket =
       socket
-      |> assign(:guardian, guardian)
       |> put_flash(:info, gettext("Guardian updated successfully"))
-      |> push_patch(to: socket.assigns.current_path)
+      |> push_navigate(to: socket.assigns.current_path)
 
     {:noreply, socket}
   end

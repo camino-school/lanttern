@@ -36,29 +36,6 @@
         </div>
       </div>
 
-      <div class="grid gap-6 md:grid-cols-2 mt-12">
-        <.card_base>
-          <div class="p-6">
-            <p class="text-sm text-ltrn-subtle mb-2">{gettext("Linked Students")}</p>
-            <p class="text-lg font-semibold">
-              {ngettext("1 student", "%{count} students", length(@guardian.students),
-                count: length(@guardian.students)
-              )}
-            </p>
-          </div>
-        </.card_base>
-        <.card_base>
-          <div class="p-6">
-            <p class="text-sm text-ltrn-subtle mb-2">{gettext("Shared Guardians")}</p>
-            <p class="text-lg font-semibold">
-              {ngettext("1 guardian", "%{count} guardians", length(@shared_guardians),
-                count: length(@shared_guardians)
-              )}
-            </p>
-          </div>
-        </.card_base>
-      </div>
-
       <div :if={length(@guardian.students) > 0} class="mt-12">
         <h3 class="font-display font-black text-lg mb-4">{gettext("Students")}</h3>
         <.fluid_grid is_full_width class="gap-4">
