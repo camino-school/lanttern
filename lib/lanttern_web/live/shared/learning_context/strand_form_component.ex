@@ -7,6 +7,7 @@ defmodule LantternWeb.LearningContext.StrandFormComponent do
 
   alias Lanttern.LearningContext
   alias Lanttern.SupabaseHelpers
+  alias LantternWeb.UploadHelpers
   import LantternWeb.TaxonomyHelpers
 
   # live components
@@ -108,11 +109,7 @@ defmodule LantternWeb.LearningContext.StrandFormComponent do
       |> assign(:subject_options, generate_subject_options())
       |> assign(:year_options, generate_year_options())
       |> assign(:is_removing_cover, false)
-      |> allow_upload(:cover,
-        accept: ~w(.jpg .jpeg .png .webp),
-        max_file_size: 5_000_000,
-        max_entries: 1
-      )
+      |> allow_upload(:cover, [max_entries: 1] ++ UploadHelpers.cover())
 
     {:ok, socket}
   end

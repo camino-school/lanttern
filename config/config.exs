@@ -123,6 +123,39 @@ config :lanttern, Oban,
      ]}
   ]
 
+# Upload config
+profile_picture_accept_str =
+  System.get_env("UPLOAD_PROFILE_PICTURE_ACCEPT", ".jpg .jpeg .png .webp")
+
+profile_picture_accept =
+  if profile_picture_accept_str == "*", do: :any, else: String.split(profile_picture_accept_str)
+
+cover_accept_str = System.get_env("UPLOAD_COVER_ACCEPT", ".jpg .jpeg .png .webp")
+
+cover_accept =
+  if cover_accept_str == "*", do: :any, else: String.split(cover_accept_str)
+
+attachment_accept_str = System.get_env("UPLOAD_ATTACHMENT_ACCEPT", "*")
+
+attachment_accept =
+  if attachment_accept_str == "*", do: :any, else: String.split(attachment_accept_str)
+
+config :lanttern, :uploads,
+  profile_picture: [
+    max_file_size:
+      String.to_integer(System.get_env("UPLOAD_PROFILE_PICTURE_MAX_FILE_SIZE", "3000000")),
+    accept: profile_picture_accept
+  ],
+  cover: [
+    max_file_size: String.to_integer(System.get_env("UPLOAD_COVER_MAX_FILE_SIZE", "5000000")),
+    accept: cover_accept
+  ],
+  attachment: [
+    max_file_size:
+      String.to_integer(System.get_env("UPLOAD_ATTACHMENT_MAX_FILE_SIZE", "5000000")),
+    accept: attachment_accept
+  ]
+
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{config_env()}.exs"

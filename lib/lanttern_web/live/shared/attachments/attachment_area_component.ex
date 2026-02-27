@@ -36,6 +36,7 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
   alias Lanttern.StudentsCycleInfo
   alias Lanttern.StudentsRecords
   alias Lanttern.SupabaseHelpers
+  alias LantternWeb.UploadHelpers
 
   # shared
 
@@ -211,11 +212,7 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
       |> assign(:shared_with_student, nil)
       |> assign(:is_teacher_only_resource, nil)
       |> assign(:sortable_group, nil)
-      |> allow_upload(:attachment_file,
-        accept: :any,
-        max_file_size: 5_000_000,
-        max_entries: 1
-      )
+      |> allow_upload(:attachment_file, [max_entries: 1] ++ UploadHelpers.attachment())
       |> assign(:initialized, false)
 
     {:ok, socket}
