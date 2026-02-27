@@ -75,11 +75,16 @@ defmodule LantternWeb.SchoolLive.GuardiansComponent do
         :deleted -> gettext("Guardian deleted successfully")
       end
 
-    {:ok,
-     socket
-     |> stream_guardians()
-     |> assign(:guardian, nil)
-     |> put_flash(:info, message)}
+    socket =
+      socket
+      |> delegate_navigation(
+        put_flash: {:info, message},
+        push_navigate: [to: ~p"/school/guardians"]
+      )
+      |> stream_guardians()
+      |> assign(:guardian, nil)
+
+    {:ok, socket}
   end
 
   def update(assigns, socket) do

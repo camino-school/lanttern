@@ -145,7 +145,7 @@ msgstr ""
 #: lib/lanttern_web/live/shared/school_config/moment_card_template_overlay_component.ex:79
 #: lib/lanttern_web/live/shared/schools/class_form_overlay_component.ex:114
 #: lib/lanttern_web/live/shared/schools/cycle_form_overlay_component.ex:58
-#: lib/lanttern_web/live/shared/schools/guardian_form_overlay_component.ex:64
+#: lib/lanttern_web/live/shared/schools/guardian_form_overlay_component.ex:100
 #: lib/lanttern_web/live/shared/schools/staff_member_form_overlay_component.ex:96
 #: lib/lanttern_web/live/shared/schools/student_form_overlay_component.ex:175
 #: lib/lanttern_web/live/shared/students/student_tag_form_overlay_component.ex:82
@@ -222,7 +222,7 @@ msgstr ""
 #: lib/lanttern_web/live/shared/school_config/moment_card_template_overlay_component.ex:82
 #: lib/lanttern_web/live/shared/schools/class_form_overlay_component.ex:117
 #: lib/lanttern_web/live/shared/schools/cycle_form_overlay_component.ex:61
-#: lib/lanttern_web/live/shared/schools/guardian_form_overlay_component.ex:73
+#: lib/lanttern_web/live/shared/schools/guardian_form_overlay_component.ex:109
 #: lib/lanttern_web/live/shared/schools/staff_member_form_overlay_component.ex:105
 #: lib/lanttern_web/live/shared/schools/student_form_overlay_component.ex:184
 #: lib/lanttern_web/live/shared/students/student_tag_form_overlay_component.ex:91
@@ -277,7 +277,7 @@ msgstr ""
 #: lib/lanttern_web/live/shared/reporting/report_card_form_component.ex:55
 #: lib/lanttern_web/live/shared/school_config/moment_card_template_overlay_component.ex:45
 #: lib/lanttern_web/live/shared/schools/class_form_overlay_component.ex:34
-#: lib/lanttern_web/live/shared/schools/guardian_form_overlay_component.ex:39
+#: lib/lanttern_web/live/shared/schools/guardian_form_overlay_component.ex:43
 #: lib/lanttern_web/live/shared/schools/staff_member_form_overlay_component.ex:53
 #: lib/lanttern_web/live/shared/schools/student_form_overlay_component.ex:50
 #: lib/lanttern_web/live/shared/students/student_tag_form_overlay_component.ex:38
@@ -312,7 +312,7 @@ msgstr ""
 #: lib/lanttern_web/live/shared/school_config/moment_card_template_overlay_component.ex:40
 #: lib/lanttern_web/live/shared/schools/class_form_overlay_component.ex:29
 #: lib/lanttern_web/live/shared/schools/cycle_form_overlay_component.ex:26
-#: lib/lanttern_web/live/shared/schools/guardian_form_overlay_component.ex:34
+#: lib/lanttern_web/live/shared/schools/guardian_form_overlay_component.ex:38
 #: lib/lanttern_web/live/shared/schools/staff_member_form_overlay_component.ex:35
 #: lib/lanttern_web/live/shared/schools/student_form_overlay_component.ex:45
 #: lib/lanttern_web/live/shared/students/student_tag_form_overlay_component.ex:33
@@ -462,7 +462,7 @@ msgstr ""
 #: lib/lanttern_web/live/shared/school_config/moment_card_template_overlay_component.ex:111
 #: lib/lanttern_web/live/shared/schools/class_form_overlay_component.ex:109
 #: lib/lanttern_web/live/shared/schools/cycle_form_overlay_component.ex:53
-#: lib/lanttern_web/live/shared/schools/guardian_form_overlay_component.ex:55
+#: lib/lanttern_web/live/shared/schools/guardian_form_overlay_component.ex:91
 #: lib/lanttern_web/live/shared/schools/student_form_overlay_component.ex:155
 #: lib/lanttern_web/live/shared/students/student_tag_form_overlay_component.ex:72
 #: lib/lanttern_web/live/shared/students_records/student_record_overlay_component.ex:344
@@ -519,7 +519,7 @@ msgstr ""
 #: lib/lanttern_web/live/shared/school_config/moment_card_template_overlay_component.ex:109
 #: lib/lanttern_web/live/shared/schools/class_form_overlay_component.ex:107
 #: lib/lanttern_web/live/shared/schools/cycle_form_overlay_component.ex:51
-#: lib/lanttern_web/live/shared/schools/guardian_form_overlay_component.ex:53
+#: lib/lanttern_web/live/shared/schools/guardian_form_overlay_component.ex:89
 #: lib/lanttern_web/live/shared/schools/student_form_overlay_component.ex:153
 #: lib/lanttern_web/live/shared/students/student_tag_form_overlay_component.ex:70
 #: lib/lanttern_web/live/shared/students_records/student_record_overlay_component.ex:342
@@ -1483,8 +1483,9 @@ msgstr ""
 
 #: lib/lanttern_web/live/pages/report_cards/id/report_card_live.html.heex:15
 #: lib/lanttern_web/live/pages/school/classes/id/class_live.html.heex:14
-#: lib/lanttern_web/live/pages/school/guardians/id/guardian_live.html.heex:59
+#: lib/lanttern_web/live/pages/school/guardians/id/guardian_live.html.heex:63
 #: lib/lanttern_web/live/pages/school/school_live.html.heex:10
+#: lib/lanttern_web/live/shared/schools/guardian_form_overlay_component.ex:52
 #: lib/lanttern_web/live/shared/students_records/student_record_overlay_component.ex:106
 #: lib/lanttern_web/live/shared/students_records/student_record_overlay_component.ex:254
 #, elixir-autogen, elixir-format
@@ -2776,13 +2777,13 @@ msgstr ""
 msgid "Student created successfully"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/school/students/id/student_live.ex:100
+#: lib/lanttern_web/live/pages/school/students/id/student_live.ex:106
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Student deleted successfully"
 msgstr ""
 
 #: lib/lanttern_web/live/pages/school/classes/id/students_component.ex:83
-#: lib/lanttern_web/live/pages/school/students/id/student_live.ex:82
+#: lib/lanttern_web/live/pages/school/students/id/student_live.ex:88
 #: lib/lanttern_web/live/pages/school/students_component.ex:136
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Student updated successfully"
@@ -4029,13 +4030,13 @@ msgid "No deactivated students found"
 msgstr ""
 
 #: lib/lanttern_web/live/pages/school/classes/id/students_component.ex:84
-#: lib/lanttern_web/live/pages/school/students/id/student_live.ex:91
+#: lib/lanttern_web/live/pages/school/students/id/student_live.ex:97
 #: lib/lanttern_web/live/pages/school/students_component.ex:137
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Student deactivated successfully"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/school/students/id/student_live.ex:109
+#: lib/lanttern_web/live/pages/school/students/id/student_live.ex:115
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Student reactivated successfully"
 msgstr ""
@@ -5421,7 +5422,7 @@ msgstr ""
 msgid "what appears in the card preview"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/school/guardians/id/guardian_live.html.heex:52
+#: lib/lanttern_web/live/pages/school/guardians/id/guardian_live.html.heex:54
 #: lib/lanttern_web/live/pages/school/guardians_component.ex:16
 #, elixir-autogen, elixir-format, fuzzy
 msgid "1 guardian"
@@ -5436,7 +5437,7 @@ msgid_plural "%{count} students"
 msgstr[0] ""
 msgstr[1] ""
 
-#: lib/lanttern_web/live/pages/school/guardians_component.ex:20
+#: lib/lanttern_web/live/pages/school/guardians_component.ex:24
 #, elixir-autogen, elixir-format
 msgid "Add guardian"
 msgstr ""
@@ -5448,26 +5449,26 @@ msgstr ""
 
 #: lib/lanttern_web/components/schools_components.ex:259
 #: lib/lanttern_web/live/pages/school/guardians/id/guardian_live.html.heex:20
-#: lib/lanttern_web/live/pages/school/guardians/id/guardian_live.html.heex:106
-#: lib/lanttern_web/live/pages/school/guardians_component.ex:126
+#: lib/lanttern_web/live/pages/school/guardians/id/guardian_live.html.heex:113
+#: lib/lanttern_web/live/pages/school/guardians_component.ex:137
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Edit guardian"
 msgstr ""
 
 #: lib/lanttern_web/live/pages/school/guardians/id/guardian_live.ex:80
-#: lib/lanttern_web/live/pages/school/guardians_component.ex:69
-#: lib/lanttern_web/live/pages/school/guardians_component.ex:140
+#: lib/lanttern_web/live/pages/school/guardians_component.ex:75
+#: lib/lanttern_web/live/pages/school/guardians_component.ex:151
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Guardian deleted successfully"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/school/guardians_component.ex:67
+#: lib/lanttern_web/live/pages/school/guardians_component.ex:73
 #, elixir-autogen, elixir-format
 msgid "Guardian saved successfully"
 msgstr ""
 
 #: lib/lanttern_web/live/pages/school/guardians/id/guardian_live.ex:71
-#: lib/lanttern_web/live/pages/school/guardians_component.ex:68
+#: lib/lanttern_web/live/pages/school/guardians_component.ex:74
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Guardian updated successfully"
 msgstr ""
@@ -5485,7 +5486,7 @@ msgstr ""
 msgid "Linked Students"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/school/guardians_component.ex:117
+#: lib/lanttern_web/live/pages/school/guardians_component.ex:128
 #, elixir-autogen, elixir-format
 msgid "New guardian"
 msgstr "New guardian"
@@ -6127,7 +6128,7 @@ msgstr ""
 msgid "You don't have access to this page"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/school/guardians_component.ex:149
+#: lib/lanttern_web/live/pages/school/guardians_component.ex:160
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Failed to delete guardian"
 msgstr ""
@@ -6137,28 +6138,28 @@ msgstr ""
 msgid "No guardians assigned to this student"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/school/guardians_component.ex:25
+#: lib/lanttern_web/live/pages/school/guardians_component.ex:29
 #, elixir-autogen, elixir-format
 msgid "No guardians found"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/school/guardians/id/guardian_live.html.heex:50
-#: lib/lanttern_web/live/pages/school/guardians/id/guardian_live.html.heex:80
+#: lib/lanttern_web/live/pages/school/guardians/id/guardian_live.html.heex:52
+#: lib/lanttern_web/live/pages/school/guardians/id/guardian_live.html.heex:84
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Shared Guardians"
 msgstr "Shared Guardians"
 
-#: lib/lanttern_web/live/shared/schools/guardian_form_overlay_component.ex:131
+#: lib/lanttern_web/live/shared/schools/guardian_form_overlay_component.ex:202
 #, elixir-autogen, elixir-format, fuzzy
 msgid "You don't have permission to create guardians"
 msgstr ""
 
-#: lib/lanttern_web/live/shared/schools/guardian_form_overlay_component.ex:113
+#: lib/lanttern_web/live/shared/schools/guardian_form_overlay_component.ex:182
 #, elixir-autogen, elixir-format
 msgid "You don't have permission to delete guardians"
 msgstr ""
 
-#: lib/lanttern_web/live/shared/schools/guardian_form_overlay_component.ex:150
+#: lib/lanttern_web/live/shared/schools/guardian_form_overlay_component.ex:224
 #, elixir-autogen, elixir-format
 msgid "You don't have permission to update guardians"
 msgstr ""
@@ -6171,4 +6172,9 @@ msgstr ""
 #: lib/lanttern_web/live/shared/schools/guardians_search_component.ex:91
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Search guardians..."
+msgstr ""
+
+#: lib/lanttern_web/live/shared/schools/guardian_form_overlay_component.ex:75
+#, elixir-autogen, elixir-format, fuzzy
+msgid "No students added to this guardian"
 msgstr ""
