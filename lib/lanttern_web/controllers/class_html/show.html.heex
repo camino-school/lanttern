@@ -18,6 +18,11 @@
       |> Enum.map(& &1.name)
       |> Enum.join(", ")}
     </:item>
+    <:item title="Staff members">
+      {@class.staff_members
+      |> Enum.map(& &1.name)
+      |> Enum.join(", ")}
+    </:item>
     <:item title="Students">
       {@class.students
       |> Enum.map(& &1.name)

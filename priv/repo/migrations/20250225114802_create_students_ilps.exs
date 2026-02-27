@@ -35,9 +35,9 @@ defmodule Lanttern.Repo.Migrations.CreateStudentsIlps do
     # we can't have more than one update from the same ilp
     create unique_index(:students_ilps, [:update_of_ilp_id])
 
-    # we can't have more than one "base" ILP (not update) for the same student/template/cycle
-    create unique_index(:students_ilps, [:student_id, :template_id, :cycle_id, :update_of_ilp_id],
-             nulls_distinct: false
+    # no more than one "base" ILP (not update) for the same student/template/cycle
+    create unique_index(:students_ilps, [:student_id, :template_id, :cycle_id],
+             where: "update_of_ilp_id IS NULL"
            )
   end
 end

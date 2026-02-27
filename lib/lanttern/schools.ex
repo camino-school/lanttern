@@ -13,6 +13,7 @@ defmodule Lanttern.Schools do
   alias Lanttern.Identity.Profile
   alias Lanttern.Identity.User
   alias Lanttern.Schools.Class
+  alias Lanttern.Schools.ClassStaffMember
   alias Lanttern.Schools.Cycle
   alias Lanttern.Schools.School
   alias Lanttern.Schools.StaffMember
@@ -639,9 +640,9 @@ defmodule Lanttern.Schools do
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_class(attrs \\ %{}) do
+  def create_class(attrs \\ %{}, current_user) do
     %Class{}
-    |> Class.changeset(attrs)
+    |> Class.changeset(attrs, current_user.current_profile)
     |> Repo.insert()
   end
 
@@ -657,10 +658,10 @@ defmodule Lanttern.Schools do
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_class(%Class{} = class, attrs) do
+  def update_class(%Class{} = class, attrs, current_user) do
     class
-    |> Repo.preload([:students, :years])
-    |> Class.changeset(attrs)
+    |> Repo.preload([:students, :years, :staff_members])
+    |> Class.changeset(attrs, current_user.current_profile)
     |> Repo.update()
   end
 
@@ -709,8 +710,12 @@ defmodule Lanttern.Schools do
       %Ecto.Changeset{data: %Class{}}
 
   """
-  def change_class(%Class{} = class, attrs \\ %{}) do
-    Class.changeset(class, attrs)
+  def change_class(%Class{} = class, current_user) do
+    Class.changeset(class, %{}, current_user.current_profile)
+  end
+
+  def change_class(%Class{} = class, attrs, current_user) do
+    Class.changeset(class, attrs, current_user.current_profile)
   end
 
   @doc """
@@ -1547,6 +1552,271 @@ defmodule Lanttern.Schools do
   end
 
   @doc """
+  Returns the list of staff members for a class, ordered by position.
+
+  ### Options:
+
+  - `:preloads` – preloads associated data
+  - `:load_email` - boolean, will add the email field based on staff member profile/user
+
+  ## Examples
+
+      iex> list_class_staff_members(scope, class_id)
+      [%StaffMember{}, ...]
+
+  """
+  def list_class_staff_members(scope, class_id, opts \\ []) do
+    load_email? = Keyword.get(opts, :load_email, false)
+
+    base_query =
+      from(csm in ClassStaffMember,
+        join: sm in assoc(csm, :staff_member),
+        join: cl in assoc(csm, :class),
+        where: csm.class_id == ^class_id,
+        where: cl.school_id == ^scope.school_id,
+        where: is_nil(sm.deactivated_at),
+        order_by: [asc: csm.position],
+        select: %{
+          sm
+          | class_role: csm.role,
+            class_staff_member_id: csm.id,
+            position: csm.position
+        }
+      )
+
+    query =
+      if load_email? do
+        from([csm, sm] in base_query,
+          left_join: p in assoc(sm, :profile),
+          left_join: u in assoc(p, :user),
+          select_merge: %{email: u.email}
+        )
+      else
+        base_query
+      end
+
+    result =
+      query
+      |> Repo.all()
+
+    result
+    |> maybe_preload(opts)
+  end
+
+  @doc """
+  Returns the list of classes for a staff member, ordered by position.
+
+  ## Examples
+
+      iex> list_staff_member_classes(scope, staff_member)
+      [%ClassStaffMember{}, ...]
+
+  """
+  def list_staff_member_classes(
+        %{school_id: school_id},
+        %StaffMember{school_id: school_id} = staff_member
+      ) do
+    from(csm in ClassStaffMember,
+      join: c in assoc(csm, :class),
+      where: csm.staff_member_id == ^staff_member.id,
+      order_by: [asc: csm.position],
+      preload: [class: {c, [:school, :cycle]}]
+    )
+    |> Repo.all()
+  end
+
+  def list_staff_member_classes(_scope, _staff_member), do: []
+
+  @doc """
+  Gets a single class staff member relationship.
+
+  Raises `Ecto.NoResultsError` if not found.
+
+  ## Examples
+
+      iex> get_class_staff_member!(scope, id)
+      %ClassStaffMember{}
+
+  """
+  def get_class_staff_member!(scope, id, opts \\ []) do
+    from(csm in ClassStaffMember,
+      join: cl in assoc(csm, :class),
+      where: csm.id == ^id,
+      where: cl.school_id == ^scope.school_id
+    )
+    |> Repo.one!()
+    |> maybe_preload(opts)
+  end
+
+  @doc """
+  Adds a staff member to a class.
+
+  Position is auto-assigned using RepoHelpers.set_position_in_attrs/2.
+
+  ## Examples
+
+      iex> add_staff_member_to_class(scope, %{class_id: 1, staff_member_id: 2})
+      {:ok, %ClassStaffMember{}}
+
+      iex> add_staff_member_to_class(scope, %{class_id: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def add_staff_member_to_class(%{school_id: school_id, permissions: permissions}, attrs) do
+    if "school_management" in permissions do
+      class_id = Map.get(attrs, :class_id) || Map.get(attrs, "class_id")
+
+      case Repo.get(Class, class_id) do
+        %Class{school_id: ^school_id} ->
+          position_queryable =
+            from(csm in ClassStaffMember,
+              where: csm.class_id == ^class_id
+            )
+
+          set_position_in_attrs(position_queryable, attrs)
+          |> then(&ClassStaffMember.changeset(%ClassStaffMember{}, &1))
+          |> Repo.insert()
+
+        _ ->
+          {:error, :unauthorized}
+      end
+    else
+      {:error, :unauthorized}
+    end
+  end
+
+  def add_staff_member_to_class(_scope, _attrs), do: {:error, :unauthorized}
+
+  @doc """
+  Updates a class staff member relationship (role and/or position).
+
+  ## Examples
+
+      iex> update_class_staff_member(scope, class_staff_member, %{role: "Lead Teacher"})
+      {:ok, %ClassStaffMember{}}
+
+      iex> update_class_staff_member(scope, class_staff_member, %{role: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_class_staff_member(
+        %{school_id: school_id, permissions: permissions},
+        %ClassStaffMember{} = class_staff_member,
+        attrs
+      ) do
+    if "school_management" in permissions do
+      case Repo.get(Class, class_staff_member.class_id) do
+        %Class{school_id: ^school_id} ->
+          class_staff_member
+          |> ClassStaffMember.changeset(attrs)
+          |> Repo.update()
+
+        _ ->
+          {:error, :unauthorized}
+      end
+    else
+      {:error, :unauthorized}
+    end
+  end
+
+  def update_class_staff_member(_scope, _class_staff_member, _attrs), do: {:error, :unauthorized}
+
+  @doc """
+  Removes a staff member from a class.
+
+  ## Examples
+
+      iex> remove_staff_member_from_class(scope, class_staff_member)
+      {:ok, %ClassStaffMember{}}
+
+      iex> remove_staff_member_from_class(scope, class_staff_member)
+      {:error, :unauthorized}
+
+  """
+  def remove_staff_member_from_class(
+        %{school_id: school_id, permissions: permissions},
+        %ClassStaffMember{} = class_staff_member
+      ) do
+    if "school_management" in permissions do
+      case Repo.get(Class, class_staff_member.class_id) do
+        %Class{school_id: ^school_id} ->
+          Repo.delete(class_staff_member)
+
+        _ ->
+          {:error, :unauthorized}
+      end
+    else
+      {:error, :unauthorized}
+    end
+  end
+
+  def remove_staff_member_from_class(_scope, _class_staff_member), do: {:error, :unauthorized}
+
+  @doc """
+  Updates class staff members positions based on ids list order.
+
+  ## Examples
+
+      iex> update_class_staff_members_positions(scope, class_id, [3, 2, 1])
+      :ok
+
+  """
+  def update_class_staff_members_positions(
+        %{school_id: school_id, permissions: permissions},
+        class_id,
+        ids_list
+      ) do
+    if "school_management" in permissions do
+      case Repo.get(Class, class_id) do
+        %Class{school_id: ^school_id} ->
+          queryable = from(csm in ClassStaffMember, where: csm.class_id == ^class_id)
+          update_positions(queryable, ids_list, id_field: :staff_member_id)
+
+        _ ->
+          {:error, :unauthorized}
+      end
+    else
+      {:error, :unauthorized}
+    end
+  end
+
+  def update_class_staff_members_positions(_scope, _class_id, _ids_list),
+    do: {:error, :unauthorized}
+
+  @doc """
+  Updates staff member classes positions based on ids list order.
+
+  ## Examples
+
+      iex> update_staff_member_classes_positions(scope, staff_member_id, [3, 2, 1])
+      :ok
+
+  """
+  def update_staff_member_classes_positions(
+        %{school_id: school_id, permissions: permissions},
+        staff_member_id,
+        ids_list
+      ) do
+    if "school_management" in permissions do
+      case Repo.get(StaffMember, staff_member_id) do
+        %StaffMember{school_id: ^school_id} ->
+          queryable =
+            from(csm in ClassStaffMember, where: csm.staff_member_id == ^staff_member_id)
+
+          update_positions(queryable, ids_list)
+
+        _ ->
+          {:error, :unauthorized}
+      end
+    else
+      {:error, :unauthorized}
+    end
+  end
+
+  def update_staff_member_classes_positions(_scope, _staff_member_id, _ids_list),
+    do: {:error, :unauthorized}
+
+  @doc """
   Returns an `%Ecto.Changeset{}` for tracking staff member changes.
 
   ## Examples
@@ -1614,11 +1884,10 @@ defmodule Lanttern.Schools do
 
   defp get_or_insert_csv_class({csv_class_name, ""}, school_id, cycle_id) do
     {:ok, class} =
-      create_class(%{
-        name: csv_class_name,
-        school_id: school_id,
-        cycle_id: cycle_id
-      })
+      create_class(
+        %{name: csv_class_name, cycle_id: cycle_id},
+        %{current_profile: %{school_id: school_id}}
+      )
 
     {csv_class_name, class}
   end

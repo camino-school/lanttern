@@ -151,5 +151,9 @@ defmodule LantternWeb.StaffMemberLive do
     {:noreply, socket}
   end
 
-  def handle_info(_, socket), do: socket
+  def handle_info({StudentsRecordsComponent, _msg}, socket) do
+    {:noreply, socket}
+  end
+
+  def handle_info(_, socket), do: {:noreply, socket}
 end

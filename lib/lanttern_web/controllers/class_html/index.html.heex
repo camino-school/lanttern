@@ -15,6 +15,7 @@
     <:col :let={class} label="Years">
       {class.years |> Enum.map(& &1.name) |> Enum.join(", ")}
     </:col>
+    <:col :let={class} label="Staff members">{length(class.staff_members)}</:col>
     <:col :let={class} label="Students">{length(class.students)}</:col>
     <:action :let={class}>
       <div class="sr-only">
