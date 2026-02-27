@@ -16,7 +16,7 @@
       <.card_base>
         <.link navigate={~p"/student_strands"} class="block p-6 hover:text-ltrn-subtle">
           <.icon name="hero-map" class="w-8 h-8 text-ltrn-subtle" />
-          <div class="mt-4 font-display font-black text-xl">
+          <div class="mt-4 font-bold text-2xl">
             {gettext("Explore strands")}
           </div>
         </.link>
@@ -24,7 +24,7 @@
       <.card_base>
         <.link navigate={~p"/student_report_cards"} class="block p-6 hover:text-ltrn-subtle">
           <.icon name="hero-map-pin" class="w-8 h-8 text-ltrn-subtle" />
-          <div class="mt-4 font-display font-black text-xl">
+          <div class="mt-4 font-bold text-2xl">
             {gettext("View report cards")}
           </div>
         </.link>
@@ -32,7 +32,7 @@
       <.card_base :if={@has_ilp}>
         <.link navigate={~p"/student_ilp"} class="block p-6 hover:text-ltrn-subtle">
           <.icon name="hero-check-badge" class="w-8 h-8 text-ltrn-subtle" />
-          <div class="mt-4 font-display font-black text-xl">
+          <div class="mt-4 font-bold text-2xl">
             {gettext("Read the ILP")}
           </div>
         </.link>
