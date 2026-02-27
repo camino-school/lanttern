@@ -138,8 +138,6 @@ defmodule LantternWeb.StudentLive.LessonsComponent do
               navigate={~p"/school/guardians/#{guardian.id}"}
               show_edit={false}
               show_delete={false}
-              edit_patch={}
-              on_delete={}
             />
           </.fluid_grid>
         </div>
