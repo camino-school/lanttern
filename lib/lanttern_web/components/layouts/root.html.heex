@@ -24,13 +24,23 @@
     <link phx-track-static rel="stylesheet" href={~p"/assets/css/app.css"} />
     <script defer phx-track-static type="text/javascript" src={~p"/assets/js/app.js"}>
     </script>
-    <!-- Plausible analytics -->
-    <script
-      defer
-      data-domain={System.get_env("PHX_HOST") || "localhost"}
-      src="https://plausible.io/js/script.js"
-    >
-    </script>
+    <%= if ga_id = System.get_env("GA_MEASUREMENT_ID") do %>
+      <!-- Google Analytics 4 (Consent Mode v2) -->
+      <script nonce={@csp_nonce}>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('consent', 'default', {
+          analytics_storage: 'denied',
+          ad_storage: 'denied',
+          ad_user_data: 'denied',
+          ad_personalization: 'denied'
+        });
+        gtag('js', new Date());
+        gtag('config', '<%= ga_id %>');
+      </script>
+      <script async src={"https://www.googletagmanager.com/gtag/js?id=#{ga_id}"}>
+      </script>
+    <% end %>
   </head>
   <body class="bg-white antialiased min-h-screen font-serif text-base text-ltrn-dark">
     {@inner_content}
@@ -45,12 +55,17 @@
         </h6>
         <p class="mt-4">
           {gettext(
-            "...but only the necessary for session persistence, keeping you logged in even when you close the browser and come back the other day."
+            "We use essential cookies to keep you logged in. We'd also like to use analytics cookies (Google Analytics) to help us improve the app."
           )}
         </p>
-        <button type="button" class="mt-6 underline" id="accept-cookies-button">
-          {gettext("Understood!")}
-        </button>
+        <div class="mt-6 flex gap-4">
+          <button type="button" class="underline" id="accept-all-cookies-button">
+            {gettext("Accept all")}
+          </button>
+          <button type="button" class="underline" id="essential-only-cookies-button">
+            {gettext("Essential only")}
+          </button>
+        </div>
       </div>
     </div>
   </body>
