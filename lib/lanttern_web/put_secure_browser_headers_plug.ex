@@ -28,7 +28,7 @@ defmodule LantternWeb.PutSecureBrowserHeadersPlug do
       "img-src * data: blob: 'self'",
       "font-src *",
       "media-src 'self' *.supabase.co",
-      "connect-src 'self' *.supabase.co *.google-analytics.com *.google.com"
+      "connect-src 'self' *.supabase.co *.google-analytics.com *.google.com *.googletagmanager.com"
     ]
     |> Enum.join("; ")
   end

@@ -36,7 +36,12 @@
           ad_personalization: 'denied'
         });
         gtag('js', new Date());
-        gtag('config', '<%= ga_id %>');
+        <%= if scope = assigns[:current_scope] do %>
+          gtag('config', '<%= ga_id %>', { user_id: '<%= scope.user_id %>' });
+          gtag('set', 'user_properties', { profile_id: '<%= scope.profile_id %>' });
+        <% else %>
+          gtag('config', '<%= ga_id %>');
+        <% end %>
       </script>
       <script async src={"https://www.googletagmanager.com/gtag/js?id=#{ga_id}"}>
       </script>
@@ -58,11 +63,15 @@
             "We use essential cookies to keep you logged in. We'd also like to use analytics cookies (Google Analytics) to help us improve the app."
           )}
         </p>
-        <div class="mt-6 flex gap-4">
-          <button type="button" class="underline" id="accept-all-cookies-button">
+        <div class="mt-6 flex gap-4 font-sans">
+          <button
+            type="button"
+            class="font-bold hover:text-ltrn-subtle"
+            id="accept-all-cookies-button"
+          >
             {gettext("Accept all")}
           </button>
-          <button type="button" class="underline" id="essential-only-cookies-button">
+          <button type="button" class="text-ltrn-subtle" id="essential-only-cookies-button">
             {gettext("Essential only")}
           </button>
         </div>
