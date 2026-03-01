@@ -63,3 +63,6 @@ config :lanttern, Oban, testing: :manual
 
 # Run audit log inserts synchronously in tests (no async tasks)
 config :lanttern, Lanttern.AuditLog, mode: :sync
+
+# Run engagement metric inserts synchronously in tests (no async tasks)
+config :lanttern, Lanttern.Engagement, mode: :sync

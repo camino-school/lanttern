@@ -2,6 +2,7 @@ defmodule LantternWeb.StrandReportLessonLive do
   use LantternWeb, :live_view
 
   alias Lanttern.Attachments
+  alias Lanttern.Engagement
   alias Lanttern.Identity.Scope
   alias Lanttern.LearningContext
   alias Lanttern.LearningContext.Moment
@@ -161,4 +162,18 @@ defmodule LantternWeb.StrandReportLessonLive do
 
   def handle_event("close_moment_details", _params, socket),
     do: {:noreply, assign(socket, :moment, nil)}
+
+  @impl true
+  def handle_params(params, _url, socket) do
+    %{current_scope: scope, lesson: lesson, student_report_card: src} = socket.assigns
+
+    Engagement.track_strand_report_lesson_view(
+      scope,
+      String.to_integer(params["strand_report_id"]),
+      lesson.id,
+      src && src.id
+    )
+
+    {:noreply, socket}
+  end
 end
