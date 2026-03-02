@@ -1634,8 +1634,8 @@ defmodule Lanttern.Schools do
   """
   def get_guardian(%Scope{} = scope, id, opts \\ []) do
     Guardian
-      |> Repo.get_by(id: id, school_id: scope.school_id)
-      |> maybe_preload(opts)
+    |> Repo.get_by(id: id, school_id: scope.school_id)
+    |> maybe_preload(opts)
   end
 
   @doc """
@@ -1647,8 +1647,8 @@ defmodule Lanttern.Schools do
   """
   def get_guardian!(%Scope{} = scope, id, opts \\ []) do
     Guardian
-      |> Repo.get_by!(id: id, school_id: scope.school_id)
-      |> maybe_preload(opts)
+    |> Repo.get_by!(id: id, school_id: scope.school_id)
+    |> maybe_preload(opts)
   end
 
   @doc """
@@ -1687,7 +1687,11 @@ defmodule Lanttern.Schools do
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_guardian(%Scope{ school_id: school_id } = scope, %Guardian{ school_id: school_id } = guardian, attrs) do
+  def update_guardian(
+        %Scope{school_id: school_id} = scope,
+        %Guardian{school_id: school_id} = guardian,
+        attrs
+      ) do
     true = Scope.has_permission?(scope, "school_management")
 
     guardian
@@ -1709,7 +1713,10 @@ defmodule Lanttern.Schools do
       {:error, %Ecto.Changeset{}}
 
   """
-  def delete_guardian(%Scope{ school_id: school_id } = scope, %Guardian{ school_id: school_id } = guardian) do
+  def delete_guardian(
+        %Scope{school_id: school_id} = scope,
+        %Guardian{school_id: school_id} = guardian
+      ) do
     true = Scope.has_permission?(scope, "school_management")
 
     Repo.delete(guardian)
@@ -1726,7 +1733,11 @@ defmodule Lanttern.Schools do
       %Ecto.Changeset{data: %Guardian{}}
 
   """
-  def change_guardian(%Scope{ school_id: school_id } = scope, %Guardian{ school_id: school_id } = guardian, attrs \\ %{}) do
+  def change_guardian(
+        %Scope{school_id: school_id} = scope,
+        %Guardian{school_id: school_id} = guardian,
+        attrs \\ %{}
+      ) do
     true = Scope.has_permission?(scope, "school_management")
 
     Guardian.changeset(guardian, attrs, scope)
@@ -1992,35 +2003,27 @@ defmodule Lanttern.Schools do
   @doc """
   Gets students for a given guardian.
 
-  Requires "school_management" permission in scope.
-
   ## Examples
 
       iex> get_students_for_guardian(scope, guardian)
       [%Student{}, ...]
 
   """
-  def get_students_for_guardian(scope, %Guardian{school_id: school_id} = guardian)
-      when school_id == scope.school_id do
-    if has_permission?(scope, "school_management") do
-      Repo.all(
-        from s in Student,
-          join: sg in "students_guardians",
-          on: s.id == sg.student_id,
-          where: sg.guardian_id == ^guardian.id,
-          select: s
-      )
-    else
-      []
-    end
+  def get_students_for_guardian(
+        %Scope{school_id: scope_school_id} = scope,
+        %Guardian{school_id: school_id} = guardian
+      ) do
+    Repo.all(
+      from s in Student,
+        join: sg in "students_guardians",
+        on: s.id == sg.student_id,
+        where: sg.guardian_id == ^guardian.id,
+        select: s
+    )
   end
-
-  def get_students_for_guardian(_scope, _guardian), do: []
 
   @doc """
   Gets guardians for a given student.
-
-  Requires "school_management" permission in scope.
 
   ## Examples
 
@@ -2028,22 +2031,18 @@ defmodule Lanttern.Schools do
       [%Guardian{}, ...]
 
   """
-  def get_guardians_for_student(scope, %Student{school_id: school_id} = student)
-      when school_id == scope.school_id do
-    if has_permission?(scope, "school_management") do
-      Repo.all(
-        from g in Guardian,
-          join: sg in "students_guardians",
-          on: g.id == sg.guardian_id,
-          where: sg.student_id == ^student.id,
-          select: g
-      )
-    else
-      []
-    end
+  def get_guardians_for_student(
+        %Scope{school_id: scope_school_id} = scope,
+        %Student{school_id: school_id} = student
+      ) do
+    Repo.all(
+      from g in Guardian,
+        join: sg in "students_guardians",
+        on: g.id == sg.guardian_id,
+        where: sg.student_id == ^student.id,
+        select: g
+    )
   end
-
-  def get_guardians_for_student(_scope, _student), do: []
 
   @doc """
   Associates a guardian to a student.
@@ -2057,31 +2056,25 @@ defmodule Lanttern.Schools do
 
   """
   def add_guardian_to_student(
-        scope,
-        %Student{school_id: student_school_id} = student,
-        %Guardian{school_id: guardian_school_id} = guardian
-      )
-      when student_school_id == scope.school_id and guardian_school_id == scope.school_id do
-    if has_permission?(scope, "school_management") do
-      {count, _} =
-        Repo.insert_all(
-          "students_guardians",
-          [%{student_id: student.id, guardian_id: guardian.id}],
-          on_conflict: :nothing,
-          conflict_target: [:student_id, :guardian_id]
-        )
+        %Scope{school_id: school_id} = scope,
+        %Student{school_id: school_id} = student,
+        %Guardian{school_id: school_id} = guardian
+      ) do
+    true = Scope.has_permission?(scope, "school_management")
 
-      case count do
-        0 -> {:ok, :already_exists}
-        _ -> {:ok, :created}
-      end
-    else
-      {:error, :unauthorized}
+    {count, _} =
+      Repo.insert_all(
+        "students_guardians",
+        [%{student_id: student.id, guardian_id: guardian.id}],
+        on_conflict: :nothing,
+        conflict_target: [:student_id, :guardian_id]
+      )
+
+    case count do
+      0 -> {:ok, :already_exists}
+      _ -> {:ok, :created}
     end
   end
-
-  def add_guardian_to_student(_scope, _student, _guardian),
-    do: {:error, :unauthorized}
 
   @doc """
   Removes a guardian from a student.
@@ -2094,27 +2087,24 @@ defmodule Lanttern.Schools do
       {:ok, :deleted}
 
   """
-  def remove_guardian_from_student(scope, %Student{school_id: school_id} = student, guardian_id)
-      when school_id == scope.school_id do
-    if has_permission?(scope, "school_management") do
-      # Delete directly from join table
-      {count, _} =
-        Repo.delete_all(
-          from sg in "students_guardians",
-            where: sg.student_id == ^student.id and sg.guardian_id == ^guardian_id
-        )
+  def remove_guardian_from_student(
+        %Scope{school_id: school_id} = scope,
+        %Student{school_id: school_id} = student,
+        guardian_id
+      ) do
+    true = Scope.has_permission?(scope, "school_management")
+    # Delete directly from join table
+    {count, _} =
+      Repo.delete_all(
+        from sg in "students_guardians",
+          where: sg.student_id == ^student.id and sg.guardian_id == ^guardian_id
+      )
 
-      case count do
-        0 -> {:ok, :not_found}
-        _ -> {:ok, :deleted}
-      end
-    else
-      {:error, :unauthorized}
+    case count do
+      0 -> {:ok, :not_found}
+      _ -> {:ok, :deleted}
     end
   end
-
-  def remove_guardian_from_student(_scope, _student, _guardian_id),
-    do: {:error, :unauthorized}
 
   @doc """
   Gets guardians linked to the same students as the given guardian.
@@ -2127,10 +2117,11 @@ defmodule Lanttern.Schools do
       [%Guardian{}, ...]
 
   """
-  def list_shared_guardians(scope, guardian, opts \\ [])
-
-  def list_shared_guardians(scope, %Guardian{school_id: scope_school_id} = guardian, opts)
-      when scope_school_id == scope.school_id do
+  def list_shared_guardians(
+        %Scope{school_id: school_id} = scope,
+        %Guardian{school_id: school_id} = guardian,
+        opts \\ []
+      ) do
     students_ids =
       if Ecto.assoc_loaded?(guardian.students) do
         Enum.map(guardian.students, & &1.id)
@@ -2159,11 +2150,5 @@ defmodule Lanttern.Schools do
         |> Repo.all()
         |> maybe_preload(opts)
     end
-  end
-
-  def list_shared_guardians(_scope, _guardian, _opts), do: []
-
-  defp has_permission?(scope, permission) do
-    permission in scope.permissions
   end
 end
