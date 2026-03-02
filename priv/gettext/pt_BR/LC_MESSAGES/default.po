@@ -5427,7 +5427,7 @@ msgid "Guardians"
 msgstr "Responsáveis"
 
 #: lib/lanttern_web/live/pages/school/guardians/id/guardian_live.html.heex:42
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "Linked Students"
 msgstr "Estudantes vinculados"
 
@@ -6077,9 +6077,9 @@ msgid "You don't have access to this page"
 msgstr "Você não tem acesso à esta página"
 
 #: lib/lanttern_web/live/pages/school/guardians_component.ex:160
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "Failed to delete guardian"
-msgstr "Falha ao deletar estudante"
+msgstr "Falha ao deletar responsável"
 
 #: lib/lanttern_web/live/pages/school/students/id/about_component.ex:131
 #, elixir-autogen, elixir-format
@@ -6093,14 +6093,14 @@ msgstr "Nenhum responsável encontrado"
 
 #: lib/lanttern_web/live/pages/school/guardians/id/guardian_live.html.heex:52
 #: lib/lanttern_web/live/pages/school/guardians/id/guardian_live.html.heex:84
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "Shared Guardians"
 msgstr "Compartilhado com responsáveis"
 
 #: lib/lanttern_web/live/shared/schools/guardian_form_overlay_component.ex:202
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "You don't have permission to create guardians"
-msgstr "Você não tem acesso à esta página"
+msgstr "Você não tem permissão para criar responsáveis"
 
 #: lib/lanttern_web/live/shared/schools/guardian_form_overlay_component.ex:182
 #, elixir-autogen, elixir-format
@@ -6113,17 +6113,17 @@ msgid "You don't have permission to update guardians"
 msgstr "Você não tem permissão para atualizar responsáveis"
 
 #: lib/lanttern_web/live/shared/schools/student_form_overlay_component.ex:117
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "No guardians added to this student"
 msgstr "Nenhum responsável atribuído para esse estudante"
 
 #: lib/lanttern_web/live/shared/schools/guardians_search_component.ex:91
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "Search guardians..."
 msgstr "Procurar responsável..."
 
 #: lib/lanttern_web/live/shared/schools/guardian_form_overlay_component.ex:75
-#, elixir-autogen, elixir-format, fuzzy
+#, elixir-autogen, elixir-format
 msgid "No students added to this guardian"
 msgstr "Nenhum estudante adicionado à este responsável"
 
