@@ -7,6 +7,7 @@ defmodule LantternWeb.Schools.StudentFormOverlayComponent do
       attr :student, Student, required: true, doc: "requires virtual `email` loaded"
       attr :current_cycle, Cycle, doc: "used to separate current cycle from other classes"
       attr :current_user, required: true
+      attr :current_scope, :any, required: true
       attr :title, :string, required: true
       attr :on_cancel, :any, required: true, doc: "`<.slide_over>` `on_cancel` attr"
       attr :close_path, :string, required: true, doc: "Path to navigate to after successful save"
