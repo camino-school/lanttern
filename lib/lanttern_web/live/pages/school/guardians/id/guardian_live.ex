@@ -43,9 +43,29 @@ defmodule LantternWeb.GuardianLive do
     socket =
       socket
       |> assign(:params, params)
+      |> maybe_reload_guardian(params)
       |> assign_is_editing(params)
 
     {:noreply, socket}
+  end
+
+  defp maybe_reload_guardian(socket, %{"edit" => _}), do: socket
+
+  defp maybe_reload_guardian(socket, _params) do
+    scope = socket.assigns.current_scope
+    guardian_id = socket.assigns.guardian.id
+
+    case Schools.get_guardian(scope, guardian_id, preloads: [:school, :students]) do
+      %{} = guardian ->
+        shared_guardians = Schools.list_shared_guardians(scope, guardian)
+
+        socket
+        |> assign(:guardian, guardian)
+        |> assign(:shared_guardians, shared_guardians)
+
+      _ ->
+        socket
+    end
   end
 
   defp assign_is_editing(%{assigns: %{is_school_manager: true}} = socket, %{"edit" => "true"}),
@@ -68,7 +88,7 @@ defmodule LantternWeb.GuardianLive do
     socket =
       socket
       |> put_flash(:info, gettext("Guardian deleted successfully"))
-      |> push_navigate(to: ~p"/school/guardians")
+      |> push_navigate(to: socket.assigns.current_path)
 
     {:noreply, socket}
   end
