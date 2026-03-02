@@ -1,7 +1,6 @@
 import Config
 
 config :lanttern,
-  content_security_policy: "default-src 'self'",
   default_timezone: "America/Sao_Paulo",
   supabase_api_key: "eyKbGciOiJua25XVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsnZpY2VfQ.ORhZAo0J1nNc",
   supabase_project_url: "https://example.supabase.co"
