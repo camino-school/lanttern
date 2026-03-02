@@ -2010,7 +2010,7 @@ defmodule Lanttern.Schools do
 
   """
   def get_students_for_guardian(
-        %Scope{school_id: scope_school_id} = scope,
+        %Scope{school_id: school_id},
         %Guardian{school_id: school_id} = guardian
       ) do
     Repo.all(
@@ -2032,7 +2032,7 @@ defmodule Lanttern.Schools do
 
   """
   def get_guardians_for_student(
-        %Scope{school_id: scope_school_id} = scope,
+        %Scope{school_id: school_id},
         %Student{school_id: school_id} = student
       ) do
     Repo.all(
@@ -2118,7 +2118,7 @@ defmodule Lanttern.Schools do
 
   """
   def list_shared_guardians(
-        %Scope{school_id: school_id} = scope,
+        %Scope{school_id: school_id},
         %Guardian{school_id: school_id} = guardian,
         opts \\ []
       ) do

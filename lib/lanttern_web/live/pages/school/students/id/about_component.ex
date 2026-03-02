@@ -280,18 +280,18 @@ defmodule LantternWeb.StudentLive.LessonsComponent do
     guardian_id = String.to_integer(guardian_id)
 
     case Schools.remove_guardian_from_student(
-           socket.assigns.current_user.current_profile,
+           socket.assigns.current_scope,
            socket.assigns.student,
            guardian_id
          ) do
-      {:ok, _} ->
+      {:ok, :deleted} ->
         # Remove guardian from student list in socket
         guardians = Enum.reject(socket.assigns.student.guardians, &(&1.id == guardian_id))
         student = Map.put(socket.assigns.student, :guardians, guardians)
 
         {:noreply, assign(socket, :student, student)}
 
-      {:error, _reason} ->
+      {:ok, :not_found} ->
         {:noreply, socket}
     end
   end

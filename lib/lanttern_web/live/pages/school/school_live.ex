@@ -4,11 +4,11 @@ defmodule LantternWeb.SchoolLive do
   # view components
   alias __MODULE__.ClassesComponent
   alias __MODULE__.CyclesComponent
+  alias __MODULE__.GuardiansComponent
   alias __MODULE__.MessageBoardComponent
   alias __MODULE__.MomentCardsTemplatesComponent
   alias __MODULE__.StaffComponent
   alias __MODULE__.StudentsComponent
-  alias __MODULE__.GuardiansComponent
 
   # lifecycle
 

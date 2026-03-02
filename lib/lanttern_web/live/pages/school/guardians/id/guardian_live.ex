@@ -15,7 +15,7 @@ defmodule LantternWeb.GuardianLive do
   end
 
   defp assign_guardian(socket, params) do
-    scope = socket.assigns.current_user.current_profile
+    scope = socket.assigns.current_scope
 
     case Schools.get_guardian(scope, params["id"], preloads: [:school, :students]) do
       %{} = guardian ->

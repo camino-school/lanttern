@@ -433,7 +433,7 @@ defmodule LantternWeb.Schools.StudentFormOverlayComponent do
     # Remove guardians that were deselected
     Enum.each(current_ids -- selected_ids, fn guardian_id ->
       Schools.remove_guardian_from_student(
-        socket.assigns.current_user.current_profile,
+        socket.assigns.current_scope,
         student,
         guardian_id
       )

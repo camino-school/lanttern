@@ -189,7 +189,7 @@ defmodule LantternWeb.Schools.GuardianFormOverlayComponent do
   defp save_guardian(socket, nil, params) do
     changeset = socket.assigns.form.source
     params = changeset_to_params(changeset, params)
-    scope = socket.assigns.current_user.current_profile
+    scope = socket.assigns.current_scope
 
     case Schools.create_guardian(scope, params) do
       {:ok, guardian} ->
@@ -211,7 +211,7 @@ defmodule LantternWeb.Schools.GuardianFormOverlayComponent do
   defp save_guardian(socket, _id, params) do
     changeset = socket.assigns.form.source
     params = changeset_to_params(changeset, params)
-    scope = socket.assigns.current_user.current_profile
+    scope = socket.assigns.current_scope
 
     case Schools.update_guardian(scope, socket.assigns.guardian, params) do
       {:ok, guardian} ->
@@ -284,7 +284,7 @@ defmodule LantternWeb.Schools.GuardianFormOverlayComponent do
     # Remove students that were deselected
     Enum.each(current_ids -- selected_ids, fn student_id ->
       Schools.remove_guardian_from_student(
-        socket.assigns.current_user.current_profile,
+        socket.assigns.current_scope,
         Schools.get_student!(student_id),
         guardian.id
       )

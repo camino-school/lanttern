@@ -107,7 +107,7 @@ defmodule LantternWeb.SchoolLive.GuardiansComponent do
   defp initialize(socket), do: socket
 
   defp stream_guardians(socket) do
-    scope = socket.assigns.current_user.current_profile
+    scope = socket.assigns.current_scope
     guardians = Schools.list_guardians(scope)
 
     socket
@@ -129,7 +129,7 @@ defmodule LantternWeb.SchoolLive.GuardiansComponent do
   end
 
   defp assign_guardian(%{assigns: %{params: %{"edit" => guardian_id}}} = socket) do
-    scope = socket.assigns.current_user.current_profile
+    scope = socket.assigns.current_scope
     guardian = Schools.get_guardian!(scope, guardian_id)
 
     socket
@@ -141,7 +141,7 @@ defmodule LantternWeb.SchoolLive.GuardiansComponent do
 
   @impl true
   def handle_event("delete", %{"id" => id}, socket) do
-    scope = socket.assigns.current_user.current_profile
+    scope = socket.assigns.current_scope
     guardian = Schools.get_guardian!(scope, id)
 
     case Schools.delete_guardian(scope, guardian) do

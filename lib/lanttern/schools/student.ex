@@ -15,11 +15,11 @@ defmodule Lanttern.Schools.Student do
   alias Lanttern.ILP.StudentILP
   alias Lanttern.Reporting.StudentReportCard
   alias Lanttern.Schools.Class
+  alias Lanttern.Schools.Guardian
   alias Lanttern.Schools.School
   alias Lanttern.StudentsCycleInfo.StudentCycleInfo
   alias Lanttern.StudentTags.StudentTagRelationship
   alias Lanttern.StudentTags.Tag
-  alias Lanttern.Schools.Guardian
 
   @type t :: %__MODULE__{
           id: pos_integer(),
