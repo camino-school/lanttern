@@ -1591,8 +1591,6 @@ defmodule Lanttern.Schools do
 
   Returns a list of guardians matching the search term, ordered by relevance.
 
-  Requires "school_management" permission in scope.
-
   ### Options:
 
   - `:preloads` – preloads associated data
@@ -1621,8 +1619,6 @@ defmodule Lanttern.Schools do
 
   Returns `nil` if the Guardian does not exist or scope doesn't match.
 
-  Requires "school_management" permission in scope.
-
   ### Options:
 
   - `:preloads` – preloads associated data
@@ -1648,7 +1644,6 @@ defmodule Lanttern.Schools do
   Same as `get_guardian/3`, but raises `Ecto.NoResultsError` if the Guardian does not exist
   or if scope doesn't match.
 
-  Requires "school_management" permission in scope.
   """
   def get_guardian!(%Scope{} = scope, id, opts \\ []) do
     Guardian
