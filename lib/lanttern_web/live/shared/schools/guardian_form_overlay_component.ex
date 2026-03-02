@@ -301,6 +301,4 @@ defmodule LantternWeb.Schools.GuardianFormOverlayComponent do
       )
     end)
   end
-
-
 end

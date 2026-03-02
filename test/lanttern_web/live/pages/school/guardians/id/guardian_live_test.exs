@@ -12,10 +12,11 @@ defmodule LantternWeb.GuardianLiveTest do
 
   describe "Guardian detail live view - browser integration tests" do
     setup %{conn: conn, user: user} do
-      %{conn: conn, user: user} = set_user_permissions(["school_management"], %{
-        conn: conn,
-        user: user
-      })
+      %{conn: conn, user: user} =
+        set_user_permissions(["school_management"], %{
+          conn: conn,
+          user: user
+        })
 
       school_id = user.current_profile.school_id
       guardian = insert(:guardian, school_id: school_id, name: "Test Guardian")
@@ -29,7 +30,12 @@ defmodule LantternWeb.GuardianLiveTest do
       |> assert_has("h2", text: "Test Guardian")
     end
 
-    test "displays linked students", %{conn: conn, user: user, guardian: guardian, school_id: school_id} do
+    test "displays linked students", %{
+      conn: conn,
+      user: user,
+      guardian: guardian,
+      school_id: school_id
+    } do
       student = insert(:student, school_id: school_id, name: "Alice Smith")
 
       Schools.add_guardian_to_student(user.current_profile, student, guardian)
@@ -39,7 +45,12 @@ defmodule LantternWeb.GuardianLiveTest do
       |> assert_has("a", text: "Alice Smith")
     end
 
-    test "displays shared guardians", %{conn: conn, user: user, guardian: guardian1, school_id: school_id} do
+    test "displays shared guardians", %{
+      conn: conn,
+      user: user,
+      guardian: guardian1,
+      school_id: school_id
+    } do
       guardian2 = insert(:guardian, school_id: school_id, name: "Guardian Two")
       student = insert(:student, school_id: school_id)
 
