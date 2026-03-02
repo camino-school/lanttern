@@ -15,6 +15,7 @@ defmodule LantternWeb.Schools.GuardianFormOverlayComponent do
 
   use LantternWeb, :live_component
 
+  alias Lanttern.Identity.Scope
   alias Lanttern.Repo
   alias Lanttern.Schools
 
@@ -130,11 +131,17 @@ defmodule LantternWeb.Schools.GuardianFormOverlayComponent do
   end
 
   def update(%{guardian: guardian} = assigns, socket) do
-    changeset = Schools.change_guardian(assigns.current_user.current_profile, guardian)
+    scope =
+      Map.get_lazy(assigns, :current_scope, fn ->
+        Scope.for_user(Map.get(assigns, :current_user))
+      end)
+
+    changeset = Schools.change_guardian(scope, guardian)
 
     socket =
       socket
       |> assign(assigns)
+      |> assign(:current_scope, scope)
       |> assign_form(changeset)
       |> assign_students()
 
@@ -145,7 +152,7 @@ defmodule LantternWeb.Schools.GuardianFormOverlayComponent do
   def handle_event("validate", %{"guardian" => params}, socket) do
     changeset =
       Schools.change_guardian(
-        socket.assigns.current_user.current_profile,
+        socket.assigns.current_scope,
         socket.assigns.guardian,
         params
       )
@@ -170,7 +177,7 @@ defmodule LantternWeb.Schools.GuardianFormOverlayComponent do
 
   def handle_event("delete", _params, socket) do
     case Schools.delete_guardian(
-           socket.assigns.current_user.current_profile,
+           socket.assigns.current_scope,
            socket.assigns.guardian
          ) do
       {:ok, guardian} ->
@@ -295,7 +302,7 @@ defmodule LantternWeb.Schools.GuardianFormOverlayComponent do
       student = Schools.get_student!(student_id)
 
       Schools.add_guardian_to_student(
-        socket.assigns.current_user.current_profile,
+        socket.assigns.current_scope,
         student,
         guardian
       )

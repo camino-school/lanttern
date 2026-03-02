@@ -92,7 +92,7 @@ defmodule LantternWeb.Schools.StudentFormOverlayComponent do
               notify_component={@myself}
               label={gettext("Guardians")}
               refocus_on_select="true"
-              scope={@current_user.current_profile}
+              current_scope={@current_scope}
             />
             <%= if @guardians != [] do %>
               <ol class="mt-4 text-sm leading-relaxed list-decimal list-inside">
@@ -441,10 +441,10 @@ defmodule LantternWeb.Schools.StudentFormOverlayComponent do
 
     # Add new guardians that were selected
     Enum.each(selected_ids -- current_ids, fn guardian_id ->
-      guardian = Schools.get_guardian!(socket.assigns.current_user.current_profile, guardian_id)
+      guardian = Schools.get_guardian!(socket.assigns.current_scope, guardian_id)
 
       Schools.add_guardian_to_student(
-        socket.assigns.current_user.current_profile,
+        socket.assigns.current_scope,
         student,
         guardian
       )

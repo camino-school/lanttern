@@ -89,7 +89,7 @@ defmodule LantternWeb.Schools.GuardiansSearchComponent do
       |> assign(:label, nil)
       |> assign(:class, nil)
       |> assign(:placeholder, gettext("Search guardians..."))
-      |> assign(:scope, nil)
+      |> assign(:current_scope, nil)
       |> assign(:refocus_on_select, "false")
       |> stream(:results, [])
 
@@ -112,7 +112,7 @@ defmodule LantternWeb.Schools.GuardiansSearchComponent do
     # search when 3 or more characters were typed
     results =
       if String.length(query) >= 3,
-        do: Schools.search_guardians(socket.assigns.scope, query),
+        do: Schools.search_guardians(socket.assigns.current_scope, query),
         else: []
 
     results_simplified = Enum.map(results, fn g -> %{id: g.id} end)
@@ -128,7 +128,7 @@ defmodule LantternWeb.Schools.GuardiansSearchComponent do
   end
 
   def handle_event("autocomplete_result_select", %{"id" => id}, socket) do
-    selected = Schools.get_guardian!(socket.assigns.scope, id)
+    selected = Schools.get_guardian!(socket.assigns.current_scope, id)
 
     notify(
       __MODULE__,

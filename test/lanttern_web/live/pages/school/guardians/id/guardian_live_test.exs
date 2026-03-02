@@ -4,6 +4,7 @@ defmodule LantternWeb.GuardianLiveTest do
   import Lanttern.Factory
   import PhoenixTest
 
+  alias Lanttern.Identity.Scope
   alias Lanttern.Schools
 
   @live_view_base_path "/school/guardians"
@@ -32,13 +33,11 @@ defmodule LantternWeb.GuardianLiveTest do
 
     test "displays linked students", %{
       conn: conn,
-      user: user,
       guardian: guardian,
       school_id: school_id
     } do
-      student = insert(:student, school_id: school_id, name: "Alice Smith")
-
-      Schools.add_guardian_to_student(user.current_profile, student, guardian)
+      _student =
+        insert(:student, school_id: school_id, name: "Alice Smith", guardians: [guardian])
 
       conn
       |> visit("#{@live_view_base_path}/#{guardian.id}")
@@ -47,15 +46,11 @@ defmodule LantternWeb.GuardianLiveTest do
 
     test "displays shared guardians", %{
       conn: conn,
-      user: user,
       guardian: guardian1,
       school_id: school_id
     } do
       guardian2 = insert(:guardian, school_id: school_id, name: "Guardian Two")
-      student = insert(:student, school_id: school_id)
-
-      Schools.add_guardian_to_student(user.current_profile, student, guardian1)
-      Schools.add_guardian_to_student(user.current_profile, student, guardian2)
+      _student = insert(:student, school_id: school_id, guardians: [guardian1, guardian2])
 
       conn
       |> visit("#{@live_view_base_path}/#{guardian1.id}")
@@ -89,7 +84,8 @@ defmodule LantternWeb.GuardianLiveTest do
       |> click_button("Delete")
 
       # Verify guardian is deleted by trying to fetch it
-      refute Schools.get_guardian(user.current_profile, guardian.id)
+      scope = Scope.for_user(user)
+      refute Schools.get_guardian(scope, guardian.id)
     end
   end
 end

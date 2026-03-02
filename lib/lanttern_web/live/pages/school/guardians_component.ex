@@ -1,4 +1,5 @@
 defmodule LantternWeb.SchoolLive.GuardiansComponent do
+  # TODO: Add moddoc
   use LantternWeb, :live_component
 
   import LantternWeb.SchoolsComponents
@@ -52,6 +53,7 @@ defmodule LantternWeb.SchoolLive.GuardiansComponent do
         on_cancel={JS.patch(@guardians_path)}
         close_path={@guardians_path}
         current_user={@current_user}
+        current_scope={@current_scope}
         notify_component={@myself}
       />
     </div>

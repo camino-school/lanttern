@@ -3,7 +3,13 @@ defmodule Lanttern.StudentFactory do
   defmacro __using__(_opts) do
     quote do
       def student_factory(attrs) do
-        school = Map.get(attrs, :school, build(:school))
+        # Only build school if not providing school_id directly
+        school =
+          if Map.has_key?(attrs, :school_id) do
+            nil
+          else
+            Map.get(attrs, :school, build(:school))
+          end
 
         %Lanttern.Schools.Student{
           name: "John Doe",
@@ -11,13 +17,6 @@ defmodule Lanttern.StudentFactory do
         }
         |> merge_attributes(attrs)
         |> evaluate_lazy_attributes()
-        |> then(fn student ->
-          if Map.has_key?(attrs, :school_id) do
-            %{student | school: nil}
-          else
-            student
-          end
-        end)
       end
     end
   end
