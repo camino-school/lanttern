@@ -11,6 +11,13 @@ defmodule Lanttern.StudentFactory do
         }
         |> merge_attributes(attrs)
         |> evaluate_lazy_attributes()
+        |> then(fn student ->
+          if Map.has_key?(attrs, :school_id) do
+            %{student | school: nil}
+          else
+            student
+          end
+        end)
       end
     end
   end
