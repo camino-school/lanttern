@@ -24,7 +24,6 @@ if config_env() == :prod do
   # https://pspdfkit.com/blog/2022/using-ssl-postgresql-connections-elixir/
 
   config :lanttern,
-    content_security_policy: System.get_env("CONTENT_SECURITY_POLICY"),
     default_timezone: System.get_env("TIMEZONE", "America/Sao_Paulo"),
     supabase_api_key: System.get_env("SUPABASE_PROJECT_API_KEY"),
     supabase_project_url: System.get_env("SUPABASE_PROJECT_URL")
