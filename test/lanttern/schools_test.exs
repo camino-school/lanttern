@@ -1923,4 +1923,167 @@ defmodule Lanttern.SchoolsTest do
                Schools.search_guardians(scope, "xyz")
     end
   end
+
+  describe "student-guardian relationships" do
+    test "get_students_for_guardian/2 returns all students linked to a guardian" do
+      scope = scope_fixture(permissions: ["school_management"])
+      guardian = insert(:guardian, school_id: scope.school_id)
+      student_1 = student_fixture(%{school_id: scope.school_id})
+      student_2 = student_fixture(%{school_id: scope.school_id})
+      _student_3 = student_fixture(%{school_id: scope.school_id})
+
+      # Link students to guardian
+      Lanttern.Repo.insert_all("students_guardians", [
+        %{student_id: student_1.id, guardian_id: guardian.id},
+        %{student_id: student_2.id, guardian_id: guardian.id}
+      ])
+
+      result = Schools.get_students_for_guardian(scope, guardian)
+
+      assert length(result) == 2
+      assert student_1.id in Enum.map(result, & &1.id)
+      assert student_2.id in Enum.map(result, & &1.id)
+    end
+
+    test "get_students_for_guardian/2 returns empty list when guardian has no students" do
+      scope = scope_fixture(permissions: ["school_management"])
+      guardian = insert(:guardian, school_id: scope.school_id)
+
+      assert Schools.get_students_for_guardian(scope, guardian) == []
+    end
+
+    test "get_guardians_for_student/2 returns all guardians linked to a student" do
+      scope = scope_fixture(permissions: ["school_management"])
+      student = student_fixture(%{school_id: scope.school_id})
+      guardian_1 = insert(:guardian, school_id: scope.school_id)
+      guardian_2 = insert(:guardian, school_id: scope.school_id)
+      _guardian_3 = insert(:guardian, school_id: scope.school_id)
+
+      # Link guardians to student
+      Lanttern.Repo.insert_all("students_guardians", [
+        %{student_id: student.id, guardian_id: guardian_1.id},
+        %{student_id: student.id, guardian_id: guardian_2.id}
+      ])
+
+      result = Schools.get_guardians_for_student(scope, student)
+
+      assert length(result) == 2
+      assert guardian_1.id in Enum.map(result, & &1.id)
+      assert guardian_2.id in Enum.map(result, & &1.id)
+    end
+
+    test "get_guardians_for_student/2 returns empty list when student has no guardians" do
+      scope = scope_fixture(permissions: ["school_management"])
+      student = student_fixture(%{school_id: scope.school_id})
+
+      assert Schools.get_guardians_for_student(scope, student) == []
+    end
+
+    test "add_guardian_to_student/3 creates a relationship between guardian and student" do
+      scope = scope_fixture(permissions: ["school_management"])
+      student = student_fixture(%{school_id: scope.school_id})
+      guardian = insert(:guardian, school_id: scope.school_id)
+
+      assert {:ok, :created} = Schools.add_guardian_to_student(scope, student, guardian)
+
+      # Verify relationship was created
+      result = Schools.get_guardians_for_student(scope, student)
+      assert length(result) == 1
+      assert hd(result).id == guardian.id
+    end
+
+    test "add_guardian_to_student/3 returns :already_exists when relationship exists" do
+      scope = scope_fixture(permissions: ["school_management"])
+      student = student_fixture(%{school_id: scope.school_id})
+      guardian = insert(:guardian, school_id: scope.school_id)
+
+      # Create relationship first time
+      assert {:ok, :created} = Schools.add_guardian_to_student(scope, student, guardian)
+
+      # Try to create again
+      assert {:ok, :already_exists} = Schools.add_guardian_to_student(scope, student, guardian)
+
+      # Verify only one relationship exists
+      result = Schools.get_guardians_for_student(scope, student)
+      assert length(result) == 1
+    end
+
+    test "remove_guardian_from_student/3 removes relationship between guardian and student" do
+      scope = scope_fixture(permissions: ["school_management"])
+      student = student_fixture(%{school_id: scope.school_id})
+      guardian = insert(:guardian, school_id: scope.school_id)
+
+      # Create relationship
+      Lanttern.Repo.insert_all("students_guardians", [
+        %{student_id: student.id, guardian_id: guardian.id}
+      ])
+
+      # Verify relationship exists
+      assert length(Schools.get_guardians_for_student(scope, student)) == 1
+
+      # Remove relationship
+      assert {:ok, :deleted} = Schools.remove_guardian_from_student(scope, student, guardian.id)
+
+      # Verify relationship was removed
+      assert Schools.get_guardians_for_student(scope, student) == []
+    end
+
+    test "remove_guardian_from_student/3 returns :not_found when relationship doesn't exist" do
+      scope = scope_fixture(permissions: ["school_management"])
+      student = student_fixture(%{school_id: scope.school_id})
+      guardian = insert(:guardian, school_id: scope.school_id)
+
+      assert {:ok, :not_found} = Schools.remove_guardian_from_student(scope, student, guardian.id)
+    end
+
+    test "list_shared_guardians/3 returns guardians linked to the same students" do
+      scope = scope_fixture(permissions: ["school_management"])
+      student_1 = student_fixture(%{school_id: scope.school_id})
+      student_2 = student_fixture(%{school_id: scope.school_id})
+      guardian_1 = insert(:guardian, school_id: scope.school_id)
+      guardian_2 = insert(:guardian, school_id: scope.school_id)
+      guardian_3 = insert(:guardian, school_id: scope.school_id)
+      _guardian_4 = insert(:guardian, school_id: scope.school_id)
+
+      # Link guardians to students
+      # guardian_1 and guardian_2 share student_1
+      # guardian_1 and guardian_3 share student_2
+      Lanttern.Repo.insert_all("students_guardians", [
+        %{student_id: student_1.id, guardian_id: guardian_1.id},
+        %{student_id: student_1.id, guardian_id: guardian_2.id},
+        %{student_id: student_2.id, guardian_id: guardian_1.id},
+        %{student_id: student_2.id, guardian_id: guardian_3.id}
+      ])
+
+      result = Schools.list_shared_guardians(scope, guardian_1)
+
+      assert length(result) == 2
+      assert guardian_2.id in Enum.map(result, & &1.id)
+      assert guardian_3.id in Enum.map(result, & &1.id)
+      refute guardian_1.id in Enum.map(result, & &1.id)
+    end
+
+    test "list_shared_guardians/3 returns empty list when no shared guardians exist" do
+      scope = scope_fixture(permissions: ["school_management"])
+      guardian = insert(:guardian, school_id: scope.school_id)
+
+      assert Schools.list_shared_guardians(scope, guardian) == []
+    end
+
+    test "list_shared_guardians/3 excludes the given guardian from results" do
+      scope = scope_fixture(permissions: ["school_management"])
+      student = student_fixture(%{school_id: scope.school_id})
+      guardian = insert(:guardian, school_id: scope.school_id)
+
+      # Link guardian to student
+      Lanttern.Repo.insert_all("students_guardians", [
+        %{student_id: student.id, guardian_id: guardian.id}
+      ])
+
+      result = Schools.list_shared_guardians(scope, guardian)
+
+      # Should not include the guardian itself
+      refute guardian.id in Enum.map(result, & &1.id)
+    end
+  end
 end
