@@ -11,6 +11,7 @@ defmodule Lanttern.Schools do
 
   alias Lanttern.Identity
   alias Lanttern.Identity.Profile
+  alias Lanttern.Identity.Scope
   alias Lanttern.Identity.User
   alias Lanttern.Schools.Class
   alias Lanttern.Schools.Cycle
@@ -1214,40 +1215,6 @@ defmodule Lanttern.Schools do
   end
 
   @doc """
-  Searches for guardians by name.
-
-  Returns a list of guardians matching the search term, ordered by relevance.
-
-  Requires "school_management" permission in scope.
-
-  ### Options:
-
-  - `:preloads` – preloads associated data
-
-  ## Examples
-
-      iex> search_guardians(scope, "john")
-      [%Guardian{}, ...]
-
-  """
-  def search_guardians(scope, search_term, opts \\ []) do
-    if has_permission?(scope, "school_management") do
-      ilike_search_term = "%#{search_term}%"
-
-      query =
-        from(
-          g in Guardian,
-          where: ilike(g.name, ^ilike_search_term),
-          order_by: {:asc, fragment("? <<-> ?", ^search_term, g.name)}
-        )
-
-      list_guardians(scope, [{:base_query, query} | opts])
-    else
-      []
-    end
-  end
-
-  @doc """
   Gets a single staff member.
 
   Raises `Ecto.NoResultsError` if the StaffMember does not exist.
@@ -1607,7 +1574,7 @@ defmodule Lanttern.Schools do
       [%Guardian{}, ...]
 
   """
-  def list_guardians(scope, opts \\ []) do
+  def list_guardians(%Scope{} = scope, opts \\ []) do
     queryable = Keyword.get(opts, :base_query, Guardian)
 
     from(
@@ -1617,6 +1584,36 @@ defmodule Lanttern.Schools do
     )
     |> Repo.all()
     |> maybe_preload(opts)
+  end
+
+  @doc """
+  Searches for guardians by name.
+
+  Returns a list of guardians matching the search term, ordered by relevance.
+
+  Requires "school_management" permission in scope.
+
+  ### Options:
+
+  - `:preloads` – preloads associated data
+
+  ## Examples
+
+      iex> search_guardians(scope, "john")
+      [%Guardian{}, ...]
+
+  """
+  def search_guardians(%Scope{} = scope, search_term, opts \\ []) do
+    ilike_search_term = "%#{search_term}%"
+
+    query =
+      from(
+        g in Guardian,
+        where: ilike(g.name, ^ilike_search_term),
+        order_by: {:asc, fragment("? <<-> ?", ^search_term, g.name)}
+      )
+
+    list_guardians(scope, [{:base_query, query} | opts])
   end
 
   @doc """
@@ -1639,20 +1636,10 @@ defmodule Lanttern.Schools do
       nil
 
   """
-  def get_guardian(scope, id, opts \\ []) do
-    if has_permission?(scope, "school_management") do
-      guardian =
-        Guardian
-        |> Repo.get(id)
-        |> maybe_preload(opts)
-
-      case guardian do
-        %Guardian{school_id: school_id} when school_id == scope.school_id -> guardian
-        _ -> nil
-      end
-    else
-      nil
-    end
+  def get_guardian(%Scope{} = scope, id, opts \\ []) do
+    Guardian
+      |> Repo.get_by(id: id, school_id: scope.school_id)
+      |> maybe_preload(opts)
   end
 
   @doc """
@@ -1663,21 +1650,10 @@ defmodule Lanttern.Schools do
 
   Requires "school_management" permission in scope.
   """
-  def get_guardian!(scope, id, opts \\ []) do
-    if has_permission?(scope, "school_management") do
-      guardian =
-        Guardian
-        |> Repo.get!(id)
-        |> maybe_preload(opts)
-
-      if guardian.school_id == scope.school_id do
-        guardian
-      else
-        raise Ecto.NoResultsError, queryable: Guardian
-      end
-    else
-      raise Ecto.NoResultsError, queryable: Guardian
-    end
+  def get_guardian!(%Scope{} = scope, id, opts \\ []) do
+    Guardian
+      |> Repo.get_by!(id: id, school_id: scope.school_id)
+      |> maybe_preload(opts)
   end
 
   @doc """
@@ -1694,14 +1670,12 @@ defmodule Lanttern.Schools do
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_guardian(scope, attrs \\ %{}) do
-    if has_permission?(scope, "school_management") do
-      %Guardian{}
-      |> Guardian.changeset(attrs, scope)
-      |> Repo.insert()
-    else
-      {:error, :unauthorized}
-    end
+  def create_guardian(%Scope{} = scope, attrs \\ %{}) do
+    true = Scope.has_permission?(scope, "school_management")
+
+    %Guardian{}
+    |> Guardian.changeset(attrs, scope)
+    |> Repo.insert()
   end
 
   @doc """
@@ -1718,14 +1692,12 @@ defmodule Lanttern.Schools do
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_guardian(scope, %Guardian{} = guardian, attrs) do
-    if has_permission?(scope, "school_management") && guardian.school_id == scope.school_id do
-      guardian
-      |> Guardian.changeset(attrs, scope)
-      |> Repo.update()
-    else
-      {:error, :unauthorized}
-    end
+  def update_guardian(%Scope{ school_id: school_id } = scope, %Guardian{ school_id: school_id } = guardian, attrs) do
+    true = Scope.has_permission?(scope, "school_management")
+
+    guardian
+    |> Guardian.changeset(attrs, scope)
+    |> Repo.update()
   end
 
   @doc """
@@ -1742,12 +1714,10 @@ defmodule Lanttern.Schools do
       {:error, %Ecto.Changeset{}}
 
   """
-  def delete_guardian(scope, %Guardian{} = guardian) do
-    if has_permission?(scope, "school_management") && guardian.school_id == scope.school_id do
-      Repo.delete(guardian)
-    else
-      {:error, :unauthorized}
-    end
+  def delete_guardian(%Scope{ school_id: school_id } = scope, %Guardian{ school_id: school_id } = guardian) do
+    true = Scope.has_permission?(scope, "school_management")
+
+    Repo.delete(guardian)
   end
 
   @doc """
@@ -1761,7 +1731,9 @@ defmodule Lanttern.Schools do
       %Ecto.Changeset{data: %Guardian{}}
 
   """
-  def change_guardian(scope, %Guardian{} = guardian, attrs \\ %{}) do
+  def change_guardian(%Scope{ school_id: school_id } = scope, %Guardian{ school_id: school_id } = guardian, attrs \\ %{}) do
+    true = Scope.has_permission?(scope, "school_management")
+
     Guardian.changeset(guardian, attrs, scope)
   end
 
