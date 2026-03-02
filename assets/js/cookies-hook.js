@@ -1,7 +1,7 @@
 const COOKIE_KEY = "lanttern_accept_cookies";
 const ANALYTICS_COOKIE_KEY = "lanttern_analytics_consent";
 const MAX_AGE = 24 * 60 * 60 * 365;
-const COOKIE_POLICY_DATE = new Date("2026-02-27T00:00:00Z");
+const COOKIE_POLICY_DATE = new Date("2026-03-02T00:00:00Z");
 
 const showContainer = (container) => {
   container.classList.remove("hidden");
