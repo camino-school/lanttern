@@ -1,6 +1,7 @@
 defmodule LantternWeb.StrandReportLive do
   use LantternWeb, :live_view
 
+  alias Lanttern.Engagement
   alias Lanttern.Identity.Scope
   alias Lanttern.Reporting
   import Lanttern.SupabaseHelpers, only: [object_url_to_render_url: 2]
@@ -145,11 +146,33 @@ defmodule LantternWeb.StrandReportLive do
     assign(socket, :allow_access, allow_access)
   end
 
+  @trackable_tabs %{
+    overview: "overview",
+    rubrics: "rubrics",
+    assessment: "assessment",
+    ongoing_assessment: "ongoing_assessment"
+  }
+
   @impl true
   def handle_params(params, _url, socket) do
-    socket =
-      socket
-      |> assign(:params, params)
+    socket = assign(socket, :params, params)
+
+    if tab = Map.get(@trackable_tabs, socket.assigns.live_action) do
+      %{
+        current_scope: scope,
+        strand_report: sr,
+        navigation_context: ctx,
+        student_report_card: src
+      } = socket.assigns
+
+      Engagement.track_strand_report_view(
+        scope,
+        sr.id,
+        src && src.id,
+        Atom.to_string(ctx),
+        tab
+      )
+    end
 
     {:noreply, socket}
   end

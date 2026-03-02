@@ -32,6 +32,7 @@ defmodule LantternWeb.StrandReportLive.StrandReportOngoingAssessmentComponentTes
         LearningContextFixtures.moment_fixture(%{strand_id: strand.id, name: "Moment Alpha"})
 
       scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
+      ov = GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id})
       ci = CurriculaFixtures.curriculum_item_fixture()
 
       ap =
@@ -47,7 +48,8 @@ defmodule LantternWeb.StrandReportLive.StrandReportOngoingAssessmentComponentTes
           assessment_point_id: ap.id,
           student_id: student.id,
           scale_id: scale.id,
-          scale_type: scale.type
+          scale_type: scale.type,
+          ordinal_value_id: ov.id
         })
 
       {:ok, view, _html} =

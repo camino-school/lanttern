@@ -101,7 +101,6 @@ All vars have default values in the code.
 
 - `PHX_HOST` - e.g. `lanttern.org`
 - `SECRET_KEY_BASE` - Phoenix generated
-- `CONTENT_SECURITY_POLICY` - CSP headers
 
 ## Tests
 

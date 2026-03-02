@@ -59,7 +59,8 @@ defmodule LantternWeb.Router do
         {LantternWeb.UserAuth, :ensure_authenticated_staff_member},
         {LantternWeb.UserAuth, :mount_current_scope},
         {LantternWeb.Path, :put_path_in_socket},
-        {LantternWeb.LocalizationHelpers, :put_timezone}
+        {LantternWeb.LocalizationHelpers, :put_timezone},
+        {LantternWeb.Engagement, :track_dau}
       ] do
       live "/dashboard", DashboardLive, :index
 
@@ -161,7 +162,8 @@ defmodule LantternWeb.Router do
         {LantternWeb.UserAuth, :ensure_authenticated_guardian},
         {LantternWeb.UserAuth, :mount_current_scope},
         {LantternWeb.Path, :put_path_in_socket},
-        {LantternWeb.LocalizationHelpers, :put_timezone}
+        {LantternWeb.LocalizationHelpers, :put_timezone},
+        {LantternWeb.Engagement, :track_dau}
       ] do
       live "/guardian", GuardianHomeLive
     end
@@ -171,7 +173,8 @@ defmodule LantternWeb.Router do
         {LantternWeb.UserAuth, :ensure_authenticated_student},
         {LantternWeb.UserAuth, :mount_current_scope},
         {LantternWeb.Path, :put_path_in_socket},
-        {LantternWeb.LocalizationHelpers, :put_timezone}
+        {LantternWeb.LocalizationHelpers, :put_timezone},
+        {LantternWeb.Engagement, :track_dau}
       ] do
       live "/student", StudentHomeLive
     end
@@ -181,7 +184,8 @@ defmodule LantternWeb.Router do
         {LantternWeb.UserAuth, :ensure_authenticated_student_or_guardian},
         {LantternWeb.UserAuth, :mount_current_scope},
         {LantternWeb.Path, :put_path_in_socket},
-        {LantternWeb.LocalizationHelpers, :put_timezone}
+        {LantternWeb.LocalizationHelpers, :put_timezone},
+        {LantternWeb.Engagement, :track_dau}
       ] do
       live "/student_report_cards", StudentReportCardsLive, :index
 
@@ -223,7 +227,8 @@ defmodule LantternWeb.Router do
         {LantternWeb.UserAuth, :ensure_authenticated},
         {LantternWeb.UserAuth, :mount_current_scope},
         {LantternWeb.Path, :put_path_in_socket},
-        {LantternWeb.LocalizationHelpers, :put_timezone}
+        {LantternWeb.LocalizationHelpers, :put_timezone},
+        {LantternWeb.Engagement, :track_dau}
       ] do
       live "/student_report_cards/:id", StudentReportCardLive, :show
 
