@@ -23,7 +23,7 @@ defmodule LantternWeb.PutSecureBrowserHeadersPlug do
   defp build_csp(nonce) do
     [
       "default-src 'self' *.google.com *.googleapis.com",
-      "script-src 'self' 'nonce-#{nonce}' *.googletagmanager.com *.googleapis.com",
+      "script-src 'self' 'nonce-#{nonce}' *.google.com *.googletagmanager.com *.googleapis.com",
       "style-src 'self' 'unsafe-inline' *.googleapis.com *.google.com",
       "img-src * data: blob: 'self'",
       "font-src *",
