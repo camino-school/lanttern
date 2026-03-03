@@ -73,6 +73,7 @@ The main secrets/env vars that we need for this are the following:
 #### Google
 
 - `GOOGLE_CLIENT_ID`
+- `GA_MEASUREMENT_ID` - Google Analytics
 
 #### OpenAI/LangChain
 

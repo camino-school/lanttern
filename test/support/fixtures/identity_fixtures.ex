@@ -159,7 +159,9 @@ defmodule Lanttern.IdentityFixtures do
 
   """
   def scope_fixture(attrs \\ %{}) do
-    permissions = Map.get(attrs, :permissions, [])
+    # Convert keyword list to map if needed
+    attrs_map = if is_list(attrs), do: attrs |> Enum.into(%{}), else: attrs
+    permissions = Map.get(attrs_map, :permissions, [])
     user = current_staff_member_user_fixture(%{}, permissions)
     Identity.Scope.for_user(user)
   end

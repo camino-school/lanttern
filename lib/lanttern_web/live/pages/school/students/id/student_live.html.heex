@@ -44,7 +44,7 @@
     </.header_nav>
     <.live_component
       :if={@live_action == :show}
-      module={LessonsComponent}
+      module={AboutComponent}
       id="student-about"
       student={@student}
       current_user={@current_user}
@@ -85,9 +85,12 @@
     module={StudentFormOverlayComponent}
     id="student-form-overlay"
     student={@student}
+    current_user={@current_user}
+    current_scope={@current_scope}
     current_cycle={@current_user.current_profile.current_school_cycle}
     title={gettext("Edit student")}
     on_cancel={JS.patch(@current_path)}
+    close_path={@current_path}
     notify_parent
   />
 </Layouts.app_logged_in>
