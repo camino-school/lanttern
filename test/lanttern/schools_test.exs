@@ -2086,4 +2086,55 @@ defmodule Lanttern.SchoolsTest do
       refute guardian.id in Enum.map(result, & &1.id)
     end
   end
+
+  describe "set_guardian_students/3" do
+    test "replaces guardian students with the given list", _context do
+      scope = scope_fixture(permissions: ["school_management"])
+      guardian = insert(:guardian, school_id: scope.school_id)
+      student_1 = insert(:student, name: "Student A", school_id: scope.school_id)
+      student_2 = insert(:student, name: "Student B", school_id: scope.school_id)
+      student_3 = insert(:student, name: "Student C", school_id: scope.school_id)
+
+      # pre-associate student_1
+      Schools.add_guardian_to_student(scope, student_1, guardian)
+
+      assert {:ok, updated_guardian} =
+               Schools.set_guardian_students(scope, guardian, [student_2.id, student_3.id])
+
+      student_ids = Enum.map(updated_guardian.students, & &1.id)
+      assert student_2.id in student_ids
+      assert student_3.id in student_ids
+      refute student_1.id in student_ids
+    end
+
+    test "ignores student IDs from other schools", _context do
+      scope = scope_fixture(permissions: ["school_management"])
+      guardian = insert(:guardian, school_id: scope.school_id)
+
+      student_same_school =
+        insert(:student, name: "Student Same School", school_id: scope.school_id)
+
+      student_other_school = insert(:student)
+
+      assert {:ok, updated_guardian} =
+               Schools.set_guardian_students(
+                 scope,
+                 guardian,
+                 [student_same_school.id, student_other_school.id]
+               )
+
+      student_ids = Enum.map(updated_guardian.students, & &1.id)
+      assert student_ids == [student_same_school.id]
+    end
+
+    test "clears all students when given an empty list", _context do
+      scope = scope_fixture(permissions: ["school_management"])
+      guardian = insert(:guardian, school_id: scope.school_id)
+      student = insert(:student, name: "Student Clear", school_id: scope.school_id)
+      Schools.add_guardian_to_student(scope, student, guardian)
+
+      assert {:ok, updated_guardian} = Schools.set_guardian_students(scope, guardian, [])
+      assert updated_guardian.students == []
+    end
+  end
 end

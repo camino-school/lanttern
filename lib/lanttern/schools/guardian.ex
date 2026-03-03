@@ -25,7 +25,8 @@ defmodule Lanttern.Schools.Guardian do
 
     many_to_many :students, Student,
       join_through: "students_guardians",
-      on_replace: :delete
+      on_replace: :delete,
+      preload_order: [asc: :name]
 
     timestamps()
   end

@@ -72,7 +72,8 @@ defmodule Lanttern.Schools.Student do
     many_to_many :guardians, Guardian,
       join_through: "students_guardians",
       join_keys: [student_id: :id, guardian_id: :id],
-      on_replace: :delete
+      on_replace: :delete,
+      preload_order: [asc: :name]
 
     has_many :assessment_point_entries, AssessmentPointEntry
     has_many :cycles_info, StudentCycleInfo

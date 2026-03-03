@@ -60,38 +60,24 @@
       <div :if={length(@shared_guardians) > 0} class="mt-12">
         <h3 class="font-display font-black text-lg mb-4">{gettext("Shared Guardians")}</h3>
         <.fluid_grid is_full_width class="gap-4">
-          <.card_base
+          <.guardian_card
             :for={shared_guardian <- @shared_guardians}
-            class="flex items-center gap-4 p-4"
-          >
-            <.profile_picture
-              picture_url=""
-              profile_name={shared_guardian.name}
-              size="md"
-            />
-            <div class="min-w-0 flex-1">
-              <.link
-                navigate={~p"/school/guardians/#{shared_guardian}"}
-                class="font-semibold hover:text-ltrn-subtle"
-              >
-                {shared_guardian.name}
-              </.link>
-            </div>
-          </.card_base>
+            id={"shared-guardian-#{shared_guardian.id}"}
+            guardian={shared_guardian}
+            navigate={~p"/school/guardians/#{shared_guardian.id}"}
+          />
         </.fluid_grid>
       </div>
     </div>
   </div>
   <.live_component
     :if={@is_editing}
-    module={LantternWeb.Schools.GuardianFormOverlayComponent}
+    module={GuardianFormOverlayComponent}
     id="guardian-form-overlay"
     guardian={@guardian}
     title={gettext("Edit guardian")}
     on_cancel={JS.patch(@current_path)}
-    notify_component={self()}
-    close_path={@current_path}
-    current_user={@current_user}
+    notify_parent
     current_scope={@current_scope}
   />
 </Layouts.app_logged_in>

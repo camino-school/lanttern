@@ -7,15 +7,21 @@ defmodule LantternWeb.Schools.GuardianFormOverlayComponent do
       attr :guardian, Guardian, required: true
       attr :title, :string, required: true
       attr :on_cancel, :any, required: true, doc: "`<.slide_over>` `on_cancel` attr"
-      attr :close_path, :string, required: true, doc: "Path to navigate to after successful save"
-      attr :current_user, required: true
-      attr :notify_component, Phoenix.LiveComponent.CID
+      attr :current_scope, Lanttern.Accounts.Scope, required: true
+
+  ## Notification and navigation
+
+  After successful save or delete, the component uses `notify/3` and `handle_navigation/2`
+  with a tagged tuple:
+
+  - `{:created, guardian}` — after creation
+  - `{:updated, guardian}` — after update
+  - `{:deleted, guardian}` — after deletion
 
   """
 
   use LantternWeb, :live_component
 
-  alias Lanttern.Identity.Scope
   alias Lanttern.Repo
   alias Lanttern.Schools
 
@@ -79,10 +85,9 @@ defmodule LantternWeb.Schools.GuardianFormOverlayComponent do
           </div>
         </.form>
         <:actions_left :if={@guardian.id}>
-          <.action
+          <.button
             type="button"
-            theme="subtle"
-            icon_name="hero-trash-mini"
+            theme="ghost"
             phx-click={
               JS.push("delete", target: @myself)
               |> JS.exec("phx-remove", to: "##{@id}")
@@ -90,17 +95,17 @@ defmodule LantternWeb.Schools.GuardianFormOverlayComponent do
             data-confirm={gettext("Are you sure?")}
           >
             {gettext("Delete")}
-          </.action>
+          </.button>
         </:actions_left>
         <:actions>
-          <.action
+          <.button
             type="button"
             theme="ghost"
             phx-click={@on_cancel}
           >
             {gettext("Cancel")}
-          </.action>
-          <.action
+          </.button>
+          <.button
             type="submit"
             theme="primary"
             size="md"
@@ -108,7 +113,7 @@ defmodule LantternWeb.Schools.GuardianFormOverlayComponent do
             form="guardian-form"
           >
             {gettext("Save")}
-          </.action>
+          </.button>
         </:actions>
       </.slide_over>
     </div>
@@ -131,17 +136,12 @@ defmodule LantternWeb.Schools.GuardianFormOverlayComponent do
   end
 
   def update(%{guardian: guardian} = assigns, socket) do
-    scope =
-      Map.get_lazy(assigns, :current_scope, fn ->
-        Scope.for_user(Map.get(assigns, :current_user))
-      end)
-
-    changeset = Schools.change_guardian(scope, guardian)
+    changeset = Schools.change_guardian(assigns.current_scope, guardian)
 
     socket =
       socket
       |> assign(assigns)
-      |> assign(:current_scope, scope)
+      |> assign(:current_scope, assigns.current_scope)
       |> assign_form(changeset)
       |> assign_students()
 
@@ -181,12 +181,9 @@ defmodule LantternWeb.Schools.GuardianFormOverlayComponent do
            socket.assigns.guardian
          ) do
       {:ok, guardian} ->
-        notify(__MODULE__, {:deleted, guardian}, socket.assigns)
-        {:noreply, push_patch(socket, to: socket.assigns.close_path)}
-
-      {:error, :unauthorized} ->
-        {:noreply,
-         put_flash(socket, :error, gettext("You don't have permission to delete guardians"))}
+        msg = {:deleted, guardian}
+        notify(__MODULE__, msg, socket.assigns)
+        {:noreply, handle_navigation(socket, msg)}
 
       {:error, _changeset} ->
         {:noreply, socket}
@@ -200,15 +197,12 @@ defmodule LantternWeb.Schools.GuardianFormOverlayComponent do
 
     case Schools.create_guardian(scope, params) do
       {:ok, guardian} ->
-        save_students_associations(socket, guardian)
-        notify(__MODULE__, {:created, guardian}, socket.assigns)
-        {:noreply, push_patch(socket, to: socket.assigns.close_path)}
+        {:ok, _} =
+          Schools.set_guardian_students(scope, guardian, socket.assigns.selected_students_ids)
 
-      {:error, :unauthorized} ->
-        socket =
-          put_flash(socket, :error, gettext("You don't have permission to create guardians"))
-
-        {:noreply, socket}
+        msg = {:created, guardian}
+        notify(__MODULE__, msg, socket.assigns)
+        {:noreply, handle_navigation(socket, msg)}
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign_form(socket, changeset)}
@@ -222,15 +216,12 @@ defmodule LantternWeb.Schools.GuardianFormOverlayComponent do
 
     case Schools.update_guardian(scope, socket.assigns.guardian, params) do
       {:ok, guardian} ->
-        save_students_associations(socket, guardian)
-        notify(__MODULE__, {:updated, guardian}, socket.assigns)
-        {:noreply, push_patch(socket, to: socket.assigns.close_path)}
+        {:ok, _} =
+          Schools.set_guardian_students(scope, guardian, socket.assigns.selected_students_ids)
 
-      {:error, :unauthorized} ->
-        socket =
-          put_flash(socket, :error, gettext("You don't have permission to update guardians"))
-
-        {:noreply, socket}
+        msg = {:updated, guardian}
+        notify(__MODULE__, msg, socket.assigns)
+        {:noreply, handle_navigation(socket, msg)}
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign_form(socket, changeset)}
@@ -267,45 +258,5 @@ defmodule LantternWeb.Schools.GuardianFormOverlayComponent do
     socket
     |> assign(:students, students)
     |> assign(:selected_students_ids, selected_students_ids)
-  end
-
-  defp save_students_associations(socket, guardian) do
-    selected_ids = socket.assigns.selected_students_ids
-
-    # Get current student IDs, handling NotLoaded association
-    current_ids =
-      case socket.assigns.guardian.students do
-        %Ecto.Association.NotLoaded{} ->
-          socket.assigns.guardian
-          |> Repo.preload(:students)
-          |> Map.get(:students, [])
-          |> Enum.map(& &1.id)
-
-        students when is_list(students) ->
-          Enum.map(students, & &1.id)
-
-        _ ->
-          []
-      end
-
-    # Remove students that were deselected
-    Enum.each(current_ids -- selected_ids, fn student_id ->
-      Schools.remove_guardian_from_student(
-        socket.assigns.current_scope,
-        Schools.get_student!(student_id),
-        guardian.id
-      )
-    end)
-
-    # Add new students that were selected
-    Enum.each(selected_ids -- current_ids, fn student_id ->
-      student = Schools.get_student!(student_id)
-
-      Schools.add_guardian_to_student(
-        socket.assigns.current_scope,
-        student,
-        guardian
-      )
-    end)
   end
 end

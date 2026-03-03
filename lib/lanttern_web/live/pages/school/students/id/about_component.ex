@@ -1,4 +1,4 @@
-defmodule LantternWeb.StudentLive.LessonsComponent do
+defmodule LantternWeb.StudentLive.AboutComponent do
   use LantternWeb, :live_component
 
   alias Lanttern.Schools
@@ -122,25 +122,19 @@ defmodule LantternWeb.StudentLive.LessonsComponent do
           />
         </div>
       </div>
-      <div class="mt-12 pt-12 border-t-2 border-ltrn-light">
-        <div class="pb-6 border-b-2 border-ltrn-light">
-          <h4 class="font-display font-black text-lg">{gettext("Guardians")}</h4>
-        </div>
-        <div class="py-10">
-          <.empty_state_simple :if={Enum.empty?(@student.guardians)}>
-            {gettext("No guardians assigned to this student")}
-          </.empty_state_simple>
-          <.fluid_grid :if={!Enum.empty?(@student.guardians)} is_full_width class="gap-4">
-            <.guardian_card
-              :for={guardian <- @student.guardians}
-              id={"guardian-#{guardian.id}"}
-              guardian={guardian}
-              navigate={~p"/school/guardians/#{guardian.id}"}
-              show_edit={false}
-              show_delete={false}
-            />
-          </.fluid_grid>
-        </div>
+      <div class="mt-20">
+        <h4 class="font-display font-black text-lg mb-4">{gettext("Guardians")}</h4>
+        <.empty_state_simple :if={Enum.empty?(@student.guardians)}>
+          {gettext("No guardians assigned to this student")}
+        </.empty_state_simple>
+        <.fluid_grid :if={!Enum.empty?(@student.guardians)} is_full_width class="gap-4">
+          <.guardian_card
+            :for={guardian <- @student.guardians}
+            id={"guardian-#{guardian.id}"}
+            guardian={guardian}
+            navigate={~p"/school/guardians/#{guardian.id}"}
+          />
+        </.fluid_grid>
       </div>
       <.live_component
         :if={@is_editing_profile_picture}

@@ -2107,6 +2107,36 @@ defmodule Lanttern.Schools do
   end
 
   @doc """
+  Sets the students associated with a guardian, replacing any existing associations.
+
+  Requires "school_management" permission in scope.
+  Students whose IDs are not found in the scope's school are silently ignored.
+
+  ## Examples
+
+      iex> set_guardian_students(scope, guardian, [1, 2, 3])
+      {:ok, %Guardian{}}
+
+  """
+  def set_guardian_students(
+        %Scope{school_id: school_id} = scope,
+        %Guardian{school_id: school_id} = guardian,
+        student_ids
+      ) do
+    true = Scope.has_permission?(scope, "school_management")
+
+    students =
+      from(s in Student, where: s.id in ^student_ids and s.school_id == ^school_id)
+      |> Repo.all()
+
+    guardian
+    |> Repo.preload(:students)
+    |> Ecto.Changeset.change()
+    |> Ecto.Changeset.put_assoc(:students, students)
+    |> Repo.update()
+  end
+
+  @doc """
   Gets guardians linked to the same students as the given guardian.
 
   Excludes the guardian passed as parameter from the results.

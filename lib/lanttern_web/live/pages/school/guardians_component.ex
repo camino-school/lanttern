@@ -36,23 +36,17 @@ defmodule LantternWeb.SchoolLive.GuardiansComponent do
             guardian={guardian}
             navigate={~p"/school/guardians/#{guardian}"}
             show_edit={@is_school_manager}
-            show_delete={@is_school_manager}
-            edit_patch={~p"/school/guardians" <> "?edit=#{guardian.id}"}
-            on_delete={
-              JS.push("delete", value: %{id: guardian.id}, target: @myself) |> hide("##{dom_id}")
-            }
+            edit_patch={~p"/school/guardians?edit=#{guardian.id}"}
           />
         </.fluid_grid>
       <% end %>
       <.live_component
         :if={@guardian}
-        module={LantternWeb.Schools.GuardianFormOverlayComponent}
+        module={GuardianFormOverlayComponent}
         id="guardian-form-overlay"
         guardian={@guardian}
         title={@guardian_overlay_title}
         on_cancel={JS.patch(@guardians_path)}
-        close_path={@guardians_path}
-        current_user={@current_user}
         current_scope={@current_scope}
         notify_component={@myself}
       />

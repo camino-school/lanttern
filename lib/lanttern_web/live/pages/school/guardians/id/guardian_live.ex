@@ -4,6 +4,8 @@ defmodule LantternWeb.GuardianLive do
   alias Lanttern.Schools
   alias LantternWeb.Schools.GuardianFormOverlayComponent
 
+  import LantternWeb.SchoolsComponents, only: [guardian_card: 1]
+
   @impl true
   def mount(params, _session, socket) do
     socket =
@@ -75,11 +77,11 @@ defmodule LantternWeb.GuardianLive do
     do: assign(socket, :is_editing, false)
 
   @impl true
-  def handle_info({GuardianFormOverlayComponent, {:updated, _guardian}}, socket) do
+  def handle_info({GuardianFormOverlayComponent, {:updated, guardian}}, socket) do
     socket =
       socket
       |> put_flash(:info, gettext("Guardian updated successfully"))
-      |> push_navigate(to: socket.assigns.current_path)
+      |> push_navigate(to: ~p"/school/guardians/#{guardian}")
 
     {:noreply, socket}
   end
@@ -88,7 +90,7 @@ defmodule LantternWeb.GuardianLive do
     socket =
       socket
       |> put_flash(:info, gettext("Guardian deleted successfully"))
-      |> push_navigate(to: socket.assigns.current_path)
+      |> push_navigate(to: ~p"/school/guardians")
 
     {:noreply, socket}
   end

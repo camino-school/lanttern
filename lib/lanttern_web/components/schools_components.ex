@@ -228,9 +228,7 @@ defmodule LantternWeb.SchoolsComponents do
   attr :guardian, Lanttern.Schools.Guardian, required: true
   attr :navigate, :string, default: nil
   attr :show_edit, :boolean, default: false
-  attr :show_delete, :boolean, default: false
   attr :edit_patch, :string, default: nil
-  attr :on_delete, Phoenix.LiveView.JS, default: nil
 
   def guardian_card(assigns) do
     ~H"""
@@ -238,7 +236,7 @@ defmodule LantternWeb.SchoolsComponents do
       <.profile_picture
         picture_url=""
         profile_name={@guardian.name}
-        size="lg"
+        size="md"
       />
       <div class="min-w-0 flex-1">
         <%= if @navigate do %>
@@ -261,16 +259,6 @@ defmodule LantternWeb.SchoolsComponents do
           size="sm"
           theme="ghost"
           patch={@edit_patch}
-        />
-        <.button
-          :if={@show_delete}
-          icon_name="hero-trash-mini"
-          sr_text={gettext("Delete guardian")}
-          rounded
-          size="sm"
-          theme="ghost"
-          phx-click={@on_delete}
-          data-confirm={gettext("Are you sure?")}
         />
       </div>
     </.card_base>
