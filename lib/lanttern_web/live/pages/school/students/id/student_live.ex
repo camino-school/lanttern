@@ -6,9 +6,9 @@ defmodule LantternWeb.StudentLive do
 
   # page components
 
+  alias __MODULE__.AboutComponent
   alias __MODULE__.GradesReportsComponent
   alias __MODULE__.ILPComponent
-  alias __MODULE__.LessonsComponent
   alias __MODULE__.StudentRecordsComponent
   alias __MODULE__.StudentReportCardsComponent
 
@@ -30,7 +30,13 @@ defmodule LantternWeb.StudentLive do
 
   defp assign_student(socket, params) do
     case Schools.get_student(params["id"],
-           preloads: [:school, :student_tag_relationships, :tags, classes: [:cycle, :years]],
+           preloads: [
+             :school,
+             :student_tag_relationships,
+             :tags,
+             :guardians,
+             classes: [:cycle, :years]
+           ],
            load_email: true
          ) do
       %Student{} = student ->
