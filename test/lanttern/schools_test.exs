@@ -1527,6 +1527,7 @@ defmodule Lanttern.SchoolsTest do
 
   describe "class staff members" do
     alias Lanttern.Schools.ClassStaffMember
+    alias Lanttern.Identity.Scope
 
     test "list_class_staff_members/2 returns all staff members for a class ordered by position" do
       school = school_fixture()
@@ -1554,7 +1555,7 @@ defmodule Lanttern.SchoolsTest do
         position: 2
       })
 
-      result = Schools.list_class_staff_members(%{school_id: school.id}, class.id)
+      result = Schools.list_class_staff_members(%Scope{school_id: school.id}, class.id)
 
       # Should be ordered by position
       assert length(result) == 3
@@ -1578,7 +1579,7 @@ defmodule Lanttern.SchoolsTest do
         staff_member_id: deactivated_staff.id
       })
 
-      result = Schools.list_class_staff_members(%{school_id: school.id}, class.id)
+      result = Schools.list_class_staff_members(%Scope{school_id: school.id}, class.id)
 
       assert length(result) == 1
       assert hd(result).id == active_staff.id
@@ -1596,7 +1597,7 @@ defmodule Lanttern.SchoolsTest do
         position: 5
       })
 
-      [result] = Schools.list_class_staff_members(%{school_id: school.id}, class.id)
+      [result] = Schools.list_class_staff_members(%Scope{school_id: school.id}, class.id)
 
       assert result.class_role == "Lead Teacher"
       assert result.position == 5
@@ -1622,7 +1623,7 @@ defmodule Lanttern.SchoolsTest do
       })
 
       [result] =
-        Schools.list_class_staff_members(%{school_id: school.id}, class.id, load_email: true)
+        Schools.list_class_staff_members(%Scope{school_id: school.id}, class.id, load_email: true)
 
       assert result.email == "teacher@school.com"
     end
@@ -1655,7 +1656,7 @@ defmodule Lanttern.SchoolsTest do
         position: 2
       })
 
-      result = Schools.list_staff_member_classes(%{school_id: school.id}, staff_member)
+      result = Schools.list_staff_member_classes(%Scope{school_id: school.id}, staff_member)
 
       # Should be ordered by position
       assert length(result) == 3
@@ -1664,107 +1665,79 @@ defmodule Lanttern.SchoolsTest do
       assert Enum.at(result, 2).class.id == class_3.id
     end
 
-    test "add_staff_member_to_class/2 creates a class staff member relationship" do
+    test "add_staff_member_to_class/3 creates a class staff member relationship" do
       school = school_fixture()
       class = class_fixture(%{school_id: school.id})
       staff_member = staff_member_fixture(%{school_id: school.id})
-      scope = %{school_id: school.id, permissions: ["school_management"]}
+      scope = %Scope{school_id: school.id, permissions: ["school_management"]}
 
       assert {:ok, %ClassStaffMember{} = csm} =
-               Schools.add_staff_member_to_class(scope, %{
-                 class_id: class.id,
-                 staff_member_id: staff_member.id,
-                 role: "Assistant"
-               })
+               Schools.add_staff_member_to_class(scope, class, staff_member)
 
       assert csm.class_id == class.id
       assert csm.staff_member_id == staff_member.id
-      assert csm.role == "Assistant"
       assert csm.position == 0
     end
 
-    test "add_staff_member_to_class/2 auto-assigns position based on existing entries" do
+    test "add_staff_member_to_class/3 auto-assigns position based on existing entries" do
       school = school_fixture()
       class = class_fixture(%{school_id: school.id})
       staff_1 = staff_member_fixture(%{school_id: school.id})
       staff_2 = staff_member_fixture(%{school_id: school.id})
-      scope = %{school_id: school.id, permissions: ["school_management"]}
+      scope = %Scope{school_id: school.id, permissions: ["school_management"]}
 
-      {:ok, csm_1} =
-        Schools.add_staff_member_to_class(scope, %{
-          class_id: class.id,
-          staff_member_id: staff_1.id
-        })
-
-      {:ok, csm_2} =
-        Schools.add_staff_member_to_class(scope, %{
-          class_id: class.id,
-          staff_member_id: staff_2.id
-        })
+      {:ok, csm_1} = Schools.add_staff_member_to_class(scope, class, staff_1)
+      {:ok, csm_2} = Schools.add_staff_member_to_class(scope, class, staff_2)
 
       assert csm_1.position == 0
       assert csm_2.position == 1
     end
 
-    test "add_staff_member_to_class/2 fails if staff and class are from different schools" do
+    test "add_staff_member_to_class/3 raises FunctionClauseError if staff and class are from different schools" do
       school_1 = school_fixture()
       school_2 = school_fixture()
       class = class_fixture(%{school_id: school_1.id})
       staff_member = staff_member_fixture(%{school_id: school_2.id})
-      scope = %{school_id: school_1.id, permissions: ["school_management"]}
+      scope = %Scope{school_id: school_1.id, permissions: ["school_management"]}
 
-      assert {:error, %Ecto.Changeset{} = changeset} =
-               Schools.add_staff_member_to_class(scope, %{
-                 class_id: class.id,
-                 staff_member_id: staff_member.id
-               })
-
-      assert "must belong to the same school as the class" in errors_on(changeset).staff_member_id
+      assert_raise FunctionClauseError, fn ->
+        Schools.add_staff_member_to_class(scope, class, staff_member)
+      end
     end
 
-    test "add_staff_member_to_class/2 returns unauthorized if scope lacks school_management permission" do
+    test "add_staff_member_to_class/3 returns MatchError if scope lacks school_management permission" do
       school = school_fixture()
       class = class_fixture(%{school_id: school.id})
       staff_member = staff_member_fixture(%{school_id: school.id})
-      scope = %{school_id: school.id, permissions: []}
+      scope = %Scope{school_id: school.id, permissions: []}
 
-      assert {:error, :unauthorized} =
-               Schools.add_staff_member_to_class(scope, %{
-                 class_id: class.id,
-                 staff_member_id: staff_member.id
-               })
+      assert_raise MatchError, fn ->
+        Schools.add_staff_member_to_class(scope, class, staff_member)
+      end
     end
 
-    test "add_staff_member_to_class/2 returns unauthorized if class belongs to a different school" do
+    test "add_staff_member_to_class/3 raises FunctionClauseError if class belongs to a different school" do
       school_1 = school_fixture()
       school_2 = school_fixture()
       class = class_fixture(%{school_id: school_2.id})
       staff_member = staff_member_fixture(%{school_id: school_1.id})
-      scope = %{school_id: school_1.id, permissions: ["school_management"]}
+      scope = %Scope{school_id: school_1.id, permissions: ["school_management"]}
 
-      assert {:error, :unauthorized} =
-               Schools.add_staff_member_to_class(scope, %{
-                 class_id: class.id,
-                 staff_member_id: staff_member.id
-               })
+      assert_raise FunctionClauseError, fn ->
+        Schools.add_staff_member_to_class(scope, class, staff_member)
+      end
     end
 
-    test "add_staff_member_to_class/2 fails if duplicate relationship" do
+    test "add_staff_member_to_class/3 fails if duplicate relationship" do
       school = school_fixture()
       class = class_fixture(%{school_id: school.id})
       staff_member = staff_member_fixture(%{school_id: school.id})
-      scope = %{school_id: school.id, permissions: ["school_management"]}
+      scope = %Scope{school_id: school.id, permissions: ["school_management"]}
 
-      Schools.add_staff_member_to_class(scope, %{
-        class_id: class.id,
-        staff_member_id: staff_member.id
-      })
+      Schools.add_staff_member_to_class(scope, class, staff_member)
 
       assert {:error, %Ecto.Changeset{}} =
-               Schools.add_staff_member_to_class(scope, %{
-                 class_id: class.id,
-                 staff_member_id: staff_member.id
-               })
+               Schools.add_staff_member_to_class(scope, class, staff_member)
     end
 
     test "update_class_staff_member/3 updates role" do
@@ -1779,7 +1752,7 @@ defmodule Lanttern.SchoolsTest do
           role: "Teacher"
         })
 
-      scope = %{school_id: school.id, permissions: ["school_management"]}
+      scope = %Scope{school_id: school.id, permissions: ["school_management"]}
 
       assert {:ok, %ClassStaffMember{} = updated_csm} =
                Schools.update_class_staff_member(scope, csm, %{role: "Lead Teacher"})
@@ -1799,7 +1772,7 @@ defmodule Lanttern.SchoolsTest do
           position: 0
         })
 
-      scope = %{school_id: school.id, permissions: ["school_management"]}
+      scope = %Scope{school_id: school.id, permissions: ["school_management"]}
 
       assert {:ok, %ClassStaffMember{} = updated_csm} =
                Schools.update_class_staff_member(scope, csm, %{position: 5})
@@ -1812,7 +1785,7 @@ defmodule Lanttern.SchoolsTest do
       class = class_fixture(%{school_id: school.id})
       staff_member = staff_member_fixture(%{school_id: school.id})
       csm = class_staff_member_fixture(%{class_id: class.id, staff_member_id: staff_member.id})
-      scope = %{school_id: school.id, permissions: []}
+      scope = %Scope{school_id: school.id, permissions: []}
 
       assert {:error, :unauthorized} =
                Schools.update_class_staff_member(scope, csm, %{role: "Lead Teacher"})
@@ -1824,7 +1797,7 @@ defmodule Lanttern.SchoolsTest do
       class = class_fixture(%{school_id: school_2.id})
       staff_member = staff_member_fixture(%{school_id: school_2.id})
       csm = class_staff_member_fixture(%{class_id: class.id, staff_member_id: staff_member.id})
-      scope = %{school_id: school_1.id, permissions: ["school_management"]}
+      scope = %Scope{school_id: school_1.id, permissions: ["school_management"]}
 
       assert {:error, :unauthorized} =
                Schools.update_class_staff_member(scope, csm, %{role: "Lead Teacher"})
@@ -1835,12 +1808,12 @@ defmodule Lanttern.SchoolsTest do
       class = class_fixture(%{school_id: school.id})
       staff_member = staff_member_fixture(%{school_id: school.id})
       csm = class_staff_member_fixture(%{class_id: class.id, staff_member_id: staff_member.id})
-      scope = %{school_id: school.id, permissions: ["school_management"]}
+      scope = %Scope{school_id: school.id, permissions: ["school_management"]}
 
       assert {:ok, %ClassStaffMember{}} = Schools.remove_staff_member_from_class(scope, csm)
 
       assert_raise Ecto.NoResultsError, fn ->
-        Schools.get_class_staff_member!(%{school_id: school.id}, csm.id)
+        Schools.get_class_staff_member!(%Scope{school_id: school.id}, csm.id)
       end
     end
 
@@ -1849,7 +1822,7 @@ defmodule Lanttern.SchoolsTest do
       class = class_fixture(%{school_id: school.id})
       staff_member = staff_member_fixture(%{school_id: school.id})
       csm = class_staff_member_fixture(%{class_id: class.id, staff_member_id: staff_member.id})
-      scope = %{school_id: school.id, permissions: []}
+      scope = %Scope{school_id: school.id, permissions: []}
 
       assert {:error, :unauthorized} = Schools.remove_staff_member_from_class(scope, csm)
     end
@@ -1860,7 +1833,7 @@ defmodule Lanttern.SchoolsTest do
       class = class_fixture(%{school_id: school_2.id})
       staff_member = staff_member_fixture(%{school_id: school_2.id})
       csm = class_staff_member_fixture(%{class_id: class.id, staff_member_id: staff_member.id})
-      scope = %{school_id: school_1.id, permissions: ["school_management"]}
+      scope = %Scope{school_id: school_1.id, permissions: ["school_management"]}
 
       assert {:error, :unauthorized} = Schools.remove_staff_member_from_class(scope, csm)
     end
@@ -1871,7 +1844,7 @@ defmodule Lanttern.SchoolsTest do
       staff_1 = staff_member_fixture(%{school_id: school.id})
       staff_2 = staff_member_fixture(%{school_id: school.id})
       staff_3 = staff_member_fixture(%{school_id: school.id})
-      scope = %{school_id: school.id, permissions: ["school_management"]}
+      scope = %Scope{school_id: school.id, permissions: ["school_management"]}
 
       _csm_1 = class_staff_member_fixture(%{class_id: class.id, staff_member_id: staff_1.id})
       _csm_2 = class_staff_member_fixture(%{class_id: class.id, staff_member_id: staff_2.id})
@@ -1879,13 +1852,13 @@ defmodule Lanttern.SchoolsTest do
 
       # Reorder: 3, 1, 2
       assert :ok =
-               Schools.update_class_staff_members_positions(scope, class.id, [
+               Schools.update_class_staff_members_positions(scope, class, [
                  staff_3.id,
                  staff_1.id,
                  staff_2.id
                ])
 
-      result = Schools.list_class_staff_members(%{school_id: school.id}, class.id)
+      result = Schools.list_class_staff_members(%Scope{school_id: school.id}, class.id)
 
       assert Enum.at(result, 0).id == staff_3.id
       assert Enum.at(result, 1).id == staff_1.id
@@ -1896,7 +1869,7 @@ defmodule Lanttern.SchoolsTest do
       school = school_fixture()
       staff_member = staff_member_fixture(%{school_id: school.id})
       cycle = cycle_fixture(%{school_id: school.id})
-      scope = %{school_id: school.id, permissions: ["school_management"]}
+      scope = %Scope{school_id: school.id, permissions: ["school_management"]}
 
       class_1 = class_fixture(%{school_id: school.id, cycle_id: cycle.id})
       class_2 = class_fixture(%{school_id: school.id, cycle_id: cycle.id})
@@ -1913,13 +1886,13 @@ defmodule Lanttern.SchoolsTest do
 
       # Reorder: 3, 1, 2
       assert :ok =
-               Schools.update_staff_member_classes_positions(scope, staff_member.id, [
+               Schools.update_staff_member_classes_positions(scope, staff_member, [
                  csm_3.id,
                  csm_1.id,
                  csm_2.id
                ])
 
-      result = Schools.list_staff_member_classes(%{school_id: school.id}, staff_member)
+      result = Schools.list_staff_member_classes(%Scope{school_id: school.id}, staff_member)
 
       assert Enum.at(result, 0).class.id == class_3.id
       assert Enum.at(result, 1).class.id == class_1.id

@@ -44,6 +44,7 @@
     :if={@live_action == :people}
     module={PeopleComponent}
     id="class-people-tab"
+    current_scope={@current_scope}
     class={@class}
     current_user={@current_user}
     is_school_manager={@is_school_manager}
@@ -62,6 +63,7 @@
     module={ClassFormOverlayComponent}
     id="class-form-overlay"
     class={@class}
+    current_scope={@current_scope}
     current_user={@current_user}
     title={gettext("Edit class")}
     on_cancel={JS.patch(@current_path)}

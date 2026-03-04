@@ -90,17 +90,9 @@ defmodule Lanttern.Schools.Class do
   defp put_students(changeset, nil), do: changeset
 
   defp put_students(changeset, students_ids) do
-    # Fetch students from database
-    students_map =
+    students =
       from(s in Student, where: s.id in ^students_ids)
       |> Repo.all()
-      |> Map.new(&{&1.id, &1})
-
-    # Preserve the order of IDs by mapping them in sequence
-    students =
-      students_ids
-      |> Enum.map(&Map.get(students_map, &1))
-      |> Enum.reject(&is_nil/1)
 
     changeset
     |> put_assoc(:students, students)

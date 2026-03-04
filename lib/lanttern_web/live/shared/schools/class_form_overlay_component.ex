@@ -277,7 +277,7 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponent do
           []
 
         class_id ->
-          list_staff_members_for_class(socket.assigns.current_user.current_profile, class_id)
+          list_staff_members_for_class(socket.assigns.current_scope, class_id)
       end
 
     assign(socket, :staff_members, staff_members)
@@ -430,7 +430,7 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponent do
     |> case do
       {:ok, class} ->
         # Update positions after creating
-        update_positions_after_save(class.id, socket)
+        update_positions_after_save(class, socket)
         notify(__MODULE__, {:created, class}, socket.assigns)
         {:noreply, socket}
 
@@ -448,7 +448,7 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponent do
     |> case do
       {:ok, class} ->
         # Update positions after updating
-        update_positions_after_save(class.id, socket)
+        update_positions_after_save(class, socket)
         notify(__MODULE__, {:updated, class}, socket.assigns)
         {:noreply, socket}
 
@@ -457,15 +457,15 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponent do
     end
   end
 
-  defp update_positions_after_save(class_id, socket) do
+  defp update_positions_after_save(%Class{} = class, socket) do
     # Update staff members positions based on order
     # Use class_staff_member_id for existing staff members, otherwise use staff_member_id
     # The update_class_staff_members_positions function will use staff_member_id to find the records
     staff_member_ids = Enum.map(socket.assigns.staff_members, & &1.id)
 
     case Schools.update_class_staff_members_positions(
-           socket.assigns.current_user.current_profile,
-           class_id,
+           socket.assigns.current_scope,
+           class,
            staff_member_ids
          ) do
       :ok ->

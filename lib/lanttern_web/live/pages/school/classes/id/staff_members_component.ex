@@ -60,7 +60,7 @@ defmodule LantternWeb.ClassLive.StaffMembersComponent do
   defp stream_class_staff_members(socket) do
     staff_members =
       Schools.list_class_staff_members(
-        socket.assigns.current_user.current_profile,
+        socket.assigns.current_scope,
         socket.assigns.class.id,
         load_email: true
       )

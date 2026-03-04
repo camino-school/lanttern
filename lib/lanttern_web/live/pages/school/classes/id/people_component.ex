@@ -17,7 +17,7 @@ defmodule LantternWeb.ClassLive.PeopleComponent do
           module={StaffMembersComponent}
           id="staff-members-content"
           class={@class}
-          current_user={@current_user}
+          current_scope={@current_scope}
           params={@params}
         />
       </.collapsible_section>

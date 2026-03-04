@@ -107,11 +107,9 @@ defmodule LantternWeb.StaffMemberLive.ClassesComponent do
   @impl true
   def update(%{action: {ClassSearchComponent, {:selected, class}}}, socket) do
     case Schools.add_staff_member_to_class(
-           socket.assigns.current_user.current_profile,
-           %{
-             class_id: class.id,
-             staff_member_id: socket.assigns.staff_member.id
-           }
+           socket.assigns.current_scope,
+           class,
+           socket.assigns.staff_member
          ) do
       {:ok, _} ->
         socket =
@@ -154,7 +152,7 @@ defmodule LantternWeb.StaffMemberLive.ClassesComponent do
   defp stream_staff_classes(socket) do
     classes =
       Schools.list_staff_member_classes(
-        socket.assigns.current_user.current_profile,
+        socket.assigns.current_scope,
         socket.assigns.staff_member
       )
 
@@ -173,7 +171,7 @@ defmodule LantternWeb.StaffMemberLive.ClassesComponent do
 
   def handle_event("edit_role", %{"id" => id}, socket) do
     csm =
-      Schools.get_class_staff_member!(socket.assigns.current_user.current_profile, id,
+      Schools.get_class_staff_member!(socket.assigns.current_scope, id,
         preloads: :class
       )
 
@@ -197,12 +195,12 @@ defmodule LantternWeb.StaffMemberLive.ClassesComponent do
   def handle_event("update_role", %{"class_staff_member" => params}, socket) do
     csm =
       Schools.get_class_staff_member!(
-        socket.assigns.current_user.current_profile,
+        socket.assigns.current_scope,
         socket.assigns.editing_role_for
       )
 
     case Schools.update_class_staff_member(
-           socket.assigns.current_user.current_profile,
+           socket.assigns.current_scope,
            csm,
            params
          ) do
@@ -210,7 +208,7 @@ defmodule LantternWeb.StaffMemberLive.ClassesComponent do
         # Reload with preloads
         updated_csm =
           Schools.get_class_staff_member!(
-            socket.assigns.current_user.current_profile,
+            socket.assigns.current_scope,
             updated_csm.id,
             preloads: [class: [:school, :cycle]]
           )
@@ -230,9 +228,9 @@ defmodule LantternWeb.StaffMemberLive.ClassesComponent do
   end
 
   def handle_event("remove", %{"id" => id}, socket) do
-    csm = Schools.get_class_staff_member!(socket.assigns.current_user.current_profile, id)
+    csm = Schools.get_class_staff_member!(socket.assigns.current_scope, id)
 
-    case Schools.remove_staff_member_from_class(socket.assigns.current_user.current_profile, csm) do
+    case Schools.remove_staff_member_from_class(socket.assigns.current_scope, csm) do
       {:ok, _} ->
         socket =
           socket
@@ -258,8 +256,8 @@ defmodule LantternWeb.StaffMemberLive.ClassesComponent do
     reordered_ids = List.insert_at(remaining, new_index, id)
 
     case Schools.update_staff_member_classes_positions(
-           socket.assigns.current_user.current_profile,
-           socket.assigns.staff_member.id,
+           socket.assigns.current_scope,
+           socket.assigns.staff_member,
            reordered_ids
          ) do
       :ok ->
