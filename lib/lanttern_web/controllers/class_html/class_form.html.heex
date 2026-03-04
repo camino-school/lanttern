@@ -27,15 +27,6 @@
   <.input field={f[:name]} type="text" label="Name" />
 
   <.input
-    field={f[:staff_members_ids]}
-    type="select"
-    label={gettext("Staff members in this class")}
-    options={@staff_member_options}
-    prompt="Select staff members"
-    multiple
-  />
-
-  <.input
     field={f[:students_ids]}
     type="select"
     label={gettext("Students in this class")}
