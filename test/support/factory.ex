@@ -10,6 +10,7 @@ defmodule Lanttern.Factory do
   use Lanttern.ClassStaffMemberFactory
   use Lanttern.ConversationFactory
   use Lanttern.CycleFactory
+  use Lanttern.GuardianFactory
   use Lanttern.ILPCommentAttachmentFactory
   use Lanttern.ILPCommentFactory
   use Lanttern.ILPTemplateFactory
@@ -24,17 +25,21 @@ defmodule Lanttern.Factory do
   use Lanttern.MomentFactory
   use Lanttern.ProfileFactory
   use Lanttern.AiConfigFactory
+  use Lanttern.ReportCardFactory
   use Lanttern.SchoolFactory
   use Lanttern.SectionFactory
   use Lanttern.StaffMemberFactory
   use Lanttern.StrandConversationFactory
   use Lanttern.StrandFactory
+  use Lanttern.StrandReportFactory
   use Lanttern.StudentFactory
   use Lanttern.StudentILPFactory
   use Lanttern.StudentRecordAttachmentFactory
   use Lanttern.StudentRecordFactory
   use Lanttern.StudentRecordRelationshipFactory
   use Lanttern.StudentRecordStatusFactory
+  use Lanttern.StudentReportCardFactory
   use Lanttern.SubjectFactory
   use Lanttern.UserFactory
+  use Lanttern.YearFactory
 end

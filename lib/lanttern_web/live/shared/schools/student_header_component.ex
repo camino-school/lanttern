@@ -48,8 +48,11 @@ defmodule LantternWeb.Schools.StudentHeaderComponent do
       <div class="mt-6 sm:mt-0">
         <div class="flex items-center gap-2">
           <h2 class={[
-            "flex items-center gap-2 font-display font-black text-2xl",
-            if(@show_deactivated && @student.deactivated_at, do: "text-ltrn-subtle")
+            "flex items-center gap-2 font-display font-bold text-2xl",
+            if(@show_deactivated && @student.deactivated_at,
+              do: "text-ltrn-subtle",
+              else: "text-ltrn-darkest"
+            )
           ]}>
             <%= if @navigate do %>
               <.link navigate={@navigate.(@student.id)} class="hover:text-ltrn-subtle">

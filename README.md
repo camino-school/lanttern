@@ -73,6 +73,7 @@ The main secrets/env vars that we need for this are the following:
 #### Google
 
 - `GOOGLE_CLIENT_ID`
+- `GA_MEASUREMENT_ID` - Google Analytics
 
 #### OpenAI/LangChain
 
@@ -84,11 +85,23 @@ The main secrets/env vars that we need for this are the following:
 - `MAILGUN_API_KEY`
 - `MAILGUN_DOMAIN`
 
+#### Uploads
+
+Those are not mandatory, but enables quick adjustments via env vars adjustments and redeploy.
+
+All vars have default values in the code.
+
+- `UPLOAD_PROFILE_PICTURE_ACCEPT` - accepted file types for profile pictures
+- `UPLOAD_PROFILE_PICTURE_MAX_FILE_SIZE` - max file size in bytes for profile pictures
+- `UPLOAD_COVER_ACCEPT` - accepted file types for covers
+- `UPLOAD_COVER_MAX_FILE_SIZE` - max file size in bytes for covers
+- `UPLOAD_ATTACHMENT_ACCEPT` - accepted file types for attachments, use `*` for any
+- `UPLOAD_ATTACHMENT_MAX_FILE_SIZE` - max file size in bytes for attachments
+
 #### Others
 
 - `PHX_HOST` - e.g. `lanttern.org`
 - `SECRET_KEY_BASE` - Phoenix generated
-- `CONTENT_SECURITY_POLICY` - CSP headers
 
 ## Tests
 

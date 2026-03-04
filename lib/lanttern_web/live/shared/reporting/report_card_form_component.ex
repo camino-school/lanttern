@@ -10,6 +10,7 @@ defmodule LantternWeb.Reporting.ReportCardFormComponent do
   alias LantternWeb.GradesReportsHelpers
   alias LantternWeb.SchoolsHelpers
   alias LantternWeb.TaxonomyHelpers
+  alias LantternWeb.UploadHelpers
 
   @impl true
   def render(assigns) do
@@ -100,11 +101,7 @@ defmodule LantternWeb.Reporting.ReportCardFormComponent do
       |> assign(:parent_cycle_id, nil)
       |> assign(:hide_submit, false)
       |> assign(:is_removing_cover, false)
-      |> allow_upload(:cover,
-        accept: ~w(.jpg .jpeg .png .webp),
-        max_file_size: 5_000_000,
-        max_entries: 1
-      )
+      |> allow_upload(:cover, [max_entries: 1] ++ UploadHelpers.cover())
       |> assign(:initialized, false)
 
     {:ok, socket}

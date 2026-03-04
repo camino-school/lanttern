@@ -16,6 +16,7 @@ defmodule Lanttern.Schools do
   alias Lanttern.Schools.Class
   alias Lanttern.Schools.ClassStaffMember
   alias Lanttern.Schools.Cycle
+  alias Lanttern.Schools.Guardian
   alias Lanttern.Schools.School
   alias Lanttern.Schools.StaffMember
   alias Lanttern.Schools.Student
@@ -1785,6 +1786,188 @@ defmodule Lanttern.Schools do
   end
 
   @doc """
+  Returns the list of guardians.
+
+  ### Options:
+
+  - `:preloads` – preloads associated data
+
+  ## Examples
+
+      iex> list_guardians(scope)
+      [%Guardian{}, ...]
+
+  """
+  def list_guardians(%Scope{} = scope, opts \\ []) do
+    queryable = Keyword.get(opts, :base_query, Guardian)
+
+    from(
+      g in queryable,
+      where: g.school_id == ^scope.school_id,
+      order_by: g.name
+    )
+    |> Repo.all()
+    |> maybe_preload(opts)
+  end
+
+  @doc """
+  Searches for guardians by name.
+
+  Returns a list of guardians matching the search term, ordered by relevance.
+
+  ### Options:
+
+  - `:preloads` – preloads associated data
+
+  ## Examples
+
+      iex> search_guardians(scope, "john")
+      [%Guardian{}, ...]
+
+  """
+  def search_guardians(%Scope{} = scope, search_term, opts \\ []) do
+    ilike_search_term = "%#{search_term}%"
+
+    query =
+      from(
+        g in Guardian,
+        where: ilike(g.name, ^ilike_search_term),
+        order_by: {:asc, fragment("? <<-> ?", ^search_term, g.name)}
+      )
+
+    list_guardians(scope, [{:base_query, query} | opts])
+  end
+
+  @doc """
+  Gets a single guardian.
+
+  Returns `nil` if the Guardian does not exist or scope doesn't match.
+
+  ### Options:
+
+  - `:preloads` – preloads associated data
+
+  ## Examples
+
+      iex> get_guardian(scope, 123)
+      %Guardian{}
+
+      iex> get_guardian(scope, 456)
+      nil
+
+  """
+  def get_guardian(%Scope{} = scope, id, opts \\ []) do
+    Guardian
+    |> Repo.get_by(id: id, school_id: scope.school_id)
+    |> maybe_preload(opts)
+  end
+
+  @doc """
+  Gets a single guardian.
+
+  Same as `get_guardian/3`, but raises `Ecto.NoResultsError` if the Guardian does not exist
+  or if scope doesn't match.
+
+  """
+  def get_guardian!(%Scope{} = scope, id, opts \\ []) do
+    Guardian
+    |> Repo.get_by!(id: id, school_id: scope.school_id)
+    |> maybe_preload(opts)
+  end
+
+  @doc """
+  Creates a guardian.
+
+  Requires "school_management" permission in scope.
+
+  ## Examples
+
+      iex> create_guardian(scope, %{field: value})
+      {:ok, %Guardian{}}
+
+      iex> create_guardian(scope, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_guardian(%Scope{} = scope, attrs \\ %{}) do
+    true = Scope.has_permission?(scope, "school_management")
+
+    %Guardian{}
+    |> Guardian.changeset(attrs, scope)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a guardian.
+
+  Requires "school_management" permission in scope.
+
+  ## Examples
+
+      iex> update_guardian(scope, guardian, %{field: new_value})
+      {:ok, %Guardian{}}
+
+      iex> update_guardian(scope, guardian, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_guardian(
+        %Scope{school_id: school_id} = scope,
+        %Guardian{school_id: school_id} = guardian,
+        attrs
+      ) do
+    true = Scope.has_permission?(scope, "school_management")
+
+    guardian
+    |> Guardian.changeset(attrs, scope)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a guardian.
+
+  Requires "school_management" permission in scope.
+
+  ## Examples
+
+      iex> delete_guardian(scope, guardian)
+      {:ok, %Guardian{}}
+
+      iex> delete_guardian(scope, guardian)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_guardian(
+        %Scope{school_id: school_id} = scope,
+        %Guardian{school_id: school_id} = guardian
+      ) do
+    true = Scope.has_permission?(scope, "school_management")
+
+    Repo.delete(guardian)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking guardian changes.
+
+  Requires "school_management" permission in scope.
+
+  ## Examples
+
+      iex> change_guardian(scope, guardian)
+      %Ecto.Changeset{data: %Guardian{}}
+
+  """
+  def change_guardian(
+        %Scope{school_id: school_id} = scope,
+        %Guardian{school_id: school_id} = guardian,
+        attrs \\ %{}
+      ) do
+    true = Scope.has_permission?(scope, "school_management")
+
+    Guardian.changeset(guardian, attrs, scope)
+  end
+
+  @doc """
   Create students, classes, users, and profiles based on CSV data.
 
   It returns a tuple with the `csv_student` as the first item,
@@ -2036,5 +2219,189 @@ defmodule Lanttern.Schools do
       )
 
     {:ok, response}
+  end
+
+  # Student-Guardian Relationships
+
+  @doc """
+  Gets students for a given guardian.
+
+  ## Examples
+
+      iex> get_students_for_guardian(scope, guardian)
+      [%Student{}, ...]
+
+  """
+  def get_students_for_guardian(
+        %Scope{school_id: school_id},
+        %Guardian{school_id: school_id} = guardian
+      ) do
+    Repo.all(
+      from s in Student,
+        join: sg in "students_guardians",
+        on: s.id == sg.student_id,
+        where: sg.guardian_id == ^guardian.id,
+        select: s
+    )
+  end
+
+  @doc """
+  Gets guardians for a given student.
+
+  ## Examples
+
+      iex> get_guardians_for_student(scope, student)
+      [%Guardian{}, ...]
+
+  """
+  def get_guardians_for_student(
+        %Scope{school_id: school_id},
+        %Student{school_id: school_id} = student
+      ) do
+    Repo.all(
+      from g in Guardian,
+        join: sg in "students_guardians",
+        on: g.id == sg.guardian_id,
+        where: sg.student_id == ^student.id,
+        select: g
+    )
+  end
+
+  @doc """
+  Associates a guardian to a student.
+
+  Requires "school_management" permission in scope.
+
+  ## Examples
+
+      iex> add_guardian_to_student(scope, student, guardian)
+      {:ok, :created}
+
+  """
+  def add_guardian_to_student(
+        %Scope{school_id: school_id} = scope,
+        %Student{school_id: school_id} = student,
+        %Guardian{school_id: school_id} = guardian
+      ) do
+    true = Scope.has_permission?(scope, "school_management")
+
+    {count, _} =
+      Repo.insert_all(
+        "students_guardians",
+        [%{student_id: student.id, guardian_id: guardian.id}],
+        on_conflict: :nothing,
+        conflict_target: [:student_id, :guardian_id]
+      )
+
+    case count do
+      0 -> {:ok, :already_exists}
+      _ -> {:ok, :created}
+    end
+  end
+
+  @doc """
+  Removes a guardian from a student.
+
+  Requires "school_management" permission in scope.
+
+  ## Examples
+
+      iex> remove_guardian_from_student(scope, student, guardian_id)
+      {:ok, :deleted}
+
+  """
+  def remove_guardian_from_student(
+        %Scope{school_id: school_id} = scope,
+        %Student{school_id: school_id} = student,
+        guardian_id
+      ) do
+    true = Scope.has_permission?(scope, "school_management")
+    # Delete directly from join table
+    {count, _} =
+      Repo.delete_all(
+        from sg in "students_guardians",
+          where: sg.student_id == ^student.id and sg.guardian_id == ^guardian_id
+      )
+
+    case count do
+      0 -> {:ok, :not_found}
+      _ -> {:ok, :deleted}
+    end
+  end
+
+  @doc """
+  Sets the students associated with a guardian, replacing any existing associations.
+
+  Requires "school_management" permission in scope.
+  Students whose IDs are not found in the scope's school are silently ignored.
+
+  ## Examples
+
+      iex> set_guardian_students(scope, guardian, [1, 2, 3])
+      {:ok, %Guardian{}}
+
+  """
+  def set_guardian_students(
+        %Scope{school_id: school_id} = scope,
+        %Guardian{school_id: school_id} = guardian,
+        student_ids
+      ) do
+    true = Scope.has_permission?(scope, "school_management")
+
+    students =
+      from(s in Student, where: s.id in ^student_ids and s.school_id == ^school_id)
+      |> Repo.all()
+
+    guardian
+    |> Repo.preload(:students)
+    |> Ecto.Changeset.change()
+    |> Ecto.Changeset.put_assoc(:students, students)
+    |> Repo.update()
+  end
+
+  @doc """
+  Gets guardians linked to the same students as the given guardian.
+
+  Excludes the guardian passed as parameter from the results.
+
+  ## Examples
+
+      iex> list_shared_guardians(scope, guardian)
+      [%Guardian{}, ...]
+
+  """
+  def list_shared_guardians(
+        %Scope{school_id: school_id},
+        %Guardian{school_id: school_id} = guardian,
+        opts \\ []
+      ) do
+    students_ids =
+      if Ecto.assoc_loaded?(guardian.students) do
+        Enum.map(guardian.students, & &1.id)
+      else
+        from(
+          sg in "students_guardians",
+          where: sg.guardian_id == ^guardian.id,
+          select: sg.student_id
+        )
+        |> Repo.all()
+      end
+
+    case students_ids do
+      [] ->
+        []
+
+      ids ->
+        from(
+          g in Guardian,
+          join: sg in "students_guardians",
+          on: g.id == sg.guardian_id,
+          where: sg.student_id in ^ids,
+          where: g.id != ^guardian.id,
+          distinct: true
+        )
+        |> Repo.all()
+        |> maybe_preload(opts)
+    end
   end
 end

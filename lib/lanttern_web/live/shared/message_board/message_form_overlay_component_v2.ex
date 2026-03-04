@@ -18,6 +18,7 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponentV2 do
   alias Lanttern.MessageBoard.MessageV2, as: Message
   alias Lanttern.MessageBoardV2, as: MessageBoard
   alias Lanttern.SupabaseHelpers
+  alias LantternWeb.UploadHelpers
 
   # shared
 
@@ -278,11 +279,7 @@ defmodule LantternWeb.MessageBoard.MessageFormOverlayComponentV2 do
       |> assign(:initialized, false)
       |> assign(:is_removing_cover, false)
       |> assign(:section_id, nil)
-      |> allow_upload(:cover,
-        accept: ~w(.jpg .jpeg .png .webp),
-        max_file_size: 5_000_000,
-        max_entries: 1
-      )
+      |> allow_upload(:cover, [max_entries: 1] ++ UploadHelpers.cover())
 
     {:ok, socket}
   end

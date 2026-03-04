@@ -7,6 +7,7 @@ defmodule LantternWeb.Reporting.StrandReportFormComponent do
 
   alias Lanttern.Reporting
   alias Lanttern.SupabaseHelpers
+  alias LantternWeb.UploadHelpers
 
   @impl true
   def render(assigns) do
@@ -75,11 +76,7 @@ defmodule LantternWeb.Reporting.StrandReportFormComponent do
       |> assign(:is_admin, false)
       |> assign(:hide_submit, false)
       |> assign(:is_removing_cover, false)
-      |> allow_upload(:cover,
-        accept: ~w(.jpg .jpeg .png .webp),
-        max_file_size: 5_000_000,
-        max_entries: 1
-      )
+      |> allow_upload(:cover, [max_entries: 1] ++ UploadHelpers.cover())
 
     {:ok, socket}
   end

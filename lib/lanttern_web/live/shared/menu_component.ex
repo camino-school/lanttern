@@ -21,8 +21,8 @@ defmodule LantternWeb.MenuComponent do
       >
         <div class="md:flex-1 md:flex md:flex-col-reverse md:justify-between">
           <div class="p-6">
-            <h5 class="relative flex items-center font-display font-black text-3xl text-ltrn-darkest">
-              Lanttern
+            <h5 class="relative flex items-center gap-4 font-display font-black text-3xl text-ltrn-darkest">
+              <.logo size="md" /> Lanttern
             </h5>
           </div>
           <nav>
@@ -149,29 +149,29 @@ defmodule LantternWeb.MenuComponent do
             </div>
           </div>
           <nav class="mt-10">
-            <ul class="font-bold text-lg text-ltrn-subtle leading-loose">
+            <ul class="font-bold text-lg leading-loose">
               <li :if={@current_user.current_profile.type == "staff"}>
                 <.link
                   href={~p"/school/staff/#{@current_user.current_profile.staff_member_id}"}
-                  class="flex items-center gap-2 hover:text-ltrn-dark"
+                  class="flex items-center gap-2 hover:text-ltrn-subtle"
                 >
                   {gettext("My area")}
                 </.link>
               </li>
               <li :if={@current_user.is_root_admin}>
-                <.link href={~p"/admin"} class="flex items-center gap-2 hover:text-ltrn-dark">
+                <.link href={~p"/admin"} class="flex items-center gap-2 hover:text-ltrn-subtle">
                   {gettext("Admin")}
                 </.link>
               </li>
               <li>
-                <.link href={~p"/users/log_out"} method="delete" class="hover:text-ltrn-dark">
+                <.link href={~p"/users/log_out"} method="delete" class="hover:text-ltrn-subtle">
                   {gettext("Log out")}
                 </.link>
               </li>
             </ul>
           </nav>
           <span class="hidden sm:block sm:flex-1" />
-          <div class="flex items-center gap-4 mt-6 font-sans text-ltrn-subtle leading-loose">
+          <div class="flex items-center gap-4 mt-6 font-sans leading-loose">
             <span>{gettext("Language:")}</span>
             <.lang_button
               is_current={@current_user.current_profile.current_locale == "en"}
@@ -201,7 +201,7 @@ defmodule LantternWeb.MenuComponent do
             <a
               href="/docs/politica-de-privacidade-lanttern-20240403.pdf"
               target="_blank"
-              class="mt-4 text-sm font-sans font-bold text-ltrn-subtle hover:underline"
+              class="mt-4 text-sm font-sans font-bold hover:underline"
             >
               {gettext("Privacy policy")}
             </a>
@@ -209,7 +209,7 @@ defmodule LantternWeb.MenuComponent do
             <a
               href="/docs/termos-de-uso-lanttern-20240403.pdf"
               target="_blank"
-              class="mt-4 text-sm font-sans font-bold text-ltrn-subtle hover:underline"
+              class="mt-4 text-sm font-sans font-bold hover:underline"
             >
               {gettext("Terms of service")}
             </a>
@@ -232,7 +232,7 @@ defmodule LantternWeb.MenuComponent do
         class={[
           "group relative block p-6 font-display font-black text-base",
           "md:p-10 lg:text-lg",
-          if(@active, do: "text-ltrn-dark", else: "text-ltrn-subtle hover:text-ltrn-dark")
+          if(@active, do: "text-ltrn-primary", else: "text-ltrn-subtle hover:text-ltrn-dark")
         ]}
       >
         <span class={[
@@ -315,7 +315,7 @@ defmodule LantternWeb.MenuComponent do
     ~H"""
     <button
       type="button"
-      class={if(@is_current, do: "text-ltrn-dark", else: "hover:text-ltrn-dark")}
+      class={if(@is_current, do: "font-bold", else: "hover:text-ltrn-subtle")}
       {@rest}
     >
       {render_slot(@inner_block)}
