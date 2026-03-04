@@ -11,10 +11,18 @@ defmodule Lanttern.StudentFactory do
             Map.get(attrs, :school, build(:school))
           end
 
-        %Lanttern.Schools.Student{
-          name: sequence(:name, &"Student #{&1}"),
-          school: school
+        base = %Lanttern.Schools.Student{
+          name: sequence(:name, &"Student #{&1}")
         }
+
+        base =
+          if school do
+            %{base | school: school, school_id: school.id}
+          else
+            base
+          end
+
+        base
         |> merge_attributes(attrs)
         |> evaluate_lazy_attributes()
       end

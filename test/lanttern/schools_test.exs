@@ -1528,8 +1528,8 @@ defmodule Lanttern.SchoolsTest do
   end
 
   describe "class staff members" do
-    alias Lanttern.Schools.ClassStaffMember
     alias Lanttern.Identity.Scope
+    alias Lanttern.Schools.ClassStaffMember
 
     test "list_class_staff_members/2 returns all staff members for a class ordered by position" do
       school = school_fixture()

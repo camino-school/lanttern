@@ -171,9 +171,7 @@ defmodule LantternWeb.StaffMemberLive.ClassesComponent do
 
   def handle_event("edit_role", %{"id" => id}, socket) do
     csm =
-      Schools.get_class_staff_member!(socket.assigns.current_scope, id,
-        preloads: :class
-      )
+      Schools.get_class_staff_member!(socket.assigns.current_scope, id, preloads: :class)
 
     form =
       csm
