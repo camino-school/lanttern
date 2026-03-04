@@ -2,6 +2,7 @@ defmodule Lanttern.SchoolsTest do
   use Lanttern.DataCase
 
   alias Lanttern.Schools
+  alias Lanttern.Identity.Scope
   import Lanttern.Factory
   import Lanttern.SchoolsFixtures
   import Lanttern.IdentityFixtures
@@ -571,7 +572,10 @@ defmodule Lanttern.SchoolsTest do
       valid_attrs = %{cycle_id: cycle.id, name: "some name"}
 
       assert {:ok, %Class{} = class} =
-               Schools.create_class(valid_attrs, %{current_profile: %{school_id: school.id}})
+               Schools.create_class(
+                 %Scope{school_id: school.id, permissions: ["school_management"]},
+                 valid_attrs
+               )
 
       assert class.name == "some name"
       assert class.school_id == school.id
@@ -595,7 +599,10 @@ defmodule Lanttern.SchoolsTest do
       }
 
       assert {:ok, %Class{} = class} =
-               Schools.create_class(valid_attrs, %{current_profile: %{school_id: school.id}})
+               Schools.create_class(
+                 %Scope{school_id: school.id, permissions: ["school_management"]},
+                 valid_attrs
+               )
 
       assert class.name == "some name"
       assert class.school_id == school.id
@@ -608,7 +615,10 @@ defmodule Lanttern.SchoolsTest do
       school = school_fixture()
 
       assert {:error, %Ecto.Changeset{}} =
-               Schools.create_class(@invalid_attrs, %{current_profile: %{school_id: school.id}})
+               Schools.create_class(
+                 %Scope{school_id: school.id, permissions: ["school_management"]},
+                 @invalid_attrs
+               )
     end
 
     test "update_class/3 with valid data updates the class" do
@@ -616,9 +626,11 @@ defmodule Lanttern.SchoolsTest do
       update_attrs = %{name: "some updated name"}
 
       assert {:ok, %Class{} = class} =
-               Schools.update_class(class, update_attrs, %{
-                 current_profile: %{school_id: class.school_id}
-               })
+               Schools.update_class(
+                 %Scope{school_id: class.school_id, permissions: ["school_management"]},
+                 class,
+                 update_attrs
+               )
 
       assert class.name == "some updated name"
     end
@@ -635,9 +647,11 @@ defmodule Lanttern.SchoolsTest do
       }
 
       assert {:ok, %Class{} = class} =
-               Schools.update_class(class, update_attrs, %{
-                 current_profile: %{school_id: class.school_id}
-               })
+               Schools.update_class(
+                 %Scope{school_id: class.school_id, permissions: ["school_management"]},
+                 class,
+                 update_attrs
+               )
 
       assert class.name == "some updated name"
       assert length(class.students) == 2
@@ -649,9 +663,11 @@ defmodule Lanttern.SchoolsTest do
       class = class_fixture()
 
       assert {:error, %Ecto.Changeset{}} =
-               Schools.update_class(class, @invalid_attrs, %{
-                 current_profile: %{school_id: class.school_id}
-               })
+               Schools.update_class(
+                 %Scope{school_id: class.school_id, permissions: ["school_management"]},
+                 class,
+                 @invalid_attrs
+               )
 
       assert class == Schools.get_class!(class.id)
     end
@@ -671,7 +687,7 @@ defmodule Lanttern.SchoolsTest do
       class = class_fixture()
 
       assert %Ecto.Changeset{} =
-               Schools.change_class(class, %{current_profile: %{school_id: class.school_id}})
+               Schools.change_class(%Scope{school_id: class.school_id}, class)
     end
   end
 

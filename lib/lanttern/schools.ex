@@ -642,10 +642,15 @@ defmodule Lanttern.Schools do
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_class(attrs \\ %{}, current_user) do
+  def create_class(attrs \\ %{}) do
     %Class{}
-    |> Class.changeset(attrs, current_user.current_profile)
+    |> Class.changeset(attrs)
     |> Repo.insert()
+  end
+
+  def create_class(%Scope{} = scope, attrs) do
+    true = Scope.has_permission?(scope, "school_management")
+    %Class{} |> Class.changeset(attrs, scope) |> Repo.insert()
   end
 
   @doc """
@@ -660,10 +665,23 @@ defmodule Lanttern.Schools do
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_class(%Class{} = class, attrs, current_user) do
+  def update_class(%Class{} = class, attrs) do
+    class
+    |> Repo.preload([:students, :years])
+    |> Class.changeset(attrs)
+    |> Repo.update()
+  end
+
+  def update_class(
+        %Scope{school_id: school_id} = scope,
+        %Class{school_id: school_id} = class,
+        attrs
+      ) do
+    true = Scope.has_permission?(scope, "school_management")
+
     class
     |> Repo.preload([:students, :years, :staff_members])
-    |> Class.changeset(attrs, current_user.current_profile)
+    |> Class.changeset(attrs, scope)
     |> Repo.update()
   end
 
@@ -712,12 +730,18 @@ defmodule Lanttern.Schools do
       %Ecto.Changeset{data: %Class{}}
 
   """
-  def change_class(%Class{} = class, current_user) do
-    Class.changeset(class, %{}, current_user.current_profile)
+  def change_class(class_or_scope, class_or_attrs \\ %{})
+
+  def change_class(%Class{} = class, attrs) do
+    Class.changeset(class, attrs)
   end
 
-  def change_class(%Class{} = class, attrs, current_user) do
-    Class.changeset(class, attrs, current_user.current_profile)
+  def change_class(%Scope{} = scope, %Class{} = class) do
+    Class.changeset(class, %{}, scope)
+  end
+
+  def change_class(%Scope{} = scope, %Class{} = class, attrs) do
+    Class.changeset(class, attrs, scope)
   end
 
   @doc """
@@ -2022,10 +2046,7 @@ defmodule Lanttern.Schools do
 
   defp get_or_insert_csv_class({csv_class_name, ""}, school_id, cycle_id) do
     {:ok, class} =
-      create_class(
-        %{name: csv_class_name, cycle_id: cycle_id},
-        %{current_profile: %{school_id: school_id}}
-      )
+      create_class(%{name: csv_class_name, cycle_id: cycle_id, school_id: school_id})
 
     {csv_class_name, class}
   end

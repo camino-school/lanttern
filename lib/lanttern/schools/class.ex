@@ -61,6 +61,14 @@ defmodule Lanttern.Schools.Class do
   end
 
   @doc false
+  def changeset(class, attrs) do
+    class
+    |> cast(attrs, [:name, :school_id, :students_ids, :years_ids, :cycle_id])
+    |> validate_required([:name, :cycle_id])
+    |> put_students()
+    |> put_years()
+  end
+
   def changeset(class, attrs, scope) do
     class
     |> cast(attrs, [:name, :students_ids, :years_ids, :staff_members_ids, :cycle_id])

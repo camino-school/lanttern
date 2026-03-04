@@ -12,7 +12,7 @@ defmodule LantternWeb.ClassController do
   end
 
   def new(conn, _params) do
-    changeset = Schools.change_class(%Class{}, %{current_profile: %{school_id: nil}})
+    changeset = Schools.change_class(%Class{})
     student_options = generate_student_options()
     school_options = generate_school_options()
     cycle_options = generate_cycle_options()
@@ -28,9 +28,7 @@ defmodule LantternWeb.ClassController do
   end
 
   def create(conn, %{"class" => class_params}) do
-    case Schools.create_class(class_params, %{
-           current_profile: %{school_id: class_params["school_id"]}
-         }) do
+    case Schools.create_class(class_params) do
       {:ok, class} ->
         conn
         |> put_flash(:info, "Class created successfully.")
@@ -74,7 +72,7 @@ defmodule LantternWeb.ClassController do
       |> Map.put(:students_ids, students_ids)
       |> Map.put(:years_ids, years_ids)
 
-    changeset = Schools.change_class(class, %{current_profile: %{school_id: class.school_id}})
+    changeset = Schools.change_class(class)
 
     render(conn, :edit,
       class: class,
@@ -89,9 +87,7 @@ defmodule LantternWeb.ClassController do
   def update(conn, %{"id" => id, "class" => class_params}) do
     class = Schools.get_class!(id)
 
-    case Schools.update_class(class, class_params, %{
-           current_profile: %{school_id: class.school_id}
-         }) do
+    case Schools.update_class(class, class_params) do
       {:ok, class} ->
         conn
         |> put_flash(:info, "Class updated successfully.")

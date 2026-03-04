@@ -44,32 +44,32 @@ defmodule Lanttern.SchoolsFixtures do
 
   def class_fixture(%{cycle_id: cycle_id} = attrs) do
     school_id = maybe_gen_school_id(attrs)
-    current_user = %{current_profile: %{school_id: school_id}}
+    scope = %Lanttern.Identity.Scope{school_id: school_id, permissions: ["school_management"]}
 
-    {:ok, class} =
+    class_attrs =
       attrs
       |> Enum.into(%{
         cycle_id: cycle_id,
         name: "some class name #{Ecto.UUID.generate()}"
       })
-      |> Lanttern.Schools.create_class(current_user)
 
+    {:ok, class} = Lanttern.Schools.create_class(scope, class_attrs)
     class
   end
 
   def class_fixture(attrs) do
     school_id = maybe_gen_school_id(attrs)
     cycle = cycle_fixture(%{school_id: school_id})
-    current_user = %{current_profile: %{school_id: school_id}}
+    scope = %Lanttern.Identity.Scope{school_id: school_id, permissions: ["school_management"]}
 
-    {:ok, class} =
+    class_attrs =
       attrs
       |> Enum.into(%{
         cycle_id: cycle.id,
         name: "some class name #{Ecto.UUID.generate()}"
       })
-      |> Lanttern.Schools.create_class(current_user)
 
+    {:ok, class} = Lanttern.Schools.create_class(scope, class_attrs)
     class
   end
 

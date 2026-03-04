@@ -233,7 +233,7 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponent do
 
   defp assign_form(socket) do
     class = socket.assigns.class
-    changeset = Schools.change_class(class, socket.assigns.current_user)
+    changeset = Schools.change_class(socket.assigns.current_scope, class)
 
     selected_years_ids = Enum.map(class.years, & &1.id)
 
@@ -409,8 +409,7 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponent do
       |> Lanttern.Repo.preload([:students, :years, :staff_members])
 
     changeset =
-      class
-      |> Schools.change_class(params, socket.assigns.current_user)
+      Schools.change_class(socket.assigns.current_scope, class, params)
       |> Map.put(:action, :validate)
 
     assign(socket, :form, to_form(changeset))
@@ -426,7 +425,7 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponent do
   end
 
   defp save_class(socket, nil, class_params) do
-    Schools.create_class(class_params, socket.assigns.current_user)
+    Schools.create_class(socket.assigns.current_scope, class_params)
     |> case do
       {:ok, class} ->
         # Update positions after creating
@@ -441,9 +440,9 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponent do
 
   defp save_class(socket, _id, class_params) do
     Schools.update_class(
+      socket.assigns.current_scope,
       socket.assigns.class,
-      class_params,
-      socket.assigns.current_user
+      class_params
     )
     |> case do
       {:ok, class} ->
