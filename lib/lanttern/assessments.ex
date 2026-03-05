@@ -163,6 +163,14 @@ defmodule Lanttern.Assessments do
        when not is_nil(moment_id) and moment_id != "",
        do: from(q in queryable, where: q.moment_id == ^moment_id)
 
+  defp filter_assessment_points_by_context(queryable, %{lesson_id: lesson_id})
+       when not is_nil(lesson_id) and lesson_id != "",
+       do: from(q in queryable, where: q.lesson_id == ^lesson_id)
+
+  defp filter_assessment_points_by_context(queryable, %{"lesson_id" => lesson_id})
+       when not is_nil(lesson_id) and lesson_id != "",
+       do: from(q in queryable, where: q.lesson_id == ^lesson_id)
+
   defp filter_assessment_points_by_context(queryable, %{strand_id: strand_id})
        when not is_nil(strand_id) and strand_id != "",
        do: from(q in queryable, where: q.strand_id == ^strand_id)
