@@ -140,6 +140,21 @@ Lanttern.Identity.cleanup_expired_login_codes()
 
 Use the versioned `AGENTS.md` as reference for setting your own LLM agent instruction (e.g. copy and paste the content into a `CLAUDE.md` file for working with Claude Code).
 
+### Claude skills usage
+
+```
+/commit                          # creates commit message (based on staged) and commits
+
+/open-pr main                    # run precommit checks and creates the PR
+
+/review                          # diff current branch vs main
+/review develop                  # diff vs develop
+/review --issues #12,#34         # with issue context
+/review develop --issues 12      # both
+
+/pr-review 123                   # GitHub PR (issues auto-detected from PR)
+```
+
 ## Restoring a PostgreSQL Backup
 
 ### Requirements
