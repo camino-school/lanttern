@@ -292,7 +292,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
   def update(%{action: {AssessmentPointFormOverlayComponent, {:created, created_ap}}}, socket) do
     ap =
       Assessments.get_assessment_point!(created_ap.id,
-        preloads: [:scale, curriculum_item: :curriculum_component]
+        preloads: [:scale, :lesson, curriculum_item: :curriculum_component]
       )
 
     stream_key = ap_stream_key(ap.moment_id)
@@ -318,7 +318,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
   def update(%{action: {AssessmentPointFormOverlayComponent, {:updated, updated_ap}}}, socket) do
     ap =
       Assessments.get_assessment_point!(updated_ap.id,
-        preloads: [:scale, curriculum_item: :curriculum_component]
+        preloads: [:scale, :lesson, curriculum_item: :curriculum_component]
       )
 
     socket =

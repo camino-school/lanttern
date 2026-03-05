@@ -25,6 +25,78 @@ defmodule LantternWeb.ReportingComponents do
   import LantternWeb.AttachmentsComponents
 
   @doc """
+  Renders a strand report assessment point card with student entry display.
+  """
+
+  attr :id, :string, required: true
+  attr :assessment_point, :map, required: true
+  attr :patch, :string, required: true
+  attr :class, :any, default: nil
+
+  def strand_report_assessment_point_card(assigns) do
+    ap = assigns.assessment_point
+    is_diff = ap.is_differentiation
+    has_diff_rubric = !!ap.student_entry.differentiation_rubric_id
+    has_rubric = !!ap.rubric_id
+    has_comment = !!ap.student_entry.report_note
+    has_evidences = ap.student_entry.has_evidences
+    has_icon = is_diff || has_diff_rubric || has_rubric || has_comment || has_evidences
+
+    assigns =
+      assigns
+      |> assign(:is_diff, is_diff)
+      |> assign(:has_diff_rubric, has_diff_rubric)
+      |> assign(:has_rubric, has_rubric)
+      |> assign(:has_comment, has_comment)
+      |> assign(:has_evidences, has_evidences)
+      |> assign(:has_icon, has_icon)
+
+    ~H"""
+    <.link
+      id={@id}
+      patch={@patch}
+      class={[
+        "group/card block",
+        "sm:grid sm:grid-cols-[minmax(10px,_3fr)_minmax(10px,_2fr)]",
+        @class
+      ]}
+    >
+      <.card_base class={[
+        "p-4 group-hover/card:bg-ltrn-lightest",
+        "sm:col-span-2 sm:grid sm:grid-cols-subgrid sm:items-center sm:gap-4"
+      ]}>
+        <div>
+          <p class="font-bold text-ltrn-darkest">
+            {@assessment_point.name}
+          </p>
+          <.markdown
+            :if={@assessment_point.report_info}
+            text={@assessment_point.report_info}
+            class="mt-2 line-clamp-2"
+          />
+          <div :if={@has_icon} class="flex items-center gap-4 mt-4 text-ltrn-subtle">
+            <p
+              :if={@is_diff || @has_diff_rubric}
+              class="font-sans font-bold text-sm text-ltrn-diff-dark"
+            >
+              {gettext("Diff")}
+            </p>
+            <.icon :if={@has_rubric || @has_diff_rubric} name="hero-view-columns-mini" />
+            <.icon :if={@has_comment} name="hero-chat-bubble-oval-left-mini" />
+            <.icon :if={@has_evidences} name="hero-paper-clip-mini" />
+          </div>
+        </div>
+        <.assessment_point_entry_display
+          entry={@assessment_point.student_entry}
+          show_student_assessment
+          class="mt-4 sm:mt-0"
+        />
+      </.card_base>
+    </.link>
+    """
+  end
+
+  @doc """
   Renders a teacher or student comment area
   """
 

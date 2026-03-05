@@ -2671,4 +2671,228 @@ defmodule Lanttern.AssessmentsTest do
       assert entry_2.has_evidences == false
     end
   end
+
+  describe "lesson assessment points with student entries" do
+    alias Lanttern.Assessments.AssessmentPoint
+    alias Lanttern.Identity.Scope
+
+    import Lanttern.AssessmentsFixtures
+    import Lanttern.Factory
+
+    alias Lanttern.CurriculaFixtures
+    alias Lanttern.GradingFixtures
+    alias Lanttern.IdentityFixtures
+    alias Lanttern.LearningContextFixtures
+    alias Lanttern.SchoolsFixtures
+
+    test "list_lesson_assessment_points_with_student_entries/3 returns aps with student entries ordered by ap position" do
+      school = SchoolsFixtures.school_fixture()
+      student = SchoolsFixtures.student_fixture(%{school_id: school.id})
+      scope = %Scope{school_id: school.id}
+
+      strand = LearningContextFixtures.strand_fixture()
+      lesson = insert(:lesson, strand: strand)
+
+      scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
+      ov = GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id})
+      ci = CurriculaFixtures.curriculum_item_fixture()
+
+      # create in order so positions are 0, 1
+      ap_1 =
+        assessment_point_fixture(%{
+          lesson_id: lesson.id,
+          scale_id: scale.id,
+          curriculum_item_id: ci.id
+        })
+
+      ap_2 =
+        assessment_point_fixture(%{
+          lesson_id: lesson.id,
+          scale_id: scale.id,
+          curriculum_item_id: ci.id
+        })
+
+      # AP with no entry for this student – should be ignored
+      _ap_no_entry =
+        assessment_point_fixture(%{
+          lesson_id: lesson.id,
+          scale_id: scale.id,
+          curriculum_item_id: ci.id
+        })
+
+      entry_1 =
+        assessment_point_entry_fixture(%{
+          assessment_point_id: ap_1.id,
+          student_id: student.id,
+          scale_id: scale.id,
+          scale_type: scale.type,
+          ordinal_value_id: ov.id
+        })
+
+      entry_2 =
+        assessment_point_entry_fixture(%{
+          assessment_point_id: ap_2.id,
+          student_id: student.id,
+          scale_id: scale.id,
+          scale_type: scale.type,
+          ordinal_value_id: ov.id
+        })
+
+      # entry for a different student – should not appear in results
+      other_student = SchoolsFixtures.student_fixture(%{school_id: school.id})
+
+      _other_entry =
+        assessment_point_entry_fixture(%{
+          assessment_point_id: ap_1.id,
+          student_id: other_student.id,
+          scale_id: scale.id,
+          scale_type: scale.type
+        })
+
+      ap_1_id = ap_1.id
+      ap_2_id = ap_2.id
+
+      assert [
+               %AssessmentPoint{id: ^ap_1_id, student_entry: result_entry_1},
+               %AssessmentPoint{id: ^ap_2_id, student_entry: result_entry_2}
+             ] =
+               Assessments.list_lesson_assessment_points_with_student_entries(
+                 scope,
+                 student,
+                 lesson.id
+               )
+
+      assert result_entry_1.id == entry_1.id
+      assert result_entry_1.ordinal_value.id == ov.id
+      assert result_entry_2.id == entry_2.id
+    end
+
+    test "list_lesson_assessment_points_with_student_entries/3 excludes assessment points with unmarked entries" do
+      school = SchoolsFixtures.school_fixture()
+      student = SchoolsFixtures.student_fixture(%{school_id: school.id})
+      scope = %Scope{school_id: school.id}
+
+      strand = LearningContextFixtures.strand_fixture()
+      lesson = insert(:lesson, strand: strand)
+
+      scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
+      ov = GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id})
+      ci = CurriculaFixtures.curriculum_item_fixture()
+
+      ap_marked =
+        assessment_point_fixture(%{
+          lesson_id: lesson.id,
+          scale_id: scale.id,
+          curriculum_item_id: ci.id
+        })
+
+      ap_unmarked =
+        assessment_point_fixture(%{
+          lesson_id: lesson.id,
+          scale_id: scale.id,
+          curriculum_item_id: ci.id
+        })
+
+      _entry_marked =
+        assessment_point_entry_fixture(%{
+          assessment_point_id: ap_marked.id,
+          student_id: student.id,
+          scale_id: scale.id,
+          scale_type: scale.type,
+          ordinal_value_id: ov.id
+        })
+
+      # entry without marking – should be excluded
+      _entry_unmarked =
+        assessment_point_entry_fixture(%{
+          assessment_point_id: ap_unmarked.id,
+          student_id: student.id,
+          scale_id: scale.id,
+          scale_type: scale.type
+        })
+
+      ap_marked_id = ap_marked.id
+
+      assert [%AssessmentPoint{id: ^ap_marked_id}] =
+               Assessments.list_lesson_assessment_points_with_student_entries(
+                 scope,
+                 student,
+                 lesson.id
+               )
+    end
+
+    test "list_lesson_assessment_points_with_student_entries/3 calculates has_evidences correctly" do
+      school = SchoolsFixtures.school_fixture()
+      student = SchoolsFixtures.student_fixture(%{school_id: school.id})
+      scope = %Scope{school_id: school.id}
+
+      profile = IdentityFixtures.staff_member_profile_fixture()
+
+      strand = LearningContextFixtures.strand_fixture()
+      lesson = insert(:lesson, strand: strand)
+
+      scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
+      ov = GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id})
+      ci = CurriculaFixtures.curriculum_item_fixture()
+
+      ap_with_evidence =
+        assessment_point_fixture(%{
+          lesson_id: lesson.id,
+          scale_id: scale.id,
+          curriculum_item_id: ci.id
+        })
+
+      ap_without_evidence =
+        assessment_point_fixture(%{
+          lesson_id: lesson.id,
+          scale_id: scale.id,
+          curriculum_item_id: ci.id
+        })
+
+      entry_with_evidence =
+        assessment_point_entry_fixture(%{
+          assessment_point_id: ap_with_evidence.id,
+          student_id: student.id,
+          scale_id: scale.id,
+          scale_type: scale.type,
+          ordinal_value_id: ov.id
+        })
+
+      _entry_without_evidence =
+        assessment_point_entry_fixture(%{
+          assessment_point_id: ap_without_evidence.id,
+          student_id: student.id,
+          scale_id: scale.id,
+          scale_type: scale.type,
+          ordinal_value_id: ov.id
+        })
+
+      {:ok, _attachment} =
+        Assessments.create_assessment_point_entry_evidence(
+          %{current_profile: profile},
+          entry_with_evidence.id,
+          %{
+            "name" => "Evidence attachment",
+            "link" => "https://somevaliduri.com",
+            "is_external" => true
+          }
+        )
+
+      ap_with_evidence_id = ap_with_evidence.id
+      ap_without_evidence_id = ap_without_evidence.id
+
+      assert [
+               %AssessmentPoint{id: ^ap_with_evidence_id, student_entry: entry_1},
+               %AssessmentPoint{id: ^ap_without_evidence_id, student_entry: entry_2}
+             ] =
+               Assessments.list_lesson_assessment_points_with_student_entries(
+                 scope,
+                 student,
+                 lesson.id
+               )
+
+      assert entry_1.has_evidences == true
+      assert entry_2.has_evidences == false
+    end
+  end
 end
