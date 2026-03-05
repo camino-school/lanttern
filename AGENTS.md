@@ -1,5 +1,10 @@
 Lanttern is a web application written using the Phoenix web framework for educational assessment and learning management.
 
+## Legacy tables
+
+Some database tables are retained for historical/data purposes but are no longer backed by application code.
+See [`docs/legacy.md`](docs/legacy.md) for the full list and context.
+
 ## Project guidelines
 
 - We do use `mix credo` (with `--strict` flag), `mix sobelow`, and tests for code quality, security analysis, and ensuring that everything is working as expected. That being said, use those only when strictly necessary to save some tokens, but always remember the developer to run those tasks
@@ -7,7 +12,6 @@ Lanttern is a web application written using the Phoenix web framework for educat
 - Use Tidewave MCP for development tooling
 - do not alias the module in itself. prefer using `__MODULE__`
 - do not create test functions in contexts — create them in the test file itself
-- use the developer subagents for code review and commit message writing, if available
 
 ## Design patterns
 
@@ -49,12 +53,6 @@ end
 - Use `non_neg_integer()` for position fields
 - Always include `| Ecto.Association.NotLoaded.t()` for preloaded structures
 - Always include `| nil` for nullable fields
-
-## PR size check
-
-We should aim for PRs with a maximum of 500 loc (additions and deletions) considering only the `lib` folder.
-
-It's important to periodically update the `main` branch, and check for size with `git diff --stat main lib`.
 
 ## Temporary guidelines
 
