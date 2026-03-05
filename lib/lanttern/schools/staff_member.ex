@@ -33,11 +33,21 @@ defmodule Lanttern.Schools.StaffMember do
     # and handled by staff member create and update functions
     field :email, :string, virtual: true
 
+    # these fields are used when listing staff members for a class
+    # (from ClassStaffMember association)
+    field :class_role, :string, virtual: true
+    field :class_staff_member_id, :integer, virtual: true
+    field :position, :integer, virtual: true
+
     belongs_to :school, School
 
     has_one :profile, Profile
 
     timestamps()
+
+    many_to_many :classes, Lanttern.Schools.Class, join_through: Lanttern.Schools.ClassStaffMember
+
+    has_many :classes_staff_members, Lanttern.Schools.ClassStaffMember
   end
 
   @doc false

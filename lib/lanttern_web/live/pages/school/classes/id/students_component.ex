@@ -26,7 +26,7 @@ defmodule LantternWeb.ClassLive.StudentsComponent do
         <.action
           :if={@is_school_manager}
           type="link"
-          patch={~p"/school/classes/#{@class}/students?new_student=true"}
+          patch={~p"/school/classes/#{@class}/people?new_student=true"}
           icon_name="hero-plus-circle-mini"
         >
           {gettext("Add student")}
@@ -39,7 +39,7 @@ defmodule LantternWeb.ClassLive.StudentsComponent do
           student={student}
           navigate={~p"/school/students/#{student}"}
           show_edit={@is_school_manager}
-          edit_patch={~p"/school/classes/#{@class}/students?edit_student=#{student.id}"}
+          edit_patch={~p"/school/classes/#{@class}/people?edit_student=#{student.id}"}
         />
         <.deactivated_student_card
           :for={{dom_id, student} <- @streams.deactivated_students}
@@ -60,8 +60,8 @@ defmodule LantternWeb.ClassLive.StudentsComponent do
         current_scope={@current_scope}
         current_cycle={@current_user.current_profile.current_school_cycle}
         title={@student_overlay_title}
-        on_cancel={JS.patch(~p"/school/classes/#{@class}/students")}
-        close_path={~p"/school/classes/#{@class}/students"}
+        on_cancel={JS.patch(~p"/school/classes/#{@class}/people")}
+        close_path={~p"/school/classes/#{@class}/people"}
         notify_component={@myself}
       />
     </div>
@@ -89,7 +89,7 @@ defmodule LantternWeb.ClassLive.StudentsComponent do
       socket
       |> delegate_navigation(
         put_flash: {:info, message},
-        push_navigate: [to: ~p"/school/classes/#{socket.assigns.class}/students"]
+        push_navigate: [to: ~p"/school/classes/#{socket.assigns.class}/people"]
       )
 
     {:ok, socket}
@@ -185,7 +185,7 @@ defmodule LantternWeb.ClassLive.StudentsComponent do
               :info,
               gettext("%{student} reactivated", student: student.name)
             )
-            |> push_navigate(to: ~p"/school/classes/#{socket.assigns.class}/students")
+            |> push_navigate(to: ~p"/school/classes/#{socket.assigns.class}/people")
 
           {:noreply, socket}
 
@@ -209,7 +209,7 @@ defmodule LantternWeb.ClassLive.StudentsComponent do
               :info,
               gettext("%{student} deleted", student: student.name)
             )
-            |> push_navigate(to: ~p"/school/classes/#{socket.assigns.class}/students")
+            |> push_navigate(to: ~p"/school/classes/#{socket.assigns.class}/people")
 
           {:noreply, socket}
 
