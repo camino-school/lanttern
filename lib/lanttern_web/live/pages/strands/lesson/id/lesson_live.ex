@@ -46,7 +46,7 @@ defmodule LantternWeb.LessonLive do
             {gettext("Differentiation")}
           </.badge>
           <.badge class="shrink-0">{@assessment_point.scale.name}</.badge>
-          <%!-- render curriculum only for moment assessment poiint --%>
+          <%!-- render curriculum only for moment assessment point --%>
           <div class="flex-1 min-w-0">
             <p class="max-w-sm font-sans text-sm text-ltrn-subtle truncate">
               {@assessment_point.curriculum_item.name}

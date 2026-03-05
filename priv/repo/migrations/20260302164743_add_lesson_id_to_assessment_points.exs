@@ -3,7 +3,7 @@ defmodule Lanttern.Repo.Migrations.AddLessonIdToAssessmentPoints do
 
   def change do
     alter table(:assessment_points) do
-      add :lesson_id, references(:lessons, on_delete: :delete_all)
+      add :lesson_id, references(:lessons, on_delete: :nilify_all)
     end
 
     create index(:assessment_points, [:lesson_id])
