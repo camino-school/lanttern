@@ -187,9 +187,7 @@
         <.button
           type="link"
           navigate={~p"/strands/#{@strand}/assessment"}
-          target="_blank"
           size="sm"
-          icon_name="hero-arrow-top-right-on-square-mini"
           theme="ghost"
         >
           {gettext("Manage assessment points")}
@@ -200,8 +198,6 @@
           :for={{dom_id, ap} <- @streams.lesson_assessment_points}
           id={dom_id}
           assessment_point={ap}
-          class="mt-2"
-          on_unlink={JS.push("unlink_assessment_point", value: %{"assessment_point_id" => ap.id})}
         />
         <.empty_state_simple
           class="p-4 mt-4 hidden only:block"
@@ -420,3 +416,13 @@
     </.button>
   </div>
 </.modal>
+<.live_component
+  :if={@assessment_point}
+  module={AssessmentPointFormOverlayComponent}
+  id="assessment-point-form-overlay"
+  assessment_point={@assessment_point}
+  notify_parent
+  title={@assessment_point_overlay_title}
+  on_cancel={JS.push("close_assessment_point_form")}
+  curriculum_from_strand_id={@strand.id}
+/>

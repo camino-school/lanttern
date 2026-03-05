@@ -8,6 +8,7 @@ defmodule LantternWeb.LessonLive do
   alias Lanttern.Lessons
 
   # shared components
+  alias LantternWeb.Assessments.AssessmentPointFormOverlayComponent
   alias LantternWeb.Attachments.AttachmentAreaComponent
   alias LantternWeb.LearningContext.MomentDetailsOverlayComponent
   alias LantternWeb.Lessons.LessonFormComponent
@@ -17,15 +18,14 @@ defmodule LantternWeb.LessonLive do
 
   attr :id, :string, required: true
   attr :assessment_point, :map, required: true
-  attr :on_unlink, :any, required: true
-  attr :class, :any, default: nil
 
   defp assessment_point_card(assigns) do
     ~H"""
-    <.card_base id={@id} class={["flex items-center gap-4 p-6", @class]}>
+    <.card_base id={@id} class="flex items-center gap-4 p-6 mt-2">
       <div class="flex-1 space-y-4">
         <button
           type="button"
+          phx-click={JS.push("edit_assessment_point", value: %{"id" => @assessment_point.id})}
           class="flex-1 font-bold text-left text-ltrn-darkest hover:text-ltrn-subtle"
         >
           {@assessment_point.name}
@@ -57,7 +57,15 @@ defmodule LantternWeb.LessonLive do
           </div>
         </div>
       </div>
-      <.button type="button" theme="ghost" phx-click={@on_unlink}>{gettext("Unlink")}</.button>
+      <.button
+        type="button"
+        theme="ghost"
+        phx-click={
+          JS.push("unlink_assessment_point", value: %{"assessment_point_id" => @assessment_point.id})
+        }
+      >
+        {gettext("Unlink")}
+      </.button>
     </.card_base>
     """
   end
@@ -77,6 +85,8 @@ defmodule LantternWeb.LessonLive do
       |> assign(:moment_id, nil)
       |> assign(:strand_assessment_points, nil)
       |> assign(:unlinking_from_lesson, nil)
+      |> assign(:assessment_point, nil)
+      |> assign(:assessment_point_overlay_title, nil)
       |> stream_lesson_assessment_points()
       |> assign(
         :has_agents_management_permission,
@@ -334,6 +344,22 @@ defmodule LantternWeb.LessonLive do
     {:noreply, socket}
   end
 
+  # -- assessment point form
+
+  def handle_event("edit_assessment_point", %{"id" => ap_id}, socket) do
+    ap = Assessments.get_assessment_point!(ap_id)
+
+    socket =
+      socket
+      |> assign(:assessment_point, ap)
+      |> assign(:assessment_point_overlay_title, gettext("Edit assessment point"))
+
+    {:noreply, socket}
+  end
+
+  def handle_event("close_assessment_point_form", _params, socket),
+    do: {:noreply, assign(socket, :assessment_point, nil)}
+
   # -- moment details
 
   def handle_event("view_moment_details", %{"moment_id" => moment_id}, socket) do
@@ -348,7 +374,7 @@ defmodule LantternWeb.LessonLive do
   def handle_event("close_moment_details", _params, socket),
     do: {:noreply, assign(socket, :moment_id, nil)}
 
-  # -- helpers
+  # handle_event helpers
 
   defp update_assessment_point_lesson_link(socket, ap, lesson_id) do
     case Assessments.update_assessment_point(ap, %{lesson_id: lesson_id}) do
@@ -367,5 +393,33 @@ defmodule LantternWeb.LessonLive do
 
         put_flash(socket, :error, error_msg)
     end
+  end
+
+  # info handlers
+
+  @impl true
+  def handle_info({AssessmentPointFormOverlayComponent, {:updated, _ap}}, socket) do
+    socket =
+      socket
+      |> stream_lesson_assessment_points()
+      |> assign(:assessment_point, nil)
+      |> put_flash(:info, gettext("Assessment point updated"))
+
+    {:noreply, socket}
+  end
+
+  def handle_info(
+        {AssessmentPointFormOverlayComponent, {action, _ap}},
+        socket
+      )
+      when action in [:deleted, :deleted_with_entries] do
+    socket =
+      socket
+      |> stream_lesson_assessment_points()
+      |> assign(:assessment_point, nil)
+      |> assign(:strand_assessment_points, nil)
+      |> put_flash(:info, gettext("Assessment point deleted"))
+
+    {:noreply, socket}
   end
 end
