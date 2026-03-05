@@ -113,6 +113,7 @@ defmodule Lanttern.Assessments.AssessmentPoint do
       :rubric_id,
       :moment_id,
       :strand_id,
+      :lesson_id,
       :classes_ids,
       :students_ids
     ])

@@ -140,6 +140,77 @@
         </div>
       </.form>
     </section>
+    <section id="lesson-linked-assessment-points" class="mt-20">
+      <div class="flex items-center gap-2 mb-6">
+        <.icon name="hero-document-check" />
+        <h5 class="font-display font-bold text-sm">{gettext("Linked assessment points")}</h5>
+        <div>
+          <.icon name="hero-information-circle-mini" class="text-ltrn-subtle" />
+          <.tooltip id="lesson-linked-assessment-point-info">
+            {gettext(
+              "Linked assessment points are a great way to present contextualized assessment proposals to students"
+            )}
+          </.tooltip>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <div class="relative ">
+          <.button
+            type="button"
+            id="link-assessment-point-button"
+            size="sm"
+            icon_name="hero-plus-mini"
+            phx-click="load_strand_assessment_points"
+          >
+            {gettext("Link an assessment point to this lesson")}
+          </.button>
+          <.dropdown_menu
+            id="link-assessment-point-menu"
+            button_id="link-assessment-point-button"
+          >
+            <:instructions :if={
+              is_nil(@strand_assessment_points) or @strand_assessment_points == []
+            }>
+              {if is_nil(@strand_assessment_points),
+                do: gettext("Loading..."),
+                else: gettext("No assessment points found")}
+            </:instructions>
+            <:item
+              :for={ap <- @strand_assessment_points || []}
+              text={ap.name}
+              on_click={
+                JS.push("link_assessment_point", value: %{"assessment_point_id" => ap.id})
+              }
+            />
+          </.dropdown_menu>
+        </div>
+        <.button
+          type="link"
+          navigate={~p"/strands/#{@strand}/assessment"}
+          target="_blank"
+          size="sm"
+          icon_name="hero-arrow-top-right-on-square-mini"
+          theme="ghost"
+        >
+          {gettext("Manage assessment points")}
+        </.button>
+      </div>
+      <div phx-update="stream" id="linked-lesson-assessment-points">
+        <.assessment_point_card
+          :for={{dom_id, ap} <- @streams.lesson_assessment_points}
+          id={dom_id}
+          assessment_point={ap}
+          class="mt-2"
+          on_unlink={JS.push("unlink_assessment_point", value: %{"assessment_point_id" => ap.id})}
+        />
+        <.empty_state_simple
+          class="p-4 mt-4 hidden only:block"
+          id="lesson-linked-asssessment-points-empty"
+        >
+          {gettext("No linked assessment points")}
+        </.empty_state_simple>
+      </div>
+    </section>
     <.live_component
       module={AttachmentAreaComponent}
       id="lesson-resources-student"
@@ -149,10 +220,10 @@
       allow_editing={true}
       current_user={@current_user}
       sortable_group="lesson-resources"
-      class="mt-10"
+      class="mt-20"
     />
   </.responsive_container>
-  <section id="teacher-area" class="py-10 bg-ltrn-staff-lightest">
+  <section id="teacher-area" class="py-10 mt-10 bg-ltrn-staff-lightest">
     <.responsive_container>
       <h4 class="font-display font-black text-2xl text-ltrn-staff-dark">
         {gettext("Teacher area")}
@@ -294,7 +365,7 @@
 <.modal
   :if={@is_editing}
   id="lesson-form-overlay"
-  show={true}
+  show
   on_cancel={JS.push("cancel_edit")}
 >
   <:title>{gettext("Edit lesson")}</:title>
@@ -322,3 +393,30 @@
   moment_id={@moment_id}
   on_cancel={JS.push("close_moment_details")}
 />
+<.modal
+  :if={@unlinking_from_lesson}
+  id="confirm-assessment-point-link-modal"
+  show
+>
+  <:title>{gettext("Link assessment point")}</:title>
+  <p>
+    {gettext(
+      "Assessment points can be linked to only one lesson at a time, and this one is already linked to another lesson."
+    )}
+  </p>
+  <p class="mt-2">
+    {gettext(
+      "Do you want to unlink it from \"%{linked_lesson}\" and link to \"%{this_lesson}\" (this lesson)?",
+      linked_lesson: @unlinking_from_lesson.name,
+      this_lesson: @lesson.name
+    )}
+  </p>
+  <div class="flex justify-end gap-2 mt-10">
+    <.button type="button" theme="ghost" phx-click="cancel_assessment_point_link">
+      {gettext("Cancel")}
+    </.button>
+    <.button type="button" phx-click="confirm_assessment_point_link">
+      {gettext("Update link")}
+    </.button>
+  </div>
+</.modal>

@@ -68,13 +68,16 @@ defmodule Lanttern.Assessments do
   defp apply_assessment_points_filter({:moments_ids, ids}, queryable),
     do: from(ap in queryable, where: ap.moment_id in ^ids)
 
+  defp apply_assessment_points_filter({:lesson_id, id}, queryable),
+    do: from(ap in queryable, where: ap.lesson_id == ^id)
+
   defp apply_assessment_points_filter({:strand_id, id}, queryable),
     do: from(ap in queryable, where: ap.strand_id == ^id)
 
   defp apply_assessment_points_filter(_, queryable), do: queryable
 
   defp order_assessment_points(queryable, opts) do
-    if Keyword.get(opts, :moments_ids) do
+    if Keyword.get(opts, :moments_ids) || Keyword.get(opts, :lesson_id) do
       from(
         ap in queryable,
         join: m in assoc(ap, :moment),
