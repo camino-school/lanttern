@@ -15,6 +15,8 @@ defmodule Lanttern.AgentChat.Conversation do
   @type t :: %__MODULE__{
           id: pos_integer(),
           name: String.t() | nil,
+          status: String.t(),
+          last_error: String.t() | nil,
           profile_id: pos_integer(),
           profile: Profile.t() | Ecto.Association.NotLoaded.t(),
           school_id: pos_integer(),
@@ -27,6 +29,8 @@ defmodule Lanttern.AgentChat.Conversation do
 
   schema "agent_conversations" do
     field :name, :string
+    field :status, :string, default: "idle"
+    field :last_error, :string
 
     belongs_to :profile, Profile
     belongs_to :school, School
@@ -49,5 +53,12 @@ defmodule Lanttern.AgentChat.Conversation do
     conversation
     |> cast(attrs, [:name])
     |> validate_required([:name])
+  end
+
+  def status_changeset(conversation, attrs) do
+    conversation
+    |> cast(attrs, [:status, :last_error])
+    |> validate_required([:status])
+    |> validate_inclusion(:status, ["idle", "processing"])
   end
 end

@@ -64,6 +64,8 @@ defmodule Lanttern.ChatResponseWorker do
            extract_content_and_usage_attrs_from_chain(updated_chain, model),
          {:ok, %{message: assistant_message}} <-
            AgentChat.add_assistant_message(conversation_id, content, usage_attrs) do
+      AgentChat.mark_conversation_idle(scope, conversation)
+
       # notify UIs
       AgentChat.broadcast_conversation(conversation_id, {:message_added, assistant_message})
 
@@ -73,6 +75,8 @@ defmodule Lanttern.ChatResponseWorker do
       :ok
     else
       error ->
+        AgentChat.mark_conversation_idle(scope, conversation, "Failed to get AI response")
+
         # notify UIs
         AgentChat.broadcast_conversation(conversation_id, {:failed, error})
     end

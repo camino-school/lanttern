@@ -125,6 +125,14 @@ defmodule LantternWeb.AgentChat.ConversationComponent do
         <%!-- Error --%>
         <.error_block :if={@error} class="mt-10">
           {@error}
+          <button
+            :if={@conversation}
+            phx-click="retry_prompt"
+            phx-target={@myself}
+            class="mt-2 underline"
+          >
+            {gettext("Retry")}
+          </button>
         </.error_block>
       </div>
 
@@ -274,6 +282,7 @@ defmodule LantternWeb.AgentChat.ConversationComponent do
       |> handle_agent_assigns()
       |> assign_empty_prompt_form()
       |> stream_messages(assigns.conversation)
+      |> init_status_from_conversation(assigns.conversation)
       |> assign(:initialized, true)
 
     {:ok, socket}
@@ -327,6 +336,18 @@ defmodule LantternWeb.AgentChat.ConversationComponent do
 
     assign(socket, :prompt_form, form)
   end
+
+  defp init_status_from_conversation(socket, nil), do: socket
+
+  defp init_status_from_conversation(socket, %{status: "processing"}) do
+    assign(socket, :loading, true)
+  end
+
+  defp init_status_from_conversation(socket, %{last_error: error}) when is_binary(error) do
+    assign(socket, :error, error)
+  end
+
+  defp init_status_from_conversation(socket, _conversation), do: socket
 
   defp stream_messages(socket, nil),
     do: stream(socket, :messages, [], reset: true)
@@ -432,6 +453,19 @@ defmodule LantternWeb.AgentChat.ConversationComponent do
   end
 
   def handle_event("send_prompt", _params, socket) do
+    {:noreply, socket}
+  end
+
+  def handle_event("retry_prompt", _params, socket) do
+    conversation = socket.assigns.conversation
+    AgentChat.mark_conversation_processing(socket.assigns.current_scope, conversation)
+
+    socket =
+      socket
+      |> assign(:error, nil)
+      |> assign(:loading, true)
+      |> enqueue_chat_response_job(conversation)
+
     {:noreply, socket}
   end
 

@@ -60,7 +60,9 @@ You are an expert Git commit message architect. Analyze the staged changes above
 ### Footer (optional)
 
 - Breaking changes: `BREAKING CHANGE: description`
-- Issue references: `Closes #123` or `Refs #456`
+- Do NOT add issue references (Closes/Fixes/Resolves #N) unless the
+  user explicitly requests it when invoking the skill — these belong
+  in the PR description, not commit messages
 
 ### Authorship
 

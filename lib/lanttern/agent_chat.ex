@@ -197,6 +197,9 @@ defmodule Lanttern.AgentChat do
   def create_conversation_with_message(%Scope{} = scope, content, opts \\ []) do
     Multi.new()
     |> Multi.insert(:conversation, Conversation.changeset(%Conversation{}, %{}, scope))
+    |> Multi.update(:set_processing, fn %{conversation: conversation} ->
+      Conversation.status_changeset(conversation, %{status: "processing", last_error: nil})
+    end)
     |> Multi.insert(:user_message, fn %{conversation: conversation} ->
       Message.changeset(%Message{}, %{
         role: "user",
@@ -345,16 +348,63 @@ defmodule Lanttern.AgentChat do
   def add_user_message(%Scope{} = scope, %Conversation{} = conversation, content) do
     true = Scope.matches_profile?(scope, conversation.profile_id)
 
-    attrs =
-      %{
+    Multi.new()
+    |> Multi.update(
+      :set_processing,
+      Conversation.status_changeset(conversation, %{status: "processing", last_error: nil})
+    )
+    |> Multi.insert(
+      :message,
+      Message.changeset(%Message{}, %{
         role: "user",
         content: content,
         conversation_id: conversation.id
-      }
+      })
+    )
+    |> Repo.transaction()
+    |> case do
+      {:ok, %{message: message}} -> {:ok, message}
+      {:error, _step, changeset, _changes} -> {:error, changeset}
+    end
+  end
 
-    %Message{}
-    |> Message.changeset(attrs)
-    |> Repo.insert()
+  @doc """
+  Marks a conversation as processing, clearing any previous error.
+
+  ## Examples
+
+      iex> mark_conversation_processing(scope, conversation)
+      {:ok, %Conversation{}}
+
+  """
+  def mark_conversation_processing(%Scope{} = scope, %Conversation{} = conversation) do
+    true = Scope.matches_profile?(scope, conversation.profile_id)
+
+    conversation
+    |> Conversation.status_changeset(%{status: "processing", last_error: nil})
+    |> Repo.update()
+  end
+
+  @doc """
+  Marks a conversation as idle, optionally setting a last_error message.
+
+  Called by the worker on success (no error) or failure (with error message).
+
+  ## Examples
+
+      iex> mark_conversation_idle(scope, conversation)
+      {:ok, %Conversation{}}
+
+      iex> mark_conversation_idle(scope, conversation, "Failed to get AI response")
+      {:ok, %Conversation{}}
+
+  """
+  def mark_conversation_idle(%Scope{} = scope, %Conversation{} = conversation, error \\ nil) do
+    true = Scope.matches_profile?(scope, conversation.profile_id)
+
+    conversation
+    |> Conversation.status_changeset(%{status: "idle", last_error: error})
+    |> Repo.update()
   end
 
   @doc """
