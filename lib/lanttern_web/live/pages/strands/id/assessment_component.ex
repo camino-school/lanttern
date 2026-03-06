@@ -122,7 +122,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
                 {gettext("Marking")}
               </.button>
               <.dropdown_menu
-                id="marking"
+                id="marking-menu"
                 button_id="marking-button"
               >
                 <:item

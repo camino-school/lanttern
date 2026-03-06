@@ -6,11 +6,14 @@
       </:breadcrumb>
       <:title>{@guardian.name}</:title>
       <div class="flex items-center justify-between gap-4 px-4">
-        <.neo_tabs id="guardian-nav-tabs">
-          <:tab patch={~p"/school/guardians/#{@guardian}"} is_current={@live_action == :show}>
-            {gettext("About")}
+        <.tabs id="guardian-nav-tabs">
+          <:tab
+            text={gettext("About")}
+            patch={~p"/school/guardians/#{@guardian}"}
+            is_current={@live_action == :show}
+          >
           </:tab>
-        </.neo_tabs>
+        </.tabs>
         <.action
           :if={@is_school_manager}
           type="link"

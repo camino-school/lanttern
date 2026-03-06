@@ -5,20 +5,20 @@
     </:breadcrumb>
     <:title>{gettext("Settings")}</:title>
     <div class="px-4">
-      <.neo_tabs>
+      <.tabs>
         <:tab
+          text={gettext("Status")}
           patch={~p"/students_records/settings/status"}
           is_current={@live_action == :manage_status}
         >
-          {gettext("Status")}
         </:tab>
         <:tab
+          text={gettext("Tags")}
           patch={~p"/students_records/settings/tags"}
           is_current={@live_action == :manage_tags}
         >
-          {gettext("Tags")}
         </:tab>
-      </.neo_tabs>
+      </.tabs>
     </div>
   </.header_nav>
   <.live_component

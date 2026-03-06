@@ -7,6 +7,7 @@ defmodule LantternWeb.NavigationComponents do
   alias Phoenix.LiveView.JS
   use Gettext, backend: Lanttern.Gettext
   import LantternWeb.CoreComponents
+  import LantternWeb.OverlayComponents
 
   @doc """
   Renders a basic page header.
@@ -212,52 +213,84 @@ defmodule LantternWeb.NavigationComponents do
 
   ## Examples
 
-      <.nav_tabs>
-        <:tab patch={~p"/home"}>Home</:tab>
-        <:tab patch={~p"/page-1"} is_current="true">Page 1</:tab>
-        <:tab patch={~p"/page-2"}>Page 2</:tab>
-      </.nav_tabs>
+      <.tabs>
+        <:tab patch={~p"/home"} text="Home"></:tab>
+        <:tab patch={~p"/page-1"} text="Page 1" is_current="true"></:tab>
+        <:tab patch={~p"/page-2"} text="Page 2">extra info</:tab>
+      </.tabs>
 
   """
   attr :id, :string, default: nil
   attr :class, :any, default: nil
 
-  slot :tab, required: true do
+  slot :tab, required: true, doc: "use tab inner_block to render additional content" do
+    attr :text, :string
     attr :patch, :string
     attr :navigate, :string
     attr :is_current, :boolean
-    attr :icon_name, :string
+    attr :theme, :string, doc: "ai (or nothing)"
   end
 
-  def nav_tabs(assigns) do
+  def tabs(assigns) do
     ~H"""
-    <nav class={["flex gap-10", @class]} id={@id}>
-      <%= for tab
-      <-
-        @tab
-        do %>
+    <nav class={["flex gap-4", @class]} id={@id}>
+      <div :for={tab <- @tab} class="relative shrink-0 flex gap-2 items-center">
         <.link
           patch={Map.get(tab, :patch)}
           navigate={Map.get(tab, :navigate)}
           class={[
-            "relative shrink-0 flex items-center gap-2 py-5 font-display text-base whitespace-nowrap",
+            "relative shrink-0 flex items-center gap-2 py-4 font-display font-bold whitespace-nowrap",
             if(Map.get(tab, :is_current),
-              do: "font-bold",
-              else: "hover:text-ltrn-subtle"
+              do: get_active_text_class(Map.get(tab, :theme)),
+              else: get_inactive_text_class(Map.get(tab, :theme))
             )
           ]}
         >
-          {render_slot(tab)}
-          <.icon :if={Map.get(tab, :icon_name)} name={Map.get(tab, :icon_name)} class="w-6 h-6" />
-          <span
-            :if={Map.get(tab, :is_current)}
-            class="absolute h-2 bg-ltrn-primary inset-x-0 bottom-0"
-          />
+          <.icon :if={Map.get(tab, :theme) == "ai"} name="hero-sparkles-micro" />
+          {tab.text}
         </.link>
-      <% end %>
+        {render_slot(tab)}
+        <%!-- <div class="relative">
+          <.button
+            type="button"
+            id="marking-button"
+            icon_name="hero-pencil-square-mini"
+          >
+            {gettext("Marking")}
+          </.button>
+          <.dropdown_menu
+            id="marking"
+            button_id="marking-button"
+          >
+            <:item
+              type="link"
+              navigate="/strands"
+              text="What?"
+            />
+            <:item
+              type="link"
+              navigate="/strands"
+              text={gettext("Strand goals")}
+            />
+          </.dropdown_menu>
+        </div> --%>
+        <span
+          :if={Map.get(tab, :is_current)}
+          class={["absolute h-1 inset-x-0 bottom-0", get_active_bar_class(Map.get(tab, :theme))]}
+        />
+      </div>
     </nav>
     """
   end
+
+  defp get_active_text_class("ai"), do: "text-ltrn-ai-accent"
+  defp get_active_text_class(_), do: "text-ltrn-dark"
+
+  defp get_inactive_text_class("ai"), do: "text-ltrn-subtle hover:text-ltrn-ai-accent"
+  defp get_inactive_text_class(_), do: "text-ltrn-subtle hover:text-ltrn-dark"
+
+  defp get_active_bar_class("ai"), do: "bg-ltrn-ai-accent"
+  defp get_active_bar_class(_), do: "bg-ltrn-dark"
 
   @doc """
   Renders a student or staff member tab.

@@ -35,7 +35,7 @@ defmodule LantternWeb.StrandLive do
   defp assign_strand(socket, %{"id" => id}) do
     LearningContext.get_strand(id,
       show_starred_for_profile_id: socket.assigns.current_user.current_profile_id,
-      preloads: [:subjects, :years]
+      preloads: [:subjects, :years, :moments]
     )
     |> case do
       strand when is_nil(strand) ->
