@@ -8,19 +8,22 @@
       <div class="flex items-center justify-between gap-4 px-4">
         <.tabs id="student-nav-tabs">
           <:tab
+            text={gettext("Students")}
             patch={~p"/school/classes/#{@class}/students"}
             is_current={@live_action == :students}
           >
-            {gettext("Students")}
           </:tab>
-          <:tab patch={~p"/school/classes/#{@class}/ilp"} is_current={@live_action == :ilp}>
-            {gettext("ILPs")}
+          <:tab
+            text={gettext("ILPs")}
+            patch={~p"/school/classes/#{@class}/ilp"}
+            is_current={@live_action == :ilp}
+          >
           </:tab>
           <%!-- <:tab
+          text={gettext("Student records")}
           patch={~p"/school/classes/#{@class}/student_records"}
           is_current={@live_action == :student_records}
         >
-          {gettext("Student records")}
         </:tab>
          --%>
         </.tabs>

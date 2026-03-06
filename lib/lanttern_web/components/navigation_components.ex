@@ -7,7 +7,6 @@ defmodule LantternWeb.NavigationComponents do
   alias Phoenix.LiveView.JS
   use Gettext, backend: Lanttern.Gettext
   import LantternWeb.CoreComponents
-  import LantternWeb.OverlayComponents
 
   @doc """
   Renders a basic page header.
