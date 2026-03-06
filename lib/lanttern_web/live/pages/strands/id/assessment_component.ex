@@ -261,6 +261,15 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
             </.tooltip>
           </div>
         </div>
+        <.link
+          :if={@assessment_point.lesson}
+          navigate={~p"/strands/lesson/#{@assessment_point.lesson}"}
+          class="flex items-center gap-2 font-sans text-sm text-ltrn-subtle hover:text-ltrn-dark"
+        >
+          <.icon name="hero-link-mini" />
+          {gettext("Lesson:")}
+          <span>{@assessment_point.lesson.name}</span>
+        </.link>
       </div>
     </.draggable_card>
     """
@@ -283,7 +292,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
   def update(%{action: {AssessmentPointFormOverlayComponent, {:created, created_ap}}}, socket) do
     ap =
       Assessments.get_assessment_point!(created_ap.id,
-        preloads: [:scale, curriculum_item: :curriculum_component]
+        preloads: [:scale, :lesson, curriculum_item: :curriculum_component]
       )
 
     stream_key = ap_stream_key(ap.moment_id)
@@ -309,7 +318,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
   def update(%{action: {AssessmentPointFormOverlayComponent, {:updated, updated_ap}}}, socket) do
     ap =
       Assessments.get_assessment_point!(updated_ap.id,
-        preloads: [:scale, curriculum_item: :curriculum_component]
+        preloads: [:scale, :lesson, curriculum_item: :curriculum_component]
       )
 
     socket =
@@ -377,7 +386,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
     moments = LearningContext.list_moments(strands_ids: [strand.id])
     moments_ids = Enum.map(moments, & &1.id)
 
-    preloads = [:scale, curriculum_item: :curriculum_component]
+    preloads = [:scale, :lesson, curriculum_item: :curriculum_component]
 
     # moment-linked APs have strand_id: nil, so we must query by moments_ids
     moment_aps =

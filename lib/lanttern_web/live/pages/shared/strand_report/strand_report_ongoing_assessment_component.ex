@@ -17,7 +17,7 @@ defmodule LantternWeb.StrandReportLive.StrandReportOngoingAssessmentComponent do
   alias Lanttern.LearningContext
   alias LantternWeb.Assessments.StudentAssessmentPointDetailsOverlayComponent
 
-  import LantternWeb.AssessmentsComponents
+  import LantternWeb.ReportingComponents, only: [strand_report_assessment_point_card: 1]
 
   @impl true
   def render(assigns) do
@@ -37,11 +37,12 @@ defmodule LantternWeb.StrandReportLive.StrandReportOngoingAssessmentComponent do
                 id={"moment-#{moment.id}-sortable-aps"}
                 phx-update="stream"
               >
-                <.assessment_point_card
+                <.strand_report_assessment_point_card
                   :for={{dom_id, ap} <- @streams["moment_#{moment.id}_assessment_points"] || []}
                   id={dom_id}
                   assessment_point={ap}
-                  base_path={@base_path}
+                  patch={"#{@base_path}/#{ap.id}"}
+                  class="mt-4"
                 />
                 <.empty_state_simple
                   class="p-4 mt-4 hidden only:block"
@@ -63,75 +64,6 @@ defmodule LantternWeb.StrandReportLive.StrandReportOngoingAssessmentComponent do
         on_cancel={JS.patch(@base_path)}
       />
     </div>
-    """
-  end
-
-  attr :id, :string, required: true
-  attr :assessment_point, :map, required: true
-  attr :base_path, :string, required: true
-
-  defp assessment_point_card(assigns) do
-    is_diff = assigns.assessment_point.is_differentiation
-    has_diff_rubric = !!assigns.assessment_point.student_entry.differentiation_rubric_id
-    has_rubric = !!assigns.assessment_point.rubric_id
-    has_comment = !!assigns.assessment_point.student_entry.report_note
-    has_evidences = assigns.assessment_point.student_entry.has_evidences
-    has_icon = is_diff || has_diff_rubric || has_rubric || has_comment || has_evidences
-
-    assigns =
-      assigns
-      |> assign(:is_diff, is_diff)
-      |> assign(:has_diff_rubric, has_diff_rubric)
-      |> assign(:has_rubric, has_rubric)
-      |> assign(:has_comment, has_comment)
-      |> assign(:has_evidences, has_evidences)
-      |> assign(:has_icon, has_icon)
-
-    ~H"""
-    <.link
-      id={@id}
-      patch={"#{@base_path}/#{@assessment_point.id}"}
-      class={[
-        "group/card block mt-4",
-        "sm:grid sm:grid-cols-[minmax(10px,_3fr)_minmax(10px,_2fr)]"
-      ]}
-    >
-      <.card_base class={[
-        "p-4 group-hover/card:bg-ltrn-lightest",
-        "sm:col-span-2 sm:grid sm:grid-cols-subgrid sm:items-center sm:gap-4"
-      ]}>
-        <div>
-          <p class="font-bold text-ltrn-darkest">
-            {@assessment_point.name}
-          </p>
-          <.markdown
-            :if={@assessment_point.report_info}
-            text={@assessment_point.report_info}
-            class="mt-2 line-clamp-2"
-          />
-          <div :if={@has_icon} class="flex items-center gap-4 mt-4 text-ltrn-subtle">
-            <p
-              :if={@is_diff || @has_diff_rubric}
-              class="font-sans font-bold text-sm text-ltrn-diff-dark"
-            >
-              {gettext("Diff")}
-            </p>
-            <.icon :if={@has_rubric || @has_diff_rubric} name="hero-view-columns-mini" />
-            <.icon
-              :if={@assessment_point.student_entry.report_note}
-              name="hero-chat-bubble-oval-left-mini"
-            />
-            <.icon :if={@assessment_point.student_entry.has_evidences} name="hero-paper-clip-mini" />
-          </div>
-        </div>
-
-        <.assessment_point_entry_display
-          entry={@assessment_point.student_entry}
-          show_student_assessment
-          class="mt-4 sm:mt-0"
-        />
-      </.card_base>
-    </.link>
     """
   end
 

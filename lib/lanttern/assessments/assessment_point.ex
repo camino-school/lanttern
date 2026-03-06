@@ -17,6 +17,7 @@ defmodule Lanttern.Assessments.AssessmentPoint do
   alias Lanttern.Grading.Scale
   alias Lanttern.LearningContext.Moment
   alias Lanttern.LearningContext.Strand
+  alias Lanttern.Lessons.Lesson
   alias Lanttern.Rubrics.Rubric
   alias Lanttern.Schools.Class
 
@@ -41,10 +42,12 @@ defmodule Lanttern.Assessments.AssessmentPoint do
           scale_id: pos_integer(),
           rubric: Rubric.t(),
           rubric_id: pos_integer(),
-          moment: Moment.t(),
-          moment_id: pos_integer(),
-          strand: Strand.t(),
-          strand_id: pos_integer(),
+          lesson: Lesson.t() | Ecto.Association.NotLoaded.t(),
+          lesson_id: pos_integer() | nil,
+          moment: Moment.t() | Ecto.Association.NotLoaded.t(),
+          moment_id: pos_integer() | nil,
+          strand: Strand.t() | Ecto.Association.NotLoaded.t(),
+          strand_id: pos_integer() | nil,
           student_entry: AssessmentPointEntry.t() | nil,
           entries: [AssessmentPointEntry.t()],
           feedbacks: [Feedback.t()],
@@ -77,6 +80,7 @@ defmodule Lanttern.Assessments.AssessmentPoint do
     belongs_to :curriculum_item, CurriculumItem
     belongs_to :scale, Scale
     belongs_to :rubric, Rubric
+    belongs_to :lesson, Lesson
     belongs_to :moment, Moment
     belongs_to :strand, Strand
 
@@ -109,6 +113,7 @@ defmodule Lanttern.Assessments.AssessmentPoint do
       :rubric_id,
       :moment_id,
       :strand_id,
+      :lesson_id,
       :classes_ids,
       :students_ids
     ])

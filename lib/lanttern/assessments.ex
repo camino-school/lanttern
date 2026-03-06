@@ -68,13 +68,16 @@ defmodule Lanttern.Assessments do
   defp apply_assessment_points_filter({:moments_ids, ids}, queryable),
     do: from(ap in queryable, where: ap.moment_id in ^ids)
 
+  defp apply_assessment_points_filter({:lesson_id, id}, queryable),
+    do: from(ap in queryable, where: ap.lesson_id == ^id)
+
   defp apply_assessment_points_filter({:strand_id, id}, queryable),
     do: from(ap in queryable, where: ap.strand_id == ^id)
 
   defp apply_assessment_points_filter(_, queryable), do: queryable
 
   defp order_assessment_points(queryable, opts) do
-    if Keyword.get(opts, :moments_ids) do
+    if Keyword.get(opts, :moments_ids) || Keyword.get(opts, :lesson_id) do
       from(
         ap in queryable,
         join: m in assoc(ap, :moment),
@@ -159,6 +162,14 @@ defmodule Lanttern.Assessments do
   defp filter_assessment_points_by_context(queryable, %{"moment_id" => moment_id})
        when not is_nil(moment_id) and moment_id != "",
        do: from(q in queryable, where: q.moment_id == ^moment_id)
+
+  defp filter_assessment_points_by_context(queryable, %{lesson_id: lesson_id})
+       when not is_nil(lesson_id) and lesson_id != "",
+       do: from(q in queryable, where: q.lesson_id == ^lesson_id)
+
+  defp filter_assessment_points_by_context(queryable, %{"lesson_id" => lesson_id})
+       when not is_nil(lesson_id) and lesson_id != "",
+       do: from(q in queryable, where: q.lesson_id == ^lesson_id)
 
   defp filter_assessment_points_by_context(queryable, %{strand_id: strand_id})
        when not is_nil(strand_id) and strand_id != "",
@@ -1248,39 +1259,78 @@ defmodule Lanttern.Assessments do
         %Student{school_id: school_id} = student,
         strand_id
       ) do
-    assessment_points =
-      from(
-        ap in AssessmentPoint,
-        join: m in assoc(ap, :moment),
-        join: e in assoc(ap, :entries),
-        left_join: ov in assoc(e, :ordinal_value),
-        where: m.strand_id == ^strand_id,
-        where: e.student_id == ^student.id,
-        where: e.has_marking,
-        order_by: [asc: m.position, asc: ap.position],
-        select: %{ap | student_entry: %{e | ordinal_value: ov}}
-      )
-      |> Repo.all()
+    from(
+      ap in AssessmentPoint,
+      join: m in assoc(ap, :moment),
+      join: e in assoc(ap, :entries),
+      left_join: ov in assoc(e, :ordinal_value),
+      where: m.strand_id == ^strand_id,
+      where: e.student_id == ^student.id,
+      where: e.has_marking,
+      order_by: [asc: m.position, asc: ap.position],
+      select: %{ap | student_entry: %{e | ordinal_value: ov}}
+    )
+    |> Repo.all()
+    |> put_student_entries_evidences(student.id)
+  end
 
+  @doc """
+  Returns the list of all lesson assessment points and entries for the given student.
+
+  Student entries are loaded in `assessment_point.student_entry`.
+  Entries have `ordinal_value` preloaded and `has_evidences` calculated.
+
+  Scope and student should belong to same school.
+
+  Assessment points without entries are ignored.
+
+  Ordered by `AssessmentPoint` position.
+
+  """
+
+  @spec list_lesson_assessment_points_with_student_entries(
+          Scope.t(),
+          Student.t(),
+          lesson_id :: pos_integer()
+        ) :: [AssessmentPoint.t()]
+  def list_lesson_assessment_points_with_student_entries(
+        %Scope{school_id: school_id} = _scope,
+        %Student{school_id: school_id} = student,
+        lesson_id
+      ) do
+    from(
+      ap in AssessmentPoint,
+      join: l in assoc(ap, :lesson),
+      left_join: m in assoc(l, :moment),
+      join: e in assoc(ap, :entries),
+      left_join: ov in assoc(e, :ordinal_value),
+      where: l.id == ^lesson_id,
+      where: e.student_id == ^student.id,
+      where: e.has_marking,
+      order_by: [asc: m.position, asc: ap.position],
+      select: %{ap | student_entry: %{e | ordinal_value: ov}}
+    )
+    |> Repo.all()
+    |> put_student_entries_evidences(student.id)
+  end
+
+  defp put_student_entries_evidences(assessment_points, student_id) do
     assessment_points_ids = Enum.map(assessment_points, & &1.id)
 
     entry_has_evidences_map =
       from(
         ap in AssessmentPoint,
-        join: m in assoc(ap, :moment),
         join: e in assoc(ap, :entries),
         left_join: apee in assoc(e, :assessment_point_entry_evidences),
-        where: m.strand_id == ^strand_id,
-        where: e.student_id == ^student.id,
         where: ap.id in ^assessment_points_ids,
+        where: e.student_id == ^student_id,
         select: {e.id, count(apee) > 0},
         group_by: [ap.id, e.id]
       )
       |> Repo.all()
       |> Enum.into(%{})
 
-    assessment_points
-    |> Enum.map(fn ap ->
+    Enum.map(assessment_points, fn ap ->
       Map.update!(
         ap,
         :student_entry,

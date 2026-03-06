@@ -1,6 +1,7 @@
 defmodule LantternWeb.StrandReportLessonLive do
   use LantternWeb, :live_view
 
+  alias Lanttern.Assessments
   alias Lanttern.Attachments
   alias Lanttern.Engagement
   alias Lanttern.Identity.Scope
@@ -11,8 +12,10 @@ defmodule LantternWeb.StrandReportLessonLive do
   alias Lanttern.Reporting
 
   # shared components
+  alias LantternWeb.Assessments.StudentAssessmentPointDetailsOverlayComponent
   alias LantternWeb.Lessons.LessonsSideNavComponent
   import LantternWeb.AttachmentsComponents, only: [attachments_list: 1]
+  import LantternWeb.ReportingComponents, only: [strand_report_assessment_point_card: 1]
 
   # lifecycle
 
@@ -25,7 +28,9 @@ defmodule LantternWeb.StrandReportLessonLive do
       |> assign_strand(params)
       |> assign_lesson(params)
       |> assign_attachments()
+      |> assign_assessment_points()
       |> assign(:moment, nil)
+      |> assign(:assessment_point_id, nil)
       |> assign_base_path(params)
 
     {:ok, socket}
@@ -130,6 +135,21 @@ defmodule LantternWeb.StrandReportLessonLive do
     assign(socket, :attachments, attachments)
   end
 
+  defp assign_assessment_points(socket) do
+    assessment_points =
+      Assessments.list_lesson_assessment_points_with_student_entries(
+        socket.assigns.current_scope,
+        socket.assigns.student_report_card.student,
+        socket.assigns.lesson.id
+      )
+
+    assessment_points_ids = Enum.map(assessment_points, &"#{&1.id}")
+
+    socket
+    |> assign(:assessment_points, assessment_points)
+    |> assign(:assessment_points_ids, assessment_points_ids)
+  end
+
   defp assign_base_path(socket, params) do
     strand_report_id = params["strand_report_id"]
 
@@ -174,6 +194,22 @@ defmodule LantternWeb.StrandReportLessonLive do
       src && src.id
     )
 
-    {:noreply, socket}
+    {:noreply, assign_assessment_point_id(socket, params)}
   end
+
+  defp assign_assessment_point_id(
+         socket,
+         %{"assessment_point_id" => assessment_point_id}
+       ) do
+    # simple guard to prevent viewing details from unrelated assessment points
+    assessment_point_id =
+      if assessment_point_id in socket.assigns.assessment_points_ids do
+        assessment_point_id
+      end
+
+    assign(socket, :assessment_point_id, assessment_point_id)
+  end
+
+  defp assign_assessment_point_id(socket, _params),
+    do: assign(socket, :assessment_point_id, nil)
 end
