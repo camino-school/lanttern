@@ -92,7 +92,7 @@ defmodule LantternWeb.LessonLiveTest do
       conn
       |> visit("#{@live_view_base_path}/#{lesson.id}")
       |> refute_has("button", text: "Unlink")
-      |> click_button("Link an assessment point to this lesson")
+      |> click_button("Link assessment point to this lesson")
       |> click_button("AP to link")
       |> assert_has("button", text: "AP to link")
       |> assert_has("button", text: "Unlink")
@@ -120,7 +120,7 @@ defmodule LantternWeb.LessonLiveTest do
 
       conn
       |> visit("#{@live_view_base_path}/#{lesson_b.id}")
-      |> click_button("Link an assessment point to this lesson")
+      |> click_button("Link assessment point to this lesson")
       |> click_button("Already linked AP")
       |> assert_has("h4", text: "Link assessment point")
       |> assert_has("p",
