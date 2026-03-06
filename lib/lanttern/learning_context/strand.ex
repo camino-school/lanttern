@@ -57,7 +57,7 @@ defmodule Lanttern.LearningContext.Strand do
     field :assessment_points_count, :integer, virtual: true
     field :report_cycle, :map, virtual: true
 
-    has_many :moments, Moment
+    has_many :moments, Moment, preload_order: [asc: :position]
     has_many :assessment_points, AssessmentPoint
     has_many :strand_reports, StrandReport
 

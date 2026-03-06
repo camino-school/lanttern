@@ -142,7 +142,16 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
           <div class="mt-6 space-y-10">
             <%= for moment <- @moments do %>
               <div id={"moment-#{moment.id}-ap-group"}>
-                <h4 class="font-display font-bold text-lg">{moment.name}</h4>
+                <div class="flex items-center justify-between gap-4">
+                  <h4 class="font-display font-bold text-lg">{moment.name}</h4>
+                  <.button
+                    type="link"
+                    theme="ghost"
+                    icon_name="hero-pencil-square-mini"
+                    navigate={~p"/strands/#{@strand}/assessment/marking/moment/#{moment}"}
+                    sr_text={gettext("Marking")}
+                  />
+                </div>
                 <div
                   id={"moment-#{moment.id}-sortable-aps"}
                   phx-hook="Sortable"
@@ -170,7 +179,16 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
               </div>
             <% end %>
             <div id="strand-ap-group">
-              <h4 class="mb-4 font-display font-bold text-lg">{gettext("Goals assessment")}</h4>
+              <div class="flex items-center justify-between gap-4 mb-4">
+                <h4 class="font-display font-bold text-lg">{gettext("Goals assessment")}</h4>
+                <.button
+                  type="link"
+                  theme="ghost"
+                  icon_name="hero-pencil-square-mini"
+                  navigate={~p"/strands/#{@strand}/assessment/marking"}
+                  sr_text={gettext("Marking")}
+                />
+              </div>
               <p class="mb-4">
                 {gettext("Goals assessment are defined by the strand curriculum.")}
                 <.link

@@ -689,7 +689,7 @@ defmodule LantternWeb.CoreComponents do
     "white" => "text-ltrn-darkest bg-white hover:bg-ltrn-lightest",
     "white_outline" => "border border-white text-white bg-transparent hover:bg-white/10",
     "ghost" => [
-      "text-ltrn-subtle bg-white/10 shadow-none hover:bg-ltrn-lightest",
+      "text-ltrn-dark bg-white/10 shadow-none hover:bg-ltrn-lightest",
       "disabled:text-ltrn-lighter"
     ]
   }
