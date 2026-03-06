@@ -19,20 +19,21 @@
     <:title>{@strand_report.strand.name}</:title>
     <div class="max-w-screen overflow-x-auto">
       <div class="inline-flex items-center justify-center min-w-full px-4">
-        <.neo_tabs id="strand-nav-tabs">
+        <.tabs id="strand-nav-tabs">
           <:tab
+            text={gettext("Overview")}
             patch={@base_path}
             is_current={@live_action == :overview}
           >
-            {gettext("Overview")}
           </:tab>
           <:tab
+            text={gettext("Rubrics")}
             patch={"#{@base_path}/rubrics"}
             is_current={@live_action == :rubrics}
           >
-            {gettext("Rubrics")}
           </:tab>
           <:tab
+            text={gettext("Assessment")}
             patch={"#{@base_path}/ongoing_assessment"}
             is_current={
               @live_action in [
@@ -44,9 +45,8 @@
               ]
             }
           >
-            {gettext("Assessment")}
           </:tab>
-        </.neo_tabs>
+        </.tabs>
       </div>
     </div>
   </.header_nav_simple>

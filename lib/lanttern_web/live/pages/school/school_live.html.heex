@@ -2,32 +2,50 @@
   <.header_nav current_user={@current_user}>
     <:title>{@current_user.current_profile.school_name}</:title>
     <div class="px-4">
-      <.neo_tabs>
-        <:tab patch={~p"/school/classes"} is_current={@live_action == :manage_classes}>
-          {"#{@current_user.current_profile.current_school_cycle.name} #{gettext("classes")}"}
-        </:tab>
-        <:tab patch={~p"/school/students"} is_current={@live_action == :manage_students}>
-          {gettext("Students")}
-        </:tab>
-        <:tab patch={~p"/school/guardians"} is_current={@live_action == :manage_guardians}>
-          {gettext("Guardians")}
-        </:tab>
-        <:tab patch={~p"/school/staff"} is_current={@live_action == :manage_staff}>
-          {gettext("Staff")}
-        </:tab>
-        <:tab patch={~p"/school/cycles"} is_current={@live_action == :manage_cycles}>
-          {gettext("Cycles")}
-        </:tab>
-        <:tab patch={~p"/school/message_board"} is_current={@live_action == :message_board}>
-          {gettext("Message board")}
+      <.tabs>
+        <:tab
+          text={"#{@current_user.current_profile.current_school_cycle.name} #{gettext("classes")}"}
+          patch={~p"/school/classes"}
+          is_current={@live_action == :manage_classes}
+        >
         </:tab>
         <:tab
+          text={gettext("Students")}
+          patch={~p"/school/students"}
+          is_current={@live_action == :manage_students}
+        >
+        </:tab>
+        <:tab
+          text={gettext("Guardians")}
+          patch={~p"/school/guardians"}
+          is_current={@live_action == :manage_guardians}
+        >
+        </:tab>
+        <:tab
+          text={gettext("Staff")}
+          patch={~p"/school/staff"}
+          is_current={@live_action == :manage_staff}
+        >
+        </:tab>
+        <:tab
+          text={gettext("Cycles")}
+          patch={~p"/school/cycles"}
+          is_current={@live_action == :manage_cycles}
+        >
+        </:tab>
+        <:tab
+          text={gettext("Message board")}
+          patch={~p"/school/message_board"}
+          is_current={@live_action == :message_board}
+        >
+        </:tab>
+        <:tab
+          text={gettext("Templates")}
           patch={~p"/school/moment_cards_templates"}
           is_current={@live_action == :manage_moment_cards_templates}
         >
-          {gettext("Templates")}
         </:tab>
-      </.neo_tabs>
+      </.tabs>
     </div>
   </.header_nav>
   <.live_component

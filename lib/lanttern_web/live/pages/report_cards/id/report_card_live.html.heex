@@ -4,35 +4,38 @@
       <:breadcrumb navigate={~p"/report_cards"}>{gettext("Report cards")}</:breadcrumb>
       <:title>{@report_card.name}</:title>
       <div class="flex items-center justify-between gap-4 px-4">
-        <.neo_tabs>
-          <:tab patch={~p"/report_cards/#{@report_card}"} is_current={@live_action == :show}>
-            {gettext("Overview")}
+        <.tabs>
+          <:tab
+            text={gettext("Overview")}
+            patch={~p"/report_cards/#{@report_card}"}
+            is_current={@live_action == :show}
+          >
           </:tab>
           <:tab
+            text={gettext("Students")}
             patch={~p"/report_cards/#{@report_card}/students"}
             is_current={@live_action == :students}
           >
-            {gettext("Students")}
           </:tab>
           <:tab
+            text={gettext("Strands")}
             patch={~p"/report_cards/#{@report_card}/strands"}
             is_current={@live_action == :strands}
           >
-            {gettext("Strands")}
           </:tab>
           <:tab
+            text={gettext("Grades")}
             patch={~p"/report_cards/#{@report_card}/grades"}
             is_current={@live_action == :grades}
           >
-            {gettext("Grades")}
           </:tab>
           <:tab
+            text={gettext("Tracking")}
             patch={~p"/report_cards/#{@report_card}/tracking"}
             is_current={@live_action == :tracking}
           >
-            {gettext("Tracking")}
           </:tab>
-        </.neo_tabs>
+        </.tabs>
         <div class="flex items-center gap-4">
           <.action
             type="link"

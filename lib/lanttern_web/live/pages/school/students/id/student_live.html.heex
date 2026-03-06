@@ -6,32 +6,38 @@
       </:breadcrumb>
       <:title>{@student.name}</:title>
       <div class="flex items-center justify-between gap-4 px-4">
-        <.neo_tabs id="student-nav-tabs">
-          <:tab patch={~p"/school/students/#{@student}"} is_current={@live_action == :show}>
-            {gettext("About")}
-          </:tab>
-          <:tab patch={~p"/school/students/#{@student}/ilp"} is_current={@live_action == :ilp}>
-            {gettext("ILP")}
+        <.tabs id="student-nav-tabs">
+          <:tab
+            text={gettext("About")}
+            patch={~p"/school/students/#{@student}"}
+            is_current={@live_action == :show}
+          >
           </:tab>
           <:tab
+            text={gettext("ILP")}
+            patch={~p"/school/students/#{@student}/ilp"}
+            is_current={@live_action == :ilp}
+          >
+          </:tab>
+          <:tab
+            text={gettext("Student records")}
             patch={~p"/school/students/#{@student}/student_records"}
             is_current={@live_action == :student_records}
           >
-            {gettext("Student records")}
           </:tab>
           <:tab
+            text={gettext("Report cards")}
             patch={~p"/school/students/#{@student}/report_cards"}
             is_current={@live_action == :report_cards}
           >
-            {gettext("Report cards")}
           </:tab>
           <:tab
+            text={gettext("Grades reports")}
             patch={~p"/school/students/#{@student}/grades_reports"}
             is_current={@live_action == :grades_reports}
           >
-            {gettext("Grades reports")}
           </:tab>
-        </.neo_tabs>
+        </.tabs>
         <.action
           :if={@is_school_manager}
           type="link"
