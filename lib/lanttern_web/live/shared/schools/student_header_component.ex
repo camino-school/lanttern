@@ -70,7 +70,7 @@ defmodule LantternWeb.Schools.StudentHeaderComponent do
           </.badge>
         </div>
         <%= if @age do %>
-          <div class="mt-2 text-sm text-ltrn-subtle">
+          <div class="font-sans text-sm text-ltrn-subtle">
             {format_age_full(@age)} ({format_birthdate(@student.birthdate)})
           </div>
         <% end %>
