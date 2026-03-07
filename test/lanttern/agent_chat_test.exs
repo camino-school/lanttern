@@ -949,9 +949,8 @@ defmodule Lanttern.AgentChatTest do
 
     test "runs LLM chain with basic messages", %{scope: scope, messages: messages, llm: llm} do
       Mimic.expect(LangChain.Chains.LLMChain, :run, fn chain, _opts ->
-        # Verify chain structure - should have 1 user message
-        assert length(chain.messages) == 1
-        assert hd(chain.messages).role == :user
+        # Verify chain structure - should have at least a user message as the last message
+        assert %{role: :user} = List.last(chain.messages)
 
         response_chain =
           LangChain.Chains.LLMChain.add_message(
@@ -966,7 +965,8 @@ defmodule Lanttern.AgentChatTest do
                AgentChat.run_llm_chain(scope, messages, llm)
 
       # Verify the chain has both user and assistant messages
-      assert length(chain.messages) == 2
+      assert Enum.any?(chain.messages, &(&1.role == :user))
+      assert Enum.any?(chain.messages, &(&1.role == :assistant))
     end
 
     test "adds strand system messages when strand_id is provided", %{

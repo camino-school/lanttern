@@ -691,6 +691,10 @@ defmodule LantternWeb.CoreComponents do
     "ghost" => [
       "text-ltrn-dark bg-white/10 shadow-none hover:bg-ltrn-lightest",
       "disabled:text-ltrn-lighter"
+    ],
+    "ghost_subtle" => [
+      "text-ltrn-subtle bg-white/10 shadow-none hover:text-ltrn-dark hover:bg-ltrn-lightest",
+      "disabled:text-ltrn-lighter"
     ]
   }
 

@@ -24,6 +24,7 @@ defmodule Lanttern.AgentChat do
   alias Lanttern.Lessons
   alias Lanttern.LessonTemplates
   alias Lanttern.SchoolConfig
+  alias Lanttern.Schools
 
   @doc """
   Subscribes to scoped notifications about chain responses in conversations.
@@ -462,6 +463,7 @@ defmodule Lanttern.AgentChat do
         scope,
         Keyword.get(opts, :agent_id)
       )
+      |> add_staff_member_system_messages(scope)
       |> add_lesson_template_system_messages(
         scope,
         Keyword.get(opts, :lesson_template_id)
@@ -538,6 +540,28 @@ defmodule Lanttern.AgentChat do
   end
 
   defp add_agent_system_messages(system_messages, _scope, _agent_id), do: system_messages
+
+  defp add_staff_member_system_messages(system_messages, %Scope{staff_member_id: nil}),
+    do: system_messages
+
+  defp add_staff_member_system_messages(system_messages, %Scope{staff_member_id: staff_member_id}) do
+    staff_member = Schools.get_staff_member!(staff_member_id)
+
+    fields = [
+      {"name", staff_member.name},
+      {"role", staff_member.role},
+      {"about", staff_member.about},
+      {"preferences", staff_member.agent_conversation_preferences}
+    ]
+
+    inner =
+      fields
+      |> Enum.filter(fn {_, v} -> is_binary(v) and v != "" end)
+      |> Enum.map_join("\n", fn {tag, value} -> "<#{tag}>#{value}</#{tag}>" end)
+
+    system_messages ++
+      [LangChain.Message.new_system!("<staff_member_context>\n#{inner}\n</staff_member_context>")]
+  end
 
   defp add_lesson_template_system_messages(system_messages, scope, lesson_template_id)
        when is_integer(lesson_template_id) do
