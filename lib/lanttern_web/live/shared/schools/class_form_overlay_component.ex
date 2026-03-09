@@ -415,7 +415,7 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponent do
     |> case do
       {:ok, class} ->
         # Update positions after creating
-        update_positions_after_save(class, socket)
+        socket = update_positions_after_save(class, socket)
         notify(__MODULE__, {:created, class}, socket.assigns)
         {:noreply, socket}
 
@@ -433,7 +433,7 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponent do
     |> case do
       {:ok, class} ->
         # Update positions after updating
-        update_positions_after_save(class, socket)
+        socket = update_positions_after_save(class, socket)
         notify(__MODULE__, {:updated, class}, socket.assigns)
         {:noreply, socket}
 
@@ -451,11 +451,11 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponent do
            staff_member_ids
          ) do
       :ok ->
-        :ok
+        socket
 
       {:error, reason} ->
         Logger.error("Failed to update staff member positions: #{inspect(reason)}")
-        :ok
+        put_flash(socket, :error, gettext("Failed to update staff member order"))
     end
   end
 end
