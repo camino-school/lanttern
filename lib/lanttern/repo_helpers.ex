@@ -3,6 +3,8 @@ defmodule Lanttern.RepoHelpers do
   Helpers related to `Repo`
   """
 
+  require Logger
+
   alias Lanttern.Repo
   import Ecto.Query, only: [from: 2]
 
@@ -194,7 +196,6 @@ defmodule Lanttern.RepoHelpers do
         :ok
 
       {:error, operation, reason, _changes} ->
-        require Logger
         Logger.error("update_positions failed at operation #{operation}: #{inspect(reason)}")
         {:error, gettext("Something went wrong")}
     end

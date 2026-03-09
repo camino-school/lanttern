@@ -39,8 +39,4 @@ defmodule LantternWeb.ClassLive.PeopleComponent do
     """
   end
 
-  @impl true
-  def update(assigns, socket) do
-    {:ok, assign(socket, assigns)}
-  end
 end

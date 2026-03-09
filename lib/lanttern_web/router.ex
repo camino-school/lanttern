@@ -92,6 +92,7 @@ defmodule LantternWeb.Router do
       live "/school/staff/deactivated", DeactivatedStaffLive, :index
       live "/school/staff/:id", StaffMemberLive, :show
       live "/school/staff/:id/students_records", StaffMemberLive, :students_records
+      live "/school/staff/:id/classes", StaffMemberLive, :classes
 
       live "/school/message_board/archive", ArchivedMessagesLive, :index
 

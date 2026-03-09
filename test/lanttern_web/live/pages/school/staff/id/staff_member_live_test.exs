@@ -7,7 +7,6 @@ defmodule LantternWeb.StaffMemberLiveTest do
   import PhoenixTest
 
   alias Lanttern.SchoolsFixtures
-
   alias Lanttern.Schools.School
 
   @live_view_base_path "/school/staff"
@@ -162,6 +161,69 @@ defmodule LantternWeb.StaffMemberLiveTest do
       conn
       |> visit("#{@live_view_base_path}/#{staff_member_id}")
       |> assert_has("button[phx-click='edit_about']", text: "Tell us something about yourself!")
+    end
+  end
+
+  describe "Classes tab" do
+    test "renders classes tab with empty state", %{conn: conn, user: user} do
+      school = Repo.get!(School, user.current_profile.school_id)
+      staff_member = insert(:staff_member, school: school)
+
+      conn
+      |> visit("#{@live_view_base_path}/#{staff_member.id}/classes")
+      |> assert_has("h3", text: "Classes")
+      |> assert_has("div", text: "Not linked to any class")
+    end
+
+    test "renders classes for staff member", %{conn: conn, user: user} do
+      school = Repo.get!(School, user.current_profile.school_id)
+      cycle = user.current_profile.current_school_cycle
+      staff_member = insert(:staff_member, school: school)
+      class = insert(:class, school: school, cycle: cycle, name: "Class XYZ")
+
+      insert(:class_staff_member, class: class, staff_member: staff_member)
+
+      conn
+      |> visit("#{@live_view_base_path}/#{staff_member.id}/classes")
+      |> assert_has("div", text: "Class XYZ")
+    end
+
+    test "school manager sees 'Add to class' button", context do
+      %{conn: conn, user: user} = set_user_permissions(["school_management"], context)
+      school = Repo.get!(School, user.current_profile.school_id)
+      staff_member = insert(:staff_member, school: school)
+
+      conn
+      |> visit("#{@live_view_base_path}/#{staff_member.id}/classes")
+      |> assert_has("button", text: "Add to class")
+    end
+
+    test "user without school management does not see 'Add to class' button", %{
+      conn: conn,
+      user: user
+    } do
+      school = Repo.get!(School, user.current_profile.school_id)
+      staff_member = insert(:staff_member, school: school)
+
+      conn
+      |> visit("#{@live_view_base_path}/#{staff_member.id}/classes")
+      |> refute_has("button", text: "Add to class")
+    end
+
+    test "school manager can remove staff member from class", context do
+      %{conn: conn, user: user} = set_user_permissions(["school_management"], context)
+      school = Repo.get!(School, user.current_profile.school_id)
+      cycle = user.current_profile.current_school_cycle
+      staff_member = insert(:staff_member, school: school)
+      class = insert(:class, school: school, cycle: cycle, name: "Removable Class")
+
+      insert(:class_staff_member, class: class, staff_member: staff_member)
+
+      conn
+      |> visit("#{@live_view_base_path}/#{staff_member.id}/classes")
+      |> assert_has("div", text: "Removable Class")
+      |> click_button("Remove from class")
+      |> refute_has("div", text: "Removable Class")
     end
   end
 

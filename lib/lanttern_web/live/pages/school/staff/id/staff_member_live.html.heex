@@ -6,11 +6,17 @@
       </:breadcrumb>
       <:title>{@staff_member.name}</:title>
       <div class="flex items-center justify-between gap-4 px-4">
-        <.tabs id="student-nav-tabs">
+        <.tabs id="staff-member-nav-tabs">
           <:tab
             text={gettext("About")}
             patch={~p"/school/staff/#{@staff_member}"}
             is_current={@live_action == :show}
+          >
+          </:tab>
+          <:tab
+            text={gettext("Classes")}
+            patch={~p"/school/staff/#{@staff_member}/classes"}
+            is_current={@live_action == :classes}
           >
           </:tab>
           <:tab
@@ -104,6 +110,14 @@
       </section>
     </.responsive_container>
   </div>
+  <.live_component
+    :if={@live_action == :classes}
+    module={ClassesComponent}
+    id="staff-classes"
+    staff_member={@staff_member}
+    current_scope={@current_scope}
+    is_school_manager={@is_school_manager}
+  />
   <.live_component
     :if={@live_action == :students_records}
     module={StudentsRecordsComponent}
