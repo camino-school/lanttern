@@ -8,6 +8,7 @@ defmodule Lanttern.Grading.Scale do
   import Lanttern.SchemaHelpers, only: [validate_hex_color: 3]
 
   alias Lanttern.Grading.OrdinalValue
+  alias Lanttern.School
 
   @type t :: %__MODULE__{
           id: pos_integer(),
@@ -21,8 +22,11 @@ defmodule Lanttern.Grading.Scale do
           stop_text_color: String.t(),
           breakpoints: [float()],
           ordinal_values: [OrdinalValue.t()],
+          school_id: pos_integer() | nil,
+          school: School.t() | Ecto.Association.NotLoaded.t(),
           inserted_at: DateTime.t(),
-          updated_at: DateTime.t()
+          updated_at: DateTime.t(),
+          disabled_at: DateTime.t() | nil
         }
 
   schema "grading_scales" do
@@ -35,8 +39,11 @@ defmodule Lanttern.Grading.Scale do
     field :stop_bg_color, :string
     field :stop_text_color, :string
     field :breakpoints, {:array, :float}
+    field :school_id, :id
+    field :disabled_at, :utc_datetime
 
     has_many :ordinal_values, OrdinalValue, preload_order: [asc: :normalized_value, asc: :name]
+    belongs_to :school, Lanttern.School
 
     timestamps()
   end
@@ -53,7 +60,9 @@ defmodule Lanttern.Grading.Scale do
       :stop,
       :stop_bg_color,
       :stop_text_color,
-      :breakpoints
+      :breakpoints,
+      :school_id,
+      :disabled_at
     ])
     |> validate_required([:name, :type])
     |> validate_scale_type()
