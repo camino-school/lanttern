@@ -7,23 +7,59 @@
       </:breadcrumb>
       <:title>{@strand.name}</:title>
       <div class="flex items-center justify-between gap-4 px-4">
-        <.neo_tabs id="strand-nav-tabs">
-          <:tab patch={~p"/strands/#{@strand}"} is_current={@live_action == :lessons}>
-            {gettext("Lessons")}
-          </:tab>
-          <:tab patch={~p"/strands/#{@strand}/overview"} is_current={@live_action == :overview}>
-            {gettext("Overview")}
-          </:tab>
-          <:tab patch={~p"/strands/#{@strand}/rubrics"} is_current={@live_action == :rubrics}>
-            {gettext("Rubrics")}
+        <.tabs id="strand-nav-tabs">
+          <:tab
+            text={gettext("Lessons")}
+            patch={~p"/strands/#{@strand}"}
+            is_current={@live_action == :lessons}
+          >
           </:tab>
           <:tab
+            text={gettext("Overview")}
+            patch={~p"/strands/#{@strand}/overview"}
+            is_current={@live_action == :overview}
+          >
+          </:tab>
+          <:tab
+            text={gettext("Rubrics")}
+            patch={~p"/strands/#{@strand}/rubrics"}
+            is_current={@live_action == :rubrics}
+          >
+          </:tab>
+          <:tab
+            text={gettext("Assessment")}
             patch={~p"/strands/#{@strand}/assessment"}
             is_current={@live_action == :assessment}
           >
-            {gettext("Assessment")}
+            <div class="relative">
+              <.button
+                type="button"
+                size="sm"
+                theme="ghost"
+                icon_name="hero-pencil-square-micro"
+                id="tab-marking-button"
+              >
+                {gettext("Marking")}
+              </.button>
+              <.dropdown_menu
+                id="tab-marking-menu"
+                button_id="tab-marking-button"
+              >
+                <:item
+                  :for={moment <- @strand.moments}
+                  type="link"
+                  navigate={~p"/strands/#{@strand}/assessment/marking/moment/#{moment}"}
+                  text={moment.name}
+                />
+                <:item
+                  type="link"
+                  navigate={~p"/strands/#{@strand}/assessment/marking"}
+                  text={gettext("Strand goals")}
+                />
+              </.dropdown_menu>
+            </div>
           </:tab>
-        </.neo_tabs>
+        </.tabs>
         <div class="flex items-center gap-4">
           <.live_component
             module={ToggleStrandStarActionComponent}

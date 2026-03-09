@@ -75,7 +75,26 @@
         attachments={@attachments}
       />
     </section>
+    <section :if={@assessment_points != []} id="lesson-assessment-points" class="mt-10">
+      <h6 class="font-display font-bold mb-4">{gettext("Lesson assessment")}</h6>
+      <div class="mt-6 space-y-4">
+        <.strand_report_assessment_point_card
+          :for={ap <- @assessment_points}
+          id={"lesson-ap-#{ap.id}"}
+          assessment_point={ap}
+          patch={"#{@base_path}/lesson/#{@lesson.id}/assessment_point/#{ap.id}"}
+        />
+      </div>
+    </section>
   </.responsive_container>
+  <.live_component
+    :if={@assessment_point_id}
+    module={StudentAssessmentPointDetailsOverlayComponent}
+    id="assessment-point-details-component"
+    assessment_point_id={@assessment_point_id}
+    student_id={@student_report_card.student_id}
+    on_cancel={JS.patch("#{@base_path}/lesson/#{@lesson.id}")}
+  />
 </Layouts.app_with_side_nav>
 <.modal
   :if={@moment}

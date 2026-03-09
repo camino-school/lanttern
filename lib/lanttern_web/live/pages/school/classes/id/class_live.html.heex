@@ -6,21 +6,27 @@
       </:breadcrumb>
       <:title>{@class.name} ({@class.cycle.name})</:title>
       <div class="flex items-center justify-between gap-4 px-4">
-        <.neo_tabs id="student-nav-tabs">
-          <:tab patch={~p"/school/classes/#{@class}/people"} is_current={@live_action == :people}>
-            {gettext("People")}
+        <.tabs id="student-nav-tabs">
+          <:tab
+            text={gettext("People")}
+            patch={~p"/school/classes/#{@class}/people"}
+            is_current={@live_action == :people}
+          >
           </:tab>
-          <:tab patch={~p"/school/classes/#{@class}/ilp"} is_current={@live_action == :ilp}>
-            {gettext("ILPs")}
+          <:tab
+            text={gettext("ILPs")}
+            patch={~p"/school/classes/#{@class}/ilp"}
+            is_current={@live_action == :ilp}
+          >
           </:tab>
           <%!-- <:tab
+          text={gettext("Student records")}
           patch={~p"/school/classes/#{@class}/student_records"}
           is_current={@live_action == :student_records}
         >
-          {gettext("Student records")}
         </:tab>
          --%>
-        </.neo_tabs>
+        </.tabs>
         <.action
           :if={@is_school_manager}
           type="link"

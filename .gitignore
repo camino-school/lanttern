@@ -46,7 +46,7 @@ npm-debug.log
 # LLMs
 CLAUDE.md
 .windsurfrules
-.claude
+.claude/settings.local.json
 
 # Elixir LS
 .elixir_ls

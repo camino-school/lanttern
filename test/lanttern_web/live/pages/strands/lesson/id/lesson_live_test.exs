@@ -4,6 +4,10 @@ defmodule LantternWeb.LessonLiveTest do
   import Lanttern.Factory
   import PhoenixTest
 
+  alias Lanttern.AssessmentsFixtures
+  alias Lanttern.CurriculaFixtures
+  alias Lanttern.GradingFixtures
+
   @live_view_base_path "/strands/lesson"
 
   setup [:register_and_log_in_staff_member]
@@ -67,6 +71,62 @@ defmodule LantternWeb.LessonLiveTest do
       |> click_button("#lesson-description-form button", "Save")
       |> click_button("Publish")
       |> refute_has("h1 span", text: "(Draft)")
+    end
+  end
+
+  describe "Linked assessment points" do
+    test "link and unlink assessment point to lesson", %{conn: conn} do
+      strand = insert(:strand)
+      lesson = insert(:lesson, strand: strand)
+      moment = insert(:moment, strand: strand)
+      scale = GradingFixtures.scale_fixture()
+      curriculum_item = CurriculaFixtures.curriculum_item_fixture()
+
+      AssessmentsFixtures.assessment_point_fixture(%{
+        name: "AP to link",
+        moment_id: moment.id,
+        scale_id: scale.id,
+        curriculum_item_id: curriculum_item.id
+      })
+
+      conn
+      |> visit("#{@live_view_base_path}/#{lesson.id}")
+      |> refute_has("button", text: "Unlink")
+      |> click_button("Link assessment point to this lesson")
+      |> click_button("AP to link")
+      |> assert_has("button", text: "AP to link")
+      |> assert_has("button", text: "Unlink")
+      |> click_button("Unlink")
+      |> refute_has("button", text: "Unlink")
+    end
+
+    test "linking already-linked assessment point to new lesson shows confirmation modal", %{
+      conn: conn
+    } do
+      strand = insert(:strand)
+      lesson_a = insert(:lesson, strand: strand, name: "Lesson Alpha")
+      lesson_b = insert(:lesson, strand: strand, name: "Lesson Beta")
+      moment = insert(:moment, strand: strand)
+      scale = GradingFixtures.scale_fixture()
+      curriculum_item = CurriculaFixtures.curriculum_item_fixture()
+
+      AssessmentsFixtures.assessment_point_fixture(%{
+        name: "Already linked AP",
+        moment_id: moment.id,
+        lesson_id: lesson_a.id,
+        scale_id: scale.id,
+        curriculum_item_id: curriculum_item.id
+      })
+
+      conn
+      |> visit("#{@live_view_base_path}/#{lesson_b.id}")
+      |> click_button("Link assessment point to this lesson")
+      |> click_button("Already linked AP")
+      |> assert_has("h4", text: "Link assessment point")
+      |> assert_has("p",
+        text:
+          "Do you want to unlink it from \"Lesson Alpha\" and link to \"Lesson Beta\" (this lesson)?"
+      )
     end
   end
 end

@@ -216,6 +216,10 @@ defmodule LantternWeb.Router do
 
       live "/strand_report/:strand_report_id/lesson/:id", StrandReportLessonLive, :show
 
+      live "/strand_report/:strand_report_id/lesson/:id/assessment_point/:assessment_point_id",
+           StrandReportLessonLive,
+           :show
+
       # -- ILP
 
       live "/student_strands", StudentStrandsLive
@@ -268,6 +272,10 @@ defmodule LantternWeb.Router do
            :overview
 
       live "/student_report_cards/:student_report_card_id/strand_report/:strand_report_id/lesson/:id",
+           StrandReportLessonLive,
+           :show
+
+      live "/student_report_cards/:student_report_card_id/strand_report/:strand_report_id/lesson/:id/assessment_point/:assessment_point_id",
            StrandReportLessonLive,
            :show
     end

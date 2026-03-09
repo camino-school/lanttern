@@ -12,6 +12,7 @@ defmodule Lanttern.Lessons.Lesson do
 
   import Lanttern.SchemaHelpers, only: [put_subjects: 1]
 
+  alias Lanttern.Assessments.AssessmentPoint
   alias Lanttern.LearningContext.Moment
   alias Lanttern.LearningContext.Strand
   alias Lanttern.Lessons.LessonAttachment
@@ -32,6 +33,7 @@ defmodule Lanttern.Lessons.Lesson do
           moment_id: pos_integer() | nil,
           subjects: [Subject.t()] | Ecto.Association.NotLoaded.t(),
           tags: [Tag.t()] | Ecto.Association.NotLoaded.t(),
+          assessment_points: [AssessmentPoint.t()] | Ecto.Association.NotLoaded.t(),
           inserted_at: NaiveDateTime.t(),
           updated_at: NaiveDateTime.t()
         }
@@ -52,6 +54,7 @@ defmodule Lanttern.Lessons.Lesson do
 
     has_many :lesson_attachments, LessonAttachment
     has_many :attachments, through: [:lesson_attachments, :attachment]
+    has_many :assessment_points, AssessmentPoint
 
     many_to_many :subjects, Subject, join_through: "lessons_subjects", on_replace: :delete
 
