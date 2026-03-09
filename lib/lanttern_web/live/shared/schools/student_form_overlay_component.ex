@@ -132,57 +132,50 @@ defmodule LantternWeb.Schools.StudentFormOverlayComponent do
           </.card_base>
         </.form>
         <:actions_left :if={@student.id}>
-          <.action
+          <.button
             :if={is_nil(@student.deactivated_at)}
             type="button"
-            theme="subtle"
-            size="md"
+            theme="ghost"
             phx-click="deactivate"
             phx-target={@myself}
             data-confirm={gettext("Are you sure? You can reactive the student later.")}
           >
             {gettext("Deactivate")}
-          </.action>
-          <.action
+          </.button>
+          <.button
             :if={@student.deactivated_at}
             type="button"
-            theme="subtle"
-            size="md"
+            theme="ghost"
             phx-click="delete"
             phx-target={@myself}
             data-confirm={gettext("Are you sure?")}
           >
             {gettext("Delete")}
-          </.action>
-          <.action
+          </.button>
+          <.button
             :if={@student.deactivated_at}
             type="button"
-            theme="subtle"
-            size="md"
+            theme="ghost"
             phx-click="reactivate"
             phx-target={@myself}
           >
             {gettext("Reactivate")}
-          </.action>
+          </.button>
         </:actions_left>
         <:actions>
-          <.action
+          <.button
             type="button"
-            theme="subtle"
-            size="md"
+            theme="ghost"
             phx-click={JS.exec("data-cancel", to: "##{@id}")}
           >
             {gettext("Cancel")}
-          </.action>
-          <.action
+          </.button>
+          <.button
             type="submit"
-            theme="primary"
-            size="md"
-            icon_name="hero-check"
             form={"student-form-#{@id}"}
           >
             {gettext("Save")}
-          </.action>
+          </.button>
         </:actions>
       </.slide_over>
     </div>

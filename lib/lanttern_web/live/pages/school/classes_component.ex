@@ -56,7 +56,7 @@ defmodule LantternWeb.SchoolLive.ClassesComponent do
                 patch={~p"/school/classes?edit=#{class}"}
               />
             </div>
-            <div class="font-bold text-ltrn-subtle">
+            <div class="font-sans text-ltrn-subtle">
               {ngettext(
                 "1 active student",
                 "%{count} active students",
@@ -64,7 +64,7 @@ defmodule LantternWeb.SchoolLive.ClassesComponent do
               )}
             </div>
             <%= if is_list(class.staff_members) && class.staff_members != [] do %>
-              <div class="group relative flex items-center gap-1 mt-1 text-sm font-bold text-ltrn-subtle cursor-default">
+              <div class="group relative flex items-center gap-1 mt-1 font-sans text-ltrn-subtle">
                 {ngettext("1 staff member", "%{count} staff members", length(class.staff_members))}
                 <.icon name="hero-information-circle-mini" />
                 <.tooltip id={"class-#{class.id}-staff-members-tooltip"}>
@@ -78,7 +78,7 @@ defmodule LantternWeb.SchoolLive.ClassesComponent do
               </.badge>
             </div>
             <%= if class.students != [] do %>
-              <ul class="mt-4 text-sm leading-relaxed">
+              <ul class="mt-4 font-sans text-sm leading-relaxed">
                 <li :for={std <- class.students} class="flex items-center gap-2 w-full">
                   <% age = calculate_age(std.birthdate) %>
                   <div class="relative inline-block">

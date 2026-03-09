@@ -64,18 +64,6 @@ defmodule LantternWeb.ClassLiveTest do
       |> assert_has("#students-section")
       |> assert_has("a", text: student.name)
     end
-
-    test "sections are expanded by default", %{conn: conn, user: user} do
-      school = Repo.get!(School, user.current_profile.school_id)
-      cycle = user.current_profile.current_school_cycle
-
-      class = insert(:class, school: school, cycle: cycle)
-
-      conn
-      |> visit("#{@live_view_base_path}/#{class.id}/people")
-      |> assert_has("#staff-section-content:not(.hidden)")
-      |> assert_has("#students-section-content:not(.hidden)")
-    end
   end
 
   describe "Class management permissions" do

@@ -9,7 +9,7 @@ defmodule Lanttern.Schools.ClassStaffMember do
           id: pos_integer(),
           class_id: pos_integer(),
           staff_member_id: pos_integer(),
-          position: integer(),
+          position: non_neg_integer(),
           role: String.t() | nil,
           class: Lanttern.Schools.Class.t() | Ecto.Association.NotLoaded.t(),
           staff_member: Lanttern.Schools.StaffMember.t() | Ecto.Association.NotLoaded.t(),
@@ -27,6 +27,7 @@ defmodule Lanttern.Schools.ClassStaffMember do
     timestamps()
   end
 
+  @doc false
   def changeset(class_staff_member, attrs) do
     class_staff_member
     |> cast(attrs, [:class_id, :staff_member_id, :position, :role])

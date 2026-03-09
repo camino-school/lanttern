@@ -108,15 +108,17 @@ defmodule LantternWeb.SchoolsComponents do
         size="lg"
       />
       <div class="min-w-0 flex-1">
-        <%= if @navigate do %>
-          <.link navigate={@navigate} class="font-bold hover:text-ltrn-subtle">
-            {@student.name}
-          </.link>
-        <% else %>
-          <div class="font-bold">
-            {@student.name}
-          </div>
-        <% end %>
+        <div class="line-clamp-2" title={@student.name}>
+          <%= if @navigate do %>
+            <.link navigate={@navigate} class="font-bold hover:text-ltrn-subtle">
+              {@student.name}
+            </.link>
+          <% else %>
+            <div class="font-bold">
+              {@student.name}
+            </div>
+          <% end %>
+        </div>
         <div :if={@has_badge} class="flex flex-wrap gap-1 mt-2">
           <%= if @age do %>
             <div class="group relative" tabindex="0">
@@ -141,7 +143,7 @@ defmodule LantternWeb.SchoolsComponents do
         </div>
         <div
           :if={@student.email}
-          class="mt-2 text-xs text-ltrn-subtle truncate"
+          class="mt-2 font-sans text-xs text-ltrn-subtle truncate"
           title={@student.email}
         >
           {@student.email}
@@ -198,7 +200,7 @@ defmodule LantternWeb.SchoolsComponents do
           >
             <.badge :for={class <- @student.classes}>{class.name}</.badge>
           </div>
-          <div :if={@student.email} class="mt-2 text-xs truncate" title={@student.email}>
+          <div :if={@student.email} class="mt-2 font-sans text-xs truncate" title={@student.email}>
             {@student.email}
           </div>
         </div>
@@ -227,10 +229,12 @@ defmodule LantternWeb.SchoolsComponents do
   attr :staff_member, :map, required: true
   attr :navigate, :string, default: nil, doc: "On name click"
   attr :class_role, :string, default: nil
+  attr :show_edit, :boolean, default: false
+  attr :edit_patch, :string, default: nil
   attr :class, :any, default: nil
   attr :id, :string, default: nil
 
-  def staff_member_simple_card(assigns) do
+  def staff_member_card(assigns) do
     ~H"""
     <.card_base id={@id} class={["flex items-center gap-4 p-4", @class]}>
       <.profile_picture
@@ -239,27 +243,39 @@ defmodule LantternWeb.SchoolsComponents do
         size="lg"
       />
       <div class="min-w-0 flex-1">
-        <%= if @navigate do %>
-          <.link navigate={@navigate} class="font-bold hover:text-ltrn-subtle">
-            {@staff_member.name}
-          </.link>
-        <% else %>
-          <div class="font-bold">
-            {@staff_member.name}
-          </div>
-        <% end %>
-        <div class="text-xs text-ltrn-subtle">{@staff_member.role}</div>
+        <div class="line-clamp-2" title={@staff_member.name}>
+          <%= if @navigate do %>
+            <.link navigate={@navigate} class="font-bold hover:text-ltrn-subtle">
+              {@staff_member.name}
+            </.link>
+          <% else %>
+            <div class="font-bold">
+              {@staff_member.name}
+            </div>
+          <% end %>
+        </div>
+        <div class="mt-1 font-sans text-sm text-ltrn-subtle">{@staff_member.role}</div>
         <div :if={@class_role} class="flex flex-wrap gap-1 mt-2">
           <.badge>{@class_role}</.badge>
         </div>
         <div
           :if={@staff_member.email}
-          class="mt-2 text-xs text-ltrn-subtle truncate"
+          class="mt-2 font-sans text-xs text-ltrn-subtle truncate"
           title={@staff_member.email}
         >
           {@staff_member.email}
         </div>
       </div>
+      <.button
+        :if={@show_edit}
+        type="link"
+        icon_name="hero-pencil-mini"
+        sr_text={gettext("Edit staff member")}
+        rounded
+        size="sm"
+        theme="ghost"
+        patch={@edit_patch}
+      />
     </.card_base>
     """
   end
