@@ -10,7 +10,7 @@ defmodule LantternWeb.StaffMemberLive.ClassesComponent do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="container mx-auto lg:max-w-5xl">
+    <div class="container mx-auto">
       <div class="py-6 px-4 lg:px-0">
         <h3 class="font-display font-bold text-2xl">
           {gettext("Classes")}
@@ -38,10 +38,6 @@ defmodule LantternWeb.StaffMemberLive.ClassesComponent do
         <.fluid_grid
           id="staff-classes"
           phx-update="stream"
-          phx-hook={if @is_school_manager, do: "Sortable", else: nil}
-          phx-target={@myself}
-          data-group-id="staff-classes"
-          data-group-name="class"
           is_full_width
           class="p-4 bg-white"
         >
@@ -53,17 +49,20 @@ defmodule LantternWeb.StaffMemberLive.ClassesComponent do
             show_actions={@is_school_manager}
             on_edit_role={JS.push("edit_role", value: %{id: csm.id}, target: @myself)}
             on_remove={JS.push("remove", value: %{id: csm.id}, target: @myself)}
-            sortable={@is_school_manager}
           />
         </.fluid_grid>
       <% end %>
-      <.live_component
-        :if={@show_class_search}
-        module={ClassSearchComponent}
-        id="class-search"
-        school_id={@staff_member.school_id}
-        notify_component={@myself}
-      />
+      <div class={unless @show_class_search, do: "hidden"}>
+        <form>
+          <.live_component
+            module={ClassSearchComponent}
+            id="class-search"
+            school_id={@staff_member.school_id}
+            exclude_ids={@linked_class_ids}
+            notify_component={@myself}
+          />
+        </form>
+      </div>
       <.modal
         :if={@editing_role_for}
         id="edit-role-modal"
@@ -101,7 +100,8 @@ defmodule LantternWeb.StaffMemberLive.ClassesComponent do
      socket
      |> assign(:initialized, false)
      |> assign(:show_class_search, false)
-     |> assign(:editing_role_for, nil)}
+     |> assign(:editing_role_for, nil)
+     |> assign(:linked_class_ids, [])}
   end
 
   @impl true
@@ -159,14 +159,17 @@ defmodule LantternWeb.StaffMemberLive.ClassesComponent do
     socket
     |> stream(:classes, classes, reset: true)
     |> assign(:classes_length, length(classes))
-    |> assign(:class_ids, Enum.map(classes, & &1.id))
+    |> assign(:linked_class_ids, Enum.map(classes, & &1.class_id))
   end
 
   # event handlers
 
   @impl true
   def handle_event("show_class_search", _params, socket) do
-    {:noreply, assign(socket, :show_class_search, true)}
+    {:noreply,
+     socket
+     |> assign(:show_class_search, true)
+     |> push_event("autocomplete_reset:class-search", %{})}
   end
 
   def handle_event("edit_role", %{"id" => id}, socket) do
@@ -235,6 +238,10 @@ defmodule LantternWeb.StaffMemberLive.ClassesComponent do
           socket
           |> stream_delete(:classes, csm)
           |> assign(:classes_length, socket.assigns.classes_length - 1)
+          |> assign(
+            :linked_class_ids,
+            Enum.reject(socket.assigns.linked_class_ids, &(&1 == csm.class_id))
+          )
           |> put_flash(:info, gettext("Removed from class successfully"))
 
         send(self(), {__MODULE__, {:class_removed, csm}})
@@ -245,25 +252,4 @@ defmodule LantternWeb.StaffMemberLive.ClassesComponent do
     end
   end
 
-  def handle_event(
-        "sortable_update",
-        %{"oldIndex" => old_index, "newIndex" => new_index},
-        socket
-      ) do
-    class_ids = socket.assigns.class_ids
-    {id, remaining} = List.pop_at(class_ids, old_index)
-    reordered_ids = List.insert_at(remaining, new_index, id)
-
-    case Schools.update_staff_member_classes_positions(
-           socket.assigns.current_scope,
-           socket.assigns.staff_member,
-           reordered_ids
-         ) do
-      :ok ->
-        {:noreply, assign(socket, :class_ids, reordered_ids)}
-
-      {:error, _} ->
-        {:noreply, put_flash(socket, :error, gettext("Failed to reorder classes"))}
-    end
-  end
 end

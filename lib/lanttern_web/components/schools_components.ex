@@ -272,7 +272,6 @@ defmodule LantternWeb.SchoolsComponents do
   attr :show_actions, :boolean, default: false
   attr :on_edit_role, JS, default: nil
   attr :on_remove, JS, default: nil
-  attr :sortable, :boolean, default: false
   attr :class, :any, default: nil
   attr :id, :string, default: nil
   attr :rest, :global
@@ -280,11 +279,6 @@ defmodule LantternWeb.SchoolsComponents do
   def class_card_for_staff(assigns) do
     ~H"""
     <.card_base id={@id} class={["flex items-center gap-4 p-4", @class]} {@rest}>
-      <.icon
-        :if={@sortable}
-        name="hero-bars-3"
-        class="drag-handle cursor-grab text-ltrn-subtle hover:text-ltrn-dark"
-      />
       <div class="min-w-0 flex-1">
         <div class="font-bold">
           {@class_staff_member.class.name} ({@class_staff_member.class.cycle.name})
