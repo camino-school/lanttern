@@ -13,8 +13,8 @@ defmodule Lanttern.Schools.ClassStaffMember do
           role: String.t() | nil,
           class: Lanttern.Schools.Class.t() | Ecto.Association.NotLoaded.t(),
           staff_member: Lanttern.Schools.StaffMember.t() | Ecto.Association.NotLoaded.t(),
-          inserted_at: DateTime.t(),
-          updated_at: DateTime.t()
+          inserted_at: NaiveDateTime.t(),
+          updated_at: NaiveDateTime.t()
         }
 
   schema "classes_staff_members" do
