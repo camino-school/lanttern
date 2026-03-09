@@ -1621,11 +1621,8 @@ defmodule Lanttern.Schools do
         base_query
       end
 
-    result =
-      query
-      |> Repo.all()
-
-    result
+    query
+    |> Repo.all()
     |> maybe_preload(opts)
   end
 
@@ -1719,17 +1716,11 @@ defmodule Lanttern.Schools do
   """
   def update_class_staff_member(
         %Scope{school_id: school_id} = scope,
-        %ClassStaffMember{} = class_staff_member,
+        %ClassStaffMember{class: %Class{school_id: school_id}} = class_staff_member,
         attrs
       ) do
-    with true <- Scope.has_permission?(scope, "school_management"),
-         %Class{school_id: ^school_id} <- Repo.get(Class, class_staff_member.class_id) do
-      class_staff_member
-      |> ClassStaffMember.changeset(attrs)
-      |> Repo.update()
-    else
-      _ -> {:error, :unauthorized}
-    end
+    true = Scope.has_permission?(scope, "school_management")
+    class_staff_member |> ClassStaffMember.changeset(attrs) |> Repo.update()
   end
 
   @doc """
@@ -1746,14 +1737,10 @@ defmodule Lanttern.Schools do
   """
   def remove_staff_member_from_class(
         %Scope{school_id: school_id} = scope,
-        %ClassStaffMember{} = class_staff_member
+        %ClassStaffMember{class: %Class{school_id: school_id}} = class_staff_member
       ) do
-    with true <- Scope.has_permission?(scope, "school_management"),
-         %Class{school_id: ^school_id} <- Repo.get(Class, class_staff_member.class_id) do
-      Repo.delete(class_staff_member)
-    else
-      _ -> {:error, :unauthorized}
-    end
+    true = Scope.has_permission?(scope, "school_management")
+    Repo.delete(class_staff_member)
   end
 
   @doc """

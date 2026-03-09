@@ -1,8 +1,8 @@
 defmodule Lanttern.SchoolsTest do
   use Lanttern.DataCase
 
-  alias Lanttern.Schools
   alias Lanttern.Identity.Scope
+  alias Lanttern.Schools
   import Lanttern.Factory
   import Lanttern.SchoolsFixtures
   import Lanttern.IdentityFixtures
@@ -1576,10 +1576,10 @@ defmodule Lanttern.SchoolsTest do
       result = Schools.list_class_staff_members(%Scope{school_id: school.id}, class.id)
 
       # Should be ordered by position
-      assert length(result) == 3
-      assert Enum.at(result, 0).id == staff_member_1.id
-      assert Enum.at(result, 1).id == staff_member_2.id
-      assert Enum.at(result, 2).id == staff_member_3.id
+      assert [r0, r1, r2] = result
+      assert r0.id == staff_member_1.id
+      assert r1.id == staff_member_2.id
+      assert r2.id == staff_member_3.id
     end
 
     test "list_class_staff_members/2 filters out deactivated staff members" do
@@ -1599,8 +1599,8 @@ defmodule Lanttern.SchoolsTest do
 
       result = Schools.list_class_staff_members(%Scope{school_id: school.id}, class.id)
 
-      assert length(result) == 1
-      assert hd(result).id == active_staff.id
+      assert [r0] = result
+      assert r0.id == active_staff.id
     end
 
     test "list_class_staff_members/2 includes class_role and position virtual fields" do
@@ -1677,10 +1677,10 @@ defmodule Lanttern.SchoolsTest do
       result = Schools.list_staff_member_classes(%Scope{school_id: school.id}, staff_member)
 
       # Should be ordered by position
-      assert length(result) == 3
-      assert Enum.at(result, 0).class.id == class_1.id
-      assert Enum.at(result, 1).class.id == class_2.id
-      assert Enum.at(result, 2).class.id == class_3.id
+      assert [r0, r1, r2] = result
+      assert r0.class.id == class_1.id
+      assert r1.class.id == class_2.id
+      assert r2.class.id == class_3.id
     end
 
     test "add_staff_member_to_class/3 creates a class staff member relationship" do
@@ -1769,6 +1769,7 @@ defmodule Lanttern.SchoolsTest do
           staff_member_id: staff_member.id,
           role: "Teacher"
         })
+        |> Repo.preload(:class)
 
       scope = %Scope{school_id: school.id, permissions: ["school_management"]}
 
@@ -1789,6 +1790,7 @@ defmodule Lanttern.SchoolsTest do
           staff_member_id: staff_member.id,
           position: 0
         })
+        |> Repo.preload(:class)
 
       scope = %Scope{school_id: school.id, permissions: ["school_management"]}
 
@@ -1798,34 +1800,48 @@ defmodule Lanttern.SchoolsTest do
       assert updated_csm.position == 5
     end
 
-    test "update_class_staff_member/3 returns unauthorized if scope lacks school_management permission" do
+    test "update_class_staff_member/3 raises MatchError if scope lacks school_management permission" do
       school = school_fixture()
       class = class_fixture(%{school_id: school.id})
       staff_member = staff_member_fixture(%{school_id: school.id})
-      csm = class_staff_member_fixture(%{class_id: class.id, staff_member_id: staff_member.id})
+
+      csm =
+        class_staff_member_fixture(%{class_id: class.id, staff_member_id: staff_member.id})
+        |> Repo.preload(:class)
+
       scope = %Scope{school_id: school.id, permissions: []}
 
-      assert {:error, :unauthorized} =
-               Schools.update_class_staff_member(scope, csm, %{role: "Lead Teacher"})
+      assert_raise MatchError, fn ->
+        Schools.update_class_staff_member(scope, csm, %{role: "Lead Teacher"})
+      end
     end
 
-    test "update_class_staff_member/3 returns unauthorized if class belongs to a different school" do
+    test "update_class_staff_member/3 raises FunctionClauseError if class belongs to a different school" do
       school_1 = school_fixture()
       school_2 = school_fixture()
       class = class_fixture(%{school_id: school_2.id})
       staff_member = staff_member_fixture(%{school_id: school_2.id})
-      csm = class_staff_member_fixture(%{class_id: class.id, staff_member_id: staff_member.id})
+
+      csm =
+        class_staff_member_fixture(%{class_id: class.id, staff_member_id: staff_member.id})
+        |> Repo.preload(:class)
+
       scope = %Scope{school_id: school_1.id, permissions: ["school_management"]}
 
-      assert {:error, :unauthorized} =
-               Schools.update_class_staff_member(scope, csm, %{role: "Lead Teacher"})
+      assert_raise FunctionClauseError, fn ->
+        Schools.update_class_staff_member(scope, csm, %{role: "Lead Teacher"})
+      end
     end
 
     test "remove_staff_member_from_class/2 deletes the relationship" do
       school = school_fixture()
       class = class_fixture(%{school_id: school.id})
       staff_member = staff_member_fixture(%{school_id: school.id})
-      csm = class_staff_member_fixture(%{class_id: class.id, staff_member_id: staff_member.id})
+
+      csm =
+        class_staff_member_fixture(%{class_id: class.id, staff_member_id: staff_member.id})
+        |> Repo.preload(:class)
+
       scope = %Scope{school_id: school.id, permissions: ["school_management"]}
 
       assert {:ok, %ClassStaffMember{}} = Schools.remove_staff_member_from_class(scope, csm)
@@ -1835,25 +1851,37 @@ defmodule Lanttern.SchoolsTest do
       end
     end
 
-    test "remove_staff_member_from_class/2 returns unauthorized if scope lacks school_management permission" do
+    test "remove_staff_member_from_class/2 raises MatchError if scope lacks school_management permission" do
       school = school_fixture()
       class = class_fixture(%{school_id: school.id})
       staff_member = staff_member_fixture(%{school_id: school.id})
-      csm = class_staff_member_fixture(%{class_id: class.id, staff_member_id: staff_member.id})
+
+      csm =
+        class_staff_member_fixture(%{class_id: class.id, staff_member_id: staff_member.id})
+        |> Repo.preload(:class)
+
       scope = %Scope{school_id: school.id, permissions: []}
 
-      assert {:error, :unauthorized} = Schools.remove_staff_member_from_class(scope, csm)
+      assert_raise MatchError, fn ->
+        Schools.remove_staff_member_from_class(scope, csm)
+      end
     end
 
-    test "remove_staff_member_from_class/2 returns unauthorized if class belongs to a different school" do
+    test "remove_staff_member_from_class/2 raises FunctionClauseError if class belongs to a different school" do
       school_1 = school_fixture()
       school_2 = school_fixture()
       class = class_fixture(%{school_id: school_2.id})
       staff_member = staff_member_fixture(%{school_id: school_2.id})
-      csm = class_staff_member_fixture(%{class_id: class.id, staff_member_id: staff_member.id})
+
+      csm =
+        class_staff_member_fixture(%{class_id: class.id, staff_member_id: staff_member.id})
+        |> Repo.preload(:class)
+
       scope = %Scope{school_id: school_1.id, permissions: ["school_management"]}
 
-      assert {:error, :unauthorized} = Schools.remove_staff_member_from_class(scope, csm)
+      assert_raise FunctionClauseError, fn ->
+        Schools.remove_staff_member_from_class(scope, csm)
+      end
     end
 
     test "update_class_staff_members_positions/3 updates positions based on ids order" do

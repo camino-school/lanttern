@@ -194,7 +194,8 @@ defmodule LantternWeb.StaffMemberLive.ClassesComponent do
     csm =
       Schools.get_class_staff_member!(
         socket.assigns.current_scope,
-        socket.assigns.editing_role_for
+        socket.assigns.editing_role_for,
+        preloads: :class
       )
 
     case Schools.update_class_staff_member(
@@ -226,7 +227,7 @@ defmodule LantternWeb.StaffMemberLive.ClassesComponent do
   end
 
   def handle_event("remove", %{"id" => id}, socket) do
-    csm = Schools.get_class_staff_member!(socket.assigns.current_scope, id)
+    csm = Schools.get_class_staff_member!(socket.assigns.current_scope, id, preloads: :class)
 
     case Schools.remove_staff_member_from_class(socket.assigns.current_scope, csm) do
       {:ok, _} ->

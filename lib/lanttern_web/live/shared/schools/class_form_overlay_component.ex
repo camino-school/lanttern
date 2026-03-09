@@ -286,17 +286,7 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponent do
   defp assign_staff_members(socket), do: socket
 
   defp list_staff_members_for_class(scope, class_id) do
-    staff_with_position = Schools.list_class_staff_members(scope, class_id)
-
-    if staff_with_position == [] do
-      []
-    else
-      staff_member_ids = Enum.map(staff_with_position, & &1.id)
-
-      staff_member_ids
-      |> then(&Schools.list_staff_members(staff_members_ids: &1, only_active: true))
-      |> Enum.sort_by(&Enum.find_index(staff_member_ids, fn id -> id == &1.id end))
-    end
+    Schools.list_class_staff_members(scope, class_id)
   end
 
   # event handlers
@@ -468,7 +458,6 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponent do
            staff_member_ids
          ) do
       :ok ->
-        Logger.debug("Successfully updated staff member positions")
         :ok
 
       {:error, reason} ->
