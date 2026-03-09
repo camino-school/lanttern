@@ -8,7 +8,7 @@ defmodule Lanttern.Grading.Scale do
   import Lanttern.SchemaHelpers, only: [validate_hex_color: 3]
 
   alias Lanttern.Grading.OrdinalValue
-  alias Lanttern.School
+  alias Lanttern.Schools.School
 
   @type t :: %__MODULE__{
           id: pos_integer(),
@@ -39,7 +39,6 @@ defmodule Lanttern.Grading.Scale do
     field :stop_bg_color, :string
     field :stop_text_color, :string
     field :breakpoints, {:array, :float}
-    field :school_id, :id
     field :disabled_at, :utc_datetime
 
     has_many :ordinal_values, OrdinalValue, preload_order: [asc: :normalized_value, asc: :name]
