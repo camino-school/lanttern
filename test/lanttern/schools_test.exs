@@ -1554,28 +1554,12 @@ defmodule Lanttern.SchoolsTest do
       staff_member_2 = staff_member_fixture(%{school_id: school.id, name: "Staff B"})
       staff_member_3 = staff_member_fixture(%{school_id: school.id, name: "Staff C"})
 
-      # Create associations with specific positions
-      class_staff_member_fixture(%{
-        class_id: class.id,
-        staff_member_id: staff_member_2.id,
-        position: 1
-      })
-
-      class_staff_member_fixture(%{
-        class_id: class.id,
-        staff_member_id: staff_member_1.id,
-        position: 0
-      })
-
-      class_staff_member_fixture(%{
-        class_id: class.id,
-        staff_member_id: staff_member_3.id,
-        position: 2
-      })
+      insert(:class_staff_member, class: class, staff_member: staff_member_2, position: 1)
+      insert(:class_staff_member, class: class, staff_member: staff_member_1, position: 0)
+      insert(:class_staff_member, class: class, staff_member: staff_member_3, position: 2)
 
       result = Schools.list_class_staff_members(%Scope{school_id: school.id}, class.id)
 
-      # Should be ordered by position
       assert [r0, r1, r2] = result
       assert r0.id == staff_member_1.id
       assert r1.id == staff_member_2.id
@@ -1590,12 +1574,8 @@ defmodule Lanttern.SchoolsTest do
       deactivated_staff =
         staff_member_fixture(%{school_id: school.id, deactivated_at: DateTime.utc_now()})
 
-      class_staff_member_fixture(%{class_id: class.id, staff_member_id: active_staff.id})
-
-      class_staff_member_fixture(%{
-        class_id: class.id,
-        staff_member_id: deactivated_staff.id
-      })
+      insert(:class_staff_member, class: class, staff_member: active_staff)
+      insert(:class_staff_member, class: class, staff_member: deactivated_staff)
 
       result = Schools.list_class_staff_members(%Scope{school_id: school.id}, class.id)
 
@@ -1608,12 +1588,12 @@ defmodule Lanttern.SchoolsTest do
       class = class_fixture(%{school_id: school.id})
       staff_member = staff_member_fixture(%{school_id: school.id})
 
-      class_staff_member_fixture(%{
-        class_id: class.id,
-        staff_member_id: staff_member.id,
+      insert(:class_staff_member,
+        class: class,
+        staff_member: staff_member,
         role: "Lead Teacher",
         position: 5
-      })
+      )
 
       [result] = Schools.list_class_staff_members(%Scope{school_id: school.id}, class.id)
 
@@ -1626,7 +1606,6 @@ defmodule Lanttern.SchoolsTest do
       school = school_fixture()
       class = class_fixture(%{school_id: school.id})
       user = Lanttern.IdentityFixtures.user_fixture(%{email: "teacher@school.com"})
-
       staff_member = staff_member_fixture(%{school_id: school.id})
 
       _profile =
@@ -1635,10 +1614,7 @@ defmodule Lanttern.SchoolsTest do
           staff_member_id: staff_member.id
         })
 
-      class_staff_member_fixture(%{
-        class_id: class.id,
-        staff_member_id: staff_member.id
-      })
+      insert(:class_staff_member, class: class, staff_member: staff_member)
 
       [result] =
         Schools.list_class_staff_members(%Scope{school_id: school.id}, class.id, load_email: true)
@@ -1655,28 +1631,12 @@ defmodule Lanttern.SchoolsTest do
       class_2 = class_fixture(%{school_id: school.id, cycle_id: cycle.id, name: "Class B"})
       class_3 = class_fixture(%{school_id: school.id, cycle_id: cycle.id, name: "Class C"})
 
-      # Create associations with specific positions
-      class_staff_member_fixture(%{
-        class_id: class_2.id,
-        staff_member_id: staff_member.id,
-        position: 1
-      })
-
-      class_staff_member_fixture(%{
-        class_id: class_1.id,
-        staff_member_id: staff_member.id,
-        position: 0
-      })
-
-      class_staff_member_fixture(%{
-        class_id: class_3.id,
-        staff_member_id: staff_member.id,
-        position: 2
-      })
+      insert(:class_staff_member, class: class_2, staff_member: staff_member, position: 1)
+      insert(:class_staff_member, class: class_1, staff_member: staff_member, position: 0)
+      insert(:class_staff_member, class: class_3, staff_member: staff_member, position: 2)
 
       result = Schools.list_staff_member_classes(%Scope{school_id: school.id}, staff_member)
 
-      # Should be ordered by position
       assert [r0, r1, r2] = result
       assert r0.class.id == class_1.id
       assert r1.class.id == class_2.id
@@ -1762,15 +1722,7 @@ defmodule Lanttern.SchoolsTest do
       school = school_fixture()
       class = class_fixture(%{school_id: school.id})
       staff_member = staff_member_fixture(%{school_id: school.id})
-
-      csm =
-        class_staff_member_fixture(%{
-          class_id: class.id,
-          staff_member_id: staff_member.id,
-          role: "Teacher"
-        })
-        |> Repo.preload(:class)
-
+      csm = insert(:class_staff_member, class: class, staff_member: staff_member, role: "Teacher")
       scope = %Scope{school_id: school.id, permissions: ["school_management"]}
 
       assert {:ok, %ClassStaffMember{} = updated_csm} =
@@ -1783,15 +1735,7 @@ defmodule Lanttern.SchoolsTest do
       school = school_fixture()
       class = class_fixture(%{school_id: school.id})
       staff_member = staff_member_fixture(%{school_id: school.id})
-
-      csm =
-        class_staff_member_fixture(%{
-          class_id: class.id,
-          staff_member_id: staff_member.id,
-          position: 0
-        })
-        |> Repo.preload(:class)
-
+      csm = insert(:class_staff_member, class: class, staff_member: staff_member, position: 0)
       scope = %Scope{school_id: school.id, permissions: ["school_management"]}
 
       assert {:ok, %ClassStaffMember{} = updated_csm} =
@@ -1804,11 +1748,7 @@ defmodule Lanttern.SchoolsTest do
       school = school_fixture()
       class = class_fixture(%{school_id: school.id})
       staff_member = staff_member_fixture(%{school_id: school.id})
-
-      csm =
-        class_staff_member_fixture(%{class_id: class.id, staff_member_id: staff_member.id})
-        |> Repo.preload(:class)
-
+      csm = insert(:class_staff_member, class: class, staff_member: staff_member)
       scope = %Scope{school_id: school.id, permissions: []}
 
       assert_raise MatchError, fn ->
@@ -1821,11 +1761,7 @@ defmodule Lanttern.SchoolsTest do
       school_2 = school_fixture()
       class = class_fixture(%{school_id: school_2.id})
       staff_member = staff_member_fixture(%{school_id: school_2.id})
-
-      csm =
-        class_staff_member_fixture(%{class_id: class.id, staff_member_id: staff_member.id})
-        |> Repo.preload(:class)
-
+      csm = insert(:class_staff_member, class: class, staff_member: staff_member)
       scope = %Scope{school_id: school_1.id, permissions: ["school_management"]}
 
       assert_raise FunctionClauseError, fn ->
@@ -1837,11 +1773,7 @@ defmodule Lanttern.SchoolsTest do
       school = school_fixture()
       class = class_fixture(%{school_id: school.id})
       staff_member = staff_member_fixture(%{school_id: school.id})
-
-      csm =
-        class_staff_member_fixture(%{class_id: class.id, staff_member_id: staff_member.id})
-        |> Repo.preload(:class)
-
+      csm = insert(:class_staff_member, class: class, staff_member: staff_member)
       scope = %Scope{school_id: school.id, permissions: ["school_management"]}
 
       assert {:ok, %ClassStaffMember{}} = Schools.remove_staff_member_from_class(scope, csm)
@@ -1855,11 +1787,7 @@ defmodule Lanttern.SchoolsTest do
       school = school_fixture()
       class = class_fixture(%{school_id: school.id})
       staff_member = staff_member_fixture(%{school_id: school.id})
-
-      csm =
-        class_staff_member_fixture(%{class_id: class.id, staff_member_id: staff_member.id})
-        |> Repo.preload(:class)
-
+      csm = insert(:class_staff_member, class: class, staff_member: staff_member)
       scope = %Scope{school_id: school.id, permissions: []}
 
       assert_raise MatchError, fn ->
@@ -1872,11 +1800,7 @@ defmodule Lanttern.SchoolsTest do
       school_2 = school_fixture()
       class = class_fixture(%{school_id: school_2.id})
       staff_member = staff_member_fixture(%{school_id: school_2.id})
-
-      csm =
-        class_staff_member_fixture(%{class_id: class.id, staff_member_id: staff_member.id})
-        |> Repo.preload(:class)
-
+      csm = insert(:class_staff_member, class: class, staff_member: staff_member)
       scope = %Scope{school_id: school_1.id, permissions: ["school_management"]}
 
       assert_raise FunctionClauseError, fn ->
@@ -1892,9 +1816,9 @@ defmodule Lanttern.SchoolsTest do
       staff_3 = staff_member_fixture(%{school_id: school.id})
       scope = %Scope{school_id: school.id, permissions: ["school_management"]}
 
-      _csm_1 = class_staff_member_fixture(%{class_id: class.id, staff_member_id: staff_1.id})
-      _csm_2 = class_staff_member_fixture(%{class_id: class.id, staff_member_id: staff_2.id})
-      _csm_3 = class_staff_member_fixture(%{class_id: class.id, staff_member_id: staff_3.id})
+      insert(:class_staff_member, class: class, staff_member: staff_1)
+      insert(:class_staff_member, class: class, staff_member: staff_2)
+      insert(:class_staff_member, class: class, staff_member: staff_3)
 
       # Reorder: 3, 1, 2
       assert :ok =
@@ -1921,14 +1845,9 @@ defmodule Lanttern.SchoolsTest do
       class_2 = class_fixture(%{school_id: school.id, cycle_id: cycle.id})
       class_3 = class_fixture(%{school_id: school.id, cycle_id: cycle.id})
 
-      csm_1 =
-        class_staff_member_fixture(%{class_id: class_1.id, staff_member_id: staff_member.id})
-
-      csm_2 =
-        class_staff_member_fixture(%{class_id: class_2.id, staff_member_id: staff_member.id})
-
-      csm_3 =
-        class_staff_member_fixture(%{class_id: class_3.id, staff_member_id: staff_member.id})
+      csm_1 = insert(:class_staff_member, class: class_1, staff_member: staff_member)
+      csm_2 = insert(:class_staff_member, class: class_2, staff_member: staff_member)
+      csm_3 = insert(:class_staff_member, class: class_3, staff_member: staff_member)
 
       # Reorder: 3, 1, 2
       assert :ok =

@@ -8,6 +8,7 @@ defmodule Lanttern.Schools.Class do
   import Ecto.Query, only: [from: 2]
   use Gettext, backend: Lanttern.Gettext
 
+  alias Lanttern.Identity.Scope
   alias Lanttern.Repo
 
   alias Lanttern.Schools.Cycle
@@ -69,10 +70,10 @@ defmodule Lanttern.Schools.Class do
     |> put_years()
   end
 
-  def changeset(class, attrs, scope) do
+  def changeset(class, attrs, %Scope{school_id: school_id}) do
     class
     |> cast(attrs, [:name, :students_ids, :years_ids, :staff_members_ids, :cycle_id])
-    |> put_change(:school_id, scope.school_id)
+    |> put_change(:school_id, school_id)
     |> validate_required([:name, :cycle_id])
     |> foreign_key_constraint(
       :cycle_id,

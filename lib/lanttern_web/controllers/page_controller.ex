@@ -1,6 +1,10 @@
 defmodule LantternWeb.PageController do
   use LantternWeb, :controller
 
+  def redirect_class_students(conn, %{"id" => id}) do
+    redirect(conn, to: ~p"/school/classes/#{id}/people")
+  end
+
   def home(conn, _params) do
     google_client_id =
       Application.fetch_env!(:lanttern, LantternWeb.UserAuth)

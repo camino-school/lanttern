@@ -54,6 +54,9 @@ defmodule LantternWeb.Router do
   scope "/", LantternWeb do
     pipe_through [:browser, :require_authenticated_user, :require_privacy_policy_accepted]
 
+    # Redirect old /students tab URL to the unified /people tab
+    get "/school/classes/:id/students", PageController, :redirect_class_students
+
     live_session :authenticated_staff_member,
       on_mount: [
         {LantternWeb.UserAuth, :ensure_authenticated_staff_member},

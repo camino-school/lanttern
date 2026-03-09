@@ -648,6 +648,20 @@ defmodule Lanttern.Schools do
     |> Repo.insert()
   end
 
+  @doc """
+  Creates a class, scoped to the given scope's school.
+
+  Requires the `"school_management"` permission.
+
+  ## Examples
+
+      iex> create_class(scope, %{name: "7A", cycle_id: 1})
+      {:ok, %Class{}}
+
+      iex> create_class(scope, %{name: nil})
+      {:error, %Ecto.Changeset{}}
+
+  """
   def create_class(%Scope{} = scope, attrs) do
     true = Scope.has_permission?(scope, "school_management")
     %Class{} |> Class.changeset(attrs, scope) |> Repo.insert()
@@ -672,6 +686,20 @@ defmodule Lanttern.Schools do
     |> Repo.update()
   end
 
+  @doc """
+  Updates a class, scoped to the given scope's school.
+
+  Requires the `"school_management"` permission.
+
+  ## Examples
+
+      iex> update_class(scope, class, %{name: "7B"})
+      {:ok, %Class{}}
+
+      iex> update_class(scope, class, %{name: nil})
+      {:error, %Ecto.Changeset{}}
+
+  """
   def update_class(
         %Scope{school_id: school_id} = scope,
         %Class{school_id: school_id} = class,
@@ -1730,9 +1758,6 @@ defmodule Lanttern.Schools do
 
       iex> remove_staff_member_from_class(scope, class_staff_member)
       {:ok, %ClassStaffMember{}}
-
-      iex> remove_staff_member_from_class(scope, class_staff_member)
-      {:error, :unauthorized}
 
   """
   def remove_staff_member_from_class(
