@@ -6,8 +6,8 @@ defmodule LantternWeb.StaffMemberLiveTest do
   import Lanttern.Factory
   import PhoenixTest
 
-  alias Lanttern.SchoolsFixtures
   alias Lanttern.Schools.School
+  alias Lanttern.SchoolsFixtures
 
   @live_view_base_path "/school/staff"
 
@@ -171,7 +171,6 @@ defmodule LantternWeb.StaffMemberLiveTest do
 
       conn
       |> visit("#{@live_view_base_path}/#{staff_member.id}/classes")
-      |> assert_has("h3", text: "Classes")
       |> assert_has("div", text: "Not linked to any class")
     end
 
@@ -188,14 +187,14 @@ defmodule LantternWeb.StaffMemberLiveTest do
       |> assert_has("div", text: "Class XYZ")
     end
 
-    test "school manager sees 'Add to class' button", context do
+    test "school manager sees 'Link to class' button", context do
       %{conn: conn, user: user} = set_user_permissions(["school_management"], context)
       school = Repo.get!(School, user.current_profile.school_id)
       staff_member = insert(:staff_member, school: school)
 
       conn
       |> visit("#{@live_view_base_path}/#{staff_member.id}/classes")
-      |> assert_has("button", text: "Add to class")
+      |> assert_has("button", text: "Link to class")
     end
 
     test "user without school management does not see 'Add to class' button", %{
@@ -222,7 +221,9 @@ defmodule LantternWeb.StaffMemberLiveTest do
       conn
       |> visit("#{@live_view_base_path}/#{staff_member.id}/classes")
       |> assert_has("div", text: "Removable Class")
-      |> click_button("Remove from class")
+      |> click_button("Edit class link")
+      |> assert_has("#edit-class-staff-member-modal")
+      |> click_button("Unlink")
       |> refute_has("div", text: "Removable Class")
     end
   end

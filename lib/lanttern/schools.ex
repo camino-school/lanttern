@@ -1655,7 +1655,10 @@ defmodule Lanttern.Schools do
   end
 
   @doc """
-  Returns the list of classes for a staff member, ordered by position.
+  Returns the list of `ClassStaffMember`s for the given staff member,
+  ordered by class cycle desc and class name.
+
+  Preloads class with cycle.
 
   ## Examples
 
@@ -1667,11 +1670,13 @@ defmodule Lanttern.Schools do
         %Scope{school_id: school_id},
         %StaffMember{school_id: school_id} = staff_member
       ) do
-    from(csm in ClassStaffMember,
+    from(
+      csm in ClassStaffMember,
       join: c in assoc(csm, :class),
+      join: cy in assoc(c, :cycle),
       where: csm.staff_member_id == ^staff_member.id,
-      order_by: [asc: csm.position],
-      preload: [class: {c, [:school, :cycle]}]
+      order_by: [desc: cy.start_at, asc: c.name],
+      preload: [class: {c, [cycle: cy]}]
     )
     |> Repo.all()
   end
@@ -1704,11 +1709,11 @@ defmodule Lanttern.Schools do
 
   ## Examples
 
-      iex> add_staff_member_to_class(scope, class, staff_member)
+      iex> create_class_staff_member(scope, class, staff_member)
       {:ok, %ClassStaffMember{}}
 
   """
-  def add_staff_member_to_class(
+  def create_class_staff_member(
         %Scope{school_id: school_id} = scope,
         %Class{school_id: school_id} = class,
         %StaffMember{school_id: school_id} = staff_member
@@ -1756,11 +1761,11 @@ defmodule Lanttern.Schools do
 
   ## Examples
 
-      iex> remove_staff_member_from_class(scope, class_staff_member)
+      iex> delete_class_staff_member(scope, class_staff_member)
       {:ok, %ClassStaffMember{}}
 
   """
-  def remove_staff_member_from_class(
+  def delete_class_staff_member(
         %Scope{school_id: school_id} = scope,
         %ClassStaffMember{class: %Class{school_id: school_id}} = class_staff_member
       ) do
@@ -1773,11 +1778,11 @@ defmodule Lanttern.Schools do
 
   ## Examples
 
-      iex> update_class_staff_members_positions(scope, class_id, [3, 2, 1])
+      iex> update_classes_staff_members_positions(scope, class_id, [3, 2, 1])
       :ok
 
   """
-  def update_class_staff_members_positions(
+  def update_classes_staff_members_positions(
         %Scope{school_id: school_id} = scope,
         %Class{school_id: school_id} = class,
         ids_list

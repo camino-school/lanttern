@@ -445,7 +445,7 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponent do
   defp update_positions_after_save(%Class{} = class, socket) do
     staff_member_ids = Enum.map(socket.assigns.staff_members, & &1.id)
 
-    case Schools.update_class_staff_members_positions(
+    case Schools.update_classes_staff_members_positions(
            socket.assigns.current_scope,
            class,
            staff_member_ids

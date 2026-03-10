@@ -4,87 +4,131 @@ defmodule LantternWeb.StaffMemberLive.ClassesComponent do
   alias Lanttern.Schools
   alias LantternWeb.Schools.ClassSearchComponent
 
-  # shared components
-  import LantternWeb.SchoolsComponents
-
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="container mx-auto">
-      <div class="py-6 px-4 lg:px-0">
-        <h3 class="font-display font-bold text-2xl">
-          {gettext("Classes")}
-        </h3>
-      </div>
-      <div class="flex justify-between gap-6 p-4 bg-white rounded-t">
-        <div>
-          {ngettext("1 class", "%{count} classes", @classes_length)}
+    <div>
+      <.responsive_container class="p-4">
+        <div class="flex items-center justify-between gap-6 mb-6">
+          <div>
+            {ngettext("1 class", "%{count} classes", @smcr_length)}
+          </div>
+          <.button
+            :if={@is_school_manager}
+            type="button"
+            phx-click={JS.push("link_class", target: @myself)}
+          >
+            {gettext("Link to class")}
+          </.button>
         </div>
-        <.action
-          :if={@is_school_manager}
-          type="button"
-          icon_name="hero-plus-circle-mini"
-          phx-click="show_class_search"
-          phx-target={@myself}
-        >
-          {gettext("Add to class")}
-        </.action>
-      </div>
-      <%= if @classes_length == 0 do %>
-        <.empty_state class="px-4 py-10 bg-white">
-          {gettext("Not linked to any class")}
-        </.empty_state>
-      <% else %>
-        <.fluid_grid
-          id="staff-classes"
-          phx-update="stream"
-          is_full_width
-          class="p-4 bg-white"
-        >
-          <.class_card_for_staff
-            :for={{dom_id, csm} <- @streams.classes}
-            id={dom_id}
-            data-id={csm.id}
-            class_staff_member={csm}
-            show_actions={@is_school_manager}
-            on_edit_role={JS.push("edit_role", value: %{id: csm.id}, target: @myself)}
-            on_remove={JS.push("remove", value: %{id: csm.id}, target: @myself)}
-          />
-        </.fluid_grid>
-      <% end %>
-      <div class={unless @show_class_search, do: "hidden"}>
-        <form>
+        <%= if @smcr_length == 0 do %>
+          <.empty_state class="px-4 py-10">
+            {gettext("Not linked to any class")}
+          </.empty_state>
+        <% else %>
+          <.responsive_grid
+            id="staff-member-classes"
+            phx-update="stream"
+          >
+            <.card_base
+              :for={{dom_id, smcr} <- @streams.smcr}
+              id={dom_id}
+              class="flex items-center gap-4 p-4"
+            >
+              <div class="min-w-0 flex-1">
+                <.link
+                  navigate={~p"/school/classes/#{smcr.class}/people"}
+                  class="font-bold text-lg hover:text-ltrn-subtle"
+                >
+                  {smcr.class.name} ({smcr.class.cycle.name})
+                </.link>
+                <div :if={smcr.role} class="flex flex-wrap gap-1 mt-2">
+                  <.badge>{smcr.role}</.badge>
+                </div>
+              </div>
+              <div class="flex gap-2">
+                <.button
+                  type="button"
+                  icon_name="hero-pencil-mini"
+                  sr_text={gettext("Edit class link")}
+                  rounded
+                  size="sm"
+                  theme="ghost"
+                  phx-click={JS.push("edit", value: %{id: smcr.id}, target: @myself)}
+                />
+              </div>
+            </.card_base>
+          </.responsive_grid>
+        <% end %>
+      </.responsive_container>
+      <.modal
+        :if={@is_linking}
+        id="link-staff-member-to-class-overlay"
+        show
+        on_cancel={JS.push("cancel_link_class", target: @myself)}
+      >
+        <:title>{gettext("Select class to link")}</:title>
+        <.badge_button_picker
+          on_select={
+            &JS.push("link_to_class",
+              value: %{"id" => &1},
+              target: @myself
+            )
+          }
+          items={@classes}
+          selected_ids={[]}
+          label_setter="class_with_cycle"
+          current_user={@current_user}
+        />
+        <form class="mt-6">
           <.live_component
             module={ClassSearchComponent}
-            id="class-search"
-            school_id={@staff_member.school_id}
-            exclude_ids={@linked_class_ids}
+            id="link-to-class-search"
+            school_id={@current_scope.school_id}
+            exclude_ids={@linked_classes_ids}
             notify_component={@myself}
+            label={gettext("Search all school classes")}
           />
         </form>
-      </div>
+      </.modal>
       <.modal
-        :if={@editing_role_for}
-        id="edit-role-modal"
+        :if={@class_staff_member}
+        id="edit-class-staff-member-modal"
         show
-        on_cancel={JS.push("cancel_edit_role", target: @myself)}
+        on_cancel={JS.push("cancel_edit", target: @myself)}
       >
-        <.header>
-          {gettext("Edit role in class")}
-        </.header>
-        <.form for={@role_form} phx-submit="update_role" phx-target={@myself}>
+        <:title>{gettext("Edit class link")}</:title>
+        <.form
+          for={@class_staff_member_form}
+          phx-submit="update_class_staff_member"
+          phx-target={@myself}
+        >
           <.input
-            field={@role_form[:role]}
-            label={gettext("Role in class")}
+            field={@class_staff_member_form[:role]}
+            label={gettext("Teacher role in %{class}", class: @class_staff_member.class.name)}
             placeholder={gettext("e.g., Lead Teacher, Assistant, etc.")}
             phx-debounce="blur"
           />
-          <.input type="hidden" field={@role_form[:id]} />
-          <div class="flex gap-2 mt-6 justify-end">
-            <.button type="button" phx-click="cancel_edit_role" phx-target={@myself} theme="ghost">
-              {gettext("Cancel")}
+          <.input type="hidden" field={@class_staff_member_form[:id]} />
+          <div class="flex gap-4 mt-6 justify-between">
+            <.button
+              type="button"
+              phx-click={JS.push("unlink", target: @myself)}
+              theme="ghost"
+              data-confirm={gettext("Are you sure?")}
+            >
+              {gettext("Unlink")}
             </.button>
-            <.button type="submit">{gettext("Save")}</.button>
+            <div class="flex gap-2">
+              <.button
+                type="button"
+                phx-click={JS.push("cancel_edit", target: @myself)}
+                theme="ghost"
+              >
+                {gettext("Cancel")}
+              </.button>
+              <.button type="submit">{gettext("Save")}</.button>
+            </div>
           </div>
         </.form>
       </.modal>
@@ -96,40 +140,19 @@ defmodule LantternWeb.StaffMemberLive.ClassesComponent do
 
   @impl true
   def mount(socket) do
-    {:ok,
-     socket
-     |> assign(:initialized, false)
-     |> assign(:show_class_search, false)
-     |> assign(:editing_role_for, nil)
-     |> assign(:linked_class_ids, [])}
+    socket =
+      socket
+      |> assign(:initialized, false)
+      |> assign(:is_linking, false)
+      |> assign(:class_staff_member, nil)
+      |> assign(:linked_classes_ids, [])
+
+    {:ok, socket}
   end
 
   @impl true
   def update(%{action: {ClassSearchComponent, {:selected, class}}}, socket) do
-    case Schools.add_staff_member_to_class(
-           socket.assigns.current_scope,
-           class,
-           socket.assigns.staff_member
-         ) do
-      {:ok, _} ->
-        socket =
-          socket
-          |> assign(:show_class_search, false)
-          |> stream_staff_classes()
-          |> put_flash(:info, gettext("Added to class successfully"))
-
-        send(self(), {__MODULE__, {:class_added, class}})
-        {:ok, socket}
-
-      {:error, %Ecto.Changeset{} = changeset} ->
-        error_message =
-          case changeset.errors do
-            [{:staff_member_id, {msg, _}} | _] -> msg
-            _ -> gettext("Failed to add to class")
-          end
-
-        {:ok, put_flash(socket, :error, error_message)}
-    end
+    {:ok, create_class_staff_member(socket, class)}
   end
 
   def update(assigns, socket) do
@@ -143,67 +166,78 @@ defmodule LantternWeb.StaffMemberLive.ClassesComponent do
 
   defp initialize(%{assigns: %{initialized: false}} = socket) do
     socket
-    |> stream_staff_classes()
+    |> stream_staff_member_classes()
+    |> assign_classes()
     |> assign(:initialized, true)
   end
 
   defp initialize(socket), do: socket
 
-  defp stream_staff_classes(socket) do
-    classes =
+  defp stream_staff_member_classes(socket) do
+    smcr =
       Schools.list_staff_member_classes(
         socket.assigns.current_scope,
         socket.assigns.staff_member
       )
 
     socket
-    |> stream(:classes, classes, reset: true)
-    |> assign(:classes_length, length(classes))
-    |> assign(:linked_class_ids, Enum.map(classes, & &1.class_id))
+    |> stream(:smcr, smcr, reset: true)
+    |> assign(:smcr_length, length(smcr))
+    |> assign(:linked_classes_ids, Enum.map(smcr, & &1.class_id))
+  end
+
+  defp assign_classes(socket) do
+    classes =
+      Schools.list_classes(
+        schools_ids: [socket.assigns.current_scope.school_id],
+        cycles_ids: [socket.assigns.current_user.current_profile.current_school_cycle.id]
+      )
+      |> Enum.reject(&(&1.id in socket.assigns.linked_classes_ids))
+
+    assign(socket, :classes, classes)
   end
 
   # event handlers
 
   @impl true
-  def handle_event("show_class_search", _params, socket) do
-    {:noreply,
-     socket
-     |> assign(:show_class_search, true)
-     |> push_event("autocomplete_reset:class-search", %{})}
+  def handle_event("link_class", _params, socket) do
+    {:noreply, assign(socket, :is_linking, true)}
   end
 
-  def handle_event("edit_role", %{"id" => id}, socket) do
-    csm =
+  def handle_event("cancel_link_class", _params, socket) do
+    {:noreply, assign(socket, :is_linking, false)}
+  end
+
+  def handle_event("link_to_class", %{"id" => class_id}, socket) do
+    class = Enum.find(socket.assigns.classes, &(&1.id == class_id))
+    {:noreply, create_class_staff_member(socket, class)}
+  end
+
+  def handle_event("edit", %{"id" => id}, socket) do
+    csmr =
       Schools.get_class_staff_member!(socket.assigns.current_scope, id, preloads: :class)
 
     form =
-      csm
+      csmr
       |> Ecto.Changeset.change(%{})
       |> to_form()
 
     socket =
       socket
-      |> assign(:editing_role_for, csm.id)
-      |> assign(:role_form, form)
+      |> assign(:class_staff_member, csmr)
+      |> assign(:class_staff_member_form, form)
 
     {:noreply, socket}
   end
 
-  def handle_event("cancel_edit_role", _params, socket) do
-    {:noreply, assign(socket, :editing_role_for, nil)}
+  def handle_event("cancel_edit", _params, socket) do
+    {:noreply, assign(socket, :class_staff_member, nil)}
   end
 
-  def handle_event("update_role", %{"class_staff_member" => params}, socket) do
-    csm =
-      Schools.get_class_staff_member!(
-        socket.assigns.current_scope,
-        socket.assigns.editing_role_for,
-        preloads: :class
-      )
-
+  def handle_event("update_class_staff_member", %{"class_staff_member" => params}, socket) do
     case Schools.update_class_staff_member(
            socket.assigns.current_scope,
-           csm,
+           socket.assigns.class_staff_member,
            params
          ) do
       {:ok, updated_csm} ->
@@ -212,39 +246,41 @@ defmodule LantternWeb.StaffMemberLive.ClassesComponent do
           Schools.get_class_staff_member!(
             socket.assigns.current_scope,
             updated_csm.id,
-            preloads: [class: [:school, :cycle]]
+            preloads: [class: [:cycle]]
           )
 
         socket =
           socket
-          |> stream_insert(:classes, updated_csm)
-          |> assign(:editing_role_for, nil)
+          |> stream_insert(:smcr, updated_csm)
+          |> assign(:class_staff_member, nil)
           |> put_flash(:info, gettext("Role updated successfully"))
 
         send(self(), {__MODULE__, {:role_updated, updated_csm}})
         {:noreply, socket}
 
       {:error, changeset} ->
-        {:noreply, assign(socket, :role_form, to_form(changeset))}
+        {:noreply, assign(socket, :class_staff_member_form, to_form(changeset))}
     end
   end
 
-  def handle_event("remove", %{"id" => id}, socket) do
-    csm = Schools.get_class_staff_member!(socket.assigns.current_scope, id, preloads: :class)
-
-    case Schools.remove_staff_member_from_class(socket.assigns.current_scope, csm) do
-      {:ok, _} ->
+  def handle_event("unlink", _params, socket) do
+    Schools.delete_class_staff_member(
+      socket.assigns.current_scope,
+      socket.assigns.class_staff_member
+    )
+    |> case do
+      {:ok, csm} ->
         socket =
           socket
-          |> stream_delete(:classes, csm)
-          |> assign(:classes_length, socket.assigns.classes_length - 1)
+          |> stream_delete(:smcr, csm)
+          |> assign(:class_staff_member, nil)
+          |> assign(:smcr_length, socket.assigns.smcr_length - 1)
           |> assign(
-            :linked_class_ids,
-            Enum.reject(socket.assigns.linked_class_ids, &(&1 == csm.class_id))
+            :linked_classes_ids,
+            Enum.reject(socket.assigns.linked_classes_ids, &(&1 == csm.class_id))
           )
           |> put_flash(:info, gettext("Removed from class successfully"))
 
-        send(self(), {__MODULE__, {:class_removed, csm}})
         {:noreply, socket}
 
       {:error, _} ->
@@ -252,4 +288,26 @@ defmodule LantternWeb.StaffMemberLive.ClassesComponent do
     end
   end
 
+  defp create_class_staff_member(socket, class) do
+    case Schools.create_class_staff_member(
+           socket.assigns.current_scope,
+           class,
+           socket.assigns.staff_member
+         ) do
+      {:ok, _} ->
+        socket
+        |> assign(:is_linking, false)
+        |> stream_staff_member_classes()
+        |> delegate_navigation(put_flash: {:info, gettext("Class linked successfully")})
+
+      {:error, %Ecto.Changeset{} = changeset} ->
+        error_message =
+          case changeset.errors do
+            [{:staff_member_id, {msg, _}} | _] -> msg
+            _ -> gettext("Failed to add to class")
+          end
+
+        delegate_navigation(socket, put_flash: {:error, error_message})
+    end
+  end
 end

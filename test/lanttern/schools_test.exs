@@ -1631,7 +1631,11 @@ defmodule Lanttern.SchoolsTest do
       insert(:class_staff_member, class: class_1, staff_member: staff_member, position: 0)
       insert(:class_staff_member, class: class_3, staff_member: staff_member, position: 2)
 
-      result = Schools.list_staff_member_classes(%Scope{school_id: school.id}, staff_member)
+      result =
+        Schools.list_staff_member_classes(
+          %Scope{school_id: school.id},
+          staff_member
+        )
 
       assert [r0, r1, r2] = result
       assert r0.class.id == class_1.id
@@ -1639,35 +1643,35 @@ defmodule Lanttern.SchoolsTest do
       assert r2.class.id == class_3.id
     end
 
-    test "add_staff_member_to_class/3 creates a class staff member relationship" do
+    test "create_class_staff_member/3 creates a class staff member relationship" do
       school = insert(:school)
       class = insert(:class, school: school)
       staff_member = insert(:staff_member, school: school)
       scope = %Scope{school_id: school.id, permissions: ["school_management"]}
 
       assert {:ok, %ClassStaffMember{} = csm} =
-               Schools.add_staff_member_to_class(scope, class, staff_member)
+               Schools.create_class_staff_member(scope, class, staff_member)
 
       assert csm.class_id == class.id
       assert csm.staff_member_id == staff_member.id
       assert csm.position == 0
     end
 
-    test "add_staff_member_to_class/3 auto-assigns position based on existing entries" do
+    test "create_class_staff_member/3 auto-assigns position based on existing entries" do
       school = insert(:school)
       class = insert(:class, school: school)
       staff_1 = insert(:staff_member, school: school)
       staff_2 = insert(:staff_member, school: school)
       scope = %Scope{school_id: school.id, permissions: ["school_management"]}
 
-      {:ok, csm_1} = Schools.add_staff_member_to_class(scope, class, staff_1)
-      {:ok, csm_2} = Schools.add_staff_member_to_class(scope, class, staff_2)
+      {:ok, csm_1} = Schools.create_class_staff_member(scope, class, staff_1)
+      {:ok, csm_2} = Schools.create_class_staff_member(scope, class, staff_2)
 
       assert csm_1.position == 0
       assert csm_2.position == 1
     end
 
-    test "add_staff_member_to_class/3 raises FunctionClauseError if staff and class are from different schools" do
+    test "create_class_staff_member/3 raises FunctionClauseError if staff and class are from different schools" do
       school_1 = insert(:school)
       school_2 = insert(:school)
       class = insert(:class, school: school_1)
@@ -1675,22 +1679,22 @@ defmodule Lanttern.SchoolsTest do
       scope = %Scope{school_id: school_1.id, permissions: ["school_management"]}
 
       assert_raise FunctionClauseError, fn ->
-        Schools.add_staff_member_to_class(scope, class, staff_member)
+        Schools.create_class_staff_member(scope, class, staff_member)
       end
     end
 
-    test "add_staff_member_to_class/3 returns MatchError if scope lacks school_management permission" do
+    test "create_class_staff_member/3 returns MatchError if scope lacks school_management permission" do
       school = insert(:school)
       class = insert(:class, school: school)
       staff_member = insert(:staff_member, school: school)
       scope = %Scope{school_id: school.id, permissions: []}
 
       assert_raise MatchError, fn ->
-        Schools.add_staff_member_to_class(scope, class, staff_member)
+        Schools.create_class_staff_member(scope, class, staff_member)
       end
     end
 
-    test "add_staff_member_to_class/3 raises FunctionClauseError if class belongs to a different school" do
+    test "create_class_staff_member/3 raises FunctionClauseError if class belongs to a different school" do
       school_1 = insert(:school)
       school_2 = insert(:school)
       class = insert(:class, school: school_2)
@@ -1698,20 +1702,20 @@ defmodule Lanttern.SchoolsTest do
       scope = %Scope{school_id: school_1.id, permissions: ["school_management"]}
 
       assert_raise FunctionClauseError, fn ->
-        Schools.add_staff_member_to_class(scope, class, staff_member)
+        Schools.create_class_staff_member(scope, class, staff_member)
       end
     end
 
-    test "add_staff_member_to_class/3 fails if duplicate relationship" do
+    test "create_class_staff_member/3 fails if duplicate relationship" do
       school = insert(:school)
       class = insert(:class, school: school)
       staff_member = insert(:staff_member, school: school)
       scope = %Scope{school_id: school.id, permissions: ["school_management"]}
 
-      Schools.add_staff_member_to_class(scope, class, staff_member)
+      Schools.create_class_staff_member(scope, class, staff_member)
 
       assert {:error, %Ecto.Changeset{}} =
-               Schools.add_staff_member_to_class(scope, class, staff_member)
+               Schools.create_class_staff_member(scope, class, staff_member)
     end
 
     test "update_class_staff_member/3 updates role" do
@@ -1765,21 +1769,22 @@ defmodule Lanttern.SchoolsTest do
       end
     end
 
-    test "remove_staff_member_from_class/2 deletes the relationship" do
+    test "delete_class_staff_member/2 deletes the relationship" do
       school = insert(:school)
       class = insert(:class, school: school)
       staff_member = insert(:staff_member, school: school)
       csm = insert(:class_staff_member, class: class, staff_member: staff_member)
       scope = %Scope{school_id: school.id, permissions: ["school_management"]}
 
-      assert {:ok, %ClassStaffMember{}} = Schools.remove_staff_member_from_class(scope, csm)
+      assert {:ok, %ClassStaffMember{}} =
+               Schools.delete_class_staff_member(scope, csm)
 
       assert_raise Ecto.NoResultsError, fn ->
         Schools.get_class_staff_member!(%Scope{school_id: school.id}, csm.id)
       end
     end
 
-    test "remove_staff_member_from_class/2 raises MatchError if scope lacks school_management permission" do
+    test "delete_class_staff_member/2 raises MatchError if scope lacks school_management permission" do
       school = insert(:school)
       class = insert(:class, school: school)
       staff_member = insert(:staff_member, school: school)
@@ -1787,11 +1792,11 @@ defmodule Lanttern.SchoolsTest do
       scope = %Scope{school_id: school.id, permissions: []}
 
       assert_raise MatchError, fn ->
-        Schools.remove_staff_member_from_class(scope, csm)
+        Schools.delete_class_staff_member(scope, csm)
       end
     end
 
-    test "remove_staff_member_from_class/2 raises FunctionClauseError if class belongs to a different school" do
+    test "delete_class_staff_member/2 raises FunctionClauseError if class belongs to a different school" do
       school_1 = insert(:school)
       school_2 = insert(:school)
       class = insert(:class, school: school_2)
@@ -1800,11 +1805,11 @@ defmodule Lanttern.SchoolsTest do
       scope = %Scope{school_id: school_1.id, permissions: ["school_management"]}
 
       assert_raise FunctionClauseError, fn ->
-        Schools.remove_staff_member_from_class(scope, csm)
+        Schools.delete_class_staff_member(scope, csm)
       end
     end
 
-    test "update_class_staff_members_positions/3 updates positions based on ids order" do
+    test "update_classes_staff_members_positions/3 updates positions based on ids order" do
       school = insert(:school)
       class = insert(:class, school: school)
       staff_1 = insert(:staff_member, school: school)
@@ -1818,7 +1823,7 @@ defmodule Lanttern.SchoolsTest do
 
       # Reorder: 3, 1, 2
       assert :ok =
-               Schools.update_class_staff_members_positions(scope, class, [
+               Schools.update_classes_staff_members_positions(scope, class, [
                  staff_3.id,
                  staff_1.id,
                  staff_2.id
@@ -1829,35 +1834,6 @@ defmodule Lanttern.SchoolsTest do
       assert Enum.at(result, 0).id == staff_3.id
       assert Enum.at(result, 1).id == staff_1.id
       assert Enum.at(result, 2).id == staff_2.id
-    end
-
-    test "update_staff_member_classes_positions/3 updates positions based on ids order" do
-      school = insert(:school)
-      staff_member = insert(:staff_member, school: school)
-      cycle = insert(:cycle, school: school)
-      scope = %Scope{school_id: school.id, permissions: ["school_management"]}
-
-      class_1 = insert(:class, school: school, cycle: cycle)
-      class_2 = insert(:class, school: school, cycle: cycle)
-      class_3 = insert(:class, school: school, cycle: cycle)
-
-      csm_1 = insert(:class_staff_member, class: class_1, staff_member: staff_member)
-      csm_2 = insert(:class_staff_member, class: class_2, staff_member: staff_member)
-      csm_3 = insert(:class_staff_member, class: class_3, staff_member: staff_member)
-
-      # Reorder: 3, 1, 2
-      assert :ok =
-               Schools.update_staff_member_classes_positions(scope, staff_member, [
-                 csm_3.id,
-                 csm_1.id,
-                 csm_2.id
-               ])
-
-      result = Schools.list_staff_member_classes(%Scope{school_id: school.id}, staff_member)
-
-      assert Enum.at(result, 0).class.id == class_3.id
-      assert Enum.at(result, 1).class.id == class_1.id
-      assert Enum.at(result, 2).class.id == class_2.id
     end
   end
 

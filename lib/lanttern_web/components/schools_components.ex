@@ -254,9 +254,11 @@ defmodule LantternWeb.SchoolsComponents do
             </div>
           <% end %>
         </div>
-        <div class="mt-1 font-sans text-sm text-ltrn-subtle">{@staff_member.role}</div>
-        <div :if={@class_role} class="flex flex-wrap gap-1 mt-2">
-          <.badge>{@class_role}</.badge>
+        <div class="flex flex-wrap gap-1 mt-2">
+          <.badge :if={@class_role}>{@class_role}</.badge>
+          <span :if={!@class_role} class="font-sans text-sm text-ltrn-subtle">
+            {@staff_member.role}
+          </span>
         </div>
         <div
           :if={@staff_member.email}
