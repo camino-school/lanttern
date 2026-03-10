@@ -42,7 +42,7 @@ defmodule Lanttern.Grading.Scale do
     field :deactivated_at, :utc_datetime
 
     has_many :ordinal_values, OrdinalValue, preload_order: [asc: :normalized_value, asc: :name]
-    belongs_to :school, Lanttern.School
+    belongs_to :school, Lanttern.Schools.School
 
     timestamps()
   end

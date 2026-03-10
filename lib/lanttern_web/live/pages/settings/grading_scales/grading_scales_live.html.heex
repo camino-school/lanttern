@@ -1,0 +1,40 @@
+<Layouts.admin flash={@flash}>
+  <.header>
+    Grading Scales
+    <:actions>
+      <.link navigate={~p"/settings/grading_scales/new"}>
+        <.button>New Scale</.button>
+      </.link>
+    </:actions>
+  </.header>
+
+  <.table :if={@live_action == :index} id="scales" rows={@scales} row_click={&JS.navigate(~p"/settings/grading_scales/#{&1}")}>
+    <:col :let={scale} label="Name">{scale.name}</:col>
+    <:col :let={scale} label="Type">{scale.type}</:col>
+    <:col :let={scale} label="Start">{scale.start}</:col>
+    <:col :let={scale} label="Stop">{scale.stop}</:col>
+    <:action :let={scale}>
+      <div class="sr-only">
+        <.link navigate={~p"/settings/grading_scales/#{scale}"}>Show</.link>
+      </div>
+      <.link navigate={~p"/settings/grading_scales/#{scale}/edit"}>Edit</.link>
+    </:action>
+    <:action :let={scale}>
+      <.link phx-click="delete" phx-value-id={scale.id} data-confirm="Are you sure?">
+        Delete
+      </.link>
+    </:action>
+  </.table>
+
+  <.modal :if={@live_action == :new} id="new-scale-modal" show on_cancel={JS.navigate(~p"/settings/grading_scales")}>
+    <.live_component module={GradingScalesFormComponent} id="new-scale-form" action={:new} changeset={@changeset} scale={nil} />
+  </.modal>
+
+  <.modal :if={@live_action == :edit} id="edit-scale-modal" show on_cancel={JS.navigate(~p"/settings/grading_scales")}>
+    <.live_component module={GradingScalesFormComponent} id="edit-scale-form" action={:edit} changeset={@changeset} scale={@scale} />
+  </.modal>
+
+  <.modal :if={@live_action == :show} id="show-scale-modal" show on_cancel={JS.navigate(~p"/settings/grading_scales")}>
+    <.live_component module={GradingScalesDetailComponent} id="show-scale-detail" scale={@scale} />
+  </.modal>
+</Layouts.admin>

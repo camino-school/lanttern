@@ -155,6 +155,11 @@ defmodule LantternWeb.Router do
 
       live "/settings/lesson_tags", LessonTagsLive, :index
       live "/settings/lesson_tags/:id", LessonTagsLive, :show
+
+      live "/settings/grading_scales", GradingScalesLive, :index
+      live "/settings/grading_scales/new", GradingScalesLive, :new
+      live "/settings/grading_scales/:id", GradingScalesLive, :show
+      live "/settings/grading_scales/:id/edit", GradingScalesLive, :edit
     end
 
     live_session :authenticated_guardian,
@@ -308,7 +313,6 @@ defmodule LantternWeb.Router do
 
     # Grading context
     resources "/ordinal_values", OrdinalValueController
-    resources "/scales", ScaleController
 
     # Schools context
     resources "/schools", SchoolController
