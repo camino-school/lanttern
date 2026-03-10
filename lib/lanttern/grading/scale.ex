@@ -26,7 +26,7 @@ defmodule Lanttern.Grading.Scale do
           school: School.t() | Ecto.Association.NotLoaded.t(),
           inserted_at: DateTime.t(),
           updated_at: DateTime.t(),
-          disabled_at: DateTime.t() | nil
+          deactivated_at: DateTime.t() | nil
         }
 
   schema "grading_scales" do
@@ -39,7 +39,7 @@ defmodule Lanttern.Grading.Scale do
     field :stop_bg_color, :string
     field :stop_text_color, :string
     field :breakpoints, {:array, :float}
-    field :disabled_at, :utc_datetime
+    field :deactivated_at, :utc_datetime
 
     has_many :ordinal_values, OrdinalValue, preload_order: [asc: :normalized_value, asc: :name]
     belongs_to :school, Lanttern.School
@@ -61,7 +61,7 @@ defmodule Lanttern.Grading.Scale do
       :stop_text_color,
       :breakpoints,
       :school_id,
-      :disabled_at
+      :deactivated_at
     ])
     |> validate_required([:name, :type])
     |> validate_scale_type()
