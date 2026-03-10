@@ -63,7 +63,7 @@ defmodule LantternWeb.ClassController do
 
     class = Schools.get_class!(id, preloads: [:students, :years])
 
-    # insert existing students_ids and years
+    # insert existing students_ids and years_ids
     students_ids = Enum.map(class.students, & &1.id)
     years_ids = Enum.map(class.years, & &1.id)
 

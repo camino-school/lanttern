@@ -96,6 +96,7 @@ defmodule LantternWeb.Schools.ClassSearchComponent do
       |> assign(:label, nil)
       |> assign(:class, nil)
       |> assign(:school_id, nil)
+      |> assign(:exclude_ids, [])
       |> assign(:refocus_on_select, "false")
       |> stream(:classes, [])
 
@@ -113,11 +114,14 @@ defmodule LantternWeb.Schools.ClassSearchComponent do
         []
       end
 
-    # search when more than 3 characters were typed
+    # search when 3 or more characters were typed
     classes =
-      if String.length(query) > 3,
+      if String.length(query) >= 3,
         do: Schools.search_classes(query, opts),
         else: []
+
+    # Filter out already-linked classes
+    classes = Enum.reject(classes, &(&1.id in socket.assigns.exclude_ids))
 
     results_simplified = Enum.map(classes, &%{id: &1.id})
 

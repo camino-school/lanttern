@@ -8,6 +8,7 @@ defmodule Lanttern.Schools.Class do
   import Ecto.Query, only: [from: 2]
   use Gettext, backend: Lanttern.Gettext
 
+  alias Lanttern.Identity.Scope
   alias Lanttern.Repo
 
   alias Lanttern.Schools.Cycle
@@ -20,6 +21,7 @@ defmodule Lanttern.Schools.Class do
           name: String.t(),
           students_ids: [pos_integer()],
           years_ids: [pos_integer()],
+          staff_members_ids: [pos_integer()],
           school: School.t(),
           school_id: pos_integer(),
           cycle: Cycle.t(),
@@ -34,6 +36,7 @@ defmodule Lanttern.Schools.Class do
     field :name, :string
     field :students_ids, {:array, :id}, virtual: true
     field :years_ids, {:array, :id}, virtual: true
+    field :staff_members_ids, {:array, :id}, virtual: true
     field :active_students_count, :integer, virtual: true
 
     belongs_to :school, School
@@ -49,6 +52,12 @@ defmodule Lanttern.Schools.Class do
       on_replace: :delete,
       preload_order: [asc: :id]
 
+    many_to_many :staff_members, Lanttern.Schools.StaffMember,
+      join_through: Lanttern.Schools.ClassStaffMember,
+      on_replace: :delete
+
+    has_many :classes_staff_members, Lanttern.Schools.ClassStaffMember
+
     timestamps()
   end
 
@@ -56,7 +65,16 @@ defmodule Lanttern.Schools.Class do
   def changeset(class, attrs) do
     class
     |> cast(attrs, [:name, :school_id, :students_ids, :years_ids, :cycle_id])
-    |> validate_required([:name, :school_id, :cycle_id])
+    |> validate_required([:name, :cycle_id])
+    |> put_students()
+    |> put_years()
+  end
+
+  def changeset(class, attrs, %Scope{school_id: school_id}) do
+    class
+    |> cast(attrs, [:name, :students_ids, :years_ids, :staff_members_ids, :cycle_id])
+    |> put_change(:school_id, school_id)
+    |> validate_required([:name, :cycle_id])
     |> foreign_key_constraint(
       :cycle_id,
       name: :classes_cycle_id_fkey,
@@ -68,6 +86,7 @@ defmodule Lanttern.Schools.Class do
     )
     |> put_students()
     |> put_years()
+    |> put_staff_members()
   end
 
   defp put_students(changeset) do
@@ -104,5 +123,31 @@ defmodule Lanttern.Schools.Class do
 
     changeset
     |> put_assoc(:years, years)
+  end
+
+  defp put_staff_members(changeset) do
+    put_staff_members(
+      changeset,
+      get_change(changeset, :staff_members_ids)
+    )
+  end
+
+  defp put_staff_members(changeset, nil), do: changeset
+
+  defp put_staff_members(changeset, staff_members_ids) do
+    # Fetch staff members from database
+    staff_members_map =
+      from(sm in Lanttern.Schools.StaffMember, where: sm.id in ^staff_members_ids)
+      |> Repo.all()
+      |> Map.new(&{&1.id, &1})
+
+    # Preserve the order of IDs by mapping them in sequence
+    staff_members =
+      staff_members_ids
+      |> Enum.map(&Map.get(staff_members_map, &1))
+      |> Enum.reject(&is_nil/1)
+
+    changeset
+    |> put_assoc(:staff_members, staff_members)
   end
 end
