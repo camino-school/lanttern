@@ -5,6 +5,7 @@ defmodule LantternWeb.ClassLive.PeopleComponent do
   alias Lanttern.Schools.Student
 
   # shared
+  alias LantternWeb.Schools.ClassStaffMemberFormOverlayComponent
   alias LantternWeb.Schools.StudentFormOverlayComponent
   import LantternWeb.SchoolsComponents
 
@@ -29,8 +30,15 @@ defmodule LantternWeb.ClassLive.PeopleComponent do
               :for={{dom_id, staff} <- @streams.staff_members}
               id={dom_id}
               staff_member={staff}
-              navigate={~p"/school/staff/#{staff}"}
+              navigate={~p"/school/staff/#{staff}/classes"}
               class_role={staff.class_role}
+              on_edit={
+                @is_school_manager &&
+                  JS.push("edit_class_staff_member",
+                    value: %{"id" => staff.class_staff_member_id},
+                    target: @myself
+                  )
+              }
             />
           </.fluid_grid>
         <% end %>
@@ -81,6 +89,15 @@ defmodule LantternWeb.ClassLive.PeopleComponent do
         </.fluid_grid>
       </section>
       <.live_component
+        :if={@class_staff_member}
+        module={ClassStaffMemberFormOverlayComponent}
+        id="edit-class-staff-member-overlay"
+        class_staff_member={@class_staff_member}
+        current_scope={@current_scope}
+        on_cancel={JS.push("cancel_edit_class_staff_member", target: @myself)}
+        notify_component={@myself}
+      />
+      <.live_component
         :if={@student}
         module={StudentFormOverlayComponent}
         id="student-form-overlay"
@@ -101,7 +118,7 @@ defmodule LantternWeb.ClassLive.PeopleComponent do
 
   @impl true
   def mount(socket) do
-    {:ok, assign(socket, :initialized, false)}
+    {:ok, assign(socket, initialized: false, class_staff_member: nil)}
   end
 
   @impl true
@@ -120,6 +137,29 @@ defmodule LantternWeb.ClassLive.PeopleComponent do
         put_flash: {:info, message},
         push_navigate: [to: ~p"/school/classes/#{socket.assigns.class}/people"]
       )
+
+    {:ok, socket}
+  end
+
+  def update(
+        %{action: {ClassStaffMemberFormOverlayComponent, {:updated, _updated_csm}}},
+        socket
+      ) do
+    socket =
+      socket
+      |> stream_class_staff_members()
+      |> assign(:class_staff_member, nil)
+      |> delegate_navigation(put_flash: {:info, gettext("Role updated successfully")})
+
+    {:ok, socket}
+  end
+
+  def update(%{action: {ClassStaffMemberFormOverlayComponent, {:deleted, _csm}}}, socket) do
+    socket =
+      socket
+      |> stream_class_staff_members()
+      |> assign(:class_staff_member, nil)
+      |> delegate_navigation(put_flash: {:info, gettext("Removed from class successfully")})
 
     {:ok, socket}
   end
@@ -216,6 +256,15 @@ defmodule LantternWeb.ClassLive.PeopleComponent do
   # event handlers
 
   @impl true
+  def handle_event("edit_class_staff_member", %{"id" => id}, socket) do
+    csmr = Schools.get_class_staff_member!(socket.assigns.current_scope, id, preloads: :class)
+    {:noreply, assign(socket, :class_staff_member, csmr)}
+  end
+
+  def handle_event("cancel_edit_class_staff_member", _params, socket) do
+    {:noreply, assign(socket, :class_staff_member, nil)}
+  end
+
   def handle_event("reactivate", %{"id" => id}, socket) do
     if id in socket.assigns.students_ids do
       student = Schools.get_student!(id)

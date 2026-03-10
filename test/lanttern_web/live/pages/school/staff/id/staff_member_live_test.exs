@@ -222,7 +222,7 @@ defmodule LantternWeb.StaffMemberLiveTest do
       |> visit("#{@live_view_base_path}/#{staff_member.id}/classes")
       |> assert_has("div", text: "Removable Class")
       |> click_button("Edit class link")
-      |> assert_has("#edit-class-staff-member-modal")
+      |> assert_has("#edit-class-staff-member-overlay")
       |> click_button("Unlink")
       |> refute_has("div", text: "Removable Class")
     end

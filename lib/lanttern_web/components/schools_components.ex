@@ -229,8 +229,7 @@ defmodule LantternWeb.SchoolsComponents do
   attr :staff_member, :map, required: true
   attr :navigate, :string, default: nil, doc: "On name click"
   attr :class_role, :string, default: nil
-  attr :show_edit, :boolean, default: false
-  attr :edit_patch, :string, default: nil
+  attr :on_edit, JS, default: nil
   attr :class, :any, default: nil
   attr :id, :string, default: nil
 
@@ -269,14 +268,14 @@ defmodule LantternWeb.SchoolsComponents do
         </div>
       </div>
       <.button
-        :if={@show_edit}
-        type="link"
+        :if={@on_edit}
+        type="button"
         icon_name="hero-pencil-mini"
         sr_text={gettext("Edit staff member")}
         rounded
         size="sm"
         theme="ghost"
-        patch={@edit_patch}
+        phx-click={@on_edit}
       />
     </.card_base>
     """

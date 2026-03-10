@@ -37,8 +37,7 @@ defmodule LantternWeb.SchoolLive.StaffComponent do
             id={dom_id}
             staff_member={staff_member}
             navigate={~p"/school/staff/#{staff_member}"}
-            show_edit={@is_school_manager}
-            edit_patch={~p"/school/staff?edit=#{staff_member.id}"}
+            on_edit={@is_school_manager && JS.patch(~p"/school/staff?edit=#{staff_member.id}")}
           />
         </.fluid_grid>
       <% end %>

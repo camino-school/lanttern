@@ -3,6 +3,7 @@ defmodule LantternWeb.StaffMemberLive.ClassesComponent do
 
   alias Lanttern.Schools
   alias LantternWeb.Schools.ClassSearchComponent
+  alias LantternWeb.Schools.ClassStaffMemberFormOverlayComponent
 
   @impl true
   def render(assigns) do
@@ -91,47 +92,15 @@ defmodule LantternWeb.StaffMemberLive.ClassesComponent do
           />
         </form>
       </.modal>
-      <.modal
+      <.live_component
         :if={@class_staff_member}
-        id="edit-class-staff-member-modal"
-        show
+        module={ClassStaffMemberFormOverlayComponent}
+        id="edit-class-staff-member-overlay"
+        class_staff_member={@class_staff_member}
+        current_scope={@current_scope}
         on_cancel={JS.push("cancel_edit", target: @myself)}
-      >
-        <:title>{gettext("Edit class link")}</:title>
-        <.form
-          for={@class_staff_member_form}
-          phx-submit="update_class_staff_member"
-          phx-target={@myself}
-        >
-          <.input
-            field={@class_staff_member_form[:role]}
-            label={gettext("Teacher role in %{class}", class: @class_staff_member.class.name)}
-            placeholder={gettext("e.g., Lead Teacher, Assistant, etc.")}
-            phx-debounce="blur"
-          />
-          <.input type="hidden" field={@class_staff_member_form[:id]} />
-          <div class="flex gap-4 mt-6 justify-between">
-            <.button
-              type="button"
-              phx-click={JS.push("unlink", target: @myself)}
-              theme="ghost"
-              data-confirm={gettext("Are you sure?")}
-            >
-              {gettext("Unlink")}
-            </.button>
-            <div class="flex gap-2">
-              <.button
-                type="button"
-                phx-click={JS.push("cancel_edit", target: @myself)}
-                theme="ghost"
-              >
-                {gettext("Cancel")}
-              </.button>
-              <.button type="submit">{gettext("Save")}</.button>
-            </div>
-          </div>
-        </.form>
-      </.modal>
+        notify_component={@myself}
+      />
     </div>
     """
   end
@@ -153,6 +122,32 @@ defmodule LantternWeb.StaffMemberLive.ClassesComponent do
   @impl true
   def update(%{action: {ClassSearchComponent, {:selected, class}}}, socket) do
     {:ok, create_class_staff_member(socket, class)}
+  end
+
+  def update(%{action: {ClassStaffMemberFormOverlayComponent, {:updated, updated_csm}}}, socket) do
+    socket =
+      socket
+      |> stream_insert(:smcr, updated_csm)
+      |> assign(:class_staff_member, nil)
+      |> delegate_navigation(put_flash: {:info, gettext("Role updated successfully")})
+
+    send(self(), {__MODULE__, {:role_updated, updated_csm}})
+    {:ok, socket}
+  end
+
+  def update(%{action: {ClassStaffMemberFormOverlayComponent, {:deleted, csm}}}, socket) do
+    socket =
+      socket
+      |> stream_delete(:smcr, csm)
+      |> assign(:class_staff_member, nil)
+      |> assign(:smcr_length, socket.assigns.smcr_length - 1)
+      |> assign(
+        :linked_classes_ids,
+        Enum.reject(socket.assigns.linked_classes_ids, &(&1 == csm.class_id))
+      )
+      |> delegate_navigation(put_flash: {:info, gettext("Removed from class successfully")})
+
+    {:ok, socket}
   end
 
   def update(assigns, socket) do
@@ -217,75 +212,11 @@ defmodule LantternWeb.StaffMemberLive.ClassesComponent do
     csmr =
       Schools.get_class_staff_member!(socket.assigns.current_scope, id, preloads: :class)
 
-    form =
-      csmr
-      |> Ecto.Changeset.change(%{})
-      |> to_form()
-
-    socket =
-      socket
-      |> assign(:class_staff_member, csmr)
-      |> assign(:class_staff_member_form, form)
-
-    {:noreply, socket}
+    {:noreply, assign(socket, :class_staff_member, csmr)}
   end
 
   def handle_event("cancel_edit", _params, socket) do
     {:noreply, assign(socket, :class_staff_member, nil)}
-  end
-
-  def handle_event("update_class_staff_member", %{"class_staff_member" => params}, socket) do
-    case Schools.update_class_staff_member(
-           socket.assigns.current_scope,
-           socket.assigns.class_staff_member,
-           params
-         ) do
-      {:ok, updated_csm} ->
-        # Reload with preloads
-        updated_csm =
-          Schools.get_class_staff_member!(
-            socket.assigns.current_scope,
-            updated_csm.id,
-            preloads: [class: [:cycle]]
-          )
-
-        socket =
-          socket
-          |> stream_insert(:smcr, updated_csm)
-          |> assign(:class_staff_member, nil)
-          |> put_flash(:info, gettext("Role updated successfully"))
-
-        send(self(), {__MODULE__, {:role_updated, updated_csm}})
-        {:noreply, socket}
-
-      {:error, changeset} ->
-        {:noreply, assign(socket, :class_staff_member_form, to_form(changeset))}
-    end
-  end
-
-  def handle_event("unlink", _params, socket) do
-    Schools.delete_class_staff_member(
-      socket.assigns.current_scope,
-      socket.assigns.class_staff_member
-    )
-    |> case do
-      {:ok, csm} ->
-        socket =
-          socket
-          |> stream_delete(:smcr, csm)
-          |> assign(:class_staff_member, nil)
-          |> assign(:smcr_length, socket.assigns.smcr_length - 1)
-          |> assign(
-            :linked_classes_ids,
-            Enum.reject(socket.assigns.linked_classes_ids, &(&1 == csm.class_id))
-          )
-          |> put_flash(:info, gettext("Removed from class successfully"))
-
-        {:noreply, socket}
-
-      {:error, _} ->
-        {:noreply, put_flash(socket, :error, gettext("Failed to remove from class"))}
-    end
   end
 
   defp create_class_staff_member(socket, class) do
