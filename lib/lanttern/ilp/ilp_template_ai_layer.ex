@@ -36,8 +36,19 @@ defmodule Lanttern.ILP.ILPTemplateAILayer do
   def changeset(ilp_template_ai_layer, attrs) do
     ilp_template_ai_layer
     |> cast(attrs, [:template_id, :revision_instructions, :model, :cooldown_minutes])
+    |> validate_model()
 
     # template_id is required, but as the schema is expected to be handled only
     # via cast_assoc, we don't need to validate it here
+  end
+
+  defp validate_model(changeset) do
+    validate_change(changeset, :model, fn :model, value ->
+      if LLMDB.allowed?(value) do
+        []
+      else
+        [model: "is not a valid AI model"]
+      end
+    end)
   end
 end

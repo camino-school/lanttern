@@ -10,7 +10,7 @@ config :lanttern, LantternWeb.Endpoint,
   force_ssl: [rewrite_on: [:x_forwarded_proto]]
 
 # Configures Swoosh API Client
-config :swoosh, api_client: Swoosh.ApiClient.Finch, finch_name: Lanttern.Finch
+config :swoosh, api_client: Swoosh.ApiClient.Req
 
 # Disable Swoosh Local Memory Storage
 config :swoosh, local: false

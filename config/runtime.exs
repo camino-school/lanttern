@@ -94,11 +94,6 @@ if config_env() == :prod do
 
   config :lanttern, LantternWeb.UserAuth, google_client_id: google_client_id
 
-  # ex_openai config
-  config :ex_openai,
-    api_key: System.get_env("OPENAI_API_KEY"),
-    organization_key: System.get_env("OPENAI_ORG_ID")
-
   # LangChain config
   config :langchain, openai_key: System.get_env("OPENAI_API_KEY")
   config :langchain, openai_org_id: System.get_env("OPENAI_ORG_ID")
@@ -192,11 +187,12 @@ if config_env() == :prod do
     domain: System.get_env("MAILGUN_DOMAIN")
 
   # For this example you need include a HTTP client required by Swoosh API client.
-  # Swoosh supports Hackney and Finch out of the box:
+  # Swoosh supports Finch and Req out of the box:
 
-  config :swoosh,
-    api_client: Swoosh.ApiClient.Finch,
-    finch_name: Lanttern.Finch
+  config :swoosh, api_client: Swoosh.ApiClient.Req
 
   # See https://hexdocs.pm/swoosh/Swoosh.html#module-installation for details.
+
+  config :req_llm,
+    openai_api_key: System.get_env("OPENAI_API_KEY")
 end

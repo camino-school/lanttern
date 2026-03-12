@@ -61,8 +61,8 @@ defmodule Lanttern.MixProject do
       {:phoenix_live_dashboard, "~> 0.8.2"},
       {:esbuild, "~> 0.10", runtime: Mix.env() == :dev},
       {:tailwind, "~> 0.3.0", runtime: Mix.env() == :dev},
-      {:swoosh, "~> 1.19"},
-      {:finch, "~> 0.20"},
+      {:swoosh, "~> 1.23"},
+      {:req, "~> 0.5.0"},
       {:telemetry_metrics, "~> 0.6"},
       {:telemetry_poller, "~> 1.0"},
       {:gettext, "~> 0.26"},
@@ -82,7 +82,6 @@ defmodule Lanttern.MixProject do
       {:sobelow, "~> 0.13", only: [:dev, :test], runtime: false},
       {:slugify, "~> 1.3"},
       {:image, "~> 0.37"},
-      {:ex_openai, "~> 1.8.0-beta"},
       {:tidewave, "~> 0.1.10", only: :dev},
       {:excoveralls, "~> 0.18", only: :test},
       {:phoenix_test, "~> 0.9.1", only: :test, runtime: false},
@@ -97,7 +96,9 @@ defmodule Lanttern.MixProject do
       {:usage_rules, "~> 0.1", only: [:dev]},
       {:igniter, "~> 0.6", only: [:dev]},
       {:html_sanitize_ex, "~> 1.4"},
-      {:langchain, "0.4.0"}
+      {:langchain, "0.4.0"},
+      {:req_llm, "~> 1.6"},
+      {:llm_db, "~> 2026.3.1"}
     ]
   end
 

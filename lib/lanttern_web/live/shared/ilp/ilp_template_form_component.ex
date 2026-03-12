@@ -131,11 +131,11 @@ defmodule LantternWeb.ILP.ILPTemplateFormComponent do
             />
             <.input
               field={ai_layer_f[:model]}
-              type="select"
+              type="text"
               label="AI model"
-              options={@ai_model_options}
-              prompt="Select an AI model"
+              phx-debounce="1500"
               class="mb-6"
+              show_optional
             />
             <.input
               field={ai_layer_f[:cooldown_minutes]}
@@ -194,7 +194,6 @@ defmodule LantternWeb.ILP.ILPTemplateFormComponent do
   defp initialize(%{assigns: %{initialized: false}} = socket) do
     socket
     |> assign_form()
-    |> assign_ai_model_options()
     |> assign(:initialized, true)
   end
 
@@ -206,15 +205,6 @@ defmodule LantternWeb.ILP.ILPTemplateFormComponent do
 
     socket
     |> assign(:form, to_form(changeset))
-  end
-
-  defp assign_ai_model_options(socket) do
-    ai_model_options =
-      Map.get(socket.assigns.template.ai_layer || %{}, :model)
-      |> LantternWeb.AIHelpers.generate_ai_model_options()
-
-    socket
-    |> assign(:ai_model_options, ai_model_options)
   end
 
   # event handlers
