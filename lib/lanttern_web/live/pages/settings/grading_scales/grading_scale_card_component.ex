@@ -1,0 +1,176 @@
+defmodule LantternWeb.GradingScalesLive.GradingScaleCardComponent do
+  @moduledoc """
+  Card component for displaying and managing a grading scale.
+  """
+
+  use LantternWeb, :live_component
+
+  def render(assigns) do
+    ~H"""
+    <div id={@id} class="mt-4 first:mt-0">
+      <.card_base class="overflow-hidden">
+        <%!-- Header --%>
+        <div class="flex items-center gap-4 p-6">
+          <button
+            type="button"
+            phx-click="toggle"
+            phx-target={@myself}
+            class="flex-1 font-bold text-left hover:text-ltrn-subtle truncate"
+          >
+            {@scale.name}
+          </button>
+          <%!-- Ordinal value color badges --%>
+          <div :if={@scale.type == "ordinal"} class="flex gap-1">
+            <.badge
+              :for={ov <- @scale.ordinal_values}
+              color_map={ov}
+              rounded
+              class="w-8 h-8 !px-0 justify-center text-xs font-bold shrink-0"
+            >
+              {String.slice(ov.name, 0, 2)}
+            </.badge>
+          </div>
+          <%!-- Delete scale button --%>
+          <.icon_button
+            name="hero-minus"
+            sr_text={gettext("Delete scale")}
+            class="text-ltrn-error border-ltrn-error hover:bg-ltrn-error/10"
+            phx-click="delete_scale"
+            phx-target={@myself}
+            data-confirm={gettext("Are you sure?")}
+          />
+          <%!-- Edit scale button --%>
+          <.icon_button
+            name="hero-pencil"
+            sr_text={gettext("Edit scale")}
+            theme="ghost"
+            phx-click="edit_scale"
+            phx-target={@myself}
+          />
+          <%!-- Toggle chevron --%>
+          <.icon_button
+            name={if @is_expanded, do: "hero-chevron-up", else: "hero-chevron-down"}
+            sr_text={gettext("Toggle scale card")}
+            theme="ghost"
+            phx-click="toggle"
+            phx-target={@myself}
+          />
+        </div>
+        <%!-- Expanded content --%>
+        <%= if @is_expanded do %>
+          <div class="border-t border-ltrn-lighter">
+            <%!-- Ordinal values table --%>
+            <div :if={@scale.type == "ordinal"} class="p-6">
+              <div class="flex justify-between mb-2 text-sm font-semibold text-ltrn-subtle">
+                <span>{gettext("Ordinal values")}</span>
+                <span>{gettext("Normalized value")}</span>
+              </div>
+              <div>
+                <div
+                  :for={ov <- @scale.ordinal_values}
+                  class="flex items-center gap-4 py-3 border-t border-ltrn-lighter"
+                >
+                  <.badge color_map={ov}>{ov.name}</.badge>
+                  <span class="flex-1 font-mono text-right">{ov.normalized_value}</span>
+                  <.action_icon
+                    type="button"
+                    name="hero-pencil-mini"
+                    sr_text={gettext("Edit ordinal value")}
+                    theme="subtle"
+                    phx-click="edit_ordinal_value"
+                    phx-value-id={ov.id}
+                    phx-target={@myself}
+                  />
+                </div>
+              </div>
+              <%!-- Add value button --%>
+              <button
+                type="button"
+                phx-click="new_ordinal_value"
+                phx-target={@myself}
+                class="mt-4 flex items-center gap-2 text-sm border-2 border-dashed border-ltrn-lighter rounded-lg px-4 py-2 hover:border-ltrn-subtle transition-colors"
+              >
+                {gettext("Add value")}
+                <.icon name="hero-plus-mini" class="w-4 h-4" />
+              </button>
+            </div>
+            <%!-- Numeric scale details --%>
+            <div :if={@scale.type == "numeric"} class="flex gap-8 p-6 text-sm">
+              <div>
+                <span class="text-ltrn-subtle">{gettext("Start")}: </span>
+                <span class="font-mono font-bold">{@scale.start}</span>
+              </div>
+              <div>
+                <span class="text-ltrn-subtle">{gettext("Stop")}: </span>
+                <span class="font-mono font-bold">{@scale.stop}</span>
+              </div>
+            </div>
+            <%!-- Breakpoints --%>
+            <div
+              :if={@scale.breakpoints && @scale.breakpoints != []}
+              class="border-t border-ltrn-lighter px-6 py-4"
+            >
+              <h6 class="text-sm font-semibold text-ltrn-subtle mb-1">{gettext("Breakpoints")}</h6>
+              <p class="font-mono">{Enum.join(@scale.breakpoints, ", ")}</p>
+            </div>
+          </div>
+        <% end %>
+      </.card_base>
+    </div>
+    """
+  end
+
+  # lifecycle
+
+  # subsequent updates — via send_update (accordion toggle) or parent re-render (data update)
+  def update(assigns, %{assigns: %{scale: _scale}} = socket) do
+    is_expanded = assigns.selected_scale_id == "#{socket.assigns.scale.id}"
+
+    socket =
+      socket
+      |> assign(:is_expanded, is_expanded)
+      |> then(fn s ->
+        if Map.has_key?(assigns, :scale), do: assign(s, :scale, assigns.scale), else: s
+      end)
+
+    {:ok, socket}
+  end
+
+  def update(assigns, socket) do
+    {:ok,
+     socket
+     |> assign(assigns)
+     |> assign(:is_expanded, false)}
+  end
+
+  # event handlers
+
+  def handle_event("toggle", _params, socket) do
+    path =
+      if socket.assigns.is_expanded,
+        do: ~p"/settings/grading_scales",
+        else: ~p"/settings/grading_scales/#{socket.assigns.scale.id}"
+
+    {:noreply, push_patch(socket, to: path)}
+  end
+
+  def handle_event("edit_scale", _params, socket) do
+    send(self(), {__MODULE__, {:edit_scale, socket.assigns.scale.id}})
+    {:noreply, socket}
+  end
+
+  def handle_event("delete_scale", _params, socket) do
+    send(self(), {__MODULE__, {:delete_scale, socket.assigns.scale.id}})
+    {:noreply, socket}
+  end
+
+  def handle_event("edit_ordinal_value", %{"id" => id}, socket) do
+    send(self(), {__MODULE__, {:edit_ordinal_value, id}})
+    {:noreply, socket}
+  end
+
+  def handle_event("new_ordinal_value", _params, socket) do
+    send(self(), {__MODULE__, {:new_ordinal_value, socket.assigns.scale.id}})
+    {:noreply, socket}
+  end
+end
