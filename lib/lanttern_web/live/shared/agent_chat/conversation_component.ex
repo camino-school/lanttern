@@ -486,7 +486,7 @@ defmodule LantternWeb.AgentChat.ConversationComponent do
 
   def handle_event("retry_prompt", _params, socket) do
     conversation = socket.assigns.conversation
-    AgentChat.mark_conversation_processing(socket.assigns.current_scope, conversation)
+    {:ok, _} = AgentChat.mark_conversation_processing(socket.assigns.current_scope, conversation)
 
     socket =
       socket

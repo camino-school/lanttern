@@ -196,11 +196,13 @@ defmodule Lanttern.AgentChat do
 
   """
   def create_conversation_with_message(%Scope{} = scope, content, opts \\ []) do
+    new_conversation_changeset =
+      %Conversation{}
+      |> Conversation.changeset(%{}, scope)
+      |> Conversation.status_changeset(%{status: "processing"})
+
     Multi.new()
-    |> Multi.insert(:conversation, Conversation.changeset(%Conversation{}, %{}, scope))
-    |> Multi.update(:set_processing, fn %{conversation: conversation} ->
-      Conversation.status_changeset(conversation, %{status: "processing", last_error: nil})
-    end)
+    |> Multi.insert(:conversation, new_conversation_changeset)
     |> Multi.insert(:user_message, fn %{conversation: conversation} ->
       Message.changeset(%Message{}, %{
         role: "user",
