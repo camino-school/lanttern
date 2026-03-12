@@ -140,6 +140,11 @@ defmodule LantternWeb.Layouts do
             {gettext("Lesson Tags")}
           </.settings_nav_link>
         </:group>
+        <:group title={gettext("Scale Settings")}>
+          <.settings_nav_link navigate={~p"/settings/grading_scales"} current_path={@current_path}>
+            {gettext("Manage Scales")}
+          </.settings_nav_link>
+        </:group>
       </.settings_side_nav>
       <main class="min-h-screen p-10 ltrn-bg-main-local">
         {render_slot(@inner_block)}
