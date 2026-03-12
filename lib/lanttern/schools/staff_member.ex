@@ -12,12 +12,13 @@ defmodule Lanttern.Schools.StaffMember do
   @type t :: %__MODULE__{
           id: pos_integer(),
           name: String.t(),
-          about: String.t(),
+          about: String.t() | nil,
+          agent_conversation_preferences: String.t() | nil,
           profile_picture_url: String.t() | nil,
           role: String.t(),
-          school: School.t(),
+          school: School.t() | Ecto.Association.NotLoaded.t(),
           school_id: pos_integer(),
-          profile: Profile.t(),
+          profile: Profile.t() | Ecto.Association.NotLoaded.t(),
           inserted_at: DateTime.t(),
           updated_at: DateTime.t()
         }
@@ -25,6 +26,7 @@ defmodule Lanttern.Schools.StaffMember do
   schema "staff" do
     field :name, :string
     field :about, :string
+    field :agent_conversation_preferences, :string
     field :profile_picture_url, :string
     field :role, :string, default: "Teacher"
     field :deactivated_at, :utc_datetime
@@ -53,7 +55,15 @@ defmodule Lanttern.Schools.StaffMember do
   @doc false
   def changeset(staff_member, attrs) do
     staff_member
-    |> cast(attrs, [:name, :about, :school_id, :profile_picture_url, :role, :deactivated_at])
+    |> cast(attrs, [
+      :name,
+      :about,
+      :agent_conversation_preferences,
+      :school_id,
+      :profile_picture_url,
+      :role,
+      :deactivated_at
+    ])
     |> validate_required([:name, :school_id, :role])
   end
 end
