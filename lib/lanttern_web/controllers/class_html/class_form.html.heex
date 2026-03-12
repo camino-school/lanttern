@@ -25,14 +25,16 @@
     multiple
   />
   <.input field={f[:name]} type="text" label="Name" />
+
   <.input
     field={f[:students_ids]}
     type="select"
-    label="Students"
+    label={gettext("Students in this class")}
     options={@student_options}
     prompt="Select students"
     multiple
   />
+
   <:actions>
     <.button>Save Class</.button>
   </:actions>

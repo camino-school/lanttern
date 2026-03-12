@@ -1,6 +1,7 @@
 defmodule Lanttern.SchoolsTest do
   use Lanttern.DataCase
 
+  alias Lanttern.Identity.Scope
   alias Lanttern.Schools
   import Lanttern.Factory
   import Lanttern.SchoolsFixtures
@@ -565,17 +566,22 @@ defmodule Lanttern.SchoolsTest do
       assert expected_class.students == [student]
     end
 
-    test "create_class/1 with valid data creates a class" do
+    test "create_class/2 with valid data creates a class" do
       school = school_fixture()
       cycle = cycle_fixture(%{school_id: school.id})
-      valid_attrs = %{school_id: school.id, cycle_id: cycle.id, name: "some name"}
+      valid_attrs = %{cycle_id: cycle.id, name: "some name"}
 
-      assert {:ok, %Class{} = class} = Schools.create_class(valid_attrs)
+      assert {:ok, %Class{} = class} =
+               Schools.create_class(
+                 %Scope{school_id: school.id, permissions: ["school_management"]},
+                 valid_attrs
+               )
+
       assert class.name == "some name"
       assert class.school_id == school.id
     end
 
-    test "create_class/1 with valid data containing students creates a class with students" do
+    test "create_class/2 with valid data containing students creates a class with students" do
       school = school_fixture()
       cycle = cycle_fixture(%{school_id: school.id})
       student_1 = student_fixture()
@@ -584,7 +590,6 @@ defmodule Lanttern.SchoolsTest do
 
       valid_attrs = %{
         name: "some name",
-        school_id: school.id,
         cycle_id: cycle.id,
         students_ids: [
           student_1.id,
@@ -593,7 +598,12 @@ defmodule Lanttern.SchoolsTest do
         ]
       }
 
-      assert {:ok, %Class{} = class} = Schools.create_class(valid_attrs)
+      assert {:ok, %Class{} = class} =
+               Schools.create_class(
+                 %Scope{school_id: school.id, permissions: ["school_management"]},
+                 valid_attrs
+               )
+
       assert class.name == "some name"
       assert class.school_id == school.id
       assert Enum.find(class.students, fn s -> s.id == student_1.id end)
@@ -601,19 +611,31 @@ defmodule Lanttern.SchoolsTest do
       assert Enum.find(class.students, fn s -> s.id == student_3.id end)
     end
 
-    test "create_class/1 with invalid data returns error changeset" do
-      assert {:error, %Ecto.Changeset{}} = Schools.create_class(@invalid_attrs)
+    test "create_class/2 with invalid data returns error changeset" do
+      school = school_fixture()
+
+      assert {:error, %Ecto.Changeset{}} =
+               Schools.create_class(
+                 %Scope{school_id: school.id, permissions: ["school_management"]},
+                 @invalid_attrs
+               )
     end
 
-    test "update_class/2 with valid data updates the class" do
+    test "update_class/3 with valid data updates the class" do
       class = class_fixture()
       update_attrs = %{name: "some updated name"}
 
-      assert {:ok, %Class{} = class} = Schools.update_class(class, update_attrs)
+      assert {:ok, %Class{} = class} =
+               Schools.update_class(
+                 %Scope{school_id: class.school_id, permissions: ["school_management"]},
+                 class,
+                 update_attrs
+               )
+
       assert class.name == "some updated name"
     end
 
-    test "update_class/2 with valid data containing students updates the class" do
+    test "update_class/3 with valid data containing students updates the class" do
       student_1 = student_fixture()
       student_2 = student_fixture()
       student_3 = student_fixture()
@@ -624,16 +646,29 @@ defmodule Lanttern.SchoolsTest do
         students_ids: [student_1.id, student_3.id]
       }
 
-      assert {:ok, %Class{} = class} = Schools.update_class(class, update_attrs)
+      assert {:ok, %Class{} = class} =
+               Schools.update_class(
+                 %Scope{school_id: class.school_id, permissions: ["school_management"]},
+                 class,
+                 update_attrs
+               )
+
       assert class.name == "some updated name"
       assert length(class.students) == 2
       assert Enum.find(class.students, fn s -> s.id == student_1.id end)
       assert Enum.find(class.students, fn s -> s.id == student_3.id end)
     end
 
-    test "update_class/2 with invalid data returns error changeset" do
+    test "update_class/3 with invalid data returns error changeset" do
       class = class_fixture()
-      assert {:error, %Ecto.Changeset{}} = Schools.update_class(class, @invalid_attrs)
+
+      assert {:error, %Ecto.Changeset{}} =
+               Schools.update_class(
+                 %Scope{school_id: class.school_id, permissions: ["school_management"]},
+                 class,
+                 @invalid_attrs
+               )
+
       assert class == Schools.get_class!(class.id)
     end
 
@@ -648,9 +683,11 @@ defmodule Lanttern.SchoolsTest do
       assert_raise Ecto.NoResultsError, fn -> Schools.get_class!(class.id) end
     end
 
-    test "change_class/1 returns a class changeset" do
+    test "change_class/2 returns a class changeset" do
       class = class_fixture()
-      assert %Ecto.Changeset{} = Schools.change_class(class)
+
+      assert %Ecto.Changeset{} =
+               Schools.change_class(%Scope{school_id: class.school_id}, class)
     end
   end
 
@@ -1503,6 +1540,300 @@ defmodule Lanttern.SchoolsTest do
     test "change_staff_member/1 returns a staff member changeset" do
       staff_member = staff_member_fixture()
       assert %Ecto.Changeset{} = Schools.change_staff_member(staff_member)
+    end
+  end
+
+  describe "class staff members" do
+    alias Lanttern.Identity.Scope
+    alias Lanttern.Schools.ClassStaffMember
+
+    test "list_class_staff_members/2 returns all staff members for a class ordered by position" do
+      school = insert(:school)
+      class = insert(:class, school: school)
+      staff_member_1 = insert(:staff_member, school: school, name: "Staff A")
+      staff_member_2 = insert(:staff_member, school: school, name: "Staff B")
+      staff_member_3 = insert(:staff_member, school: school, name: "Staff C")
+
+      insert(:class_staff_member, class: class, staff_member: staff_member_2, position: 1)
+      insert(:class_staff_member, class: class, staff_member: staff_member_1, position: 0)
+      insert(:class_staff_member, class: class, staff_member: staff_member_3, position: 2)
+
+      result = Schools.list_class_staff_members(%Scope{school_id: school.id}, class.id)
+
+      assert [r0, r1, r2] = result
+      assert r0.id == staff_member_1.id
+      assert r1.id == staff_member_2.id
+      assert r2.id == staff_member_3.id
+    end
+
+    test "list_class_staff_members/2 filters out deactivated staff members" do
+      school = insert(:school)
+      class = insert(:class, school: school)
+      active_staff = insert(:staff_member, school: school)
+
+      deactivated_staff =
+        insert(:staff_member, school: school, deactivated_at: DateTime.utc_now())
+
+      insert(:class_staff_member, class: class, staff_member: active_staff)
+      insert(:class_staff_member, class: class, staff_member: deactivated_staff)
+
+      result = Schools.list_class_staff_members(%Scope{school_id: school.id}, class.id)
+
+      assert [r0] = result
+      assert r0.id == active_staff.id
+    end
+
+    test "list_class_staff_members/2 includes class_role and position virtual fields" do
+      school = insert(:school)
+      class = insert(:class, school: school)
+      staff_member = insert(:staff_member, school: school)
+
+      insert(:class_staff_member,
+        class: class,
+        staff_member: staff_member,
+        role: "Lead Teacher",
+        position: 5
+      )
+
+      [result] = Schools.list_class_staff_members(%Scope{school_id: school.id}, class.id)
+
+      assert result.class_role == "Lead Teacher"
+      assert result.position == 5
+      assert result.class_staff_member_id != nil
+    end
+
+    test "list_class_staff_members/2 with load_email opt loads staff member email" do
+      school = insert(:school)
+      class = insert(:class, school: school)
+      user = insert(:user, email: "teacher@school.com")
+      staff_member = insert(:staff_member, school: school)
+
+      _profile = insert(:profile, user: user, staff_member: staff_member)
+
+      insert(:class_staff_member, class: class, staff_member: staff_member)
+
+      [result] =
+        Schools.list_class_staff_members(%Scope{school_id: school.id}, class.id, load_email: true)
+
+      assert result.email == "teacher@school.com"
+    end
+
+    test "list_staff_member_classes/2 returns all classes for a staff member ordered by position" do
+      school = insert(:school)
+      staff_member = insert(:staff_member, school: school)
+      cycle = insert(:cycle, school: school)
+
+      class_1 = insert(:class, school: school, cycle: cycle, name: "Class A")
+      class_2 = insert(:class, school: school, cycle: cycle, name: "Class B")
+      class_3 = insert(:class, school: school, cycle: cycle, name: "Class C")
+
+      insert(:class_staff_member, class: class_2, staff_member: staff_member, position: 1)
+      insert(:class_staff_member, class: class_1, staff_member: staff_member, position: 0)
+      insert(:class_staff_member, class: class_3, staff_member: staff_member, position: 2)
+
+      result =
+        Schools.list_staff_member_classes(
+          %Scope{school_id: school.id},
+          staff_member
+        )
+
+      assert [r0, r1, r2] = result
+      assert r0.class.id == class_1.id
+      assert r1.class.id == class_2.id
+      assert r2.class.id == class_3.id
+    end
+
+    test "create_class_staff_member/3 creates a class staff member relationship" do
+      school = insert(:school)
+      class = insert(:class, school: school)
+      staff_member = insert(:staff_member, school: school)
+      scope = %Scope{school_id: school.id, permissions: ["school_management"]}
+
+      assert {:ok, %ClassStaffMember{} = csm} =
+               Schools.create_class_staff_member(scope, class, staff_member)
+
+      assert csm.class_id == class.id
+      assert csm.staff_member_id == staff_member.id
+      assert csm.position == 0
+    end
+
+    test "create_class_staff_member/3 auto-assigns position based on existing entries" do
+      school = insert(:school)
+      class = insert(:class, school: school)
+      staff_1 = insert(:staff_member, school: school)
+      staff_2 = insert(:staff_member, school: school)
+      scope = %Scope{school_id: school.id, permissions: ["school_management"]}
+
+      {:ok, csm_1} = Schools.create_class_staff_member(scope, class, staff_1)
+      {:ok, csm_2} = Schools.create_class_staff_member(scope, class, staff_2)
+
+      assert csm_1.position == 0
+      assert csm_2.position == 1
+    end
+
+    test "create_class_staff_member/3 raises FunctionClauseError if staff and class are from different schools" do
+      school_1 = insert(:school)
+      school_2 = insert(:school)
+      class = insert(:class, school: school_1)
+      staff_member = insert(:staff_member, school: school_2)
+      scope = %Scope{school_id: school_1.id, permissions: ["school_management"]}
+
+      assert_raise FunctionClauseError, fn ->
+        Schools.create_class_staff_member(scope, class, staff_member)
+      end
+    end
+
+    test "create_class_staff_member/3 returns MatchError if scope lacks school_management permission" do
+      school = insert(:school)
+      class = insert(:class, school: school)
+      staff_member = insert(:staff_member, school: school)
+      scope = %Scope{school_id: school.id, permissions: []}
+
+      assert_raise MatchError, fn ->
+        Schools.create_class_staff_member(scope, class, staff_member)
+      end
+    end
+
+    test "create_class_staff_member/3 raises FunctionClauseError if class belongs to a different school" do
+      school_1 = insert(:school)
+      school_2 = insert(:school)
+      class = insert(:class, school: school_2)
+      staff_member = insert(:staff_member, school: school_1)
+      scope = %Scope{school_id: school_1.id, permissions: ["school_management"]}
+
+      assert_raise FunctionClauseError, fn ->
+        Schools.create_class_staff_member(scope, class, staff_member)
+      end
+    end
+
+    test "create_class_staff_member/3 fails if duplicate relationship" do
+      school = insert(:school)
+      class = insert(:class, school: school)
+      staff_member = insert(:staff_member, school: school)
+      scope = %Scope{school_id: school.id, permissions: ["school_management"]}
+
+      Schools.create_class_staff_member(scope, class, staff_member)
+
+      assert {:error, %Ecto.Changeset{}} =
+               Schools.create_class_staff_member(scope, class, staff_member)
+    end
+
+    test "update_class_staff_member/3 updates role" do
+      school = insert(:school)
+      class = insert(:class, school: school)
+      staff_member = insert(:staff_member, school: school)
+      csm = insert(:class_staff_member, class: class, staff_member: staff_member, role: "Teacher")
+      scope = %Scope{school_id: school.id, permissions: ["school_management"]}
+
+      assert {:ok, %ClassStaffMember{} = updated_csm} =
+               Schools.update_class_staff_member(scope, csm, %{role: "Lead Teacher"})
+
+      assert updated_csm.role == "Lead Teacher"
+    end
+
+    test "update_class_staff_member/3 updates position" do
+      school = insert(:school)
+      class = insert(:class, school: school)
+      staff_member = insert(:staff_member, school: school)
+      csm = insert(:class_staff_member, class: class, staff_member: staff_member, position: 0)
+      scope = %Scope{school_id: school.id, permissions: ["school_management"]}
+
+      assert {:ok, %ClassStaffMember{} = updated_csm} =
+               Schools.update_class_staff_member(scope, csm, %{position: 5})
+
+      assert updated_csm.position == 5
+    end
+
+    test "update_class_staff_member/3 raises MatchError if scope lacks school_management permission" do
+      school = insert(:school)
+      class = insert(:class, school: school)
+      staff_member = insert(:staff_member, school: school)
+      csm = insert(:class_staff_member, class: class, staff_member: staff_member)
+      scope = %Scope{school_id: school.id, permissions: []}
+
+      assert_raise MatchError, fn ->
+        Schools.update_class_staff_member(scope, csm, %{role: "Lead Teacher"})
+      end
+    end
+
+    test "update_class_staff_member/3 raises FunctionClauseError if class belongs to a different school" do
+      school_1 = insert(:school)
+      school_2 = insert(:school)
+      class = insert(:class, school: school_2)
+      staff_member = insert(:staff_member, school: school_2)
+      csm = insert(:class_staff_member, class: class, staff_member: staff_member)
+      scope = %Scope{school_id: school_1.id, permissions: ["school_management"]}
+
+      assert_raise FunctionClauseError, fn ->
+        Schools.update_class_staff_member(scope, csm, %{role: "Lead Teacher"})
+      end
+    end
+
+    test "delete_class_staff_member/2 deletes the relationship" do
+      school = insert(:school)
+      class = insert(:class, school: school)
+      staff_member = insert(:staff_member, school: school)
+      csm = insert(:class_staff_member, class: class, staff_member: staff_member)
+      scope = %Scope{school_id: school.id, permissions: ["school_management"]}
+
+      assert {:ok, %ClassStaffMember{}} =
+               Schools.delete_class_staff_member(scope, csm)
+
+      assert_raise Ecto.NoResultsError, fn ->
+        Schools.get_class_staff_member!(%Scope{school_id: school.id}, csm.id)
+      end
+    end
+
+    test "delete_class_staff_member/2 raises MatchError if scope lacks school_management permission" do
+      school = insert(:school)
+      class = insert(:class, school: school)
+      staff_member = insert(:staff_member, school: school)
+      csm = insert(:class_staff_member, class: class, staff_member: staff_member)
+      scope = %Scope{school_id: school.id, permissions: []}
+
+      assert_raise MatchError, fn ->
+        Schools.delete_class_staff_member(scope, csm)
+      end
+    end
+
+    test "delete_class_staff_member/2 raises FunctionClauseError if class belongs to a different school" do
+      school_1 = insert(:school)
+      school_2 = insert(:school)
+      class = insert(:class, school: school_2)
+      staff_member = insert(:staff_member, school: school_2)
+      csm = insert(:class_staff_member, class: class, staff_member: staff_member)
+      scope = %Scope{school_id: school_1.id, permissions: ["school_management"]}
+
+      assert_raise FunctionClauseError, fn ->
+        Schools.delete_class_staff_member(scope, csm)
+      end
+    end
+
+    test "update_classes_staff_members_positions/3 updates positions based on ids order" do
+      school = insert(:school)
+      class = insert(:class, school: school)
+      staff_1 = insert(:staff_member, school: school)
+      staff_2 = insert(:staff_member, school: school)
+      staff_3 = insert(:staff_member, school: school)
+      scope = %Scope{school_id: school.id, permissions: ["school_management"]}
+
+      insert(:class_staff_member, class: class, staff_member: staff_1)
+      insert(:class_staff_member, class: class, staff_member: staff_2)
+      insert(:class_staff_member, class: class, staff_member: staff_3)
+
+      # Reorder: 3, 1, 2
+      assert :ok =
+               Schools.update_classes_staff_members_positions(scope, class, [
+                 staff_3.id,
+                 staff_1.id,
+                 staff_2.id
+               ])
+
+      result = Schools.list_class_staff_members(%Scope{school_id: school.id}, class.id)
+
+      assert Enum.at(result, 0).id == staff_3.id
+      assert Enum.at(result, 1).id == staff_1.id
+      assert Enum.at(result, 2).id == staff_2.id
     end
   end
 

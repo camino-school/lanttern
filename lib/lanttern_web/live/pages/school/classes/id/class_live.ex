@@ -7,7 +7,7 @@ defmodule LantternWeb.ClassLive do
   # page components
 
   alias __MODULE__.ILPComponent
-  alias __MODULE__.StudentsComponent
+  alias __MODULE__.PeopleComponent
   # alias __MODULE__.StudentRecordsComponent
 
   # shared components

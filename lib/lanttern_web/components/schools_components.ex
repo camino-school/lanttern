@@ -108,15 +108,17 @@ defmodule LantternWeb.SchoolsComponents do
         size="lg"
       />
       <div class="min-w-0 flex-1">
-        <%= if @navigate do %>
-          <.link navigate={@navigate} class="font-bold hover:text-ltrn-subtle">
-            {@student.name}
-          </.link>
-        <% else %>
-          <div class="font-bold">
-            {@student.name}
-          </div>
-        <% end %>
+        <div class="line-clamp-2" title={@student.name}>
+          <%= if @navigate do %>
+            <.link navigate={@navigate} class="font-bold hover:text-ltrn-subtle">
+              {@student.name}
+            </.link>
+          <% else %>
+            <div class="font-bold">
+              {@student.name}
+            </div>
+          <% end %>
+        </div>
         <div :if={@has_badge} class="flex flex-wrap gap-1 mt-2">
           <%= if @age do %>
             <div class="group relative" tabindex="0">
@@ -141,7 +143,7 @@ defmodule LantternWeb.SchoolsComponents do
         </div>
         <div
           :if={@student.email}
-          class="mt-2 text-xs text-ltrn-subtle truncate"
+          class="mt-2 font-sans text-xs text-ltrn-subtle truncate"
           title={@student.email}
         >
           {@student.email}
@@ -198,7 +200,7 @@ defmodule LantternWeb.SchoolsComponents do
           >
             <.badge :for={class <- @student.classes}>{class.name}</.badge>
           </div>
-          <div :if={@student.email} class="mt-2 text-xs truncate" title={@student.email}>
+          <div :if={@student.email} class="mt-2 font-sans text-xs truncate" title={@student.email}>
             {@student.email}
           </div>
         </div>
@@ -215,6 +217,113 @@ defmodule LantternWeb.SchoolsComponents do
             {gettext("Delete")}
           </.action>
         </div>
+      </div>
+    </.card_base>
+    """
+  end
+
+  @doc """
+  Renders a staff member card (simple view for class page).
+  """
+
+  attr :staff_member, :map, required: true
+  attr :navigate, :string, default: nil, doc: "On name click"
+  attr :class_role, :string, default: nil
+  attr :on_edit, JS, default: nil
+  attr :class, :any, default: nil
+  attr :id, :string, default: nil
+
+  def staff_member_card(assigns) do
+    ~H"""
+    <.card_base id={@id} class={["flex items-center gap-4 p-4", @class]}>
+      <.profile_picture
+        picture_url={@staff_member.profile_picture_url}
+        profile_name={@staff_member.name}
+        size="lg"
+      />
+      <div class="min-w-0 flex-1">
+        <div class="line-clamp-2" title={@staff_member.name}>
+          <%= if @navigate do %>
+            <.link navigate={@navigate} class="font-bold hover:text-ltrn-subtle">
+              {@staff_member.name}
+            </.link>
+          <% else %>
+            <div class="font-bold">
+              {@staff_member.name}
+            </div>
+          <% end %>
+        </div>
+        <div class="flex flex-wrap gap-1 mt-2">
+          <.badge :if={@class_role}>{@class_role}</.badge>
+          <span :if={!@class_role} class="font-sans text-sm text-ltrn-subtle">
+            {@staff_member.role}
+          </span>
+        </div>
+        <div
+          :if={@staff_member.email}
+          class="mt-2 font-sans text-xs text-ltrn-subtle truncate"
+          title={@staff_member.email}
+        >
+          {@staff_member.email}
+        </div>
+      </div>
+      <.button
+        :if={@on_edit}
+        type="button"
+        icon_name="hero-pencil-mini"
+        sr_text={gettext("Edit staff member")}
+        rounded
+        size="sm"
+        theme="ghost"
+        phx-click={@on_edit}
+      />
+    </.card_base>
+    """
+  end
+
+  @doc """
+  Renders a class card for staff member management.
+  """
+
+  attr :class_staff_member, :map, required: true
+  attr :show_actions, :boolean, default: false
+  attr :on_edit_role, JS, default: nil
+  attr :on_remove, JS, default: nil
+  attr :class, :any, default: nil
+  attr :id, :string, default: nil
+  attr :rest, :global
+
+  def class_card_for_staff(assigns) do
+    ~H"""
+    <.card_base id={@id} class={["flex items-center gap-4 p-4", @class]} {@rest}>
+      <div class="min-w-0 flex-1">
+        <div class="font-bold">
+          {@class_staff_member.class.name} ({@class_staff_member.class.cycle.name})
+        </div>
+        <div class="text-xs text-ltrn-subtle">{@class_staff_member.class.school.name}</div>
+        <div :if={@class_staff_member.role} class="flex flex-wrap gap-1 mt-2">
+          <.badge>{@class_staff_member.role}</.badge>
+        </div>
+      </div>
+      <div :if={@show_actions} class="flex gap-2">
+        <.button
+          type="button"
+          icon_name="hero-pencil-mini"
+          sr_text={gettext("Edit role")}
+          rounded
+          size="sm"
+          theme="ghost"
+          phx-click={@on_edit_role}
+        />
+        <.button
+          type="button"
+          icon_name="hero-x-mark-mini"
+          sr_text={gettext("Remove from class")}
+          rounded
+          size="sm"
+          theme="ghost"
+          phx-click={@on_remove}
+        />
       </div>
     </.card_base>
     """

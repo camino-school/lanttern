@@ -182,6 +182,15 @@ const autocompleteHook = {
       { signal: hookAbortControllerMap[this.el.id].signal }
     );
 
+    window.addEventListener(
+      `phx:autocomplete_reset:${id}`,
+      () => {
+        this.el.value = "";
+        hideControls(this.el);
+      },
+      { signal: hookAbortControllerMap[this.el.id].signal }
+    );
+
     window.addEventListener("click", clickAwayHandler.bind(this), {
       signal: hookAbortControllerMap[this.el.id].signal,
     });
