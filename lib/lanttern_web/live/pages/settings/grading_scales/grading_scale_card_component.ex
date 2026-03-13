@@ -32,16 +32,17 @@ defmodule LantternWeb.GradingScalesLive.GradingScaleCardComponent do
           </div>
           <%!-- Delete scale button --%>
           <.icon_button
-            name="hero-minus"
+            name="hero-minus-circle-solid"
             sr_text={gettext("Delete scale")}
-            class="text-ltrn-error border-ltrn-error hover:bg-ltrn-error/10"
+            theme="ghost"
+            class="!text-ltrn-alert-accent hover:!bg-ltrn-alert-lighter"
             phx-click="delete_scale"
             phx-target={@myself}
             data-confirm={gettext("Are you sure?")}
           />
           <%!-- Edit scale button --%>
           <.icon_button
-            name="hero-pencil"
+            name="hero-pencil-solid"
             sr_text={gettext("Edit scale")}
             theme="ghost"
             phx-click="edit_scale"
@@ -70,7 +71,7 @@ defmodule LantternWeb.GradingScalesLive.GradingScaleCardComponent do
                   :for={ov <- @scale.ordinal_values}
                   class="flex items-center gap-4 py-3 border-t border-ltrn-lighter"
                 >
-                  <.badge color_map={ov}>{ov.name}</.badge>
+                  <.badge color_map={ov} rounded class="inline-flex flex-col items-center justify-center gap-2.5 px-2 py-1 row-start-2 col-start-1">{ov.name}</.badge>
                   <span class="flex-1 font-mono text-right">{ov.normalized_value}</span>
                   <.action_icon
                     type="button"
