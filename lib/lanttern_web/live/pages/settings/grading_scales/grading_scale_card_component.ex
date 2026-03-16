@@ -7,58 +7,82 @@ defmodule LantternWeb.GradingScalesLive.GradingScaleCardComponent do
 
   def render(assigns) do
     ~H"""
-    <div id={@id} class="mt-4 first:mt-0">
+    <div id={@id} class={["mt-4 first:mt-0", @disabled && "opacity-50"]}>
       <.card_base class="overflow-hidden">
         <%!-- Header --%>
-        <div class="flex items-center gap-4 p-6">
-          <button
-            type="button"
-            phx-click="toggle"
-            phx-target={@myself}
-            class="flex-1 font-bold text-left hover:text-ltrn-subtle truncate"
-          >
-            {@scale.name}
-          </button>
-          <%!-- Ordinal value color badges --%>
-          <div :if={@scale.type == "ordinal"} class="flex gap-1">
-            <.badge
-              :for={ov <- @scale.ordinal_values}
-              color_map={ov}
-              rounded
-              class="w-8 h-8 !px-0 justify-center text-xs font-bold shrink-0"
+        <div class="flex justify-between gap-4 p-6">
+          <div class="flex gap-4 min-w-0">
+            <button
+              type="button"
+              phx-click={unless @disabled, do: "toggle"}
+              phx-target={@myself}
+              class="font-bold text-left hover:text-ltrn-subtle truncate text-base"
             >
-              {String.slice(ov.name, 0, 2)}
-            </.badge>
+              {@scale.name}
+            </button>
+            <div>
+              <%!-- Ordinal value color badges --%>
+              <div :if={@scale.type == "ordinal"} class="flex gap-1">
+                <.badge
+                  :for={ov <- Enum.take(@scale.ordinal_values, 10)}
+                  color_map={ov}
+                  rounded
+                  class="w-8 h-8 !px-0 justify-center text-xs font-bold shrink-0"
+                >
+                  {String.slice(ov.name, 0, 2)}
+                </.badge>
+              </div>
+            </div>
+            <div
+              :if={length(@scale.ordinal_values) > 10}
+              class="flex items-center justify-center w-8 h-8 text-xs font-bold"
+            >
+              ...
+            </div>
           </div>
-          <%!-- Delete scale button --%>
-          <.icon_button
-            name="hero-minus-circle-solid"
-            sr_text={gettext("Delete scale")}
-            theme="ghost"
-            class="!text-ltrn-alert-accent hover:!bg-ltrn-alert-lighter"
-            phx-click="delete_scale"
-            phx-target={@myself}
-            data-confirm={gettext("Are you sure?")}
-          />
-          <%!-- Edit scale button --%>
-          <.icon_button
-            name="hero-pencil-solid"
-            sr_text={gettext("Edit scale")}
-            theme="ghost"
-            phx-click="edit_scale"
-            phx-target={@myself}
-          />
-          <%!-- Toggle chevron --%>
-          <.icon_button
-            name={if @is_expanded, do: "hero-chevron-up", else: "hero-chevron-down"}
-            sr_text={gettext("Toggle scale card")}
-            theme="ghost"
-            phx-click="toggle"
-            phx-target={@myself}
-          />
+          <div>
+            <%= if @disabled do %>
+              <%!-- Re-enable button --%>
+              <.button
+                type="button"
+                theme="secondary"
+                phx-click="re_enable_scale"
+                phx-target={@myself}
+              >
+                {gettext("Re-enable")}
+              </.button>
+            <% else %>
+              <%!-- Delete scale button --%>
+              <.icon_button
+                name="hero-minus-circle-solid"
+                sr_text={gettext("Delete scale")}
+                theme="ghost"
+                class="!text-ltrn-alert-accent hover:!bg-ltrn-alert-lighter"
+                phx-click="delete_scale"
+                phx-target={@myself}
+                data-confirm={gettext("Are you sure?")}
+              />
+              <%!-- Edit scale button --%>
+              <.icon_button
+                name="hero-pencil-solid"
+                sr_text={gettext("Edit scale")}
+                theme="ghost"
+                phx-click="edit_scale"
+                phx-target={@myself}
+              />
+              <%!-- Toggle chevron --%>
+              <.icon_button
+                name={if @is_expanded, do: "hero-chevron-up", else: "hero-chevron-down"}
+                sr_text={gettext("Toggle scale card")}
+                theme="ghost"
+                phx-click="toggle"
+                phx-target={@myself}
+              />
+            <% end %>
+          </div>
         </div>
         <%!-- Expanded content --%>
-        <%= if @is_expanded do %>
+        <%= if @is_expanded && !@disabled do %>
           <div class="border-t border-ltrn-lighter">
             <%!-- Ordinal values table --%>
             <div :if={@scale.type == "ordinal"} class="p-6">
@@ -71,7 +95,13 @@ defmodule LantternWeb.GradingScalesLive.GradingScaleCardComponent do
                   :for={ov <- @scale.ordinal_values}
                   class="flex items-center gap-4 py-3 border-t border-ltrn-lighter"
                 >
-                  <.badge color_map={ov} rounded class="inline-flex flex-col items-center justify-center gap-2.5 px-2 py-1 row-start-2 col-start-1">{ov.name}</.badge>
+                  <.badge
+                    color_map={ov}
+                    rounded
+                    class="inline-flex flex-col items-center justify-center gap-2.5 px-2 py-1 row-start-2 col-start-1"
+                  >
+                    {ov.name}
+                  </.badge>
                   <span class="flex-1 font-mono text-right">{ov.normalized_value}</span>
                   <.action_icon
                     type="button"
@@ -89,7 +119,8 @@ defmodule LantternWeb.GradingScalesLive.GradingScaleCardComponent do
                 type="button"
                 phx-click="new_ordinal_value"
                 phx-target={@myself}
-                class="mt-4 flex items-center gap-2 text-sm border-2 border-dashed border-ltrn-lighter rounded-lg px-4 py-2 hover:border-ltrn-subtle transition-colors"
+                class="mt-4
+                flex items-center gap-2 text-sm border-2 border-dashed border-ltrn-lighter rounded-full px-4 py-2 hover:border-ltrn-subtle transition-colors"
               >
                 {gettext("Add value")}
                 <.icon name="hero-plus-mini" class="w-4 h-4" />
@@ -133,15 +164,21 @@ defmodule LantternWeb.GradingScalesLive.GradingScaleCardComponent do
       |> then(fn s ->
         if Map.has_key?(assigns, :scale), do: assign(s, :scale, assigns.scale), else: s
       end)
+      |> then(fn s ->
+        if Map.has_key?(assigns, :disabled), do: assign(s, :disabled, assigns.disabled), else: s
+      end)
 
     {:ok, socket}
   end
 
   def update(assigns, socket) do
+    disabled = Map.get(assigns, :disabled, false)
+
     {:ok,
      socket
      |> assign(assigns)
-     |> assign(:is_expanded, false)}
+     |> assign(:is_expanded, false)
+     |> assign(:disabled, disabled)}
   end
 
   # event handlers
@@ -172,6 +209,11 @@ defmodule LantternWeb.GradingScalesLive.GradingScaleCardComponent do
 
   def handle_event("new_ordinal_value", _params, socket) do
     send(self(), {__MODULE__, {:new_ordinal_value, socket.assigns.scale.id}})
+    {:noreply, socket}
+  end
+
+  def handle_event("re_enable_scale", _params, socket) do
+    send(self(), {__MODULE__, {:re_enable_scale, socket.assigns.scale.id}})
     {:noreply, socket}
   end
 end

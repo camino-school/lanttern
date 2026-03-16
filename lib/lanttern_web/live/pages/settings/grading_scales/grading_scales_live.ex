@@ -43,9 +43,13 @@ defmodule LantternWeb.GradingScalesLive do
 
   defp assign_scales(socket) do
     scales = Grading.list_scales(preloads: :ordinal_values)
+    enabled_scales = Enum.filter(scales, &is_nil(&1.deactivated_at))
+    disabled_scales = Enum.filter(scales, &(!is_nil(&1.deactivated_at)))
 
     socket
     |> assign(:scales, scales)
+    |> assign(:enabled_scales, enabled_scales)
+    |> assign(:disabled_scales, disabled_scales)
     |> assign(:has_scales, scales != [])
     |> assign(:scales_ids, Enum.map(scales, &"#{&1.id}"))
   end
@@ -148,5 +152,16 @@ defmodule LantternWeb.GradingScalesLive do
      socket
      |> assign(:ordinal_value, nil)
      |> assign_scales()}
+  end
+
+  def handle_info({GradingScaleCardComponent, {:re_enable_scale, id}}, socket) do
+    scale = Grading.get_scale!(id)
+    {:ok, _} = Grading.update_scale(scale, %{deactivated_at: nil})
+
+    {:noreply,
+     socket
+     |> put_flash(:info, gettext("Scale re-enabled successfully."))
+     |> assign_scales()
+     |> assign(:selected_scale_id, nil)}
   end
 end
