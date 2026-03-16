@@ -87,32 +87,35 @@ defmodule LantternWeb.GradingScalesLive.GradingScaleCardComponent do
           <div class="border-t border-ltrn-lighter">
             <%!-- Ordinal values table --%>
             <div :if={@scale.type == "ordinal"} class="p-6">
-              <div class="flex justify-between mb-2 text-sm font-semibold text-ltrn-subtle">
+              <div class="grid grid-cols-3 gap-4 mb-2 text-sm font-semibold text-ltrn-subtle">
                 <span>{gettext("Ordinal values")}</span>
-                <span>{gettext("Normalized value")}</span>
+                <span class="text-center">{gettext("Normalized value")}</span>
+                <span></span>
               </div>
               <div>
                 <div
                   :for={ov <- @scale.ordinal_values}
-                  class="flex items-center gap-4 py-3 border-t border-ltrn-lighter"
+                  class="grid grid-cols-3 gap-4 py-3 border-t border-ltrn-lighter items-center"
                 >
                   <.badge
                     color_map={ov}
                     rounded
-                    class="inline-flex flex-col items-center justify-center gap-2.5 px-2 py-1 row-start-2 col-start-1"
+                    class="px-2 py-1 w-fit"
                   >
                     {ov.name}
                   </.badge>
-                  <span class="flex-1 font-mono text-right">{ov.normalized_value}</span>
-                  <.action_icon
-                    type="button"
-                    name="hero-pencil-mini"
-                    sr_text={gettext("Edit ordinal value")}
-                    theme="subtle"
-                    phx-click="edit_ordinal_value"
-                    phx-value-id={ov.id}
-                    phx-target={@myself}
-                  />
+                  <span class="font-mono text-center">{ov.normalized_value}</span>
+                  <div class="flex justify-end">
+                    <.action_icon
+                      type="button"
+                      name="hero-pencil-mini"
+                      sr_text={gettext("Edit ordinal value")}
+                      theme="subtle"
+                      phx-click="edit_ordinal_value"
+                      phx-value-id={ov.id}
+                      phx-target={@myself}
+                    />
+                  </div>
                 </div>
               </div>
               <%!-- Add value button --%>
@@ -121,7 +124,7 @@ defmodule LantternWeb.GradingScalesLive.GradingScaleCardComponent do
                 phx-click="new_ordinal_value"
                 phx-target={@myself}
                 class="mt-4
-                flex items-center gap-2 text-sm border-2 border-dashed border-ltrn-lighter rounded-full px-4 py-2 hover:border-ltrn-subtle transition-colors"
+                flex items-center gap-2 text-sm border-2 border-dashed border-ltrn-lighter rounded-full px-2 py-1 hover:border-ltrn-subtle transition-colors"
               >
                 {gettext("Add value")}
                 <.icon name="hero-plus-mini" class="w-4 h-4" />
