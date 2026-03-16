@@ -48,17 +48,18 @@ defmodule LantternWeb.GradingScalesLive.GradingScaleCardComponent do
                 theme="secondary"
                 phx-click="re_enable_scale"
                 phx-target={@myself}
+                data-confirm={gettext("Are you sure?")}
               >
                 {gettext("Re-enable")}
               </.button>
             <% else %>
-              <%!-- Delete scale button --%>
+              <%!-- Disable scale button --%>
               <.icon_button
                 name="hero-minus-circle-solid"
-                sr_text={gettext("Delete scale")}
+                sr_text={gettext("Disable scale")}
                 theme="ghost"
                 class="!text-ltrn-alert-accent hover:!bg-ltrn-alert-lighter"
-                phx-click="delete_scale"
+                phx-click="disable_scale"
                 phx-target={@myself}
                 data-confirm={gettext("Are you sure?")}
               />
@@ -214,6 +215,11 @@ defmodule LantternWeb.GradingScalesLive.GradingScaleCardComponent do
 
   def handle_event("re_enable_scale", _params, socket) do
     send(self(), {__MODULE__, {:re_enable_scale, socket.assigns.scale.id}})
+    {:noreply, socket}
+  end
+
+  def handle_event("disable_scale", _params, socket) do
+    send(self(), {__MODULE__, {:disable_scale, socket.assigns.scale.id}})
     {:noreply, socket}
   end
 end

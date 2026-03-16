@@ -164,4 +164,15 @@ defmodule LantternWeb.GradingScalesLive do
      |> assign_scales()
      |> assign(:selected_scale_id, nil)}
   end
+
+  def handle_info({GradingScaleCardComponent, {:disable_scale, id}}, socket) do
+    scale = Grading.get_scale!(id)
+    {:ok, _} = Grading.update_scale(scale, %{deactivated_at: DateTime.utc_now()})
+
+    {:noreply,
+     socket
+     |> put_flash(:info, gettext("Scale disabled successfully."))
+     |> assign_scales()
+     |> assign(:selected_scale_id, nil)}
+  end
 end
