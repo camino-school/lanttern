@@ -717,6 +717,7 @@ defmodule Lanttern.Identity do
       emails
       |> Enum.map(&String.trim/1)
       |> Enum.reject(&(&1 == ""))
+      |> Enum.uniq()
 
     emails_to_add = new_emails -- current_emails
 
@@ -756,6 +757,16 @@ defmodule Lanttern.Identity do
         %User{}
         |> User.admin_create_changeset(%{email: email})
         |> Repo.insert()
+        |> case do
+          {:ok, user} ->
+            {:ok, user}
+
+          {:error, %Ecto.Changeset{errors: [email: {_, [{:constraint, :unique} | _]}]}} ->
+            {:ok, get_user_by_email(email)}
+
+          {:error, changeset} ->
+            {:error, changeset}
+        end
     end
   end
 

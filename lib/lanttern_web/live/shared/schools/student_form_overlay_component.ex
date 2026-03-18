@@ -420,6 +420,7 @@ defmodule LantternWeb.Schools.StudentFormOverlayComponent do
 
     invalid_emails =
       guardian_emails
+      |> Enum.map(&String.trim/1)
       |> Enum.reject(&(&1 == ""))
       |> Enum.reject(&User.valid_email?/1)
 

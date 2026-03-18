@@ -838,11 +838,15 @@ defmodule Lanttern.IdentityTest do
   # end
 
   describe "list_student_guardian_user_emails/2" do
-    test "returns emails of guardian profiles for a student" do
+    setup do
       scope = scope_fixture(permissions: ["school_management"])
       school = Repo.get!(Lanttern.Schools.School, scope.school_id)
       student = insert(:student, school: school)
 
+      %{scope: scope, school: school, student: student}
+    end
+
+    test "returns emails of guardian profiles for a student", %{scope: scope, student: student} do
       user1 = insert(:user)
       user2 = insert(:user)
 
@@ -867,10 +871,11 @@ defmodule Lanttern.IdentityTest do
       assert user2.email in emails
     end
 
-    test "ignores guardian profiles for other students" do
-      scope = scope_fixture(permissions: ["school_management"])
-      school = Repo.get!(Lanttern.Schools.School, scope.school_id)
-      student = insert(:student, school: school)
+    test "ignores guardian profiles for other students", %{
+      scope: scope,
+      school: school,
+      student: student
+    } do
       other_student = insert(:student, school: school)
 
       user = insert(:user)
@@ -885,16 +890,13 @@ defmodule Lanttern.IdentityTest do
       assert [] = Identity.list_student_guardian_user_emails(scope, student)
     end
 
-    test "returns empty list when no guardian profiles exist" do
-      scope = scope_fixture(permissions: ["school_management"])
-      school = Repo.get!(Lanttern.Schools.School, scope.school_id)
-      student = insert(:student, school: school)
-
+    test "returns empty list when no guardian profiles exist", %{scope: scope, student: student} do
       assert [] = Identity.list_student_guardian_user_emails(scope, student)
     end
 
-    test "raises FunctionClauseError when scope and student belong to different schools" do
-      scope = scope_fixture(permissions: ["school_management"])
+    test "raises FunctionClauseError when scope and student belong to different schools", %{
+      scope: scope
+    } do
       other_school = insert(:school)
       student = insert(:student, school: other_school)
 
