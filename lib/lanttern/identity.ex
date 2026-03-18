@@ -10,6 +10,7 @@ defmodule Lanttern.Identity do
 
   alias Lanttern.Identity.LoginCode
   alias Lanttern.Identity.Profile
+  alias Lanttern.Identity.Scope
   alias Lanttern.Identity.User
   alias Lanttern.Identity.UserNotifier
   alias Lanttern.Identity.UserToken
@@ -645,6 +646,135 @@ defmodule Lanttern.Identity do
     |> apply_list_profiles_opts(opts)
     |> Repo.all()
     |> maybe_preload(opts)
+  end
+
+  @doc """
+  Returns the list of user emails linked to a student as guardian profiles.
+
+  Requires "school_management" permission.
+
+  ## Examples
+
+      iex> list_student_guardian_user_emails(scope, student)
+      ["guardian@example.com", ...]
+
+  """
+  def list_student_guardian_user_emails(
+        %Scope{school_id: school_id} = scope,
+        %Student{school_id: school_id} = student
+      ) do
+    true = Scope.has_permission?(scope, "school_management")
+
+    from(p in Profile,
+      join: u in assoc(p, :user),
+      where: p.type == "guardian" and p.guardian_of_student_id == ^student.id,
+      select: u.email
+    )
+    |> Repo.all()
+  end
+
+  @doc """
+  Sets the guardian user accounts for a student.
+
+  Given a list of emails:
+  - For each new email: find or create a `User`, then create a guardian `Profile`
+    (`type="guardian"`, `guardian_of_student_id=student.id`) if one doesn't exist.
+  - For removed emails: deletes the associated guardian `Profile`.
+
+  All DB operations run in a single `Ecto.Multi` transaction.
+  Empty strings in the emails list are silently ignored.
+
+  Requires "school_management" permission.
+
+  ## Examples
+
+      iex> set_student_guardian_user_accounts(scope, student, ["new@example.com"])
+      {:ok, %{...}}
+
+      iex> set_student_guardian_user_accounts(scope, student, [])
+      {:ok, %{}}
+
+  """
+  def set_student_guardian_user_accounts(
+        %Scope{school_id: school_id} = scope,
+        %Student{school_id: school_id} = student,
+        emails
+      )
+      when is_list(emails) do
+    true = Scope.has_permission?(scope, "school_management")
+
+    current_profiles =
+      from(p in Profile,
+        join: u in assoc(p, :user),
+        where: p.type == "guardian" and p.guardian_of_student_id == ^student.id,
+        preload: [user: u]
+      )
+      |> Repo.all()
+
+    current_emails = Enum.map(current_profiles, & &1.user.email)
+
+    new_emails =
+      emails
+      |> Enum.map(&String.trim/1)
+      |> Enum.reject(&(&1 == ""))
+
+    emails_to_add = new_emails -- current_emails
+
+    profiles_to_remove =
+      Enum.filter(current_profiles, fn profile ->
+        profile.user.email not in new_emails
+      end)
+
+    multi = Ecto.Multi.new()
+
+    multi =
+      Enum.reduce(profiles_to_remove, multi, fn profile, acc ->
+        Ecto.Multi.delete(acc, {:delete_profile, profile.id}, profile)
+      end)
+
+    multi =
+      Enum.reduce(emails_to_add, multi, fn email, acc ->
+        acc
+        |> Ecto.Multi.run({:find_or_create_user, email}, fn _repo, _changes ->
+          find_or_create_guardian_user(email)
+        end)
+        |> Ecto.Multi.run({:create_profile, email}, fn _repo, changes ->
+          user = Map.fetch!(changes, {:find_or_create_user, email})
+          find_or_create_guardian_profile(student, user)
+        end)
+      end)
+
+    Repo.transaction(multi)
+  end
+
+  defp find_or_create_guardian_user(email) do
+    case get_user_by_email(email) do
+      %User{} = user ->
+        {:ok, user}
+
+      nil ->
+        %User{}
+        |> User.admin_create_changeset(%{email: email})
+        |> Repo.insert()
+    end
+  end
+
+  defp find_or_create_guardian_profile(%Student{id: student_id}, %User{id: user_id}) do
+    case Repo.get_by(Profile,
+           type: "guardian",
+           user_id: user_id,
+           guardian_of_student_id: student_id
+         ) do
+      %Profile{} = existing ->
+        {:ok, existing}
+
+      nil ->
+        create_profile(%{
+          type: "guardian",
+          user_id: user_id,
+          guardian_of_student_id: student_id
+        })
+    end
   end
 
   defp apply_list_profiles_opts(queryable, []), do: queryable

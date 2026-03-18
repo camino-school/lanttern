@@ -71,10 +71,31 @@ defmodule Lanttern.Identity.User do
     |> validate_password(opts)
   end
 
+  @doc false
+  def admin_create_changeset(user, attrs) do
+    user
+    |> cast(attrs, [:email])
+    # [] uses defaults: validates format, length, and uniqueness
+    |> validate_email([])
+    |> prepare_changes(&put_random_hashed_password/1)
+  end
+
+  defp put_random_hashed_password(changeset) do
+    random_password = :crypto.strong_rand_bytes(32) |> Base.encode64()
+    put_change(changeset, :hashed_password, Bcrypt.hash_pwd_salt(random_password))
+  end
+
+  @email_format ~r/^[^\s]+@[^\s]+$/
+
+  @doc """
+  Returns `true` if the given string looks like a valid email address.
+  """
+  def valid_email?(email), do: Regex.match?(@email_format, email)
+
   defp validate_email(changeset, opts) do
     changeset
     |> validate_required([:email])
-    |> validate_format(:email, ~r/^[^\s]+@[^\s]+$/, message: "must have the @ sign and no spaces")
+    |> validate_format(:email, @email_format, message: "must have the @ sign and no spaces")
     |> validate_length(:email, max: 160)
     |> maybe_validate_unique_email(opts)
   end

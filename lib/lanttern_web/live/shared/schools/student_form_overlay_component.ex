@@ -20,6 +20,9 @@ defmodule LantternWeb.Schools.StudentFormOverlayComponent do
 
   alias Lanttern.Repo
 
+  alias Lanttern.Identity
+  alias Lanttern.Identity.Scope
+  alias Lanttern.Identity.User
   alias Lanttern.Schools
   alias Lanttern.Schools.Student
   alias Lanttern.StudentTags
@@ -118,17 +121,62 @@ defmodule LantternWeb.Schools.StudentFormOverlayComponent do
               </.empty_state_simple>
             <% end %>
           </div>
-          <.card_base class="p-4" bg_class="bg-ltrn-mesh-cyan">
+          <.card_base class="p-6">
+            <h3 class="font-display font-bold text-xl text-ltrn-dark">
+              {gettext("User emails")}
+            </h3>
+            <p class="font-serif text-base text-ltrn-primary mt-1">
+              {gettext("User emails allow students and guardians to log in to Lanttern.")}
+            </p>
             <.input
               field={@form[:email]}
               type="email"
-              label={gettext("Lanttern user email")}
+              label={gettext("Student")}
+              placeholder={gettext("student@example.com")}
+              class="mt-6"
               phx-debounce="1500"
             />
-            <p class="flex items-center gap-2 mt-4">
-              <.icon name="hero-information-circle-mini" class="text-ltrn-subtle" />
-              {gettext("Enables the user to login at Lanttern via Google Sign In")}
-            </p>
+            <div :if={Scope.has_permission?(@current_scope, "school_management")} class="mt-6">
+              <.label>{gettext("Guardians")}</.label>
+              <div
+                :for={{email, index} <- Enum.with_index(@guardian_user_emails)}
+                class="flex items-center gap-2 mt-2"
+              >
+                <.input
+                  id={"guardian-email-#{index}"}
+                  name={"guardian_emails[#{index}]"}
+                  type="email"
+                  value={email}
+                  placeholder={gettext("guardian@example.com")}
+                  label=""
+                  class="flex-1"
+                  phx-debounce="1500"
+                />
+                <.button
+                  type="button"
+                  icon_name="hero-x-mark-mini"
+                  sr_text={gettext("Remove")}
+                  theme="ghost"
+                  size="sm"
+                  rounded
+                  phx-click={
+                    JS.push("remove_guardian_email", value: %{"index" => index}, target: @myself)
+                  }
+                />
+              </div>
+              <div class="flex justify-center mt-3">
+                <.button
+                  type="button"
+                  size="sm"
+                  phx-click={JS.push("add_guardian_email", target: @myself)}
+                >
+                  {gettext("Add another guardian user")}
+                </.button>
+              </div>
+              <.error_block :if={@guardian_emails_error} class="mt-4">
+                {@guardian_emails_error}
+              </.error_block>
+            </div>
           </.card_base>
         </.form>
         <:actions_left :if={@student.id}>
@@ -223,6 +271,8 @@ defmodule LantternWeb.Schools.StudentFormOverlayComponent do
     |> assign_form()
     |> assign_student_tags()
     |> assign_guardians()
+    |> assign_guardian_user_emails()
+    |> assign(:guardian_emails_error, nil)
     |> assign(:initialized, true)
   end
 
@@ -302,11 +352,33 @@ defmodule LantternWeb.Schools.StudentFormOverlayComponent do
     |> assign(:guardians, guardians)
   end
 
+  defp assign_guardian_user_emails(socket) do
+    %{student: student, current_scope: scope} = socket.assigns
+
+    emails =
+      if student.id && Scope.has_permission?(scope, "school_management") do
+        Identity.list_student_guardian_user_emails(scope, student)
+      else
+        []
+      end
+
+    assign(socket, :guardian_user_emails, ensure_at_least_one_email(emails))
+  end
+
   # event handlers
 
   @impl true
-  def handle_event("validate", %{"student" => student_params}, socket),
-    do: {:noreply, assign_validated_form(socket, student_params)}
+  def handle_event("validate", %{"student" => student_params} = params, socket) do
+    guardian_emails = extract_guardian_emails(params)
+
+    socket =
+      socket
+      |> assign(:guardian_user_emails, guardian_emails)
+      |> assign(:guardian_emails_error, nil)
+      |> assign_validated_form(student_params)
+
+    {:noreply, socket}
+  end
 
   def handle_event("toggle_student_tag", %{"id" => tag_id}, socket) do
     selected_student_tags_ids =
@@ -328,11 +400,39 @@ defmodule LantternWeb.Schools.StudentFormOverlayComponent do
      assign(socket, guardians: guardians, selected_guardians_ids: selected_guardians_ids)}
   end
 
-  def handle_event("save", %{"student" => student_params}, socket) do
-    student_params =
-      inject_extra_params(socket, student_params)
+  def handle_event("add_guardian_email", _params, socket) do
+    emails = socket.assigns.guardian_user_emails ++ [""]
+    {:noreply, assign(socket, :guardian_user_emails, emails)}
+  end
 
-    save_student(socket, socket.assigns.student.id, student_params)
+  def handle_event("remove_guardian_email", %{"index" => index}, socket) do
+    # index arrives as integer from JS.push JSON serialization
+    emails =
+      socket.assigns.guardian_user_emails
+      |> List.delete_at(index)
+
+    {:noreply, assign(socket, :guardian_user_emails, ensure_at_least_one_email(emails))}
+  end
+
+  def handle_event("save", %{"student" => student_params} = params, socket) do
+    student_params = inject_extra_params(socket, student_params)
+    guardian_emails = extract_guardian_emails(params)
+
+    invalid_emails =
+      guardian_emails
+      |> Enum.reject(&(&1 == ""))
+      |> Enum.reject(&User.valid_email?/1)
+
+    if invalid_emails != [] do
+      {:noreply,
+       assign(
+         socket,
+         :guardian_emails_error,
+         gettext("Some guardian emails are invalid. Please check and try again.")
+       )}
+    else
+      save_student(socket, socket.assigns.student.id, student_params, guardian_emails)
+    end
   end
 
   def handle_event("deactivate", _, socket) do
@@ -391,20 +491,27 @@ defmodule LantternWeb.Schools.StudentFormOverlayComponent do
     |> Map.put("guardians_ids", socket.assigns.selected_guardians_ids)
   end
 
-  defp save_student(socket, nil, student_params) do
+  defp save_student(socket, nil, student_params, guardian_emails) do
     Schools.create_student(student_params)
     |> case do
       {:ok, student} ->
         save_guardians_associations(socket, student)
-        notify(__MODULE__, {:created, student}, socket.assigns)
-        {:noreply, push_patch(socket, to: socket.assigns.close_path)}
+
+        case set_guardian_user_accounts(socket, student, guardian_emails) do
+          :ok ->
+            notify(__MODULE__, {:created, student}, socket.assigns)
+            {:noreply, push_patch(socket, to: socket.assigns.close_path)}
+
+          {:error, message} ->
+            {:noreply, assign(socket, :guardian_emails_error, message)}
+        end
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign(socket, :form, to_form(changeset))}
     end
   end
 
-  defp save_student(socket, _id, student_params) do
+  defp save_student(socket, _id, student_params, guardian_emails) do
     Schools.update_student(
       socket.assigns.student,
       student_params
@@ -412,11 +519,51 @@ defmodule LantternWeb.Schools.StudentFormOverlayComponent do
     |> case do
       {:ok, student} ->
         save_guardians_associations(socket, student)
-        notify(__MODULE__, {:updated, student}, socket.assigns)
-        {:noreply, push_patch(socket, to: socket.assigns.close_path)}
+
+        case set_guardian_user_accounts(socket, student, guardian_emails) do
+          :ok ->
+            notify(__MODULE__, {:updated, student}, socket.assigns)
+            {:noreply, push_patch(socket, to: socket.assigns.close_path)}
+
+          {:error, message} ->
+            {:noreply, assign(socket, :guardian_emails_error, message)}
+        end
 
       {:error, %Ecto.Changeset{} = changeset} ->
         {:noreply, assign(socket, :form, to_form(changeset))}
+    end
+  end
+
+  defp set_guardian_user_accounts(socket, student, guardian_emails) do
+    scope = socket.assigns.current_scope
+
+    if Scope.has_permission?(scope, "school_management") do
+      case Identity.set_student_guardian_user_accounts(scope, student, guardian_emails) do
+        {:ok, _} ->
+          :ok
+
+        {:error, _key, _changeset, _} ->
+          {:error,
+           gettext("Could not save guardian accounts. Please check the emails and try again.")}
+      end
+    else
+      :ok
+    end
+  end
+
+  defp ensure_at_least_one_email([]), do: [""]
+  defp ensure_at_least_one_email(emails), do: emails
+
+  defp extract_guardian_emails(params) do
+    case Map.get(params, "guardian_emails") do
+      map when is_map(map) ->
+        map
+        |> Enum.reject(fn {k, _v} -> String.starts_with?(k, "_") end)
+        |> Enum.sort_by(fn {k, _v} -> String.to_integer(k) end)
+        |> Enum.map(fn {_k, v} -> v end)
+
+      _ ->
+        [""]
     end
   end
 
