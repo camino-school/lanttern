@@ -84,7 +84,7 @@ defmodule LantternWeb.Schools.StudentFormOverlayComponentTest do
           "guardian_emails" => %{"0" => "not-an-email"}
         })
 
-      assert html =~ "invalid"
+      assert html =~ "email is invalid"
     end
 
     test "save creates guardian user account for valid email", context do
