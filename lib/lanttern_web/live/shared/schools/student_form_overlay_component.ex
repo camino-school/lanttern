@@ -493,62 +493,49 @@ defmodule LantternWeb.Schools.StudentFormOverlayComponent do
   end
 
   defp save_student(socket, nil, student_params, guardian_emails) do
-    Schools.create_student(student_params)
-    |> case do
-      {:ok, student} ->
-        save_guardians_associations(socket, student)
+    result =
+      Schools.save_student_with_guardian_accounts(
+        socket.assigns.current_scope,
+        nil,
+        student_params,
+        guardian_changes(socket),
+        guardian_emails
+      )
 
-        case set_guardian_user_accounts(socket, student, guardian_emails) do
-          :ok ->
-            notify(__MODULE__, {:created, student}, socket.assigns)
-            {:noreply, push_patch(socket, to: socket.assigns.close_path)}
-
-          {:error, message} ->
-            {:noreply, assign(socket, :guardian_emails_error, message)}
-        end
-
-      {:error, %Ecto.Changeset{} = changeset} ->
-        {:noreply, assign(socket, :form, to_form(changeset))}
-    end
+    handle_save_result(result, :created, socket)
   end
 
   defp save_student(socket, _id, student_params, guardian_emails) do
-    Schools.update_student(
-      socket.assigns.student,
-      student_params
-    )
-    |> case do
-      {:ok, student} ->
-        save_guardians_associations(socket, student)
+    result =
+      Schools.save_student_with_guardian_accounts(
+        socket.assigns.current_scope,
+        socket.assigns.student,
+        student_params,
+        guardian_changes(socket),
+        guardian_emails
+      )
 
-        case set_guardian_user_accounts(socket, student, guardian_emails) do
-          :ok ->
-            notify(__MODULE__, {:updated, student}, socket.assigns)
-            {:noreply, push_patch(socket, to: socket.assigns.close_path)}
-
-          {:error, message} ->
-            {:noreply, assign(socket, :guardian_emails_error, message)}
-        end
-
-      {:error, %Ecto.Changeset{} = changeset} ->
-        {:noreply, assign(socket, :form, to_form(changeset))}
-    end
+    handle_save_result(result, :updated, socket)
   end
 
-  defp set_guardian_user_accounts(socket, student, guardian_emails) do
-    scope = socket.assigns.current_scope
+  defp handle_save_result(result, action, socket) do
+    case result do
+      {:ok, student} ->
+        notify(__MODULE__, {action, student}, socket.assigns)
+        {:noreply, push_patch(socket, to: socket.assigns.close_path)}
 
-    if Scope.has_permission?(scope, "school_management") do
-      case Identity.set_student_guardian_user_accounts(scope, student, guardian_emails) do
-        {:ok, _} ->
-          :ok
+      {:error, {:student, %Ecto.Changeset{} = changeset}} ->
+        {:noreply, assign(socket, :form, to_form(changeset))}
 
-        {:error, _key, _changeset, _} ->
-          {:error,
-           gettext("Could not save guardian accounts. Please check the emails and try again.")}
-      end
-    else
-      :ok
+      {:error, :guardian_accounts} ->
+        socket =
+          assign(
+            socket,
+            :guardian_emails_error,
+            gettext("Could not save guardian accounts. Please check the emails and try again.")
+          )
+
+        {:noreply, socket}
     end
   end
 
@@ -568,28 +555,17 @@ defmodule LantternWeb.Schools.StudentFormOverlayComponent do
     end
   end
 
-  defp save_guardians_associations(socket, student) do
+  defp guardian_changes(socket) do
     selected_ids = socket.assigns.selected_guardians_ids
     current_ids = Enum.map(socket.assigns.student.guardians, & &1.id)
+    scope = socket.assigns.current_scope
 
-    # Remove guardians that were deselected
-    Enum.each(current_ids -- selected_ids, fn guardian_id ->
-      Schools.remove_guardian_from_student(
-        socket.assigns.current_scope,
-        student,
-        guardian_id
-      )
-    end)
+    guardians_to_add =
+      (selected_ids -- current_ids)
+      |> Enum.map(&Schools.get_guardian!(scope, &1))
 
-    # Add new guardians that were selected
-    Enum.each(selected_ids -- current_ids, fn guardian_id ->
-      guardian = Schools.get_guardian!(socket.assigns.current_scope, guardian_id)
+    guardian_ids_to_remove = current_ids -- selected_ids
 
-      Schools.add_guardian_to_student(
-        socket.assigns.current_scope,
-        student,
-        guardian
-      )
-    end)
+    {guardians_to_add, guardian_ids_to_remove}
   end
 end
