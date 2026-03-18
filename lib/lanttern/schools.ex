@@ -1111,6 +1111,13 @@ defmodule Lanttern.Schools do
           {:error, changeset} -> Repo.rollback({:student, changeset})
         end
 
+      maybe_sync_guardians(scope, student, guardians_to_add, guardian_ids_to_remove)
+      maybe_sync_guardian_accounts(scope, student, guardian_emails)
+    end)
+  end
+
+  defp maybe_sync_guardians(scope, student, guardians_to_add, guardian_ids_to_remove) do
+    if Scope.has_permission?(scope, "school_management") do
       Enum.each(guardian_ids_to_remove, fn guardian_id ->
         remove_guardian_from_student(scope, student, guardian_id)
       end)
@@ -1118,20 +1125,24 @@ defmodule Lanttern.Schools do
       Enum.each(guardians_to_add, fn guardian ->
         add_guardian_to_student(scope, student, guardian)
       end)
+    end
+  end
 
-      if Scope.has_permission?(scope, "school_management") do
-        case Identity.set_student_guardian_user_accounts(scope, student, guardian_emails) do
-          {:ok, _} -> student
-          {:error, _key, _changeset, _} -> Repo.rollback(:guardian_accounts)
-        end
-      else
-        student
+  defp maybe_sync_guardian_accounts(scope, student, guardian_emails) do
+    if Scope.has_permission?(scope, "school_management") do
+      case Identity.set_student_guardian_user_accounts(scope, student, guardian_emails) do
+        {:ok, _} -> student
+        {:error, _key, _changeset, _} -> Repo.rollback(:guardian_accounts)
       end
-    end)
+    else
+      student
+    end
   end
 
   defp do_save_student(nil, student_params), do: create_student(student_params)
-  defp do_save_student(%Student{} = student, student_params), do: update_student(student, student_params)
+
+  defp do_save_student(%Student{} = student, student_params),
+    do: update_student(student, student_params)
 
   @doc """
   Deletes a student and related classes relationships.
