@@ -7,9 +7,10 @@ defmodule LantternWeb.GradingScalesLive.OrdinalValueFormComponent do
 
   alias Lanttern.Grading
   alias Lanttern.Grading.OrdinalValue
+  alias Lanttern.Identity.Scope
 
   @impl Phoenix.LiveComponent
-  def update(%{ordinal_value: ordinal_value} = assigns, socket) do
+  def update(%{ordinal_value: ordinal_value, current_user: _current_user} = assigns, socket) do
     changeset = Grading.change_ordinal_value(ordinal_value)
 
     {:ok,
@@ -32,7 +33,9 @@ defmodule LantternWeb.GradingScalesLive.OrdinalValueFormComponent do
   end
 
   defp save(socket, %OrdinalValue{id: nil}, params) do
-    case Grading.create_ordinal_value(params) do
+    scope = Scope.for_user(socket.assigns.current_user)
+
+    case Grading.create_ordinal_value(scope, params) do
       {:ok, ordinal_value} ->
         notify_parent({:saved, ordinal_value})
         {:noreply, socket}
@@ -43,7 +46,9 @@ defmodule LantternWeb.GradingScalesLive.OrdinalValueFormComponent do
   end
 
   defp save(socket, %OrdinalValue{} = ordinal_value, params) do
-    case Grading.update_ordinal_value(ordinal_value, params) do
+    scope = Scope.for_user(socket.assigns.current_user)
+
+    case Grading.update_ordinal_value(scope, ordinal_value, params) do
       {:ok, ordinal_value} ->
         notify_parent({:saved, ordinal_value})
         {:noreply, socket}

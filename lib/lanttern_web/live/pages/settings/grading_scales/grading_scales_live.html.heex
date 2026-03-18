@@ -45,12 +45,12 @@
 
 <.modal :if={@live_action == :new} id="new-scale-modal" show on_cancel={JS.push("close_scale_form")}>
   <:title>{gettext("New Scale")}</:title>
-  <.live_component module={GradingScalesFormComponent} id="new-scale-form" action={:new} changeset={@changeset} scale={nil} />
+  <.live_component module={GradingScalesFormComponent} id="new-scale-form" action={:new} changeset={@changeset} scale={nil} current_user={@current_user} />
 </.modal>
 
 <.modal :if={@live_action == :edit} id="edit-scale-modal" show on_cancel={JS.push("close_scale_form")}>
   <:title>{gettext("Edit Scale")}</:title>
-  <.live_component module={GradingScalesFormComponent} id="edit-scale-form" action={:edit} changeset={@changeset} scale={@scale} />
+  <.live_component module={GradingScalesFormComponent} id="edit-scale-form" action={:edit} changeset={@changeset} scale={@scale} current_user={@current_user} />
 </.modal>
 
 <.modal
@@ -66,6 +66,7 @@
     module={OrdinalValueFormComponent}
     id="ordinal-value-form"
     ordinal_value={@ordinal_value}
+    current_user={@current_user}
   />
 </.modal>
 

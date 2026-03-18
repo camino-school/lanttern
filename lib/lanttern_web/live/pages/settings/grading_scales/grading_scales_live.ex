@@ -11,6 +11,7 @@ defmodule LantternWeb.GradingScalesLive do
 
   # page components
   alias __MODULE__.GradingScaleCardComponent
+  alias __MODULE__.GradingScalesFormComponent
   alias __MODULE__.OrdinalValueFormComponent
 
   @impl Phoenix.LiveView
@@ -156,7 +157,7 @@ defmodule LantternWeb.GradingScalesLive do
 
   def handle_info({GradingScaleCardComponent, {:re_enable_scale, id}}, socket) do
     scale = Grading.get_scale!(id)
-    {:ok, _} = Grading.update_scale(scale, %{deactivated_at: nil})
+    {:ok, _} = Grading.update_scale_unscoped(scale, %{deactivated_at: nil})
 
     {:noreply,
      socket
@@ -167,7 +168,7 @@ defmodule LantternWeb.GradingScalesLive do
 
   def handle_info({GradingScaleCardComponent, {:disable_scale, id}}, socket) do
     scale = Grading.get_scale!(id)
-    {:ok, _} = Grading.update_scale(scale, %{deactivated_at: DateTime.utc_now()})
+    {:ok, _} = Grading.update_scale_unscoped(scale, %{deactivated_at: DateTime.utc_now()})
 
     {:noreply,
      socket

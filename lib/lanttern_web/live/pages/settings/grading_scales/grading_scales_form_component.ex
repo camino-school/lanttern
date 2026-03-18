@@ -6,6 +6,7 @@ defmodule LantternWeb.GradingScalesFormComponent do
   use LantternWeb, :live_component
 
   alias Lanttern.Grading
+  alias Lanttern.Identity.Scope
 
   @impl Phoenix.LiveComponent
   def update(assigns, socket) do
@@ -14,9 +15,11 @@ defmodule LantternWeb.GradingScalesFormComponent do
 
   @impl Phoenix.LiveComponent
   def handle_event("save", %{"scale" => scale_params}, socket) do
+    scope = Scope.for_user(socket.assigns.current_user)
+
     case socket.assigns.action do
       :new ->
-        case Grading.create_scale(scale_params) do
+        case Grading.create_scale(scope, scale_params) do
           {:ok, _scale} ->
             {:noreply,
              socket
@@ -28,7 +31,7 @@ defmodule LantternWeb.GradingScalesFormComponent do
         end
 
       :edit ->
-        case Grading.update_scale(socket.assigns.scale, scale_params) do
+        case Grading.update_scale(scope, socket.assigns.scale, scale_params) do
           {:ok, _scale} ->
             {:noreply,
              socket
@@ -46,7 +49,7 @@ defmodule LantternWeb.GradingScalesFormComponent do
     ~H"""
     <div>
       <.header>
-        <%= if @action == :new, do: "New Scale", else: "Edit Scale" %>
+        {if @action == :new, do: "New Scale", else: "Edit Scale"}
       </.header>
 
       <.simple_form :let={f} for={@changeset} phx-submit="save" phx-target={@myself}>

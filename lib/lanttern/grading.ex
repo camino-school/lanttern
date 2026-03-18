@@ -7,6 +7,7 @@ defmodule Lanttern.Grading do
   alias Lanttern.Repo
   import Lanttern.RepoHelpers
 
+  alias Lanttern.Identity.Scope
   alias Lanttern.Grading.GradeComponent
   alias Lanttern.Grading.OrdinalValue
   alias Lanttern.Grading.Scale
@@ -197,6 +198,75 @@ defmodule Lanttern.Grading do
   end
 
   @doc """
+  Creates an ordinal_value for the current scope's school.
+
+  Validates that scope's school matches the scale's school.
+
+  ## Examples
+
+      iex> create_ordinal_value(scope, %{field: value})
+      {:ok, %OrdinalValue{}}
+
+      iex> create_ordinal_value(scope, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_ordinal_value(%Scope{} = scope, attrs) do
+    with :ok <- check_ordinal_value_school_access(scope, attrs) do
+      %OrdinalValue{}
+      |> OrdinalValue.changeset(attrs)
+      |> Repo.insert()
+    end
+  end
+
+  @doc """
+  Updates an ordinal_value for the current scope's school.
+
+  Validates that scope's school matches the ordinal_value and scale's school.
+
+  ## Examples
+
+      iex> update_ordinal_value(scope, ordinal_value, %{field: new_value})
+      {:ok, %OrdinalValue{}}
+
+      iex> update_ordinal_value(scope, ordinal_value, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_ordinal_value(%Scope{} = scope, %OrdinalValue{} = ordinal_value, attrs) do
+    with :ok <- check_ordinal_value_school_access(scope, ordinal_value),
+         :ok <- check_ordinal_value_school_access(scope, attrs) do
+      ordinal_value
+      |> OrdinalValue.changeset(attrs)
+      |> Repo.update()
+    end
+  end
+
+  defp check_ordinal_value_school_access(
+         %Scope{school_id: school_id} = _scope,
+         %OrdinalValue{} = ordinal_value
+       ) do
+    scale = Repo.get!(Scale, ordinal_value.scale_id)
+    if scale.school_id == school_id, do: :ok, else: {:error, :unauthorized}
+  end
+
+  defp check_ordinal_value_school_access(
+         %Scope{school_id: school_id} = _scope,
+         %{"scale_id" => scale_id} = _attrs
+       ) do
+    scale = Repo.get!(Scale, scale_id)
+    if scale.school_id == school_id, do: :ok, else: {:error, :unauthorized}
+  end
+
+  defp check_ordinal_value_school_access(
+         %Scope{school_id: school_id} = _scope,
+         %{scale_id: scale_id} = _attrs
+       ) do
+    scale = Repo.get!(Scale, scale_id)
+    if scale.school_id == school_id, do: :ok, else: {:error, :unauthorized}
+  end
+
+  @doc """
   Creates a ordinal_value.
 
   ## Examples
@@ -268,15 +338,34 @@ defmodule Lanttern.Grading do
 
   ## Examples
 
-      iex> list_scales()
+      iex> list_scales([])
       [%Scale{}, ...]
 
   """
-
-  def list_scales(opts \\ [])
-
-  def list_scales(opts) do
+  def list_scales(opts) when is_list(opts) do
     Scale
+    |> apply_list_scales_opts(opts)
+    |> Repo.all()
+    |> maybe_preload(opts)
+  end
+
+  @doc """
+  Returns the list of scales for the current scope's school.
+
+  Accepts `:type` opts.
+
+  ## Examples
+
+      iex> list_scales(scope)
+      [%Scale{}, ...]
+
+      iex> list_scales(scope, [type: "ordinal"])
+      [%Scale{}, ...]
+
+  """
+  def list_scales(%Scope{school_id: school_id} = _scope, opts \\ []) do
+    Scale
+    |> from(where: [school_id: ^school_id])
     |> apply_list_scales_opts(opts)
     |> Repo.all()
     |> maybe_preload(opts)
@@ -327,6 +416,56 @@ defmodule Lanttern.Grading do
   end
 
   @doc """
+  Creates a scale for the current scope's school.
+
+  Automatically sets the school from scope.
+
+  ## Examples
+
+      iex> create_scale(scope, %{name: "Scale A"})
+      {:ok, %Scale{}}
+
+      iex> create_scale(scope, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_scale(%Scope{school_id: school_id} = _scope, attrs \\ %{}) do
+    attrs = Map.put(attrs, :school_id, school_id)
+
+    %Scale{}
+    |> Scale.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a scale with scope check.
+
+  Validates that scope's school matches the scale's school.
+
+  ## Examples
+
+      iex> update_scale(scope, scale, %{name: "New name"})
+      {:ok, %Scale{}}
+
+      iex> update_scale(scope, scale, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_scale(
+        %Scope{school_id: school_id} = _scope,
+        %Scale{school_id: scale_school_id} = scale,
+        attrs
+      ) do
+    if scale_school_id == school_id do
+      scale
+      |> Scale.changeset(attrs)
+      |> Repo.update()
+    else
+      {:error, :unauthorized}
+    end
+  end
+
+  @doc """
   Creates a scale.
 
   ## Examples
@@ -338,25 +477,27 @@ defmodule Lanttern.Grading do
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_scale(attrs \\ %{}) do
+  def create_scale_unscoped(attrs \\ %{}) do
     %Scale{}
     |> Scale.changeset(attrs)
     |> Repo.insert()
   end
 
   @doc """
-  Updates a scale.
+  Updates a scale (unscoped).
+
+  For scoped updates, use `update_scale/3` with a Scope.
 
   ## Examples
 
-      iex> update_scale(scale, %{field: new_value})
+      iex> update_scale_unscoped(scale, %{field: new_value})
       {:ok, %Scale{}}
 
-      iex> update_scale(scale, %{field: bad_value})
+      iex> update_scale_unscoped(scale, %{field: bad_value})
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_scale(%Scale{} = scale, attrs) do
+  def update_scale_unscoped(%Scale{} = scale, attrs) do
     scale
     |> Scale.changeset(attrs)
     |> Repo.update()
