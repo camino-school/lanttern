@@ -1095,7 +1095,7 @@ defmodule Lanttern.Schools do
       list of guardian IDs.
 
   Guardian user accounts are only synced if `scope` has "school_management"
-  permission. Uses `Identity.set_student_guardian_user_accounts/3` internally.
+  permission. Uses `Identity.build_student_guardian_user_accounts_multi/3` internally.
   """
   def save_student_with_guardian_accounts(
         %Scope{} = scope,
@@ -1104,39 +1104,41 @@ defmodule Lanttern.Schools do
         {guardians_to_add, guardian_ids_to_remove},
         guardian_emails
       ) do
-    Repo.transaction(fn ->
-      student =
-        case do_save_student(student_or_nil, student_params) do
-          {:ok, student} -> student
-          {:error, changeset} -> Repo.rollback({:student, changeset})
+    multi =
+      Ecto.Multi.new()
+      |> Ecto.Multi.run(:student, fn _repo, _changes ->
+        do_save_student(student_or_nil, student_params)
+      end)
+      |> Ecto.Multi.run(:sync_guardians, fn _repo, %{student: student} ->
+        sync_guardians(scope, student, guardians_to_add, guardian_ids_to_remove)
+      end)
+      |> Ecto.Multi.merge(fn %{student: student} ->
+        if Scope.has_permission?(scope, "school_management") do
+          Identity.build_student_guardian_user_accounts_multi(scope, student, guardian_emails)
+        else
+          Ecto.Multi.new()
         end
+      end)
 
-      maybe_sync_guardians(scope, student, guardians_to_add, guardian_ids_to_remove)
-      maybe_sync_guardian_accounts(scope, student, guardian_emails)
-    end)
+    case Repo.transaction(multi) do
+      {:ok, %{student: student}} -> {:ok, student}
+      {:error, :student, changeset, _} -> {:error, {:student, changeset}}
+      {:error, _key, _changeset, _} -> {:error, :guardian_accounts}
+    end
   end
 
-  defp maybe_sync_guardians(scope, student, guardians_to_add, guardian_ids_to_remove) do
+  defp sync_guardians(scope, student, guardians_to_add, guardian_ids_to_remove) do
     if Scope.has_permission?(scope, "school_management") do
       Enum.each(guardian_ids_to_remove, fn guardian_id ->
-        remove_guardian_from_student(scope, student, guardian_id)
+        {:ok, _} = remove_guardian_from_student(scope, student, guardian_id)
       end)
 
       Enum.each(guardians_to_add, fn guardian ->
-        add_guardian_to_student(scope, student, guardian)
+        {:ok, _} = add_guardian_to_student(scope, student, guardian)
       end)
     end
-  end
 
-  defp maybe_sync_guardian_accounts(scope, student, guardian_emails) do
-    if Scope.has_permission?(scope, "school_management") do
-      case Identity.set_student_guardian_user_accounts(scope, student, guardian_emails) do
-        {:ok, _} -> student
-        {:error, _key, _changeset, _} -> Repo.rollback(:guardian_accounts)
-      end
-    else
-      student
-    end
+    {:ok, :synced}
   end
 
   defp do_save_student(nil, student_params), do: create_student(student_params)

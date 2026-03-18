@@ -701,6 +701,27 @@ defmodule Lanttern.Identity do
         emails
       )
       when is_list(emails) do
+    scope
+    |> build_student_guardian_user_accounts_multi(student, emails)
+    |> Repo.transaction()
+  end
+
+  @doc """
+  Builds an `Ecto.Multi` that syncs guardian user accounts for a student.
+
+  Same logic as `set_student_guardian_user_accounts/3` but returns the
+  `Ecto.Multi` struct without executing it, so callers can compose it
+  into a larger transaction.
+
+  Requires "school_management" permission in scope.
+  Scope and student must belong to the same school.
+  """
+  def build_student_guardian_user_accounts_multi(
+        %Scope{school_id: school_id} = scope,
+        %Student{school_id: school_id} = student,
+        emails
+      )
+      when is_list(emails) do
     true = Scope.has_permission?(scope, "school_management")
 
     current_profiles =
@@ -733,19 +754,16 @@ defmodule Lanttern.Identity do
         Ecto.Multi.delete(acc, {:delete_profile, profile.id}, profile)
       end)
 
-    multi =
-      Enum.reduce(emails_to_add, multi, fn email, acc ->
-        acc
-        |> Ecto.Multi.run({:find_or_create_user, email}, fn _repo, _changes ->
-          find_or_create_guardian_user(email)
-        end)
-        |> Ecto.Multi.run({:create_profile, email}, fn _repo, changes ->
-          user = Map.fetch!(changes, {:find_or_create_user, email})
-          find_or_create_guardian_profile(student, user)
-        end)
+    Enum.reduce(emails_to_add, multi, fn email, acc ->
+      acc
+      |> Ecto.Multi.run({:find_or_create_user, email}, fn _repo, _changes ->
+        find_or_create_guardian_user(email)
       end)
-
-    Repo.transaction(multi)
+      |> Ecto.Multi.run({:create_profile, email}, fn _repo, changes ->
+        user = Map.fetch!(changes, {:find_or_create_user, email})
+        find_or_create_guardian_profile(student, user)
+      end)
+    end)
   end
 
   defp find_or_create_guardian_user(email) do

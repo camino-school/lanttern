@@ -904,6 +904,16 @@ defmodule Lanttern.IdentityTest do
         Identity.list_student_guardian_user_emails(scope, student)
       end
     end
+
+    test "raises MatchError when scope lacks school_management permission" do
+      scope_no_perm = scope_fixture(permissions: [])
+      school = Repo.get!(Lanttern.Schools.School, scope_no_perm.school_id)
+      student = insert(:student, school: school)
+
+      assert_raise MatchError, fn ->
+        Identity.list_student_guardian_user_emails(scope_no_perm, student)
+      end
+    end
   end
 
   describe "set_student_guardian_user_accounts/3" do

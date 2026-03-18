@@ -432,7 +432,7 @@ defmodule LantternWeb.Schools.StudentFormOverlayComponent do
          gettext("Some guardian emails are invalid. Please check and try again.")
        )}
     else
-      save_student(socket, socket.assigns.student.id, student_params, guardian_emails)
+      save_student(socket, student_params, guardian_emails)
     end
   end
 
@@ -492,30 +492,22 @@ defmodule LantternWeb.Schools.StudentFormOverlayComponent do
     |> Map.put("guardians_ids", socket.assigns.selected_guardians_ids)
   end
 
-  defp save_student(socket, nil, student_params, guardian_emails) do
+  defp save_student(socket, student_params, guardian_emails) do
+    {student_or_nil, action} =
+      if socket.assigns.student.id,
+        do: {socket.assigns.student, :updated},
+        else: {nil, :created}
+
     result =
       Schools.save_student_with_guardian_accounts(
         socket.assigns.current_scope,
-        nil,
+        student_or_nil,
         student_params,
         guardian_changes(socket),
         guardian_emails
       )
 
-    handle_save_result(result, :created, socket)
-  end
-
-  defp save_student(socket, _id, student_params, guardian_emails) do
-    result =
-      Schools.save_student_with_guardian_accounts(
-        socket.assigns.current_scope,
-        socket.assigns.student,
-        student_params,
-        guardian_changes(socket),
-        guardian_emails
-      )
-
-    handle_save_result(result, :updated, socket)
+    handle_save_result(result, action, socket)
   end
 
   defp handle_save_result(result, action, socket) do
