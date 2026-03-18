@@ -1089,6 +1089,8 @@ defmodule Lanttern.Schools do
   Creates or updates a student and syncs guardian associations and
   guardian user accounts in a single transaction.
 
+  Accepts `%Student{}` (update) or `nil` (create) as second argument.
+
   Guardian associations are synced based on `guardian_changes`:
     - `{guardians_to_add, guardian_ids_to_remove}` where `guardians_to_add`
       is a list of `%Guardian{}` structs and `guardian_ids_to_remove` is a
@@ -1103,7 +1105,8 @@ defmodule Lanttern.Schools do
         student_params,
         {guardians_to_add, guardian_ids_to_remove},
         guardian_emails
-      ) do
+      )
+      when is_struct(student_or_nil, Student) or is_nil(student_or_nil) do
     multi =
       Ecto.Multi.new()
       |> Ecto.Multi.run(:student, fn _repo, _changes ->
@@ -1136,9 +1139,11 @@ defmodule Lanttern.Schools do
       Enum.each(guardians_to_add, fn guardian ->
         {:ok, _} = add_guardian_to_student(scope, student, guardian)
       end)
-    end
 
-    {:ok, :synced}
+      {:ok, :synced}
+    else
+      {:ok, :skipped}
+    end
   end
 
   defp do_save_student(nil, student_params), do: create_student(student_params)
