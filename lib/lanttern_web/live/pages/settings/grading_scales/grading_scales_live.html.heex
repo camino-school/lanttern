@@ -1,15 +1,37 @@
 <Layouts.app_settings flash={@flash} current_user={@current_user} current_path={@current_path}>
   <div class="flex items-center justify-end gap-4 mb-10">
-    <.button
-      type="button"
-      phx-click="new_scale"
-      icon_name="hero-plus-mini"
-      theme="primary"
-    >
-      {gettext("New scale")}
-    </.button>
+    <div class="relative">
+      <.button
+        type="button"
+        icon_name="hero-plus-mini"
+        theme="primary"
+        id="new-scale-options-button"
+      >
+        {gettext("New scale")}
+      </.button>
+      <.dropdown_menu
+        id="new-scale-options"
+        button_id="new-scale-options-button"
+        z_index="30"
+        position="right"
+      >
+        <:instructions>
+          {gettext("Select a scale type")}
+        </:instructions>
+        <:item
+          type="button"
+          on_click={JS.push("new_scale", value: %{"type" => "ordinal"})}
+          text={gettext("Ordinal")}
+        />
+        <:item
+          type="button"
+          on_click={JS.push("new_scale", value: %{"type" => "numeric"})}
+          text={gettext("Numeric")}
+        />
+      </.dropdown_menu>
+    </div>
   </div>
-  <%= if @has_scales do %>
+  <%= if @scales_ids != [] do %>
     <div id="grading-scales-list">
       <%!-- Enabled scales --%>
       <.live_component
@@ -20,7 +42,7 @@
         selected_scale_id={@selected_scale_id}
         disabled={false}
       />
-      
+
       <%!-- Disabled scales --%>
       <%= if @disabled_scales != [] do %>
         <div class="mt-8 mb-4">
@@ -43,14 +65,21 @@
   <% end %>
 </Layouts.app_settings>
 
-<.modal :if={@live_action == :new} id="new-scale-modal" show on_cancel={JS.push("close_scale_form")}>
-  <:title>{gettext("New Scale")}</:title>
-  <.live_component module={GradingScalesFormComponent} id="new-scale-form" action={:new} changeset={@changeset} scale={nil} current_user={@current_user} />
-</.modal>
-
-<.modal :if={@live_action == :edit} id="edit-scale-modal" show on_cancel={JS.push("close_scale_form")}>
-  <:title>{gettext("Edit Scale")}</:title>
-  <.live_component module={GradingScalesFormComponent} id="edit-scale-form" action={:edit} changeset={@changeset} scale={@scale} current_user={@current_user} />
+<.modal
+  :if={@scale}
+  id="scale-form-modal"
+  show
+  on_cancel={JS.push("close_scale_form")}
+>
+  <:title>{if @scale.id, do: gettext("Edit scale"), else: gettext("New scale")}</:title>
+  <.live_component
+    module={GradingScaleFormComponent}
+    id="scale-form"
+    scale={@scale}
+    current_scope={@current_scope}
+    navigate={fn {_action, scale} -> ~p"/settings/grading_scales/#{scale}" end}
+    on_cancel={JS.exec("data-cancel", to: "#scale-form-modal")}
+  />
 </.modal>
 
 <.modal
@@ -69,4 +98,3 @@
     current_user={@current_user}
   />
 </.modal>
-

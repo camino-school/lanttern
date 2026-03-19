@@ -7,10 +7,10 @@ defmodule Lanttern.Grading do
   alias Lanttern.Repo
   import Lanttern.RepoHelpers
 
-  alias Lanttern.Identity.Scope
   alias Lanttern.Grading.GradeComponent
   alias Lanttern.Grading.OrdinalValue
   alias Lanttern.Grading.Scale
+  alias Lanttern.Identity.Scope
 
   @doc """
   Returns the list of grade_components.
@@ -403,15 +403,16 @@ defmodule Lanttern.Grading do
 
   ## Examples
 
-      iex> get_scale!(123)
+      iex> get_scale!(scope, 123)
       %Scale{}
 
-      iex> get_scale!(456)
+      iex> get_scale!(scope, 456)
       ** (Ecto.NoResultsError)
 
   """
-  def get_scale!(id, opts \\ []) do
-    Repo.get!(Scale, id)
+  def get_scale!(%Scope{} = scope, id, opts \\ []) do
+    Scale
+    |> Repo.get_by!(id: id, school_id: scope.school_id)
     |> maybe_preload(opts)
   end
 
@@ -429,11 +430,11 @@ defmodule Lanttern.Grading do
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_scale(%Scope{school_id: school_id} = _scope, attrs \\ %{}) do
-    attrs = Map.put(attrs, :school_id, school_id)
+  def create_scale(%Scope{} = scope, attrs \\ %{}) do
+    true = Scope.has_permission?(scope, "assessment_management")
 
     %Scale{}
-    |> Scale.changeset(attrs)
+    |> Scale.changeset(attrs, scope)
     |> Repo.insert()
   end
 
@@ -452,54 +453,14 @@ defmodule Lanttern.Grading do
 
   """
   def update_scale(
-        %Scope{school_id: school_id} = _scope,
-        %Scale{school_id: scale_school_id} = scale,
+        %Scope{school_id: school_id} = scope,
+        %Scale{school_id: school_id} = scale,
         attrs
       ) do
-    if scale_school_id == school_id do
-      scale
-      |> Scale.changeset(attrs)
-      |> Repo.update()
-    else
-      {:error, :unauthorized}
-    end
-  end
+    true = Scope.has_permission?(scope, "assessment_management")
 
-  @doc """
-  Creates a scale.
-
-  ## Examples
-
-      iex> create_scale(%{field: value})
-      {:ok, %Scale{}}
-
-      iex> create_scale(%{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
-  """
-  def create_scale_unscoped(attrs \\ %{}) do
-    %Scale{}
-    |> Scale.changeset(attrs)
-    |> Repo.insert()
-  end
-
-  @doc """
-  Updates a scale (unscoped).
-
-  For scoped updates, use `update_scale/3` with a Scope.
-
-  ## Examples
-
-      iex> update_scale_unscoped(scale, %{field: new_value})
-      {:ok, %Scale{}}
-
-      iex> update_scale_unscoped(scale, %{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
-  """
-  def update_scale_unscoped(%Scale{} = scale, attrs) do
     scale
-    |> Scale.changeset(attrs)
+    |> Scale.changeset(attrs, scope)
     |> Repo.update()
   end
 
@@ -515,7 +476,9 @@ defmodule Lanttern.Grading do
       {:error, %Ecto.Changeset{}}
 
   """
-  def delete_scale(%Scale{} = scale) do
+  def delete_scale(%Scope{} = scope, %Scale{} = scale) do
+    true = Scope.has_permission?(scope, "assessment_management")
+
     Repo.delete(scale)
   end
 
@@ -528,8 +491,9 @@ defmodule Lanttern.Grading do
       %Ecto.Changeset{data: %Scale{}}
 
   """
-  def change_scale(%Scale{} = scale, attrs \\ %{}) do
-    Scale.changeset(scale, attrs)
+  def change_scale(%Scope{} = scope, %Scale{} = scale, attrs \\ %{}) do
+    true = Scope.has_permission?(scope, "assessment_management")
+    Scale.changeset(scale, attrs, scope)
   end
 
   @doc """

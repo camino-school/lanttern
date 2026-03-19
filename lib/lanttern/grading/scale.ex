@@ -8,6 +8,7 @@ defmodule Lanttern.Grading.Scale do
   import Lanttern.SchemaHelpers, only: [validate_hex_color: 3]
 
   alias Lanttern.Grading.OrdinalValue
+  alias Lanttern.Identity.Scope
   alias Lanttern.Schools.School
 
   @type t :: %__MODULE__{
@@ -48,7 +49,7 @@ defmodule Lanttern.Grading.Scale do
   end
 
   @doc false
-  def changeset(scale, attrs) do
+  def changeset(scale, attrs, %Scope{} = scope) do
     scale
     |> cast(attrs, [
       :name,
@@ -60,10 +61,10 @@ defmodule Lanttern.Grading.Scale do
       :stop_bg_color,
       :stop_text_color,
       :breakpoints,
-      :school_id,
       :deactivated_at
     ])
     |> validate_required([:name, :type])
+    |> put_change(:school_id, scope.school_id)
     |> validate_scale_type()
     |> validate_start_stop()
     |> adjust_breakpoints()

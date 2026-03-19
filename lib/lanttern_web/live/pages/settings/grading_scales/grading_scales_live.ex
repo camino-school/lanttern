@@ -8,21 +8,23 @@ defmodule LantternWeb.GradingScalesLive do
   alias Lanttern.Grading
   alias Lanttern.Grading.OrdinalValue
   alias Lanttern.Grading.Scale
+  alias Lanttern.Identity.Scope
 
   # page components
   alias __MODULE__.GradingScaleCardComponent
-  alias __MODULE__.GradingScalesFormComponent
   alias __MODULE__.OrdinalValueFormComponent
 
-  @impl Phoenix.LiveView
+  # shared components
+  alias LantternWeb.Grading.GradingScaleFormComponent
+
+  @impl true
   def mount(_params, _session, socket) do
     socket =
       socket
       |> check_if_user_has_access()
       |> assign(:page_title, gettext("Grading Scales"))
-      |> assign(:selected_scale_id, nil)
       |> assign(:scale, nil)
-      |> assign(:changeset, nil)
+      |> assign(:selected_scale_id, nil)
       |> assign(:ordinal_value, nil)
       |> assign_scales()
 
@@ -30,72 +32,39 @@ defmodule LantternWeb.GradingScalesLive do
   end
 
   defp check_if_user_has_access(socket) do
-    has_access =
-      "assessment_management" in socket.assigns.current_user.current_profile.permissions
-
-    if has_access do
-      socket
-    else
-      socket
-      |> push_navigate(to: ~p"/dashboard", replace: true)
-      |> put_flash(:error, gettext("You don't have access to grading scales page"))
-    end
+    if Scope.has_permission?(socket.assigns.current_scope, "assessment_management"),
+      do: socket,
+      else: raise(LantternWeb.NotFoundError)
   end
 
   defp assign_scales(socket) do
-    scales = Grading.list_scales(preloads: :ordinal_values)
+    scales = Grading.list_scales(socket.assigns.current_scope, preloads: :ordinal_values)
     enabled_scales = Enum.filter(scales, &is_nil(&1.deactivated_at))
     disabled_scales = Enum.filter(scales, &(!is_nil(&1.deactivated_at)))
 
     socket
-    |> assign(:scales, scales)
+    |> assign(:scales_ids, Enum.map(scales, &"#{&1.id}"))
     |> assign(:enabled_scales, enabled_scales)
     |> assign(:disabled_scales, disabled_scales)
-    |> assign(:has_scales, scales != [])
-    |> assign(:scales_ids, Enum.map(scales, &"#{&1.id}"))
   end
 
-  @impl Phoenix.LiveView
-  def handle_params(%{"id" => id}, _uri, socket) do
-    case socket.assigns.live_action do
-      :show ->
-        {:noreply, update_selected_scale_components(socket, id)}
+  @impl true
+  def handle_params(params, _uri, socket),
+    do: {:noreply, update_selected_scale_components(socket, params)}
 
-      :edit ->
-        scale = Grading.get_scale!(id)
-        changeset = Grading.change_scale(scale)
-        {:noreply, assign(socket, scale: scale, changeset: changeset)}
+  def handle_params(params, _uri, socket),
+    do: {:noreply, update_selected_scale_components(socket, params)}
 
-      _ ->
-        {:noreply, socket}
-    end
-  end
-
-  def handle_params(_params, _uri, socket) do
-    case socket.assigns.live_action do
-      :index ->
-        socket =
-          socket
-          |> assign_scales()
-          |> update_selected_scale_components(nil)
-
-        {:noreply, socket}
-
-      :new ->
-        changeset = Grading.change_scale(%Scale{})
-        {:noreply, assign(socket, changeset: changeset)}
-
-      _ ->
-        {:noreply, socket}
-    end
-  end
-
-  defp update_selected_scale_components(socket, new_id) do
+  defp update_selected_scale_components(socket, params) do
     prev_id = socket.assigns.selected_scale_id
 
     selected_scale_id =
-      if new_id && new_id in socket.assigns.scales_ids, do: new_id, else: nil
+      case params do
+        %{"id" => id} -> if id in socket.assigns.scales_ids, do: id, else: nil
+        _ -> nil
+      end
 
+    # Re-send update only to the lesson tags that need to toggle (previous and current selection)
     ids_to_update =
       [prev_id, selected_scale_id] |> Enum.reject(&is_nil/1) |> Enum.uniq()
 
@@ -109,22 +78,31 @@ defmodule LantternWeb.GradingScalesLive do
     assign(socket, :selected_scale_id, selected_scale_id)
   end
 
-  @impl Phoenix.LiveView
-  def handle_event("new_scale", _params, socket) do
-    {:noreply, push_patch(socket, to: ~p"/settings/grading_scales/new")}
+  @impl true
+  def handle_event("new_scale", params, socket) do
+    type = params["type"]
+    {:noreply, assign(socket, :scale, %Scale{type: type})}
   end
 
-  def handle_event("close_scale_form", _params, socket) do
-    {:noreply, push_patch(socket, to: ~p"/settings/grading_scales")}
-  end
+  def handle_event("close_scale_form", _params, socket),
+    do: {:noreply, assign(socket, :scale, nil)}
 
   def handle_event("close_ordinal_value_form", _params, socket) do
     {:noreply, assign(socket, :ordinal_value, nil)}
   end
 
-  @impl Phoenix.LiveView
+  @impl true
   def handle_info({GradingScaleCardComponent, {:edit_scale, id}}, socket) do
-    {:noreply, push_patch(socket, to: ~p"/settings/grading_scales/#{id}/edit")}
+    socket =
+      if "#{id}" in socket.assigns.scales_ids do
+        scale = Grading.get_scale!(socket.assigns.current_scope, id)
+
+        assign(socket, :scale, scale)
+      else
+        socket
+      end
+
+    {:noreply, socket}
   end
 
   def handle_info({GradingScaleCardComponent, {:delete_scale, id}}, socket) do
