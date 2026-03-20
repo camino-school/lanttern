@@ -69,7 +69,7 @@ defmodule LantternWeb.ILPLiveTest do
           # needed to show AI box
           ai_layer: %{
             revision_instructions: "some ai revision instruction",
-            model: "some model"
+            model: "kilo:openai/gpt-3.5-turbo"
           }
         })
         |> Repo.preload(sections: :components)

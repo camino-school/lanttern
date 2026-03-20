@@ -16,8 +16,6 @@ defmodule Lanttern.Application do
       {Oban, Application.fetch_env!(:lanttern, Oban)},
       # Start the PubSub system
       {Phoenix.PubSub, name: Lanttern.PubSub},
-      # Start Finch
-      {Finch, name: Lanttern.Finch},
       # Start Cachex for rate limiting
       {Cachex, [:lanttern]},
       # Start the Endpoint (http/https)

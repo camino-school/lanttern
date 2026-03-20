@@ -923,7 +923,7 @@ defmodule Lanttern.ILPTest do
           template,
           10,
           [log_profile_id: profile.id],
-          Lanttern.ExOpenAIStub.Responses
+          Lanttern.ReqLLMStub
         )
 
       assert student_ilp.ai_revision == "This is a stub response."

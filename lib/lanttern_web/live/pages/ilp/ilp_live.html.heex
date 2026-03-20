@@ -93,6 +93,7 @@
         </p>
         <div class="w-32 h-4 p-1 rounded-full bg-ltrn-lightest overflow-hidden shadow-inner">
           <div
+            :if={std_count != 0}
             class="h-full rounded-full bg-ltrn-primary"
             style={"width: #{(ilp_count/std_count) * 100}%"}
           />

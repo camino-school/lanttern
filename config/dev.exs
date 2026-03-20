@@ -79,9 +79,7 @@ config :phoenix, :plug_init_mode, :runtime
 config :swoosh, :api_client, false
 
 # # Config for testing with Mailgun in development
-# config :swoosh,
-#   api_client: Swoosh.ApiClient.Finch,
-#   finch_name: Lanttern.Finch
+# config :swoosh, api_client: Swoosh.ApiClient.Req
 
 # config :lanttern, Lanttern.Mailer,
 #   adapter: Swoosh.Adapters.Mailgun,

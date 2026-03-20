@@ -209,7 +209,7 @@ defmodule LantternWeb.ILP.StudentILPAIRevisionOverlayComponent do
             socket.assigns.student_ilp,
             socket.assigns.ilp_template,
             age,
-            log_profile_id: socket.assigns.current_user.current_profile_id
+            log_profile_id: socket.assigns.current_profile.id
           )
           |> case do
             {:ok, student_ilp} ->

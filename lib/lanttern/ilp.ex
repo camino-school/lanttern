@@ -718,7 +718,7 @@ defmodule Lanttern.ILP do
 
   ### Testing
 
-  We use `open_ai_responses_module` as argument to allow mocking in tests.
+  We use `req_llm_module` as argument to allow mocking in tests.
 
   View https://blog.appsignal.com/2023/04/11/an-introduction-to-mocking-tools-for-elixir.html for reference.
 
@@ -737,7 +737,7 @@ defmodule Lanttern.ILP do
           ILPTemplate.t(),
           age :: integer(),
           opts :: Keyword.t(),
-          open_ai_responses_module :: any()
+          req_llm_module :: any()
         ) ::
           {:ok, StudentILP.t()} | {:error, any()}
   def revise_student_ilp(
@@ -745,7 +745,7 @@ defmodule Lanttern.ILP do
         %ILPTemplate{ai_layer: %ILPTemplateAILayer{}} = template,
         age,
         opts \\ [],
-        open_ai_responses_module \\ ExOpenAI.Responses
+        req_llm_module \\ ReqLLM
       ) do
     user_input_content =
       student_ilp_to_text(
@@ -754,36 +754,15 @@ defmodule Lanttern.ILP do
         "review the ILP for a student with age #{age}.\n"
       )
 
-    input =
-      [
-        %ExOpenAI.Components.EasyInputMessage{
-          content: "Formatting re-enabled",
-          role: :developer,
-          type: :message
-        },
-        %ExOpenAI.Components.EasyInputMessage{
-          content: template.ai_layer.revision_instructions,
-          role: :developer,
-          type: :message
-        },
-        %ExOpenAI.Components.EasyInputMessage{
-          content: user_input_content,
-          role: :user,
-          type: :message
-        }
-      ]
+    context =
+      ReqLLM.Context.new([
+        ReqLLM.Context.system(template.ai_layer.revision_instructions),
+        ReqLLM.Context.user(user_input_content)
+      ])
 
-    case open_ai_responses_module.create_response(input, template.ai_layer.model) do
-      {:ok, %ExOpenAI.Components.Response{} = response} ->
-        %{
-          content: [
-            %{
-              text: revision
-            }
-          ]
-        } =
-          response.output
-          |> Enum.find(&(&1[:type] == "message" && &1[:role] == "assistant"))
+    case req_llm_module.generate_text(template.ai_layer.model, context) do
+      {:ok, response} ->
+        revision = ReqLLM.Response.text(response)
 
         student_ilp
         |> StudentILP.ai_changeset(%{
