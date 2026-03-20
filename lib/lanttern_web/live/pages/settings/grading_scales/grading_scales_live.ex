@@ -105,17 +105,6 @@ defmodule LantternWeb.GradingScalesLive do
     {:noreply, socket}
   end
 
-  def handle_info({GradingScaleCardComponent, {:delete_scale, id}}, socket) do
-    scale = Grading.get_scale!(id)
-    {:ok, _} = Grading.delete_scale(scale)
-
-    {:noreply,
-     socket
-     |> put_flash(:info, gettext("Scale deleted successfully."))
-     |> assign_scales()
-     |> assign(:selected_scale_id, nil)}
-  end
-
   def handle_info({GradingScaleCardComponent, {:edit_ordinal_value, id}}, socket) do
     ordinal_value = Grading.get_ordinal_value!(id)
     {:noreply, assign(socket, :ordinal_value, ordinal_value)}
@@ -143,25 +132,27 @@ defmodule LantternWeb.GradingScalesLive do
     {:noreply, socket}
   end
 
-  def handle_info({GradingScaleCardComponent, {:re_enable_scale, id}}, socket) do
-    scale = Grading.get_scale!(id)
-    {:ok, _} = Grading.update_scale_unscoped(scale, %{deactivated_at: nil})
+  def handle_info({GradingScaleCardComponent, {:activate_scale, id}}, socket) do
+    scale = Grading.get_scale!(socket.assigns.current_scope, id)
+    {:ok, _} = Grading.activate_scale(socket.assigns.current_scope, scale)
 
-    {:noreply,
-     socket
-     |> put_flash(:info, gettext("Scale re-enabled successfully."))
-     |> assign_scales()
-     |> assign(:selected_scale_id, nil)}
+    socket =
+      socket
+      |> put_flash(:info, gettext("Scale reactivated"))
+      |> assign_scales()
+
+    {:noreply, socket}
   end
 
-  def handle_info({GradingScaleCardComponent, {:disable_scale, id}}, socket) do
-    scale = Grading.get_scale!(id)
-    {:ok, _} = Grading.update_scale_unscoped(scale, %{deactivated_at: DateTime.utc_now()})
+  def handle_info({GradingScaleCardComponent, {:deactivate_scale, id}}, socket) do
+    scale = Grading.get_scale!(socket.assigns.current_scope, id)
+    {:ok, _} = Grading.deactivate_scale(socket.assigns.current_scope, scale)
 
-    {:noreply,
-     socket
-     |> put_flash(:info, gettext("Scale disabled successfully."))
-     |> assign_scales()
-     |> assign(:selected_scale_id, nil)}
+    socket =
+      socket
+      |> put_flash(:info, gettext("Scale deactivated"))
+      |> assign_scales()
+
+    {:noreply, socket}
   end
 end

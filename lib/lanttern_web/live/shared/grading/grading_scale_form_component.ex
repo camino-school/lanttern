@@ -12,9 +12,6 @@ defmodule LantternWeb.Grading.GradingScaleFormComponent do
     ~H"""
     <div class={@class}>
       <.form for={@form} id={@id} phx-target={@myself} phx-change="validate" phx-submit="save">
-        <%!-- <.error :if={@changeset.action}>
-          Oops, something went wrong! Please check the errors below.
-        </.error> --%>
         <.input
           field={@form[:name]}
           type="text"
@@ -22,7 +19,7 @@ defmodule LantternWeb.Grading.GradingScaleFormComponent do
           class="mb-6"
           phx-debounce="500"
         />
-        <div :if={@scale.type == "numeric"}>
+        <div :if={@scale.type == "numeric"} class="mb-6">
           <div class="flex items-start gap-4 mb-6">
             <.input
               field={@form[:start]}
@@ -65,7 +62,7 @@ defmodule LantternWeb.Grading.GradingScaleFormComponent do
               class="flex-1 shrink-0"
             />
           </div>
-          <.card_base class="flex items-center gap-2 p-6">
+          <.card_base class="flex items-center gap-2 p-6 mb-6">
             <p class="text-ltrn-subtle">{gettext("Preview")}</p>
             <.badge color_map={
               %{bg_color: @form[:start_bg_color].value, text_color: @form[:start_text_color].value}
@@ -79,7 +76,7 @@ defmodule LantternWeb.Grading.GradingScaleFormComponent do
             </.badge>
           </.card_base>
         </div>
-        <div :if={@scale.type == "ordinal"}>
+        <div :if={@scale.type == "ordinal"} class="mb-6">
           <.input
             field={@form[:breakpoints_input]}
             type="text"
@@ -89,6 +86,12 @@ defmodule LantternWeb.Grading.GradingScaleFormComponent do
             phx-debounce="500"
           />
         </div>
+        <.error_block
+          :if={@delete_error}
+          on_dismiss={JS.push("dismiss_delete_error", target: @myself)}
+        >
+          <p>{@delete_error}</p>
+        </.error_block>
         <div class="flex justify-between gap-2 mt-10">
           <div>
             <.button
@@ -125,7 +128,7 @@ defmodule LantternWeb.Grading.GradingScaleFormComponent do
     socket =
       socket
       |> assign(:class, nil)
-      |> assign(:has_delete_error, false)
+      |> assign(:delete_error, nil)
 
     {:ok, socket}
   end
@@ -177,15 +180,19 @@ defmodule LantternWeb.Grading.GradingScaleFormComponent do
           |> put_flash(:info, gettext("Scale deleted"))
           |> handle_navigation(message)
 
-        {:error, _changeset} ->
-          assign(socket, :has_delete_error, true)
+        {:error, changeset} ->
+          delete_error =
+            Ecto.Changeset.traverse_errors(changeset, fn {msg, _} -> msg end)
+            |> Enum.map_join(" ", fn {_field, msg} -> msg end)
+
+          assign(socket, :delete_error, delete_error)
       end
 
     {:noreply, socket}
   end
 
   def handle_event("dismiss_delete_error", _params, socket),
-    do: {:noreply, assign(socket, :has_delete_error, false)}
+    do: {:noreply, assign(socket, :delete_error, nil)}
 
   def handle_event("save", %{"scale" => scale_params}, socket) do
     save_scale(socket, socket.assigns.scale.id, scale_params)

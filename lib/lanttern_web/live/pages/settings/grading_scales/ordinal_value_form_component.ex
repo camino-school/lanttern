@@ -7,7 +7,6 @@ defmodule LantternWeb.GradingScalesLive.OrdinalValueFormComponent do
 
   alias Lanttern.Grading
   alias Lanttern.Grading.OrdinalValue
-  alias Lanttern.Identity.Scope
 
   @impl true
   def render(assigns) do
@@ -96,7 +95,7 @@ defmodule LantternWeb.GradingScalesLive.OrdinalValueFormComponent do
     socket =
       socket
       |> assign(:class, nil)
-      |> assign(:delete_error, false)
+      |> assign(:delete_error, nil)
 
     {:ok, socket}
   end
@@ -153,7 +152,7 @@ defmodule LantternWeb.GradingScalesLive.OrdinalValueFormComponent do
   end
 
   def handle_event("dismiss_delete_error", _params, socket),
-    do: {:noreply, assign(socket, :delete_error, false)}
+    do: {:noreply, assign(socket, :delete_error, nil)}
 
   def handle_event("save", %{"ordinal_value" => params}, socket) do
     save(socket, socket.assigns.ordinal_value, params)

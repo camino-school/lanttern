@@ -7,83 +7,68 @@ defmodule LantternWeb.GradingScalesLive.GradingScaleCardComponent do
 
   def render(assigns) do
     ~H"""
-    <div id={@id} class={["mt-4 first:mt-0", @disabled && "opacity-50"]}>
+    <div id={@id} class={@class}>
       <.card_base class="overflow-hidden">
         <%!-- Header --%>
-        <div class="flex justify-between gap-4 p-6">
-          <div class="flex gap-4 min-w-0">
+        <div class="flex items-center gap-4 p-6">
+          <div class="flex-1 flex items-center gap-4 relative min-w-0">
             <button
               type="button"
-              phx-click={unless @disabled, do: "toggle"}
+              phx-click="toggle"
               phx-target={@myself}
-              class="font-bold text-left hover:text-ltrn-subtle truncate text-base"
+              class={[
+                "shrink-0 font-bold text-left hover:text-ltrn-subtle truncate text-base",
+                if(@disabled, do: "text-ltrn-subtle")
+              ]}
             >
               {@scale.name}
             </button>
-            <div>
+            <div class="overflow-hidden">
               <%!-- Ordinal value color badges --%>
-              <div :if={@scale.type == "ordinal"} class="flex gap-1">
+              <div :if={@scale.type == "ordinal"} class="flex gap-2">
                 <.badge
-                  :for={ov <- Enum.take(@scale.ordinal_values, 10)}
+                  :for={ov <- @scale.ordinal_values}
                   color_map={ov}
                   rounded
-                  class="w-8 h-8 !px-0 justify-center text-xs font-bold shrink-0"
                 >
                   {String.slice(ov.name, 0, 2)}
                 </.badge>
               </div>
             </div>
-            <div
-              :if={length(@scale.ordinal_values) > 10}
-              class="flex items-center justify-center w-8 h-8 text-xs font-bold"
-            >
-              ...
-            </div>
+            <div class="absolute inset-y-0 right-0 w-20 bg-linear-to-l from-white to-white/0" />
           </div>
-          <div>
-            <%= if @disabled do %>
-              <%!-- Re-enable button --%>
-              <.button
-                type="button"
-                theme="secondary"
-                phx-click="re_enable_scale"
-                phx-target={@myself}
-                data-confirm={gettext("Are you sure?")}
-              >
-                {gettext("Re-enable")}
-              </.button>
-            <% else %>
-              <%!-- Disable scale button --%>
-              <.icon_button
-                name="hero-minus-circle-solid"
-                sr_text={gettext("Disable scale")}
-                theme="ghost"
-                class="!text-ltrn-alert-accent hover:!bg-ltrn-alert-lighter"
-                phx-click="disable_scale"
+          <div class="shrink-0 flex items-center gap-2">
+            <div>
+              <.toggle
+                enabled={!@disabled}
+                phx-click={if(@disabled, do: "activate_scale", else: "deactivate_scale")}
                 phx-target={@myself}
                 data-confirm={gettext("Are you sure?")}
               />
-              <%!-- Edit scale button --%>
-              <.icon_button
-                name="hero-pencil-solid"
-                sr_text={gettext("Edit scale")}
-                theme="ghost"
-                phx-click="edit_scale"
-                phx-target={@myself}
-              />
-              <%!-- Toggle chevron --%>
-              <.icon_button
-                name={if @is_expanded, do: "hero-chevron-up", else: "hero-chevron-down"}
-                sr_text={gettext("Toggle scale card")}
-                theme="ghost"
-                phx-click="toggle"
-                phx-target={@myself}
-              />
-            <% end %>
+              <.tooltip id={"toggle-scale-activate-#{@id}"}>
+                {if @disabled, do: gettext("Reactivate scale"), else: gettext("Deactivate scale")}
+              </.tooltip>
+            </div>
+            <%!-- Edit scale button --%>
+            <.icon_button
+              name="hero-pencil-mini"
+              sr_text={gettext("Edit scale")}
+              theme="ghost"
+              phx-click="edit_scale"
+              phx-target={@myself}
+            />
+            <%!-- Toggle chevron --%>
+            <.icon_button
+              name={if @is_expanded, do: "hero-chevron-up", else: "hero-chevron-down"}
+              sr_text={gettext("Toggle scale card")}
+              theme="ghost"
+              phx-click="toggle"
+              phx-target={@myself}
+            />
           </div>
         </div>
         <%!-- Expanded content --%>
-        <%= if @is_expanded && !@disabled do %>
+        <%= if @is_expanded do %>
           <div class="border-t border-ltrn-lighter">
             <%!-- Ordinal values table --%>
             <div :if={@scale.type == "ordinal"} class="p-6">
@@ -158,6 +143,15 @@ defmodule LantternWeb.GradingScalesLive.GradingScaleCardComponent do
 
   # lifecycle
 
+  @impl true
+  def mount(socket) do
+    socket =
+      socket
+      |> assign(:class, nil)
+
+    {:ok, socket}
+  end
+
   # subsequent updates — via send_update (accordion toggle) or parent re-render (data update)
   def update(assigns, %{assigns: %{scale: _scale}} = socket) do
     is_expanded = assigns.selected_scale_id == "#{socket.assigns.scale.id}"
@@ -201,11 +195,6 @@ defmodule LantternWeb.GradingScalesLive.GradingScaleCardComponent do
     {:noreply, socket}
   end
 
-  def handle_event("delete_scale", _params, socket) do
-    send(self(), {__MODULE__, {:delete_scale, socket.assigns.scale.id}})
-    {:noreply, socket}
-  end
-
   def handle_event("edit_ordinal_value", %{"id" => id}, socket) do
     send(self(), {__MODULE__, {:edit_ordinal_value, id}})
     {:noreply, socket}
@@ -216,13 +205,13 @@ defmodule LantternWeb.GradingScalesLive.GradingScaleCardComponent do
     {:noreply, socket}
   end
 
-  def handle_event("re_enable_scale", _params, socket) do
-    send(self(), {__MODULE__, {:re_enable_scale, socket.assigns.scale.id}})
+  def handle_event("activate_scale", _params, socket) do
+    send(self(), {__MODULE__, {:activate_scale, socket.assigns.scale.id}})
     {:noreply, socket}
   end
 
-  def handle_event("disable_scale", _params, socket) do
-    send(self(), {__MODULE__, {:disable_scale, socket.assigns.scale.id}})
+  def handle_event("deactivate_scale", _params, socket) do
+    send(self(), {__MODULE__, {:deactivate_scale, socket.assigns.scale.id}})
     {:noreply, socket}
   end
 end

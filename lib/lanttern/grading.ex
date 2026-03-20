@@ -431,21 +431,67 @@ defmodule Lanttern.Grading do
   end
 
   @doc """
+  Activates a scale.
+
+  Validates that scope's school matches the scale's school.
+
+  ## Examples
+
+      iex> activate_scale(scope, scale)
+      {:ok, %Scale{}}
+
+  """
+  def activate_scale(
+        %Scope{school_id: school_id} = scope,
+        %Scale{school_id: school_id} = scale
+      ) do
+    true = Scope.has_permission?(scope, "assessment_management")
+
+    scale
+    |> Scale.activate_changeset()
+    |> Repo.update()
+  end
+
+  @doc """
+  Deactivates a scale.
+
+  Validates that scope's school matches the scale's school.
+
+  ## Examples
+
+      iex> deactivate_scale(scope, scale)
+      {:ok, %Scale{}}
+
+  """
+  def deactivate_scale(
+        %Scope{school_id: school_id} = scope,
+        %Scale{school_id: school_id} = scale
+      ) do
+    true = Scope.has_permission?(scope, "assessment_management")
+
+    scale
+    |> Scale.deactivate_changeset()
+    |> Repo.update()
+  end
+
+  @doc """
   Deletes a scale.
 
   ## Examples
 
-      iex> delete_scale(scale)
+      iex> delete_scale(scope, scale)
       {:ok, %Scale{}}
 
-      iex> delete_scale(scale)
+      iex> delete_scale(scope, scale)
       {:error, %Ecto.Changeset{}}
 
   """
   def delete_scale(%Scope{} = scope, %Scale{} = scale) do
     true = Scope.has_permission?(scope, "assessment_management")
 
-    Repo.delete(scale)
+    scale
+    |> Scale.delete_changeset()
+    |> Repo.delete()
   end
 
   @doc """

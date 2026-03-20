@@ -32,7 +32,7 @@
     </div>
   </div>
   <%= if @scales_ids != [] do %>
-    <div id="grading-scales-list">
+    <div id="grading-scales-list" class="space-y-4">
       <%!-- Enabled scales --%>
       <.live_component
         :for={scale <- @enabled_scales}
@@ -45,9 +45,7 @@
 
       <%!-- Disabled scales --%>
       <%= if @disabled_scales != [] do %>
-        <div class="mt-8 mb-4">
-          <h3 class="text-lg font-semibold text-ltrn-subtle">{gettext("Disabled scales")}</h3>
-        </div>
+        <h3 class="mt-10 text-lg font-display font-bold">{gettext("Disabled scales")}</h3>
         <.live_component
           :for={scale <- @disabled_scales}
           module={GradingScaleCardComponent}

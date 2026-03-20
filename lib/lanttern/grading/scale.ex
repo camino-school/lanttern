@@ -65,8 +65,7 @@ defmodule Lanttern.Grading.Scale do
       :stop_bg_color,
       :stop_text_color,
       :breakpoints,
-      :breakpoints_input,
-      :deactivated_at
+      :breakpoints_input
     ])
     |> validate_required([:name, :type])
     |> put_change(:school_id, scope.school_id)
@@ -81,6 +80,28 @@ defmodule Lanttern.Grading.Scale do
     |> check_constraint(:breakpoints,
       name: :breakpoints_should_be_between_0_and_1,
       message: "Values in breakpoint should be greater than 0 and less than 1"
+    )
+  end
+
+  def activate_changeset(scale) do
+    scale
+    |> cast(%{}, [])
+    |> put_change(:deactivated_at, nil)
+  end
+
+  def deactivate_changeset(scale) do
+    scale
+    |> cast(%{}, [])
+    |> put_change(:deactivated_at, DateTime.utc_now(:second))
+  end
+
+  def delete_changeset(scale) do
+    scale
+    |> cast(%{}, [])
+    |> foreign_key_constraint(
+      :id,
+      name: :assessment_point_entries_scale_id_fkey,
+      message: gettext("This scale is being used and cannot be deleted")
     )
   end
 
