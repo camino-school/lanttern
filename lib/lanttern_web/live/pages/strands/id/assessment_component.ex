@@ -223,6 +223,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
         :if={@assessment_point}
         module={AssessmentPointFormOverlayComponent}
         id="assessment-point-form-overlay"
+        current_scope={@current_scope}
         assessment_point={@assessment_point}
         notify_component={@myself}
         title={@assessment_point_overlay_title}

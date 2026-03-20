@@ -5,6 +5,7 @@ defmodule LantternWeb.Assessments.AssessmentPointFormOverlayComponent do
   ### Required attrs
 
   - `:assessment_point` - `AssessmentPoint`. When creating a new assessment point, use `%AssessmentPoint{}` with `nil` id
+  - `:current_scope` - `Scope`
   - `:on_cancel` - `<.slide_over>` `on_cancel` attr
   - `:title` - string
 
@@ -285,7 +286,13 @@ defmodule LantternWeb.Assessments.AssessmentPointFormOverlayComponent do
   defp initialize(socket), do: socket
 
   defp assign_scale_options(socket) do
-    scale_options = GradingHelpers.generate_scale_options()
+    scale_options =
+      GradingHelpers.generate_scale_options(
+        socket.assigns.current_scope,
+        only_active: true,
+        current_scale_id: socket.assigns.assessment_point.scale_id
+      )
+
     assign(socket, :scale_options, scale_options)
   end
 

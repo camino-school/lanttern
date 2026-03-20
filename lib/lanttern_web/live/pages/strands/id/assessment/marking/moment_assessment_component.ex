@@ -73,6 +73,7 @@ defmodule LantternWeb.MarkingLive.MomentAssessmentComponent do
         module={AssessmentsGridComponent}
         id={:moment_assessment_grid}
         current_user={@current_user}
+        current_scope={@current_scope}
         current_assessment_view={@current_assessment_view}
         moment_id={@moment.id}
         classes_ids={@selected_classes_ids}
@@ -83,6 +84,7 @@ defmodule LantternWeb.MarkingLive.MomentAssessmentComponent do
         :if={@assessment_point}
         module={AssessmentPointFormOverlayComponent}
         id={"moment-#{@moment.id}-assessment-point-form-overlay"}
+        current_scope={@current_scope}
         notify_component={@myself}
         assessment_point={@assessment_point}
         title={gettext("Assessment Point")}

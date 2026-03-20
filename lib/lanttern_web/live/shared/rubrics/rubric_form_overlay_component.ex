@@ -23,7 +23,7 @@ defmodule LantternWeb.Rubrics.RubricFormOverlayComponent do
   alias Lanttern.Assessments.AssessmentPoint
   alias Lanttern.Curricula
   alias Lanttern.Curricula.CurriculumItem
-  alias Lanttern.Grading
+
   alias Lanttern.Grading.Scale
   alias Lanttern.LearningContext.Moment
   alias Lanttern.Rubrics
@@ -323,10 +323,8 @@ defmodule LantternWeb.Rubrics.RubricFormOverlayComponent do
 
   defp assign_scale(socket) do
     scale =
-      Grading.get_scale!(
-        socket.assigns.rubric.scale_id,
-        preloads: :ordinal_values
-      )
+      Lanttern.Repo.get!(Lanttern.Grading.Scale, socket.assigns.rubric.scale_id)
+      |> Lanttern.Repo.preload(:ordinal_values)
 
     socket
     |> assign(:scale, scale)

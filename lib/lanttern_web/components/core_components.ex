@@ -328,7 +328,7 @@ defmodule LantternWeb.CoreComponents do
     <span
       id={@id}
       class={[
-        "inline-flex items-center px-1 py-1 font-sans font-normal text-sm truncate",
+        "shrink-0 inline-flex items-center px-2 py-1 font-sans font-normal text-sm truncate",
         if(@rounded, do: "rounded-full", else: "rounded-xs"),
         badge_theme(@theme),
         @class

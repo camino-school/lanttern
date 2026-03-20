@@ -2,10 +2,10 @@ defmodule LantternWeb.StrandReportLive.StrandReportOngoingAssessmentComponentTes
   use LantternWeb.ConnCase
 
   import Lanttern.AssessmentsFixtures
+  import Lanttern.Factory
   import Lanttern.ReportingFixtures
 
   alias Lanttern.CurriculaFixtures
-  alias Lanttern.GradingFixtures
   alias Lanttern.LearningContextFixtures
 
   @live_view_path_base "/strand_report"
@@ -31,8 +31,8 @@ defmodule LantternWeb.StrandReportLive.StrandReportOngoingAssessmentComponentTes
       moment =
         LearningContextFixtures.moment_fixture(%{strand_id: strand.id, name: "Moment Alpha"})
 
-      scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
-      ov = GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id})
+      scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
+      ov = insert(:ordinal_value, scale_id: scale.id)
       ci = CurriculaFixtures.curriculum_item_fixture()
 
       ap =
@@ -79,7 +79,7 @@ defmodule LantternWeb.StrandReportLive.StrandReportOngoingAssessmentComponentTes
       moment =
         LearningContextFixtures.moment_fixture(%{strand_id: strand.id, name: "Moment Beta"})
 
-      scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
+      scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
       ci = CurriculaFixtures.curriculum_item_fixture()
 
       _ap_without_entry =
@@ -118,8 +118,8 @@ defmodule LantternWeb.StrandReportLive.StrandReportOngoingAssessmentComponentTes
 
       moment = LearningContextFixtures.moment_fixture(%{strand_id: strand.id})
 
-      scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
-      ov = GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id})
+      scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
+      ov = insert(:ordinal_value, scale_id: scale.id)
       ci = CurriculaFixtures.curriculum_item_fixture(%{name: "Some Curriculum Item"})
 
       ap =
@@ -169,7 +169,7 @@ defmodule LantternWeb.StrandReportLive.StrandReportOngoingAssessmentComponentTes
 
       moment = LearningContextFixtures.moment_fixture(%{strand_id: strand.id})
 
-      scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
+      scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
       ci = CurriculaFixtures.curriculum_item_fixture()
 
       # AP with no entry for the logged-in student

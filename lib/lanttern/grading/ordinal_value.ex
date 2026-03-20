@@ -5,6 +5,8 @@ defmodule Lanttern.Grading.OrdinalValue do
 
   use Ecto.Schema
   import Ecto.Changeset
+
+  use Gettext, backend: Lanttern.Gettext
   import Lanttern.SchemaHelpers, only: [validate_hex_color: 3]
 
   alias Lanttern.Grading.Scale
@@ -12,6 +14,7 @@ defmodule Lanttern.Grading.OrdinalValue do
   @type t :: %__MODULE__{
           id: pos_integer(),
           name: String.t(),
+          short_name: String.t(),
           normalized_value: float(),
           bg_color: String.t(),
           text_color: String.t(),
@@ -23,6 +26,7 @@ defmodule Lanttern.Grading.OrdinalValue do
 
   schema "ordinal_values" do
     field :name, :string
+    field :short_name, :string
     field :normalized_value, :float
     field :bg_color, :string
     field :text_color, :string
@@ -35,13 +39,29 @@ defmodule Lanttern.Grading.OrdinalValue do
   @doc false
   def changeset(ordinal_value, attrs) do
     ordinal_value
-    |> cast(attrs, [:name, :normalized_value, :scale_id, :bg_color, :text_color])
+    |> cast(attrs, [:name, :short_name, :normalized_value, :scale_id, :bg_color, :text_color])
     |> validate_required([:name, :normalized_value, :scale_id])
+    |> validate_length(:short_name, max: 3)
     |> check_constraint(:normalized_value,
       name: :normalized_value_should_be_between_0_and_1,
-      message: "Normalized value should be between 0 and 1"
+      message: gettext("Normalized value should be between 0 and 1")
     )
     |> validate_hex_color(:bg_color, :ordinal_value_bg_color_should_be_hex)
     |> validate_hex_color(:text_color, :ordinal_value_text_color_should_be_hex)
+  end
+
+  def delete_changeset(ordinal_value) do
+    ordinal_value
+    |> cast(%{}, [])
+    |> foreign_key_constraint(
+      :id,
+      name: :assessment_point_entries_ordinal_value_id_fkey,
+      message: gettext("This ordinal value is being used and cannot be deleted")
+    )
+    |> foreign_key_constraint(
+      :id,
+      name: :student_grade_report_entries_composition_ordinal_value_id_fkey,
+      message: gettext("This ordinal value is being used and cannot be deleted")
+    )
   end
 end

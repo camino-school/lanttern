@@ -154,7 +154,7 @@ defmodule Lanttern.Assessments.AssessmentPointEntry do
       {"numeric", score} when is_float(score) ->
         scale =
           get_field(changeset, :scale_id)
-          |> Lanttern.Grading.get_scale!()
+          |> then(&Lanttern.Repo.get!(Scale, &1))
 
         changeset
         |> validate_number(:score,

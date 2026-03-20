@@ -4,13 +4,13 @@ defmodule Lanttern.AssessmentsTest do
   alias Lanttern.Repo
 
   alias Lanttern.Assessments
+  import Lanttern.Factory
 
   describe "assessment_points" do
     alias Lanttern.Assessments.AssessmentPoint
 
     import Lanttern.AssessmentsFixtures
 
-    alias Lanttern.GradingFixtures
     alias Lanttern.RubricsFixtures
 
     @invalid_attrs %{name: nil, date: nil, description: nil}
@@ -21,8 +21,8 @@ defmodule Lanttern.AssessmentsTest do
     end
 
     test "list_assessment_points/1 with opts returns assessments as expected" do
-      scale = Lanttern.GradingFixtures.scale_fixture(%{type: "ordinal"})
-      ordinal_value = Lanttern.GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id})
+      scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
+      ordinal_value = insert(:ordinal_value, scale_id: scale.id)
       assessment_point_1 = assessment_point_fixture(%{scale_id: scale.id})
       assessment_point_2 = assessment_point_fixture(%{scale_id: scale.id})
 
@@ -54,20 +54,18 @@ defmodule Lanttern.AssessmentsTest do
     end
 
     test "get_assessment_point!/2 with preloads returns the assessment point with given id and preloaded data" do
-      scale = Lanttern.GradingFixtures.scale_fixture()
+      scale = insert(:scale)
+      assessment_point = assessment_point_fixture(%{scale_id: scale.id})
 
-      assessment_point =
-        assessment_point_fixture(%{scale_id: scale.id})
-        |> Map.put(:scale, scale)
-
-      assert Assessments.get_assessment_point!(assessment_point.id, preloads: :scale) ==
-               assessment_point
+      result = Assessments.get_assessment_point!(assessment_point.id, preloads: :scale)
+      assert result.id == assessment_point.id
+      assert result.scale.id == scale.id
     end
 
     test "get_assessment_point!/2 with preload_full_rubrics opt returns the assessment point with given id and preloaded rubrics" do
-      scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
-      ov_1 = GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id, normalized_value: 0.1})
-      ov_2 = GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id, normalized_value: 0.2})
+      scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
+      ov_1 = insert(:ordinal_value, scale_id: scale.id, normalized_value: 0.1)
+      ov_2 = insert(:ordinal_value, scale_id: scale.id, normalized_value: 0.2)
 
       rubric = RubricsFixtures.rubric_fixture(%{scale_id: scale.id})
 
@@ -102,7 +100,7 @@ defmodule Lanttern.AssessmentsTest do
 
     test "create_assessment_point/1 with valid data creates a assessment point" do
       curriculum_item = Lanttern.CurriculaFixtures.curriculum_item_fixture()
-      scale = Lanttern.GradingFixtures.scale_fixture()
+      scale = insert(:scale)
 
       valid_attrs = %{
         name: "some name",
@@ -126,7 +124,7 @@ defmodule Lanttern.AssessmentsTest do
 
     test "create_assessment_point/1 with valid data containing classes creates an assessment point with linked classes" do
       curriculum_item = Lanttern.CurriculaFixtures.curriculum_item_fixture()
-      scale = Lanttern.GradingFixtures.scale_fixture()
+      scale = insert(:scale)
 
       class_1 = Lanttern.SchoolsFixtures.class_fixture()
       class_2 = Lanttern.SchoolsFixtures.class_fixture()
@@ -156,7 +154,7 @@ defmodule Lanttern.AssessmentsTest do
 
     test "create_assessment_point/1 with students creates an assessment point with linked assessment point entries for each student" do
       curriculum_item = Lanttern.CurriculaFixtures.curriculum_item_fixture()
-      scale = Lanttern.GradingFixtures.scale_fixture()
+      scale = insert(:scale)
 
       student_1 = Lanttern.SchoolsFixtures.student_fixture()
       student_2 = Lanttern.SchoolsFixtures.student_fixture()
@@ -186,7 +184,7 @@ defmodule Lanttern.AssessmentsTest do
 
     test "check name constraint when creating assessment points" do
       curriculum_item = Lanttern.CurriculaFixtures.curriculum_item_fixture()
-      scale = Lanttern.GradingFixtures.scale_fixture()
+      scale = insert(:scale)
       strand = Lanttern.LearningContextFixtures.strand_fixture()
       moment = Lanttern.LearningContextFixtures.moment_fixture()
 
@@ -308,7 +306,6 @@ defmodule Lanttern.AssessmentsTest do
     import Lanttern.AssessmentsFixtures
 
     alias Lanttern.CurriculaFixtures
-    alias Lanttern.GradingFixtures
     alias Lanttern.IdentityFixtures
     alias Lanttern.LearningContextFixtures
     alias Lanttern.SchoolsFixtures
@@ -316,7 +313,7 @@ defmodule Lanttern.AssessmentsTest do
     test "create_assessment_point/2 with valid data creates an assessment point linked to a moment" do
       moment = LearningContextFixtures.moment_fixture()
       curriculum_item = CurriculaFixtures.curriculum_item_fixture()
-      scale = GradingFixtures.scale_fixture()
+      scale = insert(:scale)
 
       valid_attrs = %{
         moment_id: moment.id,
@@ -341,7 +338,7 @@ defmodule Lanttern.AssessmentsTest do
     test "list_assessment_points/1 with moments filter returns all assessment points in a given moment" do
       moment = LearningContextFixtures.moment_fixture()
       curriculum_item = CurriculaFixtures.curriculum_item_fixture()
-      scale = GradingFixtures.scale_fixture()
+      scale = insert(:scale)
 
       valid_attrs = %{
         moment_id: moment.id,
@@ -405,7 +402,6 @@ defmodule Lanttern.AssessmentsTest do
     import Lanttern.AssessmentsFixtures
 
     alias Lanttern.Attachments
-    alias Lanttern.GradingFixtures
     alias Lanttern.IdentityFixtures
     alias Lanttern.SchoolsFixtures
 
@@ -417,7 +413,7 @@ defmodule Lanttern.AssessmentsTest do
     end
 
     test "list_assessment_point_entries/1 with opts returns entries as expected" do
-      scale = GradingFixtures.scale_fixture()
+      scale = insert(:scale)
       assessment_point = assessment_point_fixture(%{scale_id: scale.id})
       student_1 = SchoolsFixtures.student_fixture()
 
@@ -460,7 +456,7 @@ defmodule Lanttern.AssessmentsTest do
     end
 
     test "list_assessment_point_entries/1 with load_feedback returns entries with related feedback (+completion comment)" do
-      scale = GradingFixtures.scale_fixture()
+      scale = insert(:scale)
       assessment_point = assessment_point_fixture(%{scale_id: scale.id})
       student = SchoolsFixtures.student_fixture()
 
@@ -526,7 +522,7 @@ defmodule Lanttern.AssessmentsTest do
     end
 
     test "create_assessment_point_entry/1 with valid data creates a assessment_point_entry" do
-      scale = GradingFixtures.scale_fixture()
+      scale = insert(:scale)
       assessment_point = assessment_point_fixture(%{scale_id: scale.id})
       student = SchoolsFixtures.student_fixture()
 
@@ -566,7 +562,7 @@ defmodule Lanttern.AssessmentsTest do
     end
 
     test "create_assessment_point_entry/1 of type numeric with valid data creates a assessment_point_entry" do
-      scale = GradingFixtures.scale_fixture(%{type: "numeric", start: 0, stop: 1})
+      scale = insert(:scale, type: "numeric", start: 0, stop: 1)
       assessment_point = assessment_point_fixture(%{scale_id: scale.id})
       student = SchoolsFixtures.student_fixture()
 
@@ -587,8 +583,8 @@ defmodule Lanttern.AssessmentsTest do
     end
 
     test "create_assessment_point_entry/1 of type ordinal with valid data and preloads creates a assessment_point_entry and return it with preloaded data" do
-      scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
-      ordinal_value = GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id})
+      scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
+      ordinal_value = insert(:ordinal_value, scale_id: scale.id)
       assessment_point = assessment_point_fixture(%{scale_id: scale.id})
       student = SchoolsFixtures.student_fixture()
 
@@ -614,7 +610,7 @@ defmodule Lanttern.AssessmentsTest do
     end
 
     test "create_assessment_point_entry/1 with score out of scale returns error changeset" do
-      scale = GradingFixtures.scale_fixture(%{type: "numeric", start: 0, stop: 10})
+      scale = insert(:scale, type: "numeric", start: 0, stop: 10)
       assessment_point = assessment_point_fixture(%{scale_id: scale.id})
       student = SchoolsFixtures.student_fixture()
 
@@ -629,9 +625,9 @@ defmodule Lanttern.AssessmentsTest do
     end
 
     test "create_assestudent = SchoolsFixtures.student_fixture()ssment_point_entry/1 with ordinal_value out of scale returns error changeset" do
-      scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
-      _ordinal_value = GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id})
-      other_ordinal_value = GradingFixtures.ordinal_value_fixture()
+      scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
+      _ordinal_value = insert(:ordinal_value, scale_id: scale.id)
+      other_ordinal_value = insert(:ordinal_value)
       assessment_point = assessment_point_fixture(%{scale_id: scale.id})
       student = SchoolsFixtures.student_fixture()
 
@@ -698,9 +694,9 @@ defmodule Lanttern.AssessmentsTest do
     end
 
     test "save_assessment_point_entries/2 handles all mapped changes correctly" do
-      scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
-      ov_1 = GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id, normalized_value: 0})
-      ov_2 = GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id, normalized_value: 1})
+      scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
+      ov_1 = insert(:ordinal_value, scale_id: scale.id, normalized_value: 0)
+      ov_2 = insert(:ordinal_value, scale_id: scale.id, normalized_value: 1)
 
       student = SchoolsFixtures.student_fixture()
 
@@ -1031,7 +1027,6 @@ defmodule Lanttern.AssessmentsTest do
   describe "student strand report assessments" do
     import Lanttern.AssessmentsFixtures
     alias Lanttern.CurriculaFixtures
-    alias Lanttern.GradingFixtures
     alias Lanttern.IdentityFixtures
     alias Lanttern.LearningContextFixtures
     alias Lanttern.RubricsFixtures
@@ -1075,9 +1070,9 @@ defmodule Lanttern.AssessmentsTest do
           curriculum_component_id: curriculum_component_3_4.id
         })
 
-      ordinal_scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
-      ordinal_value = GradingFixtures.ordinal_value_fixture(%{scale_id: ordinal_scale.id})
-      numeric_scale = GradingFixtures.scale_fixture(%{type: "numeric"})
+      ordinal_scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
+      ordinal_value = insert(:ordinal_value, scale_id: ordinal_scale.id)
+      numeric_scale = insert(:scale, type: "numeric", start: 0.0, stop: 100.0)
 
       rubric_1 = RubricsFixtures.rubric_fixture(%{scale_id: ordinal_scale.id})
       rubric_3 = RubricsFixtures.rubric_fixture(%{scale_id: ordinal_scale.id})
@@ -1313,7 +1308,6 @@ defmodule Lanttern.AssessmentsTest do
     # import Lanttern.AssessmentsFixtures
     # alias Lanttern.IdentityFixtures
     alias Lanttern.CurriculaFixtures
-    alias Lanttern.GradingFixtures
     alias Lanttern.LearningContextFixtures
     # alias Lanttern.SchoolsFixtures
 
@@ -1453,7 +1447,7 @@ defmodule Lanttern.AssessmentsTest do
     test "create_assessment_point/2 with valid data creates an assessment point linked to a strand" do
       strand = LearningContextFixtures.strand_fixture()
       curriculum_item = CurriculaFixtures.curriculum_item_fixture()
-      scale = GradingFixtures.scale_fixture()
+      scale = insert(:scale)
 
       valid_attrs = %{
         strand_id: strand.id,
@@ -2183,10 +2177,10 @@ defmodule Lanttern.AssessmentsTest do
     ci_2 = Lanttern.CurriculaFixtures.curriculum_item_fixture(%{curriculum_component_id: cc.id})
     ci_3 = Lanttern.CurriculaFixtures.curriculum_item_fixture(%{curriculum_component_id: cc.id})
 
-    scale = Lanttern.GradingFixtures.scale_fixture(%{type: "ordinal"})
-    ov_a = Lanttern.GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id})
-    ov_b = Lanttern.GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id})
-    ov_c = Lanttern.GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id})
+    scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
+    ov_a = insert(:ordinal_value, scale_id: scale.id)
+    ov_b = insert(:ordinal_value, scale_id: scale.id)
+    ov_c = insert(:ordinal_value, scale_id: scale.id)
 
     s_ap_1_ci_1 =
       Lanttern.AssessmentsFixtures.assessment_point_fixture(%{
@@ -2433,7 +2427,6 @@ defmodule Lanttern.AssessmentsTest do
     import Lanttern.AssessmentsFixtures
 
     alias Lanttern.CurriculaFixtures
-    alias Lanttern.GradingFixtures
     alias Lanttern.IdentityFixtures
     alias Lanttern.LearningContextFixtures
     alias Lanttern.SchoolsFixtures
@@ -2448,8 +2441,8 @@ defmodule Lanttern.AssessmentsTest do
       m_1 = LearningContextFixtures.moment_fixture(%{strand_id: strand.id})
       m_2 = LearningContextFixtures.moment_fixture(%{strand_id: strand.id})
 
-      scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
-      ov = GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id})
+      scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
+      ov = insert(:ordinal_value, scale_id: scale.id)
       ci = CurriculaFixtures.curriculum_item_fixture()
 
       # create in order so positions within m_1 are 0, 1, 2
@@ -2549,8 +2542,8 @@ defmodule Lanttern.AssessmentsTest do
       strand = LearningContextFixtures.strand_fixture()
       m_1 = LearningContextFixtures.moment_fixture(%{strand_id: strand.id})
 
-      scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
-      ov = GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id})
+      scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
+      ov = insert(:ordinal_value, scale_id: scale.id)
       ci = CurriculaFixtures.curriculum_item_fixture()
 
       ap_marked =
@@ -2606,8 +2599,8 @@ defmodule Lanttern.AssessmentsTest do
       strand = LearningContextFixtures.strand_fixture()
       m_1 = LearningContextFixtures.moment_fixture(%{strand_id: strand.id})
 
-      scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
-      ov = GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id})
+      scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
+      ov = insert(:ordinal_value, scale_id: scale.id)
       ci = CurriculaFixtures.curriculum_item_fixture()
 
       # create in order so positions are 0, 1
@@ -2677,10 +2670,8 @@ defmodule Lanttern.AssessmentsTest do
     alias Lanttern.Identity.Scope
 
     import Lanttern.AssessmentsFixtures
-    import Lanttern.Factory
 
     alias Lanttern.CurriculaFixtures
-    alias Lanttern.GradingFixtures
     alias Lanttern.IdentityFixtures
     alias Lanttern.LearningContextFixtures
     alias Lanttern.SchoolsFixtures
@@ -2693,8 +2684,8 @@ defmodule Lanttern.AssessmentsTest do
       strand = LearningContextFixtures.strand_fixture()
       lesson = insert(:lesson, strand: strand)
 
-      scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
-      ov = GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id})
+      scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
+      ov = insert(:ordinal_value, scale_id: scale.id)
       ci = CurriculaFixtures.curriculum_item_fixture()
 
       # create in order so positions are 0, 1
@@ -2775,8 +2766,8 @@ defmodule Lanttern.AssessmentsTest do
       strand = LearningContextFixtures.strand_fixture()
       lesson = insert(:lesson, strand: strand)
 
-      scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
-      ov = GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id})
+      scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
+      ov = insert(:ordinal_value, scale_id: scale.id)
       ci = CurriculaFixtures.curriculum_item_fixture()
 
       ap_marked =
@@ -2831,8 +2822,8 @@ defmodule Lanttern.AssessmentsTest do
       strand = LearningContextFixtures.strand_fixture()
       lesson = insert(:lesson, strand: strand)
 
-      scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
-      ov = GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id})
+      scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
+      ov = insert(:ordinal_value, scale_id: scale.id)
       ci = CurriculaFixtures.curriculum_item_fixture()
 
       ap_with_evidence =

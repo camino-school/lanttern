@@ -4,6 +4,7 @@ defmodule Lanttern.RubricsFixtures do
   entities via the `Lanttern.Rubrics` context.
   """
 
+  import Lanttern.Factory
   alias Lanttern.CurriculaFixtures
   alias Lanttern.GradingFixtures
   alias Lanttern.LearningContextFixtures
@@ -46,9 +47,9 @@ defmodule Lanttern.RubricsFixtures do
   end
 
   def rubric_descriptor_fixture(attrs) do
-    scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
+    scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
     rubric = rubric_fixture(%{scale_id: scale.id})
-    ordinal_value = GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id})
+    ordinal_value = insert(:ordinal_value, scale_id: scale.id)
 
     {:ok, rubric_descriptor} =
       attrs

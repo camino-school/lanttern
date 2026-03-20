@@ -3,9 +3,9 @@ defmodule LantternWeb.MarkingLive.GoalsAssessmentComponentTest do
 
   alias Lanttern.AssessmentsFixtures
   alias Lanttern.Filters
-  alias Lanttern.GradingFixtures
   alias Lanttern.LearningContextFixtures
   alias Lanttern.SchoolsFixtures
+  import Lanttern.Factory
 
   @live_view_base_path "/strands"
 
@@ -76,13 +76,13 @@ defmodule LantternWeb.MarkingLive.GoalsAssessmentComponentTest do
     class = SchoolsFixtures.class_fixture(%{school_id: school_id})
     student = SchoolsFixtures.student_fixture(%{school_id: school_id, classes_ids: [class.id]})
 
-    scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
+    scale = insert(:scale, school_id: school_id, type: "ordinal", breakpoints: [0.4, 0.8])
 
     ordinal_value_1 =
-      GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id, name: "ov_1 name abc"})
+      insert(:ordinal_value, scale_id: scale.id, name: "ov_1 name abc")
 
     ordinal_value_2 =
-      GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id, name: "ov_2 name abc"})
+      insert(:ordinal_value, scale_id: scale.id, name: "ov_2 name abc")
 
     assessment_point =
       AssessmentsFixtures.assessment_point_fixture(%{strand_id: strand.id, scale_id: scale.id})

@@ -1,0 +1,106 @@
+<Layouts.app_settings flash={@flash} current_user={@current_user} current_path={@current_path}>
+  <div class="flex items-center justify-end gap-4 mb-10">
+    <div class="relative">
+      <.button
+        type="button"
+        icon_name="hero-plus-mini"
+        theme="primary"
+        id="new-scale-options-button"
+      >
+        {gettext("New scale")}
+      </.button>
+      <.dropdown_menu
+        id="new-scale-options"
+        button_id="new-scale-options-button"
+        z_index="30"
+        position="right"
+      >
+        <:instructions>
+          {gettext("Select a scale type")}
+        </:instructions>
+        <:item
+          type="button"
+          on_click={JS.push("new_scale", value: %{"type" => "ordinal"})}
+          text={gettext("Ordinal")}
+        />
+        <:item
+          type="button"
+          on_click={JS.push("new_scale", value: %{"type" => "numeric"})}
+          text={gettext("Numeric")}
+        />
+      </.dropdown_menu>
+    </div>
+  </div>
+  <%= if @scales_ids != [] do %>
+    <%!-- Active scales --%>
+    <div
+      id="grading-scales-list"
+      class="space-y-4"
+      phx-hook="Sortable"
+      data-sortable-handle=".sortable-handle"
+      data-sortable-event="sortable_update"
+    >
+      <.live_component
+        :for={scale <- @active_scales}
+        module={GradingScaleCardComponent}
+        id={"grading-scales-#{scale.id}"}
+        scale={scale}
+        selected_scale_id={@selected_scale_id}
+        disabled={false}
+      />
+    </div>
+
+    <%!-- Deactivated scales --%>
+    <div :if={@deactivated_scales != []} class="mt-10 space-y-4">
+      <h3 class="text-lg font-display font-bold">{gettext("Deactivated scales")}</h3>
+      <.live_component
+        :for={scale <- @deactivated_scales}
+        module={GradingScaleCardComponent}
+        id={"grading-scales-#{scale.id}"}
+        scale={scale}
+        selected_scale_id={@selected_scale_id}
+        disabled={true}
+      />
+    </div>
+  <% else %>
+    <div class="p-10">
+      <.empty_state>{gettext("No grading scales created yet")}</.empty_state>
+    </div>
+  <% end %>
+</Layouts.app_settings>
+
+<.modal
+  :if={@scale}
+  id="scale-form-modal"
+  show
+  on_cancel={JS.push("close_scale_form")}
+>
+  <:title>{if @scale.id, do: gettext("Edit scale"), else: gettext("New scale")}</:title>
+  <.live_component
+    module={GradingScaleFormComponent}
+    id="scale-form"
+    scale={@scale}
+    current_scope={@current_scope}
+    navigate={fn {_action, scale} -> ~p"/settings/grading_scales/#{scale}" end}
+    on_cancel={JS.exec("data-cancel", to: "#scale-form-modal")}
+  />
+</.modal>
+
+<.modal
+  :if={@ordinal_value}
+  id="ordinal-value-form-modal"
+  show
+  on_cancel={JS.push("close_ordinal_value_form")}
+>
+  <:title>
+    {if @ordinal_value.id, do: gettext("Edit ordinal value"), else: gettext("New ordinal value")}
+  </:title>
+  <.live_component
+    module={OrdinalValueFormComponent}
+    id="ordinal-value-form"
+    ordinal_value={@ordinal_value}
+    current_scope={@current_scope}
+    on_cancel={JS.exec("data-cancel", to: "#ordinal-value-form-modal")}
+    notify_parent
+  />
+</.modal>

@@ -4,6 +4,7 @@ defmodule Lanttern.IdentityTest do
   alias Lanttern.Identity
 
   import Lanttern.IdentityFixtures
+  import Lanttern.Factory
   alias Lanttern.Identity.{LoginCode, User, UserToken}
   alias Lanttern.Repo
 
@@ -835,4 +836,209 @@ defmodule Lanttern.IdentityTest do
   #     refute Repo.get_by(UserToken, user_id: user.id)
   #   end
   # end
+
+  describe "list_student_guardian_user_emails/2" do
+    setup do
+      scope = scope_fixture(permissions: ["school_management"])
+      school = Repo.get!(Lanttern.Schools.School, scope.school_id)
+      student = insert(:student, school: school)
+
+      %{scope: scope, school: school, student: student}
+    end
+
+    test "returns emails of guardian profiles for a student", %{scope: scope, student: student} do
+      user1 = insert(:user)
+      user2 = insert(:user)
+
+      insert(:profile,
+        type: "guardian",
+        user: user1,
+        staff_member: nil,
+        guardian_of_student: student
+      )
+
+      insert(:profile,
+        type: "guardian",
+        user: user2,
+        staff_member: nil,
+        guardian_of_student: student
+      )
+
+      emails = Identity.list_student_guardian_user_emails(scope, student)
+
+      assert [_, _] = emails
+      assert user1.email in emails
+      assert user2.email in emails
+    end
+
+    test "ignores guardian profiles for other students", %{
+      scope: scope,
+      school: school,
+      student: student
+    } do
+      other_student = insert(:student, school: school)
+
+      user = insert(:user)
+
+      insert(:profile,
+        type: "guardian",
+        user: user,
+        staff_member: nil,
+        guardian_of_student: other_student
+      )
+
+      assert [] = Identity.list_student_guardian_user_emails(scope, student)
+    end
+
+    test "returns empty list when no guardian profiles exist", %{scope: scope, student: student} do
+      assert [] = Identity.list_student_guardian_user_emails(scope, student)
+    end
+
+    test "raises FunctionClauseError when scope and student belong to different schools", %{
+      scope: scope
+    } do
+      other_school = insert(:school)
+      student = insert(:student, school: other_school)
+
+      assert_raise FunctionClauseError, fn ->
+        Identity.list_student_guardian_user_emails(scope, student)
+      end
+    end
+
+    test "raises MatchError when scope lacks school_management permission" do
+      scope_no_perm = scope_fixture(permissions: [])
+      school = Repo.get!(Lanttern.Schools.School, scope_no_perm.school_id)
+      student = insert(:student, school: school)
+
+      assert_raise MatchError, fn ->
+        Identity.list_student_guardian_user_emails(scope_no_perm, student)
+      end
+    end
+  end
+
+  describe "set_student_guardian_user_accounts/3" do
+    setup do
+      scope = scope_fixture(permissions: ["school_management"])
+      school = Repo.get!(Lanttern.Schools.School, scope.school_id)
+      student = insert(:student, school: school)
+      %{scope: scope, student: student}
+    end
+
+    test "creates a new User and guardian Profile for a new email", %{
+      scope: scope,
+      student: student
+    } do
+      email = unique_user_email()
+
+      assert {:ok, _} = Identity.set_student_guardian_user_accounts(scope, student, [email])
+
+      assert %Lanttern.Identity.User{} = Identity.get_user_by_email(email)
+      assert email in Identity.list_student_guardian_user_emails(scope, student)
+    end
+
+    test "reuses existing User when email already exists", %{scope: scope, student: student} do
+      existing_user = insert(:user)
+
+      assert {:ok, _} =
+               Identity.set_student_guardian_user_accounts(scope, student, [existing_user.email])
+
+      emails = Identity.list_student_guardian_user_emails(scope, student)
+      assert [_] = emails
+      assert existing_user.email in emails
+    end
+
+    test "deletes the Profile for a removed email", %{scope: scope, student: student} do
+      user = insert(:user)
+
+      profile =
+        insert(:profile,
+          type: "guardian",
+          user: user,
+          staff_member: nil,
+          guardian_of_student: student
+        )
+
+      assert {:ok, _} = Identity.set_student_guardian_user_accounts(scope, student, [])
+
+      assert_raise Ecto.NoResultsError, fn ->
+        Identity.get_profile!(profile.id)
+      end
+    end
+
+    test "is idempotent when called with the same emails twice", %{scope: scope, student: student} do
+      user = insert(:user)
+
+      insert(:profile,
+        type: "guardian",
+        user: user,
+        staff_member: nil,
+        guardian_of_student: student
+      )
+
+      assert {:ok, _} =
+               Identity.set_student_guardian_user_accounts(scope, student, [user.email])
+
+      assert [_] = Identity.list_student_guardian_user_emails(scope, student)
+    end
+
+    test "handles multiple emails atomically", %{scope: scope, student: student} do
+      email1 = unique_user_email()
+      email2 = unique_user_email()
+
+      assert {:ok, _} =
+               Identity.set_student_guardian_user_accounts(scope, student, [email1, email2])
+
+      emails = Identity.list_student_guardian_user_emails(scope, student)
+      assert [_, _] = emails
+      assert email1 in emails
+      assert email2 in emails
+    end
+
+    test "raises FunctionClauseError when scope and student belong to different schools", %{
+      scope: scope
+    } do
+      other_school = insert(:school)
+      student = insert(:student, school: other_school)
+
+      assert_raise FunctionClauseError, fn ->
+        Identity.set_student_guardian_user_accounts(scope, student, [])
+      end
+    end
+
+    test "raises MatchError when scope lacks school_management permission" do
+      scope_no_perm = scope_fixture(permissions: [])
+      school = Repo.get!(Lanttern.Schools.School, scope_no_perm.school_id)
+      student = insert(:student, school: school)
+
+      assert_raise MatchError, fn ->
+        Identity.set_student_guardian_user_accounts(scope_no_perm, student, [])
+      end
+    end
+
+    test "ignores empty and whitespace-only emails", %{scope: scope, student: student} do
+      assert {:ok, _} =
+               Identity.set_student_guardian_user_accounts(scope, student, ["", " ", "  "])
+
+      assert [] = Identity.list_student_guardian_user_emails(scope, student)
+    end
+
+    test "adds new and removes old guardian in a single call", %{scope: scope, student: student} do
+      old_user = insert(:user)
+
+      insert(:profile,
+        type: "guardian",
+        user: old_user,
+        staff_member: nil,
+        guardian_of_student: student
+      )
+
+      new_email = unique_user_email()
+
+      assert {:ok, _} =
+               Identity.set_student_guardian_user_accounts(scope, student, [new_email])
+
+      emails = Identity.list_student_guardian_user_emails(scope, student)
+      assert [^new_email] = emails
+    end
+  end
 end

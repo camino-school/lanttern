@@ -6,7 +6,6 @@ defmodule LantternWeb.GradesReports.StudentGradesReportEntryFormComponent do
   use LantternWeb, :live_component
 
   alias Lanttern.GradesReports
-  alias Lanttern.Grading
 
   @impl true
   def render(assigns) do
@@ -129,7 +128,9 @@ defmodule LantternWeb.GradesReports.StudentGradesReportEntryFormComponent do
 
     changeset = GradesReports.change_student_grades_report_entry(student_grades_report_entry)
 
-    scale = Grading.get_scale!(scale_id, preloads: :ordinal_values)
+    scale =
+      Lanttern.Repo.get!(Lanttern.Grading.Scale, scale_id)
+      |> Lanttern.Repo.preload(:ordinal_values)
 
     ordinal_value_options =
       scale.ordinal_values
