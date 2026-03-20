@@ -1087,7 +1087,7 @@ defmodule Lanttern.Schools do
 
   @doc """
   Creates or updates a student and syncs guardian associations and
-  guardian user accounts in a single transaction.
+  user accounts in a single transaction.
 
   Accepts `%Student{}` (update) or `nil` (create) as second argument.
 
@@ -1096,10 +1096,10 @@ defmodule Lanttern.Schools do
       is a list of `%Guardian{}` structs and `guardian_ids_to_remove` is a
       list of guardian IDs.
 
-  Guardian user accounts are only synced if `scope` has "school_management"
+  User accounts are only synced if `scope` has "school_management"
   permission. Uses `Identity.build_student_guardian_user_accounts_multi/3` internally.
   """
-  def save_student_with_guardian_accounts(
+  def save_student_with_accounts(
         %Scope{} = scope,
         student_or_nil,
         student_params,

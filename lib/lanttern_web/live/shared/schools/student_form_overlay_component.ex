@@ -499,7 +499,7 @@ defmodule LantternWeb.Schools.StudentFormOverlayComponent do
         else: {nil, :created}
 
     result =
-      Schools.save_student_with_guardian_accounts(
+      Schools.save_student_with_accounts(
         socket.assigns.current_scope,
         student_or_nil,
         student_params,
@@ -510,25 +510,24 @@ defmodule LantternWeb.Schools.StudentFormOverlayComponent do
     handle_save_result(result, action, socket)
   end
 
-  defp handle_save_result(result, action, socket) do
-    case result do
-      {:ok, student} ->
-        notify(__MODULE__, {action, student}, socket.assigns)
-        {:noreply, push_patch(socket, to: socket.assigns.close_path)}
+  defp handle_save_result({:ok, student}, action, socket) do
+    notify(__MODULE__, {action, student}, socket.assigns)
+    {:noreply, push_patch(socket, to: socket.assigns.close_path)}
+  end
 
-      {:error, {:student, %Ecto.Changeset{} = changeset}} ->
-        {:noreply, assign(socket, :form, to_form(changeset))}
+  defp handle_save_result({:error, {:student, %Ecto.Changeset{} = changeset}}, _action, socket) do
+    {:noreply, assign(socket, :form, to_form(changeset))}
+  end
 
-      {:error, :guardian_accounts} ->
-        socket =
-          assign(
-            socket,
-            :guardian_emails_error,
-            gettext("Could not save guardian accounts. Please check the emails and try again.")
-          )
+  defp handle_save_result({:error, :guardian_accounts}, _action, socket) do
+    socket =
+      assign(
+        socket,
+        :guardian_emails_error,
+        gettext("Could not save guardian accounts. Please check the emails and try again.")
+      )
 
-        {:noreply, socket}
-    end
+    {:noreply, socket}
   end
 
   defp ensure_at_least_one_email([]), do: [""]
