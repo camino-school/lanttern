@@ -1086,6 +1086,72 @@ defmodule Lanttern.Schools do
   end
 
   @doc """
+  Creates or updates a student and syncs guardian associations and
+  user accounts in a single transaction.
+
+  Accepts `%Student{}` (update) or `nil` (create) as second argument.
+
+  Guardian associations are synced based on `guardian_changes`:
+    - `{guardians_to_add, guardian_ids_to_remove}` where `guardians_to_add`
+      is a list of `%Guardian{}` structs and `guardian_ids_to_remove` is a
+      list of guardian IDs.
+
+  User accounts are only synced if `scope` has "school_management"
+  permission. Uses `Identity.build_student_guardian_user_accounts_multi/3` internally.
+  """
+  def save_student_with_accounts(
+        %Scope{} = scope,
+        student_or_nil,
+        student_params,
+        {guardians_to_add, guardian_ids_to_remove},
+        guardian_emails
+      )
+      when is_struct(student_or_nil, Student) or is_nil(student_or_nil) do
+    multi =
+      Ecto.Multi.new()
+      |> Ecto.Multi.run(:student, fn _repo, _changes ->
+        do_save_student(student_or_nil, student_params)
+      end)
+      |> Ecto.Multi.run(:sync_guardians, fn _repo, %{student: student} ->
+        sync_guardians(scope, student, guardians_to_add, guardian_ids_to_remove)
+      end)
+      |> Ecto.Multi.merge(fn %{student: student} ->
+        if Scope.has_permission?(scope, "school_management") do
+          Identity.build_student_guardian_user_accounts_multi(scope, student, guardian_emails)
+        else
+          Ecto.Multi.new()
+        end
+      end)
+
+    case Repo.transaction(multi) do
+      {:ok, %{student: student}} -> {:ok, student}
+      {:error, :student, changeset, _} -> {:error, {:student, changeset}}
+      {:error, _key, _changeset, _} -> {:error, :guardian_accounts}
+    end
+  end
+
+  defp sync_guardians(scope, student, guardians_to_add, guardian_ids_to_remove) do
+    if Scope.has_permission?(scope, "school_management") do
+      Enum.each(guardian_ids_to_remove, fn guardian_id ->
+        {:ok, _} = remove_guardian_from_student(scope, student, guardian_id)
+      end)
+
+      Enum.each(guardians_to_add, fn guardian ->
+        {:ok, _} = add_guardian_to_student(scope, student, guardian)
+      end)
+
+      {:ok, :synced}
+    else
+      {:ok, :skipped}
+    end
+  end
+
+  defp do_save_student(nil, student_params), do: create_student(student_params)
+
+  defp do_save_student(%Student{} = student, student_params),
+    do: update_student(student, student_params)
+
+  @doc """
   Deletes a student and related classes relationships.
 
   ## Examples
