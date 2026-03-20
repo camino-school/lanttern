@@ -6654,3 +6654,13 @@ msgstr ""
 #, elixir-autogen, elixir-format
 msgid "student@example.com"
 msgstr ""
+
+#: lib/lanttern_web/live/shared/ilp/ilp_template_form_component.ex:135
+#, elixir-autogen, elixir-format
+msgid "AI model"
+msgstr ""
+
+#: lib/lanttern_web/live/shared/ilp/ilp_template_form_component.ex:143
+#, elixir-autogen, elixir-format
+msgid "AI request cooldown (minutes)"
+msgstr ""

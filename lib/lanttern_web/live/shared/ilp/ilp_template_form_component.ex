@@ -132,7 +132,7 @@ defmodule LantternWeb.ILP.ILPTemplateFormComponent do
             <.input
               field={ai_layer_f[:model]}
               type="text"
-              label="AI model"
+              label={gettext("AI model")}
               phx-debounce="1500"
               class="mb-6"
               show_optional
@@ -140,7 +140,7 @@ defmodule LantternWeb.ILP.ILPTemplateFormComponent do
             <.input
               field={ai_layer_f[:cooldown_minutes]}
               type="number"
-              label="AI request cooldown (minutes)"
+              label={gettext("AI request cooldown (minutes)")}
             />
           </.inputs_for>
         </.ai_box>
