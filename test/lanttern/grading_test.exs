@@ -206,7 +206,7 @@ defmodule Lanttern.GradingTest do
     test "list_scales/1 with only_active: true returns only active scales", %{scope: scope} do
       active_scale = insert(:scale, school_id: scope.school_id)
 
-      _inactive_scale =
+      _deactivated_scale =
         insert(:scale, school_id: scope.school_id, deactivated_at: DateTime.utc_now())
 
       assert [scale] = Grading.list_scales(scope, only_active: true)

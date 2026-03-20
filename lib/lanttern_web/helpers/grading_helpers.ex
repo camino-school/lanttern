@@ -38,7 +38,7 @@ defmodule LantternWeb.GradingHelpers do
       current_scale = Grading.get_scale!(scope, current_scale_id)
 
       [
-        {"#{current_scale.name} (#{gettext("current, inactive")})", current_scale_id}
+        {"#{current_scale.name} (#{gettext("current, deactivated")})", current_scale_id}
         | scale_options
       ]
     end

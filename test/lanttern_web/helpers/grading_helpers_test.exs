@@ -21,17 +21,19 @@ defmodule LantternWeb.GradingHelpersTest do
       assert school_scale_name == scale.name
     end
 
-    test "with only_active: true filters out inactive scales", %{scope: scope} do
+    test "with only_active: true filters out deactivated scales", %{scope: scope} do
       _active = insert(:scale, school_id: scope.school_id, name: "Active")
-      _inactive = insert(:scale, school_id: scope.school_id, deactivated_at: DateTime.utc_now())
+
+      _deactivated =
+        insert(:scale, school_id: scope.school_id, deactivated_at: DateTime.utc_now())
 
       options = GradingHelpers.generate_scale_options(scope, only_active: true)
 
       assert [{"Active", _id}] = options
     end
 
-    test "with current_scale_id for an inactive scale injects it with label", %{scope: scope} do
-      inactive =
+    test "with current_scale_id for an deactivated scale injects it with label", %{scope: scope} do
+      deactivated =
         insert(:scale,
           school_id: scope.school_id,
           name: "Old Scale",
@@ -41,11 +43,11 @@ defmodule LantternWeb.GradingHelpersTest do
       options =
         GradingHelpers.generate_scale_options(scope,
           only_active: true,
-          current_scale_id: inactive.id
+          current_scale_id: deactivated.id
         )
 
-      assert [{"Old Scale (current, inactive)", id} | _rest] = options
-      assert id == inactive.id
+      assert [{"Old Scale (current, deactivated)", id} | _rest] = options
+      assert id == deactivated.id
     end
 
     test "with current_scale_id for an active scale does not duplicate it", %{scope: scope} do

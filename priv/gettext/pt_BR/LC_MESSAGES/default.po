@@ -23,8 +23,7 @@ msgstr "Ações"
 #: lib/lanttern_web/live/pages/curriculum/curricula_live.ex:11
 #: lib/lanttern_web/live/pages/curriculum/curricula_live.html.heex:3
 #: lib/lanttern_web/live/pages/curriculum/id/curriculum_live.html.heex:3
-#: lib/lanttern_web/live/shared/assessments/assessment_point_form_component.ex:52
-#: lib/lanttern_web/live/shared/assessments/assessment_point_form_overlay_component.ex:72
+#: lib/lanttern_web/live/shared/assessments/assessment_point_form_overlay_component.ex:73
 #: lib/lanttern_web/live/shared/assessments/student_assessment_point_details_overlay_component.ex:79
 #: lib/lanttern_web/live/shared/menu_component.ex:449
 #, elixir-autogen, elixir-format
@@ -99,8 +98,8 @@ msgstr "Aplicando filtros..."
 #: lib/lanttern_web/components/overlay_components.ex:618
 #: lib/lanttern_web/components/overlay_components.ex:681
 #: lib/lanttern_web/live/pages/curriculum/component/id/curriculum_component_live.html.heex:168
-#: lib/lanttern_web/live/pages/grades_report/grades_reports_live.html.heex:123
-#: lib/lanttern_web/live/pages/grades_report/id/grades_report_live.html.heex:127
+#: lib/lanttern_web/live/pages/grades_report/grades_reports_live.html.heex:124
+#: lib/lanttern_web/live/pages/grades_report/id/grades_report_live.html.heex:128
 #: lib/lanttern_web/live/pages/message_board/index_live.ex:184
 #: lib/lanttern_web/live/pages/message_board/index_live.ex:218
 #: lib/lanttern_web/live/pages/message_board/index_live.ex:298
@@ -112,11 +111,12 @@ msgstr "Aplicando filtros..."
 #: lib/lanttern_web/live/pages/school/moment_cards_templates_component.ex:109
 #: lib/lanttern_web/live/pages/school/staff/id/staff_member_live.html.heex:91
 #: lib/lanttern_web/live/pages/settings/agents/agent_card_component.ex:121
+#: lib/lanttern_web/live/pages/settings/grading_scales/ordinal_value_form_component.ex:82
 #: lib/lanttern_web/live/pages/settings/lesson_tags/lesson_tag_card_component.ex:69
 #: lib/lanttern_web/live/pages/settings/lesson_templates/lesson_template_card_component.ex:101
 #: lib/lanttern_web/live/pages/settings/school_ai_config/school_ai_config_live.ex:38
 #: lib/lanttern_web/live/pages/strands/id/assessment_component.ex:77
-#: lib/lanttern_web/live/pages/strands/id/strand_live.html.heex:163
+#: lib/lanttern_web/live/pages/strands/id/strand_live.html.heex:165
 #: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:137
 #: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:277
 #: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:330
@@ -124,7 +124,7 @@ msgstr "Aplicando filtros..."
 #: lib/lanttern_web/live/pages/strands/library/strands_library_live.html.heex:102
 #: lib/lanttern_web/live/shared/agent_chat/rename_conversation_form_component.ex:28
 #: lib/lanttern_web/live/shared/agents/agent_form_component.ex:47
-#: lib/lanttern_web/live/shared/assessments/assessment_point_form_overlay_component.ex:148
+#: lib/lanttern_web/live/shared/assessments/assessment_point_form_overlay_component.ex:149
 #: lib/lanttern_web/live/shared/assessments/entry_details_overlay_component.ex:266
 #: lib/lanttern_web/live/shared/attachments/attachment_area_component.ex:100
 #: lib/lanttern_web/live/shared/attachments/attachment_area_component.ex:131
@@ -133,6 +133,7 @@ msgstr "Aplicando filtros..."
 #: lib/lanttern_web/live/shared/filters/filters_overlay_component.ex:25
 #: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_overlay_component.ex:71
 #: lib/lanttern_web/live/shared/grades_reports/student_grades_report_final_entry_overlay_component.ex:74
+#: lib/lanttern_web/live/shared/grading/grading_scale_form_component.ex:114
 #: lib/lanttern_web/live/shared/ilp/ilp_comment_form_overlay_component.ex:95
 #: lib/lanttern_web/live/shared/ilp/ilp_template_form_component.ex:162
 #: lib/lanttern_web/live/shared/ilp/student_ilp_form_overlay_component.ex:110
@@ -182,8 +183,8 @@ msgstr "Nova trilha"
 #: lib/lanttern_web/components/overlay_components.ex:621
 #: lib/lanttern_web/components/overlay_components.ex:684
 #: lib/lanttern_web/live/pages/curriculum/component/id/curriculum_component_live.html.heex:171
-#: lib/lanttern_web/live/pages/grades_report/grades_reports_live.html.heex:126
-#: lib/lanttern_web/live/pages/grades_report/id/grades_report_live.html.heex:130
+#: lib/lanttern_web/live/pages/grades_report/grades_reports_live.html.heex:127
+#: lib/lanttern_web/live/pages/grades_report/id/grades_report_live.html.heex:131
 #: lib/lanttern_web/live/pages/message_board/index_live.ex:193
 #: lib/lanttern_web/live/pages/report_cards/id/report_card_live.html.heex:143
 #: lib/lanttern_web/live/pages/report_cards/id/strands_reports_component.ex:145
@@ -193,24 +194,26 @@ msgstr "Nova trilha"
 #: lib/lanttern_web/live/pages/school/moment_cards_templates_component.ex:112
 #: lib/lanttern_web/live/pages/school/staff/id/staff_member_live.html.heex:94
 #: lib/lanttern_web/live/pages/settings/agents/agent_card_component.ex:124
+#: lib/lanttern_web/live/pages/settings/grading_scales/ordinal_value_form_component.ex:85
 #: lib/lanttern_web/live/pages/settings/lesson_tags/lesson_tag_card_component.ex:72
 #: lib/lanttern_web/live/pages/settings/lesson_templates/lesson_template_card_component.ex:104
 #: lib/lanttern_web/live/pages/settings/school_ai_config/school_ai_config_live.ex:41
 #: lib/lanttern_web/live/pages/strands/id/assessment_component.ex:79
-#: lib/lanttern_web/live/pages/strands/id/strand_live.html.heex:166
+#: lib/lanttern_web/live/pages/strands/id/strand_live.html.heex:168
 #: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:139
 #: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:279
 #: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:332
 #: lib/lanttern_web/live/pages/strands/library/strands_library_live.html.heex:105
 #: lib/lanttern_web/live/shared/agent_chat/rename_conversation_form_component.ex:31
 #: lib/lanttern_web/live/shared/agents/agent_form_component.ex:50
-#: lib/lanttern_web/live/shared/assessments/assessment_point_form_overlay_component.ex:157
-#: lib/lanttern_web/live/shared/assessments/assessments_grid_component.ex:160
+#: lib/lanttern_web/live/shared/assessments/assessment_point_form_overlay_component.ex:158
+#: lib/lanttern_web/live/shared/assessments/assessments_grid_component.ex:163
 #: lib/lanttern_web/live/shared/assessments/entry_details_overlay_component.ex:75
 #: lib/lanttern_web/live/shared/assessments/entry_details_overlay_component.ex:320
 #: lib/lanttern_web/live/shared/attachments/attachment_area_component.ex:107
 #: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_overlay_component.ex:74
 #: lib/lanttern_web/live/shared/grades_reports/student_grades_report_final_entry_overlay_component.ex:77
+#: lib/lanttern_web/live/shared/grading/grading_scale_form_component.ex:117
 #: lib/lanttern_web/live/shared/ilp/ilp_comment_form_overlay_component.ex:105
 #: lib/lanttern_web/live/shared/ilp/ilp_template_form_component.ex:165
 #: lib/lanttern_web/live/shared/ilp/student_ilp_form_overlay_component.ex:119
@@ -273,6 +276,7 @@ msgstr "Descrição"
 msgid "File \"%{file}\" is invalid."
 msgstr "O arquivo \"%{file}\" é inválido."
 
+#: lib/lanttern_web/live/pages/settings/grading_scales/ordinal_value_form_component.ex:22
 #: lib/lanttern_web/live/shared/curricula/curriculum_item_form_component.ex:33
 #: lib/lanttern_web/live/shared/grades_reports/grades_report_form_component.ex:31
 #: lib/lanttern_web/live/shared/learning_context/moment_form_component.ex:32
@@ -301,8 +305,7 @@ msgid "No year selected"
 msgstr "Nenhum ano selecionado"
 
 #: lib/lanttern_web/live/pages/message_board/index_live.ex:133
-#: lib/lanttern_web/live/shared/assessments/assessment_point_form_component.ex:29
-#: lib/lanttern_web/live/shared/assessments/assessment_point_form_overlay_component.ex:49
+#: lib/lanttern_web/live/shared/assessments/assessment_point_form_overlay_component.ex:50
 #: lib/lanttern_web/live/shared/grades_reports/grades_report_form_component.ex:26
 #: lib/lanttern_web/live/shared/ilp/ilp_comment_form_overlay_component.ex:52
 #: lib/lanttern_web/live/shared/ilp/ilp_template_form_component.ex:26
@@ -337,12 +340,12 @@ msgstr "Alterar imagem"
 msgid "Save Strand"
 msgstr "Salvar Trilha"
 
-#: lib/lanttern_web/live/shared/assessments/assessment_point_form_overlay_component.ex:155
+#: lib/lanttern_web/live/shared/assessments/assessment_point_form_overlay_component.ex:156
 #: lib/lanttern_web/live/shared/attachments/attachment_area_component.ex:104
 #: lib/lanttern_web/live/shared/curricula/curriculum_item_form_component.ex:55
 #: lib/lanttern_web/live/shared/grades_reports/grades_report_form_component.ex:86
-#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_form_component.ex:105
-#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_final_entry_form_component.ex:78
+#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_form_component.ex:104
+#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_final_entry_form_component.ex:77
 #: lib/lanttern_web/live/shared/learning_context/strand_form_component.ex:92
 #: lib/lanttern_web/live/shared/reporting/report_card_form_component.ex:85
 #: lib/lanttern_web/live/shared/reporting/strand_report_form_component.ex:61
@@ -390,8 +393,8 @@ msgstr "cancelar"
 msgid "or drag and drop here"
 msgstr "ou arraste e solte aqui"
 
-#: lib/lanttern_web/components/layouts.ex:214
-#: lib/lanttern_web/components/layouts.ex:226
+#: lib/lanttern_web/components/layouts.ex:219
+#: lib/lanttern_web/components/layouts.ex:231
 #, elixir-autogen, elixir-format
 msgid "Attempting to reconnect"
 msgstr "Tentando reconectar"
@@ -401,12 +404,12 @@ msgstr "Tentando reconectar"
 msgid "Markdown supported"
 msgstr "Suporta Markdown"
 
-#: lib/lanttern_web/components/layouts.ex:209
+#: lib/lanttern_web/components/layouts.ex:214
 #, elixir-autogen, elixir-format
 msgid "We can't find the internet"
 msgstr "Não conseguimos nos conectar"
 
-#: lib/lanttern_web/components/layouts.ex:221
+#: lib/lanttern_web/components/layouts.ex:226
 #, elixir-autogen, elixir-format
 msgid "Something went wrong!"
 msgstr "Algo deu errado!"
@@ -438,19 +441,21 @@ msgstr "Não foi possível encontrar a trilha"
 #: lib/lanttern_web/components/message_board_components.ex:53
 #: lib/lanttern_web/components/schools_components.ex:215
 #: lib/lanttern_web/live/pages/curriculum/component/id/curriculum_component_live.html.heex:159
-#: lib/lanttern_web/live/pages/grades_report/grades_reports_live.html.heex:114
-#: lib/lanttern_web/live/pages/grades_report/id/grades_report_live.html.heex:118
+#: lib/lanttern_web/live/pages/grades_report/grades_reports_live.html.heex:115
+#: lib/lanttern_web/live/pages/grades_report/id/grades_report_live.html.heex:119
 #: lib/lanttern_web/live/pages/message_board/components.ex:67
 #: lib/lanttern_web/live/pages/message_board/index_live.ex:174
 #: lib/lanttern_web/live/pages/report_cards/id/report_card_live.html.heex:50
 #: lib/lanttern_web/live/pages/report_cards/id/strands_reports_component.ex:133
 #: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:124
 #: lib/lanttern_web/live/pages/school/staff/deactivated/deactivated_staff_live.html.heex:50
+#: lib/lanttern_web/live/pages/settings/grading_scales/ordinal_value_form_component.ex:73
 #: lib/lanttern_web/live/pages/strands/id/strand_live.html.heex:80
 #: lib/lanttern_web/live/shared/agents/agent_form_component.ex:38
-#: lib/lanttern_web/live/shared/assessments/assessment_point_form_overlay_component.ex:139
+#: lib/lanttern_web/live/shared/assessments/assessment_point_form_overlay_component.ex:140
 #: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_overlay_component.ex:62
 #: lib/lanttern_web/live/shared/grades_reports/student_grades_report_final_entry_overlay_component.ex:65
+#: lib/lanttern_web/live/shared/grading/grading_scale_form_component.ex:105
 #: lib/lanttern_web/live/shared/ilp/ilp_comment_form_overlay_component.ex:85
 #: lib/lanttern_web/live/shared/ilp/student_ilp_form_overlay_component.ex:100
 #: lib/lanttern_web/live/shared/learning_context/moment_form_component.ex:51
@@ -474,7 +479,7 @@ msgid "Delete"
 msgstr "Deletar"
 
 #: lib/lanttern_web/live/pages/strands/id/strand_live.html.heex:75
-#: lib/lanttern_web/live/pages/strands/id/strand_live.html.heex:149
+#: lib/lanttern_web/live/pages/strands/id/strand_live.html.heex:151
 #, elixir-autogen, elixir-format
 msgid "Edit strand"
 msgstr "Editar trilha"
@@ -493,19 +498,22 @@ msgstr "Adicionar rubrica"
 #: lib/lanttern_web/components/message_board_components.ex:41
 #: lib/lanttern_web/components/schools_components.ex:213
 #: lib/lanttern_web/live/pages/curriculum/component/id/curriculum_component_live.html.heex:157
-#: lib/lanttern_web/live/pages/grades_report/grades_reports_live.html.heex:112
-#: lib/lanttern_web/live/pages/grades_report/id/grades_report_live.html.heex:116
+#: lib/lanttern_web/live/pages/grades_report/grades_reports_live.html.heex:113
+#: lib/lanttern_web/live/pages/grades_report/id/grades_report_live.html.heex:117
 #: lib/lanttern_web/live/pages/report_cards/id/report_card_live.html.heex:53
 #: lib/lanttern_web/live/pages/report_cards/id/strands_reports_component.ex:131
 #: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:122
 #: lib/lanttern_web/live/pages/school/staff/deactivated/deactivated_staff_live.html.heex:48
+#: lib/lanttern_web/live/pages/settings/grading_scales/grading_scale_card_component.ex:62
+#: lib/lanttern_web/live/pages/settings/grading_scales/ordinal_value_form_component.ex:71
 #: lib/lanttern_web/live/pages/strands/id/strand_live.html.heex:83
 #: lib/lanttern_web/live/shared/agents/agent_form_component.ex:36
-#: lib/lanttern_web/live/shared/assessments/assessment_point_form_overlay_component.ex:137
-#: lib/lanttern_web/live/shared/assessments/assessment_point_form_overlay_component.ex:181
-#: lib/lanttern_web/live/shared/assessments/assessments_grid_component.ex:148
+#: lib/lanttern_web/live/shared/assessments/assessment_point_form_overlay_component.ex:138
+#: lib/lanttern_web/live/shared/assessments/assessment_point_form_overlay_component.ex:182
+#: lib/lanttern_web/live/shared/assessments/assessments_grid_component.ex:151
 #: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_overlay_component.ex:60
 #: lib/lanttern_web/live/shared/grades_reports/student_grades_report_final_entry_overlay_component.ex:63
+#: lib/lanttern_web/live/shared/grading/grading_scale_form_component.ex:103
 #: lib/lanttern_web/live/shared/ilp/ilp_comment_form_overlay_component.ex:83
 #: lib/lanttern_web/live/shared/ilp/ilp_template_form_component.ex:155
 #: lib/lanttern_web/live/shared/ilp/student_ilp_form_overlay_component.ex:98
@@ -529,18 +537,17 @@ msgstr "Adicionar rubrica"
 msgid "Are you sure?"
 msgstr "Você tem certeza?"
 
-#: lib/lanttern_web/live/shared/assessments/assessments_grid_component.ex:50
+#: lib/lanttern_web/live/shared/assessments/assessments_grid_component.ex:52
 #, elixir-autogen, elixir-format
 msgid "Current assessment points"
 msgstr "Pontos de avaliação atuais"
 
-#: lib/lanttern_web/live/pages/strands/id/assessment_component.ex:269
+#: lib/lanttern_web/live/pages/strands/id/assessment_component.ex:270
 #: lib/lanttern_web/live/pages/strands/id/overview_component.ex:83
 #: lib/lanttern_web/live/pages/strands/id/strand_rubrics_component.ex:102
 #: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.ex:46
 #: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:286
-#: lib/lanttern_web/live/shared/assessments/assessment_point_form_component.ex:87
-#: lib/lanttern_web/live/shared/assessments/assessment_point_form_overlay_component.ex:116
+#: lib/lanttern_web/live/shared/assessments/assessment_point_form_overlay_component.ex:117
 #: lib/lanttern_web/live/shared/assessments/entry_details_overlay_component.ex:34
 #: lib/lanttern_web/live/shared/assessments/strand_goal_details_overlay_component.ex:66
 #: lib/lanttern_web/live/shared/assessments/student_assessment_point_details_overlay_component.ex:55
@@ -580,7 +587,7 @@ msgstr "Diferenciação"
 msgid "Edit"
 msgstr "Editar"
 
-#: lib/lanttern_web/live/shared/assessments/assessments_grid_component.ex:43
+#: lib/lanttern_web/live/shared/assessments/assessments_grid_component.ex:45
 #, elixir-autogen, elixir-format
 msgid "No assessment points for this strand yet"
 msgstr "Nenhum ponto de avaliação para esta trilha ainda"
@@ -596,36 +603,30 @@ msgstr "Reordenar"
 msgid "Select a class"
 msgstr "Selecione uma turma"
 
-#: lib/lanttern_web/live/shared/assessments/assessment_point_form_overlay_component.ex:184
+#: lib/lanttern_web/live/shared/assessments/assessment_point_form_overlay_component.ex:185
 #, elixir-autogen, elixir-format
 msgid "Understood. Delete anyway"
 msgstr "Compreendo. Deletar mesmo assim"
 
-#: lib/lanttern_web/components/navigation_components.ex:568
+#: lib/lanttern_web/components/navigation_components.ex:567
 #, elixir-autogen, elixir-format
 msgid "collapse"
 msgstr "fechar"
 
-#: lib/lanttern_web/live/shared/assessments/assessment_point_form_overlay_component.ex:188
+#: lib/lanttern_web/live/shared/assessments/assessment_point_form_overlay_component.ex:189
 #, elixir-autogen, elixir-format
 msgid "dismiss"
 msgstr "dispensar"
 
-#: lib/lanttern_web/components/navigation_components.ex:580
+#: lib/lanttern_web/components/navigation_components.ex:579
 #, elixir-autogen, elixir-format
 msgid "expand"
 msgstr "expandir"
 
-#: lib/lanttern_web/live/shared/assessments/assessment_point_form_component.ex:34
-#: lib/lanttern_web/live/shared/assessments/assessment_point_form_overlay_component.ex:54
+#: lib/lanttern_web/live/shared/assessments/assessment_point_form_overlay_component.ex:55
 #, elixir-autogen, elixir-format
 msgid "Assessment point name"
 msgstr "Nome do ponto de avaliação"
-
-#: lib/lanttern_web/live/shared/assessments/assessment_point_form_component.ex:61
-#, elixir-autogen, elixir-format
-msgid "No curriculum item selected"
-msgstr "Nenhum item curricular selecionado"
 
 #: lib/lanttern_web/live/shared/reporting/strand_report_form_component.ex:50
 #, elixir-autogen, elixir-format
@@ -634,20 +635,17 @@ msgstr "Posição"
 
 #: lib/lanttern_web/live/pages/grades_report/grades_reports_live.html.heex:61
 #: lib/lanttern_web/live/pages/grades_report/id/grades_report_live.html.heex:14
-#: lib/lanttern_web/live/shared/assessments/assessment_point_form_component.ex:70
-#: lib/lanttern_web/live/shared/assessments/assessment_point_form_overlay_component.ex:99
+#: lib/lanttern_web/live/shared/assessments/assessment_point_form_overlay_component.ex:100
 #, elixir-autogen, elixir-format
 msgid "Scale"
 msgstr "Escala"
 
-#: lib/lanttern_web/live/shared/assessments/assessment_point_form_component.ex:72
-#: lib/lanttern_web/live/shared/assessments/assessment_point_form_overlay_component.ex:101
+#: lib/lanttern_web/live/shared/assessments/assessment_point_form_overlay_component.ex:102
 #, elixir-autogen, elixir-format
 msgid "Select a scale"
 msgstr "Selecione uma escala"
 
-#: lib/lanttern_web/live/shared/assessments/assessment_point_form_component.ex:43
-#: lib/lanttern_web/live/shared/assessments/assessment_point_form_overlay_component.ex:63
+#: lib/lanttern_web/live/shared/assessments/assessment_point_form_overlay_component.ex:64
 #, elixir-autogen, elixir-format
 msgid "Select curriculum item"
 msgstr "Selecionar item curricular"
@@ -672,11 +670,9 @@ msgstr "e buscar pelo código colocando parênteses"
 msgid "Add descriptor"
 msgstr "Adicionar descritor"
 
-#: lib/lanttern_web/live/shared/assessments/assessment_point_form_component.ex:247
-#: lib/lanttern_web/live/shared/assessments/assessment_point_form_component.ex:255
-#: lib/lanttern_web/live/shared/assessments/assessment_point_form_overlay_component.ex:372
-#: lib/lanttern_web/live/shared/assessments/assessment_point_form_overlay_component.ex:383
-#: lib/lanttern_web/live/shared/assessments/assessment_point_form_overlay_component.ex:573
+#: lib/lanttern_web/live/shared/assessments/assessment_point_form_overlay_component.ex:379
+#: lib/lanttern_web/live/shared/assessments/assessment_point_form_overlay_component.ex:390
+#: lib/lanttern_web/live/shared/assessments/assessment_point_form_overlay_component.ex:580
 #: lib/lanttern_web/live/shared/assessments/entry_details_overlay_component.ex:515
 #, elixir-autogen, elixir-format
 msgid "Criteria"
@@ -698,19 +694,19 @@ msgstr "Rubrica criada com sucesso"
 msgid "Rubric updated successfully"
 msgstr "Rubrica atualizada com sucesso"
 
-#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_form_component.ex:35
-#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_final_entry_form_component.ex:35
+#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_form_component.ex:34
+#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_final_entry_form_component.ex:34
 #: lib/lanttern_web/live/shared/rubrics/rubric_form_overlay_component.ex:191
 #, elixir-autogen, elixir-format
 msgid "Score"
 msgstr "Score"
 
-#: lib/lanttern_web/live/pages/strands/id/assessment/marking/moment_assessment_component.ex:88
+#: lib/lanttern_web/live/pages/strands/id/assessment/marking/moment_assessment_component.ex:90
 #, elixir-autogen, elixir-format
 msgid "Assessment Point"
 msgstr "Ponto de Avaliação"
 
-#: lib/lanttern_web/live/shared/assessments/assessment_point_form_overlay_component.ex:450
+#: lib/lanttern_web/live/shared/assessments/assessment_point_form_overlay_component.ex:457
 #, elixir-autogen, elixir-format
 msgid "This assessment point already have some entries. Deleting it will cause data loss."
 msgstr "Este ponto de avaliação já possui alguns registros. Deletá-lo irá causar perda de dados."
@@ -923,8 +919,8 @@ msgstr "Código"
 
 #: lib/lanttern_web/live/shared/grades_reports/final_grade_details_overlay_component.ex:79
 #: lib/lanttern_web/live/shared/grades_reports/grade_details_overlay_component.ex:83
-#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_form_component.ex:74
-#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_final_entry_form_component.ex:47
+#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_form_component.ex:73
+#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_final_entry_form_component.ex:46
 #, elixir-autogen, elixir-format
 msgid "Comment"
 msgstr "Comentário"
@@ -988,18 +984,18 @@ msgstr "Ciclo já adicionado à este relatório de nota"
 #: lib/lanttern_web/components/reporting_components.ex:82
 #: lib/lanttern_web/components/reporting_components.ex:437
 #: lib/lanttern_web/live/pages/shared/strand_report/strand_report_assessment_component.ex:273
-#: lib/lanttern_web/live/shared/assessments/assessments_grid_component.ex:287
-#: lib/lanttern_web/live/shared/assessments/assessments_grid_component.ex:336
-#: lib/lanttern_web/live/shared/assessments/assessments_grid_component.ex:375
-#: lib/lanttern_web/live/shared/assessments/assessments_grid_component.ex:399
+#: lib/lanttern_web/live/shared/assessments/assessments_grid_component.ex:290
+#: lib/lanttern_web/live/shared/assessments/assessments_grid_component.ex:339
+#: lib/lanttern_web/live/shared/assessments/assessments_grid_component.ex:378
+#: lib/lanttern_web/live/shared/assessments/assessments_grid_component.ex:402
 #: lib/lanttern_web/live/shared/grading/grade_composition_overlay_component.ex:78
 #: lib/lanttern_web/live/shared/grading/grade_composition_overlay_component.ex:150
 #, elixir-autogen, elixir-format
 msgid "Diff"
 msgstr "Dif"
 
-#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_form_component.ex:41
-#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_final_entry_form_component.ex:41
+#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_form_component.ex:40
+#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_final_entry_form_component.ex:40
 #, elixir-autogen, elixir-format
 msgid "Different from grade composition. Use comments field to justify it if needed."
 msgstr "Diferente da composição da nota. Use o campo de comentários para justificar se necessário."
@@ -1015,7 +1011,7 @@ msgstr "Ex: projeto, unidade, curso, etc."
 msgid "Edit curriculum item"
 msgstr "Editar item curricular"
 
-#: lib/lanttern_web/live/pages/grades_report/grades_reports_live.html.heex:139
+#: lib/lanttern_web/live/pages/grades_report/grades_reports_live.html.heex:140
 #: lib/lanttern_web/live/pages/report_cards/id/grades_component.ex:39
 #, elixir-autogen, elixir-format
 msgid "Edit grade composition"
@@ -1144,12 +1140,12 @@ msgstr "Notas calculadas com sucesso"
 msgid "Grades report"
 msgstr "Relatório de notas"
 
-#: lib/lanttern_web/live/shared/grades_reports/grades_report_form_component.ex:207
+#: lib/lanttern_web/live/shared/grades_reports/grades_report_form_component.ex:216
 #, elixir-autogen, elixir-format
 msgid "Grades report created successfully"
 msgstr "Relatório de notas criado com sucesso"
 
-#: lib/lanttern_web/live/shared/grades_reports/grades_report_form_component.ex:224
+#: lib/lanttern_web/live/shared/grades_reports/grades_report_form_component.ex:233
 #, elixir-autogen, elixir-format
 msgid "Grades report updated successfully"
 msgstr "Relatório de notas atualizado com sucesso"
@@ -1192,8 +1188,8 @@ msgstr "Item"
 msgid "Lanttern automatic grade calculation info based on configured grade composition"
 msgstr "Informações do cálculo automático da nota do Lanttern baseado na configuração de composição da nota"
 
-#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_form_component.ex:27
-#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_final_entry_form_component.ex:27
+#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_form_component.ex:26
+#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_final_entry_form_component.ex:26
 #, elixir-autogen, elixir-format
 msgid "Level"
 msgstr "Nível"
@@ -1282,7 +1278,9 @@ msgstr "Nenhuma disciplina vinculada a este relatório de notas"
 
 #: lib/lanttern_web/components/grades_reports_components.ex:1048
 #: lib/lanttern_web/components/grades_reports_components.ex:1121
-#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_form_component.ex:48
+#: lib/lanttern_web/live/pages/settings/grading_scales/grading_scale_card_component.ex:93
+#: lib/lanttern_web/live/pages/settings/grading_scales/ordinal_value_form_component.ex:27
+#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_form_component.ex:47
 #, elixir-autogen, elixir-format
 msgid "Normalized value"
 msgstr "Valor normalizado"
@@ -1307,6 +1305,8 @@ msgstr "Resultados parciais"
 
 #: lib/lanttern_web/components/form_components.ex:608
 #: lib/lanttern_web/live/pages/report_cards/id/students_component.ex:311
+#: lib/lanttern_web/live/pages/settings/grading_scales/ordinal_value_form_component.ex:50
+#: lib/lanttern_web/live/shared/grading/grading_scale_form_component.ex:66
 #: lib/lanttern_web/live/shared/lessons/lesson_tag_form_component.ex:37
 #: lib/lanttern_web/live/shared/students/student_tag_form_overlay_component.ex:56
 #: lib/lanttern_web/live/shared/students_records/student_record_status_form_overlay.ex:73
@@ -1385,15 +1385,15 @@ msgstr "Salvar item curricular"
 msgid "Save grade report"
 msgstr "Salvar relatório de nota"
 
-#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_form_component.ex:106
+#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_form_component.ex:105
 #, elixir-autogen, elixir-format
 msgid "Save student grade report entry"
 msgstr "Salvar registro de relatório de nota de estudante"
 
-#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_form_component.ex:29
-#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_form_component.ex:93
-#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_final_entry_form_component.ex:29
-#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_final_entry_form_component.ex:66
+#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_form_component.ex:28
+#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_form_component.ex:92
+#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_final_entry_form_component.ex:28
+#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_final_entry_form_component.ex:65
 #, elixir-autogen, elixir-format
 msgid "Select a level"
 msgstr "Selecione uma escala"
@@ -1418,8 +1418,8 @@ msgstr "Favoritar trilha"
 msgid "Strand already linked to report card"
 msgstr "Trilha já vinculada ao report card"
 
-#: lib/lanttern_web/live/pages/strands/id/assessment/marking/goals_assessment_component.ex:94
-#: lib/lanttern_web/live/pages/strands/id/overview_component.ex:141
+#: lib/lanttern_web/live/pages/strands/id/assessment/marking/goals_assessment_component.ex:96
+#: lib/lanttern_web/live/pages/strands/id/overview_component.ex:142
 #: lib/lanttern_web/live/shared/grading/grade_composition_overlay_component.ex:35
 #, elixir-autogen, elixir-format
 msgid "Strand goal"
@@ -1445,7 +1445,7 @@ msgstr "Trilha vinculada ao relatório"
 msgid "Student already linked to report card"
 msgstr "Estudante já vinculado ao report card"
 
-#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_form_component.ex:256
+#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_form_component.ex:257
 #, elixir-autogen, elixir-format
 msgid "Student grade report entry created successfully"
 msgstr "Registro de relatório de nota de estudante criado com sucesso"
@@ -1455,7 +1455,7 @@ msgstr "Registro de relatório de nota de estudante criado com sucesso"
 msgid "Student grade report entry deleted"
 msgstr "Registro de relatório de nota de estudante deletado"
 
-#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_form_component.ex:280
+#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_form_component.ex:281
 #, elixir-autogen, elixir-format
 msgid "Student grade report entry updated successfully"
 msgstr "Registro de relatório de nota de estudante atualizado com sucesso"
@@ -1476,7 +1476,7 @@ msgid "Student report card deleted"
 msgstr "Report card de estudante deletado"
 
 #: lib/lanttern_web/live/pages/report_cards/id/report_card_live.html.heex:15
-#: lib/lanttern_web/live/pages/school/classes/id/class_live.html.heex:14
+#: lib/lanttern_web/live/pages/school/classes/id/class_live.html.heex:11
 #: lib/lanttern_web/live/pages/school/guardians/id/guardian_live.html.heex:43
 #: lib/lanttern_web/live/pages/school/school_live.html.heex:13
 #: lib/lanttern_web/live/shared/schools/guardian_form_overlay_component.ex:59
@@ -1507,8 +1507,7 @@ msgstr "A nota do ciclo pai é calculada com baseem seus sub ciclos. Ex: a nota 
 msgid "Type"
 msgstr "Tipo"
 
-#: lib/lanttern_web/live/shared/assessments/assessment_point_form_component.ex:90
-#: lib/lanttern_web/live/shared/assessments/assessment_point_form_overlay_component.ex:119
+#: lib/lanttern_web/live/shared/assessments/assessment_point_form_overlay_component.ex:120
 #, elixir-autogen, elixir-format
 msgid "Use the differentiation flag above when creating assessment points related to a curriculum level differentiation."
 msgstr "Utilize a marcação de diferenciação ao criar pontos de avaliação relacionados à diferenciação no nível do currículo."
@@ -1562,8 +1561,7 @@ msgstr "Filtrar report cards por ano"
 msgid "Name is required"
 msgstr "Nome obrigatório"
 
-#: lib/lanttern_web/live/shared/assessments/assessment_point_form_component.ex:221
-#: lib/lanttern_web/live/shared/assessments/assessment_point_form_overlay_component.ex:333
+#: lib/lanttern_web/live/shared/assessments/assessment_point_form_overlay_component.ex:340
 #, elixir-autogen, elixir-format
 msgid "Not linked to strand"
 msgstr "Não vinculado à trilha"
@@ -1612,20 +1610,19 @@ msgstr "Sobre esta avaliação"
 msgid "Report info"
 msgstr "Informações do relatório"
 
-#: lib/lanttern_web/live/shared/assessments/assessment_point_form_component.ex:78
-#: lib/lanttern_web/live/shared/assessments/assessment_point_form_overlay_component.ex:107
+#: lib/lanttern_web/live/shared/assessments/assessment_point_form_overlay_component.ex:108
 #, elixir-autogen, elixir-format
 msgid "Report information"
 msgstr "Informações do relatório"
 
-#: lib/lanttern_web/live/shared/assessments/assessments_grid_component.ex:726
+#: lib/lanttern_web/live/shared/assessments/assessments_grid_component.ex:731
 #, elixir-autogen, elixir-format
 msgid "1 entry updated"
 msgid_plural "%{count} entries updated"
 msgstr[0] "1 registro atualizado"
 msgstr[1] "%{count} registros atualizados"
 
-#: lib/lanttern_web/live/shared/assessments/assessments_grid_component.ex:150
+#: lib/lanttern_web/live/shared/assessments/assessments_grid_component.ex:153
 #, elixir-autogen, elixir-format
 msgid "Discard"
 msgstr "Descartar"
@@ -1689,7 +1686,7 @@ msgstr "Opcional"
 msgid "Strands reports"
 msgstr "Relatórios das trilhas"
 
-#: lib/lanttern_web/live/shared/assessments/assessments_grid_component.ex:135
+#: lib/lanttern_web/live/shared/assessments/assessments_grid_component.ex:138
 #, elixir-autogen, elixir-format
 msgid "1 change"
 msgid_plural "%{count} changes"
@@ -2006,13 +2003,13 @@ msgstr "Visualização de avaliação inválida"
 #: lib/lanttern_web/components/ilp_components.ex:169
 #: lib/lanttern_web/live/pages/school/staff/id/students_records_component.ex:74
 #: lib/lanttern_web/live/pages/students_records/students_records_live.html.heex:13
-#: lib/lanttern_web/live/shared/assessments/assessments_grid_component.ex:470
+#: lib/lanttern_web/live/shared/assessments/assessments_grid_component.ex:473
 #, elixir-autogen, elixir-format
 msgid "Student"
 msgstr "Estudante"
 
 #: lib/lanttern_web/components/ilp_components.ex:187
-#: lib/lanttern_web/live/shared/assessments/assessments_grid_component.ex:467
+#: lib/lanttern_web/live/shared/assessments/assessments_grid_component.ex:470
 #, elixir-autogen, elixir-format
 msgid "Teacher"
 msgstr "Professor"
@@ -2076,30 +2073,30 @@ msgstr "Você tem certeza? Notas relacionadas à disciplina serão criadas, atua
 msgid "Grade before retake process"
 msgstr "Nota anterior ao processo de recuperação"
 
-#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_form_component.ex:102
-#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_final_entry_form_component.ex:75
+#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_form_component.ex:101
+#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_final_entry_form_component.ex:74
 #, elixir-autogen, elixir-format
 msgid "If needed, use this area to keep the student grade history before retake."
 msgstr "Se necessário, utilize esta área para manter o histórico de nota do estudante antes da recuperação."
 
-#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_form_component.ex:91
-#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_final_entry_form_component.ex:64
+#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_form_component.ex:90
+#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_final_entry_form_component.ex:63
 #, elixir-autogen, elixir-format
 msgid "Level before retake"
 msgstr "Nível anterior à recuperação"
 
-#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_form_component.ex:99
-#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_final_entry_form_component.ex:72
+#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_form_component.ex:98
+#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_final_entry_form_component.ex:71
 #, elixir-autogen, elixir-format
 msgid "Score before retake"
 msgstr "Score anterior à recuperação"
 
-#: lib/lanttern_web/live/shared/assessments/assessments_grid_component.ex:142
+#: lib/lanttern_web/live/shared/assessments/assessments_grid_component.ex:145
 #, elixir-autogen, elixir-format
 msgid "You are registering students self-assessments"
 msgstr "Você está registrando autoavaliações de estudantes"
 
-#: lib/lanttern_web/live/shared/assessments/assessments_grid_component.ex:159
+#: lib/lanttern_web/live/shared/assessments/assessments_grid_component.ex:162
 #, elixir-autogen, elixir-format
 msgid "Save self-assessments"
 msgstr "Salvar autoavaliações"
@@ -2116,7 +2113,7 @@ msgstr[1] "%{count} notas parcialmente atualizadas (apenas composições, notas 
 msgid "There is a manual grade change that will be overwritten by this operation. Are you sure you want to proceed?"
 msgstr "A nota atribuída manualmente será sobrescrita por esta operação. Você tem certeza que deseja proceder?"
 
-#: lib/lanttern_web/live/shared/assessments/assessments_grid_component.ex:451
+#: lib/lanttern_web/live/shared/assessments/assessments_grid_component.ex:454
 #, elixir-autogen, elixir-format
 msgid "(Strand final assessment)"
 msgstr "(Avaliação final da trilha)"
@@ -2162,7 +2159,7 @@ msgstr "Comparar avaliações de professor e estudantes"
 msgid "Compare teacher/students"
 msgstr "Comparar professor/estudantes"
 
-#: lib/lanttern_web/live/shared/assessments/assessments_grid_component.ex:449
+#: lib/lanttern_web/live/shared/assessments/assessments_grid_component.ex:452
 #: lib/lanttern_web/live/shared/rubrics/rubric_form_overlay_component.ex:230
 #, elixir-autogen, elixir-format
 msgid "Goal assessment"
@@ -2170,7 +2167,7 @@ msgstr "Avaliação de objetivo"
 
 #: lib/lanttern_web/live/pages/shared/strand_report/strand_report_assessment_component.ex:33
 #: lib/lanttern_web/live/pages/strands/id/assessment_component.ex:183
-#: lib/lanttern_web/live/shared/assessments/assessments_grid_component.ex:302
+#: lib/lanttern_web/live/shared/assessments/assessments_grid_component.ex:305
 #, elixir-autogen, elixir-format
 msgid "Goals assessment"
 msgstr "Avaliação de objetivos"
@@ -2252,8 +2249,7 @@ msgstr "Trilha removida da sua lista de favoritas"
 msgid "Assessment info"
 msgstr "Informações da avaliação"
 
-#: lib/lanttern_web/live/shared/assessments/assessment_point_form_component.ex:111
-#: lib/lanttern_web/live/shared/assessments/assessment_point_form_overlay_component.ex:205
+#: lib/lanttern_web/live/shared/assessments/assessment_point_form_overlay_component.ex:206
 #: lib/lanttern_web/live/shared/assessments/strand_goal_details_overlay_component.ex:63
 #: lib/lanttern_web/live/shared/assessments/student_assessment_point_details_overlay_component.ex:52
 #, elixir-autogen, elixir-format
@@ -2514,7 +2510,7 @@ msgstr "Você tem certeza? Notas finais relacionadas à disciplina serão criada
 msgid "Calculate final grades"
 msgstr "Calcular notas finais"
 
-#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_form_component.ex:60
+#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_form_component.ex:59
 #, elixir-autogen, elixir-format
 msgid "Composition normalized value (reference)"
 msgstr "Valor normalizado da composição (referência)"
@@ -2593,7 +2589,7 @@ msgstr "Nenhum registro de subciclo para esta disciplina"
 msgid "Parent cycle visibility"
 msgstr "Visibilidade do ciclo maior"
 
-#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_final_entry_form_component.ex:79
+#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_final_entry_form_component.ex:78
 #, elixir-autogen, elixir-format
 msgid "Save student grades report final entry"
 msgstr "Salvar registro de relatório de notas de estudante"
@@ -2608,12 +2604,12 @@ msgstr "Notas finais do estudante calculadas com sucesso"
 msgid "Student grade report final entry deleted"
 msgstr "Registro final do relatório de notas de estudante deletado"
 
-#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_final_entry_form_component.ex:213
+#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_final_entry_form_component.ex:214
 #, elixir-autogen, elixir-format
 msgid "Student grades report final entry created successfully"
 msgstr "Registro final do relatório de notas de estudante criado com sucesso"
 
-#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_final_entry_form_component.ex:237
+#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_final_entry_form_component.ex:238
 #, elixir-autogen, elixir-format
 msgid "Student grades report final entry updated successfully"
 msgstr "Registro final do relatório de notas de estudante atualizado com sucesso"
@@ -2633,7 +2629,7 @@ msgstr "Subciclos da matriz"
 msgid "No subcycles linked"
 msgstr "Nenhum subciclo vinculado"
 
-#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_form_component.ex:55
+#: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_form_component.ex:54
 #, elixir-autogen, elixir-format
 msgid "Normalized values are used to calculate final grades — when levels are changed manually without normalized values adjustments, final grades calculation can be misaligned with related subcycle grades."
 msgstr "Valores normalizados são utilizados para calcular notas finais — quando os níveis são modificados manualmente sem ajustes nos valores normalizados, os cálculos das notas finais podem ficar desalinhados com as notas dos subciclos relacionados."
@@ -2681,8 +2677,8 @@ msgstr "Turma atualizada com sucesso"
 msgid "Create class"
 msgstr "Criar turma"
 
-#: lib/lanttern_web/live/pages/school/classes/id/class_live.html.heex:33
-#: lib/lanttern_web/live/pages/school/classes/id/class_live.html.heex:68
+#: lib/lanttern_web/live/pages/school/classes/id/class_live.html.heex:36
+#: lib/lanttern_web/live/pages/school/classes/id/class_live.html.heex:71
 #: lib/lanttern_web/live/pages/school/classes_component.ex:52
 #: lib/lanttern_web/live/pages/school/classes_component.ex:250
 #, elixir-autogen, elixir-format
@@ -2907,7 +2903,7 @@ msgstr "Data final precisa ser maior que a data inicial"
 msgid "Explore all strands"
 msgstr "Explorar todas as trilhas"
 
-#: lib/lanttern_web/live/pages/grades_report/grades_reports_live.html.heex:151
+#: lib/lanttern_web/live/pages/grades_report/grades_reports_live.html.heex:152
 #, elixir-autogen, elixir-format
 msgid "Filter grades reports by year"
 msgstr "Filtrar relatórios de notas por ano"
@@ -2948,7 +2944,7 @@ msgstr "Carregando ciclos"
 msgid "Loading profiles"
 msgstr "Carregando perfis"
 
-#: lib/lanttern_web/live/pages/strands/id/assessment_component.ex:505
+#: lib/lanttern_web/live/pages/strands/id/assessment_component.ex:506
 #, elixir-autogen, elixir-format
 msgid "New assessment point"
 msgstr "Novo ponto de avaliação"
@@ -2968,9 +2964,9 @@ msgstr "Novo relatório de notas"
 msgid "No %{cycle} grade reports matching current filters created yet"
 msgstr "Nenhum relatório de notas de %{cycle} alinhdo aos filtros atuais foi criado ainda"
 
-#: lib/lanttern_web/live/pages/strands/id/assessment/marking/marking_live.html.heex:47
-#: lib/lanttern_web/live/pages/strands/id/assessment/marking/marking_live.html.heex:64
-#: lib/lanttern_web/live/pages/strands/id/strand_live.html.heex:116
+#: lib/lanttern_web/live/pages/strands/id/assessment/marking/marking_live.html.heex:48
+#: lib/lanttern_web/live/pages/strands/id/assessment/marking/marking_live.html.heex:66
+#: lib/lanttern_web/live/pages/strands/id/strand_live.html.heex:117
 #, elixir-autogen, elixir-format
 msgid "No class selected"
 msgstr "Nenhuma turma selecionada"
@@ -3064,7 +3060,7 @@ msgstr "Buscar todas as turmas da escola"
 msgid "Select a class above to view full assessments grid"
 msgstr "Selecione uma turma acima para visualizar o grid de avaliação completo"
 
-#: lib/lanttern_web/live/pages/strands/id/strand_live.html.heex:174
+#: lib/lanttern_web/live/pages/strands/id/strand_live.html.heex:176
 #, elixir-autogen, elixir-format
 msgid "Select classes to view students differentiation rubrics"
 msgstr "Selecione turmas para visualizar rubricas de diferenciação dos estudantes"
@@ -3116,12 +3112,12 @@ msgstr "Começa em"
 msgid "Strand cover image"
 msgstr "Imagem de capa da trilha"
 
-#: lib/lanttern_web/live/shared/assessments/assessments_grid_component.ex:196
+#: lib/lanttern_web/live/shared/assessments/assessments_grid_component.ex:199
 #, elixir-autogen, elixir-format
 msgid "Strand final assessment for %{item}"
 msgstr "(Avaliação final da trilha)"
 
-#: lib/lanttern_web/live/shared/assessments/assessments_grid_component.ex:199
+#: lib/lanttern_web/live/shared/assessments/assessments_grid_component.ex:202
 #, elixir-autogen, elixir-format
 msgid "Strand final assessment for curriculum item"
 msgstr "Avaliação final do item curricular na trilha"
@@ -3697,7 +3693,7 @@ msgstr "Nenhum tag de registro de estudante criado ainda"
 msgid "Record description"
 msgstr "Descrição do registro"
 
-#: lib/lanttern_web/components/navigation_components.ex:484
+#: lib/lanttern_web/components/navigation_components.ex:483
 #: lib/lanttern_web/live/pages/ilp/ilp_live.html.heex:58
 #: lib/lanttern_web/live/pages/ilp/settings/ilp_settings_live.html.heex:6
 #: lib/lanttern_web/live/pages/students_records/settings/students_records_settings_live.html.heex:6
@@ -4466,30 +4462,30 @@ msgstr "Adicionar outra rubrica para avaliar este objetivo"
 msgid "Add diff rubric"
 msgstr "Adicionar rubrica de diferenciação"
 
-#: lib/lanttern_web/live/pages/strands/id/assessment/marking/goals_assessment_component.ex:130
-#: lib/lanttern_web/live/pages/strands/id/assessment/marking/moment_assessment_component.ex:130
-#: lib/lanttern_web/live/pages/strands/id/overview_component.ex:173
+#: lib/lanttern_web/live/pages/strands/id/assessment/marking/goals_assessment_component.ex:132
+#: lib/lanttern_web/live/pages/strands/id/assessment/marking/moment_assessment_component.ex:132
+#: lib/lanttern_web/live/pages/strands/id/overview_component.ex:174
 #, elixir-autogen, elixir-format
 msgid "Assessment point and entries deleted successfully"
 msgstr "Ponto de avaliação e registros deletados com sucesso"
 
-#: lib/lanttern_web/live/pages/strands/id/assessment/marking/goals_assessment_component.ex:121
-#: lib/lanttern_web/live/pages/strands/id/assessment/marking/moment_assessment_component.ex:121
-#: lib/lanttern_web/live/pages/strands/id/overview_component.ex:164
+#: lib/lanttern_web/live/pages/strands/id/assessment/marking/goals_assessment_component.ex:123
+#: lib/lanttern_web/live/pages/strands/id/assessment/marking/moment_assessment_component.ex:123
+#: lib/lanttern_web/live/pages/strands/id/overview_component.ex:165
 #, elixir-autogen, elixir-format
 msgid "Assessment point created successfully"
 msgstr "Ponto de avaliação criado com sucesso"
 
-#: lib/lanttern_web/live/pages/strands/id/assessment/marking/goals_assessment_component.ex:127
-#: lib/lanttern_web/live/pages/strands/id/assessment/marking/moment_assessment_component.ex:127
-#: lib/lanttern_web/live/pages/strands/id/overview_component.ex:170
+#: lib/lanttern_web/live/pages/strands/id/assessment/marking/goals_assessment_component.ex:129
+#: lib/lanttern_web/live/pages/strands/id/assessment/marking/moment_assessment_component.ex:129
+#: lib/lanttern_web/live/pages/strands/id/overview_component.ex:171
 #, elixir-autogen, elixir-format
 msgid "Assessment point deleted successfully"
 msgstr "Ponto de avaliação deletado com sucesso"
 
-#: lib/lanttern_web/live/pages/strands/id/assessment/marking/goals_assessment_component.ex:124
-#: lib/lanttern_web/live/pages/strands/id/assessment/marking/moment_assessment_component.ex:124
-#: lib/lanttern_web/live/pages/strands/id/overview_component.ex:167
+#: lib/lanttern_web/live/pages/strands/id/assessment/marking/goals_assessment_component.ex:126
+#: lib/lanttern_web/live/pages/strands/id/assessment/marking/moment_assessment_component.ex:126
+#: lib/lanttern_web/live/pages/strands/id/overview_component.ex:168
 #, elixir-autogen, elixir-format
 msgid "Assessment point updated successfully"
 msgstr "Ponto de avaliação atualizado com sucesso"
@@ -4499,8 +4495,7 @@ msgstr "Ponto de avaliação atualizado com sucesso"
 msgid "Assigning a differentiation rubric in a student assessment point entry;"
 msgstr "Atribuindo uma rubrica de diferenciação em um registro de ponto de avaliação de estudante;"
 
-#: lib/lanttern_web/live/shared/assessments/assessment_point_form_component.ex:44
-#: lib/lanttern_web/live/shared/assessments/assessment_point_form_overlay_component.ex:64
+#: lib/lanttern_web/live/shared/assessments/assessment_point_form_overlay_component.ex:65
 #, elixir-autogen, elixir-format
 msgid "Curriculum item"
 msgstr "Item curricular"
@@ -4526,7 +4521,7 @@ msgstr "Editar rubrica de diferenciação"
 msgid "Edit rubric"
 msgstr "Editar rubrica"
 
-#: lib/lanttern_web/live/shared/assessments/assessments_grid_component.ex:730
+#: lib/lanttern_web/live/shared/assessments/assessments_grid_component.ex:735
 #, elixir-autogen, elixir-format
 msgid "Error updating assessment point entries"
 msgstr "Erro ao atualizar registros de ponto de avaliação"
@@ -4586,14 +4581,12 @@ msgstr "Nenhum estudante de diferenciação vinculado a esta rubrica"
 msgid "No linked students for selected classes"
 msgstr "Nenhum estudante vinculado para as turmas selecionadas"
 
-#: lib/lanttern_web/live/shared/assessments/assessment_point_form_component.ex:114
-#: lib/lanttern_web/live/shared/assessments/assessment_point_form_overlay_component.ex:208
+#: lib/lanttern_web/live/shared/assessments/assessment_point_form_overlay_component.ex:209
 #, elixir-autogen, elixir-format
 msgid "No rubric"
 msgstr "Sem rubrica"
 
-#: lib/lanttern_web/live/shared/assessments/assessment_point_form_component.ex:125
-#: lib/lanttern_web/live/shared/assessments/assessment_point_form_overlay_component.ex:219
+#: lib/lanttern_web/live/shared/assessments/assessment_point_form_overlay_component.ex:220
 #, elixir-autogen, elixir-format
 msgid "No rubric matching curriculum item and scale"
 msgstr "Nenhuma rubrica correspondente ao item curricular e escala"
@@ -4783,17 +4776,17 @@ msgstr "Report card"
 msgid "Used in grading for"
 msgstr "Utilizado no conceito para"
 
-#: lib/lanttern_web/live/shared/grading/scale_info_table_component.ex:28
+#: lib/lanttern_web/live/shared/grading/scale_info_table_component.ex:26
 #, elixir-autogen, elixir-format
 msgid "Grade"
 msgstr "Nota"
 
-#: lib/lanttern_web/live/shared/grading/scale_info_table_component.ex:29
+#: lib/lanttern_web/live/shared/grading/scale_info_table_component.ex:27
 #, elixir-autogen, elixir-format
 msgid "Greater than or equal to"
 msgstr "Maior que ou igual a"
 
-#: lib/lanttern_web/live/shared/grading/scale_info_table_component.ex:23
+#: lib/lanttern_web/live/shared/grading/scale_info_table_component.ex:21
 #, elixir-autogen, elixir-format
 msgid "Scale ranges"
 msgstr "Intervalos da escala"
@@ -5656,7 +5649,7 @@ msgstr "Nenhuma mensagem para esta conversa"
 msgid "Past chats"
 msgstr "Conversas anteriores"
 
-#: lib/lanttern_web/live/pages/strands/id/strand_live.html.heex:141
+#: lib/lanttern_web/live/pages/strands/id/strand_live.html.heex:143
 #, elixir-autogen, elixir-format
 msgid "Plan with AI"
 msgstr "Planejar com IA"
@@ -5741,18 +5734,18 @@ msgstr "Tem certeza? Todas as aulas vinculadas também serão excluídas."
 msgid "Assessment information"
 msgstr "Informações de avaliação"
 
-#: lib/lanttern_web/live/pages/strands/id/assessment_component.ex:331
+#: lib/lanttern_web/live/pages/strands/id/assessment_component.ex:332
 #, elixir-autogen, elixir-format
 msgid "Assessment point created"
 msgstr "Ponto de avaliação criado"
 
-#: lib/lanttern_web/live/pages/strands/id/assessment_component.ex:379
+#: lib/lanttern_web/live/pages/strands/id/assessment_component.ex:380
 #: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.ex:421
 #, elixir-autogen, elixir-format
 msgid "Assessment point deleted"
 msgstr "Ponto de avaliação excluído"
 
-#: lib/lanttern_web/live/pages/strands/id/assessment_component.ex:346
+#: lib/lanttern_web/live/pages/strands/id/assessment_component.ex:347
 #: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.ex:406
 #, elixir-autogen, elixir-format
 msgid "Assessment point updated"
@@ -5769,6 +5762,7 @@ msgstr "Pontos de avaliação"
 msgid "Back"
 msgstr "Voltar"
 
+#: lib/lanttern_web/live/pages/settings/grading_scales/ordinal_value_form_component.ex:39
 #: lib/lanttern_web/live/shared/students/student_tag_form_overlay_component.ex:45
 #: lib/lanttern_web/live/shared/students_records/student_record_status_form_overlay.ex:45
 #: lib/lanttern_web/live/shared/students_records/student_record_tag_form_overlay_component.ex:45
@@ -5802,7 +5796,7 @@ msgstr "Excluir aulas também"
 msgid "Edit assessment info"
 msgstr "Editar informações de avaliação"
 
-#: lib/lanttern_web/live/pages/strands/id/assessment_component.ex:517
+#: lib/lanttern_web/live/pages/strands/id/assessment_component.ex:518
 #: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.ex:355
 #, elixir-autogen, elixir-format
 msgid "Edit assessment point"
@@ -5939,7 +5933,7 @@ msgstr "Conhecimento da escola"
 msgid "School-wide knowledge shared with all AI agents. Include information about your school's philosophy, curriculum approach, and other context."
 msgstr "Conhecimento compartilhado com todos os agentes de IA. Inclua informações sobre a filosofia da sua escola, abordagem curricular e outros contextos relevantes."
 
-#: lib/lanttern_web/live/pages/strands/id/assessment/marking/marking_live.html.heex:75
+#: lib/lanttern_web/live/pages/strands/id/assessment/marking/marking_live.html.heex:77
 #, elixir-autogen, elixir-format
 msgid "Select classes for marking"
 msgstr "Selecione turmas para marcação"
@@ -5968,6 +5962,7 @@ msgstr "Informações de avaliação da trilha"
 msgid "Strand goals"
 msgstr "Objetivos da trilha"
 
+#: lib/lanttern_web/live/pages/settings/grading_scales/ordinal_value_form_component.ex:45
 #: lib/lanttern_web/live/shared/students/student_tag_form_overlay_component.ex:51
 #: lib/lanttern_web/live/shared/students_records/student_record_status_form_overlay.ex:51
 #: lib/lanttern_web/live/shared/students_records/student_record_tag_form_overlay_component.ex:51
@@ -5990,7 +5985,7 @@ msgstr "Alternar card da tag de aula"
 msgid "Use this area to share assessment information with students (e.g. grade composition)"
 msgstr "Use esta área para compartilhar informações de avaliação com os estudantes (ex.: composição das notas)"
 
-#: lib/lanttern_web/live/pages/strands/id/assessment_component.ex:265
+#: lib/lanttern_web/live/pages/strands/id/assessment_component.ex:266
 #: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.ex:42
 #, elixir-autogen, elixir-format
 msgid "Uses rubric in assessment"
@@ -6017,7 +6012,7 @@ msgstr "Você não tem acesso às configurações de IA da escola"
 msgid "in"
 msgstr "em"
 
-#: lib/lanttern_web/components/navigation_components.ex:434
+#: lib/lanttern_web/components/navigation_components.ex:433
 #, elixir-autogen, elixir-format
 msgid "toggle side navigation"
 msgstr "alternar navegação lateral"
@@ -6207,7 +6202,7 @@ msgstr "Você deseja desvincular de \"%{linked_lesson}\" e vincular a \"%{this_l
 msgid "Lesson assessment"
 msgstr "Avaliação da aula"
 
-#: lib/lanttern_web/live/pages/strands/id/assessment_component.ex:288
+#: lib/lanttern_web/live/pages/strands/id/assessment_component.ex:289
 #, elixir-autogen, elixir-format
 msgid "Lesson:"
 msgstr "Aula:"
@@ -6261,3 +6256,186 @@ msgstr "Desvincular"
 #, elixir-autogen, elixir-format
 msgid "Update link"
 msgstr "Atualizar vínculo"
+
+#: lib/lanttern_web/live/pages/settings/grading_scales/grading_scale_card_component.ex:125
+#, elixir-autogen, elixir-format
+msgid "Add value"
+msgstr "Adicionar valor"
+
+#: lib/lanttern_web/live/pages/settings/grading_scales/grading_scale_card_component.ex:132
+#: lib/lanttern_web/live/shared/grading/grading_scale_form_component.ex:83
+#, elixir-autogen, elixir-format
+msgid "Breakpoints"
+msgstr "Intervalos"
+
+#: lib/lanttern_web/live/pages/settings/grading_scales/grading_scale_card_component.ex:65
+#, elixir-autogen, elixir-format
+msgid "Deactivate scale"
+msgstr "Desativar escala"
+
+#: lib/lanttern_web/live/pages/settings/grading_scales/grading_scale_card_component.ex:109
+#: lib/lanttern_web/live/pages/settings/grading_scales/grading_scales_live.html.heex:96
+#, elixir-autogen, elixir-format
+msgid "Edit ordinal value"
+msgstr "Editar valor ordinal"
+
+#: lib/lanttern_web/live/pages/settings/grading_scales/grading_scale_card_component.ex:71
+#: lib/lanttern_web/live/pages/settings/grading_scales/grading_scales_live.html.heex:78
+#, elixir-autogen, elixir-format
+msgid "Edit scale"
+msgstr "Editar escala"
+
+#: lib/lanttern_web/live/pages/settings/grading_scales/grading_scales_live.ex:25
+#, elixir-autogen, elixir-format
+msgid "Grading Scales"
+msgstr "Escalas Avaliativas"
+
+#: lib/lanttern_web/components/layouts.ex:145
+#, elixir-autogen, elixir-format
+msgid "Manage Scales"
+msgstr "Gerenciar Escalas"
+
+#: lib/lanttern_web/live/pages/settings/grading_scales/grading_scales_live.html.heex:96
+#, elixir-autogen, elixir-format
+msgid "New ordinal value"
+msgstr "Novo valor ordenal"
+
+#: lib/lanttern_web/live/pages/settings/grading_scales/grading_scales_live.html.heex:10
+#: lib/lanttern_web/live/pages/settings/grading_scales/grading_scales_live.html.heex:78
+#, elixir-autogen, elixir-format
+msgid "New scale"
+msgstr "Nova escala"
+
+#: lib/lanttern_web/live/pages/settings/grading_scales/grading_scales_live.html.heex:67
+#, elixir-autogen, elixir-format
+msgid "No grading scales created yet"
+msgstr "Nenhuma escala avaliativa criada ainda"
+
+#: lib/lanttern/grading/ordinal_value.ex:47
+#, elixir-autogen, elixir-format
+msgid "Normalized value should be between 0 and 1"
+msgstr "Valor normalizado deve estar entre 0 e 1"
+
+#: lib/lanttern_web/live/pages/settings/grading_scales/grading_scales_live.html.heex:29
+#, elixir-autogen, elixir-format
+msgid "Numeric"
+msgstr "Numérica"
+
+#: lib/lanttern_web/live/pages/settings/grading_scales/grading_scale_card_component.ex:138
+#, elixir-autogen, elixir-format
+msgid "Numeric scale, from %{start} to %{stop}"
+msgstr "Escala numérica, de %{start} a %{stop}"
+
+#: lib/lanttern_web/live/pages/settings/grading_scales/grading_scales_live.html.heex:24
+#, elixir-autogen, elixir-format
+msgid "Ordinal"
+msgstr "Ordinal"
+
+#: lib/lanttern_web/live/pages/settings/grading_scales/grading_scales_live.ex:130
+#: lib/lanttern_web/live/pages/settings/grading_scales/ordinal_value_form_component.ex:171
+#, elixir-autogen, elixir-format
+msgid "Ordinal value created"
+msgstr "Valor ordinal criado"
+
+#: lib/lanttern_web/live/pages/settings/grading_scales/grading_scales_live.ex:132
+#: lib/lanttern_web/live/pages/settings/grading_scales/ordinal_value_form_component.ex:141
+#, elixir-autogen, elixir-format
+msgid "Ordinal value deleted"
+msgstr "Valor ordinal deletado"
+
+#: lib/lanttern_web/live/pages/settings/grading_scales/grading_scales_live.ex:131
+#: lib/lanttern_web/live/pages/settings/grading_scales/ordinal_value_form_component.ex:190
+#, elixir-autogen, elixir-format
+msgid "Ordinal value updated"
+msgstr "Valor ordinal atualizado"
+
+#: lib/lanttern_web/live/pages/settings/grading_scales/grading_scale_card_component.ex:92
+#, elixir-autogen, elixir-format
+msgid "Ordinal values"
+msgstr "Valores ordinais"
+
+#: lib/lanttern_web/live/pages/settings/grading_scales/grading_scale_card_component.ex:65
+#, elixir-autogen, elixir-format
+msgid "Reactivate scale"
+msgstr "Reativar escala"
+
+#: lib/lanttern_web/components/layouts.ex:143
+#, elixir-autogen, elixir-format
+msgid "Scale Settings"
+msgstr "Configurações de Escala"
+
+#: lib/lanttern_web/live/shared/grading/grading_scale_form_component.ex:216
+#, elixir-autogen, elixir-format
+msgid "Scale created"
+msgstr "Escala criada"
+
+#: lib/lanttern_web/live/pages/settings/grading_scales/grading_scales_live.ex:162
+#, elixir-autogen, elixir-format
+msgid "Scale deactivated"
+msgstr "Escala desativada"
+
+#: lib/lanttern_web/live/shared/grading/grading_scale_form_component.ex:180
+#, elixir-autogen, elixir-format
+msgid "Scale deleted"
+msgstr "Escala deletada"
+
+#: lib/lanttern_web/live/shared/grading/grading_scale_form_component.ex:18
+#, elixir-autogen, elixir-format
+msgid "Scale name"
+msgstr "Nome da escala"
+
+#: lib/lanttern_web/live/pages/settings/grading_scales/grading_scales_live.ex:150
+#, elixir-autogen, elixir-format
+msgid "Scale reactivated"
+msgstr "Escala reativada"
+
+#: lib/lanttern_web/live/shared/grading/grading_scale_form_component.ex:239
+#, elixir-autogen, elixir-format
+msgid "Scale updated"
+msgstr "Escala atualizada"
+
+#: lib/lanttern_web/live/pages/settings/grading_scales/grading_scales_live.html.heex:19
+#, elixir-autogen, elixir-format
+msgid "Select a scale type"
+msgstr "Selecione um tipo de escala"
+
+#: lib/lanttern_web/live/pages/settings/grading_scales/ordinal_value_form_component.ex:23
+#, elixir-autogen, elixir-format
+msgid "Short name"
+msgstr "Nome curto"
+
+#: lib/lanttern/grading/ordinal_value.ex:59
+#: lib/lanttern/grading/ordinal_value.ex:64
+#, elixir-autogen, elixir-format
+msgid "This ordinal value is being used and cannot be deleted"
+msgstr "Este valor ordinal está sendo utilizado e não pode ser deletado"
+
+#: lib/lanttern/grading/scale.ex:107
+#, elixir-autogen, elixir-format
+msgid "This scale is being used and cannot be deleted"
+msgstr "Esta escala está sendo utilizada e não pode ser deletada"
+
+#: lib/lanttern_web/live/pages/settings/grading_scales/grading_scale_card_component.ex:79
+#, elixir-autogen, elixir-format
+msgid "Toggle scale card"
+msgstr "Alternar card de escala"
+
+#: lib/lanttern_web/helpers/grading_helpers.ex:41
+#, elixir-autogen, elixir-format
+msgid "current, deactivated"
+msgstr "atual, desativada"
+
+#: lib/lanttern/grading/scale.ex:165
+#, elixir-autogen, elixir-format
+msgid "each value must be greater than 0 and less than 1"
+msgstr "cada valor deve ser maior que 0 e menor que 1"
+
+#: lib/lanttern/grading/scale.ex:157
+#, elixir-autogen, elixir-format
+msgid "must be a list of numbers separated by commas"
+msgstr "deve ser uma lista de números separados por vírgulas"
+
+#: lib/lanttern_web/live/pages/settings/grading_scales/grading_scales_live.html.heex:55
+#, elixir-autogen, elixir-format
+msgid "Deactivated scales"
+msgstr "Escalas desativadas"

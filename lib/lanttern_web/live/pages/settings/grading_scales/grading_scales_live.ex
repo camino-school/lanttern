@@ -39,13 +39,13 @@ defmodule LantternWeb.GradingScalesLive do
 
   defp assign_scales(socket) do
     scales = Grading.list_scales(socket.assigns.current_scope, preloads: :ordinal_values)
-    enabled_scales = Enum.filter(scales, &is_nil(&1.deactivated_at))
-    disabled_scales = Enum.filter(scales, &(!is_nil(&1.deactivated_at)))
+    active_scales = Enum.filter(scales, &is_nil(&1.deactivated_at))
+    deactivated_scales = Enum.filter(scales, &(!is_nil(&1.deactivated_at)))
 
     socket
     |> assign(:scales_ids, Enum.map(scales, &"#{&1.id}"))
-    |> assign(:enabled_scales, enabled_scales)
-    |> assign(:disabled_scales, disabled_scales)
+    |> assign(:active_scales, active_scales)
+    |> assign(:deactivated_scales, deactivated_scales)
   end
 
   @impl true
@@ -89,15 +89,15 @@ defmodule LantternWeb.GradingScalesLive do
   end
 
   def handle_event("sortable_update", %{"oldIndex" => old_index, "newIndex" => new_index}, socket) do
-    enabled_scales = socket.assigns.enabled_scales
+    active_scales = socket.assigns.active_scales
 
-    {moved_scale, rest} = List.pop_at(enabled_scales, old_index)
+    {moved_scale, rest} = List.pop_at(active_scales, old_index)
     reordered_scales = List.insert_at(rest, new_index, moved_scale)
 
     reordered_ids = Enum.map(reordered_scales, & &1.id)
     Grading.update_scale_positions(socket.assigns.current_scope, reordered_ids)
 
-    {:noreply, assign(socket, :enabled_scales, reordered_scales)}
+    {:noreply, assign(socket, :active_scales, reordered_scales)}
   end
 
   @impl true
