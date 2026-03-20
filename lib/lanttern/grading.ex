@@ -309,24 +309,6 @@ defmodule Lanttern.Grading do
   defp check_ordinal_value_school_access(_scope, _attrs), do: :ok
 
   @doc """
-  Returns the list of scales.
-
-  Accepts `:type` opts.
-
-  ## Examples
-
-      iex> list_scales([])
-      [%Scale{}, ...]
-
-  """
-  def list_scales(opts) when is_list(opts) do
-    Scale
-    |> apply_list_scales_opts(opts)
-    |> Repo.all()
-    |> maybe_preload(opts)
-  end
-
-  @doc """
   Returns the list of scales for the current scope's school.
 
   ## Options

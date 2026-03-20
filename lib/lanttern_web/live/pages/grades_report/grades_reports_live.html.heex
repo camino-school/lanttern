@@ -101,6 +101,7 @@
       id={@grades_report.id || :new}
       grades_report={@grades_report}
       current_user={@current_user}
+      current_scope={@current_scope}
       navigate={fn _ -> ~p"/grades_reports" end}
       hide_submit
     />

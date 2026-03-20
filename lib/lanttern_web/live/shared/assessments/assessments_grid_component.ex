@@ -9,6 +9,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
   #### Expected external assigns
 
       attr :current_user, User
+      attr :current_scope, Scope
       attr :current_assessment_group_by, :string
       attr :current_assessment_view, :string
       attr :classes_ids, :list, doc: "list of classes_ids to filter results"
@@ -24,6 +25,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
   alias Lanttern.Assessments
   alias Lanttern.Assessments.AssessmentPoint
   alias Lanttern.Curricula.CurriculumItem
+  alias Lanttern.Identity.Scope
   alias Lanttern.Identity.User
   alias Lanttern.LearningContext.Moment
   alias Lanttern.LearningContext.Strand
@@ -117,6 +119,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
               <.student_entries
                 :for={{dom_id, {student, entries}} <- @streams.students_entries}
                 id={dom_id}
+                current_scope={@current_scope}
                 student={student}
                 entries={entries}
                 myself={@myself}
@@ -474,6 +477,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
   end
 
   attr :id, :string, required: true
+  attr :current_scope, Scope, required: true
   attr :student, Student, required: true
   attr :entries, :list, required: true
   attr :myself, Phoenix.LiveComponent.CID, required: true
@@ -500,6 +504,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
       <div :for={entry <- @entries} class="p-2">
         <.live_component
           module={EntryCellComponent}
+          current_scope={@current_scope}
           id={"student-#{@student.id}-entry-for-#{entry.assessment_point_id}"}
           class="w-full h-full"
           entry={entry}

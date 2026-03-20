@@ -79,6 +79,7 @@ defmodule LantternWeb.MarkingLive.GoalsAssessmentComponent do
         module={AssessmentsGridComponent}
         id={:strand_assessment_grid}
         current_user={@current_user}
+        current_scope={@current_scope}
         current_assessment_group_by={@current_assessment_group_by}
         current_assessment_view={@current_assessment_view}
         strand_id={@strand.id}
@@ -89,6 +90,7 @@ defmodule LantternWeb.MarkingLive.GoalsAssessmentComponent do
         :if={@goal}
         module={AssessmentPointFormOverlayComponent}
         id={"strand-#{@strand.id}-goal-form-overlay"}
+        current_scope={@current_scope}
         notify_component={@myself}
         assessment_point={@goal}
         title={gettext("Strand goal")}
