@@ -120,10 +120,11 @@ defmodule LantternWeb.StrandLive.AssessmentComponentTest do
   end
 
   describe "assessment point management" do
-    test "create moment assessment point", %{conn: conn} do
+    test "create moment assessment point", %{conn: conn, user: user} do
+      school_id = user.current_profile.school_id
       strand = insert(:strand)
       moment = insert(:moment, strand: strand, name: "Test Moment")
-      scale = insert(:scale, name: "Test Scale")
+      scale = insert(:scale, school_id: school_id, name: "Test Scale")
       curriculum_component = CurriculaFixtures.curriculum_component_fixture()
 
       curriculum_item =
@@ -149,10 +150,11 @@ defmodule LantternWeb.StrandLive.AssessmentComponentTest do
       |> assert_has("button", text: "New moment AP")
     end
 
-    test "update moment assessment point name", %{conn: conn} do
+    test "update moment assessment point name", %{conn: conn, user: user} do
+      school_id = user.current_profile.school_id
       strand = insert(:strand)
       moment = insert(:moment, strand: strand)
-      scale = insert(:scale)
+      scale = insert(:scale, school_id: school_id)
       curriculum_item = CurriculaFixtures.curriculum_item_fixture()
 
       AssessmentsFixtures.assessment_point_fixture(%{
@@ -170,10 +172,11 @@ defmodule LantternWeb.StrandLive.AssessmentComponentTest do
       |> assert_has("button", text: "Updated AP name")
     end
 
-    test "delete moment assessment point", %{conn: conn} do
+    test "delete moment assessment point", %{conn: conn, user: user} do
+      school_id = user.current_profile.school_id
       strand = insert(:strand)
       moment = insert(:moment, strand: strand)
-      scale = insert(:scale)
+      scale = insert(:scale, school_id: school_id)
       curriculum_item = CurriculaFixtures.curriculum_item_fixture()
 
       AssessmentsFixtures.assessment_point_fixture(%{

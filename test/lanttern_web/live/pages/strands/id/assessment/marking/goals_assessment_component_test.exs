@@ -76,7 +76,7 @@ defmodule LantternWeb.MarkingLive.GoalsAssessmentComponentTest do
     class = SchoolsFixtures.class_fixture(%{school_id: school_id})
     student = SchoolsFixtures.student_fixture(%{school_id: school_id, classes_ids: [class.id]})
 
-    scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
+    scale = insert(:scale, school_id: school_id, type: "ordinal", breakpoints: [0.4, 0.8])
 
     ordinal_value_1 =
       insert(:ordinal_value, scale_id: scale.id, name: "ov_1 name abc")

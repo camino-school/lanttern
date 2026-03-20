@@ -182,7 +182,10 @@ defmodule Lanttern.GradingTest do
       insert(:scale, school_id: scope.school_id)
 
       assert scales =
-               Grading.list_scales(ids: [num_scale.id, ord_scale.id], preloads: :ordinal_values)
+               Grading.list_scales(scope,
+                 ids: [num_scale.id, ord_scale.id],
+                 preloads: :ordinal_values
+               )
 
       assert length(scales) == 2
 
@@ -198,6 +201,16 @@ defmodule Lanttern.GradingTest do
             assert scale.id == num_scale.id
         end
       end
+    end
+
+    test "list_scales/1 with only_active: true returns only active scales", %{scope: scope} do
+      active_scale = insert(:scale, school_id: scope.school_id)
+
+      _inactive_scale =
+        insert(:scale, school_id: scope.school_id, deactivated_at: DateTime.utc_now())
+
+      assert [scale] = Grading.list_scales(scope, only_active: true)
+      assert scale.id == active_scale.id
     end
 
     test "get_scale!/2 returns the scale with given id", %{scope: scope} do
