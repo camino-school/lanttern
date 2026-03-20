@@ -309,9 +309,6 @@ defmodule LantternWeb.Router do
     resources "/curriculum_items", CurriculumItemController
     resources "/curriculum_relationships", CurriculumRelationshipController
 
-    # Grading context
-    resources "/ordinal_values", OrdinalValueController
-
     # Schools context
     resources "/schools", SchoolController
     resources "/classes", ClassController
