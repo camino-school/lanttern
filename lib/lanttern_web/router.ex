@@ -299,8 +299,6 @@ defmodule LantternWeb.Router do
     live "/profile_settings/:profile_id/edit", Admin.ProfileSettingsLive.Index, :edit
 
     # Assessments context
-    resources "/assessment_points", AssessmentPointController
-    resources "/assessment_point_entries", AssessmentPointEntryController
     resources "/feedback", FeedbackController
 
     # Curricula context
@@ -331,14 +329,6 @@ defmodule LantternWeb.Router do
 
     # Conversation context
     resources "/comments", CommentController
-
-    # Rubrics context
-    live "/rubrics", Admin.RubricLive.Index, :index
-    live "/rubrics/new", Admin.RubricLive.Index, :new
-    live "/rubrics/:id/edit", Admin.RubricLive.Index, :edit
-
-    live "/rubrics/:id", Admin.RubricLive.Show, :show
-    live "/rubrics/:id/show/edit", Admin.RubricLive.Show, :edit
 
     # Learning Context context
     live "/strands", Admin.StrandLive.Index, :index
