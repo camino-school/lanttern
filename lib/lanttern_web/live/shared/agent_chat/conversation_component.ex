@@ -82,6 +82,8 @@ defmodule LantternWeb.AgentChat.ConversationComponent do
   alias Lanttern.Agents
   alias Lanttern.LessonTemplates
 
+  alias LantternWeb.AgentChat.AgentPreferencesOverlayComponent
+
   @impl true
   def render(assigns) do
     ~H"""
@@ -125,6 +127,14 @@ defmodule LantternWeb.AgentChat.ConversationComponent do
         <%!-- Error --%>
         <.error_block :if={@error} class="mt-10">
           {@error}
+          <button
+            :if={@conversation}
+            phx-click="retry_prompt"
+            phx-target={@myself}
+            class="mt-2 underline"
+          >
+            {gettext("Retry")}
+          </button>
         </.error_block>
       </div>
 
@@ -156,76 +166,95 @@ defmodule LantternWeb.AgentChat.ConversationComponent do
           </.form>
 
           <%!-- Bottom controls --%>
-          <div class="flex items-center justify-end gap-2 px-4 py-4">
-            <%!-- Template selector button --%>
-            <div class="relative">
-              <.button
-                type="button"
-                id="lesson-template-options-button"
-                size="sm"
-              >
-                {if @selected_lesson_template,
-                  do: @selected_lesson_template.name,
-                  else: gettext("No lesson template")}
-              </.button>
-              <.dropdown_menu
-                id="lesson-template-options"
-                button_id="lesson-template-options-button"
-              >
-                <:item
-                  on_click={JS.push("select_template", value: %{"id" => nil}, target: @myself)}
-                  text={gettext("Use without lesson template")}
-                />
-                <:item
-                  :for={template <- @lesson_templates}
-                  on_click={
-                    JS.push("select_template", value: %{"id" => template.id}, target: @myself)
-                  }
-                  text={template.name}
-                />
-              </.dropdown_menu>
-            </div>
+          <div class="flex items-center justify-between gap-2 px-4 py-4">
+            <%!-- Agent preferences cog --%>
+            <.button
+              :if={@current_scope.staff_member_id}
+              type="button"
+              phx-click="open_agent_preferences"
+              phx-target={@myself}
+              sr_text={gettext("AI conversation preferences")}
+              icon_name="hero-cog-6-tooth-mini"
+              theme="ghost_subtle"
+            />
+            <div class="flex items-center gap-2">
+              <%!-- Template selector button --%>
+              <div class="relative">
+                <.button
+                  type="button"
+                  id="lesson-template-options-button"
+                  size="sm"
+                >
+                  {if @selected_lesson_template,
+                    do: @selected_lesson_template.name,
+                    else: gettext("No lesson template")}
+                </.button>
+                <.dropdown_menu
+                  id="lesson-template-options"
+                  button_id="lesson-template-options-button"
+                >
+                  <:item
+                    on_click={JS.push("select_template", value: %{"id" => nil}, target: @myself)}
+                    text={gettext("Use without lesson template")}
+                  />
+                  <:item
+                    :for={template <- @lesson_templates}
+                    on_click={
+                      JS.push("select_template", value: %{"id" => template.id}, target: @myself)
+                    }
+                    text={template.name}
+                  />
+                </.dropdown_menu>
+              </div>
 
-            <%!-- Agent selector button --%>
-            <div class="relative">
-              <.button
-                type="button"
-                id="agent-options-button"
-                size="sm"
-              >
-                {if @selected_agent,
-                  do: @selected_agent.name,
-                  else: gettext("No agents available")}
-              </.button>
-              <.dropdown_menu
-                id="agent-options"
-                button_id="agent-options-button"
-              >
-                <:item
-                  :for={agent <- @agents}
-                  on_click={JS.push("select_agent", value: %{"id" => agent.id}, target: @myself)}
-                  text={agent.name}
-                />
-              </.dropdown_menu>
-            </div>
+              <%!-- Agent selector button --%>
+              <div class="relative">
+                <.button
+                  type="button"
+                  id="agent-options-button"
+                  size="sm"
+                >
+                  {if @selected_agent,
+                    do: @selected_agent.name,
+                    else: gettext("No agents available")}
+                </.button>
+                <.dropdown_menu
+                  id="agent-options"
+                  button_id="agent-options-button"
+                >
+                  <:item
+                    :for={agent <- @agents}
+                    on_click={JS.push("select_agent", value: %{"id" => agent.id}, target: @myself)}
+                    text={agent.name}
+                  />
+                </.dropdown_menu>
+              </div>
 
-            <button
-              type="submit"
-              form="conversation-prompt-form"
-              disabled={@loading || !is_nil(@error) || @prompt_form[:content].value in ["", nil]}
-              class={[
-                "flex items-center justify-center p-2 rounded-full",
-                if(@loading || !is_nil(@error) || @prompt_form[:content].value in ["", nil],
-                  do: "bg-ltrn-darkest/50 cursor-not-allowed",
-                  else: "bg-ltrn-darkest hover:bg-ltrn-darkest/80"
-                )
-              ]}
-            >
-              <.icon name="hero-arrow-up" class="size-5 text-white" />
-            </button>
+              <button
+                type="submit"
+                form="conversation-prompt-form"
+                disabled={@loading || !is_nil(@error) || @prompt_form[:content].value in ["", nil]}
+                class={[
+                  "flex items-center justify-center p-2 rounded-full",
+                  if(@loading || !is_nil(@error) || @prompt_form[:content].value in ["", nil],
+                    do: "bg-ltrn-darkest/50 cursor-not-allowed",
+                    else: "bg-ltrn-darkest hover:bg-ltrn-darkest/80"
+                  )
+                ]}
+              >
+                <.icon name="hero-arrow-up" class="size-5 text-white" />
+              </button>
+            </div>
           </div>
         </div>
       </div>
+      <.live_component
+        :if={@show_agent_preferences}
+        module={AgentPreferencesOverlayComponent}
+        id="agent-preferences-overlay"
+        current_scope={@current_scope}
+        on_cancel={JS.push("close_agent_preferences", target: @myself)}
+      />
     </div>
     """
   end
@@ -240,6 +269,7 @@ defmodule LantternWeb.AgentChat.ConversationComponent do
       |> assign(:loading, false)
       |> assign(:error, nil)
       |> assign(:initialized, false)
+      |> assign(:show_agent_preferences, false)
 
     {:ok, socket}
   end
@@ -274,6 +304,7 @@ defmodule LantternWeb.AgentChat.ConversationComponent do
       |> handle_agent_assigns()
       |> assign_empty_prompt_form()
       |> stream_messages(assigns.conversation)
+      |> init_status_from_conversation(assigns.conversation)
       |> assign(:initialized, true)
 
     {:ok, socket}
@@ -327,6 +358,18 @@ defmodule LantternWeb.AgentChat.ConversationComponent do
 
     assign(socket, :prompt_form, form)
   end
+
+  defp init_status_from_conversation(socket, nil), do: socket
+
+  defp init_status_from_conversation(socket, %{status: "processing"}) do
+    assign(socket, :loading, true)
+  end
+
+  defp init_status_from_conversation(socket, %{last_error: error}) when is_binary(error) do
+    assign(socket, :error, error)
+  end
+
+  defp init_status_from_conversation(socket, _conversation), do: socket
 
   defp stream_messages(socket, nil),
     do: stream(socket, :messages, [], reset: true)
@@ -432,6 +475,25 @@ defmodule LantternWeb.AgentChat.ConversationComponent do
   end
 
   def handle_event("send_prompt", _params, socket) do
+    {:noreply, socket}
+  end
+
+  def handle_event("open_agent_preferences", _params, socket),
+    do: {:noreply, assign(socket, :show_agent_preferences, true)}
+
+  def handle_event("close_agent_preferences", _params, socket),
+    do: {:noreply, assign(socket, :show_agent_preferences, false)}
+
+  def handle_event("retry_prompt", _params, socket) do
+    conversation = socket.assigns.conversation
+    {:ok, _} = AgentChat.mark_conversation_processing(socket.assigns.current_scope, conversation)
+
+    socket =
+      socket
+      |> assign(:error, nil)
+      |> assign(:loading, true)
+      |> enqueue_chat_response_job(conversation)
+
     {:noreply, socket}
   end
 

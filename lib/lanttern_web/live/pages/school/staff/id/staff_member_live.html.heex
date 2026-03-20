@@ -6,11 +6,17 @@
       </:breadcrumb>
       <:title>{@staff_member.name}</:title>
       <div class="flex items-center justify-between gap-4 px-4">
-        <.tabs id="student-nav-tabs">
+        <.tabs id="staff-member-nav-tabs">
           <:tab
             text={gettext("About")}
             patch={~p"/school/staff/#{@staff_member}"}
             is_current={@live_action == :show}
+          >
+          </:tab>
+          <:tab
+            text={gettext("Classes")}
+            patch={~p"/school/staff/#{@staff_member}/classes"}
+            is_current={@live_action == :classes}
           >
           </:tab>
           <:tab
@@ -53,23 +59,25 @@
           <%= if !@is_editing_about && (@is_current_user || @is_school_manager) do %>
             <%= if !@staff_member.about && @is_current_user do %>
               <%!-- empty, is current user --%>
-              <.action
+              <.button
                 type="button"
+                size="sm"
                 phx-click="edit_about"
                 icon_name="hero-chat-bubble-left-mini"
               >
                 {gettext("Tell us something about yourself!")}
-              </.action>
+              </.button>
             <% else %>
               <%!-- existing (edit) and school manager --%>
-              <.action
+              <.button
                 type="button"
+                theme="ghost"
+                size="sm"
                 phx-click="edit_about"
                 icon_name="hero-pencil-mini"
-                theme="subtle"
               >
                 {gettext("Edit")}
-              </.action>
+              </.button>
             <% end %>
           <% end %>
         </div>
@@ -87,12 +95,12 @@
               label_is_sr_only
             />
             <div class="flex justify-end gap-4 mt-4">
-              <.action type="button" size="md" theme="subtle" phx-click="cancel_edit_about">
+              <.button type="button" theme="ghost" phx-click="cancel_edit_about">
                 {gettext("Cancel")}
-              </.action>
-              <.action type="submit" size="md" icon_name="hero-check">
+              </.button>
+              <.button type="submit" icon_name="hero-check-mini">
                 {gettext("Save")}
-              </.action>
+              </.button>
             </div>
           </.form>
         <% else %>
@@ -104,6 +112,15 @@
       </section>
     </.responsive_container>
   </div>
+  <.live_component
+    :if={@live_action == :classes}
+    module={ClassesComponent}
+    id="staff-classes"
+    staff_member={@staff_member}
+    current_scope={@current_scope}
+    current_user={@current_user}
+    is_school_manager={@is_school_manager}
+  />
   <.live_component
     :if={@live_action == :students_records}
     module={StudentsRecordsComponent}

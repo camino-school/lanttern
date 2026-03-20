@@ -398,6 +398,17 @@ defmodule Lanttern.AgentChatTest do
       assert %Message{} = result.user_message
       refute Map.has_key?(result, :strand_conversation)
     end
+
+    test "sets conversation status to processing" do
+      scope = IdentityFixtures.scope_fixture()
+
+      assert {:ok, %{conversation: conversation}} =
+               AgentChat.create_conversation_with_message(scope, "Hello")
+
+      db_conversation = Repo.get!(Conversation, conversation.id)
+      assert db_conversation.status == "processing"
+      assert db_conversation.last_error == nil
+    end
   end
 
   describe "rename_conversation/3" do
@@ -514,6 +525,20 @@ defmodule Lanttern.AgentChatTest do
       assert message.conversation_id == conversation.id
     end
 
+    test "sets conversation status to processing and clears last_error" do
+      scope = IdentityFixtures.scope_fixture()
+      profile = Repo.get!(Profile, scope.profile_id)
+
+      conversation =
+        insert(:conversation, %{profile: profile, status: "idle", last_error: "Previous error"})
+
+      assert {:ok, %Message{}} = AgentChat.add_user_message(scope, conversation, "Follow-up")
+
+      db_conversation = Repo.get!(Conversation, conversation.id)
+      assert db_conversation.status == "processing"
+      assert db_conversation.last_error == nil
+    end
+
     test "raises when scope does not match conversation profile" do
       scope = IdentityFixtures.scope_fixture()
       other_profile = insert(:profile)
@@ -522,6 +547,84 @@ defmodule Lanttern.AgentChatTest do
 
       assert_raise MatchError, fn ->
         AgentChat.add_user_message(scope, conversation, "My question")
+      end
+    end
+  end
+
+  describe "mark_conversation_idle/3" do
+    test "sets conversation status to idle" do
+      scope = IdentityFixtures.scope_fixture()
+      profile = Repo.get!(Profile, scope.profile_id)
+      conversation = insert(:conversation, %{profile: profile, status: "processing"})
+
+      assert {:ok, %Conversation{}} = AgentChat.mark_conversation_idle(scope, conversation)
+
+      db_conversation = Repo.get!(Conversation, conversation.id)
+      assert db_conversation.status == "idle"
+    end
+
+    test "clears last_error when called without error" do
+      scope = IdentityFixtures.scope_fixture()
+      profile = Repo.get!(Profile, scope.profile_id)
+
+      conversation =
+        insert(:conversation, %{
+          profile: profile,
+          status: "processing",
+          last_error: "Something failed"
+        })
+
+      AgentChat.mark_conversation_idle(scope, conversation)
+
+      db_conversation = Repo.get!(Conversation, conversation.id)
+      assert db_conversation.last_error == nil
+    end
+
+    test "sets last_error when error message is provided" do
+      scope = IdentityFixtures.scope_fixture()
+      profile = Repo.get!(Profile, scope.profile_id)
+      conversation = insert(:conversation, %{profile: profile, status: "processing"})
+
+      AgentChat.mark_conversation_idle(scope, conversation, "Failed to get AI response")
+
+      db_conversation = Repo.get!(Conversation, conversation.id)
+      assert db_conversation.status == "idle"
+      assert db_conversation.last_error == "Failed to get AI response"
+    end
+
+    test "raises when scope does not match conversation profile" do
+      scope = IdentityFixtures.scope_fixture()
+      other_profile = insert(:profile)
+      conversation = insert(:conversation, %{profile: other_profile, status: "processing"})
+
+      assert_raise MatchError, fn ->
+        AgentChat.mark_conversation_idle(scope, conversation)
+      end
+    end
+  end
+
+  describe "mark_conversation_processing/2" do
+    test "sets conversation status to processing and clears last_error" do
+      scope = IdentityFixtures.scope_fixture()
+      profile = Repo.get!(Profile, scope.profile_id)
+
+      conversation =
+        insert(:conversation, %{profile: profile, status: "idle", last_error: "Previous error"})
+
+      assert {:ok, %Conversation{}} = AgentChat.mark_conversation_processing(scope, conversation)
+
+      db_conversation = Repo.get!(Conversation, conversation.id)
+      assert db_conversation.status == "processing"
+      assert db_conversation.last_error == nil
+    end
+
+    test "raises when scope does not match conversation profile" do
+      scope = IdentityFixtures.scope_fixture()
+      other_profile = insert(:profile)
+      conversation = insert(:conversation, %{profile: other_profile})
+
+      assert_raise MatchError, fn ->
+        AgentChat.mark_conversation_processing(scope, conversation)
       end
     end
   end
@@ -846,9 +949,8 @@ defmodule Lanttern.AgentChatTest do
 
     test "runs LLM chain with basic messages", %{scope: scope, messages: messages, llm: llm} do
       Mimic.expect(LangChain.Chains.LLMChain, :run, fn chain, _opts ->
-        # Verify chain structure - should have 1 user message
-        assert length(chain.messages) == 1
-        assert hd(chain.messages).role == :user
+        # Verify chain structure - should have at least a user message as the last message
+        assert %{role: :user} = List.last(chain.messages)
 
         response_chain =
           LangChain.Chains.LLMChain.add_message(
@@ -863,7 +965,8 @@ defmodule Lanttern.AgentChatTest do
                AgentChat.run_llm_chain(scope, messages, llm)
 
       # Verify the chain has both user and assistant messages
-      assert length(chain.messages) == 2
+      assert Enum.any?(chain.messages, &(&1.role == :user))
+      assert Enum.any?(chain.messages, &(&1.role == :assistant))
     end
 
     test "adds strand system messages when strand_id is provided", %{

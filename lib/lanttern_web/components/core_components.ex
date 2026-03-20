@@ -575,7 +575,11 @@ defmodule LantternWeb.CoreComponents do
   attr :size, :string, default: "normal", doc: "sm | normal"
   attr :rounded, :boolean, default: false
   attr :icon_name, :string, default: nil
-  attr :sr_text, :string, doc: "screen reader text. required when rendering an icon only button"
+
+  attr :sr_text, :string,
+    default: nil,
+    doc: "screen reader text. required when rendering an icon only button"
+
   # `<.button type="link">` (`<.link>`) attrs
   attr :navigate, :string, default: nil
   attr :patch, :string, default: nil
@@ -631,6 +635,7 @@ defmodule LantternWeb.CoreComponents do
     >
       {render_slot(@inner_block)}
       <%= if @icon_name do %>
+        <span :if={@inner_block == []} class="sr-only">{@sr_text}</span>
         <.icon
           name={@icon_name}
           class="w-5 h-5 group-phx-submit-loading:hidden group-phx-click-loading:hidden"
@@ -690,6 +695,10 @@ defmodule LantternWeb.CoreComponents do
     "white_outline" => "border border-white text-white bg-transparent hover:bg-white/10",
     "ghost" => [
       "text-ltrn-dark bg-white/10 shadow-none hover:bg-ltrn-lightest",
+      "disabled:text-ltrn-lighter"
+    ],
+    "ghost_subtle" => [
+      "text-ltrn-subtle bg-white/10 shadow-none hover:text-ltrn-dark hover:bg-ltrn-lightest",
       "disabled:text-ltrn-lighter"
     ]
   }

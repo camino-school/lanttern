@@ -40,7 +40,7 @@ defmodule LantternWeb.SchoolLive.ClassesComponent do
           >
             <div class="flex items-center justify-between gap-4">
               <.link
-                navigate={~p"/school/classes/#{class}/students"}
+                navigate={~p"/school/classes/#{class}/people"}
                 class="font-display font-black hover:text-ltrn-subtle"
               >
                 {class.name}
@@ -56,20 +56,29 @@ defmodule LantternWeb.SchoolLive.ClassesComponent do
                 patch={~p"/school/classes?edit=#{class}"}
               />
             </div>
-            <div class="font-bold text-ltrn-subtle">
+            <div class="font-sans text-ltrn-subtle">
               {ngettext(
                 "1 active student",
                 "%{count} active students",
                 class.active_students_count
               )}
             </div>
+            <%= if is_list(class.staff_members) && class.staff_members != [] do %>
+              <div class="group relative flex items-center gap-1 mt-1 font-sans text-ltrn-subtle">
+                {ngettext("1 staff member", "%{count} staff members", length(class.staff_members))}
+                <.icon name="hero-information-circle-mini" />
+                <.tooltip id={"class-#{class.id}-staff-members-tooltip"}>
+                  {Enum.map_join(class.staff_members, ", ", & &1.name)}
+                </.tooltip>
+              </div>
+            <% end %>
             <div class="flex flex-wrap gap-2 mt-4">
               <.badge :for={year <- class.years}>
                 {year.name}
               </.badge>
             </div>
             <%= if class.students != [] do %>
-              <ul class="mt-4 text-sm leading-relaxed">
+              <ul class="mt-4 font-sans text-sm leading-relaxed">
                 <li :for={std <- class.students} class="flex items-center gap-2 w-full">
                   <% age = calculate_age(std.birthdate) %>
                   <div class="relative inline-block">
@@ -130,6 +139,8 @@ defmodule LantternWeb.SchoolLive.ClassesComponent do
         module={ClassFormOverlayComponent}
         id="class-form-overlay"
         class={@class}
+        current_user={@current_user}
+        current_scope={@current_scope}
         title={@class_form_overlay_title}
         on_cancel={JS.patch(~p"/school/classes")}
         notify_component={@myself}
@@ -161,10 +172,18 @@ defmodule LantternWeb.SchoolLive.ClassesComponent do
       push_patch: [to: ~p"/school/classes"]
     ]
 
+    [updated_class] =
+      Schools.list_user_classes(
+        socket.assigns.current_user,
+        classes_ids: [class.id],
+        count_active_students: true,
+        preloads: [:staff_members, students: :tags]
+      )
+
     socket =
       socket
       |> delegate_navigation(nav_opts)
-      |> stream_insert(:classes, class)
+      |> stream_insert(:classes, updated_class)
 
     {:ok, socket}
   end
@@ -215,7 +234,7 @@ defmodule LantternWeb.SchoolLive.ClassesComponent do
         years_ids: socket.assigns.selected_years_ids,
         cycles_ids: cycles_ids,
         count_active_students: true,
-        preloads: [students: :tags]
+        preloads: [:staff_members, students: :tags]
       )
 
     socket

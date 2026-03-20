@@ -8,6 +8,7 @@ defmodule Lanttern.Factory do
   use Lanttern.AiConfigFactory
   use Lanttern.AttachmentFactory
   use Lanttern.ClassFactory
+  use Lanttern.ClassStaffMemberFactory
   use Lanttern.ConversationFactory
   use Lanttern.CycleFactory
   use Lanttern.GuardianFactory

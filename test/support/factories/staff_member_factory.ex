@@ -6,7 +6,7 @@ defmodule Lanttern.StaffMemberFactory do
         school = Map.get(attrs, :school, build(:school))
 
         %Lanttern.Schools.StaffMember{
-          name: "Jane Doe",
+          name: sequence(:name, &"Staff Member #{&1}"),
           school: school,
           role: "Teacher"
         }

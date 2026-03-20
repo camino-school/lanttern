@@ -76,35 +76,30 @@ defmodule LantternWeb.Schools.StaffMemberFormOverlayComponent do
           </.card_base>
         </.form>
         <:actions_left :if={@staff_member.id}>
-          <.action
+          <.button
             type="button"
-            theme="subtle"
-            size="md"
+            theme="ghost"
             phx-click="deactivate"
             phx-target={@myself}
             data-confirm={gettext("Are you sure? You can reactive the staff member later.")}
           >
             {gettext("Deactivate")}
-          </.action>
+          </.button>
         </:actions_left>
         <:actions>
-          <.action
+          <.button
             type="button"
-            theme="subtle"
-            size="md"
+            theme="ghost"
             phx-click={JS.exec("data-cancel", to: "##{@id}")}
           >
             {gettext("Cancel")}
-          </.action>
-          <.action
+          </.button>
+          <.button
             type="submit"
-            theme="primary"
-            size="md"
-            icon_name="hero-check"
             form="staff-member-form"
           >
             {gettext("Save")}
-          </.action>
+          </.button>
         </:actions>
       </.slide_over>
     </div>

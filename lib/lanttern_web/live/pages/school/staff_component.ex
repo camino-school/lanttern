@@ -6,6 +6,7 @@ defmodule LantternWeb.SchoolLive.StaffComponent do
 
   # shared components
   alias LantternWeb.Schools.StaffMemberFormOverlayComponent
+  import LantternWeb.SchoolsComponents, only: [staff_member_card: 1]
 
   @impl true
   def render(assigns) do
@@ -31,43 +32,13 @@ defmodule LantternWeb.SchoolLive.StaffComponent do
         <.empty_state class="px-4 py-10">{gettext("No staff members found")}</.empty_state>
       <% else %>
         <.fluid_grid id="staff-members" phx-update="stream" is_full_width class="p-4">
-          <.card_base
+          <.staff_member_card
             :for={{dom_id, staff_member} <- @streams.staff}
             id={dom_id}
-            class="flex items-center gap-4 p-4"
-          >
-            <.profile_picture
-              picture_url={staff_member.profile_picture_url}
-              profile_name={staff_member.name}
-              size="lg"
-            />
-            <div class="min-w-0 flex-1">
-              <.link
-                navigate={~p"/school/staff/#{staff_member}"}
-                class="font-bold hover:text-ltrn-subtle"
-              >
-                {staff_member.name}
-              </.link>
-              <div class="text-xs text-ltrn-subtle">{staff_member.role}</div>
-              <div
-                :if={staff_member.email}
-                class="mt-2 text-xs text-ltrn-subtle truncate"
-                title={staff_member.email}
-              >
-                {staff_member.email}
-              </div>
-            </div>
-            <.button
-              :if={@is_school_manager}
-              type="link"
-              icon_name="hero-pencil-mini"
-              sr_text={gettext("Edit cycle profile picture")}
-              rounded
-              size="sm"
-              theme="ghost"
-              patch={~p"/school/staff?edit=#{staff_member.id}"}
-            />
-          </.card_base>
+            staff_member={staff_member}
+            navigate={~p"/school/staff/#{staff_member}"}
+            on_edit={@is_school_manager && JS.patch(~p"/school/staff?edit=#{staff_member.id}")}
+          />
         </.fluid_grid>
       <% end %>
       <.live_component
