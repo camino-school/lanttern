@@ -20,10 +20,11 @@ defmodule LantternWeb.GradingScalesLive.OrdinalValueFormComponent do
       >
         <div class="flex items-start gap-4 mb-6">
           <.input field={@form[:name]} type="text" label={gettext("Name")} class="flex-2" />
+          <.input field={@form[:short_name]} type="text" label={gettext("Short name")} class="flex-1" />
           <.input
             field={@form[:normalized_value]}
             type="number"
-            label={gettext("Normalized value (0 to 1)")}
+            label={gettext("Normalized value")}
             step="0.01"
             min="0"
             max="1"

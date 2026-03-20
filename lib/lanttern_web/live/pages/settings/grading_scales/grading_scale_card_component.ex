@@ -18,25 +18,39 @@ defmodule LantternWeb.GradingScalesLive.GradingScaleCardComponent do
               phx-click="toggle"
               phx-target={@myself}
               class={[
-                "shrink-0 font-bold text-left hover:text-ltrn-subtle truncate text-base",
+                "shrink-0 font-bold text-left hover:text-ltrn-subtle truncate",
                 if(@disabled, do: "text-ltrn-subtle")
               ]}
             >
               {@scale.name}
             </button>
-            <div class="overflow-hidden">
-              <%!-- Ordinal value color badges --%>
-              <div :if={@scale.type == "ordinal"} class="flex gap-2">
+            <%!-- Ordinal value color badges --%>
+            <div :if={@scale.type == "ordinal"} class="overflow-hidden">
+              <div class="flex gap-2">
                 <.badge
                   :for={ov <- @scale.ordinal_values}
                   color_map={ov}
-                  rounded
                 >
-                  {String.slice(ov.name, 0, 2)}
+                  {ov.short_name || String.slice(ov.name, 0, 2)}
                 </.badge>
               </div>
             </div>
+            <%!-- Overlay for extreme long list of ordinal values --%>
             <div class="absolute inset-y-0 right-0 w-20 bg-linear-to-l from-white to-white/0" />
+            <%!-- Ordinal value color badges --%>
+            <div :if={@scale.type == "numeric"} class="flex items-center gap-2">
+              <.badge color_map={
+                %{bg_color: @scale.start_bg_color, text_color: @scale.start_text_color}
+              }>
+                {@scale.start}
+              </.badge>
+              —
+              <.badge color_map={
+                %{bg_color: @scale.stop_bg_color, text_color: @scale.stop_text_color}
+              }>
+                {@scale.stop}
+              </.badge>
+            </div>
           </div>
           <div class="shrink-0 flex items-center gap-2">
             <div>
@@ -69,74 +83,63 @@ defmodule LantternWeb.GradingScalesLive.GradingScaleCardComponent do
           </div>
         </div>
         <%!-- Expanded content --%>
-        <%= if @is_expanded do %>
-          <div class="border-t border-ltrn-lighter">
-            <%!-- Ordinal values table --%>
-            <div :if={@scale.type == "ordinal"} class="p-6">
-              <div class="grid grid-cols-3 gap-4 mb-2 text-sm font-semibold text-ltrn-subtle">
-                <span>{gettext("Ordinal values")}</span>
-                <span class="text-center">{gettext("Normalized value")}</span>
+        <div :if={@is_expanded} class="border-t border-ltrn-lighter p-6">
+          <%!-- Ordinal values table --%>
+          <div :if={@scale.type == "ordinal"}>
+            <div class="grid grid-cols-[1fr_1fr_min-content] gap-x-6 gap-y-4 items-center">
+              <div class="col-span-3 grid grid-cols-subgrid items-center">
+                <span class="font-sans text-sm">{gettext("Ordinal values")}</span>
+                <span class="font-sans text-sm">{gettext("Normalized value")}</span>
                 <span></span>
               </div>
-              <div>
-                <div
-                  :for={ov <- @scale.ordinal_values}
-                  class="grid grid-cols-3 gap-4 py-3 border-t border-ltrn-lighter items-center"
-                >
-                  <.badge
-                    color_map={ov}
-                    rounded
-                    class="px-2 py-1 w-fit"
-                  >
+              <div
+                :for={ov <- @scale.ordinal_values}
+                class="col-span-3 grid grid-cols-subgrid items-center"
+              >
+                <div>
+                  <.badge color_map={ov}>
                     {ov.name}
                   </.badge>
-                  <span class="font-mono text-center">{ov.normalized_value}</span>
-                  <div class="flex justify-end">
-                    <.action_icon
-                      type="button"
-                      name="hero-pencil-mini"
-                      sr_text={gettext("Edit ordinal value")}
-                      theme="subtle"
-                      phx-click="edit_ordinal_value"
-                      phx-value-id={ov.id}
-                      phx-target={@myself}
-                    />
-                  </div>
                 </div>
-              </div>
-              <%!-- Add value button --%>
-              <button
-                type="button"
-                phx-click="new_ordinal_value"
-                phx-target={@myself}
-                class="mt-4
-                flex items-center gap-2 text-sm border-2 border-dashed border-ltrn-lighter rounded-full px-2 py-1 hover:border-ltrn-subtle transition-colors"
-              >
-                {gettext("Add value")}
-                <.icon name="hero-plus-mini" class="w-4 h-4" />
-              </button>
-            </div>
-            <%!-- Numeric scale details --%>
-            <div :if={@scale.type == "numeric"} class="flex gap-8 p-6 text-sm">
-              <div>
-                <span class="text-ltrn-subtle">{gettext("Start")}: </span>
-                <span class="font-mono font-bold">{@scale.start}</span>
-              </div>
-              <div>
-                <span class="text-ltrn-subtle">{gettext("Stop")}: </span>
-                <span class="font-mono font-bold">{@scale.stop}</span>
+                <span class="font-bold">{ov.normalized_value}</span>
+                <.icon_button
+                  name="hero-pencil-mini"
+                  theme="ghost"
+                  sr_text={gettext("Edit ordinal value")}
+                  phx-click="edit_ordinal_value"
+                  phx-value-id={ov.id}
+                  phx-target={@myself}
+                />
               </div>
             </div>
+            <%!-- Add value button --%>
+            <.button
+              type="button"
+              icon_name="hero-plus-mini"
+              size="sm"
+              phx-click="new_ordinal_value"
+              phx-target={@myself}
+              class="mt-4"
+            >
+              {gettext("Add value")}
+            </.button>
             <%!-- Breakpoints --%>
             <div
               :if={@scale.breakpoints && @scale.breakpoints != []}
-              class="border-t border-ltrn-lighter px-6 py-4"
+              class="border-t border-ltrn-lighter pt-4 mt-4"
             >
-              <h6 class="text-sm font-semibold text-ltrn-subtle mb-1">{gettext("Breakpoints")}</h6>
-              <p class="font-mono">{Enum.join(@scale.breakpoints, ", ")}</p>
+              <h6 class="text-sm font-sans mb-2">{gettext("Breakpoints")}</h6>
+              <p class="font-bold">{Enum.join(@scale.breakpoints, ", ")}</p>
             </div>
           </div>
-        <% end %>
+          <%!-- Numeric scale details --%>
+          <p :if={@scale.type == "numeric"}>
+            {gettext("Numeric scale, from %{start} to %{stop}",
+              start: @scale.start,
+              stop: @scale.stop
+            )}
+          </p>
+        </div>
       </.card_base>
     </div>
     """

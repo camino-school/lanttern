@@ -52,9 +52,6 @@ defmodule LantternWeb.GradingScalesLive do
   def handle_params(params, _uri, socket),
     do: {:noreply, update_selected_scale_components(socket, params)}
 
-  def handle_params(params, _uri, socket),
-    do: {:noreply, update_selected_scale_components(socket, params)}
-
   defp update_selected_scale_components(socket, params) do
     prev_id = socket.assigns.selected_scale_id
 
