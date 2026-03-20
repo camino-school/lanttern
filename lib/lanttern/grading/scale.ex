@@ -17,6 +17,7 @@ defmodule Lanttern.Grading.Scale do
           id: pos_integer(),
           name: String.t(),
           type: String.t(),
+          position: non_neg_integer(),
           start: float(),
           start_bg_color: String.t(),
           start_text_color: String.t(),
@@ -36,6 +37,7 @@ defmodule Lanttern.Grading.Scale do
   schema "grading_scales" do
     field :name, :string
     field :type, :string
+    field :position, :integer, default: 0
     field :start, :float
     field :start_bg_color, :string
     field :start_text_color, :string
@@ -58,6 +60,7 @@ defmodule Lanttern.Grading.Scale do
     |> cast(attrs, [
       :name,
       :type,
+      :position,
       :start,
       :start_bg_color,
       :start_text_color,

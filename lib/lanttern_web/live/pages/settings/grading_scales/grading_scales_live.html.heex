@@ -32,8 +32,14 @@
     </div>
   </div>
   <%= if @scales_ids != [] do %>
-    <div id="grading-scales-list" class="space-y-4">
-      <%!-- Enabled scales --%>
+    <%!-- Enabled scales --%>
+    <div
+      id="grading-scales-list"
+      class="space-y-4"
+      phx-hook="Sortable"
+      data-sortable-handle=".sortable-handle"
+      data-sortable-event="sortable_update"
+    >
       <.live_component
         :for={scale <- @enabled_scales}
         module={GradingScaleCardComponent}
@@ -42,19 +48,19 @@
         selected_scale_id={@selected_scale_id}
         disabled={false}
       />
+    </div>
 
-      <%!-- Disabled scales --%>
-      <%= if @disabled_scales != [] do %>
-        <h3 class="mt-10 text-lg font-display font-bold">{gettext("Disabled scales")}</h3>
-        <.live_component
-          :for={scale <- @disabled_scales}
-          module={GradingScaleCardComponent}
-          id={"grading-scales-#{scale.id}"}
-          scale={scale}
-          selected_scale_id={@selected_scale_id}
-          disabled={true}
-        />
-      <% end %>
+    <%!-- Disabled scales --%>
+    <div :if={@disabled_scales != []} class="mt-10 space-y-4">
+      <h3 class="text-lg font-display font-bold">{gettext("Disabled scales")}</h3>
+      <.live_component
+        :for={scale <- @disabled_scales}
+        module={GradingScaleCardComponent}
+        id={"grading-scales-#{scale.id}"}
+        scale={scale}
+        selected_scale_id={@selected_scale_id}
+        disabled={true}
+      />
     </div>
   <% else %>
     <div class="p-10">

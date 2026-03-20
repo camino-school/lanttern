@@ -88,6 +88,18 @@ defmodule LantternWeb.GradingScalesLive do
     {:noreply, assign(socket, :ordinal_value, nil)}
   end
 
+  def handle_event("sortable_update", %{"oldIndex" => old_index, "newIndex" => new_index}, socket) do
+    enabled_scales = socket.assigns.enabled_scales
+
+    {moved_scale, rest} = List.pop_at(enabled_scales, old_index)
+    reordered_scales = List.insert_at(rest, new_index, moved_scale)
+
+    reordered_ids = Enum.map(reordered_scales, & &1.id)
+    Grading.update_scale_positions(socket.assigns.current_scope, reordered_ids)
+
+    {:noreply, assign(socket, :enabled_scales, reordered_scales)}
+  end
+
   @impl true
   def handle_info({GradingScaleCardComponent, {:edit_scale, id}}, socket) do
     socket =

@@ -12,6 +12,7 @@ defmodule LantternWeb.GradingScalesLive.GradingScaleCardComponent do
       <.card_base class="overflow-hidden">
         <%!-- Header --%>
         <div class="flex items-center gap-4 p-6">
+          <.drag_handle :if={!@disabled} class="sortable-handle" />
           <div class="flex-1 flex items-center gap-4 relative min-w-0">
             <button
               type="button"

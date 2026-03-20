@@ -329,7 +329,12 @@ defmodule Lanttern.Grading do
   @doc """
   Returns the list of scales for the current scope's school.
 
-  Accepts `:type` opts.
+  ## Options
+
+  - `:type` – filter lessons by type
+  - `:ids` – filter by given ids
+  - `:only_active` – returns only active scales
+  - `:preloads` – preloads associated data
 
   ## Examples
 
@@ -341,8 +346,11 @@ defmodule Lanttern.Grading do
 
   """
   def list_scales(%Scope{school_id: school_id} = _scope, opts \\ []) do
-    Scale
-    |> from(where: [school_id: ^school_id])
+    from(
+      s in Scale,
+      where: s.school_id == ^school_id,
+      order_by: s.position
+    )
     |> apply_list_scales_opts(opts)
     |> Repo.all()
     |> maybe_preload(opts)
@@ -366,8 +374,32 @@ defmodule Lanttern.Grading do
     |> apply_list_scales_opts(opts)
   end
 
+  defp apply_list_scales_opts(queryable, [{:only_active, true} | opts]) do
+    from(
+      s in queryable,
+      where: is_nil(s.deactivated_at)
+    )
+    |> apply_list_scales_opts(opts)
+  end
+
   defp apply_list_scales_opts(queryable, [_ | opts]),
     do: apply_list_scales_opts(queryable, opts)
+
+  @doc """
+  Update scales positions based on ids list order.
+
+  ## Examples
+
+      iex> update_scale_positions(scope, [3, 2, 1])
+      :ok
+
+  """
+  @spec update_scale_positions(scope :: Scope.t(), scales_ids :: [pos_integer()]) ::
+          :ok | {:error, String.t()}
+  def update_scale_positions(%Scope{} = scope, scales_ids) do
+    true = Scope.has_permission?(scope, "assessment_management")
+    update_positions(Scale, scales_ids)
+  end
 
   @doc """
   Gets a single scale.
