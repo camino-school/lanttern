@@ -6,7 +6,6 @@ defmodule LantternWeb.StrandReportLessonLiveTest do
   import PhoenixTest
 
   alias Lanttern.CurriculaFixtures
-  alias Lanttern.GradingFixtures
 
   @live_view_path_base "/strand_report"
 
@@ -27,8 +26,8 @@ defmodule LantternWeb.StrandReportLessonLiveTest do
       strand_report = insert(:strand_report, report_card: report_card, strand: strand)
       lesson = insert(:lesson, strand: strand, name: "Lesson Alpha", is_published: true)
 
-      scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
-      ov = GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id})
+      scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
+      ov = insert(:ordinal_value, scale_id: scale.id)
       ci = CurriculaFixtures.curriculum_item_fixture()
 
       ap =
@@ -69,7 +68,7 @@ defmodule LantternWeb.StrandReportLessonLiveTest do
       strand_report = insert(:strand_report, report_card: report_card, strand: strand)
       lesson = insert(:lesson, strand: strand, is_published: true)
 
-      scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
+      scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
       ci = CurriculaFixtures.curriculum_item_fixture()
 
       _ap_without_entry =
@@ -103,8 +102,8 @@ defmodule LantternWeb.StrandReportLessonLiveTest do
       strand_report = insert(:strand_report, report_card: report_card, strand: strand)
       lesson = insert(:lesson, strand: strand, is_published: true)
 
-      scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
-      ov = GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id})
+      scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
+      ov = insert(:ordinal_value, scale_id: scale.id)
       ci = CurriculaFixtures.curriculum_item_fixture(%{name: "Some Curriculum Item"})
 
       ap =
@@ -148,7 +147,7 @@ defmodule LantternWeb.StrandReportLessonLiveTest do
       strand_report = insert(:strand_report, report_card: report_card, strand: strand)
       lesson = insert(:lesson, strand: strand, is_published: true)
 
-      scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
+      scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
       ci = CurriculaFixtures.curriculum_item_fixture()
 
       unrelated_ap =

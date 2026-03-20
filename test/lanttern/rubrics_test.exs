@@ -4,13 +4,13 @@ defmodule Lanttern.RubricsTest do
 
   alias Lanttern.Rubrics
   import Lanttern.RubricsFixtures
+  import Lanttern.Factory
 
   describe "rubrics" do
     alias Lanttern.Rubrics.Rubric
 
     alias Lanttern.AssessmentsFixtures
     alias Lanttern.CurriculaFixtures
-    alias Lanttern.GradingFixtures
     alias Lanttern.LearningContextFixtures
     alias Lanttern.SchoolsFixtures
 
@@ -22,7 +22,7 @@ defmodule Lanttern.RubricsTest do
     end
 
     test "list_rubrics/1 with preloads returns all rubrics with preloaded data" do
-      scale = GradingFixtures.scale_fixture()
+      scale = insert(:scale)
 
       rubric = rubric_fixture(%{scale_id: scale.id})
 
@@ -32,7 +32,7 @@ defmodule Lanttern.RubricsTest do
     end
 
     test "list_rubrics/1 with scale_id and is_differentiation opts returns all rubrics filtered" do
-      scale = GradingFixtures.scale_fixture()
+      scale = insert(:scale)
 
       rubric = rubric_fixture(%{scale_id: scale.id, is_differentiation: true})
 
@@ -59,7 +59,7 @@ defmodule Lanttern.RubricsTest do
           curriculum_component_id: curriculum_component.id
         })
 
-      scale = GradingFixtures.scale_fixture()
+      scale = insert(:scale)
 
       rubric_1 =
         rubric_fixture(%{
@@ -240,7 +240,7 @@ defmodule Lanttern.RubricsTest do
     test "list_assessment_point_rubrics/1 returns all rubrics matching the assessment point" do
       strand = LearningContextFixtures.strand_fixture()
       curriculum_item = CurriculaFixtures.curriculum_item_fixture()
-      scale = GradingFixtures.scale_fixture()
+      scale = insert(:scale)
 
       rubric =
         rubric_fixture(%{
@@ -289,7 +289,7 @@ defmodule Lanttern.RubricsTest do
     test "list_assessment_point_rubrics/1 with `exclude_diff` returns all not diff rubrics matching the assessment point" do
       strand = LearningContextFixtures.strand_fixture()
       curriculum_item = CurriculaFixtures.curriculum_item_fixture()
-      scale = GradingFixtures.scale_fixture()
+      scale = insert(:scale)
 
       rubric =
         rubric_fixture(%{
@@ -337,7 +337,7 @@ defmodule Lanttern.RubricsTest do
     test "list_assessment_point_rubrics/1 with `only_diff` returns all diff rubrics matching the assessment point" do
       strand = LearningContextFixtures.strand_fixture()
       curriculum_item = CurriculaFixtures.curriculum_item_fixture()
-      scale = GradingFixtures.scale_fixture()
+      scale = insert(:scale)
 
       diff_rubric_1 =
         rubric_fixture(%{
@@ -396,7 +396,7 @@ defmodule Lanttern.RubricsTest do
       strand = LearningContextFixtures.strand_fixture()
       moment = LearningContextFixtures.moment_fixture(%{strand_id: strand.id})
       curriculum_item = CurriculaFixtures.curriculum_item_fixture()
-      scale = GradingFixtures.scale_fixture()
+      scale = insert(:scale)
 
       diff_rubric_1 =
         rubric_fixture(%{
@@ -466,7 +466,7 @@ defmodule Lanttern.RubricsTest do
           curriculum_component_id: curriculum_component.id
         })
 
-      scale = GradingFixtures.scale_fixture()
+      scale = insert(:scale)
 
       rubric_1 =
         rubric_fixture(%{
@@ -660,7 +660,7 @@ defmodule Lanttern.RubricsTest do
     end
 
     test "get_rubric!/2 with preloads returns the rubric with given id and preloaded data" do
-      scale = GradingFixtures.scale_fixture()
+      scale = insert(:scale)
 
       rubric = rubric_fixture(%{scale_id: scale.id})
 
@@ -672,9 +672,9 @@ defmodule Lanttern.RubricsTest do
     end
 
     test "load_rubric_descriptors/1 returns rubric with descriptors preloaded and ordered correctly" do
-      scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
-      ov_1 = GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id, normalized_value: 0.1})
-      ov_2 = GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id, normalized_value: 0.2})
+      scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
+      ov_1 = insert(:ordinal_value, scale_id: scale.id, normalized_value: 0.1)
+      ov_2 = insert(:ordinal_value, scale_id: scale.id, normalized_value: 0.2)
 
       rubric = rubric_fixture(%{scale_id: scale.id})
 
@@ -707,9 +707,9 @@ defmodule Lanttern.RubricsTest do
     end
 
     test "get_full_rubric!/1 returns rubric with descriptors preloaded and ordered correctly" do
-      scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
-      ov_1 = GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id, normalized_value: 0.1})
-      ov_2 = GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id, normalized_value: 0.2})
+      scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
+      ov_1 = insert(:ordinal_value, scale_id: scale.id, normalized_value: 0.1)
+      ov_2 = insert(:ordinal_value, scale_id: scale.id, normalized_value: 0.2)
 
       rubric = rubric_fixture(%{scale_id: scale.id})
 
@@ -740,7 +740,7 @@ defmodule Lanttern.RubricsTest do
     test "create_rubric/1 with valid data creates a rubric" do
       valid_attrs = %{
         criteria: "some criteria",
-        scale_id: GradingFixtures.scale_fixture().id,
+        scale_id: insert(:scale).id,
         strand_id: LearningContextFixtures.strand_fixture().id,
         curriculum_item_id: CurriculaFixtures.curriculum_item_fixture().id,
         is_differentiation: true
@@ -752,8 +752,8 @@ defmodule Lanttern.RubricsTest do
     end
 
     test "create_rubric/1 with valid data including descriptors creates a rubric and related descriptors" do
-      scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
-      ordinal_value = GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id})
+      scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
+      ordinal_value = insert(:ordinal_value, scale_id: scale.id)
       strand = LearningContextFixtures.strand_fixture()
       curriculum_item = CurriculaFixtures.curriculum_item_fixture()
 
@@ -783,7 +783,7 @@ defmodule Lanttern.RubricsTest do
     end
 
     test "create_rubric/1 with valid data and preloads opt creates a rubric and return it with preloaded data" do
-      scale = GradingFixtures.scale_fixture()
+      scale = insert(:scale)
       strand = LearningContextFixtures.strand_fixture()
       curriculum_item = CurriculaFixtures.curriculum_item_fixture()
 
@@ -820,7 +820,7 @@ defmodule Lanttern.RubricsTest do
 
     test "update_rubric/2 with valid data and preloads opt updates the rubric and return it with preloaded data" do
       rubric = rubric_fixture()
-      scale = GradingFixtures.scale_fixture()
+      scale = insert(:scale)
 
       update_attrs = %{
         criteria: "some updated criteria",
@@ -837,16 +837,16 @@ defmodule Lanttern.RubricsTest do
     end
 
     test "update_rubric/2 with valid data including descriptors updates the rubric and handle descriptors correctly" do
-      scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
+      scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
 
       ordinal_value_1 =
-        GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id, normalized_value: 0})
+        insert(:ordinal_value, scale_id: scale.id, normalized_value: 0)
 
       ordinal_value_2 =
-        GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id, normalized_value: 0.5})
+        insert(:ordinal_value, scale_id: scale.id, normalized_value: 0.5)
 
       ordinal_value_3 =
-        GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id, normalized_value: 1})
+        insert(:ordinal_value, scale_id: scale.id, normalized_value: 1)
 
       rubric = rubric_fixture(%{scale_id: scale.id})
 
@@ -900,14 +900,14 @@ defmodule Lanttern.RubricsTest do
     end
 
     test "update_rubric/2 with different scale handle the descriptors correctly" do
-      scale_1 = GradingFixtures.scale_fixture(%{type: "ordinal"})
-      scale_2 = GradingFixtures.scale_fixture(%{type: "ordinal"})
+      scale_1 = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
+      scale_2 = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
 
       ordinal_value_1 =
-        GradingFixtures.ordinal_value_fixture(%{scale_id: scale_1.id})
+        insert(:ordinal_value, scale_id: scale_1.id)
 
       ordinal_value_2 =
-        GradingFixtures.ordinal_value_fixture(%{scale_id: scale_2.id})
+        insert(:ordinal_value, scale_id: scale_2.id)
 
       rubric = rubric_fixture(%{scale_id: scale_1.id})
 
@@ -966,7 +966,6 @@ defmodule Lanttern.RubricsTest do
 
     alias Lanttern.AssessmentsFixtures
     alias Lanttern.CurriculaFixtures
-    alias Lanttern.GradingFixtures
     alias Lanttern.LearningContextFixtures
     alias Lanttern.SchoolsFixtures
     alias Lanttern.StudentsCycleInfoFixtures
@@ -975,7 +974,7 @@ defmodule Lanttern.RubricsTest do
       strand = LearningContextFixtures.strand_fixture()
       curriculum_item = CurriculaFixtures.curriculum_item_fixture()
       diff_curriculum_item = CurriculaFixtures.curriculum_item_fixture()
-      scale = GradingFixtures.scale_fixture()
+      scale = insert(:scale)
 
       diff_rubric =
         rubric_fixture(%{
@@ -1084,8 +1083,6 @@ defmodule Lanttern.RubricsTest do
   describe "rubric_descriptors" do
     alias Lanttern.Rubrics.RubricDescriptor
 
-    alias Lanttern.GradingFixtures
-
     @invalid_attrs %{descriptor: nil, score: nil}
 
     test "list_rubric_descriptors/0 returns all rubric_descriptors" do
@@ -1094,9 +1091,9 @@ defmodule Lanttern.RubricsTest do
     end
 
     test "build_rubrics_descriptors_map/1 returns the map of rubrics descriptors ordered correctly" do
-      scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
-      ov_1 = GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id, normalized_value: 0.1})
-      ov_2 = GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id, normalized_value: 0.2})
+      scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
+      ov_1 = insert(:ordinal_value, scale_id: scale.id, normalized_value: 0.1)
+      ov_2 = insert(:ordinal_value, scale_id: scale.id, normalized_value: 0.2)
 
       rubric_1 = rubric_fixture(%{scale_id: scale.id})
       rubric_2 = rubric_fixture(%{scale_id: scale.id})
@@ -1154,7 +1151,7 @@ defmodule Lanttern.RubricsTest do
     end
 
     test "create_rubric_descriptor/1 with valid data creates a rubric_descriptor" do
-      scale = GradingFixtures.scale_fixture(%{type: "numeric"})
+      scale = insert(:scale, type: "numeric", start: 0.0, stop: 100.0)
       rubric = rubric_fixture(%{scale_id: scale.id})
 
       valid_attrs = %{
@@ -1213,13 +1210,12 @@ defmodule Lanttern.RubricsTest do
   describe "rubric assessment points" do
     alias Lanttern.AssessmentsFixtures
     alias Lanttern.CurriculaFixtures
-    alias Lanttern.GradingFixtures
     alias Lanttern.LearningContextFixtures
 
     alias Lanttern.Assessments
 
     test "list_rubric_assessment_points_options/1 returns all assessment points eligible to rubric connection" do
-      scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
+      scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
       curriculum_item = CurriculaFixtures.curriculum_item_fixture()
 
       strand = LearningContextFixtures.strand_fixture()
@@ -1304,7 +1300,7 @@ defmodule Lanttern.RubricsTest do
     end
 
     test "create_rubric/1 with link_to_assessment_points_ids params updates the assessment points" do
-      scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
+      scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
       curriculum_item = CurriculaFixtures.curriculum_item_fixture()
 
       strand = LearningContextFixtures.strand_fixture()
@@ -1361,7 +1357,7 @@ defmodule Lanttern.RubricsTest do
     end
 
     test "update_rubric/1 with link_to and unlink_from_assessment_points_ids params updates the assessment points" do
-      scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
+      scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
       curriculum_item = CurriculaFixtures.curriculum_item_fixture()
 
       strand = LearningContextFixtures.strand_fixture()

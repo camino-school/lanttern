@@ -3,6 +3,7 @@ defmodule LantternWeb.Admin.RubricLiveTest do
 
   import Phoenix.LiveViewTest
   import Lanttern.RubricsFixtures
+  import Lanttern.Factory
 
   @update_attrs %{criteria: "some updated criteria", is_differentiation: false}
   @invalid_attrs %{criteria: nil, is_differentiation: false}
@@ -26,7 +27,7 @@ defmodule LantternWeb.Admin.RubricLiveTest do
 
     @tag :skip
     test "saves new rubric", %{conn: conn} do
-      scale = Lanttern.GradingFixtures.scale_fixture()
+      scale = insert(:scale)
 
       {:ok, index_live, _html} = live(conn, ~p"/admin/rubrics")
 

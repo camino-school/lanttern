@@ -6,7 +6,6 @@ defmodule LantternWeb.LessonLiveTest do
 
   alias Lanttern.AssessmentsFixtures
   alias Lanttern.CurriculaFixtures
-  alias Lanttern.GradingFixtures
 
   @live_view_base_path "/strands/lesson"
 
@@ -79,7 +78,7 @@ defmodule LantternWeb.LessonLiveTest do
       strand = insert(:strand)
       lesson = insert(:lesson, strand: strand)
       moment = insert(:moment, strand: strand)
-      scale = GradingFixtures.scale_fixture()
+      scale = insert(:scale)
       curriculum_item = CurriculaFixtures.curriculum_item_fixture()
 
       AssessmentsFixtures.assessment_point_fixture(%{
@@ -107,7 +106,7 @@ defmodule LantternWeb.LessonLiveTest do
       lesson_a = insert(:lesson, strand: strand, name: "Lesson Alpha")
       lesson_b = insert(:lesson, strand: strand, name: "Lesson Beta")
       moment = insert(:moment, strand: strand)
-      scale = GradingFixtures.scale_fixture()
+      scale = insert(:scale)
       curriculum_item = CurriculaFixtures.curriculum_item_fixture()
 
       AssessmentsFixtures.assessment_point_fixture(%{

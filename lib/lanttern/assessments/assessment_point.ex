@@ -225,7 +225,7 @@ defmodule Lanttern.Assessments.AssessmentPoint do
   defp cast_entries(%{valid?: true, changes: %{students_ids: students_ids}} = changeset) do
     scale =
       get_field(changeset, :scale_id)
-      |> Lanttern.Grading.get_scale!()
+      |> then(&Repo.get!(Scale, &1))
 
     entries_params =
       %{

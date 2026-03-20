@@ -297,6 +297,17 @@ defmodule Lanttern.Grading do
     :ok
   end
 
+  defp check_ordinal_value_school_access(
+         %Scope{school_id: school_id} = _scope,
+         %{scale_id: scale_id} = _attrs
+       ) do
+    %Scale{school_id: ^school_id} = Repo.get!(Scale, scale_id)
+    :ok
+  end
+
+  # no scale_id present, nothing to validate
+  defp check_ordinal_value_school_access(_scope, _attrs), do: :ok
+
   @doc """
   Returns the list of scales.
 

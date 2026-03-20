@@ -1,7 +1,6 @@
 defmodule LantternWeb.Admin.RubricLive.FormComponent do
   use LantternWeb, :live_component
 
-  alias Lanttern.Grading
   alias Lanttern.Rubrics
   import LantternWeb.GradingHelpers
 
@@ -112,8 +111,12 @@ defmodule LantternWeb.Admin.RubricLive.FormComponent do
 
     scale =
       case rubric.scale_id do
-        nil -> nil
-        scale_id -> Grading.get_scale!(scale_id, preloads: :ordinal_values)
+        nil ->
+          nil
+
+        scale_id ->
+          Lanttern.Repo.get!(Lanttern.Grading.Scale, scale_id)
+          |> Lanttern.Repo.preload(:ordinal_values)
       end
 
     {:ok,
@@ -125,7 +128,9 @@ defmodule LantternWeb.Admin.RubricLive.FormComponent do
 
   @impl true
   def handle_event("scale_selected", %{"rubric" => %{"scale_id" => scale_id}}, socket) do
-    scale = Grading.get_scale!(scale_id, preloads: :ordinal_values)
+    scale =
+      Lanttern.Repo.get!(Lanttern.Grading.Scale, scale_id)
+      |> Lanttern.Repo.preload(:ordinal_values)
 
     descriptors =
       case scale.type do

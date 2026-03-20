@@ -3,6 +3,7 @@ defmodule Lanttern.GradesReportsTest do
   alias Lanttern.Repo
 
   alias Lanttern.GradesReports
+  import Lanttern.Factory
 
   describe "student_grade_report_entries" do
     alias Lanttern.GradesReports.StudentGradesReportEntry
@@ -468,7 +469,7 @@ defmodule Lanttern.GradesReportsTest do
     test "create_grades_report/1 with valid data creates a grades_report" do
       school_cycle = Lanttern.SchoolsFixtures.cycle_fixture()
       year = Lanttern.TaxonomyFixtures.year_fixture()
-      scale = Lanttern.GradingFixtures.scale_fixture()
+      scale = insert(:scale)
 
       valid_attrs = %{
         name: "grade report name abc",
@@ -879,64 +880,64 @@ defmodule Lanttern.GradesReportsTest do
       # nil - when there's no entries, it should return {:ok, nil}
       # nil + update - when there's no entries but there's an existing student/subject/cycle, delete it
 
-      marking_scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
+      marking_scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
 
       ov_eme =
-        GradingFixtures.ordinal_value_fixture(%{
+        insert(:ordinal_value,
           scale_id: marking_scale.id,
           normalized_value: 0.4
-        })
+        )
 
       ov_pro =
-        GradingFixtures.ordinal_value_fixture(%{
+        insert(:ordinal_value,
           scale_id: marking_scale.id,
           normalized_value: 0.6
-        })
+        )
 
       ov_ach =
-        GradingFixtures.ordinal_value_fixture(%{
+        insert(:ordinal_value,
           scale_id: marking_scale.id,
           normalized_value: 0.85
-        })
+        )
 
       ov_exc =
-        GradingFixtures.ordinal_value_fixture(%{
+        insert(:ordinal_value,
           scale_id: marking_scale.id,
           normalized_value: 1.0
-        })
+        )
 
       grading_scale =
-        GradingFixtures.scale_fixture(%{type: "ordinal", breakpoints: [0.5, 0.6, 0.8, 0.9]})
+        insert(:scale, type: "ordinal", breakpoints: [0.5, 0.6, 0.8, 0.9])
 
       ov_a =
-        GradingFixtures.ordinal_value_fixture(%{
+        insert(:ordinal_value,
           scale_id: grading_scale.id,
           normalized_value: 1.0
-        })
+        )
 
       _ov_b =
-        GradingFixtures.ordinal_value_fixture(%{
+        insert(:ordinal_value,
           scale_id: grading_scale.id,
           normalized_value: 0.85
-        })
+        )
 
       ov_c =
-        GradingFixtures.ordinal_value_fixture(%{
+        insert(:ordinal_value,
           scale_id: grading_scale.id,
           normalized_value: 0.7
-        })
+        )
 
       ov_d =
-        GradingFixtures.ordinal_value_fixture(%{
+        insert(:ordinal_value,
           scale_id: grading_scale.id,
           normalized_value: 0.5
-        })
+        )
 
       _ov_e =
-        GradingFixtures.ordinal_value_fixture(%{
+        insert(:ordinal_value,
           scale_id: grading_scale.id,
           normalized_value: 0.0
-        })
+        )
 
       strand = LearningContextFixtures.strand_fixture()
 
@@ -1318,64 +1319,64 @@ defmodule Lanttern.GradesReportsTest do
       # 4 update manual grade: when the current grade is different from the composition/calculated one, update but keep manual grade
       # 5 no entries case: there's a 5th subject without entries. it should return nil
 
-      marking_scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
+      marking_scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
 
       ov_eme =
-        GradingFixtures.ordinal_value_fixture(%{
+        insert(:ordinal_value,
           scale_id: marking_scale.id,
           normalized_value: 0.4
-        })
+        )
 
       ov_pro =
-        GradingFixtures.ordinal_value_fixture(%{
+        insert(:ordinal_value,
           scale_id: marking_scale.id,
           normalized_value: 0.6
-        })
+        )
 
       ov_ach =
-        GradingFixtures.ordinal_value_fixture(%{
+        insert(:ordinal_value,
           scale_id: marking_scale.id,
           normalized_value: 0.85
-        })
+        )
 
       ov_exc =
-        GradingFixtures.ordinal_value_fixture(%{
+        insert(:ordinal_value,
           scale_id: marking_scale.id,
           normalized_value: 1.0
-        })
+        )
 
       grading_scale =
-        GradingFixtures.scale_fixture(%{type: "ordinal", breakpoints: [0.5, 0.6, 0.8, 0.9]})
+        insert(:scale, type: "ordinal", breakpoints: [0.5, 0.6, 0.8, 0.9])
 
       _ov_a =
-        GradingFixtures.ordinal_value_fixture(%{
+        insert(:ordinal_value,
           scale_id: grading_scale.id,
           normalized_value: 1.0
-        })
+        )
 
       ov_b =
-        GradingFixtures.ordinal_value_fixture(%{
+        insert(:ordinal_value,
           scale_id: grading_scale.id,
           normalized_value: 0.85
-        })
+        )
 
       ov_c =
-        GradingFixtures.ordinal_value_fixture(%{
+        insert(:ordinal_value,
           scale_id: grading_scale.id,
           normalized_value: 0.7
-        })
+        )
 
       _ov_d =
-        GradingFixtures.ordinal_value_fixture(%{
+        insert(:ordinal_value,
           scale_id: grading_scale.id,
           normalized_value: 0.5
-        })
+        )
 
       ov_e =
-        GradingFixtures.ordinal_value_fixture(%{
+        insert(:ordinal_value,
           scale_id: grading_scale.id,
           normalized_value: 0.0
-        })
+        )
 
       strand_1 = LearningContextFixtures.strand_fixture()
       strand_2 = LearningContextFixtures.strand_fixture()
@@ -1862,64 +1863,64 @@ defmodule Lanttern.GradesReportsTest do
       # std 4 - update manual grade: when the current grade is different from the composition/calculated one, update but keep manual grade
       # no entries case: there's a 5th student without entries. it should return nil
 
-      marking_scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
+      marking_scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
 
       ov_eme =
-        GradingFixtures.ordinal_value_fixture(%{
+        insert(:ordinal_value,
           scale_id: marking_scale.id,
           normalized_value: 0.4
-        })
+        )
 
       ov_pro =
-        GradingFixtures.ordinal_value_fixture(%{
+        insert(:ordinal_value,
           scale_id: marking_scale.id,
           normalized_value: 0.6
-        })
+        )
 
       ov_ach =
-        GradingFixtures.ordinal_value_fixture(%{
+        insert(:ordinal_value,
           scale_id: marking_scale.id,
           normalized_value: 0.85
-        })
+        )
 
       ov_exc =
-        GradingFixtures.ordinal_value_fixture(%{
+        insert(:ordinal_value,
           scale_id: marking_scale.id,
           normalized_value: 1.0
-        })
+        )
 
       grading_scale =
-        GradingFixtures.scale_fixture(%{type: "ordinal", breakpoints: [0.5, 0.6, 0.8, 0.9]})
+        insert(:scale, type: "ordinal", breakpoints: [0.5, 0.6, 0.8, 0.9])
 
       _ov_a =
-        GradingFixtures.ordinal_value_fixture(%{
+        insert(:ordinal_value,
           scale_id: grading_scale.id,
           normalized_value: 1.0
-        })
+        )
 
       ov_b =
-        GradingFixtures.ordinal_value_fixture(%{
+        insert(:ordinal_value,
           scale_id: grading_scale.id,
           normalized_value: 0.85
-        })
+        )
 
       ov_c =
-        GradingFixtures.ordinal_value_fixture(%{
+        insert(:ordinal_value,
           scale_id: grading_scale.id,
           normalized_value: 0.7
-        })
+        )
 
       _ov_d =
-        GradingFixtures.ordinal_value_fixture(%{
+        insert(:ordinal_value,
           scale_id: grading_scale.id,
           normalized_value: 0.5
-        })
+        )
 
       ov_e =
-        GradingFixtures.ordinal_value_fixture(%{
+        insert(:ordinal_value,
           scale_id: grading_scale.id,
           normalized_value: 0.0
-        })
+        )
 
       strand_1 = LearningContextFixtures.strand_fixture()
 
@@ -2257,64 +2258,64 @@ defmodule Lanttern.GradesReportsTest do
       # 4 update manual grade: when the current grade is different from the composition/calculated one, update but keep manual grade
       # 5 no entries case: there's a 5th subject without entries. it should return nil
 
-      marking_scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
+      marking_scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
 
       ov_eme =
-        GradingFixtures.ordinal_value_fixture(%{
+        insert(:ordinal_value,
           scale_id: marking_scale.id,
           normalized_value: 0.4
-        })
+        )
 
       ov_pro =
-        GradingFixtures.ordinal_value_fixture(%{
+        insert(:ordinal_value,
           scale_id: marking_scale.id,
           normalized_value: 0.6
-        })
+        )
 
       ov_ach =
-        GradingFixtures.ordinal_value_fixture(%{
+        insert(:ordinal_value,
           scale_id: marking_scale.id,
           normalized_value: 0.85
-        })
+        )
 
       ov_exc =
-        GradingFixtures.ordinal_value_fixture(%{
+        insert(:ordinal_value,
           scale_id: marking_scale.id,
           normalized_value: 1.0
-        })
+        )
 
       grading_scale =
-        GradingFixtures.scale_fixture(%{type: "ordinal", breakpoints: [0.5, 0.6, 0.8, 0.9]})
+        insert(:scale, type: "ordinal", breakpoints: [0.5, 0.6, 0.8, 0.9])
 
       _ov_a =
-        GradingFixtures.ordinal_value_fixture(%{
+        insert(:ordinal_value,
           scale_id: grading_scale.id,
           normalized_value: 1.0
-        })
+        )
 
       ov_b =
-        GradingFixtures.ordinal_value_fixture(%{
+        insert(:ordinal_value,
           scale_id: grading_scale.id,
           normalized_value: 0.85
-        })
+        )
 
       ov_c =
-        GradingFixtures.ordinal_value_fixture(%{
+        insert(:ordinal_value,
           scale_id: grading_scale.id,
           normalized_value: 0.7
-        })
+        )
 
       _ov_d =
-        GradingFixtures.ordinal_value_fixture(%{
+        insert(:ordinal_value,
           scale_id: grading_scale.id,
           normalized_value: 0.5
-        })
+        )
 
       ov_e =
-        GradingFixtures.ordinal_value_fixture(%{
+        insert(:ordinal_value,
           scale_id: grading_scale.id,
           normalized_value: 0.0
-        })
+        )
 
       strand_1 = LearningContextFixtures.strand_fixture()
       strand_2 = LearningContextFixtures.strand_fixture()
@@ -3624,37 +3625,37 @@ defmodule Lanttern.GradesReportsTest do
       # 5 subjects
 
       grading_scale =
-        GradingFixtures.scale_fixture(%{type: "ordinal", breakpoints: [0.5, 0.6, 0.8, 0.9]})
+        insert(:scale, type: "ordinal", breakpoints: [0.5, 0.6, 0.8, 0.9])
 
       ov_a =
-        GradingFixtures.ordinal_value_fixture(%{
+        insert(:ordinal_value,
           scale_id: grading_scale.id,
           normalized_value: 1.0
-        })
+        )
 
       ov_b =
-        GradingFixtures.ordinal_value_fixture(%{
+        insert(:ordinal_value,
           scale_id: grading_scale.id,
           normalized_value: 0.85
-        })
+        )
 
       ov_c =
-        GradingFixtures.ordinal_value_fixture(%{
+        insert(:ordinal_value,
           scale_id: grading_scale.id,
           normalized_value: 0.7
-        })
+        )
 
       ov_d =
-        GradingFixtures.ordinal_value_fixture(%{
+        insert(:ordinal_value,
           scale_id: grading_scale.id,
           normalized_value: 0.5
-        })
+        )
 
       ov_e =
-        GradingFixtures.ordinal_value_fixture(%{
+        insert(:ordinal_value,
           scale_id: grading_scale.id,
           normalized_value: 0.0
-        })
+        )
 
       grades_report = grades_report_fixture(%{scale_id: grading_scale.id})
 
@@ -3777,8 +3778,8 @@ defmodule Lanttern.GradesReportsTest do
       # std b | entry_1bx | nil       | nil       | nil       | nil      | nil
       # std c | entry_1cx | entry_1cy | nil       | entry_2cy | nil      | entry_cy
 
-      scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
-      ov = GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id})
+      scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
+      ov = insert(:ordinal_value, scale_id: scale.id)
 
       parent_cycle =
         SchoolsFixtures.cycle_fixture(%{start_at: ~D[2024-01-01], end_at: ~D[2024-12-31]})
@@ -3976,8 +3977,8 @@ defmodule Lanttern.GradesReportsTest do
       # std 2 | entry_2_1 | nil       | nil
       # std 3 | entry_3_1 | entry_3_2 | nil
 
-      scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
-      ov = GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id})
+      scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
+      ov = insert(:ordinal_value, scale_id: scale.id)
 
       cycle = SchoolsFixtures.cycle_fixture()
       grades_report = grades_report_fixture(%{scale_id: scale.id})
@@ -4100,8 +4101,8 @@ defmodule Lanttern.GradesReportsTest do
       # sub 2 | entry_1_2 | nil       | nil       | final_entry_2
       # sub 3 | entry_1_3 | entry_2_3 | nil       | nil
 
-      scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
-      ov = GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id})
+      scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
+      ov = insert(:ordinal_value, scale_id: scale.id)
 
       std = SchoolsFixtures.student_fixture()
       grades_report = grades_report_fixture(%{scale_id: scale.id, final_is_visible: true})
@@ -4271,8 +4272,8 @@ defmodule Lanttern.GradesReportsTest do
       #       | cycle 2_1   | cycle 2_2   | cycle 2_3 | final
       # sub B | entry_2_1_b | entry_2_2_b | nil       | final_entry_2_b
 
-      scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
-      ov = GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id})
+      scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
+      ov = insert(:ordinal_value, scale_id: scale.id)
 
       std = SchoolsFixtures.student_fixture()
       grades_report_1 = grades_report_fixture(%{scale_id: scale.id})

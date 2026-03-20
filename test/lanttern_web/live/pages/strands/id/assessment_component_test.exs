@@ -6,7 +6,6 @@ defmodule LantternWeb.StrandLive.AssessmentComponentTest do
 
   alias Lanttern.AssessmentsFixtures
   alias Lanttern.CurriculaFixtures
-  alias Lanttern.GradingFixtures
 
   @live_view_base_path "/strands"
 
@@ -32,7 +31,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponentTest do
     test "shows moment assessment points grouped by moment", %{conn: conn} do
       strand = insert(:strand)
       moment = insert(:moment, strand: strand, name: "Moment One")
-      scale = GradingFixtures.scale_fixture()
+      scale = insert(:scale)
       curriculum_item = CurriculaFixtures.curriculum_item_fixture()
 
       AssessmentsFixtures.assessment_point_fixture(%{
@@ -58,7 +57,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponentTest do
           name: "CI name xyz"
         })
 
-      scale = GradingFixtures.scale_fixture()
+      scale = insert(:scale)
 
       AssessmentsFixtures.assessment_point_fixture(%{
         strand_id: strand.id,
@@ -124,7 +123,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponentTest do
     test "create moment assessment point", %{conn: conn} do
       strand = insert(:strand)
       moment = insert(:moment, strand: strand, name: "Test Moment")
-      scale = GradingFixtures.scale_fixture(%{name: "Test Scale"})
+      scale = insert(:scale, name: "Test Scale")
       curriculum_component = CurriculaFixtures.curriculum_component_fixture()
 
       curriculum_item =
@@ -153,7 +152,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponentTest do
     test "update moment assessment point name", %{conn: conn} do
       strand = insert(:strand)
       moment = insert(:moment, strand: strand)
-      scale = GradingFixtures.scale_fixture()
+      scale = insert(:scale)
       curriculum_item = CurriculaFixtures.curriculum_item_fixture()
 
       AssessmentsFixtures.assessment_point_fixture(%{
@@ -174,7 +173,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponentTest do
     test "delete moment assessment point", %{conn: conn} do
       strand = insert(:strand)
       moment = insert(:moment, strand: strand)
-      scale = GradingFixtures.scale_fixture()
+      scale = insert(:scale)
       curriculum_item = CurriculaFixtures.curriculum_item_fixture()
 
       AssessmentsFixtures.assessment_point_fixture(%{
@@ -198,7 +197,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponentTest do
     test "reorder assessment points within the same moment", %{conn: conn} do
       strand = insert(:strand)
       moment = insert(:moment, strand: strand)
-      scale = GradingFixtures.scale_fixture()
+      scale = insert(:scale)
       curriculum_item_1 = CurriculaFixtures.curriculum_item_fixture()
       curriculum_item_2 = CurriculaFixtures.curriculum_item_fixture()
 
@@ -251,7 +250,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponentTest do
       strand = insert(:strand)
       moment1 = insert(:moment, strand: strand)
       moment2 = insert(:moment, strand: strand)
-      scale = GradingFixtures.scale_fixture()
+      scale = insert(:scale)
       curriculum_item = CurriculaFixtures.curriculum_item_fixture()
 
       ap =

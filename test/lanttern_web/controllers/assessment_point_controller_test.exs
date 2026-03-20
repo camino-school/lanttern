@@ -2,6 +2,7 @@ defmodule LantternWeb.AssessmentPointControllerTest do
   use LantternWeb.ConnCase
 
   import Lanttern.AssessmentsFixtures
+  import Lanttern.Factory
 
   @create_attrs %{
     name: "some name",
@@ -34,7 +35,7 @@ defmodule LantternWeb.AssessmentPointControllerTest do
   describe "create assessment point" do
     test "redirects to show when data is valid", %{conn: conn} do
       curriculum_item = Lanttern.CurriculaFixtures.curriculum_item_fixture()
-      scale = Lanttern.GradingFixtures.scale_fixture()
+      scale = insert(:scale)
 
       create_attrs =
         @create_attrs

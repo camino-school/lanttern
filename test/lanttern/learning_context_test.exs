@@ -3,6 +3,7 @@ defmodule Lanttern.LearningContextTest do
 
   alias Lanttern.LearningContext
   import Lanttern.LearningContextFixtures
+  import Lanttern.Factory
 
   describe "strands" do
     alias Lanttern.LearningContext.Strand
@@ -177,8 +178,8 @@ defmodule Lanttern.LearningContextTest do
       moment_2 = moment_fixture(%{strand_id: strand_1.id})
       _moment_3 = moment_fixture(%{strand_id: strand_1.id})
 
-      scale = Lanttern.GradingFixtures.scale_fixture(%{type: "ordinal"})
-      ov = Lanttern.GradingFixtures.ordinal_value_fixture(%{scale_id: scale.id})
+      scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
+      ov = insert(:ordinal_value, scale_id: scale.id)
 
       ap_m1_1 =
         Lanttern.AssessmentsFixtures.assessment_point_fixture(%{

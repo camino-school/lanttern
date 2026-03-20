@@ -5,10 +5,10 @@ defmodule LantternWeb.StudentReportCardLiveTest do
 
   alias Lanttern.AssessmentsFixtures
   alias Lanttern.GradesReportsFixtures
-  alias Lanttern.GradingFixtures
   alias Lanttern.LearningContextFixtures
   alias Lanttern.SchoolsFixtures
   alias Lanttern.TaxonomyFixtures
+  import Lanttern.Factory
 
   @live_view_path_base "/student_report_cards"
 
@@ -78,7 +78,7 @@ defmodule LantternWeb.StudentReportCardLiveTest do
       strand_report =
         strand_report_fixture(%{report_card_id: report_card.id, strand_id: strand.id})
 
-      scale = GradingFixtures.scale_fixture()
+      scale = insert(:scale)
 
       assessment_point =
         AssessmentsFixtures.assessment_point_fixture(%{strand_id: strand.id, scale_id: scale.id})

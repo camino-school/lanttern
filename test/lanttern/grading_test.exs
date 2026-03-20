@@ -144,7 +144,8 @@ defmodule Lanttern.GradingTest do
   describe "scales" do
     alias Lanttern.Grading.Scale
 
-    import Lanttern.GradingFixtures
+    import Lanttern.Factory
+    import Lanttern.IdentityFixtures
 
     @invalid_attrs %{name: nil, start: nil, stop: nil, type: nil}
 
@@ -158,19 +159,27 @@ defmodule Lanttern.GradingTest do
       breakpoints: [0.5, 1.5]
     }
 
-    test "list_scales/1 returns all scales" do
-      scale = scale_fixture()
-      assert Grading.list_scales() == [scale]
+    setup do
+      scope = scope_fixture(permissions: ["assessment_management"])
+      %{scope: scope}
     end
 
-    test "list_scales/1 with preloads and scales_ids opts returns all scales as expected" do
-      num_scale = scale_fixture(%{type: "numeric"})
-      ord_scale = scale_fixture(%{type: "ordinal"})
-      ov_1 = ordinal_value_fixture(%{scale_id: ord_scale.id, normalized_value: 0})
-      ov_2 = ordinal_value_fixture(%{scale_id: ord_scale.id, normalized_value: 1})
+    test "list_scales/1 returns all scales", %{scope: scope} do
+      scale = insert(:scale, school_id: scope.school_id)
+      assert Grading.list_scales(scope) == [scale]
+    end
 
-      # extra scales for filtering test
-      scale_fixture()
+    test "list_scales/1 with preloads and scales_ids opts returns all scales as expected",
+         %{scope: scope} do
+      num_scale =
+        insert(:scale, school_id: scope.school_id, type: "numeric", start: 0.0, stop: 100.0)
+
+      ord_scale = insert(:scale, school_id: scope.school_id, type: "ordinal")
+      ov_1 = insert(:ordinal_value, scale_id: ord_scale.id, normalized_value: 0.0)
+      ov_2 = insert(:ordinal_value, scale_id: ord_scale.id, normalized_value: 1.0)
+
+      # extra scale for filtering test
+      insert(:scale, school_id: scope.school_id)
 
       assert scales =
                Grading.list_scales(ids: [num_scale.id, ord_scale.id], preloads: :ordinal_values)
@@ -181,7 +190,9 @@ defmodule Lanttern.GradingTest do
         case scale do
           %{type: "ordinal"} ->
             assert scale.id == ord_scale.id
-            assert scale.ordinal_values == [ov_1, ov_2]
+            assert [%{id: ov_1_id}, %{id: ov_2_id}] = scale.ordinal_values
+            assert ov_1_id == ov_1.id
+            assert ov_2_id == ov_2.id
 
           %{type: "numeric"} ->
             assert scale.id == num_scale.id
@@ -189,24 +200,22 @@ defmodule Lanttern.GradingTest do
       end
     end
 
-    test "get_scale!/2 returns the scale with given id" do
-      scale = scale_fixture()
-      assert Grading.get_scale!(scale.id) == scale
+    test "get_scale!/2 returns the scale with given id", %{scope: scope} do
+      scale = insert(:scale, school_id: scope.school_id)
+      assert Grading.get_scale!(scope, scale.id) == scale
     end
 
-    test "get_scale!/2 with preloads returns the scale with given id and preloaded data" do
-      scale = scale_fixture()
+    test "get_scale!/2 with preloads returns the scale with given id and preloaded data",
+         %{scope: scope} do
+      scale = insert(:scale, school_id: scope.school_id)
+      ordinal_value = insert(:ordinal_value, scale_id: scale.id)
 
-      ordinal_value =
-        ordinal_value_fixture(%{scale_id: scale.id})
-        |> Map.put(:scale, scale)
-
-      expected_scale = Grading.get_scale!(scale.id, preloads: :ordinal_values)
-      [expected_ordinal_value] = expected_scale.ordinal_values
-      assert expected_ordinal_value.id == ordinal_value.id
+      result = Grading.get_scale!(scope, scale.id, preloads: :ordinal_values)
+      ov_id = ordinal_value.id
+      assert [%{id: ^ov_id}] = result.ordinal_values
     end
 
-    test "create_scale/1 with valid data creates a scale" do
+    test "create_scale/1 with valid data creates a scale", %{scope: scope} do
       valid_attrs = %{
         name: "some name",
         start: 120.5,
@@ -215,7 +224,7 @@ defmodule Lanttern.GradingTest do
         breakpoints: [0.4, 0.8]
       }
 
-      assert {:ok, %Scale{} = scale} = Grading.create_scale(valid_attrs)
+      assert {:ok, %Scale{} = scale} = Grading.create_scale(scope, valid_attrs)
       assert scale.name == "some name"
       assert scale.start == 120.5
       assert scale.stop == 120.5
@@ -223,7 +232,7 @@ defmodule Lanttern.GradingTest do
       assert scale.breakpoints == [0.4, 0.8]
     end
 
-    test "create_scale/1 orders and remove duplications of breakpoints" do
+    test "create_scale/1 orders and remove duplications of breakpoints", %{scope: scope} do
       valid_attrs = %{
         name: "some name",
         start: nil,
@@ -232,26 +241,27 @@ defmodule Lanttern.GradingTest do
         breakpoints: [0.4, 0.8, 0.80, 0.6]
       }
 
-      assert {:ok, %Scale{} = scale} = Grading.create_scale(valid_attrs)
+      assert {:ok, %Scale{} = scale} = Grading.create_scale(scope, valid_attrs)
       assert scale.name == "some name"
       assert scale.type == "ordinal"
       assert scale.breakpoints == [0.4, 0.6, 0.8]
     end
 
-    test "create_scale/1 with invalid data returns error changeset" do
-      assert {:error, %Ecto.Changeset{}} = Grading.create_scale(@invalid_attrs)
+    test "create_scale/1 with invalid data returns error changeset", %{scope: scope} do
+      assert {:error, %Ecto.Changeset{}} = Grading.create_scale(scope, @invalid_attrs)
     end
 
-    test "create_scale/1 of type numeric without start and stop returns error changeset" do
-      assert {:error, %Ecto.Changeset{}} = Grading.create_scale(@invalid_numeric_attrs)
+    test "create_scale/1 of type numeric without start and stop returns error changeset",
+         %{scope: scope} do
+      assert {:error, %Ecto.Changeset{}} = Grading.create_scale(scope, @invalid_numeric_attrs)
     end
 
-    test "create_scale/1 of with invalid breakpoints returns error changeset" do
-      assert {:error, %Ecto.Changeset{}} = Grading.create_scale(@invalid_breakpoint_attrs)
+    test "create_scale/1 of with invalid breakpoints returns error changeset", %{scope: scope} do
+      assert {:error, %Ecto.Changeset{}} = Grading.create_scale(scope, @invalid_breakpoint_attrs)
     end
 
-    test "update_scale/2 with valid data updates the scale" do
-      scale = scale_fixture()
+    test "update_scale/2 with valid data updates the scale", %{scope: scope} do
+      scale = insert(:scale, school_id: scope.school_id)
 
       update_attrs = %{
         name: "some updated name",
@@ -260,59 +270,65 @@ defmodule Lanttern.GradingTest do
         type: "numeric"
       }
 
-      assert {:ok, %Scale{} = scale} = Grading.update_scale(scale, update_attrs)
+      assert {:ok, %Scale{} = scale} = Grading.update_scale(scope, scale, update_attrs)
       assert scale.name == "some updated name"
       assert scale.start == 456.7
       assert scale.stop == 456.7
       assert scale.type == "numeric"
     end
 
-    test "update_scale/2 with invalid data returns error changeset" do
-      scale = scale_fixture()
-      assert {:error, %Ecto.Changeset{}} = Grading.update_scale(scale, @invalid_attrs)
-      assert scale == Grading.get_scale!(scale.id)
+    test "update_scale/2 with invalid data returns error changeset", %{scope: scope} do
+      scale = insert(:scale, school_id: scope.school_id)
+      assert {:error, %Ecto.Changeset{}} = Grading.update_scale(scope, scale, @invalid_attrs)
+      assert scale == Grading.get_scale!(scope, scale.id)
     end
 
-    test "delete_scale/1 deletes the scale" do
-      scale = scale_fixture()
-      assert {:ok, %Scale{}} = Grading.delete_scale(scale)
-      assert_raise Ecto.NoResultsError, fn -> Grading.get_scale!(scale.id) end
+    test "delete_scale/1 deletes the scale", %{scope: scope} do
+      scale = insert(:scale, school_id: scope.school_id)
+      assert {:ok, %Scale{}} = Grading.delete_scale(scope, scale)
+      assert_raise Ecto.NoResultsError, fn -> Grading.get_scale!(scope, scale.id) end
     end
 
-    test "change_scale/1 returns a scale changeset" do
-      scale = scale_fixture()
-      assert %Ecto.Changeset{} = Grading.change_scale(scale)
+    test "change_scale/1 returns a scale changeset", %{scope: scope} do
+      scale = insert(:scale, school_id: scope.school_id)
+      assert %Ecto.Changeset{} = Grading.change_scale(scope, scale)
     end
   end
 
   describe "ordinal_values" do
     alias Lanttern.Grading.OrdinalValue
 
-    import Lanttern.GradingFixtures
+    import Lanttern.Factory
+    import Lanttern.IdentityFixtures
 
     @invalid_attrs %{name: nil, normalized_value: nil}
 
+    setup do
+      scope = scope_fixture(permissions: ["assessment_management"])
+      %{scope: scope}
+    end
+
     test "list_ordinal_values/1 returns all ordinal_values" do
-      ordinal_value = ordinal_value_fixture()
+      scale = insert(:scale)
+      ordinal_value = insert(:ordinal_value, scale_id: scale.id)
       assert Grading.list_ordinal_values() == [ordinal_value]
     end
 
     test "list_ordinal_values/1 with preloads returns all ordinal_values with preloaded data" do
-      scale = scale_fixture()
+      scale = insert(:scale)
+      ordinal_value = insert(:ordinal_value, scale_id: scale.id)
 
-      ordinal_value =
-        ordinal_value_fixture(%{scale_id: scale.id})
-        |> Map.put(:scale, scale)
-
-      assert Grading.list_ordinal_values(preloads: :scale) == [ordinal_value]
+      [result] = Grading.list_ordinal_values(preloads: :scale)
+      assert result.id == ordinal_value.id
+      assert result.scale.id == scale.id
     end
 
     test "list_ordinal_values/1 with scale_id returns all ordinal_values from the specified scale ordered by normalized_value" do
-      scale = scale_fixture()
-      ordinal_value_1 = ordinal_value_fixture(%{scale_id: scale.id, normalized_value: 0})
-      ordinal_value_2 = ordinal_value_fixture(%{scale_id: scale.id, normalized_value: 1})
-      ordinal_value_3 = ordinal_value_fixture(%{scale_id: scale.id, normalized_value: 0.5})
-      _other_ordinal_value = ordinal_value_fixture()
+      scale = insert(:scale)
+      ordinal_value_1 = insert(:ordinal_value, scale_id: scale.id, normalized_value: 0.0)
+      ordinal_value_2 = insert(:ordinal_value, scale_id: scale.id, normalized_value: 1.0)
+      ordinal_value_3 = insert(:ordinal_value, scale_id: scale.id, normalized_value: 0.5)
+      _other_ordinal_value = insert(:ordinal_value)
 
       assert Grading.list_ordinal_values(scale_id: scale.id) == [
                ordinal_value_1,
@@ -322,10 +338,10 @@ defmodule Lanttern.GradingTest do
     end
 
     test "list_ordinal_values/1 with ids returns all ordinal_values filtered by given ids" do
-      ordinal_value_1 = ordinal_value_fixture(%{normalized_value: 0})
-      ordinal_value_3 = ordinal_value_fixture(%{normalized_value: 1})
-      ordinal_value_2 = ordinal_value_fixture(%{normalized_value: 0.5})
-      _other_ordinal_value = ordinal_value_fixture()
+      ordinal_value_1 = insert(:ordinal_value, normalized_value: 0.0)
+      ordinal_value_3 = insert(:ordinal_value, normalized_value: 1.0)
+      ordinal_value_2 = insert(:ordinal_value, normalized_value: 0.5)
+      _other_ordinal_value = insert(:ordinal_value)
 
       ids = [
         ordinal_value_1.id,
@@ -333,130 +349,131 @@ defmodule Lanttern.GradingTest do
         ordinal_value_3.id
       ]
 
-      assert Grading.list_ordinal_values(ids: ids) == [
-               ordinal_value_1,
-               ordinal_value_2,
-               ordinal_value_3
-             ]
+      result_ids =
+        Grading.list_ordinal_values(ids: ids)
+        |> Enum.map(& &1.id)
+
+      assert result_ids == [ordinal_value_1.id, ordinal_value_2.id, ordinal_value_3.id]
     end
 
     test "get_ordinal_value!/2 returns the ordinal_value with given id" do
-      ordinal_value = ordinal_value_fixture()
+      scale = insert(:scale)
+      ordinal_value = insert(:ordinal_value, scale_id: scale.id)
       assert Grading.get_ordinal_value!(ordinal_value.id) == ordinal_value
     end
 
     test "get_ordinal_value!/2 with preloads returns the ordinal_value with given id and preloaded data" do
-      scale = scale_fixture()
+      scale = insert(:scale)
+      ordinal_value = insert(:ordinal_value, scale_id: scale.id)
 
-      ordinal_value =
-        ordinal_value_fixture(%{scale_id: scale.id})
-        |> Map.put(:scale, scale)
-
-      assert Grading.get_ordinal_value!(ordinal_value.id, :scale) == ordinal_value
+      result = Grading.get_ordinal_value!(ordinal_value.id, :scale)
+      assert result.id == ordinal_value.id
+      assert result.scale.id == scale.id
     end
 
-    test "create_ordinal_value/1 with valid data creates a ordinal_value" do
-      scale = scale_fixture()
-      valid_attrs = %{name: "some name", normalized_value: 0.5, scale_id: scale.id}
+    test "create_ordinal_value/1 with valid data creates a ordinal_value", %{scope: scope} do
+      scale = insert(:scale, school_id: scope.school_id)
 
-      assert {:ok, %OrdinalValue{} = ordinal_value} = Grading.create_ordinal_value(valid_attrs)
+      valid_attrs = %{
+        "name" => "some name",
+        "normalized_value" => "0.5",
+        "scale_id" => "#{scale.id}"
+      }
+
+      assert {:ok, %OrdinalValue{} = ordinal_value} =
+               Grading.create_ordinal_value(scope, valid_attrs)
+
       assert ordinal_value.name == "some name"
       assert ordinal_value.normalized_value == 0.5
       assert ordinal_value.scale_id == scale.id
     end
 
-    test "create_ordinal_value/1 with invalid data returns error changeset" do
-      assert {:error, %Ecto.Changeset{}} = Grading.create_ordinal_value(@invalid_attrs)
+    test "create_ordinal_value/1 with invalid data returns error changeset", %{scope: scope} do
+      scale = insert(:scale, school_id: scope.school_id)
+
+      assert {:error, %Ecto.Changeset{}} =
+               Grading.create_ordinal_value(scope, %{
+                 "scale_id" => "#{scale.id}",
+                 "name" => nil,
+                 "normalized_value" => nil
+               })
     end
 
-    test "create_ordinal_value/1 with invalid bg color returns error changeset" do
-      scale = scale_fixture(%{type: "ordinal"})
+    test "create_ordinal_value/1 with invalid bg color returns error changeset", %{scope: scope} do
+      scale = insert(:scale, school_id: scope.school_id)
 
       attrs = %{
-        scale_id: scale.id,
-        name: "some name",
-        normalized_value: 1,
-        bg_color: "000000"
+        "scale_id" => "#{scale.id}",
+        "name" => "some name",
+        "normalized_value" => "1",
+        "bg_color" => "000000"
       }
 
       assert {:error, %Ecto.Changeset{errors: [bg_color: _]}} =
-               Grading.create_ordinal_value(attrs)
+               Grading.create_ordinal_value(scope, attrs)
     end
 
-    test "create_ordinal_value/1 with invalid text color returns error changeset" do
-      scale = scale_fixture(%{type: "ordinal"})
+    test "create_ordinal_value/1 with invalid text color returns error changeset", %{scope: scope} do
+      scale = insert(:scale, school_id: scope.school_id)
 
       attrs = %{
-        scale_id: scale.id,
-        name: "some name",
-        normalized_value: 1,
-        text_color: "ffffff"
+        "scale_id" => "#{scale.id}",
+        "name" => "some name",
+        "normalized_value" => "1",
+        "text_color" => "ffffff"
       }
 
       assert {:error, %Ecto.Changeset{errors: [text_color: _]}} =
-               Grading.create_ordinal_value(attrs)
+               Grading.create_ordinal_value(scope, attrs)
     end
 
-    test "update_ordinal_value/2 with valid data updates the ordinal_value" do
-      ordinal_value = ordinal_value_fixture()
+    test "update_ordinal_value/2 with valid data updates the ordinal_value", %{scope: scope} do
+      scale = insert(:scale, school_id: scope.school_id)
+      ordinal_value = insert(:ordinal_value, scale_id: scale.id)
       update_attrs = %{name: "some updated name", normalized_value: 0.43}
 
       assert {:ok, %OrdinalValue{} = ordinal_value} =
-               Grading.update_ordinal_value(ordinal_value, update_attrs)
+               Grading.update_ordinal_value(scope, ordinal_value, update_attrs)
 
       assert ordinal_value.name == "some updated name"
       assert ordinal_value.normalized_value == 0.43
     end
 
-    test "update_ordinal_value/2 with invalid data returns error changeset" do
-      ordinal_value = ordinal_value_fixture()
+    test "update_ordinal_value/2 with invalid data returns error changeset", %{scope: scope} do
+      scale = insert(:scale, school_id: scope.school_id)
+      ordinal_value = insert(:ordinal_value, scale_id: scale.id)
 
       assert {:error, %Ecto.Changeset{}} =
-               Grading.update_ordinal_value(ordinal_value, @invalid_attrs)
+               Grading.update_ordinal_value(scope, ordinal_value, @invalid_attrs)
 
-      assert ordinal_value == Grading.get_ordinal_value!(ordinal_value.id)
+      assert ordinal_value.id == Grading.get_ordinal_value!(ordinal_value.id).id
     end
 
-    test "delete_ordinal_value/1 deletes the ordinal_value" do
-      ordinal_value = ordinal_value_fixture()
-      assert {:ok, %OrdinalValue{}} = Grading.delete_ordinal_value(ordinal_value)
+    test "delete_ordinal_value/1 deletes the ordinal_value", %{scope: scope} do
+      scale = insert(:scale, school_id: scope.school_id)
+      ordinal_value = insert(:ordinal_value, scale_id: scale.id)
+
+      assert {:ok, %OrdinalValue{}} = Grading.delete_ordinal_value(scope, ordinal_value)
       assert_raise Ecto.NoResultsError, fn -> Grading.get_ordinal_value!(ordinal_value.id) end
     end
 
-    test "change_ordinal_value/1 returns a ordinal_value changeset" do
-      ordinal_value = ordinal_value_fixture()
-      assert %Ecto.Changeset{} = Grading.change_ordinal_value(ordinal_value)
+    test "change_ordinal_value/1 returns a ordinal_value changeset", %{scope: scope} do
+      scale = insert(:scale, school_id: scope.school_id)
+      ordinal_value = insert(:ordinal_value, scale_id: scale.id)
+      assert %Ecto.Changeset{} = Grading.change_ordinal_value(scope, ordinal_value)
     end
   end
 
   describe "conversions" do
-    import Lanttern.GradingFixtures
+    import Lanttern.Factory
     alias Lanttern.Grading.OrdinalValue
 
     test "convert_normalized_value_to_scale_value/1 returns the correct values for a ordinal scale" do
-      scale =
-        scale_fixture(%{
-          type: "ordinal",
-          breakpoints: [0.4, 0.8]
-        })
+      scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
 
-      ov_1 =
-        ordinal_value_fixture(%{
-          scale_id: scale.id,
-          normalized_value: 0.3
-        })
-
-      ov_2 =
-        ordinal_value_fixture(%{
-          scale_id: scale.id,
-          normalized_value: 0.6
-        })
-
-      ov_3 =
-        ordinal_value_fixture(%{
-          scale_id: scale.id,
-          normalized_value: 1.0
-        })
+      ov_1 = insert(:ordinal_value, scale_id: scale.id, normalized_value: 0.3)
+      ov_2 = insert(:ordinal_value, scale_id: scale.id, normalized_value: 0.6)
+      ov_3 = insert(:ordinal_value, scale_id: scale.id, normalized_value: 1.0)
 
       ov_1_id = ov_1.id
 
@@ -490,12 +507,7 @@ defmodule Lanttern.GradingTest do
     end
 
     test "convert_normalized_value_to_scale_value/1 returns the correct values for a numeric scale" do
-      scale =
-        scale_fixture(%{
-          type: "numeric",
-          start: 5.0,
-          stop: 10.0
-        })
+      scale = insert(:scale, type: "numeric", start: 5.0, stop: 10.0)
 
       assert Grading.convert_normalized_value_to_scale_value(0, scale) == 5.0
       assert Grading.convert_normalized_value_to_scale_value(0.5, scale) == 7.5

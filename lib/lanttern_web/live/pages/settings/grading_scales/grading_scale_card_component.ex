@@ -5,6 +5,7 @@ defmodule LantternWeb.GradingScalesLive.GradingScaleCardComponent do
 
   use LantternWeb, :live_component
 
+  @impl true
   def render(assigns) do
     ~H"""
     <div id={@id} class={@class}>
@@ -152,6 +153,7 @@ defmodule LantternWeb.GradingScalesLive.GradingScaleCardComponent do
     {:ok, socket}
   end
 
+  @impl true
   # subsequent updates — via send_update (accordion toggle) or parent re-render (data update)
   def update(assigns, %{assigns: %{scale: _scale}} = socket) do
     is_expanded = assigns.selected_scale_id == "#{socket.assigns.scale.id}"
@@ -181,6 +183,7 @@ defmodule LantternWeb.GradingScalesLive.GradingScaleCardComponent do
 
   # event handlers
 
+  @impl true
   def handle_event("toggle", _params, socket) do
     path =
       if socket.assigns.is_expanded,

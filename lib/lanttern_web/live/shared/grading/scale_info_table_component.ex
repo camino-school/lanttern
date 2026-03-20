@@ -13,8 +13,6 @@ defmodule LantternWeb.Grading.ScaleInfoTableComponent do
   """
   use LantternWeb, :live_component
 
-  alias Lanttern.Grading
-
   @impl true
   def render(assigns) do
     ~H"""
@@ -78,10 +76,8 @@ defmodule LantternWeb.Grading.ScaleInfoTableComponent do
   defp assign_ordinal_values(%{assigns: %{scale_id: scale_id}} = socket)
        when is_integer(scale_id) do
     scale =
-      Grading.get_scale!(
-        scale_id,
-        preloads: [:ordinal_values]
-      )
+      Lanttern.Repo.get!(Lanttern.Grading.Scale, scale_id)
+      |> Lanttern.Repo.preload(:ordinal_values)
 
     # this component will handle only ordinal scales with correctly defined breakpoints
     {ordinal_values, breakpoints} =
