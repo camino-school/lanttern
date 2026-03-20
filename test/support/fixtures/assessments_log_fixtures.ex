@@ -5,7 +5,7 @@ defmodule Lanttern.AssessmentsLogFixtures do
   """
 
   import Lanttern.AssessmentsFixtures
-  alias Lanttern.GradingFixtures
+  import Lanttern.Factory
   alias Lanttern.IdentityFixtures
   alias Lanttern.SchoolsFixtures
 
@@ -13,7 +13,7 @@ defmodule Lanttern.AssessmentsLogFixtures do
   Generate a assessment_point_entry log.
   """
   def assessment_point_entry_log_fixture(attrs \\ %{}) do
-    scale = GradingFixtures.scale_fixture()
+    scale = insert(:scale)
 
     {:ok, assessment_point_entry_log} =
       attrs

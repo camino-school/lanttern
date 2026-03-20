@@ -2,7 +2,7 @@ defmodule LantternWeb.GradesReportsLiveTest do
   use LantternWeb.ConnCase
 
   import Lanttern.GradesReportsFixtures
-  alias Lanttern.GradingFixtures
+  import Lanttern.Factory
 
   @live_view_path "/grades_reports"
 
@@ -19,10 +19,10 @@ defmodule LantternWeb.GradesReportsLiveTest do
 
     test "list grades reports", %{conn: conn, user: user} do
       cycle = user.current_profile.current_school_cycle
-      scale = GradingFixtures.scale_fixture(%{name: "Some scale AZ", type: "ordinal"})
+      scale = insert(:scale, name: "Some scale AZ", type: "ordinal", breakpoints: [0.4, 0.8])
 
       _ordinal_value =
-        GradingFixtures.ordinal_value_fixture(%{name: "Ordinal value A", scale_id: scale.id})
+        insert(:ordinal_value, name: "Ordinal value A", scale_id: scale.id)
 
       _grades_report =
         grades_report_fixture(%{

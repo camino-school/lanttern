@@ -136,6 +136,7 @@ defmodule LantternWeb.StrandLive.OverviewComponent do
         :if={@goal}
         module={AssessmentPointFormOverlayComponent}
         id={"strand-#{@strand.id}-goal-form-overlay"}
+        current_scope={@current_scope}
         notify_component={@myself}
         assessment_point={@goal}
         title={gettext("Strand goal")}

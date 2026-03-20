@@ -5,6 +5,7 @@ defmodule Lanttern.Factory do
 
   use Lanttern.AgentFactory
   use Lanttern.AgentMessageFactory
+  use Lanttern.AiConfigFactory
   use Lanttern.AttachmentFactory
   use Lanttern.ClassFactory
   use Lanttern.ClassStaffMemberFactory
@@ -23,9 +24,10 @@ defmodule Lanttern.Factory do
   use Lanttern.MessageFactory
   use Lanttern.ModelCallFactory
   use Lanttern.MomentFactory
+  use Lanttern.OrdinalValueFactory
   use Lanttern.ProfileFactory
-  use Lanttern.AiConfigFactory
   use Lanttern.ReportCardFactory
+  use Lanttern.ScaleFactory
   use Lanttern.SchoolFactory
   use Lanttern.SectionFactory
   use Lanttern.StaffMemberFactory

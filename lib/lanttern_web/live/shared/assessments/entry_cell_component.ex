@@ -17,6 +17,7 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
   #### Expected external assigns
 
       attr :entry, AssessmentPointEntry
+      attr :current_scope, Scope
       attr :allow_edit, :boolean
       attr :view, :string, default: "teacher", doc: "teacher | student | compare. When compare, disallow edit"
       attr :class, :any
@@ -217,6 +218,8 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
       |> Enum.filter(&(not is_nil(&1)))
       |> Enum.uniq()
 
+    [{%{current_scope: scope} = _assigns, _socket} | _rest] = assigns_sockets
+
     # map format
     # %{
     #   scale_id: %{
@@ -227,6 +230,7 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
     # }
     scale_ov_maps =
       Grading.list_scales(
+        scope,
         type: "ordinal",
         ids: scales_ids,
         preloads: :ordinal_values

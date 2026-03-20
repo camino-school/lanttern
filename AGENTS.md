@@ -15,6 +15,10 @@ See [`docs/legacy.md`](docs/legacy.md) for the full list and context.
 
 ## Design patterns
 
+### Permission validations
+
+- For permission checks in context functions (e.g. `true = Scope.has_permission?(scope, "some_permission")`), it's OK and expected to raise on failure (MatchError, FunctionClauseError) instead of returning `{:error, :unauthorized}` tuples. These are internal safety nets — users should never reach them via normal navigation, so graceful error handling is unnecessary.
+
 ### Schemas
 
 - avoid the creation of query functions in schema files — write them directly in the context file

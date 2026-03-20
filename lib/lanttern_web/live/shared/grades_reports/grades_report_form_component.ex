@@ -93,13 +93,10 @@ defmodule LantternWeb.GradesReports.GradesReportFormComponent do
 
   @impl true
   def mount(socket) do
-    scale_options = GradingHelpers.generate_scale_options()
-
     socket =
       socket
       |> assign(:class, nil)
       |> assign(:hide_submit, false)
-      |> assign(:scale_options, scale_options)
       |> assign(:initialized, false)
 
     {:ok, socket}
@@ -117,6 +114,7 @@ defmodule LantternWeb.GradesReports.GradesReportFormComponent do
 
   defp initialize(%{assigns: %{initialized: false}} = socket) do
     socket
+    |> assign_scale_options()
     |> assign_cycles()
     |> assign_years()
     |> assign_form()
@@ -124,6 +122,17 @@ defmodule LantternWeb.GradesReports.GradesReportFormComponent do
   end
 
   defp initialize(socket), do: socket
+
+  defp assign_scale_options(socket) do
+    scale_options =
+      GradingHelpers.generate_scale_options(
+        socket.assigns.current_scope,
+        only_active: true,
+        current_scale_id: socket.assigns.grades_report.scale_id
+      )
+
+    assign(socket, :scale_options, scale_options)
+  end
 
   defp assign_cycles(socket) do
     school_id = socket.assigns.current_user.current_profile.school_id

@@ -2,6 +2,7 @@ defmodule Lanttern.ReportingTest do
   use Lanttern.DataCase
 
   alias Lanttern.Reporting
+  import Lanttern.Factory
 
   describe "report_cards" do
     alias Lanttern.Reporting.ReportCard
@@ -989,7 +990,6 @@ defmodule Lanttern.ReportingTest do
 
     alias Lanttern.AssessmentsFixtures
     alias Lanttern.CurriculaFixtures
-    alias Lanttern.GradingFixtures
     alias Lanttern.IdentityFixtures
     alias Lanttern.LearningContextFixtures
     alias Lanttern.RubricsFixtures
@@ -1057,10 +1057,10 @@ defmodule Lanttern.ReportingTest do
       student_report_card =
         student_report_card_fixture(%{report_card_id: report_card.id, student_id: student.id})
 
-      n_scale = GradingFixtures.scale_fixture(%{type: "numeric", start: 0, stop: 10})
-      o_scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
-      ov_1 = GradingFixtures.ordinal_value_fixture(%{scale_id: o_scale.id})
-      ov_2 = GradingFixtures.ordinal_value_fixture(%{scale_id: o_scale.id})
+      n_scale = insert(:scale, type: "numeric", start: 0, stop: 10)
+      o_scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
+      ov_1 = insert(:ordinal_value, scale_id: o_scale.id)
+      ov_2 = insert(:ordinal_value, scale_id: o_scale.id)
 
       assessment_point_1_1 =
         AssessmentsFixtures.assessment_point_fixture(%{
@@ -1144,12 +1144,12 @@ defmodule Lanttern.ReportingTest do
       assert expected_strand_1_report.strand.years == [year]
 
       assert expected_entry_1_1.id == assessment_point_1_1_entry.id
-      assert expected_entry_1_1.scale == o_scale
-      assert expected_entry_1_1.ordinal_value == ov_1
+      assert expected_entry_1_1.scale.id == o_scale.id
+      assert expected_entry_1_1.ordinal_value.id == ov_1.id
 
       assert expected_entry_1_2.id == assessment_point_1_2_entry.id
-      assert expected_entry_1_2.scale == o_scale
-      assert expected_entry_1_2.ordinal_value == ov_2
+      assert expected_entry_1_2.scale.id == o_scale.id
+      assert expected_entry_1_2.ordinal_value.id == ov_2.id
 
       # strand 2 assertions
 
@@ -1159,7 +1159,7 @@ defmodule Lanttern.ReportingTest do
       assert expected_strand_2_report.strand.years == [year]
 
       assert expected_entry_2_1.id == assessment_point_2_1_entry.id
-      assert expected_entry_2_1.scale == n_scale
+      assert expected_entry_2_1.scale.id == n_scale.id
       assert expected_entry_2_1.score == 5
 
       # return strand 3 report if include_strands_without_entries is true
@@ -1200,10 +1200,10 @@ defmodule Lanttern.ReportingTest do
 
       student = SchoolsFixtures.student_fixture()
 
-      n_scale = GradingFixtures.scale_fixture(%{type: "numeric", start: 0, stop: 10})
-      o_scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
-      ov_1 = GradingFixtures.ordinal_value_fixture(%{scale_id: o_scale.id})
-      ov_2 = GradingFixtures.ordinal_value_fixture(%{scale_id: o_scale.id})
+      n_scale = insert(:scale, type: "numeric", start: 0, stop: 10)
+      o_scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
+      ov_1 = insert(:ordinal_value, scale_id: o_scale.id)
+      ov_2 = insert(:ordinal_value, scale_id: o_scale.id)
 
       # assessment points
 
@@ -1326,7 +1326,7 @@ defmodule Lanttern.ReportingTest do
       # assessment points
 
       curriculum_item = CurriculaFixtures.curriculum_item_fixture()
-      scale = GradingFixtures.scale_fixture(%{type: "numeric"})
+      scale = insert(:scale, type: "numeric", start: 0.0, stop: 100.0)
 
       goal =
         AssessmentsFixtures.assessment_point_fixture(%{
@@ -1408,10 +1408,10 @@ defmodule Lanttern.ReportingTest do
 
       student = SchoolsFixtures.student_fixture()
 
-      n_scale = GradingFixtures.scale_fixture(%{type: "numeric", start: 0, stop: 10})
-      o_scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
-      ov_1 = GradingFixtures.ordinal_value_fixture(%{scale_id: o_scale.id})
-      ov_2 = GradingFixtures.ordinal_value_fixture(%{scale_id: o_scale.id})
+      n_scale = insert(:scale, type: "numeric", start: 0, stop: 10)
+      o_scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
+      ov_1 = insert(:ordinal_value, scale_id: o_scale.id)
+      ov_2 = insert(:ordinal_value, scale_id: o_scale.id)
 
       # rubrics
 
@@ -1542,8 +1542,8 @@ defmodule Lanttern.ReportingTest do
       assert expected_assessment_point_1.rubric.id == rubric_1.id
 
       assert expected_entry_1.id == assessment_point_1_entry.id
-      assert expected_entry_1.scale == o_scale
-      assert expected_entry_1.ordinal_value == ov_1
+      assert expected_entry_1.scale.id == o_scale.id
+      assert expected_entry_1.ordinal_value.id == ov_1.id
       assert expected_entry_1.differentiation_rubric.id == diff_rubric_1.id
       assert [expected_evidence_1, expected_evidence_2] = expected_entry_1.evidences
       assert expected_evidence_1.id == evidence_1.id
@@ -1554,8 +1554,8 @@ defmodule Lanttern.ReportingTest do
       assert expected_assessment_point_2.id == assessment_point_2.id
 
       assert expected_entry_2.id == assessment_point_2_entry.id
-      assert expected_entry_2.scale == o_scale
-      assert expected_entry_2.ordinal_value == ov_2
+      assert expected_entry_2.scale.id == o_scale.id
+      assert expected_entry_2.ordinal_value.id == ov_2.id
       assert [] = expected_entry_2.evidences
 
       # assessment point 3 assertions
@@ -1564,7 +1564,7 @@ defmodule Lanttern.ReportingTest do
       assert expected_assessment_point_3.rubric.id == rubric_3.id
 
       assert expected_entry_3.id == assessment_point_3_entry.id
-      assert expected_entry_3.scale == n_scale
+      assert expected_entry_3.scale.id == n_scale.id
       assert expected_entry_3.score == 5
       assert [] = expected_entry_3.evidences
     end
@@ -1598,10 +1598,10 @@ defmodule Lanttern.ReportingTest do
 
       student = SchoolsFixtures.student_fixture()
 
-      n_scale = GradingFixtures.scale_fixture(%{type: "numeric", start: 0, stop: 10})
-      o_scale = GradingFixtures.scale_fixture(%{type: "ordinal"})
-      ov_1 = GradingFixtures.ordinal_value_fixture(%{scale_id: o_scale.id})
-      ov_2 = GradingFixtures.ordinal_value_fixture(%{scale_id: o_scale.id})
+      n_scale = insert(:scale, type: "numeric", start: 0, stop: 10)
+      o_scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
+      ov_1 = insert(:ordinal_value, scale_id: o_scale.id)
+      ov_2 = insert(:ordinal_value, scale_id: o_scale.id)
 
       # rubrics
 
@@ -1738,15 +1738,15 @@ defmodule Lanttern.ReportingTest do
       assert expected_assessment_point_1_1.id == assessment_point_1_1.id
       assert expected_assessment_point_1_1.rubric.id == rubric_1.id
       assert expected_entry_1_1.id == assessment_point_1_1_entry.id
-      assert expected_entry_1_1.scale == o_scale
-      assert expected_entry_1_1.ordinal_value == ov_1
+      assert expected_entry_1_1.scale.id == o_scale.id
+      assert expected_entry_1_1.ordinal_value.id == ov_1.id
       assert expected_entry_1_1.evidences == [evidence]
       assert expected_entry_1_1.differentiation_rubric.id == diff_rubric_1.id
 
       assert expected_entry_1_2.id == assessment_point_1_2_entry.id
       assert expected_assessment_point_1_2.id == assessment_point_1_2.id
       assert expected_assessment_point_1_2.rubric.id == rubric_2.id
-      assert expected_entry_1_2.scale == n_scale
+      assert expected_entry_1_2.scale.id == n_scale.id
       assert expected_entry_1_2.score == 5.0
     end
   end
@@ -1756,7 +1756,6 @@ defmodule Lanttern.ReportingTest do
 
     alias Lanttern.AssessmentsFixtures
     alias Lanttern.CurriculaFixtures
-    alias Lanttern.GradingFixtures
     alias Lanttern.LearningContextFixtures
     alias Lanttern.SchoolsFixtures
     alias Lanttern.TaxonomyFixtures
@@ -1789,7 +1788,7 @@ defmodule Lanttern.ReportingTest do
 
       # assessments fixtures
 
-      scale = GradingFixtures.scale_fixture(%{type: "numeric"})
+      scale = insert(:scale, type: "numeric", start: 0.0, stop: 100.0)
 
       ap_1_1_1 =
         AssessmentsFixtures.assessment_point_fixture(%{
@@ -2025,7 +2024,6 @@ defmodule Lanttern.ReportingTest do
     import Lanttern.ReportingFixtures
     alias Lanttern.AssessmentsFixtures
     alias Lanttern.CurriculaFixtures
-    alias Lanttern.GradingFixtures
     alias Lanttern.IdentityFixtures
     alias Lanttern.LearningContextFixtures
     alias Lanttern.SchoolsFixtures

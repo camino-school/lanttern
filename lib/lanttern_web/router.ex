@@ -159,6 +159,9 @@ defmodule LantternWeb.Router do
 
       live "/settings/lesson_tags", LessonTagsLive, :index
       live "/settings/lesson_tags/:id", LessonTagsLive, :show
+
+      live "/settings/grading_scales", GradingScalesLive, :index
+      live "/settings/grading_scales/:id", GradingScalesLive, :show
     end
 
     live_session :authenticated_guardian,
@@ -300,8 +303,6 @@ defmodule LantternWeb.Router do
     live "/profile_settings/:profile_id/edit", Admin.ProfileSettingsLive.Index, :edit
 
     # Assessments context
-    resources "/assessment_points", AssessmentPointController
-    resources "/assessment_point_entries", AssessmentPointEntryController
     resources "/feedback", FeedbackController
 
     # Curricula context
@@ -309,10 +310,6 @@ defmodule LantternWeb.Router do
     resources "/curriculum_components", CurriculumComponentController
     resources "/curriculum_items", CurriculumItemController
     resources "/curriculum_relationships", CurriculumRelationshipController
-
-    # Grading context
-    resources "/ordinal_values", OrdinalValueController
-    resources "/scales", ScaleController
 
     # Schools context
     resources "/schools", SchoolController
@@ -336,14 +333,6 @@ defmodule LantternWeb.Router do
 
     # Conversation context
     resources "/comments", CommentController
-
-    # Rubrics context
-    live "/rubrics", Admin.RubricLive.Index, :index
-    live "/rubrics/new", Admin.RubricLive.Index, :new
-    live "/rubrics/:id/edit", Admin.RubricLive.Index, :edit
-
-    live "/rubrics/:id", Admin.RubricLive.Show, :show
-    live "/rubrics/:id/show/edit", Admin.RubricLive.Show, :edit
 
     # Learning Context context
     live "/strands", Admin.StrandLive.Index, :index

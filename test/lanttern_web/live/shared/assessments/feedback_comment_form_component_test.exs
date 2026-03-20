@@ -6,6 +6,7 @@ defmodule LantternWeb.Assessments.FeedbackCommentFormComponentTest do
   alias Lanttern.AssessmentsFixtures
   alias Lanttern.ConversationFixtures
   alias Lanttern.SchoolsFixtures
+  import Lanttern.Factory
 
   @live_view_path_base "/assessment_points"
   @overlay_selector "#feedback-overlay"
@@ -69,7 +70,7 @@ defmodule LantternWeb.Assessments.FeedbackCommentFormComponentTest do
   end
 
   defp create_assessment_point_with_feedback(_) do
-    scale = Lanttern.GradingFixtures.scale_fixture()
+    scale = insert(:scale)
     assessment_point = AssessmentsFixtures.assessment_point_fixture(%{scale_id: scale.id})
     student = SchoolsFixtures.student_fixture()
 
