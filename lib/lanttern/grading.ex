@@ -212,7 +212,8 @@ defmodule Lanttern.Grading do
 
   """
   def create_ordinal_value(%Scope{} = scope, attrs) do
-    with :ok <- check_ordinal_value_school_access(scope, attrs) do
+    with true <- Scope.has_permission?(scope, "assessment_management"),
+         :ok <- check_ordinal_value_school_access(scope, attrs) do
       %OrdinalValue{}
       |> OrdinalValue.changeset(attrs)
       |> Repo.insert()
@@ -234,7 +235,8 @@ defmodule Lanttern.Grading do
 
   """
   def update_ordinal_value(%Scope{} = scope, %OrdinalValue{} = ordinal_value, attrs) do
-    with :ok <- check_ordinal_value_school_access(scope, ordinal_value),
+    with true <- Scope.has_permission?(scope, "assessment_management"),
+         :ok <- check_ordinal_value_school_access(scope, ordinal_value),
          :ok <- check_ordinal_value_school_access(scope, attrs) do
       ordinal_value
       |> OrdinalValue.changeset(attrs)
@@ -242,80 +244,25 @@ defmodule Lanttern.Grading do
     end
   end
 
-  defp check_ordinal_value_school_access(
-         %Scope{school_id: school_id} = _scope,
-         %OrdinalValue{} = ordinal_value
-       ) do
-    scale = Repo.get!(Scale, ordinal_value.scale_id)
-    if scale.school_id == school_id, do: :ok, else: {:error, :unauthorized}
-  end
-
-  defp check_ordinal_value_school_access(
-         %Scope{school_id: school_id} = _scope,
-         %{"scale_id" => scale_id} = _attrs
-       ) do
-    scale = Repo.get!(Scale, scale_id)
-    if scale.school_id == school_id, do: :ok, else: {:error, :unauthorized}
-  end
-
-  defp check_ordinal_value_school_access(
-         %Scope{school_id: school_id} = _scope,
-         %{scale_id: scale_id} = _attrs
-       ) do
-    scale = Repo.get!(Scale, scale_id)
-    if scale.school_id == school_id, do: :ok, else: {:error, :unauthorized}
-  end
-
-  @doc """
-  Creates a ordinal_value.
-
-  ## Examples
-
-      iex> create_ordinal_value(%{field: value})
-      {:ok, %OrdinalValue{}}
-
-      iex> create_ordinal_value(%{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
-  """
-  def create_ordinal_value(attrs \\ %{}) do
-    %OrdinalValue{}
-    |> OrdinalValue.changeset(attrs)
-    |> Repo.insert()
-  end
-
-  @doc """
-  Updates a ordinal_value.
-
-  ## Examples
-
-      iex> update_ordinal_value(ordinal_value, %{field: new_value})
-      {:ok, %OrdinalValue{}}
-
-      iex> update_ordinal_value(ordinal_value, %{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
-  """
-  def update_ordinal_value(%OrdinalValue{} = ordinal_value, attrs) do
-    ordinal_value
-    |> OrdinalValue.changeset(attrs)
-    |> Repo.update()
-  end
-
   @doc """
   Deletes a ordinal_value.
 
   ## Examples
 
-      iex> delete_ordinal_value(ordinal_value)
+      iex> delete_ordinal_value(scope, ordinal_value)
       {:ok, %OrdinalValue{}}
 
-      iex> delete_ordinal_value(ordinal_value)
+      iex> delete_ordinal_value(scope, ordinal_value)
       {:error, %Ecto.Changeset{}}
 
   """
-  def delete_ordinal_value(%OrdinalValue{} = ordinal_value) do
-    Repo.delete(ordinal_value)
+  def delete_ordinal_value(%Scope{} = scope, %OrdinalValue{} = ordinal_value) do
+    with true <- Scope.has_permission?(scope, "assessment_management"),
+         :ok <- check_ordinal_value_school_access(scope, ordinal_value) do
+      ordinal_value
+      |> OrdinalValue.delete_changeset()
+      |> Repo.delete()
+    end
   end
 
   @doc """
@@ -323,12 +270,31 @@ defmodule Lanttern.Grading do
 
   ## Examples
 
-      iex> change_ordinal_value(ordinal_value)
+      iex> change_ordinal_value(scope, ordinal_value)
       %Ecto.Changeset{data: %OrdinalValue{}}
 
   """
-  def change_ordinal_value(%OrdinalValue{} = ordinal_value, attrs \\ %{}) do
+  def change_ordinal_value(%Scope{} = scope, %OrdinalValue{} = ordinal_value, attrs \\ %{}) do
+    true = Scope.has_permission?(scope, "assessment_management")
     OrdinalValue.changeset(ordinal_value, attrs)
+  end
+
+  # ordinal value helpers
+
+  defp check_ordinal_value_school_access(
+         %Scope{school_id: school_id} = _scope,
+         %OrdinalValue{scale_id: scale_id} = _ordinal_value
+       ) do
+    %Scale{school_id: ^school_id} = Repo.get!(Scale, scale_id)
+    :ok
+  end
+
+  defp check_ordinal_value_school_access(
+         %Scope{school_id: school_id} = _scope,
+         %{"scale_id" => scale_id} = _attrs
+       ) do
+    %Scale{school_id: ^school_id} = Repo.get!(Scale, scale_id)
+    :ok
   end
 
   @doc """

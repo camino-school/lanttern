@@ -113,32 +113,37 @@ defmodule Lanttern.Grading.Scale do
         |> String.split(",")
         |> Enum.map(&String.trim/1)
         |> Enum.reject(&(&1 == ""))
-        |> Enum.reduce_while([], fn str, acc ->
-          case Float.parse(str) do
-            {val, ""} when val > 0 and val < 1 -> {:cont, [val | acc]}
-            {_val, ""} -> {:halt, :out_of_range}
-            _ -> {:halt, :error}
-          end
-        end)
-        |> case do
-          :error ->
-            add_error(
-              changeset,
-              :breakpoints_input,
-              gettext("must be a list of numbers separated by commas")
-            )
-
-          :out_of_range ->
-            add_error(
-              changeset,
-              :breakpoints_input,
-              gettext("each value must be greater than 0 and less than 1")
-            )
-
-          floats ->
-            put_change(changeset, :breakpoints, Enum.reverse(floats))
-        end
+        |> Enum.reduce_while([], &float_parse/2)
+        |> handle_float_parse_result(changeset)
     end
+  end
+
+  defp float_parse(str, acc) do
+    case Float.parse(str) do
+      {val, ""} when val > 0 and val < 1 -> {:cont, [val | acc]}
+      {_val, ""} -> {:halt, :out_of_range}
+      _ -> {:halt, :error}
+    end
+  end
+
+  defp handle_float_parse_result(:error, changeset) do
+    add_error(
+      changeset,
+      :breakpoints_input,
+      gettext("must be a list of numbers separated by commas")
+    )
+  end
+
+  defp handle_float_parse_result(:out_of_range, changeset) do
+    add_error(
+      changeset,
+      :breakpoints_input,
+      gettext("each value must be greater than 0 and less than 1")
+    )
+  end
+
+  defp handle_float_parse_result(floats, changeset) do
+    put_change(changeset, :breakpoints, Enum.reverse(floats))
   end
 
   # Order values and remove duplicates from `:breakpoints`

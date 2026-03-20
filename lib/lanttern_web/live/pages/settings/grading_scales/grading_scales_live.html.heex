@@ -89,12 +89,14 @@
   on_cancel={JS.push("close_ordinal_value_form")}
 >
   <:title>
-    {if @ordinal_value.id, do: gettext("Edit Ordinal Value"), else: gettext("New Ordinal Value")}
+    {if @ordinal_value.id, do: gettext("Edit ordinal value"), else: gettext("New ordinal value")}
   </:title>
   <.live_component
     module={OrdinalValueFormComponent}
     id="ordinal-value-form"
     ordinal_value={@ordinal_value}
-    current_user={@current_user}
+    current_scope={@current_scope}
+    on_cancel={JS.exec("data-cancel", to: "#ordinal-value-form-modal")}
+    notify_parent
   />
 </.modal>

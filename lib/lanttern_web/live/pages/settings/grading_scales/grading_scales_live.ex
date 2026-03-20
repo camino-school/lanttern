@@ -126,11 +126,21 @@ defmodule LantternWeb.GradingScalesLive do
     {:noreply, assign(socket, :ordinal_value, ordinal_value)}
   end
 
-  def handle_info({OrdinalValueFormComponent, {:saved, _ordinal_value}}, socket) do
-    {:noreply,
-     socket
-     |> assign(:ordinal_value, nil)
-     |> assign_scales()}
+  def handle_info({OrdinalValueFormComponent, {action, _ordinal_value}}, socket) do
+    message =
+      case action do
+        :created -> gettext("Ordinal value created")
+        :updated -> gettext("Ordinal value updated")
+        :deleted -> gettext("Ordinal value deleted")
+      end
+
+    socket =
+      socket
+      |> assign(:ordinal_value, nil)
+      |> assign_scales()
+      |> put_flash(:info, message)
+
+    {:noreply, socket}
   end
 
   def handle_info({GradingScaleCardComponent, {:re_enable_scale, id}}, socket) do

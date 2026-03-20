@@ -5,6 +5,8 @@ defmodule Lanttern.Grading.OrdinalValue do
 
   use Ecto.Schema
   import Ecto.Changeset
+
+  use Gettext, backend: Lanttern.Gettext
   import Lanttern.SchemaHelpers, only: [validate_hex_color: 3]
 
   alias Lanttern.Grading.Scale
@@ -39,9 +41,19 @@ defmodule Lanttern.Grading.OrdinalValue do
     |> validate_required([:name, :normalized_value, :scale_id])
     |> check_constraint(:normalized_value,
       name: :normalized_value_should_be_between_0_and_1,
-      message: "Normalized value should be between 0 and 1"
+      message: gettext("Normalized value should be between 0 and 1")
     )
     |> validate_hex_color(:bg_color, :ordinal_value_bg_color_should_be_hex)
     |> validate_hex_color(:text_color, :ordinal_value_text_color_should_be_hex)
+  end
+
+  def delete_changeset(ordinal_value) do
+    ordinal_value
+    |> cast(%{}, [])
+    |> foreign_key_constraint(
+      :id,
+      name: :assessment_point_entries_ordinal_value_id_fkey,
+      message: gettext("This ordinal value is being used and cannot be deleted")
+    )
   end
 end
