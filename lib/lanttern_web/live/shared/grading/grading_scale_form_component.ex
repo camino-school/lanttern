@@ -80,30 +80,14 @@ defmodule LantternWeb.Grading.GradingScaleFormComponent do
           </.card_base>
         </div>
         <div :if={@scale.type == "ordinal"}>
-          <div phx-feedback-for="scale[breakpoints]">
-            <.label>Breakpoints</.label>
-            <%= for n <- 0..4 do %>
-              <input
-                type="number"
-                step="0.01"
-                max="1"
-                name="scale[breakpoints][]"
-                value={Enum.at(@form[:breakpoints].value || [], n)}
-                class={[
-                  "mt-2 block w-full rounded-lg text-zinc-900 focus:ring-0 sm:text-sm sm:leading-6",
-                  "phx-no-feedback:border-zinc-300 phx-no-feedback:focus:border-zinc-400"
-                ]}
-              />
-            <% end %>
-            <.error :for={
-              msg <-
-                Enum.map(@form[:breakpoints].errors, fn {msg, opts} ->
-                  Gettext.dgettext(Lanttern.Gettext, "errors", msg, opts)
-                end)
-            }>
-              {msg}
-            </.error>
-          </div>
+          <.input
+            field={@form[:breakpoints_input]}
+            type="text"
+            label={gettext("Breakpoints")}
+            placeholder="e.g. 0.1, 0.3, 0.7"
+            class="mb-6"
+            phx-debounce="500"
+          />
         </div>
         <div class="flex justify-between gap-2 mt-10">
           <div>
@@ -148,10 +132,19 @@ defmodule LantternWeb.Grading.GradingScaleFormComponent do
 
   @impl true
   def update(%{scale: scale} = assigns, socket) do
+    changeset = Grading.change_scale(assigns.current_scope, scale)
+
+    changeset =
+      Ecto.Changeset.put_change(
+        changeset,
+        :breakpoints_input,
+        format_breakpoints(scale.breakpoints)
+      )
+
     socket =
       socket
       |> assign(assigns)
-      |> assign_form(Grading.change_scale(assigns.current_scope, scale))
+      |> assign_form(changeset)
 
     {:ok, socket}
   end
@@ -247,6 +240,9 @@ defmodule LantternWeb.Grading.GradingScaleFormComponent do
   end
 
   # helpers
+
+  defp format_breakpoints(nil), do: ""
+  defp format_breakpoints(breakpoints), do: Enum.join(breakpoints, ", ")
 
   defp assign_form(socket, %Ecto.Changeset{} = changeset) do
     assign(socket, :form, to_form(changeset))

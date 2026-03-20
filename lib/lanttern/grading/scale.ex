@@ -5,6 +5,8 @@ defmodule Lanttern.Grading.Scale do
 
   use Ecto.Schema
   import Ecto.Changeset
+
+  use Gettext, backend: Lanttern.Gettext
   import Lanttern.SchemaHelpers, only: [validate_hex_color: 3]
 
   alias Lanttern.Grading.OrdinalValue
@@ -22,6 +24,7 @@ defmodule Lanttern.Grading.Scale do
           stop_bg_color: String.t(),
           stop_text_color: String.t(),
           breakpoints: [float()],
+          breakpoints_input: String.t() | nil,
           ordinal_values: [OrdinalValue.t()],
           school_id: pos_integer() | nil,
           school: School.t() | Ecto.Association.NotLoaded.t(),
@@ -40,6 +43,7 @@ defmodule Lanttern.Grading.Scale do
     field :stop_bg_color, :string
     field :stop_text_color, :string
     field :breakpoints, {:array, :float}
+    field :breakpoints_input, :string, virtual: true
     field :deactivated_at, :utc_datetime
 
     has_many :ordinal_values, OrdinalValue, preload_order: [asc: :normalized_value, asc: :name]
@@ -61,12 +65,14 @@ defmodule Lanttern.Grading.Scale do
       :stop_bg_color,
       :stop_text_color,
       :breakpoints,
+      :breakpoints_input,
       :deactivated_at
     ])
     |> validate_required([:name, :type])
     |> put_change(:school_id, scope.school_id)
     |> validate_scale_type()
     |> validate_start_stop()
+    |> parse_breakpoints_input()
     |> adjust_breakpoints()
     |> validate_hex_color(:start_bg_color, :scale_start_bg_color_should_be_hex)
     |> validate_hex_color(:start_text_color, :scale_start_text_color_should_be_hex)
@@ -96,6 +102,44 @@ defmodule Lanttern.Grading.Scale do
   end
 
   defp validate_start_stop(changeset), do: changeset
+
+  defp parse_breakpoints_input(changeset) do
+    case get_change(changeset, :breakpoints_input) do
+      nil ->
+        changeset
+
+      input ->
+        input
+        |> String.split(",")
+        |> Enum.map(&String.trim/1)
+        |> Enum.reject(&(&1 == ""))
+        |> Enum.reduce_while([], fn str, acc ->
+          case Float.parse(str) do
+            {val, ""} when val > 0 and val < 1 -> {:cont, [val | acc]}
+            {_val, ""} -> {:halt, :out_of_range}
+            _ -> {:halt, :error}
+          end
+        end)
+        |> case do
+          :error ->
+            add_error(
+              changeset,
+              :breakpoints_input,
+              gettext("must be a list of numbers separated by commas")
+            )
+
+          :out_of_range ->
+            add_error(
+              changeset,
+              :breakpoints_input,
+              gettext("each value must be greater than 0 and less than 1")
+            )
+
+          floats ->
+            put_change(changeset, :breakpoints, Enum.reverse(floats))
+        end
+    end
+  end
 
   # Order values and remove duplicates from `:breakpoints`
   defp adjust_breakpoints(changeset) do
