@@ -27,7 +27,7 @@ defmodule Lanttern.Grading.Scale do
           breakpoints: [float()],
           breakpoints_input: String.t() | nil,
           ordinal_values: [OrdinalValue.t()],
-          school_id: pos_integer() | nil,
+          school_id: pos_integer(),
           school: School.t() | Ecto.Association.NotLoaded.t(),
           inserted_at: DateTime.t(),
           updated_at: DateTime.t(),

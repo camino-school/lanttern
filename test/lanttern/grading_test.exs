@@ -302,6 +302,14 @@ defmodule Lanttern.GradingTest do
       assert_raise Ecto.NoResultsError, fn -> Grading.get_scale!(scope, scale.id) end
     end
 
+    test "delete_scale/2 prevents deleting a scale from another school", %{scope: scope} do
+      other_scale = insert(:scale)
+
+      assert_raise FunctionClauseError, fn ->
+        Grading.delete_scale(scope, other_scale)
+      end
+    end
+
     test "change_scale/1 returns a scale changeset", %{scope: scope} do
       scale = insert(:scale, school_id: scope.school_id)
       assert %Ecto.Changeset{} = Grading.change_scale(scope, scale)

@@ -1,6 +1,6 @@
 defmodule Lanttern.Repo.Migrations.AddSchoolIdIntoScaleTable do
   @moduledoc """
-  Adds school_id and disabled_at fields to the scales table.
+  Adds school_id and deactivated_at fields to the scales table.
   """
   use Ecto.Migration
 

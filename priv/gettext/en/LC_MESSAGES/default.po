@@ -6439,3 +6439,33 @@ msgstr ""
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Deactivated scales"
 msgstr ""
+
+#: lib/lanttern_web/live/shared/grading/grading_scale_form_component.ex:27
+#, elixir-autogen, elixir-format, fuzzy
+msgid "Start"
+msgstr ""
+
+#: lib/lanttern_web/live/shared/grading/grading_scale_form_component.ex:34
+#, elixir-autogen, elixir-format
+msgid "Start background color"
+msgstr ""
+
+#: lib/lanttern_web/live/shared/grading/grading_scale_form_component.ex:40
+#, elixir-autogen, elixir-format
+msgid "Start text color"
+msgstr ""
+
+#: lib/lanttern_web/live/shared/grading/grading_scale_form_component.ex:48
+#, elixir-autogen, elixir-format
+msgid "Stop"
+msgstr ""
+
+#: lib/lanttern_web/live/shared/grading/grading_scale_form_component.ex:55
+#, elixir-autogen, elixir-format
+msgid "Stop background color"
+msgstr ""
+
+#: lib/lanttern_web/live/shared/grading/grading_scale_form_component.ex:61
+#, elixir-autogen, elixir-format
+msgid "Stop text color"
+msgstr ""

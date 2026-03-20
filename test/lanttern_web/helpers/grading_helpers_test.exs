@@ -59,7 +59,6 @@ defmodule LantternWeb.GradingHelpersTest do
           current_scale_id: active.id
         )
 
-      assert Enum.count(options) == 1
       assert [{"Active Scale", _id}] = options
     end
   end

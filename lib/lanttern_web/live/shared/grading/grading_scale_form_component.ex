@@ -24,20 +24,20 @@ defmodule LantternWeb.Grading.GradingScaleFormComponent do
             <.input
               field={@form[:start]}
               type="number"
-              label="Start"
+              label={gettext("Start")}
               step="1"
               class="flex-1 shrink-0"
             />
             <.input
               field={@form[:start_bg_color]}
               type="color"
-              label="Start background color"
+              label={gettext("Start background color")}
               class="flex-1 shrink-0"
             />
             <.input
               field={@form[:start_text_color]}
               type="color"
-              label="Start text color"
+              label={gettext("Start text color")}
               class="flex-1 shrink-0"
             />
           </div>
@@ -45,20 +45,20 @@ defmodule LantternWeb.Grading.GradingScaleFormComponent do
             <.input
               field={@form[:stop]}
               type="number"
-              label="Stop"
+              label={gettext("Stop")}
               step="any"
               class="flex-1 shrink-0"
             />
             <.input
               field={@form[:stop_bg_color]}
               type="color"
-              label="Stop background color"
+              label={gettext("Stop background color")}
               class="flex-1 shrink-0"
             />
             <.input
               field={@form[:stop_text_color]}
               type="color"
-              label="Stop text color"
+              label={gettext("Stop text color")}
               class="flex-1 shrink-0"
             />
           </div>

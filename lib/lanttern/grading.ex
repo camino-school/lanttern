@@ -511,7 +511,7 @@ defmodule Lanttern.Grading do
       {:error, %Ecto.Changeset{}}
 
   """
-  def delete_scale(%Scope{} = scope, %Scale{} = scale) do
+  def delete_scale(%Scope{school_id: school_id} = scope, %Scale{school_id: school_id} = scale) do
     true = Scope.has_permission?(scope, "assessment_management")
 
     scale

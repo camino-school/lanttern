@@ -6439,3 +6439,33 @@ msgstr "deve ser uma lista de números separados por vírgulas"
 #, elixir-autogen, elixir-format
 msgid "Deactivated scales"
 msgstr "Escalas desativadas"
+
+#: lib/lanttern_web/live/shared/grading/grading_scale_form_component.ex:27
+#, elixir-autogen, elixir-format
+msgid "Start"
+msgstr "Início"
+
+#: lib/lanttern_web/live/shared/grading/grading_scale_form_component.ex:34
+#, elixir-autogen, elixir-format
+msgid "Start background color"
+msgstr "Cor de fundo de início"
+
+#: lib/lanttern_web/live/shared/grading/grading_scale_form_component.ex:40
+#, elixir-autogen, elixir-format
+msgid "Start text color"
+msgstr "Cor de texto de início"
+
+#: lib/lanttern_web/live/shared/grading/grading_scale_form_component.ex:48
+#, elixir-autogen, elixir-format
+msgid "Stop"
+msgstr "Término"
+
+#: lib/lanttern_web/live/shared/grading/grading_scale_form_component.ex:55
+#, elixir-autogen, elixir-format
+msgid "Stop background color"
+msgstr "Cor de fundo de término"
+
+#: lib/lanttern_web/live/shared/grading/grading_scale_form_component.ex:61
+#, elixir-autogen, elixir-format
+msgid "Stop text color"
+msgstr "Cor de texto de término"
