@@ -542,6 +542,7 @@ defmodule Lanttern.ReportingTest do
         Lanttern.StudentsCycleInfoFixtures.student_cycle_info_fixture(%{
           school_id: school.id,
           cycle_id: parent_cycle.id,
+          year_id: year.id,
           student_id: student_a_a.id,
           profile_picture_url: "http://example-a-a.com/profile_picture.jpg"
         })
@@ -550,6 +551,7 @@ defmodule Lanttern.ReportingTest do
         Lanttern.StudentsCycleInfoFixtures.student_cycle_info_fixture(%{
           school_id: school.id,
           cycle_id: parent_cycle.id,
+          year_id: year.id,
           student_id: student_j_k.id,
           profile_picture_url: "http://example-j-k.com/profile_picture.jpg"
         })
