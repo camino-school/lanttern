@@ -12,6 +12,7 @@ defmodule Lanttern.StudentsCycleInfo.StudentCycleInfo do
   alias Lanttern.Schools.School
   alias Lanttern.Schools.Student
   alias Lanttern.StudentsCycleInfo.StudentCycleInfoAttachment
+  alias Lanttern.Taxonomy.Year
 
   @type t :: %__MODULE__{
           id: pos_integer(),
@@ -20,8 +21,10 @@ defmodule Lanttern.StudentsCycleInfo.StudentCycleInfo do
           profile_picture_url: String.t(),
           student: Student.t(),
           student_id: pos_integer(),
-          cycle: Cycle.t(),
+          cycle: Cycle.t() | Ecto.Association.NotLoaded.t(),
           cycle_id: pos_integer(),
+          year: Year.t() | Ecto.Association.NotLoaded.t(),
+          year_id: pos_integer(),
           school: School.t(),
           school_id: pos_integer(),
           student_cycle_info_attachments: [StudentCycleInfoAttachment.t()],
@@ -38,6 +41,7 @@ defmodule Lanttern.StudentsCycleInfo.StudentCycleInfo do
 
     belongs_to :student, Student
     belongs_to :cycle, Cycle
+    belongs_to :year, Year
     belongs_to :school, School
 
     has_many :student_cycle_info_attachments, StudentCycleInfoAttachment
@@ -54,9 +58,10 @@ defmodule Lanttern.StudentsCycleInfo.StudentCycleInfo do
       :profile_picture_url,
       :student_id,
       :cycle_id,
+      :year_id,
       :school_id
     ])
-    |> validate_required([:student_id, :cycle_id, :school_id])
+    |> validate_required([:student_id, :cycle_id, :year_id, :school_id])
     |> foreign_key_constraint(
       :student_id,
       name: :students_cycle_info_student_id_fkey,

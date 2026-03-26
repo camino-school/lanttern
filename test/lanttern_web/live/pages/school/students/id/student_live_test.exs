@@ -71,14 +71,17 @@ defmodule LantternWeb.StudentLiveTest do
   end
 
   describe "student cycle info" do
-    test "student cycle info is created when there's none", %{conn: conn, user: user} do
+    test "shows empty state when no student cycle info exists", %{conn: conn, user: user} do
       school_id = user.current_profile.school_id
       student = SchoolsFixtures.student_fixture(%{school_id: school_id})
 
       {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{student.id}")
 
-      assert view |> has_element?("p", "No information about student in school area")
-      assert view |> has_element?("p", "No information in student area")
+      assert view
+             |> has_element?(
+               "p",
+               "To enable the student info area, please assign a year for the current cycle in the student edit form."
+             )
     end
 
     test "student cycle info displays correctly", %{conn: conn, user: user} do
