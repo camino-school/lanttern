@@ -24,104 +24,114 @@ defmodule LantternWeb.StudentLive.AboutComponent do
         show_deactivated
         show_tags
       />
-      <div class="flex items-start gap-20 mt-12">
-        <div class="flex-1">
-          <div class="pb-6 border-b-2 border-ltrn-light">
-            <h4 class="font-display font-black text-lg">{gettext("School area")}</h4>
-            <p class="flex items-center gap-2 mt-2">
-              <.icon name="hero-information-circle-mini" class="text-ltrn-subtle" />
-              {gettext("Access to information in this area is restricted to school staff")}
-            </p>
+      <%= if @student_cycle_info do %>
+        <div class="flex items-start gap-20 mt-12">
+          <div class="flex-1">
+            <div class="pb-6 border-b-2 border-ltrn-light">
+              <h4 class="font-display font-black text-lg">{gettext("School area")}</h4>
+              <p class="flex items-center gap-2 mt-2">
+                <.icon name="hero-information-circle-mini" class="text-ltrn-subtle" />
+                {gettext("Access to information in this area is restricted to school staff")}
+              </p>
+            </div>
+            <div class="py-10 border-b border-ltrn-light">
+              <%= if @is_editing_student_school_info do %>
+                <.live_component
+                  module={StudentCycleInfoFormComponent}
+                  id={"#{@student_cycle_info.id}-school-info-form"}
+                  student_cycle_info={@student_cycle_info}
+                  type="school"
+                  label={gettext("Add school area student info...")}
+                  current_profile_id={@current_user.current_profile_id}
+                  notify_component={@myself}
+                />
+              <% else %>
+                <.empty_state_simple :if={!@student_cycle_info.school_info}>
+                  {gettext("No information about student in school area")}
+                </.empty_state_simple>
+                <.markdown text={@student_cycle_info.school_info} />
+                <.action
+                  type="button"
+                  icon_name="hero-pencil-mini"
+                  class="mt-10"
+                  phx-click="edit_student_school_info"
+                  phx-target={@myself}
+                  disabled={@is_editing_shared_info}
+                >
+                  {gettext("Edit information")}
+                </.action>
+              <% end %>
+            </div>
+            <.live_component
+              module={AttachmentAreaComponent}
+              id="student-cycle-info-school-attachments"
+              class="mt-10"
+              student_cycle_info_id={@student_cycle_info.id}
+              shared_with_student={false}
+              title={gettext("School area attachments")}
+              allow_editing
+              current_user={@current_user}
+            />
           </div>
-          <div class="py-10 border-b border-ltrn-light">
-            <%= if @is_editing_student_school_info do %>
-              <.live_component
-                module={StudentCycleInfoFormComponent}
-                id={"#{@student_cycle_info.id}-school-info-form"}
-                student_cycle_info={@student_cycle_info}
-                type="school"
-                label={gettext("Add school area student info...")}
-                current_profile_id={@current_user.current_profile_id}
-                notify_component={@myself}
-              />
-            <% else %>
-              <.empty_state_simple :if={!@student_cycle_info.school_info}>
-                {gettext("No information about student in school area")}
-              </.empty_state_simple>
-              <.markdown text={@student_cycle_info.school_info} />
-              <.action
-                type="button"
-                icon_name="hero-pencil-mini"
-                class="mt-10"
-                phx-click="edit_student_school_info"
-                phx-target={@myself}
-                disabled={@is_editing_shared_info}
-              >
-                {gettext("Edit information")}
-              </.action>
-            <% end %>
+          <div class="flex-1">
+            <div class="pb-6 border-b-2 border-ltrn-student-lighter">
+              <h4 class="font-display font-black text-lg text-ltrn-student-dark">
+                {gettext("Student area")}
+              </h4>
+              <p class="flex items-center gap-2 mt-2">
+                <.icon name="hero-information-circle-mini" class="text-ltrn-subtle" />
+                {gettext("Information shared with student and guardians")}
+              </p>
+            </div>
+            <div class="py-10 border-b border-ltrn-student-lighter">
+              <%= if @is_editing_shared_info do %>
+                <.live_component
+                  module={StudentCycleInfoFormComponent}
+                  id={"#{@student_cycle_info.id}-student-info-form"}
+                  student_cycle_info={@student_cycle_info}
+                  type="student"
+                  label={gettext("Add student area info...")}
+                  current_profile_id={@current_user.current_profile_id}
+                  notify_component={@myself}
+                />
+              <% else %>
+                <.empty_state_simple :if={!@student_cycle_info.shared_info}>
+                  {gettext("No information in student area")}
+                </.empty_state_simple>
+                <.markdown text={@student_cycle_info.shared_info} />
+                <.action
+                  type="button"
+                  icon_name="hero-pencil-mini"
+                  class="mt-10"
+                  phx-click="edit_student_shared_info"
+                  phx-target={@myself}
+                  disabled={@is_editing_student_school_info}
+                >
+                  {gettext("Edit information")}
+                </.action>
+              <% end %>
+            </div>
+            <.live_component
+              module={AttachmentAreaComponent}
+              id="student-cycle-info-student-attachments"
+              class="mt-10"
+              student_cycle_info_id={@student_cycle_info.id}
+              shared_with_student
+              title={gettext("Student area attachments")}
+              allow_editing
+              current_user={@current_user}
+            />
           </div>
-          <.live_component
-            module={AttachmentAreaComponent}
-            id="student-cycle-info-school-attachments"
-            class="mt-10"
-            student_cycle_info_id={@student_cycle_info.id}
-            shared_with_student={false}
-            title={gettext("School area attachments")}
-            allow_editing
-            current_user={@current_user}
-          />
         </div>
-        <div class="flex-1">
-          <div class="pb-6 border-b-2 border-ltrn-student-lighter">
-            <h4 class="font-display font-black text-lg text-ltrn-student-dark">
-              {gettext("Student area")}
-            </h4>
-            <p class="flex items-center gap-2 mt-2">
-              <.icon name="hero-information-circle-mini" class="text-ltrn-subtle" />
-              {gettext("Information shared with student and guardians")}
-            </p>
-          </div>
-          <div class="py-10 border-b border-ltrn-student-lighter">
-            <%= if @is_editing_shared_info do %>
-              <.live_component
-                module={StudentCycleInfoFormComponent}
-                id={"#{@student_cycle_info.id}-student-info-form"}
-                student_cycle_info={@student_cycle_info}
-                type="student"
-                label={gettext("Add student area info...")}
-                current_profile_id={@current_user.current_profile_id}
-                notify_component={@myself}
-              />
-            <% else %>
-              <.empty_state_simple :if={!@student_cycle_info.shared_info}>
-                {gettext("No information in student area")}
-              </.empty_state_simple>
-              <.markdown text={@student_cycle_info.shared_info} />
-              <.action
-                type="button"
-                icon_name="hero-pencil-mini"
-                class="mt-10"
-                phx-click="edit_student_shared_info"
-                phx-target={@myself}
-                disabled={@is_editing_student_school_info}
-              >
-                {gettext("Edit information")}
-              </.action>
-            <% end %>
-          </div>
-          <.live_component
-            module={AttachmentAreaComponent}
-            id="student-cycle-info-student-attachments"
-            class="mt-10"
-            student_cycle_info_id={@student_cycle_info.id}
-            shared_with_student
-            title={gettext("Student area attachments")}
-            allow_editing
-            current_user={@current_user}
-          />
+      <% else %>
+        <div class="mt-12">
+          <.empty_state_simple>
+            {gettext(
+              "To enable the student info area, please assign a year for the current cycle in the student edit form."
+            )}
+          </.empty_state_simple>
         </div>
-      </div>
+      <% end %>
       <div class="mt-20">
         <h4 class="font-display font-black text-lg mb-4">{gettext("Guardians")}</h4>
         <.empty_state_simple :if={Enum.empty?(@student.guardians)}>
@@ -137,7 +147,7 @@ defmodule LantternWeb.StudentLive.AboutComponent do
         </.fluid_grid>
       </div>
       <.live_component
-        :if={@is_editing_profile_picture}
+        :if={@is_editing_profile_picture && @student_cycle_info}
         module={StudentCycleProfilePictureOverlayComponent}
         id="profile_picture_modal"
         student_cycle_info={@student_cycle_info}
@@ -225,24 +235,6 @@ defmodule LantternWeb.StudentLive.AboutComponent do
         socket.assigns.student.id,
         socket.assigns.current_user.current_profile.current_school_cycle.id
       )
-      |> case do
-        nil ->
-          # create student cycle info if it does not exist
-          {:ok, info} =
-            StudentsCycleInfo.create_student_cycle_info(
-              %{
-                school_id: socket.assigns.student.school_id,
-                student_id: socket.assigns.student.id,
-                cycle_id: socket.assigns.current_user.current_profile.current_school_cycle.id
-              },
-              log_profile_id: socket.assigns.current_user.current_profile_id
-            )
-
-          info
-
-        student_cycle_info ->
-          student_cycle_info
-      end
 
     assign(socket, :student_cycle_info, student_cycle_info)
   end

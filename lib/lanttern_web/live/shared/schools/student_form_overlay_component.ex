@@ -25,7 +25,9 @@ defmodule LantternWeb.Schools.StudentFormOverlayComponent do
   alias Lanttern.Identity.User
   alias Lanttern.Schools
   alias Lanttern.Schools.Student
+  alias Lanttern.StudentsCycleInfo
   alias Lanttern.StudentTags
+  alias Lanttern.Taxonomy
 
   # shared
 
@@ -61,6 +63,16 @@ defmodule LantternWeb.Schools.StudentFormOverlayComponent do
             label={gettext("Date of birth")}
             class="mb-6"
             phx-debounce="1500"
+          />
+          <.input
+            id={"year-select-#{@id}"}
+            name="year_id"
+            type="select"
+            label={gettext("Year in %{cycle} (current cycle)", cycle: @current_cycle.name)}
+            value={@selected_year_id}
+            options={@year_options}
+            prompt={gettext("Select a year...")}
+            class="mb-6"
           />
           <.live_component
             module={ClassesFieldComponent}
@@ -269,6 +281,7 @@ defmodule LantternWeb.Schools.StudentFormOverlayComponent do
   defp initialize(%{assigns: %{initialized: false}} = socket) do
     socket
     |> assign_form()
+    |> assign_year_options()
     |> assign_student_tags()
     |> assign_guardians()
     |> assign_guardian_user_emails()
@@ -328,6 +341,28 @@ defmodule LantternWeb.Schools.StudentFormOverlayComponent do
 
   defp ensure_guardians_preload(student), do: student
 
+  defp assign_year_options(socket) do
+    year_options =
+      Taxonomy.list_years()
+      |> Enum.map(&{&1.name, &1.id})
+
+    cycle_id = socket.assigns.current_cycle.id
+    student = socket.assigns.student
+
+    student_cycle_info =
+      if student.id do
+        StudentsCycleInfo.get_student_cycle_info_by_student_and_cycle(student.id, cycle_id)
+      end
+
+    selected_year_id =
+      if student_cycle_info, do: student_cycle_info.year_id, else: nil
+
+    socket
+    |> assign(:year_options, year_options)
+    |> assign(:selected_year_id, selected_year_id)
+    |> assign(:student_cycle_info, student_cycle_info)
+  end
+
   defp assign_student_tags(socket) do
     student_tags = StudentTags.list_student_tags(school_id: socket.assigns.student.school_id)
 
@@ -370,11 +405,13 @@ defmodule LantternWeb.Schools.StudentFormOverlayComponent do
   @impl true
   def handle_event("validate", %{"student" => student_params} = params, socket) do
     guardian_emails = extract_guardian_emails(params)
+    year_id = extract_year_id(params)
 
     socket =
       socket
       |> assign(:guardian_user_emails, guardian_emails)
       |> assign(:guardian_emails_error, nil)
+      |> assign(:selected_year_id, year_id)
       |> assign_validated_form(student_params)
 
     {:noreply, socket}
@@ -417,6 +454,7 @@ defmodule LantternWeb.Schools.StudentFormOverlayComponent do
   def handle_event("save", %{"student" => student_params} = params, socket) do
     student_params = inject_extra_params(socket, student_params)
     guardian_emails = extract_guardian_emails(params)
+    year_id = extract_year_id(params)
 
     invalid_emails =
       guardian_emails
@@ -432,7 +470,7 @@ defmodule LantternWeb.Schools.StudentFormOverlayComponent do
          gettext("Some guardian emails are invalid. Please check and try again.")
        )}
     else
-      save_student(socket, student_params, guardian_emails)
+      save_student(socket, student_params, guardian_emails, year_id)
     end
   end
 
@@ -492,7 +530,7 @@ defmodule LantternWeb.Schools.StudentFormOverlayComponent do
     |> Map.put("guardians_ids", socket.assigns.selected_guardians_ids)
   end
 
-  defp save_student(socket, student_params, guardian_emails) do
+  defp save_student(socket, student_params, guardian_emails, year_id) do
     {student_or_nil, action} =
       if socket.assigns.student.id,
         do: {socket.assigns.student, :updated},
@@ -507,19 +545,25 @@ defmodule LantternWeb.Schools.StudentFormOverlayComponent do
         guardian_emails
       )
 
-    handle_save_result(result, action, socket)
+    handle_save_result(result, action, socket, year_id)
   end
 
-  defp handle_save_result({:ok, student}, action, socket) do
+  defp handle_save_result({:ok, student}, action, socket, year_id) do
+    save_student_cycle_info(student, socket, year_id)
     notify(__MODULE__, {action, student}, socket.assigns)
     {:noreply, push_patch(socket, to: socket.assigns.close_path)}
   end
 
-  defp handle_save_result({:error, {:student, %Ecto.Changeset{} = changeset}}, _action, socket) do
+  defp handle_save_result(
+         {:error, {:student, %Ecto.Changeset{} = changeset}},
+         _action,
+         socket,
+         _year_id
+       ) do
     {:noreply, assign(socket, :form, to_form(changeset))}
   end
 
-  defp handle_save_result({:error, :guardian_accounts}, _action, socket) do
+  defp handle_save_result({:error, :guardian_accounts}, _action, socket, _year_id) do
     socket =
       assign(
         socket,
@@ -529,6 +573,43 @@ defmodule LantternWeb.Schools.StudentFormOverlayComponent do
 
     {:noreply, socket}
   end
+
+  defp save_student_cycle_info(_student, _socket, nil), do: :noop
+  defp save_student_cycle_info(_student, _socket, ""), do: :noop
+
+  defp save_student_cycle_info(student, socket, year_id) do
+    cycle_id = socket.assigns.current_cycle.id
+    profile_id = socket.assigns.current_user.current_profile_id
+
+    year_id =
+      if is_binary(year_id), do: String.to_integer(year_id), else: year_id
+
+    case socket.assigns.student_cycle_info do
+      nil ->
+        StudentsCycleInfo.create_student_cycle_info(
+          %{
+            school_id: student.school_id,
+            student_id: student.id,
+            cycle_id: cycle_id,
+            year_id: year_id
+          },
+          log_profile_id: profile_id
+        )
+
+      existing ->
+        if existing.year_id != year_id do
+          StudentsCycleInfo.update_student_cycle_info(
+            existing,
+            %{year_id: year_id},
+            log_profile_id: profile_id
+          )
+        end
+    end
+  end
+
+  defp extract_year_id(%{"year_id" => ""}), do: nil
+  defp extract_year_id(%{"year_id" => year_id}), do: year_id
+  defp extract_year_id(_), do: nil
 
   defp ensure_at_least_one_email([]), do: [""]
   defp ensure_at_least_one_email(emails), do: emails
