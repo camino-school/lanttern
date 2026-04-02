@@ -46,7 +46,11 @@ defmodule Lanttern.Identity.Scope do
 
   """
   @spec for_user(User.t() | nil) :: t() | nil
-  def for_user(%User{id: user_id, is_root_admin: is_root_admin, current_profile: %Profile{} = profile}) do
+  def for_user(%User{
+        id: user_id,
+        is_root_admin: is_root_admin,
+        current_profile: %Profile{} = profile
+      }) do
     %__MODULE__{
       user_id: user_id,
       is_root_admin: is_root_admin || false,
