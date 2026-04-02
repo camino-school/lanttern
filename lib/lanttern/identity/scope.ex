@@ -13,6 +13,7 @@ defmodule Lanttern.Identity.Scope do
 
   @type t :: %__MODULE__{
           user_id: pos_integer() | nil,
+          is_root_admin: boolean(),
           profile_id: pos_integer() | nil,
           profile_type: String.t() | nil,
           staff_member_id: pos_integer() | nil,
@@ -22,6 +23,7 @@ defmodule Lanttern.Identity.Scope do
         }
 
   defstruct user_id: nil,
+            is_root_admin: false,
             profile_id: nil,
             profile_type: nil,
             staff_member_id: nil,
@@ -44,9 +46,10 @@ defmodule Lanttern.Identity.Scope do
 
   """
   @spec for_user(User.t() | nil) :: t() | nil
-  def for_user(%User{id: user_id, current_profile: %Profile{} = profile}) do
+  def for_user(%User{id: user_id, is_root_admin: is_root_admin, current_profile: %Profile{} = profile}) do
     %__MODULE__{
       user_id: user_id,
+      is_root_admin: is_root_admin || false,
       profile_id: profile.id,
       profile_type: profile.type,
       staff_member_id: profile.staff_member_id,
@@ -56,9 +59,10 @@ defmodule Lanttern.Identity.Scope do
     }
   end
 
-  def for_user(%User{id: user_id}) do
+  def for_user(%User{id: user_id, is_root_admin: is_root_admin}) do
     %__MODULE__{
       user_id: user_id,
+      is_root_admin: is_root_admin || false,
       profile_id: nil,
       profile_type: nil,
       staff_member_id: nil,
