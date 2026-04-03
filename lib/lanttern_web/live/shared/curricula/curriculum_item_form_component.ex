@@ -73,7 +73,7 @@ defmodule LantternWeb.Curricula.CurriculumItemFormComponent do
 
   @impl true
   def update(%{curriculum_item: curriculum_item} = assigns, socket) do
-    changeset = Curricula.change_curriculum_item(curriculum_item)
+    changeset = Curricula.change_curriculum_item(socket.assigns.current_scope, curriculum_item)
 
     selected_subjects_ids =
       curriculum_item
@@ -129,7 +129,13 @@ defmodule LantternWeb.Curricula.CurriculumItemFormComponent do
   def handle_event("validate", %{"curriculum_item" => curriculum_item_params}, socket) do
     changeset =
       socket.assigns.curriculum_item
-      |> Curricula.change_curriculum_item(curriculum_item_params)
+      |> then(
+        &Curricula.change_curriculum_item(
+          socket.assigns.current_scope,
+          &1,
+          curriculum_item_params
+        )
+      )
       |> Map.put(:action, :validate)
 
     {:noreply, assign_form(socket, changeset)}
@@ -162,7 +168,7 @@ defmodule LantternWeb.Curricula.CurriculumItemFormComponent do
   end
 
   defp save_curriculum_item(socket, nil, curriculum_item_params) do
-    case Curricula.create_curriculum_item(curriculum_item_params) do
+    case Curricula.create_curriculum_item(socket.assigns.current_scope, curriculum_item_params) do
       {:ok, curriculum_item} ->
         notify_parent(__MODULE__, {:saved, curriculum_item}, socket.assigns)
 
@@ -179,7 +185,11 @@ defmodule LantternWeb.Curricula.CurriculumItemFormComponent do
   end
 
   defp save_curriculum_item(socket, _curriculum_item_id, curriculum_item_params) do
-    case Curricula.update_curriculum_item(socket.assigns.curriculum_item, curriculum_item_params) do
+    case Curricula.update_curriculum_item(
+           socket.assigns.current_scope,
+           socket.assigns.curriculum_item,
+           curriculum_item_params
+         ) do
       {:ok, curriculum_item} ->
         notify_parent(__MODULE__, {:saved, curriculum_item}, socket.assigns)
 

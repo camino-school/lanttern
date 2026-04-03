@@ -13,7 +13,6 @@
 alias Lanttern.Repo
 
 alias Lanttern.Assessments
-alias Lanttern.Curricula
 alias Lanttern.Identity
 alias Lanttern.Grading
 alias Lanttern.Schools
@@ -124,129 +123,6 @@ student_user =
 
 # then create a student profile for the created user
 Repo.insert!(%Identity.Profile{user_id: student_user.id, student_id: std_1.id, type: "student"})
-
-# ------------------------------
-# curriculum
-# ------------------------------
-
-curriculum = Repo.insert!(%Curricula.Curriculum{name: "The Curriculum"})
-
-curriculum_component =
-  Repo.insert!(%Curricula.CurriculumComponent{
-    name: "Learning Objective",
-    code: "LO",
-    curriculum_id: curriculum.id
-  })
-
-# use changeset to `put_assoc` subjects and years
-
-en_lo =
-  Curricula.CurriculumItem.changeset(%Curricula.CurriculumItem{}, %{
-    name: "English LO 1",
-    curriculum_component_id: curriculum_component.id,
-    subjects_ids: [engl.id],
-    years_ids: [g10.id]
-  })
-  |> Repo.insert!()
-
-_pt_lo =
-  Curricula.CurriculumItem.changeset(%Curricula.CurriculumItem{}, %{
-    name: "Portuguese LO 1",
-    curriculum_component_id: curriculum_component.id,
-    subjects_ids: [port.id],
-    years_ids: [g10.id]
-  })
-  |> Repo.insert!()
-
-_es_lo =
-  Curricula.CurriculumItem.changeset(%Curricula.CurriculumItem{}, %{
-    name: "Spanish LO 1",
-    curriculum_component_id: curriculum_component.id,
-    subjects_ids: [espa.id],
-    years_ids: [g10.id]
-  })
-  |> Repo.insert!()
-
-_hs_lo =
-  Curricula.CurriculumItem.changeset(%Curricula.CurriculumItem{}, %{
-    name: "Human Sciences LO 1",
-    curriculum_component_id: curriculum_component.id,
-    subjects_ids: [hsci.id],
-    years_ids: [g10.id]
-  })
-  |> Repo.insert!()
-
-_sci_lo =
-  Curricula.CurriculumItem.changeset(%Curricula.CurriculumItem{}, %{
-    name: "Science LO 1",
-    curriculum_component_id: curriculum_component.id,
-    subjects_ids: [scie.id],
-    years_ids: [g10.id]
-  })
-  |> Repo.insert!()
-
-_tech_lo =
-  Curricula.CurriculumItem.changeset(%Curricula.CurriculumItem{}, %{
-    name: "Technology LO 1",
-    curriculum_component_id: curriculum_component.id,
-    subjects_ids: [tech.id],
-    years_ids: [g10.id]
-  })
-  |> Repo.insert!()
-
-_eng_lo =
-  Curricula.CurriculumItem.changeset(%Curricula.CurriculumItem{}, %{
-    name: "Engineering LO 1",
-    curriculum_component_id: curriculum_component.id,
-    subjects_ids: [engi.id],
-    years_ids: [g10.id]
-  })
-  |> Repo.insert!()
-
-_math_lo =
-  Curricula.CurriculumItem.changeset(%Curricula.CurriculumItem{}, %{
-    name: "Math LO 1",
-    curriculum_component_id: curriculum_component.id,
-    subjects_ids: [math.id],
-    years_ids: [g10.id]
-  })
-  |> Repo.insert!()
-
-_var_lo =
-  Curricula.CurriculumItem.changeset(%Curricula.CurriculumItem{}, %{
-    name: "Visual Arts LO 1",
-    curriculum_component_id: curriculum_component.id,
-    subjects_ids: [vart.id],
-    years_ids: [g10.id]
-  })
-  |> Repo.insert!()
-
-_dra_lo =
-  Curricula.CurriculumItem.changeset(%Curricula.CurriculumItem{}, %{
-    name: "Drama LO 1",
-    curriculum_component_id: curriculum_component.id,
-    subjects_ids: [dram.id],
-    years_ids: [g10.id]
-  })
-  |> Repo.insert!()
-
-_mus_lo =
-  Curricula.CurriculumItem.changeset(%Curricula.CurriculumItem{}, %{
-    name: "Music LO 1",
-    curriculum_component_id: curriculum_component.id,
-    subjects_ids: [musi.id],
-    years_ids: [g10.id]
-  })
-  |> Repo.insert!()
-
-_mov_lo =
-  Curricula.CurriculumItem.changeset(%Curricula.CurriculumItem{}, %{
-    name: "Movement LO 1",
-    curriculum_component_id: curriculum_component.id,
-    subjects_ids: [move.id],
-    years_ids: [g10.id]
-  })
-  |> Repo.insert!()
 
 # ------------------------------
 # scales
@@ -365,7 +241,6 @@ ap_1 =
     name: "English reading",
     description: "Eius recusandae dolores voluptatem pariatur mollitia voluptatem vel porro.",
     date: DateTime.utc_now(:second),
-    curriculum_item_id: en_lo.id,
     scale_id: camino_levels_scale.id
   })
 

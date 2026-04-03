@@ -991,7 +991,6 @@ defmodule Lanttern.ReportingTest do
     import Lanttern.ReportingFixtures
 
     alias Lanttern.AssessmentsFixtures
-    alias Lanttern.CurriculaFixtures
     alias Lanttern.IdentityFixtures
     alias Lanttern.LearningContextFixtures
     alias Lanttern.RubricsFixtures
@@ -1327,7 +1326,7 @@ defmodule Lanttern.ReportingTest do
 
       # assessment points
 
-      curriculum_item = CurriculaFixtures.curriculum_item_fixture()
+      curriculum_item = insert(:curriculum_item)
       scale = insert(:scale, type: "numeric", start: 0.0, stop: 100.0)
 
       goal =
@@ -1406,7 +1405,7 @@ defmodule Lanttern.ReportingTest do
 
     test "list_moment_assessment_points_and_student_entries/2 returns all assessment points and entries for the given moment and student" do
       moment = LearningContextFixtures.moment_fixture()
-      curriculum_item = CurriculaFixtures.curriculum_item_fixture()
+      curriculum_item = insert(:curriculum_item)
 
       student = SchoolsFixtures.student_fixture()
 
@@ -1573,7 +1572,7 @@ defmodule Lanttern.ReportingTest do
 
     test "list_strand_goal_moments_and_student_entries/2 returns all moments with assessment points and entries for the given strand goal and student" do
       strand = LearningContextFixtures.strand_fixture()
-      curriculum_item = CurriculaFixtures.curriculum_item_fixture()
+      curriculum_item = insert(:curriculum_item)
 
       strand_goal =
         AssessmentsFixtures.assessment_point_fixture(%{
@@ -1757,7 +1756,6 @@ defmodule Lanttern.ReportingTest do
     import Lanttern.ReportingFixtures
 
     alias Lanttern.AssessmentsFixtures
-    alias Lanttern.CurriculaFixtures
     alias Lanttern.LearningContextFixtures
     alias Lanttern.SchoolsFixtures
     alias Lanttern.TaxonomyFixtures
@@ -2025,7 +2023,6 @@ defmodule Lanttern.ReportingTest do
   describe "extra" do
     import Lanttern.ReportingFixtures
     alias Lanttern.AssessmentsFixtures
-    alias Lanttern.CurriculaFixtures
     alias Lanttern.IdentityFixtures
     alias Lanttern.LearningContextFixtures
     alias Lanttern.SchoolsFixtures
@@ -2037,20 +2034,20 @@ defmodule Lanttern.ReportingTest do
       strand_1 = LearningContextFixtures.strand_fixture()
       strand_2 = LearningContextFixtures.strand_fixture()
 
-      cur_component_1 = CurriculaFixtures.curriculum_component_fixture()
-      cur_component_2 = CurriculaFixtures.curriculum_component_fixture()
+      cur_component_1 = insert(:curriculum_component)
+      cur_component_2 = insert(:curriculum_component)
 
       ci_1_1 =
-        CurriculaFixtures.curriculum_item_fixture(curriculum_component_id: cur_component_1.id)
+        insert(:curriculum_item, curriculum_component_id: cur_component_1.id)
 
       ci_1_2 =
-        CurriculaFixtures.curriculum_item_fixture(curriculum_component_id: cur_component_1.id)
+        insert(:curriculum_item, curriculum_component_id: cur_component_1.id)
 
       ci_2_1 =
-        CurriculaFixtures.curriculum_item_fixture(curriculum_component_id: cur_component_2.id)
+        insert(:curriculum_item, curriculum_component_id: cur_component_2.id)
 
       ci_2_2 =
-        CurriculaFixtures.curriculum_item_fixture(curriculum_component_id: cur_component_2.id)
+        insert(:curriculum_item, curriculum_component_id: cur_component_2.id)
 
       ast_point_1_1 =
         AssessmentsFixtures.assessment_point_fixture(

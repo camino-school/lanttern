@@ -117,7 +117,6 @@ defmodule LantternWeb.Router do
       live "/strands/lesson/:lesson_id/chat/:conversation_id", LessonChatLive, :show
 
       live "/curriculum", CurriculaLive, :index
-      live "/curriculum/bncc_ef", BnccEfLive, :index
       live "/curriculum/:id", CurriculumLive, :show
       live "/curriculum/component/:id", CurriculumComponentLive, :show
 
@@ -293,7 +292,6 @@ defmodule LantternWeb.Router do
 
     get "/", AdminController, :home
     post "/seed_base_taxonomy", AdminController, :seed_base_taxonomy
-    post "/seed_bncc", AdminController, :seed_bncc
 
     # Identity context
     resources "/users", UserController
@@ -304,12 +302,6 @@ defmodule LantternWeb.Router do
 
     # Assessments context
     resources "/feedback", FeedbackController
-
-    # Curricula context
-    resources "/curricula", CurriculumController
-    resources "/curriculum_components", CurriculumComponentController
-    resources "/curriculum_items", CurriculumItemController
-    resources "/curriculum_relationships", CurriculumRelationshipController
 
     # Schools context
     resources "/schools", SchoolController

@@ -6,6 +6,7 @@ defmodule Lanttern.Curricula.Curriculum do
   use Ecto.Schema
   import Ecto.Changeset
 
+  alias Lanttern.Identity.Scope
   alias Lanttern.Schools.School
 
   @type t :: %__MODULE__{
@@ -32,9 +33,10 @@ defmodule Lanttern.Curricula.Curriculum do
   end
 
   @doc false
-  def changeset(curriculum, attrs) do
+  def changeset(curriculum, attrs, %Scope{} = scope) do
     curriculum
     |> cast(attrs, [:name, :code, :description, :deactivated_at])
     |> validate_required([:name])
+    |> put_change(:school_id, scope.school_id)
   end
 end

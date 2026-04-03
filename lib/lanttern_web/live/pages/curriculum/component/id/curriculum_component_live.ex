@@ -23,7 +23,9 @@ defmodule LantternWeb.CurriculumComponentLive do
     socket =
       socket
       |> assign_new(:curriculum_component, fn ->
-        Curricula.get_curriculum_component!(params["id"], preloads: :curriculum)
+        Curricula.get_curriculum_component!(socket.assigns.current_scope, params["id"],
+          preloads: :curriculum
+        )
       end)
       |> stream_curriculum_items()
       |> assign_show_curriculum_item_form(params)
@@ -41,6 +43,7 @@ defmodule LantternWeb.CurriculumComponentLive do
   defp stream_curriculum_items(socket) do
     curriculum_items =
       Curricula.list_curriculum_items(
+        socket.assigns.current_scope,
         components_ids: [socket.assigns.curriculum_component.id],
         subjects_ids: socket.assigns.selected_subjects_ids,
         years_ids: socket.assigns.selected_years_ids
@@ -70,7 +73,9 @@ defmodule LantternWeb.CurriculumComponentLive do
     curriculum_component_id = socket.assigns.curriculum_component.id
 
     if String.match?(id, ~r/[0-9]+/) do
-      case Curricula.get_curriculum_item(id, preloads: [:subjects, :years]) do
+      case Curricula.get_curriculum_item(socket.assigns.current_scope, id,
+             preloads: [:subjects, :years]
+           ) do
         %CurriculumItem{curriculum_component_id: ^curriculum_component_id} = curriculum_item ->
           socket
           |> assign(:form_overlay_title, gettext("Edit curriculum item"))
@@ -90,7 +95,10 @@ defmodule LantternWeb.CurriculumComponentLive do
 
   @impl true
   def handle_event("delete_curriculum_item", _params, socket) do
-    case Curricula.delete_curriculum_item(socket.assigns.curriculum_item) do
+    case Curricula.delete_curriculum_item(
+           socket.assigns.current_scope,
+           socket.assigns.curriculum_item
+         ) do
       {:ok, _curriculum_item} ->
         socket =
           socket

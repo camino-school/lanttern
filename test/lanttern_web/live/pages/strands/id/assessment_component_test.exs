@@ -5,7 +5,6 @@ defmodule LantternWeb.StrandLive.AssessmentComponentTest do
   import PhoenixTest
 
   alias Lanttern.AssessmentsFixtures
-  alias Lanttern.CurriculaFixtures
 
   @live_view_base_path "/strands"
 
@@ -32,7 +31,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponentTest do
       strand = insert(:strand)
       moment = insert(:moment, strand: strand, name: "Moment One")
       scale = insert(:scale)
-      curriculum_item = CurriculaFixtures.curriculum_item_fixture()
+      curriculum_item = insert(:curriculum_item)
 
       AssessmentsFixtures.assessment_point_fixture(%{
         name: "AP name abc",
@@ -49,10 +48,10 @@ defmodule LantternWeb.StrandLive.AssessmentComponentTest do
 
     test "shows strand assessment points in goals assessment section", %{conn: conn} do
       strand = insert(:strand)
-      curriculum_component = CurriculaFixtures.curriculum_component_fixture()
+      curriculum_component = insert(:curriculum_component)
 
       curriculum_item =
-        CurriculaFixtures.curriculum_item_fixture(%{
+        insert(:curriculum_item, %{
           curriculum_component_id: curriculum_component.id,
           name: "CI name xyz"
         })
@@ -125,10 +124,10 @@ defmodule LantternWeb.StrandLive.AssessmentComponentTest do
       strand = insert(:strand)
       moment = insert(:moment, strand: strand, name: "Test Moment")
       scale = insert(:scale, school_id: school_id, name: "Test Scale")
-      curriculum_component = CurriculaFixtures.curriculum_component_fixture()
+      curriculum_component = insert(:curriculum_component)
 
       curriculum_item =
-        CurriculaFixtures.curriculum_item_fixture(%{
+        insert(:curriculum_item, %{
           curriculum_component_id: curriculum_component.id,
           name: "CI for moment AP"
         })
@@ -155,7 +154,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponentTest do
       strand = insert(:strand)
       moment = insert(:moment, strand: strand)
       scale = insert(:scale, school_id: school_id)
-      curriculum_item = CurriculaFixtures.curriculum_item_fixture()
+      curriculum_item = insert(:curriculum_item, %{school_id: school_id})
 
       AssessmentsFixtures.assessment_point_fixture(%{
         name: "Original AP name",
@@ -177,7 +176,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponentTest do
       strand = insert(:strand)
       moment = insert(:moment, strand: strand)
       scale = insert(:scale, school_id: school_id)
-      curriculum_item = CurriculaFixtures.curriculum_item_fixture()
+      curriculum_item = insert(:curriculum_item, %{school_id: school_id})
 
       AssessmentsFixtures.assessment_point_fixture(%{
         name: "AP to delete",
@@ -201,8 +200,8 @@ defmodule LantternWeb.StrandLive.AssessmentComponentTest do
       strand = insert(:strand)
       moment = insert(:moment, strand: strand)
       scale = insert(:scale)
-      curriculum_item_1 = CurriculaFixtures.curriculum_item_fixture()
-      curriculum_item_2 = CurriculaFixtures.curriculum_item_fixture()
+      curriculum_item_1 = insert(:curriculum_item)
+      curriculum_item_2 = insert(:curriculum_item)
 
       ap1 =
         AssessmentsFixtures.assessment_point_fixture(%{
@@ -254,7 +253,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponentTest do
       moment1 = insert(:moment, strand: strand)
       moment2 = insert(:moment, strand: strand)
       scale = insert(:scale)
-      curriculum_item = CurriculaFixtures.curriculum_item_fixture()
+      curriculum_item = insert(:curriculum_item)
 
       ap =
         AssessmentsFixtures.assessment_point_fixture(%{

@@ -1,7 +1,7 @@
 defmodule LantternWeb.CurriculaLiveTest do
   use LantternWeb.ConnCase
 
-  import Lanttern.CurriculaFixtures
+  import Lanttern.Factory
 
   @live_view_path "/curriculum"
 
@@ -15,9 +15,11 @@ defmodule LantternWeb.CurriculaLiveTest do
       {:ok, _view, _html} = live(conn)
     end
 
-    test "listing curricula", %{conn: conn} do
-      curriculum = curriculum_fixture(%{name: "Some curriculum AAA"})
-      curriculum_fixture(%{name: "Some curriculum BBB"})
+    test "listing curricula", %{conn: conn, staff_member: staff_member} do
+      curriculum =
+        insert(:curriculum, name: "Some curriculum AAA", school_id: staff_member.school_id)
+
+      insert(:curriculum, name: "Some curriculum BBB", school_id: staff_member.school_id)
 
       {:ok, view, _html} = live(conn, @live_view_path)
 

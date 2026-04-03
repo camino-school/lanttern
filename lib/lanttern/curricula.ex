@@ -12,6 +12,7 @@ defmodule Lanttern.Curricula do
   alias Lanttern.Curricula.CurriculumItem
   alias Lanttern.Curricula.CurriculumRelationship
 
+  alias Lanttern.Identity.Scope
   alias Lanttern.LearningContext.Moment
 
   @doc """
@@ -19,13 +20,14 @@ defmodule Lanttern.Curricula do
 
   ## Examples
 
-      iex> list_curricula()
+      iex> list_curricula(scope)
       [%Curriculum{}, ...]
 
   """
-  def list_curricula do
+  def list_curricula(%Scope{} = scope) do
     from(
       c in Curriculum,
+      where: c.school_id == ^scope.school_id,
       order_by: :name
     )
     |> Repo.all()
@@ -38,30 +40,34 @@ defmodule Lanttern.Curricula do
 
   ## Examples
 
-      iex> get_curriculum!(123)
+      iex> get_curriculum!(scope, 123)
       %Curriculum{}
 
-      iex> get_curriculum!(456)
+      iex> get_curriculum!(scope, 456)
       ** (Ecto.NoResultsError)
 
   """
-  def get_curriculum!(id), do: Repo.get!(Curriculum, id)
+  def get_curriculum!(%Scope{} = scope, id) do
+    Repo.get_by!(Curriculum, id: id, school_id: scope.school_id)
+  end
 
   @doc """
   Creates a curriculum.
 
   ## Examples
 
-      iex> create_curriculum(%{field: value})
+      iex> create_curriculum(scope, %{field: value})
       {:ok, %Curriculum{}}
 
-      iex> create_curriculum(%{field: bad_value})
+      iex> create_curriculum(scope, %{field: bad_value})
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_curriculum(attrs \\ %{}) do
+  def create_curriculum(%Scope{} = scope, attrs) do
+    true = Scope.has_permission?(scope, "curriculum_management")
+
     %Curriculum{}
-    |> Curriculum.changeset(attrs)
+    |> Curriculum.changeset(attrs, scope)
     |> Repo.insert()
   end
 
@@ -70,16 +76,19 @@ defmodule Lanttern.Curricula do
 
   ## Examples
 
-      iex> update_curriculum(curriculum, %{field: new_value})
+      iex> update_curriculum(scope, curriculum, %{field: new_value})
       {:ok, %Curriculum{}}
 
-      iex> update_curriculum(curriculum, %{field: bad_value})
+      iex> update_curriculum(scope, curriculum, %{field: bad_value})
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_curriculum(%Curriculum{} = curriculum, attrs) do
+  def update_curriculum(%Scope{} = scope, %Curriculum{} = curriculum, attrs) do
+    true = Scope.has_permission?(scope, "curriculum_management")
+    true = Scope.belongs_to_school?(scope, curriculum.school_id)
+
     curriculum
-    |> Curriculum.changeset(attrs)
+    |> Curriculum.changeset(attrs, scope)
     |> Repo.update()
   end
 
@@ -88,14 +97,17 @@ defmodule Lanttern.Curricula do
 
   ## Examples
 
-      iex> delete_curriculum(curriculum)
+      iex> delete_curriculum(scope, curriculum)
       {:ok, %Curriculum{}}
 
-      iex> delete_curriculum(curriculum)
+      iex> delete_curriculum(scope, curriculum)
       {:error, %Ecto.Changeset{}}
 
   """
-  def delete_curriculum(%Curriculum{} = curriculum) do
+  def delete_curriculum(%Scope{} = scope, %Curriculum{} = curriculum) do
+    true = Scope.has_permission?(scope, "curriculum_management")
+    true = Scope.belongs_to_school?(scope, curriculum.school_id)
+
     Repo.delete(curriculum)
   end
 
@@ -104,12 +116,12 @@ defmodule Lanttern.Curricula do
 
   ## Examples
 
-      iex> change_curriculum(curriculum)
+      iex> change_curriculum(scope, curriculum)
       %Ecto.Changeset{data: %Curriculum{}}
 
   """
-  def change_curriculum(%Curriculum{} = curriculum, attrs \\ %{}) do
-    Curriculum.changeset(curriculum, attrs)
+  def change_curriculum(%Scope{} = scope, %Curriculum{} = curriculum, attrs \\ %{}) do
+    Curriculum.changeset(curriculum, attrs, scope)
   end
 
   @doc """
@@ -124,12 +136,13 @@ defmodule Lanttern.Curricula do
 
   ## Examples
 
-      iex> list_curriculum_components()
+      iex> list_curriculum_components(scope)
       [%CurriculumComponent{}, ...]
 
   """
-  def list_curriculum_components(opts \\ []) do
+  def list_curriculum_components(%Scope{} = scope, opts \\ []) do
     from(cc in CurriculumComponent,
+      where: cc.school_id == ^scope.school_id,
       order_by: :position
     )
     |> apply_list_curriculum_components_opts(opts)
@@ -161,15 +174,15 @@ defmodule Lanttern.Curricula do
 
   ## Examples
 
-      iex> get_curriculum_component!(123)
+      iex> get_curriculum_component!(scope, 123)
       %CurriculumComponent{}
 
-      iex> get_curriculum_component!(456)
+      iex> get_curriculum_component!(scope, 456)
       ** (Ecto.NoResultsError)
 
   """
-  def get_curriculum_component!(id, opts \\ []) do
-    Repo.get!(CurriculumComponent, id)
+  def get_curriculum_component!(%Scope{} = scope, id, opts \\ []) do
+    Repo.get_by!(CurriculumComponent, id: id, school_id: scope.school_id)
     |> maybe_preload(opts)
   end
 
@@ -178,16 +191,18 @@ defmodule Lanttern.Curricula do
 
   ## Examples
 
-      iex> create_curriculum_component(%{field: value})
+      iex> create_curriculum_component(scope, %{field: value})
       {:ok, %CurriculumComponent{}}
 
-      iex> create_curriculum_component(%{field: bad_value})
+      iex> create_curriculum_component(scope, %{field: bad_value})
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_curriculum_component(attrs \\ %{}) do
+  def create_curriculum_component(%Scope{} = scope, attrs) do
+    true = Scope.has_permission?(scope, "curriculum_management")
+
     %CurriculumComponent{}
-    |> CurriculumComponent.changeset(attrs)
+    |> CurriculumComponent.changeset(attrs, scope)
     |> Repo.insert()
   end
 
@@ -196,16 +211,23 @@ defmodule Lanttern.Curricula do
 
   ## Examples
 
-      iex> update_curriculum_component(curriculum_component, %{field: new_value})
+      iex> update_curriculum_component(scope, curriculum_component, %{field: new_value})
       {:ok, %CurriculumComponent{}}
 
-      iex> update_curriculum_component(curriculum_component, %{field: bad_value})
+      iex> update_curriculum_component(scope, curriculum_component, %{field: bad_value})
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_curriculum_component(%CurriculumComponent{} = curriculum_component, attrs) do
+  def update_curriculum_component(
+        %Scope{} = scope,
+        %CurriculumComponent{} = curriculum_component,
+        attrs
+      ) do
+    true = Scope.has_permission?(scope, "curriculum_management")
+    true = Scope.belongs_to_school?(scope, curriculum_component.school_id)
+
     curriculum_component
-    |> CurriculumComponent.changeset(attrs)
+    |> CurriculumComponent.changeset(attrs, scope)
     |> Repo.update()
   end
 
@@ -214,14 +236,17 @@ defmodule Lanttern.Curricula do
 
   ## Examples
 
-      iex> delete_curriculum_component(curriculum_component)
+      iex> delete_curriculum_component(scope, curriculum_component)
       {:ok, %CurriculumComponent{}}
 
-      iex> delete_curriculum_component(curriculum_component)
+      iex> delete_curriculum_component(scope, curriculum_component)
       {:error, %Ecto.Changeset{}}
 
   """
-  def delete_curriculum_component(%CurriculumComponent{} = curriculum_component) do
+  def delete_curriculum_component(%Scope{} = scope, %CurriculumComponent{} = curriculum_component) do
+    true = Scope.has_permission?(scope, "curriculum_management")
+    true = Scope.belongs_to_school?(scope, curriculum_component.school_id)
+
     Repo.delete(curriculum_component)
   end
 
@@ -230,12 +255,16 @@ defmodule Lanttern.Curricula do
 
   ## Examples
 
-      iex> change_curriculum_component(curriculum_component)
+      iex> change_curriculum_component(scope, curriculum_component)
       %Ecto.Changeset{data: %CurriculumComponent{}}
 
   """
-  def change_curriculum_component(%CurriculumComponent{} = curriculum_component, attrs \\ %{}) do
-    CurriculumComponent.changeset(curriculum_component, attrs)
+  def change_curriculum_component(
+        %Scope{} = scope,
+        %CurriculumComponent{} = curriculum_component,
+        attrs \\ %{}
+      ) do
+    CurriculumComponent.changeset(curriculum_component, attrs, scope)
   end
 
   @doc """
@@ -264,11 +293,12 @@ defmodule Lanttern.Curricula do
   `B`, preloading in query would show only subject `B`.
 
   """
-  @spec list_curriculum_items(Keyword.t()) :: [CurriculumItem.t()]
-  def list_curriculum_items(opts \\ []) do
+  @spec list_curriculum_items(Scope.t(), Keyword.t()) :: [CurriculumItem.t()]
+  def list_curriculum_items(%Scope{} = scope, opts \\ []) do
     queryable = Keyword.get(opts, :base_query, CurriculumItem)
 
     from(ci in queryable,
+      where: ci.school_id == ^scope.school_id,
       left_join: s in assoc(ci, :subjects),
       as: :subject,
       left_join: y in assoc(ci, :years),
@@ -386,9 +416,9 @@ defmodule Lanttern.Curricula do
       [%CurriculumItem{}, ...]
 
   """
-  def search_curriculum_items(search_term, opts \\ [])
+  def search_curriculum_items(scope, search_term, opts \\ [])
 
-  def search_curriculum_items("#" <> search_term, opts) do
+  def search_curriculum_items(%Scope{} = scope, "#" <> search_term, opts) do
     if search_term =~ ~r/^[0-9]+\z/ do
       query =
         from(
@@ -396,14 +426,13 @@ defmodule Lanttern.Curricula do
           where: ci.id == ^search_term
         )
 
-      [{:base_query, query} | opts]
-      |> list_curriculum_items()
+      list_curriculum_items(scope, [{:base_query, query} | opts])
     else
-      search_curriculum_items(search_term, opts)
+      search_curriculum_items(scope, search_term, opts)
     end
   end
 
-  def search_curriculum_items("(" <> search_term, opts) do
+  def search_curriculum_items(%Scope{} = scope, "(" <> search_term, opts) do
     case Regex.run(~r/(.+)\)\z/, search_term, capture: :all_but_first) do
       [code] ->
         query =
@@ -412,15 +441,14 @@ defmodule Lanttern.Curricula do
             where: ci.code == ^code
           )
 
-        [{:base_query, query} | opts]
-        |> list_curriculum_items()
+        list_curriculum_items(scope, [{:base_query, query} | opts])
 
       _ ->
-        search_curriculum_items(search_term, opts)
+        search_curriculum_items(scope, search_term, opts)
     end
   end
 
-  def search_curriculum_items(search_term, opts) do
+  def search_curriculum_items(%Scope{} = scope, search_term, opts) do
     ilike_search_term = "%#{search_term}%"
 
     query =
@@ -430,8 +458,7 @@ defmodule Lanttern.Curricula do
         order_by: {:asc, fragment("? <<-> ?", ^search_term, ci.name)}
       )
 
-    [{:base_query, query} | opts]
-    |> list_curriculum_items()
+    list_curriculum_items(scope, [{:base_query, query} | opts])
   end
 
   @doc """
@@ -445,26 +472,26 @@ defmodule Lanttern.Curricula do
 
   ## Examples
 
-      iex> get_curriculum_item(123)
+      iex> get_curriculum_item(scope, 123)
       %CurriculumItem{}
 
-      iex> get_curriculum_item(456)
+      iex> get_curriculum_item(scope, 456)
       nil
 
   """
-  def get_curriculum_item(id, opts \\ []) do
-    Repo.get(CurriculumItem, id)
+  def get_curriculum_item(%Scope{} = scope, id, opts \\ []) do
+    Repo.get_by(CurriculumItem, id: id, school_id: scope.school_id)
     |> maybe_preload(opts)
   end
 
   @doc """
   Gets a single curriculum item.
 
-  Same as `get_curriculum_item/2`, but raises `Ecto.NoResultsError` if the Curriculum Item does not exist.
+  Same as `get_curriculum_item/3`, but raises `Ecto.NoResultsError` if the Curriculum Item does not exist.
 
   """
-  def get_curriculum_item!(id, opts \\ []) do
-    Repo.get!(CurriculumItem, id)
+  def get_curriculum_item!(%Scope{} = scope, id, opts \\ []) do
+    Repo.get_by!(CurriculumItem, id: id, school_id: scope.school_id)
     |> maybe_preload(opts)
   end
 
@@ -473,16 +500,18 @@ defmodule Lanttern.Curricula do
 
   ## Examples
 
-      iex> create_curriculum_item(%{field: value})
+      iex> create_curriculum_item(scope, %{field: value})
       {:ok, %CurriculumItem{}}
 
-      iex> create_curriculum_item(%{field: bad_value})
+      iex> create_curriculum_item(scope, %{field: bad_value})
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_curriculum_item(attrs \\ %{}) do
+  def create_curriculum_item(%Scope{} = scope, attrs) do
+    true = Scope.has_permission?(scope, "curriculum_management")
+
     %CurriculumItem{}
-    |> CurriculumItem.changeset(attrs)
+    |> CurriculumItem.changeset(attrs, scope)
     |> Repo.insert()
   end
 
@@ -491,17 +520,20 @@ defmodule Lanttern.Curricula do
 
   ## Examples
 
-      iex> update_curriculum_item(item, %{field: new_value})
+      iex> update_curriculum_item(scope, item, %{field: new_value})
       {:ok, %CurriculumItem{}}
 
-      iex> update_curriculum_item(item, %{field: bad_value})
+      iex> update_curriculum_item(scope, item, %{field: bad_value})
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_curriculum_item(%CurriculumItem{} = curriculum_item, attrs) do
+  def update_curriculum_item(%Scope{} = scope, %CurriculumItem{} = curriculum_item, attrs) do
+    true = Scope.has_permission?(scope, "curriculum_management")
+    true = Scope.belongs_to_school?(scope, curriculum_item.school_id)
+
     curriculum_item
     |> Repo.preload([:subjects, :years])
-    |> CurriculumItem.changeset(attrs)
+    |> CurriculumItem.changeset(attrs, scope)
     |> Repo.update()
   end
 
@@ -510,14 +542,17 @@ defmodule Lanttern.Curricula do
 
   ## Examples
 
-      iex> delete_curriculum_item(curriculum_item)
+      iex> delete_curriculum_item(scope, curriculum_item)
       {:ok, %CurriculumItem{}}
 
-      iex> delete_curriculum_item(curriculum_item)
+      iex> delete_curriculum_item(scope, curriculum_item)
       {:error, %Ecto.Changeset{}}
 
   """
-  def delete_curriculum_item(%CurriculumItem{} = curriculum_item) do
+  def delete_curriculum_item(%Scope{} = scope, %CurriculumItem{} = curriculum_item) do
+    true = Scope.has_permission?(scope, "curriculum_management")
+    true = Scope.belongs_to_school?(scope, curriculum_item.school_id)
+
     Repo.delete(curriculum_item)
   end
 
@@ -526,12 +561,12 @@ defmodule Lanttern.Curricula do
 
   ## Examples
 
-      iex> change_curriculum_item(curriculum_item)
+      iex> change_curriculum_item(scope, curriculum_item)
       %Ecto.Changeset{data: %CurriculumItem{}}
 
   """
-  def change_curriculum_item(%CurriculumItem{} = curriculum_item, attrs \\ %{}) do
-    CurriculumItem.changeset(curriculum_item, attrs)
+  def change_curriculum_item(%Scope{} = scope, %CurriculumItem{} = curriculum_item, attrs \\ %{}) do
+    CurriculumItem.changeset(curriculum_item, attrs, scope)
   end
 
   @doc """

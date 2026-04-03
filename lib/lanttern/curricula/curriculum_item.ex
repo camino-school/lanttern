@@ -10,6 +10,7 @@ defmodule Lanttern.Curricula.CurriculumItem do
 
   alias Lanttern.Assessments.AssessmentPoint
   alias Lanttern.Curricula.CurriculumComponent
+  alias Lanttern.Identity.Scope
   alias Lanttern.Schools.School
   alias Lanttern.Taxonomy.Subject
   alias Lanttern.Taxonomy.Year
@@ -71,10 +72,11 @@ defmodule Lanttern.Curricula.CurriculumItem do
   end
 
   @doc false
-  def changeset(curriculum_item, attrs) do
+  def changeset(curriculum_item, attrs, %Scope{} = scope) do
     curriculum_item
     |> cast(attrs, [:name, :code, :curriculum_component_id, :subjects_ids, :years_ids])
-    |> validate_required([:name, :curriculum_component_id])
+    |> put_change(:school_id, scope.school_id)
+    |> validate_required([:name, :curriculum_component_id, :school_id])
     |> put_subjects()
     |> put_years()
   end

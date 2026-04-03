@@ -7,7 +7,7 @@ defmodule LantternWeb.CurriculaLive do
   def mount(_params, _session, socket) do
     socket =
       socket
-      |> stream(:curricula, Curricula.list_curricula())
+      |> stream(:curricula, Curricula.list_curricula(socket.assigns.current_scope))
       |> assign(:page_title, gettext("Curriculum"))
 
     {:ok, socket}
