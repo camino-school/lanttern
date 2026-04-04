@@ -161,6 +161,9 @@ defmodule LantternWeb.Router do
 
       live "/settings/grading_scales", GradingScalesLive, :index
       live "/settings/grading_scales/:id", GradingScalesLive, :show
+
+      live "/settings/curricula", CurriculaSettingsLive, :index
+      live "/settings/curricula/:id", CurriculaSettingsLive, :show
     end
 
     live_session :authenticated_guardian,

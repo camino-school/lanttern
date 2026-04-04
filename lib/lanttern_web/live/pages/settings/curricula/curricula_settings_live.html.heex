@@ -1,0 +1,80 @@
+<Layouts.app_settings flash={@flash} current_user={@current_user} current_path={@current_path}>
+  <div class="flex items-center justify-end gap-4 mb-10">
+    <.button
+      type="button"
+      icon_name="hero-plus-mini"
+      theme="primary"
+      phx-click="new_curriculum"
+    >
+      {gettext("New curriculum")}
+    </.button>
+  </div>
+  <%= if @curricula_ids != [] do %>
+    <%!-- Active curricula --%>
+    <div id="curricula-list" class="space-y-4">
+      <.live_component
+        :for={curriculum <- @active_curricula}
+        module={CurriculumCardComponent}
+        id={"curricula-#{curriculum.id}"}
+        curriculum={curriculum}
+        selected_curriculum_id={@selected_curriculum_id}
+        disabled={false}
+      />
+    </div>
+
+    <%!-- Deactivated curricula --%>
+    <div :if={@deactivated_curricula != []} class="mt-10 space-y-4">
+      <h3 class="text-lg font-display font-bold">{gettext("Deactivated curricula")}</h3>
+      <.live_component
+        :for={curriculum <- @deactivated_curricula}
+        module={CurriculumCardComponent}
+        id={"curricula-#{curriculum.id}"}
+        curriculum={curriculum}
+        selected_curriculum_id={@selected_curriculum_id}
+        disabled={true}
+      />
+    </div>
+  <% else %>
+    <div class="p-10">
+      <.empty_state>{gettext("No curricula created yet")}</.empty_state>
+    </div>
+  <% end %>
+</Layouts.app_settings>
+
+<.modal
+  :if={@curriculum}
+  id="curriculum-form-modal"
+  show
+  on_cancel={JS.push("close_curriculum_form")}
+>
+  <:title>
+    {if @curriculum.id, do: gettext("Edit curriculum"), else: gettext("New curriculum")}
+  </:title>
+  <.live_component
+    module={CurriculumFormComponent}
+    id="curriculum-form"
+    curriculum={@curriculum}
+    current_scope={@current_scope}
+    navigate={fn {_action, curriculum} -> ~p"/settings/curricula/#{curriculum}" end}
+    on_cancel={JS.exec("data-cancel", to: "#curriculum-form-modal")}
+  />
+</.modal>
+
+<.modal
+  :if={@curriculum_component}
+  id="curriculum-component-form-modal"
+  show
+  on_cancel={JS.push("close_curriculum_component_form")}
+>
+  <:title>
+    {if @curriculum_component.id, do: gettext("Edit component"), else: gettext("New component")}
+  </:title>
+  <.live_component
+    module={CurriculumComponentFormComponent}
+    id="curriculum-component-form"
+    curriculum_component={@curriculum_component}
+    current_scope={@current_scope}
+    on_cancel={JS.exec("data-cancel", to: "#curriculum-component-form-modal")}
+    notify_parent
+  />
+</.modal>

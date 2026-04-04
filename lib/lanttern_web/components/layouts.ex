@@ -124,7 +124,7 @@ defmodule LantternWeb.Layouts do
       class="group/sidenav h-screen max-sm:pl-0 pl-70 [&.sidenav-collapsed]:pl-0 transition-[padding] duration-300"
     >
       <.settings_side_nav id={@side_nav_id} current_path={@current_path} collapsible={@collapsible}>
-        <:group title={gettext("AI Settings")}>
+        <:group title={gettext("AI")}>
           <.settings_nav_link navigate={~p"/settings/school_ai_config"} current_path={@current_path}>
             {gettext("School AI Config")}
           </.settings_nav_link>
@@ -132,7 +132,7 @@ defmodule LantternWeb.Layouts do
             {gettext("AI Agents")}
           </.settings_nav_link>
         </:group>
-        <:group title={gettext("Content Settings")}>
+        <:group title={gettext("Content")}>
           <.settings_nav_link navigate={~p"/settings/lesson_templates"} current_path={@current_path}>
             {gettext("Lesson Templates")}
           </.settings_nav_link>
@@ -140,9 +140,14 @@ defmodule LantternWeb.Layouts do
             {gettext("Lesson Tags")}
           </.settings_nav_link>
         </:group>
-        <:group title={gettext("Scale Settings")}>
+        <:group title={gettext("Scales")}>
           <.settings_nav_link navigate={~p"/settings/grading_scales"} current_path={@current_path}>
             {gettext("Manage Scales")}
+          </.settings_nav_link>
+        </:group>
+        <:group title={gettext("Curriculum")}>
+          <.settings_nav_link navigate={~p"/settings/curricula"} current_path={@current_path}>
+            {gettext("Manage Curricula")}
           </.settings_nav_link>
         </:group>
       </.settings_side_nav>

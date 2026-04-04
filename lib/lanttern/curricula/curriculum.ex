@@ -6,6 +6,7 @@ defmodule Lanttern.Curricula.Curriculum do
   use Ecto.Schema
   import Ecto.Changeset
 
+  alias Lanttern.Curricula.CurriculumComponent
   alias Lanttern.Identity.Scope
   alias Lanttern.Schools.School
 
@@ -16,6 +17,7 @@ defmodule Lanttern.Curricula.Curriculum do
           description: String.t() | nil,
           school: School.t() | Ecto.Association.NotLoaded.t(),
           school_id: pos_integer() | nil,
+          curriculum_components: [CurriculumComponent.t()] | Ecto.Association.NotLoaded.t(),
           deactivated_at: DateTime.t() | nil,
           inserted_at: DateTime.t(),
           updated_at: DateTime.t()
@@ -28,6 +30,7 @@ defmodule Lanttern.Curricula.Curriculum do
     field :deactivated_at, :utc_datetime
 
     belongs_to :school, School
+    has_many :curriculum_components, CurriculumComponent
 
     timestamps()
   end
@@ -38,5 +41,17 @@ defmodule Lanttern.Curricula.Curriculum do
     |> cast(attrs, [:name, :code, :description, :deactivated_at])
     |> validate_required([:name])
     |> put_change(:school_id, scope.school_id)
+  end
+
+  def activate_changeset(curriculum) do
+    curriculum
+    |> cast(%{}, [])
+    |> put_change(:deactivated_at, nil)
+  end
+
+  def deactivate_changeset(curriculum) do
+    curriculum
+    |> cast(%{}, [])
+    |> put_change(:deactivated_at, DateTime.utc_now(:second))
   end
 end

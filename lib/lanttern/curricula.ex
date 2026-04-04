@@ -24,13 +24,14 @@ defmodule Lanttern.Curricula do
       [%Curriculum{}, ...]
 
   """
-  def list_curricula(%Scope{} = scope) do
+  def list_curricula(%Scope{} = scope, opts \\ []) do
     from(
       c in Curriculum,
       where: c.school_id == ^scope.school_id,
       order_by: :name
     )
     |> Repo.all()
+    |> maybe_preload(opts)
   end
 
   @doc """
@@ -125,6 +126,34 @@ defmodule Lanttern.Curricula do
   end
 
   @doc """
+  Activates a curriculum by clearing `deactivated_at`.
+  """
+  def activate_curriculum(
+        %Scope{school_id: school_id} = scope,
+        %Curriculum{school_id: school_id} = curriculum
+      ) do
+    true = Scope.has_permission?(scope, "curriculum_management")
+
+    curriculum
+    |> Curriculum.activate_changeset()
+    |> Repo.update()
+  end
+
+  @doc """
+  Deactivates a curriculum by setting `deactivated_at` to the current time.
+  """
+  def deactivate_curriculum(
+        %Scope{school_id: school_id} = scope,
+        %Curriculum{school_id: school_id} = curriculum
+      ) do
+    true = Scope.has_permission?(scope, "curriculum_management")
+
+    curriculum
+    |> Curriculum.deactivate_changeset()
+    |> Repo.update()
+  end
+
+  @doc """
   Returns the list of curriculum_components.
 
   Ordered by position.
@@ -201,6 +230,16 @@ defmodule Lanttern.Curricula do
   def create_curriculum_component(%Scope{} = scope, attrs) do
     true = Scope.has_permission?(scope, "curriculum_management")
 
+    curriculum_id = attrs["curriculum_id"] || attrs[:curriculum_id]
+
+    attrs =
+      if is_nil(curriculum_id) do
+        attrs
+      else
+        from(cc in CurriculumComponent, where: cc.curriculum_id == ^curriculum_id)
+        |> set_position_in_attrs(attrs)
+      end
+
     %CurriculumComponent{}
     |> CurriculumComponent.changeset(attrs, scope)
     |> Repo.insert()
@@ -248,6 +287,14 @@ defmodule Lanttern.Curricula do
     true = Scope.belongs_to_school?(scope, curriculum_component.school_id)
 
     Repo.delete(curriculum_component)
+  end
+
+  @doc """
+  Updates positions of curriculum components based on the given ordered list of ids.
+  """
+  def update_curriculum_component_positions(%Scope{} = scope, ids) do
+    true = Scope.has_permission?(scope, "curriculum_management")
+    update_positions(CurriculumComponent, ids)
   end
 
   @doc """
