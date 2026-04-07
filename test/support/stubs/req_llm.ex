@@ -15,4 +15,15 @@ defmodule Lanttern.ReqLLMStub do
        }
      }}
   end
+
+  def generate_object(_model, _prompt, _schema) do
+    {:ok,
+     %ReqLLM.Response{
+       id: "stub-id",
+       model: "stub-model",
+       context: ReqLLM.Context.new([]),
+       message: ReqLLM.Context.assistant(""),
+       object: %{"title" => "Stub Title"}
+     }}
+  end
 end

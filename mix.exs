@@ -96,7 +96,6 @@ defmodule Lanttern.MixProject do
       {:usage_rules, "~> 0.1", only: [:dev]},
       {:igniter, "~> 0.6", only: [:dev]},
       {:html_sanitize_ex, "~> 1.4"},
-      {:langchain, "0.4.0"},
       {:req_llm, "~> 1.6"},
       {:llm_db, "~> 2026.3.1"}
     ]

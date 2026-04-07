@@ -1,12 +1,12 @@
 defmodule Lanttern.ChatResponseWorker do
   @moduledoc """
-  Oban worker that processes LLM chain requests for agent chat conversations.
+  Oban worker that processes LLM requests for agent chat conversations.
 
   This worker handles the complete lifecycle of generating an AI response:
 
   1. **Message retrieval** - Fetches the conversation with all existing messages
   2. **Options building** - Constructs chain options from job args (e.g., `agent_id`, `lesson_template_id`)
-  3. **LLM execution** - Runs the LangChain with the configured model and options
+  3. **LLM execution** - Runs the LLM with the configured model and options
   4. **Data persistence** - Saves the assistant's response as a new conversation message
   5. **UI notification** - Broadcasts updates via PubSub so connected LiveViews can update
 
@@ -30,10 +30,8 @@ defmodule Lanttern.ChatResponseWorker do
 
   use Oban.Worker, queue: :ai, max_attempts: 3, unique: true
 
-  alias LangChain.ChatModels.ChatOpenAI
-  alias LangChain.Message.ContentPart
-
   alias Lanttern.AgentChat
+  alias Lanttern.AgentChat.LLMResult
   alias Lanttern.Identity
   alias Lanttern.Identity.Scope
   alias Lanttern.SchoolConfig
@@ -54,23 +52,24 @@ defmodule Lanttern.ChatResponseWorker do
 
     model = resolve_model(args, scope)
 
-    llm = ChatOpenAI.new!(%{model: model, stream: false})
-
     conversation = AgentChat.get_conversation(scope, conversation_id)
     messages = AgentChat.list_conversation_messages(scope, conversation)
 
-    with {:ok, updated_chain} <- AgentChat.run_llm_chain(scope, messages, llm, opts),
-         {content, usage_attrs} <-
-           extract_content_and_usage_attrs_from_chain(updated_chain, model),
+    with {:ok, %LLMResult{} = result} <- AgentChat.run_llm_chain(scope, messages, model, opts),
+         usage_attrs = %{
+           prompt_tokens: result.usage.input_tokens,
+           completion_tokens: result.usage.output_tokens,
+           model: model
+         },
          {:ok, %{message: assistant_message}} <-
-           AgentChat.add_assistant_message(conversation_id, content, usage_attrs) do
+           AgentChat.add_assistant_message(conversation_id, result.text, usage_attrs) do
       AgentChat.mark_conversation_idle(scope, conversation)
 
       # notify UIs
       AgentChat.broadcast_conversation(conversation_id, {:message_added, assistant_message})
 
       # Trigger rename for unnamed conversations
-      rename_conversation(scope, conversation, updated_chain)
+      rename_conversation(scope, conversation, result, model)
 
       :ok
     else
@@ -130,37 +129,11 @@ defmodule Lanttern.ChatResponseWorker do
     end
   end
 
-  defp extract_content_and_usage_attrs_from_chain(chain, model) do
-    # Get the last message content (assistant response)
-    content = ContentPart.content_to_string(chain.last_message.content)
+  defp rename_conversation(_scope, %{name: name}, _result, _model) when is_binary(name), do: :ok
 
-    # Aggregate token usage from all assistant messages exchanged during this run.
-    # A single user prompt may trigger multiple LLM calls (tool calls, retries),
-    # each with its own token usage.
-    {total_input, total_output} =
-      chain.exchanged_messages
-      |> Enum.filter(&(&1.role == :assistant))
-      |> Enum.reduce({0, 0}, fn message, {input_acc, output_acc} ->
-        usage = Map.get(message.metadata || %{}, :usage, %{})
-        input = Map.get(usage, :input, 0)
-        output = Map.get(usage, :output, 0)
-        {input_acc + input, output_acc + output}
-      end)
-
-    usage_attrs = %{
-      prompt_tokens: total_input,
-      completion_tokens: total_output,
-      model: model
-    }
-
-    {content, usage_attrs}
-  end
-
-  defp rename_conversation(_scope, %{name: name}, _chain) when is_binary(name), do: :ok
-
-  defp rename_conversation(scope, conversation, chain) do
+  defp rename_conversation(scope, conversation, result, model) do
     with {:ok, updated_conversation} <-
-           AgentChat.rename_conversation_based_on_chain(scope, conversation, chain) do
+           AgentChat.rename_conversation_from_result(scope, conversation, result, model) do
       # notify UIs
       AgentChat.broadcast_conversation(
         conversation.id,

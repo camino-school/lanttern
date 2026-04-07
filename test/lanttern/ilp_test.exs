@@ -943,6 +943,25 @@ defmodule Lanttern.ILPTest do
         assert student_ilp_log.ai_revision == student_ilp.ai_revision
       end)
     end
+
+    test "revise_student_ilp/5 propagates error when ReqLLM returns error" do
+      template =
+        ilp_template_fixture(%{ai_layer: %{revision_instructions: "some revision instructions"}})
+        |> Repo.preload(sections: :components)
+
+      student_ilp =
+        student_ilp_fixture(%{school_id: template.school_id, template_id: template.id})
+        |> Repo.preload(:entries)
+
+      assert {:error, "API error"} =
+               ILP.revise_student_ilp(
+                 student_ilp,
+                 template,
+                 10,
+                 [],
+                 Lanttern.ReqLLMErrorStub
+               )
+    end
   end
 
   describe "ilp_comments" do

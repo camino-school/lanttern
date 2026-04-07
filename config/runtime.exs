@@ -94,10 +94,6 @@ if config_env() == :prod do
 
   config :lanttern, LantternWeb.UserAuth, google_client_id: google_client_id
 
-  # LangChain config
-  config :langchain, openai_key: System.get_env("OPENAI_API_KEY")
-  config :langchain, openai_org_id: System.get_env("OPENAI_ORG_ID")
-
   # Upload config
   default_profile_picture_accept = ".jpg .jpeg .png .webp"
   default_profile_picture_size = "3000000"
