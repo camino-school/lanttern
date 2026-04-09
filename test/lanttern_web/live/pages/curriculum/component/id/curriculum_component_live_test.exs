@@ -56,9 +56,15 @@ defmodule LantternWeb.CurriculumComponentLiveTest do
       )
 
       {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{curriculum_component.id}")
+      react = LiveReact.Test.get_react(view)
 
-      assert view |> has_element?("div", "item AAA")
-      assert view |> has_element?("div", "item BBB")
+      assert react.component == "CurriculumTable"
+
+      curriculum_items_in_props =
+        react.props["curriculumItems"]
+        |> Enum.map(& &1["name"])
+
+      assert Enum.all?(["item AAA", "item BBB"], &(&1 in curriculum_items_in_props))
     end
   end
 end

@@ -73,7 +73,7 @@ defmodule LantternWeb.Curricula.CurriculumItemFormComponent do
 
   @impl true
   def update(%{curriculum_item: curriculum_item} = assigns, socket) do
-    changeset = Curricula.change_curriculum_item(socket.assigns.current_scope, curriculum_item)
+    changeset = Curricula.change_curriculum_item(assigns.current_scope, curriculum_item)
 
     selected_subjects_ids =
       curriculum_item

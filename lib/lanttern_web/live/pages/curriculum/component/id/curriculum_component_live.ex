@@ -15,7 +15,7 @@ defmodule LantternWeb.CurriculumComponentLive do
       socket
       |> assign_user_filters([:subjects, :years])
 
-    {:ok, socket}
+    {:ok, socket, temporary_assigns: [curriculum_items: []]}
   end
 
   @impl true
@@ -27,7 +27,7 @@ defmodule LantternWeb.CurriculumComponentLive do
           preloads: :curriculum
         )
       end)
-      |> stream_curriculum_items()
+      |> assign_curriculum_items()
       |> assign_show_curriculum_item_form(params)
 
     component = socket.assigns.curriculum_component
@@ -40,7 +40,7 @@ defmodule LantternWeb.CurriculumComponentLive do
     {:noreply, socket}
   end
 
-  defp stream_curriculum_items(socket) do
+  defp assign_curriculum_items(socket) do
     curriculum_items =
       Curricula.list_curriculum_items(
         socket.assigns.current_scope,
@@ -48,13 +48,10 @@ defmodule LantternWeb.CurriculumComponentLive do
         subjects_ids: socket.assigns.selected_subjects_ids,
         years_ids: socket.assigns.selected_years_ids
       )
+      |> Enum.map(&Map.take(&1, [:id, :code, :name, :subjects, :years]))
 
     socket
-    |> stream(
-      :curriculum_items,
-      curriculum_items,
-      reset: true
-    )
+    |> assign(:curriculum_items, curriculum_items)
     |> assign(:curriculum_items_count, length(curriculum_items))
   end
 
@@ -94,6 +91,13 @@ defmodule LantternWeb.CurriculumComponentLive do
     do: assign(socket, :show_curriculum_item_form, false)
 
   @impl true
+  def handle_event("edit_curriculum_item", %{"id" => id}, socket) do
+    patch =
+      ~p"/curriculum/component/#{socket.assigns.curriculum_component}?is_editing_curriculum_item=#{id}"
+
+    {:noreply, push_patch(socket, to: patch)}
+  end
+
   def handle_event("delete_curriculum_item", _params, socket) do
     case Curricula.delete_curriculum_item(
            socket.assigns.current_scope,
