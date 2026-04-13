@@ -356,6 +356,46 @@ defmodule Lanttern.ChatResponseWorkerTest do
       assert model_call.prompt_tokens == 0
       assert model_call.completion_tokens == 0
     end
+
+    test "silently skips rename when generate_object fails, keeping the message",
+         %{user: user, conversation: conversation} do
+      AgentChat.subscribe_conversation(conversation.id)
+
+      Mimic.expect(Lanttern.LLM, :generate_text_with_tools, fn _model, _messages, _tools ->
+        {:ok,
+         %LLM.Response{
+           text: "Answer.",
+           usage: %{input_tokens: 1, output_tokens: 2},
+           messages: [
+             %{role: :user, content: "What is the capital of France?"},
+             %{role: :assistant, content: "Answer."}
+           ]
+         }}
+      end)
+
+      Mimic.expect(Lanttern.LLM, :generate_object, fn _model, _prompt, _schema ->
+        {:error, "rename API failed"}
+      end)
+
+      args = %{
+        "user_id" => user.id,
+        "conversation_id" => conversation.id,
+        "model" => "gpt-4o"
+      }
+
+      # Oban job succeeds — rename failure must not fail the job.
+      assert :ok = perform_job(ChatResponseWorker, args)
+
+      # Assistant message was persisted and broadcast.
+      assert_receive {:conversation, {:message_added, %Message{content: "Answer."}}}
+
+      # Rename broadcast must NOT happen.
+      refute_receive {:conversation, {:conversation_renamed, _}}, 100
+
+      # Conversation name stays nil (worker setup creates it with name: nil).
+      reloaded = Repo.get!(Conversation, conversation.id)
+      assert is_nil(reloaded.name)
+    end
   end
 
   describe "model resolution" do

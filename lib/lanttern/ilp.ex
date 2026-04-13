@@ -815,16 +815,18 @@ defmodule Lanttern.ILP do
       fn section, acc ->
         section_components =
           Enum.flat_map(section.components, fn component ->
-            case component_entry_map[component.id] do
-              nil -> []
-              entry -> ["###{component.name}\n#{entry.description}"]
-            end
+            component_entry_line(component, Map.get(component_entry_map, component.id))
           end)
 
         acc <> "##{section.name}\n" <> Enum.join(section_components, "\n") <> "\n"
       end
     )
   end
+
+  defp component_entry_line(_component, nil), do: []
+
+  defp component_entry_line(component, entry),
+    do: ["###{component.name}\n#{entry.description}"]
 
   alias Lanttern.ILP.ILPComment
 

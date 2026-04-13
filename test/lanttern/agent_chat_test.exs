@@ -1039,6 +1039,11 @@ defmodule Lanttern.AgentChatTest do
         assert :description in param_names
         assert :teacher_notes in param_names
         assert :differentiation_notes in param_names
+        assert :name in param_names
+
+        # On update the lesson already has a name, so the LLM must be allowed
+        # to omit it. `required: true` here would force pointless rewrites.
+        refute Keyword.get(tool.parameter_schema, :name)[:required] == true
 
         build_generate_text_with_tools_response(msgs)
       end)
@@ -1047,6 +1052,57 @@ defmodule Lanttern.AgentChatTest do
                AgentChat.run_llm_chain(scope, messages, "gpt-4",
                  lesson_id: lesson.id,
                  enabled_functions: ["update_lesson"],
+                 llm_module: Lanttern.LLM
+               )
+    end
+
+    test "create_lesson tool marks :name as required", %{
+      scope: scope,
+      messages: messages
+    } do
+      strand = insert(:strand)
+      insert(:moment, strand: strand, name: "Week 1", position: 1)
+
+      Mimic.expect(Lanttern.LLM, :generate_text_with_tools, fn _model, msgs, tools ->
+        [tool] = tools
+        assert tool.name == "create_lesson"
+        assert Keyword.get(tool.parameter_schema, :name)[:required] == true
+
+        build_generate_text_with_tools_response(msgs)
+      end)
+
+      assert {:ok, %LLM.Response{}} =
+               AgentChat.run_llm_chain(scope, messages, "gpt-4",
+                 strand_id: strand.id,
+                 enabled_functions: ["create_lesson"],
+                 llm_module: Lanttern.LLM
+               )
+    end
+
+    test "create_lesson tool surfaces changeset errors without raising", %{
+      scope: scope,
+      messages: messages
+    } do
+      strand = insert(:strand)
+      insert(:moment, strand: strand, name: "Week 1", position: 1)
+
+      Mimic.expect(Lanttern.LLM, :generate_text_with_tools, fn _model, msgs, tools ->
+        [tool] = tools
+
+        # Force a failed changeset by omitting required :name — must return an
+        # {:error, "ERROR: ..."} tuple, not crash.
+        assert {:error, "ERROR: " <> reason} =
+                 tool.callback.(%{description: "no name provided"})
+
+        assert reason =~ "name"
+
+        build_generate_text_with_tools_response(msgs)
+      end)
+
+      assert {:ok, %LLM.Response{}} =
+               AgentChat.run_llm_chain(scope, messages, "gpt-4",
+                 strand_id: strand.id,
+                 enabled_functions: ["create_lesson"],
                  llm_module: Lanttern.LLM
                )
     end
@@ -1318,8 +1374,8 @@ defmodule Lanttern.AgentChatTest do
       scope: scope,
       messages: messages
     } do
-      strand = strand_fixture(%{name: "Test Strand"})
-      moment_fixture(%{strand_id: strand.id, name: "Week 1", position: 1})
+      strand = insert(:strand, name: "Test Strand")
+      insert(:moment, strand: strand, name: "Week 1", position: 1)
 
       Mimic.expect(Lanttern.LLM, :generate_text_with_tools, fn _model, msgs, tools ->
         assert length(tools) == 1
@@ -1347,9 +1403,9 @@ defmodule Lanttern.AgentChatTest do
       scope: scope,
       messages: messages
     } do
-      subject = subject_fixture(%{name: "Science"})
-      strand = strand_fixture(%{subjects_ids: [subject.id]})
-      moment = moment_fixture(%{strand_id: strand.id, name: "Week 1", position: 1})
+      subject = insert(:subject, name: "Science")
+      strand = insert(:strand, subjects: [subject])
+      moment = insert(:moment, strand: strand, name: "Week 1", position: 1)
 
       # The wrapper handles the tool loop internally, so we mock generate_text_with_tools
       # to simulate the tool being called and the lesson being created
@@ -1529,17 +1585,17 @@ defmodule Lanttern.AgentChatTest do
       scope: scope,
       messages: messages
     } do
-      subject = subject_fixture(%{name: "Art"})
-      year = year_fixture(%{name: "Year 3"})
+      subject = insert(:subject, name: "Art")
+      year = insert(:year, name: "Year 3")
 
       strand =
-        strand_fixture(%{
+        insert(:strand,
           name: "Creative Arts",
-          subjects_ids: [subject.id],
-          years_ids: [year.id]
-        })
+          subjects: [subject],
+          years: [year]
+        )
 
-      moment_fixture(%{strand_id: strand.id, name: "Intro", position: 1})
+      insert(:moment, strand: strand, name: "Intro", position: 1)
 
       Mimic.expect(Lanttern.LLM, :generate_text_with_tools, fn _model, msgs, _tools ->
         system_text = extract_system_text(msgs)
@@ -1564,8 +1620,8 @@ defmodule Lanttern.AgentChatTest do
       scope: scope,
       messages: messages
     } do
-      strand = strand_fixture()
-      moment_fixture(%{strand_id: strand.id, name: "Week 1", position: 1})
+      strand = insert(:strand)
+      insert(:moment, strand: strand, name: "Week 1", position: 1)
 
       Mimic.expect(Lanttern.LLM, :generate_text_with_tools, fn _model, msgs, _tools ->
         system_text = extract_system_text(msgs)
@@ -1588,8 +1644,8 @@ defmodule Lanttern.AgentChatTest do
       scope: scope,
       messages: messages
     } do
-      strand = strand_fixture()
-      _moment = moment_fixture(%{strand_id: strand.id, name: "Week 1", position: 1})
+      strand = insert(:strand)
+      _moment = insert(:moment, strand: strand, name: "Week 1", position: 1)
 
       # The tool loop is now inside Lanttern.LLM, so we mock it to return the error directly
       Mimic.expect(Lanttern.LLM, :generate_text_with_tools, fn _model, _msgs, _tools ->

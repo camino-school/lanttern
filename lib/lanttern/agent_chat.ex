@@ -656,7 +656,7 @@ defmodule Lanttern.AgentChat do
       LLM.tool(
         "create_lesson",
         "Create a lesson in the current strand",
-        lesson_tool_params(),
+        create_lesson_tool_params(),
         fn args ->
           args = Map.put(args, :strand_id, strand_id)
 
@@ -681,7 +681,7 @@ defmodule Lanttern.AgentChat do
       LLM.tool(
         "update_lesson",
         "Update the current lesson description and/or teacher notes and/or diff notes",
-        lesson_tool_params(),
+        update_lesson_tool_params(),
         fn args ->
           lesson = Lessons.get_lesson!(lesson_id)
 
@@ -700,9 +700,23 @@ defmodule Lanttern.AgentChat do
 
   defp maybe_add_update_lesson_tool(tools, _, _, _), do: tools
 
-  defp lesson_tool_params do
+  # `name` is required on create because the `Lesson` changeset validates it.
+  # Keeping it optional here would let the LLM skip it and trigger avoidable
+  # "name: can't be blank" failures that cost a retry round.
+  defp create_lesson_tool_params do
+    [name: [type: :string, required: true, doc: "The lesson name/title"]] ++
+      shared_lesson_tool_params()
+  end
+
+  # On update the existing `Lesson` already has a name, so omitting it is
+  # intentional — the LLM can tweak just description/notes without rewriting
+  # the title.
+  defp update_lesson_tool_params do
+    [name: [type: :string, doc: "The lesson name/title"]] ++ shared_lesson_tool_params()
+  end
+
+  defp shared_lesson_tool_params do
     [
-      name: [type: :string, doc: "The lesson name/title"],
       moment_id: [type: :integer, doc: "The moment in which the lesson will be attached to"],
       subjects_ids: [
         type: {:list, :integer},
@@ -727,12 +741,23 @@ defmodule Lanttern.AgentChat do
   defp changeset_error_to_string(changeset) do
     Ecto.Changeset.traverse_errors(changeset, fn {msg, opts} ->
       Regex.replace(~r"%{(\w+)}", msg, fn _, key ->
-        opts |> Keyword.get(String.to_existing_atom(key), key) |> to_string()
+        opts |> Keyword.get(safe_to_existing_atom(key), key) |> to_string()
       end)
     end)
     |> Enum.map_join("; ", fn {field, errors} ->
       "#{field}: #{Enum.join(errors, ", ")}"
     end)
+  end
+
+  # `String.to_existing_atom/1` raises when the key has never been loaded into
+  # the atom table. That can happen for placeholders coming from gettext
+  # translations or from libraries that are lazily loaded. In that case we
+  # return a value guaranteed not to match any key in `opts` so the lookup
+  # falls back to the raw placeholder string.
+  defp safe_to_existing_atom(key) do
+    String.to_existing_atom(key)
+  rescue
+    ArgumentError -> :__unknown_changeset_placeholder__
   end
 
   @doc """

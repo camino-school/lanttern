@@ -906,16 +906,21 @@ defmodule Lanttern.ILPTest do
     end
 
     test "revise_student_ilp/5 returns the revised student ILP" do
-      template =
-        ilp_template_fixture(%{ai_layer: %{revision_instructions: "some revision instructions"}})
-        |> Repo.preload(sections: :components)
+      template = insert(:ilp_template)
+
+      insert(:ilp_template_ai_layer,
+        template: template,
+        revision_instructions: "some revision instructions"
+      )
+
+      template = Repo.preload(template, [:ai_layer, sections: :components])
 
       student_ilp =
-        student_ilp_fixture(%{school_id: template.school_id, template_id: template.id})
+        insert(:student_ilp, school: template.school, template: template)
         |> Repo.preload(:entries)
 
       # profile to test log
-      profile = Lanttern.IdentityFixtures.staff_member_profile_fixture()
+      profile = insert(:profile)
 
       {:ok, %StudentILP{} = student_ilp} =
         ILP.revise_student_ilp(
@@ -944,13 +949,42 @@ defmodule Lanttern.ILPTest do
       end)
     end
 
+    test "revise_student_ilp/5 skips components that have no matching entry (no crash)" do
+      template = insert(:ilp_template)
+
+      insert(:ilp_template_ai_layer,
+        template: template,
+        revision_instructions: "some revision instructions"
+      )
+
+      section = insert(:ilp_section, template: template)
+      _c1 = insert(:ilp_component, section: section, template: template)
+      _c2 = insert(:ilp_component, section: section, template: template)
+
+      template = Repo.preload(template, [:ai_layer, sections: :components])
+
+      # student_ilp with no entries — every component.id will miss in the
+      # entry lookup. Before the flat_map fix this raised on `nil.description`.
+      student_ilp =
+        insert(:student_ilp, school: template.school, template: template)
+        |> Repo.preload(:entries)
+
+      assert {:ok, %StudentILP{ai_revision: "This is a stub response."}} =
+               ILP.revise_student_ilp(student_ilp, template, 10, [], Lanttern.LLMStub)
+    end
+
     test "revise_student_ilp/5 propagates error when LLM returns error" do
-      template =
-        ilp_template_fixture(%{ai_layer: %{revision_instructions: "some revision instructions"}})
-        |> Repo.preload(sections: :components)
+      template = insert(:ilp_template)
+
+      insert(:ilp_template_ai_layer,
+        template: template,
+        revision_instructions: "some revision instructions"
+      )
+
+      template = Repo.preload(template, [:ai_layer, sections: :components])
 
       student_ilp =
-        student_ilp_fixture(%{school_id: template.school_id, template_id: template.id})
+        insert(:student_ilp, school: template.school, template: template)
         |> Repo.preload(:entries)
 
       assert {:error, "API error"} =

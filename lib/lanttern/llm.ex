@@ -30,9 +30,29 @@ defmodule Lanttern.LLM do
       {:ok, response} = Lanttern.LLM.generate_object("gpt-4o", prompt, schema)
       response.object
 
-  All functions accept an optional trailing `opts` keyword list
-  (e.g., `generate_text("gpt-4o", messages, timeout: 30_000)`).
+  ## Options
+
+  All public functions accept an optional trailing `opts` keyword list.
+  Supported keys in addition to whatever the underlying library accepts:
+
+    * `:receive_timeout` - HTTP read timeout in ms (default `#{5 * 60 * 1000}` =
+      5 min). Matches the prior LangChain behavior for tool-heavy or long
+      ILP revisions; ReqLLM's default would otherwise be as low as 30s.
+    * `:max_tool_iterations` - cap on tool-call rounds in
+      `generate_text_with_tools/4` (default `10`). Returns
+      `{:error, :max_tool_iterations_exceeded}` when reached.
+
+  ## Tool-result persistence (Agent Chat)
+
+  `messages` on the returned response is a flat list of user/assistant/system
+  text turns. Tool calls and tool results are NOT included — they live only
+  inside the library's internal context during a single wrapper invocation.
+  Conversations retrieved from the `agent_messages` table therefore will not
+  contain tool-call history from previous runs; the model only ever sees the
+  user/assistant transcript when a job resumes a conversation.
   """
+
+  require Logger
 
   alias Lanttern.LLM.Response
   alias Lanttern.LLM.Tool
@@ -44,7 +64,12 @@ defmodule Lanttern.LLM do
   @callback generate_object(String.t(), String.t(), keyword(), keyword()) ::
               {:ok, Response.t()} | {:error, term()}
 
-  @max_tool_iterations 10
+  @default_max_tool_iterations 10
+  @default_receive_timeout_ms 5 * 60 * 1000
+
+  # Keys that this wrapper consumes itself and must not be forwarded to ReqLLM
+  # (which validates opts via NimbleOptions and would reject unknown keys).
+  @wrapper_only_opts [:max_tool_iterations]
 
   # --- Message builders (plain maps) ---
 
@@ -75,8 +100,9 @@ defmodule Lanttern.LLM do
   def generate_text(model, messages, opts \\ []) do
     model = normalize_model(model)
     context = to_req_llm_context(messages)
+    req_opts = opts |> put_default_timeout() |> forwardable_opts()
 
-    case ReqLLM.generate_text(model, context, opts) do
+    case ReqLLM.generate_text(model, context, req_opts) do
       {:ok, response} ->
         {:ok,
          %Response{
@@ -96,14 +122,21 @@ defmodule Lanttern.LLM do
   Generates text with automatic tool calling loop.
 
   When the LLM requests tool calls, executes them and re-sends the results
-  until the LLM returns a final answer or max iterations (#{@max_tool_iterations}) is reached.
+  until the LLM returns a final answer or `:max_tool_iterations` is reached
+  (default `#{@default_max_tool_iterations}`).
+
+  Returns `{:error, :max_tool_iterations_exceeded}` if the loop runs past
+  the cap — in that case the partial conversation is discarded. Tune
+  `opts[:max_tool_iterations]` for agents with legitimately long tool chains.
   """
   def generate_text_with_tools(model, messages, tools, opts \\ []) do
     model = normalize_model(model)
     context = to_req_llm_context(messages)
     req_tools = Enum.map(tools, &to_req_llm_tool/1)
+    max_iterations = Keyword.get(opts, :max_tool_iterations, @default_max_tool_iterations)
+    req_opts = opts |> put_default_timeout() |> forwardable_opts()
 
-    run_tool_loop(model, context, req_tools, opts)
+    run_tool_loop(model, context, req_tools, req_opts, max_iterations)
   end
 
   # --- Structured output ---
@@ -115,8 +148,9 @@ defmodule Lanttern.LLM do
   """
   def generate_object(model, prompt, schema, opts \\ []) do
     model = normalize_model(model)
+    req_opts = opts |> put_default_timeout() |> forwardable_opts()
 
-    case ReqLLM.generate_object(model, prompt, schema, opts) do
+    case ReqLLM.generate_object(model, prompt, schema, req_opts) do
       {:ok, response} ->
         {:ok,
          %Response{
@@ -136,16 +170,21 @@ defmodule Lanttern.LLM do
          context,
          tools,
          opts,
+         max_iterations,
          usage_acc \\ %{input_tokens: 0, output_tokens: 0},
          iteration \\ 0
        )
 
-  defp run_tool_loop(_, _, _, _, _, iteration)
-       when iteration >= @max_tool_iterations do
+  defp run_tool_loop(_, _, _, _, max_iterations, _, iteration)
+       when iteration >= max_iterations do
+    Logger.warning(
+      "LLM tool loop hit max_tool_iterations=#{max_iterations}; aborting with :max_tool_iterations_exceeded"
+    )
+
     {:error, :max_tool_iterations_exceeded}
   end
 
-  defp run_tool_loop(model, context, tools, opts, usage_acc, iteration) do
+  defp run_tool_loop(model, context, tools, opts, max_iterations, usage_acc, iteration) do
     tool_opts = if tools == [], do: opts, else: Keyword.put(opts, :tools, tools)
 
     case ReqLLM.generate_text(model, context, tool_opts) do
@@ -157,7 +196,15 @@ defmodule Lanttern.LLM do
             updated_context =
               ReqLLM.Context.execute_and_append_tools(response.context, tool_calls, tools)
 
-            run_tool_loop(model, updated_context, tools, opts, usage, iteration + 1)
+            run_tool_loop(
+              model,
+              updated_context,
+              tools,
+              opts,
+              max_iterations,
+              usage,
+              iteration + 1
+            )
 
           %{type: :final_answer} ->
             {:ok,
@@ -172,6 +219,13 @@ defmodule Lanttern.LLM do
         error
     end
   end
+
+  # --- Private: opt normalization ---
+
+  defp put_default_timeout(opts),
+    do: Keyword.put_new(opts, :receive_timeout, @default_receive_timeout_ms)
+
+  defp forwardable_opts(opts), do: Keyword.drop(opts, @wrapper_only_opts)
 
   # --- Private: model normalization ---
 

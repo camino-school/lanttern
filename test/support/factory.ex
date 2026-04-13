@@ -14,6 +14,9 @@ defmodule Lanttern.Factory do
   use Lanttern.GuardianFactory
   use Lanttern.ILPCommentAttachmentFactory
   use Lanttern.ILPCommentFactory
+  use Lanttern.ILPComponentFactory
+  use Lanttern.ILPSectionFactory
+  use Lanttern.ILPTemplateAILayerFactory
   use Lanttern.ILPTemplateFactory
   use Lanttern.LessonAttachmentFactory
   use Lanttern.LessonFactory
