@@ -12,11 +12,12 @@ defmodule Lanttern.ChatResponseWorkerTest do
   alias Lanttern.ChatResponseWorker
   alias Lanttern.Identity.User
   alias Lanttern.IdentityFixtures
+  alias Lanttern.LLM
   alias Lanttern.SchoolsFixtures
 
   describe "perform/1" do
     setup do
-      Mimic.copy(ReqLLM)
+      Mimic.copy(Lanttern.LLM)
 
       # Create a properly linked user/profile/school setup
       school = SchoolsFixtures.school_fixture()
@@ -62,27 +63,22 @@ defmodule Lanttern.ChatResponseWorkerTest do
       conversation: conversation
     } do
       # Mock the main LLM call
-      Mimic.expect(ReqLLM, :generate_text, fn model, context, _opts ->
-        assistant_msg = ReqLLM.Context.assistant("The capital of France is Paris.")
-
+      Mimic.expect(Lanttern.LLM, :generate_text_with_tools, fn _model, _messages, _tools ->
         {:ok,
-         %ReqLLM.Response{
-           id: "test-#{System.unique_integer([:positive])}",
-           model: model,
-           context: ReqLLM.Context.append(context, assistant_msg),
-           message: assistant_msg,
-           usage: %{input_tokens: 50, output_tokens: 100}
+         %LLM.Response{
+           text: "The capital of France is Paris.",
+           usage: %{input_tokens: 50, output_tokens: 100},
+           messages: [
+             %{role: :user, content: "What is the capital of France?"},
+             %{role: :assistant, content: "The capital of France is Paris."}
+           ]
          }}
       end)
 
       # Mock the rename call (since conversation has no name)
-      Mimic.expect(ReqLLM, :generate_object, fn _model, _prompt, _schema ->
+      Mimic.expect(Lanttern.LLM, :generate_object, fn _model, _prompt, _schema ->
         {:ok,
-         %ReqLLM.Response{
-           id: "rename-test",
-           model: "gpt-4o",
-           context: ReqLLM.Context.new([]),
-           message: ReqLLM.Context.assistant(""),
+         %LLM.Response{
            object: %{"title" => "Capital of France"}
          }}
       end)
@@ -121,27 +117,22 @@ defmodule Lanttern.ChatResponseWorkerTest do
       AgentChat.subscribe_conversation(conversation.id)
 
       # Mock the main LLM call
-      Mimic.expect(ReqLLM, :generate_text, fn model, context, _opts ->
-        assistant_msg = ReqLLM.Context.assistant("Paris is the capital.")
-
+      Mimic.expect(Lanttern.LLM, :generate_text_with_tools, fn _model, _messages, _tools ->
         {:ok,
-         %ReqLLM.Response{
-           id: "test-#{System.unique_integer([:positive])}",
-           model: model,
-           context: ReqLLM.Context.append(context, assistant_msg),
-           message: assistant_msg,
-           usage: %{input_tokens: 10, output_tokens: 20}
+         %LLM.Response{
+           text: "Paris is the capital.",
+           usage: %{input_tokens: 10, output_tokens: 20},
+           messages: [
+             %{role: :user, content: "What is the capital of France?"},
+             %{role: :assistant, content: "Paris is the capital."}
+           ]
          }}
       end)
 
       # Mock the rename call
-      Mimic.expect(ReqLLM, :generate_object, fn _model, _prompt, _schema ->
+      Mimic.expect(Lanttern.LLM, :generate_object, fn _model, _prompt, _schema ->
         {:ok,
-         %ReqLLM.Response{
-           id: "rename-test",
-           model: "gpt-4o",
-           context: ReqLLM.Context.new([]),
-           message: ReqLLM.Context.assistant(""),
+         %LLM.Response{
            object: %{"title" => "Paris Capital"}
          }}
       end)
@@ -168,8 +159,8 @@ defmodule Lanttern.ChatResponseWorkerTest do
       # Subscribe to conversation updates
       AgentChat.subscribe_conversation(conversation.id)
 
-      # Mock generate_text to fail
-      Mimic.expect(ReqLLM, :generate_text, fn _model, _context, _opts ->
+      # Mock generate_text_with_tools to fail
+      Mimic.expect(Lanttern.LLM, :generate_text_with_tools, fn _model, _messages, _tools ->
         {:error, "API error"}
       end)
 
@@ -198,43 +189,32 @@ defmodule Lanttern.ChatResponseWorkerTest do
     } do
       agent = insert(:agent, school: school)
 
-      # Expect generate_text to be called with agent system messages in context
-      Mimic.expect(ReqLLM, :generate_text, fn model, context, _opts ->
+      # Expect generate_text_with_tools to be called with agent system messages
+      Mimic.expect(Lanttern.LLM, :generate_text_with_tools, fn _model, messages, _tools ->
         # Verify agent system messages are included in the single system message
-        messages = ReqLLM.Context.to_list(context)
         system_msg = Enum.find(messages, &(&1.role == :system))
         assert system_msg != nil
 
-        system_text =
-          system_msg.content
-          |> Enum.filter(&(&1.type == :text))
-          |> Enum.map_join("", & &1.text)
-
-        assert system_text =~ "agent_personality"
-        assert system_text =~ "agent_instructions"
-        assert system_text =~ "agent_knowledge"
-        assert system_text =~ "agent_guardrails"
-
-        assistant_msg = ReqLLM.Context.assistant("Response with agent context.")
+        assert system_msg.content =~ "agent_personality"
+        assert system_msg.content =~ "agent_instructions"
+        assert system_msg.content =~ "agent_knowledge"
+        assert system_msg.content =~ "agent_guardrails"
 
         {:ok,
-         %ReqLLM.Response{
-           id: "test-#{System.unique_integer([:positive])}",
-           model: model,
-           context: ReqLLM.Context.append(context, assistant_msg),
-           message: assistant_msg,
-           usage: %{input_tokens: 100, output_tokens: 50}
+         %LLM.Response{
+           text: "Response with agent context.",
+           usage: %{input_tokens: 100, output_tokens: 50},
+           messages: [
+             %{role: :user, content: "What is the capital of France?"},
+             %{role: :assistant, content: "Response with agent context."}
+           ]
          }}
       end)
 
       # Mock the rename call
-      Mimic.expect(ReqLLM, :generate_object, fn _model, _prompt, _schema ->
+      Mimic.expect(Lanttern.LLM, :generate_object, fn _model, _prompt, _schema ->
         {:ok,
-         %ReqLLM.Response{
-           id: "rename-test",
-           model: "gpt-4o",
-           context: ReqLLM.Context.new([]),
-           message: ReqLLM.Context.assistant(""),
+         %LLM.Response{
            object: %{"title" => "Agent Chat"}
          }}
       end)
@@ -256,41 +236,30 @@ defmodule Lanttern.ChatResponseWorkerTest do
     } do
       lesson_template = insert(:lesson_template, school: school)
 
-      # Expect generate_text to be called with lesson template system messages in context
-      Mimic.expect(ReqLLM, :generate_text, fn model, context, _opts ->
+      # Expect generate_text_with_tools to be called with lesson template system messages
+      Mimic.expect(Lanttern.LLM, :generate_text_with_tools, fn _model, messages, _tools ->
         # Verify lesson template system messages are included in the single system message
-        messages = ReqLLM.Context.to_list(context)
         system_msg = Enum.find(messages, &(&1.role == :system))
         assert system_msg != nil
 
-        system_text =
-          system_msg.content
-          |> Enum.filter(&(&1.type == :text))
-          |> Enum.map_join("", & &1.text)
-
-        assert system_text =~ "lesson_template_info"
-        assert system_text =~ "lesson_template"
-
-        assistant_msg = ReqLLM.Context.assistant("Response with lesson context.")
+        assert system_msg.content =~ "lesson_template_info"
+        assert system_msg.content =~ "lesson_template"
 
         {:ok,
-         %ReqLLM.Response{
-           id: "test-#{System.unique_integer([:positive])}",
-           model: model,
-           context: ReqLLM.Context.append(context, assistant_msg),
-           message: assistant_msg,
-           usage: %{input_tokens: 80, output_tokens: 40}
+         %LLM.Response{
+           text: "Response with lesson context.",
+           usage: %{input_tokens: 80, output_tokens: 40},
+           messages: [
+             %{role: :user, content: "What is the capital of France?"},
+             %{role: :assistant, content: "Response with lesson context."}
+           ]
          }}
       end)
 
       # Mock the rename call
-      Mimic.expect(ReqLLM, :generate_object, fn _model, _prompt, _schema ->
+      Mimic.expect(Lanttern.LLM, :generate_object, fn _model, _prompt, _schema ->
         {:ok,
-         %ReqLLM.Response{
-           id: "rename-test",
-           model: "gpt-4o",
-           context: ReqLLM.Context.new([]),
-           message: ReqLLM.Context.assistant(""),
+         %LLM.Response{
            object: %{"title" => "Lesson Chat"}
          }}
       end)
@@ -320,17 +289,16 @@ defmodule Lanttern.ChatResponseWorkerTest do
         content: "Hello"
       })
 
-      # Only expect one generate_text call (no generate_object for rename)
-      Mimic.expect(ReqLLM, :generate_text, fn model, context, _opts ->
-        assistant_msg = ReqLLM.Context.assistant("Hi there!")
-
+      # Only expect one generate_text_with_tools call (no generate_object for rename)
+      Mimic.expect(Lanttern.LLM, :generate_text_with_tools, fn _model, _messages, _tools ->
         {:ok,
-         %ReqLLM.Response{
-           id: "test-#{System.unique_integer([:positive])}",
-           model: model,
-           context: ReqLLM.Context.append(context, assistant_msg),
-           message: assistant_msg,
-           usage: %{input_tokens: 10, output_tokens: 5}
+         %LLM.Response{
+           text: "Hi there!",
+           usage: %{input_tokens: 10, output_tokens: 5},
+           messages: [
+             %{role: :user, content: "Hello"},
+             %{role: :assistant, content: "Hi there!"}
+           ]
          }}
       end)
 
@@ -351,28 +319,24 @@ defmodule Lanttern.ChatResponseWorkerTest do
       user: user,
       conversation: conversation
     } do
-      # Mock generate_text with nil usage
-      Mimic.expect(ReqLLM, :generate_text, fn model, context, _opts ->
-        assistant_msg = ReqLLM.Context.assistant("Response without usage data.")
-
+      # Mock generate_text_with_tools with zero usage
+      # (Lanttern.LLM normalizes nil usage from underlying provider to zero values)
+      Mimic.expect(Lanttern.LLM, :generate_text_with_tools, fn _model, _messages, _tools ->
         {:ok,
-         %ReqLLM.Response{
-           id: "test-#{System.unique_integer([:positive])}",
-           model: model,
-           context: ReqLLM.Context.append(context, assistant_msg),
-           message: assistant_msg,
-           usage: nil
+         %LLM.Response{
+           text: "Response without usage data.",
+           usage: %{input_tokens: 0, output_tokens: 0},
+           messages: [
+             %{role: :user, content: "What is the capital of France?"},
+             %{role: :assistant, content: "Response without usage data."}
+           ]
          }}
       end)
 
       # Mock the rename call
-      Mimic.expect(ReqLLM, :generate_object, fn _model, _prompt, _schema ->
+      Mimic.expect(Lanttern.LLM, :generate_object, fn _model, _prompt, _schema ->
         {:ok,
-         %ReqLLM.Response{
-           id: "rename-test",
-           model: "gpt-4o",
-           context: ReqLLM.Context.new([]),
-           message: ReqLLM.Context.assistant(""),
+         %LLM.Response{
            object: %{"title" => "No Usage"}
          }}
       end)
@@ -396,7 +360,7 @@ defmodule Lanttern.ChatResponseWorkerTest do
 
   describe "model resolution" do
     setup do
-      Mimic.copy(ReqLLM)
+      Mimic.copy(Lanttern.LLM)
 
       school = SchoolsFixtures.school_fixture()
       staff_member = SchoolsFixtures.staff_member_fixture(%{school_id: school.id})
@@ -437,19 +401,18 @@ defmodule Lanttern.ChatResponseWorkerTest do
       user: user,
       conversation: conversation
     } do
-      Mimic.expect(ReqLLM, :generate_text, fn model, context, _opts ->
+      Mimic.expect(Lanttern.LLM, :generate_text_with_tools, fn model, _messages, _tools ->
         # Verify the model used is from args
         assert model == "gpt-5-turbo"
 
-        assistant_msg = ReqLLM.Context.assistant("Response")
-
         {:ok,
-         %ReqLLM.Response{
-           id: "test-#{System.unique_integer([:positive])}",
-           model: model,
-           context: ReqLLM.Context.append(context, assistant_msg),
-           message: assistant_msg,
-           usage: %{input_tokens: 10, output_tokens: 20}
+         %LLM.Response{
+           text: "Response",
+           usage: %{input_tokens: 10, output_tokens: 20},
+           messages: [
+             %{role: :user, content: "Test message"},
+             %{role: :assistant, content: "Response"}
+           ]
          }}
       end)
 
@@ -476,19 +439,18 @@ defmodule Lanttern.ChatResponseWorkerTest do
       # Create ai_config with base_model for the school
       insert(:ai_config, school: school, base_model: "school-preferred-model")
 
-      Mimic.expect(ReqLLM, :generate_text, fn model, context, _opts ->
+      Mimic.expect(Lanttern.LLM, :generate_text_with_tools, fn model, _messages, _tools ->
         # Verify the model used is from school ai_config
         assert model == "school-preferred-model"
 
-        assistant_msg = ReqLLM.Context.assistant("Response")
-
         {:ok,
-         %ReqLLM.Response{
-           id: "test-#{System.unique_integer([:positive])}",
-           model: model,
-           context: ReqLLM.Context.append(context, assistant_msg),
-           message: assistant_msg,
-           usage: %{input_tokens: 10, output_tokens: 20}
+         %LLM.Response{
+           text: "Response",
+           usage: %{input_tokens: 10, output_tokens: 20},
+           messages: [
+             %{role: :user, content: "Test message"},
+             %{role: :assistant, content: "Response"}
+           ]
          }}
       end)
 
@@ -514,19 +476,18 @@ defmodule Lanttern.ChatResponseWorkerTest do
       # No ai_config for the school, no model in args
       # Should fall back to app config default (gpt-5-nano)
 
-      Mimic.expect(ReqLLM, :generate_text, fn model, context, _opts ->
-        # Verify the model used is the default
-        assert model == "gpt-5-nano"
-
-        assistant_msg = ReqLLM.Context.assistant("Response")
+      Mimic.expect(Lanttern.LLM, :generate_text_with_tools, fn model, _messages, _tools ->
+        # Verify the model used is the default (normalized with provider prefix)
+        assert model == "openai:gpt-5-nano"
 
         {:ok,
-         %ReqLLM.Response{
-           id: "test-#{System.unique_integer([:positive])}",
-           model: model,
-           context: ReqLLM.Context.append(context, assistant_msg),
-           message: assistant_msg,
-           usage: %{input_tokens: 10, output_tokens: 20}
+         %LLM.Response{
+           text: "Response",
+           usage: %{input_tokens: 10, output_tokens: 20},
+           messages: [
+             %{role: :user, content: "Test message"},
+             %{role: :assistant, content: "Response"}
+           ]
          }}
       end)
 
@@ -537,11 +498,11 @@ defmodule Lanttern.ChatResponseWorkerTest do
 
       assert :ok = perform_job(ChatResponseWorker, args)
 
-      # Verify the default model was recorded
+      # Verify the default model was recorded (with provider prefix)
       messages = Repo.all(from m in Message, where: m.conversation_id == ^conversation.id)
       assistant_message = Enum.find(messages, &(&1.role == "assistant"))
       model_call = Repo.get_by(ModelCall, message_id: assistant_message.id)
-      assert model_call.model == "gpt-5-nano"
+      assert model_call.model == "openai:gpt-5-nano"
     end
 
     test "model in args takes precedence over school ai_config", %{
@@ -552,19 +513,18 @@ defmodule Lanttern.ChatResponseWorkerTest do
       # Create ai_config with base_model for the school
       insert(:ai_config, school: school, base_model: "school-model")
 
-      Mimic.expect(ReqLLM, :generate_text, fn model, context, _opts ->
+      Mimic.expect(Lanttern.LLM, :generate_text_with_tools, fn model, _messages, _tools ->
         # Should use the model from args, not from school config
         assert model == "args-model"
 
-        assistant_msg = ReqLLM.Context.assistant("Response")
-
         {:ok,
-         %ReqLLM.Response{
-           id: "test-#{System.unique_integer([:positive])}",
-           model: model,
-           context: ReqLLM.Context.append(context, assistant_msg),
-           message: assistant_msg,
-           usage: %{input_tokens: 10, output_tokens: 20}
+         %LLM.Response{
+           text: "Response",
+           usage: %{input_tokens: 10, output_tokens: 20},
+           messages: [
+             %{role: :user, content: "Test message"},
+             %{role: :assistant, content: "Response"}
+           ]
          }}
       end)
 
@@ -589,19 +549,18 @@ defmodule Lanttern.ChatResponseWorkerTest do
     } do
       insert(:ai_config, school: school, base_model: "school-fallback-model")
 
-      Mimic.expect(ReqLLM, :generate_text, fn model, context, _opts ->
+      Mimic.expect(Lanttern.LLM, :generate_text_with_tools, fn model, _messages, _tools ->
         # Empty string model should be ignored, use school config
         assert model == "school-fallback-model"
 
-        assistant_msg = ReqLLM.Context.assistant("Response")
-
         {:ok,
-         %ReqLLM.Response{
-           id: "test-#{System.unique_integer([:positive])}",
-           model: model,
-           context: ReqLLM.Context.append(context, assistant_msg),
-           message: assistant_msg,
-           usage: %{input_tokens: 10, output_tokens: 20}
+         %LLM.Response{
+           text: "Response",
+           usage: %{input_tokens: 10, output_tokens: 20},
+           messages: [
+             %{role: :user, content: "Test message"},
+             %{role: :assistant, content: "Response"}
+           ]
          }}
       end)
 
@@ -626,19 +585,18 @@ defmodule Lanttern.ChatResponseWorkerTest do
     } do
       insert(:ai_config, school: school, base_model: "")
 
-      Mimic.expect(ReqLLM, :generate_text, fn model, context, _opts ->
-        # Empty base_model should be ignored, use app default
-        assert model == "gpt-5-nano"
-
-        assistant_msg = ReqLLM.Context.assistant("Response")
+      Mimic.expect(Lanttern.LLM, :generate_text_with_tools, fn model, _messages, _tools ->
+        # Empty base_model should be ignored, use app default (normalized with provider prefix)
+        assert model == "openai:gpt-5-nano"
 
         {:ok,
-         %ReqLLM.Response{
-           id: "test-#{System.unique_integer([:positive])}",
-           model: model,
-           context: ReqLLM.Context.append(context, assistant_msg),
-           message: assistant_msg,
-           usage: %{input_tokens: 10, output_tokens: 20}
+         %LLM.Response{
+           text: "Response",
+           usage: %{input_tokens: 10, output_tokens: 20},
+           messages: [
+             %{role: :user, content: "Test message"},
+             %{role: :assistant, content: "Response"}
+           ]
          }}
       end)
 
@@ -652,7 +610,7 @@ defmodule Lanttern.ChatResponseWorkerTest do
       messages = Repo.all(from m in Message, where: m.conversation_id == ^conversation.id)
       assistant_message = Enum.find(messages, &(&1.role == "assistant"))
       model_call = Repo.get_by(ModelCall, message_id: assistant_message.id)
-      assert model_call.model == "gpt-5-nano"
+      assert model_call.model == "openai:gpt-5-nano"
     end
   end
 

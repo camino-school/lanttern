@@ -1,4 +1,6 @@
 defmodule Lanttern.ChatResponseWorker do
+  require Logger
+
   @moduledoc """
   Oban worker that processes LLM requests for agent chat conversations.
 
@@ -31,9 +33,9 @@ defmodule Lanttern.ChatResponseWorker do
   use Oban.Worker, queue: :ai, max_attempts: 3, unique: true
 
   alias Lanttern.AgentChat
-  alias Lanttern.AgentChat.LLMResult
   alias Lanttern.Identity
   alias Lanttern.Identity.Scope
+  alias Lanttern.LLM
   alias Lanttern.SchoolConfig
   alias Lanttern.SchoolConfig.AiConfig
 
@@ -55,7 +57,7 @@ defmodule Lanttern.ChatResponseWorker do
     conversation = AgentChat.get_conversation(scope, conversation_id)
     messages = AgentChat.list_conversation_messages(scope, conversation)
 
-    with {:ok, %LLMResult{} = result} <- AgentChat.run_llm_chain(scope, messages, model, opts),
+    with {:ok, %LLM.Response{} = result} <- AgentChat.run_llm_chain(scope, messages, model, opts),
          usage_attrs = %{
            prompt_tokens: result.usage.input_tokens,
            completion_tokens: result.usage.output_tokens,
@@ -74,6 +76,7 @@ defmodule Lanttern.ChatResponseWorker do
       :ok
     else
       error ->
+        Logger.error("ChatResponseWorker failed: #{inspect(error)}")
         AgentChat.mark_conversation_idle(scope, conversation, "Failed to get AI response")
 
         # notify UIs
@@ -125,7 +128,7 @@ defmodule Lanttern.ChatResponseWorker do
         model
 
       _ ->
-        Application.get_env(:lanttern, :default_llm_model, "gpt-5-nano")
+        Application.get_env(:lanttern, :default_llm_model, "openai:gpt-5-nano")
     end
   end
 

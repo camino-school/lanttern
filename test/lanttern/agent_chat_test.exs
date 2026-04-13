@@ -3,12 +3,12 @@ defmodule Lanttern.AgentChatTest do
 
   alias Lanttern.AgentChat
   alias Lanttern.AgentChat.Conversation
-  alias Lanttern.AgentChat.LLMResult
   alias Lanttern.AgentChat.Message
   alias Lanttern.AgentChat.ModelCall
   alias Lanttern.AgentChat.StrandConversation
   alias Lanttern.Identity.Profile
   alias Lanttern.IdentityFixtures
+  alias Lanttern.LLM
 
   import Lanttern.Factory
 
@@ -679,19 +679,19 @@ defmodule Lanttern.AgentChatTest do
 
   describe "rename_conversation_from_result/5" do
     setup do
-      Mimic.copy(ReqLLM)
+      Mimic.copy(Lanttern.LLM)
 
       scope = IdentityFixtures.scope_fixture()
       profile = Repo.get!(Profile, scope.profile_id)
       conversation = insert(:conversation, %{profile: profile, name: nil})
 
-      # Create an LLMResult with ReqLLM messages
-      result = %LLMResult{
+      # Create an LLM.Response with plain messages
+      result = %LLM.Response{
         text: "The capital of France is Paris.",
         usage: %{input_tokens: 50, output_tokens: 100},
         messages: [
-          ReqLLM.Context.user("What is the capital of France?"),
-          ReqLLM.Context.assistant("The capital of France is Paris.")
+          %{role: :user, content: "What is the capital of France?"},
+          %{role: :assistant, content: "The capital of France is Paris."}
         ]
       }
 
@@ -703,20 +703,13 @@ defmodule Lanttern.AgentChatTest do
       conversation: conversation,
       result: result
     } do
-      Mimic.expect(ReqLLM, :generate_object, fn _model, _prompt, _schema ->
-        {:ok,
-         %ReqLLM.Response{
-           id: "test",
-           model: "gpt-4",
-           context: ReqLLM.Context.new([]),
-           message: ReqLLM.Context.assistant(""),
-           object: %{"title" => "Capital of France"}
-         }}
+      Mimic.expect(Lanttern.LLM, :generate_object, fn _model, _prompt, _schema ->
+        {:ok, %LLM.Response{object: %{"title" => "Capital of France"}}}
       end)
 
       assert {:ok, %Conversation{} = renamed} =
                AgentChat.rename_conversation_from_result(scope, conversation, result, "gpt-4",
-                 req_llm_module: ReqLLM
+                 llm_module: Lanttern.LLM
                )
 
       assert renamed.name == "Capital of France"
@@ -732,19 +725,18 @@ defmodule Lanttern.AgentChatTest do
       conversation: conversation,
       result: result
     } do
-      Mimic.expect(ReqLLM, :generate_object, fn _model, _prompt, _schema ->
+      Mimic.expect(Lanttern.LLM, :generate_object, fn _model, _prompt, _schema ->
         {:error, "API rate limit exceeded"}
       end)
 
-      assert {:ok, %Conversation{} = reloaded} =
+      assert {:error, "API rate limit exceeded"} =
                AgentChat.rename_conversation_from_result(scope, conversation, result, "gpt-4",
-                 req_llm_module: ReqLLM
+                 llm_module: Lanttern.LLM
                )
 
-      # Verify conversation name remains nil (reloaded from DB)
+      # Verify conversation name remains nil
       db_conversation = Repo.get!(Conversation, conversation.id)
       assert db_conversation.name == nil
-      assert reloaded.id == conversation.id
     end
 
     test "raises when scope does not match conversation profile", %{
@@ -760,7 +752,7 @@ defmodule Lanttern.AgentChatTest do
           conversation,
           result,
           "gpt-4",
-          req_llm_module: ReqLLM
+          llm_module: Lanttern.LLM
         )
       end
     end
@@ -779,7 +771,7 @@ defmodule Lanttern.AgentChatTest do
           conversation_with_name,
           result,
           "gpt-4",
-          req_llm_module: ReqLLM
+          llm_module: Lanttern.LLM
         )
       end
     end
@@ -789,21 +781,21 @@ defmodule Lanttern.AgentChatTest do
       conversation: conversation
     } do
       # Create a result with 7 messages (user/assistant pairs + extra user)
-      extended_result = %LLMResult{
+      extended_result = %LLM.Response{
         text: "The capital of Germany is Berlin.",
         usage: %{input_tokens: 100, output_tokens: 200},
         messages: [
-          ReqLLM.Context.user("What is the capital of France?"),
-          ReqLLM.Context.assistant("The capital of France is Paris."),
-          ReqLLM.Context.user("What about Italy?"),
-          ReqLLM.Context.assistant("The capital of Italy is Rome."),
-          ReqLLM.Context.user("And Germany?"),
-          ReqLLM.Context.assistant("The capital of Germany is Berlin."),
-          ReqLLM.Context.user("Thanks!")
+          %{role: :user, content: "What is the capital of France?"},
+          %{role: :assistant, content: "The capital of France is Paris."},
+          %{role: :user, content: "What about Italy?"},
+          %{role: :assistant, content: "The capital of Italy is Rome."},
+          %{role: :user, content: "And Germany?"},
+          %{role: :assistant, content: "The capital of Germany is Berlin."},
+          %{role: :user, content: "Thanks!"}
         ]
       }
 
-      Mimic.expect(ReqLLM, :generate_object, fn _model, prompt, _schema ->
+      Mimic.expect(Lanttern.LLM, :generate_object, fn _model, prompt, _schema ->
         # The prompt should only include the first 4 messages
         assert prompt =~ "What is the capital of France?"
         assert prompt =~ "The capital of France is Paris"
@@ -814,14 +806,7 @@ defmodule Lanttern.AgentChatTest do
         refute prompt =~ "And Germany?"
         refute prompt =~ "Berlin"
 
-        {:ok,
-         %ReqLLM.Response{
-           id: "test",
-           model: "gpt-4",
-           context: ReqLLM.Context.new([]),
-           message: ReqLLM.Context.assistant(""),
-           object: %{"title" => "European Capitals"}
-         }}
+        {:ok, %LLM.Response{object: %{"title" => "European Capitals"}}}
       end)
 
       assert {:ok, %Conversation{}} =
@@ -830,7 +815,7 @@ defmodule Lanttern.AgentChatTest do
                  conversation,
                  extended_result,
                  "gpt-4",
-                 req_llm_module: ReqLLM
+                 llm_module: Lanttern.LLM
                )
     end
 
@@ -842,20 +827,13 @@ defmodule Lanttern.AgentChatTest do
       long_title = "This is a very long conversation title that exceeds fifty characters"
       expected_title = String.slice(long_title, 0, 50)
 
-      Mimic.expect(ReqLLM, :generate_object, fn _model, _prompt, _schema ->
-        {:ok,
-         %ReqLLM.Response{
-           id: "test",
-           model: "gpt-4",
-           context: ReqLLM.Context.new([]),
-           message: ReqLLM.Context.assistant(""),
-           object: %{"title" => long_title}
-         }}
+      Mimic.expect(Lanttern.LLM, :generate_object, fn _model, _prompt, _schema ->
+        {:ok, %LLM.Response{object: %{"title" => long_title}}}
       end)
 
       assert {:ok, %Conversation{} = renamed} =
                AgentChat.rename_conversation_from_result(scope, conversation, result, "gpt-4",
-                 req_llm_module: ReqLLM
+                 llm_module: Lanttern.LLM
                )
 
       assert renamed.name == expected_title
@@ -870,7 +848,7 @@ defmodule Lanttern.AgentChatTest do
     alias Lanttern.Lessons
 
     setup do
-      Mimic.copy(ReqLLM)
+      Mimic.copy(Lanttern.LLM)
 
       scope = IdentityFixtures.scope_fixture()
       profile = Repo.get!(Profile, scope.profile_id)
@@ -886,45 +864,34 @@ defmodule Lanttern.AgentChatTest do
       %{scope: scope, messages: [user_message]}
     end
 
-    defp build_generate_text_response(context) do
-      assistant_msg = ReqLLM.Context.assistant("Test response")
-
+    defp build_generate_text_with_tools_response(messages) do
       {:ok,
-       %ReqLLM.Response{
-         id: "test-#{System.unique_integer([:positive])}",
-         model: "gpt-4",
-         context: ReqLLM.Context.append(context, assistant_msg),
-         message: assistant_msg,
-         usage: %{input_tokens: 50, output_tokens: 100}
+       %LLM.Response{
+         text: "Test response",
+         usage: %{input_tokens: 50, output_tokens: 100},
+         messages: messages ++ [%{role: :assistant, content: "Test response"}]
        }}
     end
 
-    defp extract_system_text(context) do
-      messages = ReqLLM.Context.to_list(context)
+    defp extract_system_text(messages) do
       system_msg = Enum.find(messages, &(&1.role == :system))
 
       case system_msg do
-        nil ->
-          nil
-
-        msg ->
-          msg.content
-          |> Enum.filter(&(&1.type == :text))
-          |> Enum.map_join("", & &1.text)
+        nil -> nil
+        msg -> msg.content
       end
     end
 
     test "runs LLM chain with basic messages", %{scope: scope, messages: messages} do
-      Mimic.expect(ReqLLM, :generate_text, fn _model, context, _opts ->
-        # Verify context has at least a user message
-        msgs = ReqLLM.Context.to_list(context)
+      Mimic.expect(Lanttern.LLM, :generate_text_with_tools, fn _model, msgs, _tools ->
+        # Verify messages include at least a user message
         assert Enum.any?(msgs, &(&1.role == :user))
 
-        build_generate_text_response(context)
+        build_generate_text_with_tools_response(msgs)
       end)
 
-      assert {:ok, %LLMResult{} = result} =
-               AgentChat.run_llm_chain(scope, messages, "gpt-4", req_llm_module: ReqLLM)
+      assert {:ok, %LLM.Response{} = result} =
+               AgentChat.run_llm_chain(scope, messages, "gpt-4", llm_module: Lanttern.LLM)
 
       assert is_binary(result.text)
       assert result.usage.input_tokens > 0
@@ -952,8 +919,8 @@ defmodule Lanttern.AgentChatTest do
         position: 1
       })
 
-      Mimic.expect(ReqLLM, :generate_text, fn _model, context, _opts ->
-        system_text = extract_system_text(context)
+      Mimic.expect(Lanttern.LLM, :generate_text_with_tools, fn _model, msgs, _tools ->
+        system_text = extract_system_text(msgs)
 
         assert system_text != nil
         assert system_text =~ "<strand_context>"
@@ -962,13 +929,13 @@ defmodule Lanttern.AgentChatTest do
         assert system_text =~ "Year 5"
         assert system_text =~ "Introduction"
 
-        build_generate_text_response(context)
+        build_generate_text_with_tools_response(msgs)
       end)
 
-      assert {:ok, %LLMResult{}} =
+      assert {:ok, %LLM.Response{}} =
                AgentChat.run_llm_chain(scope, messages, "gpt-4",
                  strand_id: strand.id,
-                 req_llm_module: ReqLLM
+                 llm_module: Lanttern.LLM
                )
     end
 
@@ -991,8 +958,8 @@ defmodule Lanttern.AgentChatTest do
           subjects_ids: [subject.id]
         })
 
-      Mimic.expect(ReqLLM, :generate_text, fn _model, context, _opts ->
-        system_text = extract_system_text(context)
+      Mimic.expect(Lanttern.LLM, :generate_text_with_tools, fn _model, msgs, _tools ->
+        system_text = extract_system_text(msgs)
 
         assert system_text != nil
         assert system_text =~ "<lesson_context>"
@@ -1003,13 +970,13 @@ defmodule Lanttern.AgentChatTest do
         assert system_text =~ "Focus on variables"
         assert system_text =~ "Provide extra examples"
 
-        build_generate_text_response(context)
+        build_generate_text_with_tools_response(msgs)
       end)
 
-      assert {:ok, %LLMResult{}} =
+      assert {:ok, %LLM.Response{}} =
                AgentChat.run_llm_chain(scope, messages, "gpt-4",
                  lesson_id: lesson.id,
-                 req_llm_module: ReqLLM
+                 llm_module: Lanttern.LLM
                )
     end
 
@@ -1028,21 +995,21 @@ defmodule Lanttern.AgentChatTest do
           description: "Introduction to cells"
         })
 
-      Mimic.expect(ReqLLM, :generate_text, fn _model, context, _opts ->
-        system_text = extract_system_text(context)
+      Mimic.expect(Lanttern.LLM, :generate_text_with_tools, fn _model, msgs, _tools ->
+        system_text = extract_system_text(msgs)
 
         assert system_text != nil
         assert system_text =~ "<strand_context>"
         assert system_text =~ "<lesson_context>"
 
-        build_generate_text_response(context)
+        build_generate_text_with_tools_response(msgs)
       end)
 
-      assert {:ok, %LLMResult{}} =
+      assert {:ok, %LLM.Response{}} =
                AgentChat.run_llm_chain(scope, messages, "gpt-4",
                  strand_id: strand.id,
                  lesson_id: lesson.id,
-                 req_llm_module: ReqLLM
+                 llm_module: Lanttern.LLM
                )
     end
 
@@ -1061,9 +1028,8 @@ defmodule Lanttern.AgentChatTest do
           description: "Original description"
         })
 
-      Mimic.expect(ReqLLM, :generate_text, fn _model, context, opts ->
+      Mimic.expect(Lanttern.LLM, :generate_text_with_tools, fn _model, msgs, tools ->
         # Verify that update_lesson tool was added
-        tools = Keyword.get(opts, :tools, [])
         assert length(tools) == 1
         [tool] = tools
         assert tool.name == "update_lesson"
@@ -1074,14 +1040,14 @@ defmodule Lanttern.AgentChatTest do
         assert :teacher_notes in param_names
         assert :differentiation_notes in param_names
 
-        build_generate_text_response(context)
+        build_generate_text_with_tools_response(msgs)
       end)
 
-      assert {:ok, %LLMResult{}} =
+      assert {:ok, %LLM.Response{}} =
                AgentChat.run_llm_chain(scope, messages, "gpt-4",
                  lesson_id: lesson.id,
                  enabled_functions: ["update_lesson"],
-                 req_llm_module: ReqLLM
+                 llm_module: Lanttern.LLM
                )
     end
 
@@ -1101,40 +1067,27 @@ defmodule Lanttern.AgentChatTest do
           teacher_notes: "Original notes"
         })
 
-      # First call: LLM returns tool_calls to invoke update_lesson
-      Mimic.expect(ReqLLM, :generate_text, fn _model, context, _opts ->
-        assistant_msg =
-          ReqLLM.Context.assistant("",
-            tool_calls: [
-              {"update_lesson",
-               %{
-                 "description" => "Updated description from AI",
-                 "teacher_notes" => "Updated teacher notes"
-               }}
-            ]
-          )
+      # The wrapper handles the tool loop internally, so we mock generate_text_with_tools
+      # to simulate the tool being called and the lesson being updated
+      Mimic.expect(Lanttern.LLM, :generate_text_with_tools, fn _model, msgs, tools ->
+        # Execute the update_lesson tool callback directly
+        [tool] = tools
+        assert tool.name == "update_lesson"
 
-        {:ok,
-         %ReqLLM.Response{
-           id: "test-tool-call",
-           model: "gpt-4",
-           context: ReqLLM.Context.append(context, assistant_msg),
-           message: assistant_msg,
-           usage: %{input_tokens: 50, output_tokens: 30},
-           finish_reason: :tool_calls
-         }}
+        {:ok, _} =
+          tool.callback.(%{
+            "description" => "Updated description from AI",
+            "teacher_notes" => "Updated teacher notes"
+          })
+
+        build_generate_text_with_tools_response(msgs)
       end)
 
-      # Second call: after tool execution, LLM returns final answer
-      Mimic.expect(ReqLLM, :generate_text, fn _model, context, _opts ->
-        build_generate_text_response(context)
-      end)
-
-      assert {:ok, %LLMResult{}} =
+      assert {:ok, %LLM.Response{}} =
                AgentChat.run_llm_chain(scope, messages, "gpt-4",
                  lesson_id: lesson.id,
                  enabled_functions: ["update_lesson"],
-                 req_llm_module: ReqLLM
+                 llm_module: Lanttern.LLM
                )
 
       # Verify lesson was actually updated in the database
@@ -1158,18 +1111,17 @@ defmodule Lanttern.AgentChatTest do
           description: "Some description"
         })
 
-      Mimic.expect(ReqLLM, :generate_text, fn _model, context, opts ->
+      Mimic.expect(Lanttern.LLM, :generate_text_with_tools, fn _model, msgs, tools ->
         # Verify no tools were added
-        tools = Keyword.get(opts, :tools, [])
         assert tools == []
 
-        build_generate_text_response(context)
+        build_generate_text_with_tools_response(msgs)
       end)
 
-      assert {:ok, %LLMResult{}} =
+      assert {:ok, %LLM.Response{}} =
                AgentChat.run_llm_chain(scope, messages, "gpt-4",
                  lesson_id: lesson.id,
-                 req_llm_module: ReqLLM
+                 llm_module: Lanttern.LLM
                )
     end
 
@@ -1177,18 +1129,17 @@ defmodule Lanttern.AgentChatTest do
       scope: scope,
       messages: messages
     } do
-      Mimic.expect(ReqLLM, :generate_text, fn _model, context, opts ->
+      Mimic.expect(Lanttern.LLM, :generate_text_with_tools, fn _model, msgs, tools ->
         # Verify no tools were added even though enabled_functions includes update_lesson
-        tools = Keyword.get(opts, :tools, [])
         assert tools == []
 
-        build_generate_text_response(context)
+        build_generate_text_with_tools_response(msgs)
       end)
 
-      assert {:ok, %LLMResult{}} =
+      assert {:ok, %LLM.Response{}} =
                AgentChat.run_llm_chain(scope, messages, "gpt-4",
                  enabled_functions: ["update_lesson"],
-                 req_llm_module: ReqLLM
+                 llm_module: Lanttern.LLM
                )
     end
 
@@ -1211,17 +1162,17 @@ defmodule Lanttern.AgentChatTest do
       ]
 
       assert_raise MatchError, fn ->
-        AgentChat.run_llm_chain(scope, messages, "gpt-4", req_llm_module: ReqLLM)
+        AgentChat.run_llm_chain(scope, messages, "gpt-4", llm_module: Lanttern.LLM)
       end
     end
 
     test "returns error when LLM chain fails", %{scope: scope, messages: messages} do
-      Mimic.expect(ReqLLM, :generate_text, fn _model, _context, _opts ->
+      Mimic.expect(Lanttern.LLM, :generate_text_with_tools, fn _model, _msgs, _tools ->
         {:error, "API error"}
       end)
 
       assert {:error, "API error"} =
-               AgentChat.run_llm_chain(scope, messages, "gpt-4", req_llm_module: ReqLLM)
+               AgentChat.run_llm_chain(scope, messages, "gpt-4", llm_module: Lanttern.LLM)
     end
 
     test "adds school system messages when ai_config exists with knowledge", %{
@@ -1236,8 +1187,8 @@ defmodule Lanttern.AgentChatTest do
         guardrails: nil
       )
 
-      Mimic.expect(ReqLLM, :generate_text, fn _model, context, _opts ->
-        system_text = extract_system_text(context)
+      Mimic.expect(Lanttern.LLM, :generate_text_with_tools, fn _model, msgs, _tools ->
+        system_text = extract_system_text(msgs)
 
         assert system_text != nil
         assert system_text =~ "<school_knowledge>"
@@ -1246,11 +1197,11 @@ defmodule Lanttern.AgentChatTest do
         # Should NOT have guardrails (it's nil)
         refute system_text =~ "<school_guardrails>"
 
-        build_generate_text_response(context)
+        build_generate_text_with_tools_response(msgs)
       end)
 
-      assert {:ok, %LLMResult{}} =
-               AgentChat.run_llm_chain(scope, messages, "gpt-4", req_llm_module: ReqLLM)
+      assert {:ok, %LLM.Response{}} =
+               AgentChat.run_llm_chain(scope, messages, "gpt-4", llm_module: Lanttern.LLM)
     end
 
     test "adds school system messages when ai_config exists with guardrails", %{
@@ -1265,8 +1216,8 @@ defmodule Lanttern.AgentChatTest do
         guardrails: "Always be respectful and supportive"
       )
 
-      Mimic.expect(ReqLLM, :generate_text, fn _model, context, _opts ->
-        system_text = extract_system_text(context)
+      Mimic.expect(Lanttern.LLM, :generate_text_with_tools, fn _model, msgs, _tools ->
+        system_text = extract_system_text(msgs)
 
         assert system_text != nil
 
@@ -1277,11 +1228,11 @@ defmodule Lanttern.AgentChatTest do
         assert system_text =~ "<school_guardrails>"
         assert system_text =~ "Always be respectful and supportive"
 
-        build_generate_text_response(context)
+        build_generate_text_with_tools_response(msgs)
       end)
 
-      assert {:ok, %LLMResult{}} =
-               AgentChat.run_llm_chain(scope, messages, "gpt-4", req_llm_module: ReqLLM)
+      assert {:ok, %LLM.Response{}} =
+               AgentChat.run_llm_chain(scope, messages, "gpt-4", llm_module: Lanttern.LLM)
     end
 
     test "adds both school knowledge and guardrails when ai_config has both", %{
@@ -1296,8 +1247,8 @@ defmodule Lanttern.AgentChatTest do
         guardrails: "School guardrails content"
       )
 
-      Mimic.expect(ReqLLM, :generate_text, fn _model, context, _opts ->
-        system_text = extract_system_text(context)
+      Mimic.expect(Lanttern.LLM, :generate_text_with_tools, fn _model, msgs, _tools ->
+        system_text = extract_system_text(msgs)
 
         assert system_text != nil
         assert system_text =~ "<school_knowledge>"
@@ -1305,11 +1256,11 @@ defmodule Lanttern.AgentChatTest do
         assert system_text =~ "<school_guardrails>"
         assert system_text =~ "School guardrails content"
 
-        build_generate_text_response(context)
+        build_generate_text_with_tools_response(msgs)
       end)
 
-      assert {:ok, %LLMResult{}} =
-               AgentChat.run_llm_chain(scope, messages, "gpt-4", req_llm_module: ReqLLM)
+      assert {:ok, %LLM.Response{}} =
+               AgentChat.run_llm_chain(scope, messages, "gpt-4", llm_module: Lanttern.LLM)
     end
 
     test "does not add school system messages when ai_config does not exist", %{
@@ -1318,8 +1269,8 @@ defmodule Lanttern.AgentChatTest do
       scope = IdentityFixtures.scope_fixture()
       # No ai_config inserted for this school
 
-      Mimic.expect(ReqLLM, :generate_text, fn _model, context, _opts ->
-        system_text = extract_system_text(context)
+      Mimic.expect(Lanttern.LLM, :generate_text_with_tools, fn _model, msgs, _tools ->
+        system_text = extract_system_text(msgs)
 
         # Should have no school-related content in system message
         # (system_text might be nil if no system messages at all, or might not contain school tags)
@@ -1328,11 +1279,11 @@ defmodule Lanttern.AgentChatTest do
           refute system_text =~ "<school_guardrails>"
         end
 
-        build_generate_text_response(context)
+        build_generate_text_with_tools_response(msgs)
       end)
 
-      assert {:ok, %LLMResult{}} =
-               AgentChat.run_llm_chain(scope, messages, "gpt-4", req_llm_module: ReqLLM)
+      assert {:ok, %LLM.Response{}} =
+               AgentChat.run_llm_chain(scope, messages, "gpt-4", llm_module: Lanttern.LLM)
     end
 
     test "ignores empty string knowledge and guardrails in ai_config", %{
@@ -1347,8 +1298,8 @@ defmodule Lanttern.AgentChatTest do
         guardrails: ""
       )
 
-      Mimic.expect(ReqLLM, :generate_text, fn _model, context, _opts ->
-        system_text = extract_system_text(context)
+      Mimic.expect(Lanttern.LLM, :generate_text_with_tools, fn _model, msgs, _tools ->
+        system_text = extract_system_text(msgs)
 
         # Should have no school-related content (empty strings are ignored)
         if system_text do
@@ -1356,11 +1307,11 @@ defmodule Lanttern.AgentChatTest do
           refute system_text =~ "<school_guardrails>"
         end
 
-        build_generate_text_response(context)
+        build_generate_text_with_tools_response(msgs)
       end)
 
-      assert {:ok, %LLMResult{}} =
-               AgentChat.run_llm_chain(scope, messages, "gpt-4", req_llm_module: ReqLLM)
+      assert {:ok, %LLM.Response{}} =
+               AgentChat.run_llm_chain(scope, messages, "gpt-4", llm_module: Lanttern.LLM)
     end
 
     test "adds create_lesson tool when enabled_functions includes it", %{
@@ -1370,8 +1321,7 @@ defmodule Lanttern.AgentChatTest do
       strand = strand_fixture(%{name: "Test Strand"})
       moment_fixture(%{strand_id: strand.id, name: "Week 1", position: 1})
 
-      Mimic.expect(ReqLLM, :generate_text, fn _model, context, opts ->
-        tools = Keyword.get(opts, :tools, [])
+      Mimic.expect(Lanttern.LLM, :generate_text_with_tools, fn _model, msgs, tools ->
         assert length(tools) == 1
         [tool] = tools
         assert tool.name == "create_lesson"
@@ -1382,14 +1332,14 @@ defmodule Lanttern.AgentChatTest do
         assert :moment_id in param_names
         assert :subjects_ids in param_names
 
-        build_generate_text_response(context)
+        build_generate_text_with_tools_response(msgs)
       end)
 
-      assert {:ok, %LLMResult{}} =
+      assert {:ok, %LLM.Response{}} =
                AgentChat.run_llm_chain(scope, messages, "gpt-4",
                  strand_id: strand.id,
                  enabled_functions: ["create_lesson"],
-                 req_llm_module: ReqLLM
+                 llm_module: Lanttern.LLM
                )
     end
 
@@ -1401,43 +1351,30 @@ defmodule Lanttern.AgentChatTest do
       strand = strand_fixture(%{subjects_ids: [subject.id]})
       moment = moment_fixture(%{strand_id: strand.id, name: "Week 1", position: 1})
 
-      # First call: LLM returns tool_calls to invoke create_lesson
-      Mimic.expect(ReqLLM, :generate_text, fn _model, context, _opts ->
-        assistant_msg =
-          ReqLLM.Context.assistant("",
-            tool_calls: [
-              {"create_lesson",
-               %{
-                 "name" => "AI Lesson",
-                 "description" => "AI-created lesson content",
-                 "teacher_notes" => "AI teacher notes",
-                 "moment_id" => moment.id,
-                 "subjects_ids" => [subject.id]
-               }}
-            ]
-          )
+      # The wrapper handles the tool loop internally, so we mock generate_text_with_tools
+      # to simulate the tool being called and the lesson being created
+      Mimic.expect(Lanttern.LLM, :generate_text_with_tools, fn _model, msgs, tools ->
+        # Execute the create_lesson tool callback directly
+        [tool] = tools
+        assert tool.name == "create_lesson"
 
-        {:ok,
-         %ReqLLM.Response{
-           id: "test-tool-call",
-           model: "gpt-4",
-           context: ReqLLM.Context.append(context, assistant_msg),
-           message: assistant_msg,
-           usage: %{input_tokens: 50, output_tokens: 30},
-           finish_reason: :tool_calls
-         }}
+        {:ok, _} =
+          tool.callback.(%{
+            name: "AI Lesson",
+            description: "AI-created lesson content",
+            teacher_notes: "AI teacher notes",
+            moment_id: moment.id,
+            subjects_ids: [subject.id]
+          })
+
+        build_generate_text_with_tools_response(msgs)
       end)
 
-      # Second call: after tool execution, LLM returns final answer
-      Mimic.expect(ReqLLM, :generate_text, fn _model, context, _opts ->
-        build_generate_text_response(context)
-      end)
-
-      assert {:ok, %LLMResult{}} =
+      assert {:ok, %LLM.Response{}} =
                AgentChat.run_llm_chain(scope, messages, "gpt-4",
                  strand_id: strand.id,
                  enabled_functions: ["create_lesson"],
-                 req_llm_module: ReqLLM
+                 llm_module: Lanttern.LLM
                )
 
       # Verify lesson was actually created in the database
@@ -1452,17 +1389,16 @@ defmodule Lanttern.AgentChatTest do
       scope: scope,
       messages: messages
     } do
-      Mimic.expect(ReqLLM, :generate_text, fn _model, context, opts ->
-        tools = Keyword.get(opts, :tools, [])
+      Mimic.expect(Lanttern.LLM, :generate_text_with_tools, fn _model, msgs, tools ->
         assert tools == []
 
-        build_generate_text_response(context)
+        build_generate_text_with_tools_response(msgs)
       end)
 
-      assert {:ok, %LLMResult{}} =
+      assert {:ok, %LLM.Response{}} =
                AgentChat.run_llm_chain(scope, messages, "gpt-4",
                  enabled_functions: ["create_lesson"],
-                 req_llm_module: ReqLLM
+                 llm_module: Lanttern.LLM
                )
     end
 
@@ -1481,8 +1417,8 @@ defmodule Lanttern.AgentChatTest do
           guardrails: "Stay on topic"
         )
 
-      Mimic.expect(ReqLLM, :generate_text, fn _model, context, _opts ->
-        system_text = extract_system_text(context)
+      Mimic.expect(Lanttern.LLM, :generate_text_with_tools, fn _model, msgs, _tools ->
+        system_text = extract_system_text(msgs)
 
         assert system_text != nil
         assert system_text =~ "<agent_personality>Friendly teacher</agent_personality>"
@@ -1490,13 +1426,13 @@ defmodule Lanttern.AgentChatTest do
         assert system_text =~ "<agent_knowledge>Curriculum expertise</agent_knowledge>"
         assert system_text =~ "<agent_guardrails>Stay on topic</agent_guardrails>"
 
-        build_generate_text_response(context)
+        build_generate_text_with_tools_response(msgs)
       end)
 
-      assert {:ok, %LLMResult{}} =
+      assert {:ok, %LLM.Response{}} =
                AgentChat.run_llm_chain(scope, messages, "gpt-4",
                  agent_id: agent.id,
-                 req_llm_module: ReqLLM
+                 llm_module: Lanttern.LLM
                )
     end
 
@@ -1515,8 +1451,8 @@ defmodule Lanttern.AgentChatTest do
           guardrails: nil
         )
 
-      Mimic.expect(ReqLLM, :generate_text, fn _model, context, _opts ->
-        system_text = extract_system_text(context)
+      Mimic.expect(Lanttern.LLM, :generate_text_with_tools, fn _model, msgs, _tools ->
+        system_text = extract_system_text(msgs)
 
         assert system_text != nil
         assert system_text =~ "<agent_personality>Friendly</agent_personality>"
@@ -1524,13 +1460,13 @@ defmodule Lanttern.AgentChatTest do
         refute system_text =~ "<agent_knowledge>"
         refute system_text =~ "<agent_guardrails>"
 
-        build_generate_text_response(context)
+        build_generate_text_with_tools_response(msgs)
       end)
 
-      assert {:ok, %LLMResult{}} =
+      assert {:ok, %LLM.Response{}} =
                AgentChat.run_llm_chain(scope, messages, "gpt-4",
                  agent_id: agent.id,
-                 req_llm_module: ReqLLM
+                 llm_module: Lanttern.LLM
                )
     end
 
@@ -1542,18 +1478,18 @@ defmodule Lanttern.AgentChatTest do
       # scope_fixture creates a staff_member with the profile
       staff_member = Lanttern.Schools.get_staff_member!(scope.staff_member_id)
 
-      Mimic.expect(ReqLLM, :generate_text, fn _model, context, _opts ->
-        system_text = extract_system_text(context)
+      Mimic.expect(Lanttern.LLM, :generate_text_with_tools, fn _model, msgs, _tools ->
+        system_text = extract_system_text(msgs)
 
         assert system_text != nil
         assert system_text =~ "<staff_member_context>"
         assert system_text =~ "<name>#{staff_member.name}</name>"
 
-        build_generate_text_response(context)
+        build_generate_text_with_tools_response(msgs)
       end)
 
-      assert {:ok, %LLMResult{}} =
-               AgentChat.run_llm_chain(scope, messages, "gpt-4", req_llm_module: ReqLLM)
+      assert {:ok, %LLM.Response{}} =
+               AgentChat.run_llm_chain(scope, messages, "gpt-4", llm_module: Lanttern.LLM)
     end
 
     test "adds lesson template system messages when lesson_template_id is provided", %{
@@ -1569,8 +1505,8 @@ defmodule Lanttern.AgentChatTest do
           template: "## Introduction\n## Activities"
         )
 
-      Mimic.expect(ReqLLM, :generate_text, fn _model, context, _opts ->
-        system_text = extract_system_text(context)
+      Mimic.expect(Lanttern.LLM, :generate_text_with_tools, fn _model, msgs, _tools ->
+        system_text = extract_system_text(msgs)
 
         assert system_text != nil
 
@@ -1579,13 +1515,13 @@ defmodule Lanttern.AgentChatTest do
 
         assert system_text =~ "<lesson_template>## Introduction"
 
-        build_generate_text_response(context)
+        build_generate_text_with_tools_response(msgs)
       end)
 
-      assert {:ok, %LLMResult{}} =
+      assert {:ok, %LLM.Response{}} =
                AgentChat.run_llm_chain(scope, messages, "gpt-4",
                  lesson_template_id: lesson_template.id,
-                 req_llm_module: ReqLLM
+                 llm_module: Lanttern.LLM
                )
     end
 
@@ -1605,22 +1541,22 @@ defmodule Lanttern.AgentChatTest do
 
       moment_fixture(%{strand_id: strand.id, name: "Intro", position: 1})
 
-      Mimic.expect(ReqLLM, :generate_text, fn _model, context, _opts ->
-        system_text = extract_system_text(context)
+      Mimic.expect(Lanttern.LLM, :generate_text_with_tools, fn _model, msgs, _tools ->
+        system_text = extract_system_text(msgs)
 
         assert system_text != nil
         assert system_text =~ "<tools_args>"
         assert system_text =~ "<moments>"
         assert system_text =~ "<subjects>"
 
-        build_generate_text_response(context)
+        build_generate_text_with_tools_response(msgs)
       end)
 
-      assert {:ok, %LLMResult{}} =
+      assert {:ok, %LLM.Response{}} =
                AgentChat.run_llm_chain(scope, messages, "gpt-4",
                  strand_id: strand.id,
                  enabled_functions: ["create_lesson"],
-                 req_llm_module: ReqLLM
+                 llm_module: Lanttern.LLM
                )
     end
 
@@ -1631,20 +1567,20 @@ defmodule Lanttern.AgentChatTest do
       strand = strand_fixture()
       moment_fixture(%{strand_id: strand.id, name: "Week 1", position: 1})
 
-      Mimic.expect(ReqLLM, :generate_text, fn _model, context, _opts ->
-        system_text = extract_system_text(context)
+      Mimic.expect(Lanttern.LLM, :generate_text_with_tools, fn _model, msgs, _tools ->
+        system_text = extract_system_text(msgs)
 
         if system_text do
           refute system_text =~ "<tools_args>"
         end
 
-        build_generate_text_response(context)
+        build_generate_text_with_tools_response(msgs)
       end)
 
-      assert {:ok, %LLMResult{}} =
+      assert {:ok, %LLM.Response{}} =
                AgentChat.run_llm_chain(scope, messages, "gpt-4",
                  strand_id: strand.id,
-                 req_llm_module: ReqLLM
+                 llm_module: Lanttern.LLM
                )
     end
 
@@ -1653,34 +1589,18 @@ defmodule Lanttern.AgentChatTest do
       messages: messages
     } do
       strand = strand_fixture()
-      moment = moment_fixture(%{strand_id: strand.id, name: "Week 1", position: 1})
+      _moment = moment_fixture(%{strand_id: strand.id, name: "Week 1", position: 1})
 
-      # Stub generate_text to always return tool_calls — loop should stop at 10
-      Mimic.stub(ReqLLM, :generate_text, fn _model, context, _opts ->
-        assistant_msg =
-          ReqLLM.Context.assistant("",
-            tool_calls: [
-              {"create_lesson",
-               %{"name" => "Lesson", "description" => "content", "moment_id" => moment.id}}
-            ]
-          )
-
-        {:ok,
-         %ReqLLM.Response{
-           id: "test-#{System.unique_integer([:positive])}",
-           model: "gpt-4",
-           context: ReqLLM.Context.append(context, assistant_msg),
-           message: assistant_msg,
-           usage: %{input_tokens: 10, output_tokens: 10},
-           finish_reason: :tool_calls
-         }}
+      # The tool loop is now inside Lanttern.LLM, so we mock it to return the error directly
+      Mimic.expect(Lanttern.LLM, :generate_text_with_tools, fn _model, _msgs, _tools ->
+        {:error, :max_tool_iterations_exceeded}
       end)
 
       assert {:error, :max_tool_iterations_exceeded} =
                AgentChat.run_llm_chain(scope, messages, "gpt-4",
                  strand_id: strand.id,
                  enabled_functions: ["create_lesson"],
-                 req_llm_module: ReqLLM
+                 llm_module: Lanttern.LLM
                )
     end
   end

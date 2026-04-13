@@ -8,7 +8,6 @@ defmodule Lanttern.AgentChat do
   alias Lanttern.Repo
 
   alias Lanttern.AgentChat.Conversation
-  alias Lanttern.AgentChat.LLMResult
   alias Lanttern.AgentChat.Message
   alias Lanttern.AgentChat.ModelCall
   alias Lanttern.AgentChat.StrandConversation
@@ -19,6 +18,7 @@ defmodule Lanttern.AgentChat do
   alias Lanttern.LearningContext.Strand
   alias Lanttern.Lessons
   alias Lanttern.LessonTemplates
+  alias Lanttern.LLM
   alias Lanttern.SchoolConfig
   alias Lanttern.Schools
 
@@ -261,13 +261,13 @@ defmodule Lanttern.AgentChat do
   def rename_conversation_from_result(
         %Scope{} = scope,
         %Conversation{name: nil} = conversation,
-        %LLMResult{} = result,
+        %LLM.Response{} = result,
         model,
         opts \\ []
       ) do
     true = Scope.matches_profile?(scope, conversation.profile_id)
 
-    req_llm_module = Keyword.get(opts, :req_llm_module, ReqLLM)
+    llm_module = Keyword.get(opts, :llm_module, Lanttern.LLM)
 
     # Extract context from result messages (user message + assistant response)
     context =
@@ -275,10 +275,7 @@ defmodule Lanttern.AgentChat do
       |> Enum.filter(&(&1.role in [:user, :assistant]))
       |> Enum.take(4)
       |> Enum.map_join("\n", fn msg ->
-        msg.content
-        |> Enum.filter(&(&1.type == :text))
-        |> Enum.map_join("", & &1.text)
-        |> then(&"#{msg.role}: #{&1}")
+        "#{msg.role}: #{msg.content}"
       end)
 
     naming_prompt = """
@@ -291,19 +288,17 @@ defmodule Lanttern.AgentChat do
       title: [type: :string, required: true, doc: "The conversation title (max 50 characters)"]
     ]
 
-    case req_llm_module.generate_object(model, naming_prompt, title_schema) do
+    case llm_module.generate_object(model, naming_prompt, title_schema) do
       {:ok, response} ->
         title =
-          response
-          |> ReqLLM.Response.object()
+          response.object
           |> Map.get("title", "")
           |> String.slice(0, 50)
 
         rename_conversation(scope, conversation, title)
 
-      {:error, _} ->
-        # Fallback: reload conversation from DB
-        {:ok, Repo.get!(Conversation, conversation.id)}
+      {:error, _} = error ->
+        error
     end
   end
 
@@ -381,7 +376,7 @@ defmodule Lanttern.AgentChat do
   @doc """
   Executes an LLM request with the given conversation messages.
 
-  Converts a list of `Message` structs into ReqLLM message format and runs
+  Converts a list of `Message` structs into LLM message format and runs
   them through the provided model with an automatic tool-calling loop.
 
   System messages are concatenated into a single message following
@@ -394,7 +389,7 @@ defmodule Lanttern.AgentChat do
     * `:strand_id` - Adds strand info as system messages
     * `:lesson_id` - Adds lesson info as system messages
     * `:enabled_functions` - Add tools based on given functions
-    * `:req_llm_module` - Module for LLM calls (default: `ReqLLM`)
+    * `:llm_module` - Module for LLM calls (default: `Lanttern.LLM`)
 
   ### Available functions
 
@@ -404,15 +399,15 @@ defmodule Lanttern.AgentChat do
   ## Examples
 
       iex> run_llm_chain(scope, messages, "gpt-4o")
-      {:ok, %LLMResult{}}
+      {:ok, %LLM.Response{}}
   """
   @spec run_llm_chain(Scope.t(), [Message.t()], String.t(), Keyword.t()) ::
-          {:ok, LLMResult.t()} | {:error, term()}
+          {:ok, LLM.Response.t()} | {:error, term()}
   def run_llm_chain(%Scope{} = scope, messages, model, opts \\ []) do
     # check if last message is a user message (prevent LLM from running improperly)
     %{role: "user"} = messages |> Enum.at(-1)
 
-    req_llm_module = Keyword.get(opts, :req_llm_module, ReqLLM)
+    llm_module = Keyword.get(opts, :llm_module, Lanttern.LLM)
 
     # as strand is used in different helper functions,
     # request it once if needed and reuse it in all functions
@@ -438,94 +433,27 @@ defmodule Lanttern.AgentChat do
         build_lesson_system_contents(scope, Keyword.get(opts, :lesson_id)) ++
         build_tools_args_contents(scope, opts, strand)
 
-    # Concatenate into a single system message (ReqLLM validates max 1 system message)
+    # Concatenate into a single system message
     system_message =
       case system_contents do
         [] -> []
-        contents -> [ReqLLM.Context.system(Enum.join(contents, "\n\n"))]
+        contents -> [LLM.system_message(Enum.join(contents, "\n\n"))]
       end
 
-    # Convert conversation messages to ReqLLM format
+    # Convert conversation messages to LLM format
     conversation_messages =
       Enum.map(messages, fn msg ->
         case msg.role do
-          "user" -> ReqLLM.Context.user(msg.content)
-          "assistant" -> ReqLLM.Context.assistant(msg.content)
-          "system" -> ReqLLM.Context.system(msg.content)
+          "user" -> LLM.user_message(msg.content)
+          "assistant" -> LLM.assistant_message(msg.content)
+          "system" -> LLM.system_message(msg.content)
         end
       end)
 
-    context = ReqLLM.Context.new(system_message ++ conversation_messages)
+    all_messages = system_message ++ conversation_messages
     tools = build_tools(scope, opts)
 
-    run_tool_loop(req_llm_module, model, context, tools)
-  end
-
-  @max_tool_iterations 10
-
-  defp run_tool_loop(
-         req_llm_module,
-         model,
-         context,
-         tools,
-         usage_acc \\ %{input_tokens: 0, output_tokens: 0},
-         iteration \\ 0
-       )
-
-  defp run_tool_loop(
-         _req_llm_module,
-         _model,
-         _context,
-         _tools,
-         _usage_acc,
-         iteration
-       )
-       when iteration >= @max_tool_iterations do
-    {:error, :max_tool_iterations_exceeded}
-  end
-
-  defp run_tool_loop(
-         req_llm_module,
-         model,
-         context,
-         tools,
-         usage_acc,
-         iteration
-       ) do
-    tool_opts = if tools == [], do: [], else: [tools: tools]
-
-    case req_llm_module.generate_text(model, context, tool_opts) do
-      {:ok, response} ->
-        usage = merge_usage(usage_acc, ReqLLM.Response.usage(response))
-
-        case ReqLLM.Response.classify(response) do
-          %{type: :tool_calls, tool_calls: tool_calls} ->
-            updated_context =
-              ReqLLM.Context.execute_and_append_tools(response.context, tool_calls, tools)
-
-            run_tool_loop(req_llm_module, model, updated_context, tools, usage, iteration + 1)
-
-          %{type: :final_answer} ->
-            {:ok,
-             %LLMResult{
-               text: ReqLLM.Response.text(response) || "",
-               usage: usage,
-               messages: ReqLLM.Context.to_list(response.context)
-             }}
-        end
-
-      {:error, _} = error ->
-        error
-    end
-  end
-
-  defp merge_usage(acc, nil), do: acc
-
-  defp merge_usage(acc, new) do
-    %{
-      input_tokens: acc.input_tokens + Map.get(new, :input_tokens, 0),
-      output_tokens: acc.output_tokens + Map.get(new, :output_tokens, 0)
-    }
+    llm_module.generate_text_with_tools(model, all_messages, tools)
   end
 
   defp build_school_system_contents(scope) do
@@ -725,11 +653,11 @@ defmodule Lanttern.AgentChat do
   defp maybe_add_create_lesson_tool(tools, true, scope, strand_id)
        when is_integer(strand_id) do
     tool =
-      ReqLLM.Tool.new!(
-        name: "create_lesson",
-        description: "Create a lesson in the current strand",
-        parameter_schema: lesson_tool_params(),
-        callback: fn args ->
+      LLM.tool(
+        "create_lesson",
+        "Create a lesson in the current strand",
+        lesson_tool_params(),
+        fn args ->
           args = Map.put(args, :strand_id, strand_id)
 
           case Lessons.create_lesson(scope, args, is_ai_agent: true) do
@@ -750,12 +678,11 @@ defmodule Lanttern.AgentChat do
   defp maybe_add_update_lesson_tool(tools, true, scope, lesson_id)
        when is_integer(lesson_id) do
     tool =
-      ReqLLM.Tool.new!(
-        name: "update_lesson",
-        description:
-          "Update the current lesson description and/or teacher notes and/or diff notes",
-        parameter_schema: lesson_tool_params(),
-        callback: fn args ->
+      LLM.tool(
+        "update_lesson",
+        "Update the current lesson description and/or teacher notes and/or diff notes",
+        lesson_tool_params(),
+        fn args ->
           lesson = Lessons.get_lesson!(lesson_id)
 
           case Lessons.update_lesson(scope, lesson, args, is_ai_agent: true) do

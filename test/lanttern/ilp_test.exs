@@ -923,7 +923,7 @@ defmodule Lanttern.ILPTest do
           template,
           10,
           [log_profile_id: profile.id],
-          Lanttern.ReqLLMStub
+          Lanttern.LLMStub
         )
 
       assert student_ilp.ai_revision == "This is a stub response."
@@ -944,7 +944,7 @@ defmodule Lanttern.ILPTest do
       end)
     end
 
-    test "revise_student_ilp/5 propagates error when ReqLLM returns error" do
+    test "revise_student_ilp/5 propagates error when LLM returns error" do
       template =
         ilp_template_fixture(%{ai_layer: %{revision_instructions: "some revision instructions"}})
         |> Repo.preload(sections: :components)
@@ -959,7 +959,7 @@ defmodule Lanttern.ILPTest do
                  template,
                  10,
                  [],
-                 Lanttern.ReqLLMErrorStub
+                 Lanttern.LLMErrorStub
                )
     end
   end
