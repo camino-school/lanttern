@@ -7,11 +7,6 @@ defmodule Lanttern.AgentChat do
   alias Ecto.Multi
   alias Lanttern.Repo
 
-  alias LangChain.Chains.LLMChain
-  alias LangChain.Function
-  alias LangChain.FunctionParam
-  alias LangChain.Message.ContentPart
-
   alias Lanttern.AgentChat.Conversation
   alias Lanttern.AgentChat.Message
   alias Lanttern.AgentChat.ModelCall
@@ -23,6 +18,7 @@ defmodule Lanttern.AgentChat do
   alias Lanttern.LearningContext.Strand
   alias Lanttern.Lessons
   alias Lanttern.LessonTemplates
+  alias Lanttern.LLM
   alias Lanttern.SchoolConfig
   alias Lanttern.Schools
 
@@ -249,94 +245,61 @@ defmodule Lanttern.AgentChat do
   end
 
   @doc """
-  Renames an existing conversation based on chain messages.
+  Renames an existing conversation based on the LLM result messages.
 
   The AI agent will use this function to name unnamed conversations
   based on the initial user messages and model responses (first 4 messages max).
 
-  Uses LLM function calling to ensure consistent, structured output.
+  Uses structured output (`generate_object`) to ensure consistent results.
 
   ## Examples
 
-      iex> rename_conversation_based_on_chain(scope, conversation, chain)
+      iex> rename_conversation_from_result(scope, conversation, result, model)
       {:ok, %Conversation{}}
 
   """
-  def rename_conversation_based_on_chain(
+  def rename_conversation_from_result(
         %Scope{} = scope,
         %Conversation{name: nil} = conversation,
-        chain
+        %LLM.Response{} = result,
+        model,
+        opts \\ []
       ) do
     true = Scope.matches_profile?(scope, conversation.profile_id)
 
-    # Extract context from chain messages (user message + assistant response)
+    llm_module = Keyword.get(opts, :llm_module, Lanttern.LLM)
+
+    # Extract context from result messages (user message + assistant response)
     context =
-      chain.messages
+      result.messages
       |> Enum.filter(&(&1.role in [:user, :assistant]))
       |> Enum.take(4)
       |> Enum.map_join("\n", fn msg ->
-        "#{msg.role}: #{ContentPart.content_to_string(msg.content)}"
+        "#{msg.role}: #{msg.content}"
       end)
 
-    rename_function = build_rename_function(scope, conversation)
-
     naming_prompt = """
-    Based on the following conversation excerpt, generate a concise title (max 50 characters) that captures the main topic or intent. Use the set_conversation_title function to set the title.
+    Based on the following conversation excerpt, generate a concise title (max 50 characters) that captures the main topic or intent.
 
     #{context}
     """
 
-    naming_chain =
-      LLMChain.new!(%{llm: chain.llm})
-      |> LLMChain.add_tools([rename_function])
-      |> LLMChain.add_message(LangChain.Message.new_user!(naming_prompt))
+    title_schema = [
+      title: [type: :string, required: true, doc: "The conversation title (max 50 characters)"]
+    ]
 
-    case LLMChain.run(naming_chain, mode: :while_needs_response) do
-      {:ok, updated_chain} ->
-        # The function was executed - find the tool result to get the conversation
-        tool_result =
-          updated_chain.messages
-          |> Enum.find(&(&1.role == :tool))
+    case llm_module.generate_object(model, naming_prompt, title_schema) do
+      {:ok, response} ->
+        title =
+          response.object
+          |> Map.get("title", "")
+          |> String.slice(0, 50)
 
-        case tool_result do
-          %{tool_results: [%{processed_content: %Conversation{} = updated_conversation}]} ->
-            {:ok, updated_conversation}
+        rename_conversation(scope, conversation, title)
 
-          _ ->
-            # Fallback: reload conversation from DB
-            {:ok, Repo.get!(Conversation, conversation.id)}
-        end
-
-      {:error, _chain, error} ->
-        {:error, error}
+      {:error, _} = error ->
+        error
     end
-  end
-
-  defp build_rename_function(scope, conversation) do
-    LangChain.Function.new!(%{
-      name: "set_conversation_title",
-      description:
-        "Sets the title for this conversation. The title should be concise (max 50 characters) and capture the main topic.",
-      parameters: [
-        LangChain.FunctionParam.new!(%{
-          name: "title",
-          type: :string,
-          description: "The conversation title (max 50 characters)",
-          required: true
-        })
-      ],
-      function: fn %{"title" => title}, _context ->
-        title = String.slice(title, 0, 50)
-
-        case rename_conversation(scope, conversation, title) do
-          {:ok, updated_conversation} ->
-            {:ok, "Title set to: #{title}", updated_conversation}
-
-          {:error, changeset} ->
-            {:error, "Failed to set title: #{inspect(changeset.errors)}"}
-        end
-      end
-    })
   end
 
   @doc """
@@ -411,13 +374,13 @@ defmodule Lanttern.AgentChat do
   end
 
   @doc """
-  Executes an LLM chain with the given conversation messages.
+  Executes an LLM request with the given conversation messages.
 
-  Converts a list of `Message` structs into LangChain message format and runs
-  them through the provided LLM.
+  Converts a list of `Message` structs into LLM message format and runs
+  them through the provided model with an automatic tool-calling loop.
 
-  When adding system messages, this function prepends them to the chain
-  following always the same order to benefit from prompt caching.
+  System messages are concatenated into a single message following
+  a fixed order to benefit from prompt caching.
 
   ## Options
 
@@ -425,7 +388,8 @@ defmodule Lanttern.AgentChat do
     * `:lesson_template_id` - Adds template info as system messages
     * `:strand_id` - Adds strand info as system messages
     * `:lesson_id` - Adds lesson info as system messages
-    * `:enabled_functions` - Add tools to the chain based on given functions
+    * `:enabled_functions` - Add tools based on given functions
+    * `:llm_module` - Module for LLM calls (default: `Lanttern.LLM`)
 
   ### Available functions
 
@@ -434,14 +398,16 @@ defmodule Lanttern.AgentChat do
 
   ## Examples
 
-      iex> run_llm_chain(scope, messages, llm)
-      {:ok, %LLMChain{}}
+      iex> run_llm_chain(scope, messages, "gpt-4o")
+      {:ok, %LLM.Response{}}
   """
-  @spec run_llm_chain(Scope.t(), [Message.t()], any(), Keyword.t()) ::
-          {:ok, LLMChain.t()} | {:error, LLMChain.t(), LangChain.LangChainError.t()}
-  def run_llm_chain(%Scope{} = scope, messages, llm, opts \\ []) do
+  @spec run_llm_chain(Scope.t(), [Message.t()], String.t(), Keyword.t()) ::
+          {:ok, LLM.Response.t()} | {:error, term()}
+  def run_llm_chain(%Scope{} = scope, messages, model, opts \\ []) do
     # check if last message is a user message (prevent LLM from running improperly)
     %{role: "user"} = messages |> Enum.at(-1)
+
+    llm_module = Keyword.get(opts, :llm_module, Lanttern.LLM)
 
     # as strand is used in different helper functions,
     # request it once if needed and reuse it in all functions
@@ -456,55 +422,41 @@ defmodule Lanttern.AgentChat do
           nil
       end
 
-    # we're not using the recursive pattern for opts here
-    # because in this use we want to control messages ordering (prompt caching)
-    # School messages come first to establish baseline that agents build upon
-    system_messages =
-      add_school_system_messages(scope)
-      |> add_agent_system_messages(
-        scope,
-        Keyword.get(opts, :agent_id)
-      )
-      |> add_staff_member_system_messages(scope)
-      |> add_lesson_template_system_messages(
-        scope,
-        Keyword.get(opts, :lesson_template_id)
-      )
-      |> add_strand_system_messages(scope, strand)
-      |> add_lesson_system_messages(
-        scope,
-        Keyword.get(opts, :lesson_id)
-      )
-      |> add_tools_args_messages(scope, opts, strand)
+    # Build system content strings in a fixed order for prompt caching.
+    # School messages come first to establish baseline that agents build upon.
+    system_contents =
+      build_school_system_contents(scope) ++
+        build_agent_system_contents(scope, Keyword.get(opts, :agent_id)) ++
+        build_staff_member_system_contents(scope) ++
+        build_lesson_template_system_contents(scope, Keyword.get(opts, :lesson_template_id)) ++
+        build_strand_system_contents(scope, strand) ++
+        build_lesson_system_contents(scope, Keyword.get(opts, :lesson_id)) ++
+        build_tools_args_contents(scope, opts, strand)
 
-    tools = setup_llm_chain_tools(scope, opts)
+    # Concatenate into a single system message
+    system_message =
+      case system_contents do
+        [] -> []
+        contents -> [LLM.system_message(Enum.join(contents, "\n\n"))]
+      end
 
-    context = setup_llm_chain_context(opts)
-
-    # Build LangChain messages from conversation messages
-    langchain_messages =
+    # Convert conversation messages to LLM format
+    conversation_messages =
       Enum.map(messages, fn msg ->
         case msg.role do
-          "user" -> LangChain.Message.new_user!(msg.content)
-          "assistant" -> LangChain.Message.new_assistant!(msg.content)
-          "system" -> LangChain.Message.new_system!(msg.content)
+          "user" -> LLM.user_message(msg.content)
+          "assistant" -> LLM.assistant_message(msg.content)
+          "system" -> LLM.system_message(msg.content)
         end
       end)
 
-    %{
-      llm: llm,
-      custom_context: context,
-      # 5 minutes in milliseconds
-      async_tool_timeout: 5 * 60 * 1000
-    }
-    |> LLMChain.new!()
-    |> LLMChain.add_messages(system_messages)
-    |> LLMChain.add_messages(langchain_messages)
-    |> LLMChain.add_tools(tools)
-    |> LLMChain.run(mode: :while_needs_response)
+    all_messages = system_message ++ conversation_messages
+    tools = build_tools(scope, opts)
+
+    llm_module.generate_text_with_tools(model, all_messages, tools)
   end
 
-  defp add_school_system_messages(scope) do
+  defp build_school_system_contents(scope) do
     case SchoolConfig.get_ai_config(scope) do
       nil ->
         []
@@ -515,38 +467,31 @@ defmodule Lanttern.AgentChat do
           {"school_guardrails", school_ai_config.guardrails}
         ]
         |> Enum.filter(fn {_, value} -> is_binary(value) and value != "" end)
-        |> Enum.map(fn {tag, value} ->
-          LangChain.Message.new_system!("<#{tag}>#{value}</#{tag}>")
-        end)
+        |> Enum.map(fn {tag, value} -> "<#{tag}>#{value}</#{tag}>" end)
     end
   end
 
-  defp add_agent_system_messages(system_messages, scope, agent_id)
+  defp build_agent_system_contents(scope, agent_id)
 
-  defp add_agent_system_messages(system_messages, scope, agent_id) when is_integer(agent_id) do
+  defp build_agent_system_contents(scope, agent_id) when is_integer(agent_id) do
     agent = Agents.get_agent!(scope, agent_id)
 
-    agent_messages =
-      [
-        {"agent_personality", agent.personality},
-        {"agent_instructions", agent.instructions},
-        {"agent_knowledge", agent.knowledge},
-        {"agent_guardrails", agent.guardrails}
-      ]
-      |> Enum.filter(fn {_, value} -> is_binary(value) and value != "" end)
-      |> Enum.map(fn {tag, value} ->
-        LangChain.Message.new_system!("<#{tag}>#{value}</#{tag}>")
-      end)
-
-    system_messages ++ agent_messages
+    [
+      {"agent_personality", agent.personality},
+      {"agent_instructions", agent.instructions},
+      {"agent_knowledge", agent.knowledge},
+      {"agent_guardrails", agent.guardrails}
+    ]
+    |> Enum.filter(fn {_, value} -> is_binary(value) and value != "" end)
+    |> Enum.map(fn {tag, value} -> "<#{tag}>#{value}</#{tag}>" end)
   end
 
-  defp add_agent_system_messages(system_messages, _scope, _agent_id), do: system_messages
+  defp build_agent_system_contents(_scope, _agent_id), do: []
 
-  defp add_staff_member_system_messages(system_messages, %Scope{staff_member_id: nil}),
-    do: system_messages
+  defp build_staff_member_system_contents(%Scope{staff_member_id: nil}),
+    do: []
 
-  defp add_staff_member_system_messages(system_messages, %Scope{staff_member_id: staff_member_id}) do
+  defp build_staff_member_system_contents(%Scope{staff_member_id: staff_member_id}) do
     staff_member = Schools.get_staff_member!(staff_member_id)
 
     fields = [
@@ -561,29 +506,25 @@ defmodule Lanttern.AgentChat do
       |> Enum.filter(fn {_, v} -> is_binary(v) and v != "" end)
       |> Enum.map_join("\n", fn {tag, value} -> "<#{tag}>#{value}</#{tag}>" end)
 
-    system_messages ++
-      [LangChain.Message.new_system!("<staff_member_context>\n#{inner}\n</staff_member_context>")]
+    ["<staff_member_context>\n#{inner}\n</staff_member_context>"]
   end
 
-  defp add_lesson_template_system_messages(system_messages, scope, lesson_template_id)
+  defp build_lesson_template_system_contents(scope, lesson_template_id)
        when is_integer(lesson_template_id) do
     template = LessonTemplates.get_lesson_template!(scope, lesson_template_id)
 
-    system_messages ++
-      [
-        LangChain.Message.new_system!(
-          "<lesson_template_info>#{template.about}</lesson_template_info>"
-        ),
-        LangChain.Message.new_system!("<lesson_template>#{template.template}</lesson_template>")
-      ]
+    [
+      "<lesson_template_info>#{template.about}</lesson_template_info>",
+      "<lesson_template>#{template.template}</lesson_template>"
+    ]
   end
 
-  defp add_lesson_template_system_messages(system_messages, _scope, _lesson_template_id),
-    do: system_messages
+  defp build_lesson_template_system_contents(_scope, _lesson_template_id),
+    do: []
 
   # strand functions doesn't support scope yet, but keep it around
   # as it should be implemented in the near future
-  defp add_strand_system_messages(system_messages, _scope, %Strand{} = strand) do
+  defp build_strand_system_contents(_scope, %Strand{} = strand) do
     subjects = Enum.map_join(strand.subjects, "\n", &"<subject>#{&1.name}</subject>")
     years = Enum.map_join(strand.years, "\n", &"<year>#{&1.name}</year>")
 
@@ -606,53 +547,51 @@ defmodule Lanttern.AgentChat do
       )
       |> Enum.map_join(&"<item>#{&1.name} (#{&1.curriculum_component.name})</item>")
 
-    system_messages ++
-      [
-        LangChain.Message.new_system!("""
-        <strand_context>
-        <strand_name>#{strand.name}</strand_name>
-        <subjects>#{subjects}</subjects>
-        <years>#{years}</years>
-        <curriculum>#{curriculum_items}</curriculum>
-        <overview>#{strand.description}</overview>
-        <teacher_instructions>#{strand.teacher_instructions || "No teacher instructions"}</teacher_instructions>
-        <moments>#{moments}</moments>
-        </strand_context>
-        """)
-      ]
+    [
+      """
+      <strand_context>
+      <strand_name>#{strand.name}</strand_name>
+      <subjects>#{subjects}</subjects>
+      <years>#{years}</years>
+      <curriculum>#{curriculum_items}</curriculum>
+      <overview>#{strand.description}</overview>
+      <teacher_instructions>#{strand.teacher_instructions || "No teacher instructions"}</teacher_instructions>
+      <moments>#{moments}</moments>
+      </strand_context>
+      """
+    ]
   end
 
-  defp add_strand_system_messages(system_messages, _scope, _strand),
-    do: system_messages
+  defp build_strand_system_contents(_scope, _strand),
+    do: []
 
   # lessons functions doesn't support scope yet, but keep it around
   # as it should be implemented in the near future
-  defp add_lesson_system_messages(system_messages, _scope, lesson_id)
+  defp build_lesson_system_contents(_scope, lesson_id)
        when is_integer(lesson_id) do
     lesson = Lessons.get_lesson!(lesson_id, preloads: [:subjects, :tags, :moment])
     subjects = Enum.map_join(lesson.subjects, &"<subject>#{&1.name}</subject>")
     tags = Enum.map_join(lesson.tags, &"<tag>#{&1.name}</tag>")
 
-    system_messages ++
-      [
-        LangChain.Message.new_system!("""
-        <lesson_context>
-        <lesson_name>#{lesson.name}</lesson_name>
-        <moment>#{lesson.moment.name}</moment>
-        <subjects>#{subjects}</subjects>
-        <tags>#{tags}</tags>
-        <overview>#{lesson.description}</overview>
-        <teacher_notes>#{lesson.teacher_notes || "No teacher notes"}</teacher_notes>
-        <differentiation_notes>#{lesson.differentiation_notes || "No differentiation notes"}</differentiation_notes>
-        </lesson_context>
-        """)
-      ]
+    [
+      """
+      <lesson_context>
+      <lesson_name>#{lesson.name}</lesson_name>
+      <moment>#{lesson.moment.name}</moment>
+      <subjects>#{subjects}</subjects>
+      <tags>#{tags}</tags>
+      <overview>#{lesson.description}</overview>
+      <teacher_notes>#{lesson.teacher_notes || "No teacher notes"}</teacher_notes>
+      <differentiation_notes>#{lesson.differentiation_notes || "No differentiation notes"}</differentiation_notes>
+      </lesson_context>
+      """
+    ]
   end
 
-  defp add_lesson_system_messages(system_messages, _scope, _lesson_id),
-    do: system_messages
+  defp build_lesson_system_contents(_scope, _lesson_id),
+    do: []
 
-  defp add_tools_args_messages(system_messages, scope, opts, %Strand{} = strand) do
+  defp build_tools_args_contents(scope, opts, %Strand{} = strand) do
     # it's very specific to create/update lessons right now,
     # but in the future we may extend the same structure to different tools
     lesson_functions_enabled =
@@ -677,145 +616,149 @@ defmodule Lanttern.AgentChat do
           """
         )
 
-      system_messages ++
-        [
-          LangChain.Message.new_system!("""
-          <tools_args>
-          Internal use for tool calling only. Not sensitive, but not relevant for users.
-          <moments>#{moments}</moments>
-          <subjects>#{subjects}</subjects>
-          <tags>#{tags}</tags>
-          </tools_args>
-          """)
-        ]
+      [
+        """
+        <tools_args>
+        Internal use for tool calling only. Not sensitive, but not relevant for users.
+        <moments>#{moments}</moments>
+        <subjects>#{subjects}</subjects>
+        <tags>#{tags}</tags>
+        </tools_args>
+        """
+      ]
     else
-      system_messages
+      []
     end
   end
 
-  defp add_tools_args_messages(system_messages, _scope, _opts, _strand),
-    do: system_messages
+  defp build_tools_args_contents(_scope, _opts, _strand),
+    do: []
 
-  defp setup_llm_chain_tools(scope, opts) do
+  defp build_tools(scope, opts) do
     enabled_functions = Keyword.get(opts, :enabled_functions, [])
 
     []
-    |> setup_create_lesson_function(
+    |> maybe_add_create_lesson_tool(
       "create_lesson" in enabled_functions,
       scope,
       Keyword.get(opts, :strand_id)
     )
-    |> setup_update_lesson_function(
+    |> maybe_add_update_lesson_tool(
       "update_lesson" in enabled_functions,
       scope,
       Keyword.get(opts, :lesson_id)
     )
   end
 
-  defp setup_create_lesson_function(tools, true, scope, strand_id) when is_integer(strand_id) do
-    function =
-      Function.new!(%{
-        name: "create_lesson",
-        description: "Create a lesson in the current strand",
-        parameters: lesson_function_params(),
-        function: fn args, %{strand_id: strand_id} = _context ->
-          args = Map.put(args, "strand_id", strand_id)
+  defp maybe_add_create_lesson_tool(tools, true, scope, strand_id)
+       when is_integer(strand_id) do
+    tool =
+      LLM.tool(
+        "create_lesson",
+        "Create a lesson in the current strand",
+        create_lesson_tool_params(),
+        fn args ->
+          args = Map.put(args, :strand_id, strand_id)
 
           case Lessons.create_lesson(scope, args, is_ai_agent: true) do
-            {:ok, created_lesson} ->
-              {:ok, "SUCCESS: lesson was created successfully", created_lesson}
+            {:ok, _created_lesson} ->
+              {:ok, "SUCCESS: lesson was created successfully"}
 
             {:error, changeset} ->
-              {:error, "ERROR: #{LangChain.Utils.changeset_error_to_string(changeset)}"}
+              {:error, "ERROR: #{changeset_error_to_string(changeset)}"}
           end
         end
-      })
+      )
 
-    [function | tools]
+    [tool | tools]
   end
 
-  defp setup_create_lesson_function(tools, _, _, _), do: tools
+  defp maybe_add_create_lesson_tool(tools, _, _, _), do: tools
 
-  defp setup_update_lesson_function(tools, true, scope, lesson_id) when is_integer(lesson_id) do
-    function =
-      Function.new!(%{
-        name: "update_lesson",
-        description:
-          "Update the current lesson description and/or teacher notes and/or diff notes",
-        parameters: lesson_function_params(),
-        function: fn args, %{lesson_id: lesson_id} = _context ->
+  defp maybe_add_update_lesson_tool(tools, true, scope, lesson_id)
+       when is_integer(lesson_id) do
+    tool =
+      LLM.tool(
+        "update_lesson",
+        "Update the current lesson description and/or teacher notes and/or diff notes",
+        update_lesson_tool_params(),
+        fn args ->
           lesson = Lessons.get_lesson!(lesson_id)
 
           case Lessons.update_lesson(scope, lesson, args, is_ai_agent: true) do
-            {:ok, updated_lesson} ->
-              {:ok, "SUCCESS: lesson was updated successfully", updated_lesson}
+            {:ok, _updated_lesson} ->
+              {:ok, "SUCCESS: lesson was updated successfully"}
 
             {:error, changeset} ->
-              {:error, "ERROR: #{LangChain.Utils.changeset_error_to_string(changeset)}"}
+              {:error, "ERROR: #{changeset_error_to_string(changeset)}"}
           end
         end
-      })
+      )
 
-    [function | tools]
+    [tool | tools]
   end
 
-  defp setup_update_lesson_function(tools, _, _, _), do: tools
+  defp maybe_add_update_lesson_tool(tools, _, _, _), do: tools
 
-  defp lesson_function_params do
+  # `name` is required on create because the `Lesson` changeset validates it.
+  # Keeping it optional here would let the LLM skip it and trigger avoidable
+  # "name: can't be blank" failures that cost a retry round.
+  defp create_lesson_tool_params do
+    [name: [type: :string, required: true, doc: "The lesson name/title"]] ++
+      shared_lesson_tool_params()
+  end
+
+  # On update the existing `Lesson` already has a name, so omitting it is
+  # intentional — the LLM can tweak just description/notes without rewriting
+  # the title.
+  defp update_lesson_tool_params do
+    [name: [type: :string, doc: "The lesson name/title"]] ++ shared_lesson_tool_params()
+  end
+
+  defp shared_lesson_tool_params do
     [
-      FunctionParam.new!(%{
-        name: "moment_id",
-        type: "integer",
-        description: "The moment in which the lesson will be attached to"
-      }),
-      FunctionParam.new!(%{
-        name: "subjects_ids",
-        type: "array",
-        item_type: "integer",
-        description: "The subjects linked to the lesson"
-      }),
-      FunctionParam.new!(%{
-        name: "tags_ids",
-        type: "array",
-        item_type: "integer",
-        description: "Tags linked to the lesson"
-      }),
-      FunctionParam.new!(%{
-        name: "description",
-        type: "string",
-        description: "The main lesson content, shared with students when lesson is published"
-      }),
-      FunctionParam.new!(%{
-        name: "teacher_notes",
-        type: "string",
-        description: "Instructions and notes for teachers, never shared with students"
-      }),
-      FunctionParam.new!(%{
-        name: "differentiation_notes",
-        type: "string",
-        description: "Instructions for lesson differentiation, never shared with students"
-      })
+      moment_id: [type: :integer, doc: "The moment in which the lesson will be attached to"],
+      subjects_ids: [
+        type: {:list, :integer},
+        doc: "The subjects linked to the lesson"
+      ],
+      tags_ids: [type: {:list, :integer}, doc: "Tags linked to the lesson"],
+      description: [
+        type: :string,
+        doc: "The main lesson content, shared with students when lesson is published"
+      ],
+      teacher_notes: [
+        type: :string,
+        doc: "Instructions and notes for teachers, never shared with students"
+      ],
+      differentiation_notes: [
+        type: :string,
+        doc: "Instructions for lesson differentiation, never shared with students"
+      ]
     ]
   end
 
-  defp setup_llm_chain_context(context \\ %{}, opts)
-
-  defp setup_llm_chain_context(context, []), do: context
-
-  defp setup_llm_chain_context(context, [{:strand_id, strand_id} | opts])
-       when is_integer(strand_id) do
-    Map.put(context, :strand_id, strand_id)
-    |> setup_llm_chain_context(opts)
+  defp changeset_error_to_string(changeset) do
+    Ecto.Changeset.traverse_errors(changeset, fn {msg, opts} ->
+      Regex.replace(~r"%{(\w+)}", msg, fn _, key ->
+        opts |> Keyword.get(safe_to_existing_atom(key), key) |> to_string()
+      end)
+    end)
+    |> Enum.map_join("; ", fn {field, errors} ->
+      "#{field}: #{Enum.join(errors, ", ")}"
+    end)
   end
 
-  defp setup_llm_chain_context(context, [{:lesson_id, lesson_id} | opts])
-       when is_integer(lesson_id) do
-    Map.put(context, :lesson_id, lesson_id)
-    |> setup_llm_chain_context(opts)
+  # `String.to_existing_atom/1` raises when the key has never been loaded into
+  # the atom table. That can happen for placeholders coming from gettext
+  # translations or from libraries that are lazily loaded. In that case we
+  # return a value guaranteed not to match any key in `opts` so the lookup
+  # falls back to the raw placeholder string.
+  defp safe_to_existing_atom(key) do
+    String.to_existing_atom(key)
+  rescue
+    ArgumentError -> :__unknown_changeset_placeholder__
   end
-
-  defp setup_llm_chain_context(context, [_ | opts]),
-    do: setup_llm_chain_context(context, opts)
 
   @doc """
   Adds an assistant message to a conversation with model call tracking.

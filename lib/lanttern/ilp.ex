@@ -718,7 +718,7 @@ defmodule Lanttern.ILP do
 
   ### Testing
 
-  We use `req_llm_module` as argument to allow mocking in tests.
+  We use `llm_module` as argument to allow mocking in tests.
 
   View https://blog.appsignal.com/2023/04/11/an-introduction-to-mocking-tools-for-elixir.html for reference.
 
@@ -737,7 +737,7 @@ defmodule Lanttern.ILP do
           ILPTemplate.t(),
           age :: integer(),
           opts :: Keyword.t(),
-          req_llm_module :: any()
+          llm_module :: any()
         ) ::
           {:ok, StudentILP.t()} | {:error, any()}
   def revise_student_ilp(
@@ -745,7 +745,7 @@ defmodule Lanttern.ILP do
         %ILPTemplate{ai_layer: %ILPTemplateAILayer{}} = template,
         age,
         opts \\ [],
-        req_llm_module \\ ReqLLM
+        llm_module \\ Lanttern.LLM
       ) do
     user_input_content =
       student_ilp_to_text(
@@ -754,15 +754,14 @@ defmodule Lanttern.ILP do
         "review the ILP for a student with age #{age}.\n"
       )
 
-    context =
-      ReqLLM.Context.new([
-        ReqLLM.Context.system(template.ai_layer.revision_instructions),
-        ReqLLM.Context.user(user_input_content)
-      ])
+    messages = [
+      Lanttern.LLM.system_message(template.ai_layer.revision_instructions),
+      Lanttern.LLM.user_message(user_input_content)
+    ]
 
-    case req_llm_module.generate_text(template.ai_layer.model, context) do
+    case llm_module.generate_text(template.ai_layer.model, messages) do
       {:ok, response} ->
-        revision = ReqLLM.Response.text(response)
+        revision = response.text
 
         student_ilp
         |> StudentILP.ai_changeset(%{
@@ -815,15 +814,19 @@ defmodule Lanttern.ILP do
       initial_text,
       fn section, acc ->
         section_components =
-          Enum.map(section.components, fn component ->
-            entry = component_entry_map[component.id]
-            "###{component.name}\n#{entry.description}"
+          Enum.flat_map(section.components, fn component ->
+            component_entry_line(component, Map.get(component_entry_map, component.id))
           end)
 
         acc <> "##{section.name}\n" <> Enum.join(section_components, "\n") <> "\n"
       end
     )
   end
+
+  defp component_entry_line(_component, nil), do: []
+
+  defp component_entry_line(component, entry),
+    do: ["###{component.name}\n#{entry.description}"]
 
   alias Lanttern.ILP.ILPComment
 
