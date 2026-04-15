@@ -2,6 +2,7 @@ defmodule Lanttern.DatavizTest do
   use Lanttern.DataCase
 
   alias Lanttern.Dataviz
+  import Lanttern.Factory
 
   # copy it from Lanttern.Dataviz
   @color_scale [
@@ -25,7 +26,6 @@ defmodule Lanttern.DatavizTest do
 
   describe "lanttern viz" do
     alias Lanttern.AssessmentsFixtures
-    alias Lanttern.CurriculaFixtures
     alias Lanttern.LearningContextFixtures
 
     test "get_strand_lanttern_viz_data/1 returns the map with data needed to build a lanttern viz" do
@@ -34,20 +34,20 @@ defmodule Lanttern.DatavizTest do
       m_2 = LearningContextFixtures.moment_fixture(%{strand_id: strand.id})
       m_3 = LearningContextFixtures.moment_fixture(%{strand_id: strand.id})
 
-      curriculum_component = CurriculaFixtures.curriculum_component_fixture()
+      curriculum_component = insert(:curriculum_component)
 
       ci_a =
-        CurriculaFixtures.curriculum_item_fixture(%{
+        insert(:curriculum_item, %{
           curriculum_component_id: curriculum_component.id
         })
 
       ci_b =
-        CurriculaFixtures.curriculum_item_fixture(%{
+        insert(:curriculum_item, %{
           curriculum_component_id: curriculum_component.id
         })
 
       ci_c =
-        CurriculaFixtures.curriculum_item_fixture(%{
+        insert(:curriculum_item, %{
           curriculum_component_id: curriculum_component.id
         })
 
@@ -120,7 +120,7 @@ defmodule Lanttern.DatavizTest do
       # extra fixtures for testing
       LearningContextFixtures.strand_fixture()
       LearningContextFixtures.moment_fixture()
-      CurriculaFixtures.curriculum_item_fixture()
+      insert(:curriculum_item)
       AssessmentsFixtures.assessment_point_fixture()
 
       # ids for pattern matching
@@ -159,20 +159,20 @@ defmodule Lanttern.DatavizTest do
     test "get_strand_lanttern_viz_data/1 in a strand without moments also returns the map with data needed to build a lanttern viz" do
       strand = LearningContextFixtures.strand_fixture()
 
-      curriculum_component = CurriculaFixtures.curriculum_component_fixture()
+      curriculum_component = insert(:curriculum_component)
 
       ci_a =
-        CurriculaFixtures.curriculum_item_fixture(%{
+        insert(:curriculum_item, %{
           curriculum_component_id: curriculum_component.id
         })
 
       ci_b =
-        CurriculaFixtures.curriculum_item_fixture(%{
+        insert(:curriculum_item, %{
           curriculum_component_id: curriculum_component.id
         })
 
       ci_c =
-        CurriculaFixtures.curriculum_item_fixture(%{
+        insert(:curriculum_item, %{
           curriculum_component_id: curriculum_component.id
         })
 
@@ -197,7 +197,7 @@ defmodule Lanttern.DatavizTest do
       # extra fixtures for testing
       LearningContextFixtures.strand_fixture()
       LearningContextFixtures.moment_fixture()
-      CurriculaFixtures.curriculum_item_fixture()
+      insert(:curriculum_item)
       AssessmentsFixtures.assessment_point_fixture()
 
       # ids for pattern matching

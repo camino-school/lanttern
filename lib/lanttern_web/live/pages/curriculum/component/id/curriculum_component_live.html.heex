@@ -40,68 +40,16 @@
       </div>
     </.header_nav>
   </div>
-  <.data_grid
-    id="curriculum-items-table"
-    stream={@streams.curriculum_items}
-    show_empty_state_message={
-      if @curriculum_items_count == 0,
-        do: gettext("No curriculum items found for selected filters.")
-    }
-  >
-    <:col :let={curriculum_item} label="Id" template_col="max-content">
-      <.badge theme="dark">
-        #{curriculum_item.id}
-      </.badge>
-    </:col>
-    <:col :let={curriculum_item} label={gettext("Code")} template_col="max-content">
-      <%= if curriculum_item.code do %>
-        <.badge theme="dark">
-          ({curriculum_item.code})
-        </.badge>
-      <% else %>
-        <span class="text-ltrn-subtle">—</span>
-      <% end %>
-    </:col>
-    <:col :let={curriculum_item} label={gettext("Item")} template_col="minmax(0, 2fr)">
-      {curriculum_item.name}
-    </:col>
-    <:col
-      :let={curriculum_item}
-      label={gettext("Subjects")}
-      on_filter={JS.exec("data-show", to: "#subjects-filter-modal")}
-      filter_is_active={length(@selected_subjects_ids) > 0}
-      class="flex flex-wrap gap-2"
-    >
-      <.badge :for={subject <- curriculum_item.subjects}>
-        {subject.name}
-      </.badge>
-    </:col>
-    <:col
-      :let={curriculum_item}
-      label={gettext("Years")}
-      on_filter={JS.exec("data-show", to: "#years-filter-modal")}
-      filter_is_active={length(@selected_years_ids) > 0}
-      class="flex flex-wrap gap-2"
-    >
-      <.badge :for={year <- curriculum_item.years}>
-        {year.name}
-      </.badge>
-    </:col>
-    <:action :let={curriculum_item}>
-      <.icon_button
-        type="button"
-        sr_text={gettext("Edit curriculum item")}
-        name="hero-pencil-mini"
-        size="sm"
-        theme="ghost"
-        phx-click={
-          JS.patch(
-            ~p"/curriculum/component/#{@curriculum_component}?is_editing_curriculum_item=#{curriculum_item.id}"
-          )
-        }
-      />
-    </:action>
-  </.data_grid>
+  <.react
+    name="CurriculumTable"
+    socket={@socket}
+    curriculumItems={@curriculum_items}
+    filterSubjectsActive={length(@selected_subjects_ids) > 0}
+    filterYearsActive={length(@selected_years_ids) > 0}
+  />
+  <.empty_state :if={@curriculum_items_count == 0}>
+    {gettext("No curriculum items for current filters")}
+  </.empty_state>
   <section :if={@curriculum_component.description}>
     <.responsive_container class="py-10">
       <h2 class="mb-6 font-display font-black text-2xl">
@@ -111,20 +59,26 @@
     </.responsive_container>
   </section>
   <.live_component
+    :if={@active_filter == :subjects}
     module={LantternWeb.Filters.FiltersOverlayComponent}
     id="subjects-filter-modal"
     current_user={@current_user}
     title={gettext("Filter curriculum items by subject")}
     filter_type={:subjects}
     navigate={~p"/curriculum/component/#{@curriculum_component}"}
+    show={true}
+    on_cancel={JS.push("close_filter_modal")}
   />
   <.live_component
+    :if={@active_filter == :years}
     module={LantternWeb.Filters.FiltersOverlayComponent}
     id="years-filter-modal"
     current_user={@current_user}
     title={gettext("Filter curriculum items by year")}
     filter_type={:years}
     navigate={~p"/curriculum/component/#{@curriculum_component}"}
+    show={true}
+    on_cancel={JS.push("close_filter_modal")}
   />
   <.slide_over
     :if={@show_curriculum_item_form}
@@ -147,6 +101,7 @@
       id={@curriculum_item.id || :new}
       curriculum_item={@curriculum_item}
       navigate={~p"/curriculum/component/#{@curriculum_component}"}
+      current_scope={@current_scope}
       hide_submit
     />
     <:actions_left :if={@curriculum_item.id}>

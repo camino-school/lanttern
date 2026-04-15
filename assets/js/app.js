@@ -20,10 +20,15 @@ import "phoenix_html";
 // Establish Phoenix Socket and LiveView configuration.
 import { Socket } from "phoenix";
 import { LiveSocket } from "phoenix_live_view";
-import topbar from "../vendor/topbar";
+import topbar from "topbar"; // instead of ../vendor/topbar (react live)
 
 // external imports
 import "glider-js";
+
+// live react
+import { getHooks } from "live_react";
+import * as components from "../react-components";
+import "../css/app.css"; // the css file is handled by vite
 
 // hooks
 import autocompleteHook from "./autocomplete-hook";
@@ -55,12 +60,17 @@ Object.assign(Hooks, colocatedHooks);
 let csrfToken = document
   .querySelector("meta[name='csrf-token']")
   .getAttribute("content");
+
 let liveSocket = new LiveSocket("/live", Socket, {
   params: {
     _csrf_token: csrfToken,
     timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
   },
-  hooks: Hooks,
+  hooks: {
+    ...Hooks,
+    ...getHooks(components),
+  },
+  longPollFallbackMs: 2500,
 });
 
 // Show progress bar on live navigation and form submits

@@ -313,6 +313,7 @@ defmodule LantternWeb.Rubrics.RubricFormOverlayComponent do
   defp assign_curriculum_item(socket) do
     curriculum_item =
       Curricula.get_curriculum_item(
+        socket.assigns.current_scope,
         socket.assigns.rubric.curriculum_item_id,
         preloads: :curriculum_component
       )

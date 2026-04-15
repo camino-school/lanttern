@@ -358,7 +358,6 @@ defmodule LantternWeb.MenuComponent do
     LantternWeb.CurriculaLive => :curriculum,
     LantternWeb.CurriculumLive => :curriculum,
     LantternWeb.CurriculumComponentLive => :curriculum,
-    LantternWeb.CurriculumBNCCEFLive => :curriculum,
 
     # report cards
     LantternWeb.ReportCardsLive => :report_cards,

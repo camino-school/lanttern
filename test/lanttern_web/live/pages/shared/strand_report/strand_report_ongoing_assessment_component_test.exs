@@ -5,7 +5,6 @@ defmodule LantternWeb.StrandReportLive.StrandReportOngoingAssessmentComponentTes
   import Lanttern.Factory
   import Lanttern.ReportingFixtures
 
-  alias Lanttern.CurriculaFixtures
   alias Lanttern.LearningContextFixtures
 
   @live_view_path_base "/strand_report"
@@ -33,7 +32,7 @@ defmodule LantternWeb.StrandReportLive.StrandReportOngoingAssessmentComponentTes
 
       scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
       ov = insert(:ordinal_value, scale_id: scale.id)
-      ci = CurriculaFixtures.curriculum_item_fixture()
+      ci = insert(:curriculum_item)
 
       ap =
         assessment_point_fixture(%{
@@ -80,7 +79,7 @@ defmodule LantternWeb.StrandReportLive.StrandReportOngoingAssessmentComponentTes
         LearningContextFixtures.moment_fixture(%{strand_id: strand.id, name: "Moment Beta"})
 
       scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
-      ci = CurriculaFixtures.curriculum_item_fixture()
+      ci = insert(:curriculum_item)
 
       _ap_without_entry =
         assessment_point_fixture(%{
@@ -120,7 +119,7 @@ defmodule LantternWeb.StrandReportLive.StrandReportOngoingAssessmentComponentTes
 
       scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
       ov = insert(:ordinal_value, scale_id: scale.id)
-      ci = CurriculaFixtures.curriculum_item_fixture(%{name: "Some Curriculum Item"})
+      ci = insert(:curriculum_item, %{name: "Some Curriculum Item"})
 
       ap =
         assessment_point_fixture(%{
@@ -170,7 +169,7 @@ defmodule LantternWeb.StrandReportLive.StrandReportOngoingAssessmentComponentTes
       moment = LearningContextFixtures.moment_fixture(%{strand_id: strand.id})
 
       scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
-      ci = CurriculaFixtures.curriculum_item_fixture()
+      ci = insert(:curriculum_item)
 
       # AP with no entry for the logged-in student
       unrelated_ap =

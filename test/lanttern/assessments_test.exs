@@ -99,7 +99,7 @@ defmodule Lanttern.AssessmentsTest do
     end
 
     test "create_assessment_point/1 with valid data creates a assessment point" do
-      curriculum_item = Lanttern.CurriculaFixtures.curriculum_item_fixture()
+      curriculum_item = insert(:curriculum_item)
       scale = insert(:scale)
 
       valid_attrs = %{
@@ -123,7 +123,7 @@ defmodule Lanttern.AssessmentsTest do
     end
 
     test "create_assessment_point/1 with valid data containing classes creates an assessment point with linked classes" do
-      curriculum_item = Lanttern.CurriculaFixtures.curriculum_item_fixture()
+      curriculum_item = insert(:curriculum_item)
       scale = insert(:scale)
 
       class_1 = Lanttern.SchoolsFixtures.class_fixture()
@@ -153,7 +153,7 @@ defmodule Lanttern.AssessmentsTest do
     end
 
     test "create_assessment_point/1 with students creates an assessment point with linked assessment point entries for each student" do
-      curriculum_item = Lanttern.CurriculaFixtures.curriculum_item_fixture()
+      curriculum_item = insert(:curriculum_item)
       scale = insert(:scale)
 
       student_1 = Lanttern.SchoolsFixtures.student_fixture()
@@ -183,7 +183,7 @@ defmodule Lanttern.AssessmentsTest do
     end
 
     test "check name constraint when creating assessment points" do
-      curriculum_item = Lanttern.CurriculaFixtures.curriculum_item_fixture()
+      curriculum_item = insert(:curriculum_item)
       scale = insert(:scale)
       strand = Lanttern.LearningContextFixtures.strand_fixture()
       moment = Lanttern.LearningContextFixtures.moment_fixture()
@@ -305,14 +305,13 @@ defmodule Lanttern.AssessmentsTest do
 
     import Lanttern.AssessmentsFixtures
 
-    alias Lanttern.CurriculaFixtures
     alias Lanttern.IdentityFixtures
     alias Lanttern.LearningContextFixtures
     alias Lanttern.SchoolsFixtures
 
     test "create_assessment_point/2 with valid data creates an assessment point linked to a moment" do
       moment = LearningContextFixtures.moment_fixture()
-      curriculum_item = CurriculaFixtures.curriculum_item_fixture()
+      curriculum_item = insert(:curriculum_item)
       scale = insert(:scale)
 
       valid_attrs = %{
@@ -337,7 +336,7 @@ defmodule Lanttern.AssessmentsTest do
 
     test "list_assessment_points/1 with moments filter returns all assessment points in a given moment" do
       moment = LearningContextFixtures.moment_fixture()
-      curriculum_item = CurriculaFixtures.curriculum_item_fixture()
+      curriculum_item = insert(:curriculum_item)
       scale = insert(:scale)
 
       valid_attrs = %{
@@ -1026,7 +1025,7 @@ defmodule Lanttern.AssessmentsTest do
 
   describe "student strand report assessments" do
     import Lanttern.AssessmentsFixtures
-    alias Lanttern.CurriculaFixtures
+
     alias Lanttern.IdentityFixtures
     alias Lanttern.LearningContextFixtures
     alias Lanttern.RubricsFixtures
@@ -1046,27 +1045,27 @@ defmodule Lanttern.AssessmentsTest do
       moment_2 = LearningContextFixtures.moment_fixture(%{strand_id: strand.id})
       moment_3 = LearningContextFixtures.moment_fixture(%{strand_id: strand.id})
 
-      curriculum_component_1 = CurriculaFixtures.curriculum_component_fixture()
-      curriculum_component_2 = CurriculaFixtures.curriculum_component_fixture()
-      curriculum_component_3_4 = CurriculaFixtures.curriculum_component_fixture()
+      curriculum_component_1 = insert(:curriculum_component)
+      curriculum_component_2 = insert(:curriculum_component)
+      curriculum_component_3_4 = insert(:curriculum_component)
 
       curriculum_item_1 =
-        CurriculaFixtures.curriculum_item_fixture(%{
+        insert(:curriculum_item, %{
           curriculum_component_id: curriculum_component_1.id
         })
 
       curriculum_item_2 =
-        CurriculaFixtures.curriculum_item_fixture(%{
+        insert(:curriculum_item, %{
           curriculum_component_id: curriculum_component_2.id
         })
 
       curriculum_item_3 =
-        CurriculaFixtures.curriculum_item_fixture(%{
+        insert(:curriculum_item, %{
           curriculum_component_id: curriculum_component_3_4.id
         })
 
       curriculum_item_4 =
-        CurriculaFixtures.curriculum_item_fixture(%{
+        insert(:curriculum_item, %{
           curriculum_component_id: curriculum_component_3_4.id
         })
 
@@ -1307,7 +1306,7 @@ defmodule Lanttern.AssessmentsTest do
 
     # import Lanttern.AssessmentsFixtures
     # alias Lanttern.IdentityFixtures
-    alias Lanttern.CurriculaFixtures
+
     alias Lanttern.LearningContextFixtures
     # alias Lanttern.SchoolsFixtures
 
@@ -1446,7 +1445,7 @@ defmodule Lanttern.AssessmentsTest do
 
     test "create_assessment_point/2 with valid data creates an assessment point linked to a strand" do
       strand = LearningContextFixtures.strand_fixture()
-      curriculum_item = CurriculaFixtures.curriculum_item_fixture()
+      curriculum_item = insert(:curriculum_item)
       scale = insert(:scale)
 
       valid_attrs = %{
@@ -2172,10 +2171,10 @@ defmodule Lanttern.AssessmentsTest do
     m_2 = Lanttern.LearningContextFixtures.moment_fixture(%{strand_id: strand.id})
     m_3 = Lanttern.LearningContextFixtures.moment_fixture(%{strand_id: strand.id})
 
-    cc = Lanttern.CurriculaFixtures.curriculum_component_fixture()
-    ci_1 = Lanttern.CurriculaFixtures.curriculum_item_fixture(%{curriculum_component_id: cc.id})
-    ci_2 = Lanttern.CurriculaFixtures.curriculum_item_fixture(%{curriculum_component_id: cc.id})
-    ci_3 = Lanttern.CurriculaFixtures.curriculum_item_fixture(%{curriculum_component_id: cc.id})
+    cc = insert(:curriculum_component)
+    ci_1 = insert(:curriculum_item, %{curriculum_component_id: cc.id})
+    ci_2 = insert(:curriculum_item, %{curriculum_component_id: cc.id})
+    ci_3 = insert(:curriculum_item, %{curriculum_component_id: cc.id})
 
     scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
     ov_a = insert(:ordinal_value, scale_id: scale.id)
@@ -2426,7 +2425,6 @@ defmodule Lanttern.AssessmentsTest do
 
     import Lanttern.AssessmentsFixtures
 
-    alias Lanttern.CurriculaFixtures
     alias Lanttern.IdentityFixtures
     alias Lanttern.LearningContextFixtures
     alias Lanttern.SchoolsFixtures
@@ -2443,7 +2441,7 @@ defmodule Lanttern.AssessmentsTest do
 
       scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
       ov = insert(:ordinal_value, scale_id: scale.id)
-      ci = CurriculaFixtures.curriculum_item_fixture()
+      ci = insert(:curriculum_item)
 
       # create in order so positions within m_1 are 0, 1, 2
       m_1_ap_1 =
@@ -2544,7 +2542,7 @@ defmodule Lanttern.AssessmentsTest do
 
       scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
       ov = insert(:ordinal_value, scale_id: scale.id)
-      ci = CurriculaFixtures.curriculum_item_fixture()
+      ci = insert(:curriculum_item)
 
       ap_marked =
         assessment_point_fixture(%{
@@ -2601,7 +2599,7 @@ defmodule Lanttern.AssessmentsTest do
 
       scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
       ov = insert(:ordinal_value, scale_id: scale.id)
-      ci = CurriculaFixtures.curriculum_item_fixture()
+      ci = insert(:curriculum_item)
 
       # create in order so positions are 0, 1
       ap_with_evidence =
@@ -2671,7 +2669,6 @@ defmodule Lanttern.AssessmentsTest do
 
     import Lanttern.AssessmentsFixtures
 
-    alias Lanttern.CurriculaFixtures
     alias Lanttern.IdentityFixtures
     alias Lanttern.LearningContextFixtures
     alias Lanttern.SchoolsFixtures
@@ -2686,7 +2683,7 @@ defmodule Lanttern.AssessmentsTest do
 
       scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
       ov = insert(:ordinal_value, scale_id: scale.id)
-      ci = CurriculaFixtures.curriculum_item_fixture()
+      ci = insert(:curriculum_item)
 
       # create in order so positions are 0, 1
       ap_1 =
@@ -2768,7 +2765,7 @@ defmodule Lanttern.AssessmentsTest do
 
       scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
       ov = insert(:ordinal_value, scale_id: scale.id)
-      ci = CurriculaFixtures.curriculum_item_fixture()
+      ci = insert(:curriculum_item)
 
       ap_marked =
         assessment_point_fixture(%{
@@ -2824,7 +2821,7 @@ defmodule Lanttern.AssessmentsTest do
 
       scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
       ov = insert(:ordinal_value, scale_id: scale.id)
-      ci = CurriculaFixtures.curriculum_item_fixture()
+      ci = insert(:curriculum_item)
 
       ap_with_evidence =
         assessment_point_fixture(%{

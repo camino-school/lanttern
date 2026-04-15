@@ -111,11 +111,11 @@ defmodule LantternWeb.Curricula.CurriculumItemSearchComponent do
       cond do
         # search when looking for id
         query =~ ~r/#[0-9]+\z/ ->
-          Curricula.search_curriculum_items(query)
+          Curricula.search_curriculum_items(socket.assigns.current_scope, query)
 
         # or when more than 3 characters were typed
         String.length(query) > 3 ->
-          Curricula.search_curriculum_items(query)
+          Curricula.search_curriculum_items(socket.assigns.current_scope, query)
 
         true ->
           []
@@ -134,7 +134,11 @@ defmodule LantternWeb.Curricula.CurriculumItemSearchComponent do
   end
 
   def handle_event("autocomplete_result_select", %{"id" => id}, socket) do
-    selected = Curricula.get_curriculum_item!(id, preloads: :curriculum_component)
+    selected =
+      Curricula.get_curriculum_item!(socket.assigns.current_scope, id,
+        preloads: :curriculum_component
+      )
+
     send_update(socket.assigns.notify_component, action: {__MODULE__, {:selected, selected}})
 
     socket =

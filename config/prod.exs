@@ -18,5 +18,10 @@ config :swoosh, local: false
 # Do not print debug messages in production
 config :logger, level: :info
 
+config :live_react,
+  ssr_module: LiveReact.SSR.NodeJS,
+  # false if you don't want SSR in production
+  ssr: false
+
 # Runtime production configuration, including reading
 # of environment variables, is done on config/runtime.exs.

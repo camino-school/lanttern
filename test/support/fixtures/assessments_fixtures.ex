@@ -15,7 +15,7 @@ defmodule Lanttern.AssessmentsFixtures do
         datetime: ~U[2023-08-02 15:30:00Z],
         description: "some description",
         scale_id: Lanttern.GradingFixtures.maybe_gen_scale_id(attrs),
-        curriculum_item_id: Lanttern.CurriculaFixtures.maybe_gen_curriculum_item_id(attrs)
+        curriculum_item_id: maybe_gen_curriculum_item_id(attrs)
       })
       |> Lanttern.Assessments.create_assessment_point()
 
@@ -99,4 +99,7 @@ defmodule Lanttern.AssessmentsFixtures do
 
   def maybe_gen_assessment_point_entry_id(_attrs),
     do: assessment_point_entry_fixture().id
+
+  defp maybe_gen_curriculum_item_id(%{curriculum_item_id: id}), do: id
+  defp maybe_gen_curriculum_item_id(_attrs), do: Lanttern.Factory.insert(:curriculum_item).id
 end

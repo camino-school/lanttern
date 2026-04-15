@@ -10,12 +10,6 @@
       <.link_list title="Assessments">
         <:item link={~p"/admin/feedback"}>Feedback</:item>
       </.link_list>
-      <.link_list title="Curricula">
-        <:item link={~p"/admin/curricula"}>Curricula</:item>
-        <:item link={~p"/admin/curriculum_components"}>Curriculum components</:item>
-        <:item link={~p"/admin/curriculum_items"}>Curriculum items</:item>
-        <:item link={~p"/admin/curriculum_relationships"}>Curriculum relationships</:item>
-      </.link_list>
       <.link_list title="Schools">
         <:item link={~p"/admin/schools"}>Schools</:item>
         <:item link={~p"/admin/school_cycles"}>Cycles</:item>
@@ -55,16 +49,6 @@
           <% else %>
             <li>
               <.link href={~p"/admin/seed_base_taxonomy"} method="post">Seed base taxonomy</.link>
-            </li>
-          <% end %>
-          <%= if @has_base_taxonomy and @is_bncc_registered do %>
-            <li class="flex items-center text-ltrn-subtle">
-              BNCC seeded <.icon name="hero-check-circle" class="text-green-500" />
-            </li>
-          <% end %>
-          <%= if @has_base_taxonomy and not @is_bncc_registered do %>
-            <li>
-              <.link href={~p"/admin/seed_bncc"} method="post">Seed BNCC</.link>
             </li>
           <% end %>
         </ul>

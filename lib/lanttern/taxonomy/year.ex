@@ -14,6 +14,7 @@ defmodule Lanttern.Taxonomy.Year do
           updated_at: DateTime.t()
         }
 
+  @derive {Jason.Encoder, only: [:id, :name, :code]}
   schema "years" do
     field :name, :string
     field :code, :string

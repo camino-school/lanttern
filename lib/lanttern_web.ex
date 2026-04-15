@@ -91,6 +91,8 @@ defmodule LantternWeb do
     quote do
       # HTML escaping functionality
       import Phoenix.HTML
+      # Live React
+      import LiveReact
       # Core UI components and translation
       import LantternWeb.CoreComponents
       import LantternWeb.NavigationComponents

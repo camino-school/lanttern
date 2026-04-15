@@ -10,6 +10,10 @@ defmodule Lanttern.Factory do
   use Lanttern.ClassFactory
   use Lanttern.ClassStaffMemberFactory
   use Lanttern.ConversationFactory
+  use Lanttern.CurriculumFactory
+  use Lanttern.CurriculumComponentFactory
+  use Lanttern.CurriculumItemFactory
+  use Lanttern.CurriculumRelationshipFactory
   use Lanttern.CycleFactory
   use Lanttern.GuardianFactory
   use Lanttern.ILPCommentAttachmentFactory
