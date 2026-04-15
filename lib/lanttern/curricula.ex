@@ -291,10 +291,14 @@ defmodule Lanttern.Curricula do
 
   @doc """
   Updates positions of curriculum components based on the given ordered list of ids.
+
+  Only components belonging to the scope's school are affected.
   """
   def update_curriculum_component_positions(%Scope{} = scope, ids) do
     true = Scope.has_permission?(scope, "curriculum_management")
-    update_positions(CurriculumComponent, ids)
+
+    queryable = from(cc in CurriculumComponent, where: cc.school_id == ^scope.school_id)
+    update_positions(queryable, ids)
   end
 
   @doc """

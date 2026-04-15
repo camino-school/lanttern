@@ -110,6 +110,35 @@ defmodule Lanttern.CurriculaTest do
       curriculum = insert(:curriculum, school_id: scope.school_id)
       assert %Ecto.Changeset{} = Curricula.change_curriculum(scope, curriculum)
     end
+
+    test "activate_curriculum/2 clears deactivated_at" do
+      scope = scope_fixture(permissions: ["curriculum_management"])
+
+      curriculum =
+        insert(:curriculum, school_id: scope.school_id, deactivated_at: ~U[2025-01-01 00:00:00Z])
+
+      assert {:ok, %Curriculum{deactivated_at: nil}} =
+               Curricula.activate_curriculum(scope, curriculum)
+    end
+
+    test "deactivate_curriculum/2 sets deactivated_at" do
+      scope = scope_fixture(permissions: ["curriculum_management"])
+      curriculum = insert(:curriculum, school_id: scope.school_id)
+
+      assert {:ok, %Curriculum{deactivated_at: deactivated_at}} =
+               Curricula.deactivate_curriculum(scope, curriculum)
+
+      assert deactivated_at != nil
+    end
+
+    test "activate_curriculum/2 raises for curriculum from another school" do
+      scope = scope_fixture(permissions: ["curriculum_management"])
+      other_curriculum = insert(:curriculum, deactivated_at: ~U[2025-01-01 00:00:00Z])
+
+      assert_raise FunctionClauseError, fn ->
+        Curricula.activate_curriculum(scope, other_curriculum)
+      end
+    end
   end
 
   describe "curriculum_components" do
@@ -262,6 +291,57 @@ defmodule Lanttern.CurriculaTest do
 
       assert %Ecto.Changeset{} =
                Curricula.change_curriculum_component(scope, curriculum_component)
+    end
+
+    test "update_curriculum_component_positions/2 updates positions for scope's school components" do
+      scope = scope_fixture(permissions: ["curriculum_management"])
+      curriculum = insert(:curriculum, school_id: scope.school_id)
+
+      cc1 =
+        insert(:curriculum_component,
+          curriculum: curriculum,
+          school_id: scope.school_id,
+          position: 0
+        )
+
+      cc2 =
+        insert(:curriculum_component,
+          curriculum: curriculum,
+          school_id: scope.school_id,
+          position: 1
+        )
+
+      cc3 =
+        insert(:curriculum_component,
+          curriculum: curriculum,
+          school_id: scope.school_id,
+          position: 2
+        )
+
+      assert :ok =
+               Curricula.update_curriculum_component_positions(scope, [cc3.id, cc1.id, cc2.id])
+
+      assert Lanttern.Repo.get!(CurriculumComponent, cc3.id).position == 0
+      assert Lanttern.Repo.get!(CurriculumComponent, cc1.id).position == 1
+      assert Lanttern.Repo.get!(CurriculumComponent, cc2.id).position == 2
+    end
+
+    test "update_curriculum_component_positions/2 does not affect components from another school" do
+      scope = scope_fixture(permissions: ["curriculum_management"])
+      other_cc = insert(:curriculum_component, position: 5)
+
+      assert :ok = Curricula.update_curriculum_component_positions(scope, [other_cc.id])
+
+      assert Lanttern.Repo.get!(CurriculumComponent, other_cc.id).position == 5
+    end
+
+    test "update_curriculum_component_positions/2 raises without permission" do
+      scope = scope_fixture()
+      cc = insert(:curriculum_component, school_id: scope.school_id)
+
+      assert_raise MatchError, fn ->
+        Curricula.update_curriculum_component_positions(scope, [cc.id])
+      end
     end
   end
 
