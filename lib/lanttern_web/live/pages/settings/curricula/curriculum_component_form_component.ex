@@ -130,7 +130,6 @@ defmodule LantternWeb.CurriculaSettingsLive.CurriculumComponentFormComponent do
           notify(__MODULE__, message, socket.assigns)
 
           socket
-          |> put_flash(:info, gettext("Component deleted"))
           |> handle_navigation(message)
 
         {:error, changeset} ->
@@ -160,7 +159,6 @@ defmodule LantternWeb.CurriculaSettingsLive.CurriculumComponentFormComponent do
 
         socket =
           socket
-          |> put_flash(:info, gettext("Component created"))
           |> handle_navigation(message)
 
         {:noreply, socket}
@@ -183,7 +181,6 @@ defmodule LantternWeb.CurriculaSettingsLive.CurriculumComponentFormComponent do
 
         socket =
           socket
-          |> put_flash(:info, gettext("Component updated"))
           |> handle_navigation(message)
 
         {:noreply, socket}

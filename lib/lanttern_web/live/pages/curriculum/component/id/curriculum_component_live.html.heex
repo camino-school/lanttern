@@ -59,20 +59,26 @@
     </.responsive_container>
   </section>
   <.live_component
+    :if={@active_filter == :subjects}
     module={LantternWeb.Filters.FiltersOverlayComponent}
     id="subjects-filter-modal"
     current_user={@current_user}
     title={gettext("Filter curriculum items by subject")}
     filter_type={:subjects}
     navigate={~p"/curriculum/component/#{@curriculum_component}"}
+    show={true}
+    on_cancel={JS.push("close_filter_modal")}
   />
   <.live_component
+    :if={@active_filter == :years}
     module={LantternWeb.Filters.FiltersOverlayComponent}
     id="years-filter-modal"
     current_user={@current_user}
     title={gettext("Filter curriculum items by year")}
     filter_type={:years}
     navigate={~p"/curriculum/component/#{@curriculum_component}"}
+    show={true}
+    on_cancel={JS.push("close_filter_modal")}
   />
   <.slide_over
     :if={@show_curriculum_item_form}

@@ -18,15 +18,6 @@ declare module "@tanstack/react-table" {
   }
 }
 
-const openFilterModal = (id: string) => {
-  const el = document.getElementById(id);
-  if (el) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const liveSocket = (window as any).liveSocket;
-    liveSocket?.execJS(el, el.getAttribute("data-show"));
-  }
-};
-
 type Subject = {
   id: number;
   name: string;
@@ -67,14 +58,14 @@ const columns = [
   }),
   columnHelper.accessor("subjects", {
     header: ({ table }) => {
-      const { filterSubjectsActive } = table.options.meta || {};
+      const { filterSubjectsActive, pushEvent } = table.options.meta || {};
       return (
         <div className="flex items-center gap-2">
           Subjects
           <button
             type="button"
             className="hover:opacity-50"
-            onClick={() => openFilterModal("subjects-filter-modal")}
+            onClick={() => pushEvent?.("open_filter_modal", { type: "subjects" })}
           >
             <Icon
               name={filterSubjectsActive ? "hero-funnel-mini" : "hero-funnel"}
@@ -96,14 +87,14 @@ const columns = [
   }),
   columnHelper.accessor("years", {
     header: ({ table }) => {
-      const { filterYearsActive } = table.options.meta || {};
+      const { filterYearsActive, pushEvent } = table.options.meta || {};
       return (
         <div className="flex items-center gap-2">
           Years
           <button
             type="button"
             className="hover:opacity-50"
-            onClick={() => openFilterModal("years-filter-modal")}
+            onClick={() => pushEvent?.("open_filter_modal", { type: "years" })}
           >
             <Icon
               name={filterYearsActive ? "hero-funnel-mini" : "hero-funnel"}
@@ -125,7 +116,6 @@ const columns = [
   }),
   columnHelper.display({
     id: "actions", // Required because there is no accessorKey
-    // header: '',
     cell: (info) => {
       const { pushEvent } = info.table.options.meta || {};
       const rowData = info.row.original;

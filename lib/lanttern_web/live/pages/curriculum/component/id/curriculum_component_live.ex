@@ -13,6 +13,7 @@ defmodule LantternWeb.CurriculumComponentLive do
   def mount(_params, _session, socket) do
     socket =
       socket
+      |> assign(:active_filter, nil)
       |> assign_user_filters([:subjects, :years])
 
     {:ok, socket, temporary_assigns: [curriculum_items: []]}
@@ -22,6 +23,7 @@ defmodule LantternWeb.CurriculumComponentLive do
   def handle_params(params, _uri, socket) do
     socket =
       socket
+      |> assign(:active_filter, nil)
       |> assign_new(:curriculum_component, fn ->
         Curricula.get_curriculum_component!(socket.assigns.current_scope, params["id"],
           preloads: :curriculum
@@ -91,6 +93,15 @@ defmodule LantternWeb.CurriculumComponentLive do
     do: assign(socket, :show_curriculum_item_form, false)
 
   @impl true
+  def handle_event("open_filter_modal", %{"type" => type}, socket) do
+    active_filter = String.to_existing_atom(type)
+    {:noreply, assign(socket, :active_filter, active_filter)}
+  end
+
+  def handle_event("close_filter_modal", _params, socket) do
+    {:noreply, assign(socket, :active_filter, nil)}
+  end
+
   def handle_event("edit_curriculum_item", %{"id" => id}, socket) do
     patch =
       ~p"/curriculum/component/#{socket.assigns.curriculum_component}?is_editing_curriculum_item=#{id}"
