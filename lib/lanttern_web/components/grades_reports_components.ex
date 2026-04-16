@@ -72,6 +72,7 @@ defmodule LantternWeb.GradesReportsComponents do
               theme="ghost"
               icon_name="hero-cog-6-tooth-mini"
               phx-click={@on_configure}
+              class="sticky left-0"
             >
               {gettext("Configure")}
             </.button>
