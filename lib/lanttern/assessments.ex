@@ -1164,10 +1164,12 @@ defmodule Lanttern.Assessments do
         ap in AssessmentPoint,
         join: ci in assoc(ap, :curriculum_item),
         join: cc in assoc(ci, :curriculum_component),
+        left_join: sc in assoc(ap, :scale),
         where: ap.strand_id == ^strand_id,
         order_by: ap.position,
         preload: [
-          curriculum_item: {ci, curriculum_component: cc}
+          curriculum_item: {ci, curriculum_component: cc},
+          scale: sc
         ]
       )
       |> Repo.all()
@@ -1264,11 +1266,12 @@ defmodule Lanttern.Assessments do
       join: m in assoc(ap, :moment),
       join: e in assoc(ap, :entries),
       left_join: ov in assoc(e, :ordinal_value),
+      left_join: sc in assoc(ap, :scale),
       where: m.strand_id == ^strand_id,
       where: e.student_id == ^student.id,
       where: e.has_marking,
       order_by: [asc: m.position, asc: ap.position],
-      select: %{ap | student_entry: %{e | ordinal_value: ov}}
+      select: %{ap | scale: sc, student_entry: %{e | ordinal_value: ov}}
     )
     |> Repo.all()
     |> put_student_entries_evidences(student.id)

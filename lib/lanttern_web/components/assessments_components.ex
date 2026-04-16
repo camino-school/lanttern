@@ -88,7 +88,9 @@ defmodule LantternWeb.AssessmentsComponents do
   """
   attr :entry, :any,
     required: true,
-    doc: "Requires `scale`, `ordinal_value`, and `student_ordinal_value` preloads"
+    doc: "Requires `ordinal_value` and `student_ordinal_value` preloads"
+
+  attr :scale, :any, default: nil
 
   attr :show_student_assessment, :boolean, default: false
 
@@ -137,8 +139,13 @@ defmodule LantternWeb.AssessmentsComponents do
 
     ~H"""
     <div class={["grid gap-1 w-full", @grid_cols_class, @class]} id={@id}>
-      <.assessment_point_entry_value_display entry={@entry} />
-      <.assessment_point_entry_value_display :if={@show_student_assessment} entry={@entry} is_student />
+      <.assessment_point_entry_value_display entry={@entry} scale={@scale} />
+      <.assessment_point_entry_value_display
+        :if={@show_student_assessment}
+        entry={@entry}
+        is_student
+        scale={@scale}
+      />
       <div :if={@show_student_assessment} class="text-xs text-center text-ltrn-staff-dark">
         {gettext("Teacher assessment")}
       </div>
@@ -151,6 +158,7 @@ defmodule LantternWeb.AssessmentsComponents do
 
   attr :entry, :any
   attr :is_student, :boolean, default: false
+  attr :scale, :any, default: nil
 
   defp assessment_point_entry_value_display(%{entry: %{scale_type: "ordinal"}} = assigns) do
     ov =
@@ -180,15 +188,39 @@ defmodule LantternWeb.AssessmentsComponents do
         do: assigns.entry.student_score,
         else: assigns.entry.score
 
-    assigns = assign(assigns, :score, score)
+    {stop, color_map} =
+      case assigns.scale do
+        %Lanttern.Grading.Scale{} = scale ->
+          color_map =
+            case score && Lanttern.ColorUtils.interpolate_numeric_scale_colors(scale, score) do
+              {bg_color, text_color} -> %{bg_color: bg_color, text_color: text_color}
+              _ -> nil
+            end
+
+          {scale.stop, color_map}
+
+        _ ->
+          {nil, nil}
+      end
+
+    assigns =
+      assigns
+      |> assign(:score, score)
+      |> assign(:color_map, color_map)
+      |> assign(:stop, stop)
 
     ~H"""
     <%= if @score do %>
-      <div class={[
-        assessment_point_entry_display_base_classes(),
-        "border border-ltrn-lighter bg-white shadow-lg"
-      ]}>
+      <div
+        class={[
+          assessment_point_entry_display_base_classes(),
+          "shadow-lg",
+          if(is_nil(@color_map), do: "border border-ltrn-lighter bg-white")
+        ]}
+        style={create_color_map_style(@color_map)}
+      >
         {@score}
+        <span :if={@stop} class="opacity-60"><span class="inline-block mx-1">/</span>{@stop}</span>
       </div>
     <% else %>
       <.assessment_point_entry_value_empty_display />
@@ -214,7 +246,7 @@ defmodule LantternWeb.AssessmentsComponents do
   end
 
   defp assessment_point_entry_display_base_classes,
-    do: "flex items-center justify-center p-4 rounded-sm font-sans text-sm text-center"
+    do: "flex items-center justify-center p-4 rounded-sm font-sans font-bold text-sm text-center"
 
   @doc """
   Renders a dropdown to control the assessment group by option.

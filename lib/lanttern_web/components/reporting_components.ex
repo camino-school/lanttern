@@ -88,6 +88,7 @@ defmodule LantternWeb.ReportingComponents do
         </div>
         <.assessment_point_entry_display
           entry={@assessment_point.student_entry}
+          scale={@assessment_point.scale}
           show_student_assessment
           class="mt-4 sm:mt-0"
         />

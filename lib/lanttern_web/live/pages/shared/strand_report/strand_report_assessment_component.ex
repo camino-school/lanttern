@@ -255,6 +255,7 @@ defmodule LantternWeb.StrandReportLive.StrandReportAssessmentComponent do
         </div>
         <.assessment_point_entry_display
           entry={@entry}
+          scale={@goal.scale}
           show_student_assessment
           prevent_preview={@prevent_preview}
           class="mt-4 sm:mt-0"
