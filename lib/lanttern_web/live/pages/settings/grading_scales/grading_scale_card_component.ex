@@ -87,20 +87,27 @@ defmodule LantternWeb.GradingScalesLive.GradingScaleCardComponent do
         <div :if={@is_expanded} class="border-t border-ltrn-lighter p-6">
           <%!-- Ordinal values table --%>
           <div :if={@scale.type == "ordinal"}>
-            <div class="grid grid-cols-[1fr_1fr_min-content] gap-x-6 gap-y-4 items-center">
-              <div class="col-span-3 grid grid-cols-subgrid items-center">
+            <div class="grid grid-cols-[1fr_1fr_1fr_min-content] gap-x-6 gap-y-4 items-center">
+              <div class="col-span-4 grid grid-cols-subgrid items-center">
                 <span class="font-sans text-sm">{gettext("Ordinal values")}</span>
+                <span class="font-sans text-sm">{gettext("Short name")}</span>
                 <span class="font-sans text-sm">{gettext("Normalized value")}</span>
                 <span></span>
               </div>
               <div
                 :for={ov <- @scale.ordinal_values}
-                class="col-span-3 grid grid-cols-subgrid items-center"
+                class="col-span-4 grid grid-cols-subgrid items-center"
               >
                 <div>
                   <.badge color_map={ov}>
                     {ov.name}
                   </.badge>
+                </div>
+                <div>
+                  <.badge :if={ov.short_name} color_map={ov}>
+                    {ov.short_name}
+                  </.badge>
+                  <span :if={!ov.short_name} class="text-ltrn-subtle">&mdash;</span>
                 </div>
                 <span class="font-bold">{ov.normalized_value}</span>
                 <.icon_button
