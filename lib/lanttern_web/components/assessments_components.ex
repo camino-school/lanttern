@@ -51,8 +51,16 @@ defmodule LantternWeb.AssessmentsComponents do
 
   def assessment_point_entry_badge(%{entry: %{score: score, scale: %{type: "numeric"}}} = assigns)
       when not is_nil(score) do
+    color_map =
+      case Lanttern.ColorUtils.interpolate_numeric_scale_colors(assigns.entry.scale, score) do
+        {bg_color, text_color} -> %{bg_color: bg_color, text_color: text_color}
+        nil -> nil
+      end
+
+    assigns = assign(assigns, :color_map, color_map)
+
     ~H"""
-    <.badge class={@class} id={@id}>
+    <.badge color_map={@color_map} class={@class} id={@id}>
       {@entry.score}
     </.badge>
     """
