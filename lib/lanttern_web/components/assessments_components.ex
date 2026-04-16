@@ -22,6 +22,10 @@ defmodule LantternWeb.AssessmentsComponents do
     default: false,
     doc: "Displays only the first 3 letters of the ordinal value"
 
+  attr :show_stop, :boolean,
+    default: false,
+    doc: "Displays the numeric scale stop value (e.g. 7.0/10.0)"
+
   attr :id, :string, default: nil
   attr :class, :any, default: nil
 
@@ -62,6 +66,9 @@ defmodule LantternWeb.AssessmentsComponents do
     ~H"""
     <.badge color_map={@color_map} class={@class} id={@id}>
       {@entry.score}
+      <span :if={@show_stop} class="inline-block ml-1 opacity-60">
+        / {@entry.scale.stop}
+      </span>
     </.badge>
     """
   end

@@ -438,7 +438,11 @@ defmodule LantternWeb.ReportingComponents do
           {gettext("Diff")}
         </.badge>
         <p class="flex-1 text-base font-bold">{@assessment_point.name}</p>
-        <.assessment_point_entry_badge entry={@entry} class="shrink-0" />
+        <.assessment_point_entry_badge
+          entry={@entry}
+          class="shrink-0"
+          show_stop
+        />
       </div>
       <.markdown
         :if={@assessment_point.report_info}

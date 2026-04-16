@@ -221,6 +221,7 @@ defmodule LantternWeb.GradesReportsComponents do
         id={"student-grades-report-entry-#{@student_grades_report_entry.id}-pre-retake"}
         student_grades_report_entry={@student_grades_report_entry}
         class="flex-1 my-2 opacity-70"
+        use_short_name
         on_click={
           if(@on_student_grade_click, do: @on_student_grade_click.(@student_grades_report_entry.id))
         }
@@ -230,6 +231,7 @@ defmodule LantternWeb.GradesReportsComponents do
         id={"student-grades-report-entry-#{@student_grades_report_entry.id}"}
         student_grades_report_entry={@student_grades_report_entry}
         class="flex-2"
+        use_short_name
         on_click={
           if(@on_student_grade_click, do: @on_student_grade_click.(@student_grades_report_entry.id))
         }
@@ -319,6 +321,7 @@ defmodule LantternWeb.GradesReportsComponents do
         id={"student-grades-report-final-entry-#{@student_grades_report_final_entry.id}-pre-retake"}
         student_grades_report_entry={@student_grades_report_final_entry}
         class="flex-1 my-2 opacity-70"
+        use_short_name
         on_click={
           if(@on_click,
             do: @on_click.(@student_grades_report_final_entry.id)
@@ -330,6 +333,7 @@ defmodule LantternWeb.GradesReportsComponents do
         id={"student-grades-report-final-entry-#{@student_grades_report_final_entry.id}"}
         student_grades_report_entry={@student_grades_report_final_entry}
         class="flex-2"
+        use_short_name
         on_click={
           if(@on_click,
             do: @on_click.(@student_grades_report_final_entry.id)
@@ -1019,8 +1023,9 @@ defmodule LantternWeb.GradesReportsComponents do
     <.live_component
       :if={@has_retake_history}
       module={StudentGradesReportEntryButtonComponent}
-      is_pre_retake
       id={"pre-retake-#{@id}"}
+      is_pre_retake
+      use_short_name
       student_grades_report_entry={@entry}
       class="flex-1 self-stretch my-2 text-xs opacity-70"
       on_click={if(@on_entry_click, do: @on_entry_click.(@entry.id))}
@@ -1028,6 +1033,7 @@ defmodule LantternWeb.GradesReportsComponents do
     <.live_component
       module={StudentGradesReportEntryButtonComponent}
       id={@id}
+      use_short_name
       student_grades_report_entry={@entry}
       class="flex-2 self-stretch"
       on_click={if(@on_entry_click, do: @on_entry_click.(@entry.id))}

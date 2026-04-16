@@ -36,6 +36,7 @@ defmodule LantternWeb.Assessments.StudentAssessmentPointDetailsOverlayComponent 
         <div class="mt-10">
           <.assessment_point_entry_display
             entry={@entry}
+            scale={@assessment_point.scale}
             show_student_assessment
           />
           <.comment_area :if={@entry && @entry.report_note} comment={@entry.report_note} class="mt-4" />

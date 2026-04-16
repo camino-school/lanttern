@@ -15,6 +15,7 @@ defmodule LantternWeb.GradesReports.StudentGradesReportEntryButtonComponent do
       attr :class, :any, default: nil
       attr :on_click, :any, default: nil
       attr :is_pre_retake, :boolean, default: false
+      attr :use_short_name, :boolean, default: false
 
   """
   use LantternWeb, :live_component
@@ -47,6 +48,7 @@ defmodule LantternWeb.GradesReports.StudentGradesReportEntryButtonComponent do
       socket
       |> assign(:class, nil)
       |> assign(:on_click, nil)
+      |> assign(:use_short_name, false)
 
     {:ok, socket}
   end
@@ -85,6 +87,7 @@ defmodule LantternWeb.GradesReports.StudentGradesReportEntryButtonComponent do
 
   defp update_single({assigns, socket}, ovs_map) do
     is_pre_retake = Map.get(assigns, :is_pre_retake, false)
+    use_short_name = Map.get(assigns, :use_short_name, false)
 
     ordinal_value_or_score =
       case {assigns.student_grades_report_entry, is_pre_retake} do
@@ -105,7 +108,7 @@ defmodule LantternWeb.GradesReports.StudentGradesReportEntryButtonComponent do
       end
 
     {additional_classes, style, text} =
-      get_entry_styles_and_text(ordinal_value_or_score)
+      get_entry_styles_and_text(ordinal_value_or_score, use_short_name)
 
     socket
     |> assign(assigns)
@@ -114,16 +117,21 @@ defmodule LantternWeb.GradesReports.StudentGradesReportEntryButtonComponent do
     |> assign(:text, text)
   end
 
-  defp get_entry_styles_and_text(%OrdinalValue{} = ordinal_value) do
+  defp get_entry_styles_and_text(%OrdinalValue{} = ordinal_value, use_short_name) do
     style =
       "color: #{ordinal_value.text_color}; background-color: #{ordinal_value.bg_color}"
 
-    {nil, style, ordinal_value.short_name || ordinal_value.name}
+    name =
+      if use_short_name,
+        do: ordinal_value.short_name || ordinal_value.name,
+        else: ordinal_value.name
+
+    {nil, style, name}
   end
 
-  defp get_entry_styles_and_text(score) when is_float(score),
+  defp get_entry_styles_and_text(score, _use_short_name) when is_float(score),
     do: {"text-ltrn-dark bg-ltrn-lighter", nil, score}
 
-  defp get_entry_styles_and_text(_),
+  defp get_entry_styles_and_text(_, _use_short_name),
     do: {"border border-dashed border-ltrn-light text-ltrn-light", nil, "-"}
 end
