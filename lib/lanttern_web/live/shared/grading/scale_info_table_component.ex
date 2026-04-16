@@ -30,7 +30,10 @@ defmodule LantternWeb.Grading.ScaleInfoTableComponent do
             <tbody>
               <tr :for={{ordinal_value, gte} <- @rows}>
                 <td class="p-2">
-                  <.badge color_map={ordinal_value}>{ordinal_value.name}</.badge>
+                  <.badge color_map={ordinal_value}>
+                    {ordinal_value.name}
+                    {if ordinal_value.short_name, do: " (#{ordinal_value.short_name})"}
+                  </.badge>
                 </td>
                 <td class="p-2">{gte}</td>
               </tr>

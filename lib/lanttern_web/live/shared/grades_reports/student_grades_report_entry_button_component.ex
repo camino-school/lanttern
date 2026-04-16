@@ -118,7 +118,7 @@ defmodule LantternWeb.GradesReports.StudentGradesReportEntryButtonComponent do
     style =
       "color: #{ordinal_value.text_color}; background-color: #{ordinal_value.bg_color}"
 
-    {nil, style, ordinal_value.name}
+    {nil, style, ordinal_value.short_name || ordinal_value.name}
   end
 
   defp get_entry_styles_and_text(score) when is_float(score),
