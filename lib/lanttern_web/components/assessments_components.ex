@@ -20,7 +20,7 @@ defmodule LantternWeb.AssessmentsComponents do
 
   attr :is_short, :boolean,
     default: false,
-    doc: "Displays only the first 3 letters of the ordinal value"
+    doc: "Displays the ordinal value short_name, falling back to first 3 chars of name"
 
   attr :show_stop, :boolean,
     default: false,
@@ -34,7 +34,7 @@ defmodule LantternWeb.AssessmentsComponents do
       ) do
     ov_name =
       if assigns.is_short do
-        String.slice(assigns.entry.ordinal_value.name, 0..2)
+        assigns.entry.ordinal_value.short_name || String.slice(assigns.entry.ordinal_value.name, 0..2)
       else
         assigns.entry.ordinal_value.name
       end
