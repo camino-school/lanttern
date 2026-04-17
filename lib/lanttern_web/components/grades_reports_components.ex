@@ -1103,10 +1103,10 @@ defmodule LantternWeb.GradesReportsComponents do
               end}
             </td>
             <td colspan="2" class="p-2 text-right">
-              {:erlang.float_to_binary(
-                Float.floor(@student_grades_report_entry.composition_normalized_value, 2),
-                decimals: 2
-              )}
+              {@student_grades_report_entry.composition_normalized_value
+               |> Decimal.from_float()
+               |> Decimal.round(2, :floor)
+               |> Decimal.to_string()}
             </td>
           </tr>
         </tbody>
@@ -1170,10 +1170,10 @@ defmodule LantternWeb.GradesReportsComponents do
               end}
             </td>
             <td class="p-2 text-right">
-              {:erlang.float_to_binary(
-                Float.floor(@student_grades_report_final_entry.composition_normalized_value, 2),
-                decimals: 2
-              )}
+              {@student_grades_report_final_entry.composition_normalized_value
+               |> Decimal.from_float()
+               |> Decimal.round(2, :floor)
+               |> Decimal.to_string()}
             </td>
           </tr>
         </tbody>
