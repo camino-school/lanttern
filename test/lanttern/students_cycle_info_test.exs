@@ -108,7 +108,6 @@ defmodule Lanttern.StudentsCycleInfoTest do
       school = SchoolsFixtures.school_fixture()
       student = SchoolsFixtures.student_fixture(%{school_id: school.id})
       cycle = SchoolsFixtures.cycle_fixture(%{school_id: school.id})
-      year = Lanttern.TaxonomyFixtures.year_fixture()
 
       # profile to test log
       profile = Lanttern.IdentityFixtures.staff_member_profile_fixture()
@@ -119,8 +118,7 @@ defmodule Lanttern.StudentsCycleInfoTest do
         profile_picture_url: "some profile_picture",
         school_id: school.id,
         student_id: student.id,
-        cycle_id: cycle.id,
-        year_id: year.id
+        cycle_id: cycle.id
       }
 
       assert {:ok, %StudentCycleInfo{} = student_cycle_info} =

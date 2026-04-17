@@ -46,10 +46,7 @@
     current_profile={@current_user.current_profile}
   />
   <.responsive_container
-    :if={
-      @student_cycle_info &&
-        (@student_cycle_info.shared_info || @student_cycle_info.has_attachments)
-    }
+    :if={@student_cycle_info.shared_info || @student_cycle_info.has_attachments}
     class="mt-20"
   >
     <h3 class="font-display font-black text-xl">

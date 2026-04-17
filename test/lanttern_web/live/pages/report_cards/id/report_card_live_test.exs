@@ -71,26 +71,10 @@ defmodule LantternWeb.ReportCardLiveTest do
           years_ids: [year.id]
         })
 
-      student_a =
-        SchoolsFixtures.student_fixture(%{
-          name: "Student AAA",
-          school_id: user.current_profile.school_id,
-          classes_ids: [class.id]
-        })
+      student_a = SchoolsFixtures.student_fixture(%{name: "Student AAA", classes_ids: [class.id]})
 
-      student_b =
-        SchoolsFixtures.student_fixture(%{
-          name: "Student BBB",
-          school_id: user.current_profile.school_id,
-          classes_ids: [class.id]
-        })
-
-      Lanttern.StudentsCycleInfoFixtures.student_cycle_info_fixture(%{
-        school_id: user.current_profile.school_id,
-        cycle_id: parent_cycle.id,
-        year_id: year.id,
-        student_id: student_b.id
-      })
+      _student_b =
+        SchoolsFixtures.student_fixture(%{name: "Student BBB", classes_ids: [class.id]})
 
       student_a_report_card =
         student_report_card_fixture(%{report_card_id: report_card.id, student_id: student_a.id})
