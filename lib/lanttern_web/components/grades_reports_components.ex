@@ -1104,9 +1104,9 @@ defmodule LantternWeb.GradesReportsComponents do
             </td>
             <td colspan="2" class="p-2 text-right">
               {@student_grades_report_entry.composition_normalized_value
-               |> Decimal.from_float()
-               |> Decimal.round(2, :floor)
-               |> Decimal.to_string()}
+              |> Decimal.from_float()
+              |> Decimal.round(2, :floor)
+              |> Decimal.to_string()}
             </td>
           </tr>
         </tbody>
@@ -1171,9 +1171,9 @@ defmodule LantternWeb.GradesReportsComponents do
             </td>
             <td class="p-2 text-right">
               {@student_grades_report_final_entry.composition_normalized_value
-               |> Decimal.from_float()
-               |> Decimal.round(2, :floor)
-               |> Decimal.to_string()}
+              |> Decimal.from_float()
+              |> Decimal.round(2, :floor)
+              |> Decimal.to_string()}
             </td>
           </tr>
         </tbody>

@@ -2,8 +2,8 @@ defmodule LantternWeb.GradesReportsComponentsTest do
   use Lanttern.DataCase, async: true
   import Phoenix.LiveViewTest
 
-  alias LantternWeb.GradesReportsComponents
   alias Lanttern.GradesReports.StudentGradesReportEntry
+  alias LantternWeb.GradesReportsComponents
 
   describe "grade_composition_table/1" do
     test "rounds composition_normalized_value down to 2 decimal places without floating-point error" do
