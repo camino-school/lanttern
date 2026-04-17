@@ -29,7 +29,10 @@ defmodule LantternWeb.Assessments.EntryParticleComponent do
     <div
       class={[
         "flex items-center justify-center rounded-full font-sans",
-        if(@size == "sm", do: "w-4 h-4 max-w-4 text-xs", else: "w-6 h-6 max-w-6 text-sm"),
+        if(@size == "sm",
+          do: "min-w-4 h-4 w-auto px-1 text-xs",
+          else: "min-w-6 h-6 w-auto px-1 text-sm"
+        ),
         @additional_classes,
         @class
       ]}
@@ -133,22 +136,24 @@ defmodule LantternWeb.Assessments.EntryParticleComponent do
   end
 
   defp get_particle_styles_and_text(%OrdinalValue{} = ordinal_value, _, _, _) do
-    style =
+    display_text = ordinal_value.short_name || String.first(ordinal_value.name)
+
+    color_style =
       "color: #{ordinal_value.text_color}; background-color: #{ordinal_value.bg_color}"
 
-    {nil, style, String.first(ordinal_value.name), ordinal_value.name}
+    style = color_style
+
+    {nil, style, display_text, ordinal_value.name}
   end
 
   defp get_particle_styles_and_text(score, _entry, _is_student, scale) when is_float(score) do
-    base_style = "width: auto; max-width: fit-content; padding: 0 var(--spacing)"
-
     {additional_classes, style} =
       case scale && Lanttern.ColorUtils.interpolate_numeric_scale_colors(scale, score) do
         {bg_color, text_color} ->
-          {nil, "#{base_style}; background-color: #{bg_color}; color: #{text_color}"}
+          {nil, "background-color: #{bg_color}; color: #{text_color}"}
 
         _ ->
-          {"text-ltrn-dark bg-ltrn-lighter", base_style}
+          {"text-ltrn-dark bg-ltrn-lighter", nil}
       end
 
     {additional_classes, style, "#{score}", score}
