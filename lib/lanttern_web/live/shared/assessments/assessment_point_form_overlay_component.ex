@@ -69,6 +69,7 @@ defmodule LantternWeb.Assessments.AssessmentPointFormOverlayComponent do
             <.live_component
               module={CurriculumItemSearchComponent}
               id="curriculum-item-search"
+              current_scope={@current_scope}
               notify_component={@myself}
               label={gettext("Curriculum")}
             />
