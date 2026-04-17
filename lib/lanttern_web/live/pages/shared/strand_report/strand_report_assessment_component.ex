@@ -33,12 +33,21 @@ defmodule LantternWeb.StrandReportLive.StrandReportAssessmentComponent do
     ~H"""
     <div class={@class}>
       <.responsive_container>
-        <h2 class="font-display font-black text-2xl">{gettext("Ongoing assessment")}</h2>
-        <p class="mt-4">
-          {gettext("Information about ongoing assessment points, grouped by moments.")}
+        <p>
+          {gettext(
+            "Here you'll find information about the strand assessments. Click the cards to view more details about it."
+          )}
         </p>
-
-        <section id="ongoing-assessment-points" class="mt-10">
+        <.markdown
+          :if={@strand_report.strand.assessment_info}
+          text={@strand_report.strand.assessment_info}
+          class="mt-10"
+        />
+        <section :if={@has_ongoing_assessment} id="ongoing-assessment-points" class="mt-10">
+          <h2 class="font-display font-black text-2xl">{gettext("Ongoing assessment")}</h2>
+          <p class="mt-4">
+            {gettext("Information about ongoing assessment points, grouped by moments.")}
+          </p>
           <div class="mt-6 space-y-10">
             <div :for={moment <- @moments} id={"moment-#{moment.id}-ap-group"}>
               <h4 class="font-display font-bold text-lg">{moment.name}</h4>
@@ -63,60 +72,31 @@ defmodule LantternWeb.StrandReportLive.StrandReportAssessmentComponent do
             </div>
           </div>
         </section>
-      </.responsive_container>
-      <.responsive_container class="mt-16">
-        <h2 class="font-display font-black text-2xl">{gettext("Goals assessment")}</h2>
-        <p class="mt-4">
-          {gettext("Final assessment points information, grouped by curriculum item.")}
-        </p>
-        <div id="strand-goals-student-entries" phx-update="stream">
-          <.goal_card
-            :for={
-              {dom_id, {goal, entry, moment_entries}} <-
-                @streams.strand_goals_student_entries
-            }
-            id={dom_id}
-            patch={"#{@base_path}/strand_goal/#{goal.id}"}
-            goal={goal}
-            entry={entry}
-            moment_entries={moment_entries}
-            has_evidence={@goal_has_evidences_map[goal.id]}
-            prevent_preview={@prevent_final_assessment_preview}
-          />
-        </div>
-        <.empty_state :if={!@has_strand_goals_with_student_entries}>
-          {gettext("No assessment entries for this strand yet")}
-        </.empty_state>
-        <div :if={@has_strand_evidences} class="mt-10">
-          <div class="flex items-center gap-2">
-            <.icon name="hero-paper-clip" class="w-6 h-6" />
-            <h4 class="font-display font-black">
-              {gettext("All strand evidences")}
-            </h4>
-          </div>
-          <div id="strand-evidences" phx-update="stream">
-            <.live_component
-              :for={{dom_id, {evidence, goal_id, moment_name}} <- @streams.strand_evidences}
-              module={AttachmentViewComponent}
+        <section id="goals-assessment" class="mt-16">
+          <h2 class="font-display font-black text-2xl">{gettext("Goals assessment")}</h2>
+          <p class="mt-4">
+            {gettext("Final assessment points information, grouped by curriculum item.")}
+          </p>
+          <div id="strand-goals-student-entries" phx-update="stream">
+            <.goal_card
+              :for={
+                {dom_id, {goal, entry, moment_entries}} <-
+                  @streams.strand_goals_student_entries
+              }
               id={dom_id}
-              class="mt-6"
-              attachment={evidence}
-            >
-              <p class="mt-4 text-xs">
-                {if moment_name do
-                  "#{gettext("In the context of")} \"#{moment_name}\"."
-                end}
-                <.link
-                  patch={"#{@base_path}/strand_goal/#{goal_id}"}
-                  class="underline hover:text-ltrn-subtle"
-                >
-                  {gettext("View assessment details")}
-                </.link>
-              </p>
-            </.live_component>
+              patch={"#{@base_path}/strand_goal/#{goal.id}"}
+              goal={goal}
+              entry={entry}
+              moment_entries={moment_entries}
+              has_evidence={@goal_has_evidences_map[goal.id]}
+              prevent_preview={@prevent_final_assessment_preview}
+            />
           </div>
-        </div>
-        <div :if={@has_student_grades_report_entries} class="mt-10">
+          <.empty_state :if={!@has_strand_goals_with_student_entries}>
+            {gettext("No assessment entries for this strand yet")}
+          </.empty_state>
+        </section>
+        <section :if={@has_student_grades_report_entries} id="grades-report-entries" class="mt-10">
           <h3 class="font-display font-black text-xl">{gettext("Grading")}</h3>
           <div id="grades-report-entries" phx-update="stream">
             <.card_base
@@ -149,6 +129,35 @@ defmodule LantternWeb.StrandReportLive.StrandReportAssessmentComponent do
                 />
               </div>
             </.card_base>
+          </div>
+        </section>
+        <div :if={@has_strand_evidences} class="mt-10">
+          <div class="flex items-center gap-2">
+            <.icon name="hero-paper-clip" class="w-6 h-6" />
+            <h4 class="font-display font-black">
+              {gettext("All strand evidences")}
+            </h4>
+          </div>
+          <div id="strand-evidences" phx-update="stream">
+            <.live_component
+              :for={{dom_id, {evidence, goal_id, moment_name}} <- @streams.strand_evidences}
+              module={AttachmentViewComponent}
+              id={dom_id}
+              class="mt-6"
+              attachment={evidence}
+            >
+              <p class="mt-4 text-xs">
+                {if moment_name do
+                  "#{gettext("In the context of")} \"#{moment_name}\"."
+                end}
+                <.link
+                  patch={"#{@base_path}/strand_goal/#{goal_id}"}
+                  class="underline hover:text-ltrn-subtle"
+                >
+                  {gettext("View assessment details")}
+                </.link>
+              </p>
+            </.live_component>
           </div>
         </div>
       </.responsive_container>
@@ -519,11 +528,17 @@ defmodule LantternWeb.StrandReportLive.StrandReportAssessmentComponent do
         socket.assigns.strand_report.strand_id
       )
 
+    moments_with_entries =
+      Enum.filter(moments, fn moment ->
+        Enum.any?(assessment_points, &(&1.moment_id == moment.id))
+      end)
+
     socket
-    |> assign(:moments, moments)
+    |> assign(:moments, moments_with_entries)
     |> assign(:moments_ids, moments_ids)
     |> assign(:assessment_points_ids, Enum.map(assessment_points, &"#{&1.id}"))
-    |> stream_assessment_points_by_moment(assessment_points, moments)
+    |> assign(:has_ongoing_assessment, !Enum.empty?(assessment_points))
+    |> stream_assessment_points_by_moment(assessment_points, moments_with_entries)
   end
 
   defp stream_assessment_points_by_moment(socket, assessment_points, moments) do

@@ -68,37 +68,23 @@
     allow_access={@allow_access}
     class="py-10"
   />
-  <div :if={
-    @live_action in [
-      :assessment,
-      :assessment_point,
-      :strand_goal,
-      :student_grade_report_entry
-    ]
-  }>
-    <.responsive_container class="pt-10">
-      <p>
-        {gettext("Here you'll find information about the strand ongoing and final assessments.")}
-      </p>
-      <p class="mt-4 mb-10">
-        {gettext("You can click assessment cards to view more details about it.")}
-      </p>
-      <.markdown
-        :if={@strand_report.strand.assessment_info}
-        text={@strand_report.strand.assessment_info}
-        class="mt-10"
-      />
-    </.responsive_container>
-    <.live_component
-      module={StrandReportAssessmentComponent}
-      id="student-assessment"
-      strand_report={@strand_report}
-      student_report_card={@student_report_card}
-      params={@params}
-      current_scope={@current_scope}
-      class="py-10"
-      base_path={"#{@base_path}/assessment"}
-      current_profile={@current_user.current_profile}
-    />
-  </div>
+  <.live_component
+    :if={
+      @live_action in [
+        :assessment,
+        :assessment_point,
+        :strand_goal,
+        :student_grade_report_entry
+      ]
+    }
+    module={StrandReportAssessmentComponent}
+    id="student-assessment"
+    strand_report={@strand_report}
+    student_report_card={@student_report_card}
+    params={@params}
+    current_scope={@current_scope}
+    class="py-10"
+    base_path={"#{@base_path}/assessment"}
+    current_profile={@current_user.current_profile}
+  />
 </Layouts.app_logged_in>

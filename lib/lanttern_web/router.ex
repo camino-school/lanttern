@@ -57,6 +57,8 @@ defmodule LantternWeb.Router do
     # Redirect old /students tab URL to the unified /people tab
     get "/school/classes/:id/students", PageController, :redirect_class_students
 
+    get "/settings", PageController, :redirect_settings
+
     live_session :authenticated_staff_member,
       on_mount: [
         {LantternWeb.UserAuth, :ensure_authenticated_staff_member},

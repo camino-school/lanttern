@@ -41,7 +41,7 @@ defmodule Lanttern.Grading.OrdinalValue do
     ordinal_value
     |> cast(attrs, [:name, :short_name, :normalized_value, :scale_id, :bg_color, :text_color])
     |> validate_required([:name, :normalized_value, :scale_id])
-    |> validate_length(:short_name, max: 3)
+    |> validate_length(:short_name, max: 4)
     |> check_constraint(:normalized_value,
       name: :normalized_value_should_be_between_0_and_1,
       message: gettext("Normalized value should be between 0 and 1")

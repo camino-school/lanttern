@@ -92,7 +92,7 @@ defmodule LantternWeb.StrandReportLive.StrandReportOngoingAssessmentComponentTes
       {:ok, view, _html} =
         live(conn, "#{@live_view_path_base}/#{strand_report.id}/assessment")
 
-      assert view |> has_element?("h4", "Moment Beta")
+      refute view |> has_element?("h4", "Moment Beta")
       refute view |> has_element?("[id*='assessment-point']", "AP Without Entry")
     end
   end

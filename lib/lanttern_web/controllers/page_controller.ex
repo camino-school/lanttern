@@ -5,6 +5,10 @@ defmodule LantternWeb.PageController do
     redirect(conn, to: ~p"/school/classes/#{id}/people")
   end
 
+  def redirect_settings(conn, _params) do
+    redirect(conn, to: ~p"/settings/agents")
+  end
+
   def home(conn, _params) do
     google_client_id =
       Application.fetch_env!(:lanttern, LantternWeb.UserAuth)
