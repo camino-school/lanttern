@@ -34,7 +34,8 @@ defmodule LantternWeb.AssessmentsComponents do
       ) do
     ov_name =
       if assigns.is_short do
-        assigns.entry.ordinal_value.short_name || String.slice(assigns.entry.ordinal_value.name, 0..2)
+        assigns.entry.ordinal_value.short_name ||
+          String.slice(assigns.entry.ordinal_value.name, 0..2)
       else
         assigns.entry.ordinal_value.name
       end
