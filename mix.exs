@@ -4,7 +4,7 @@ defmodule Lanttern.MixProject do
   def project do
     [
       app: :lanttern,
-      version: "2026.3.20-alpha.90",
+      version: "2026.4.17-alpha.91",
       elixir: "~> 1.18",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
@@ -98,7 +98,8 @@ defmodule Lanttern.MixProject do
       {:req_llm, "~> 1.6"},
       {:llm_db, "~> 2026.3.1"},
       {:live_react, "~> 1.1.0"},
-      {:floki, "~> 0.38.0", only: :test}
+      {:floki, "~> 0.38.0", only: :test},
+      {:colorex, "~> 1.0"}
     ]
   end
 

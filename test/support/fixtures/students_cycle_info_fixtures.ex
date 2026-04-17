@@ -5,7 +5,6 @@ defmodule Lanttern.StudentsCycleInfoFixtures do
   """
 
   alias Lanttern.SchoolsFixtures
-  alias Lanttern.TaxonomyFixtures
 
   @doc """
   Generate a student_cycle_info.
@@ -17,7 +16,6 @@ defmodule Lanttern.StudentsCycleInfoFixtures do
       |> maybe_inject_student_id()
       |> maybe_inject_cycle_id()
       |> Enum.into(%{
-        year_id: TaxonomyFixtures.maybe_gen_year_id(attrs),
         shared_info: "some shared_info",
         profile_picture_url: "some profile_picture_url",
         school_info: "some school_info"

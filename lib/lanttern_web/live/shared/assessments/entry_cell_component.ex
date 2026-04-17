@@ -28,6 +28,7 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
 
   alias Lanttern.Assessments
   alias Lanttern.Assessments.AssessmentPointEntry
+  alias Lanttern.ColorUtils
   # alias Lanttern.Grading.OrdinalValue
   # alias Lanttern.Grading.Scale
 
@@ -117,6 +118,7 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
       phx-debounce="1000"
       value={@field.value}
       errors={@field.errors}
+      style={@style}
       class={[
         "h-full font-mono text-center",
         @field.value == nil && "bg-ltrn-lighter"
@@ -161,19 +163,20 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
   end
 
   def entry_view(%{entry: %{scale_type: "numeric"}} = assigns) do
-    key =
+    {value, style} =
       case assigns.view do
-        "teacher" -> :score
-        "student" -> :student_score
+        "teacher" -> {assigns.entry.score, assigns.teacher_ov_style}
+        "student" -> {assigns.entry.student_score, assigns.student_ov_style}
       end
 
-    value = Map.get(assigns.entry, key)
-
-    assigns = assign(assigns, :value, value)
+    assigns = assigns |> assign(:value, value) |> assign(:style, style)
 
     ~H"""
     <%= if @value do %>
-      <div class="flex items-center justify-center h-full p-2 rounded-xs font-mono text-sm bg-white shadow-lg">
+      <div
+        class="flex items-center justify-center h-full p-2 rounded-xs font-mono text-sm bg-white shadow-lg"
+        style={@style}
+      >
         {@value}
       </div>
     <% else %>
@@ -225,10 +228,11 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
     #   scale_id: %{
     #     ov_map: %{ov_id: ov, ...},
     #     ov_style_map: %{ov_id: style, ...},
+    #     scale: %Scale{} | nil,
     #   },
     #   ...
     # }
-    scale_ov_maps =
+    ordinal_scale_maps =
       Grading.list_scales(
         scope,
         type: "ordinal",
@@ -241,14 +245,22 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
           %{
             ov_map: build_ov_map(&1.ordinal_values),
             ov_style_map: build_ov_style_map(&1.ordinal_values),
-            ov_options: build_ov_options(&1.ordinal_values)
+            ov_options: build_ov_options(&1.ordinal_values),
+            scale: nil
           }
         }
       )
       |> Enum.into(%{})
 
+    numeric_scale_maps =
+      Grading.list_scales(scope, type: "numeric", ids: scales_ids)
+      |> Enum.map(&{&1.id, %{ov_map: %{}, ov_style_map: %{}, ov_options: [], scale: &1}})
+      |> Enum.into(%{})
+
+    scale_maps = Map.merge(ordinal_scale_maps, numeric_scale_maps)
+
     assigns_sockets
-    |> Enum.map(&update_single(&1, scale_ov_maps))
+    |> Enum.map(&update_single(&1, scale_maps))
   end
 
   defp build_ov_map(ordinal_values) do
@@ -268,35 +280,59 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
     |> Enum.map(&{&1.name, &1.id})
   end
 
-  defp update_single({assigns, socket}, scale_ov_maps) do
-    default_maps = %{ov_map: %{}, ov_style_map: %{}, ov_options: []}
+  defp update_single({assigns, socket}, scale_maps) do
+    default_maps = %{ov_map: %{}, ov_style_map: %{}, ov_options: [], scale: nil}
 
-    %{ov_map: ov_map, ov_style_map: ov_style_map, ov_options: ov_options} =
-      Map.get(scale_ov_maps, assigns.entry.scale_id, default_maps)
+    %{ov_map: ov_map, ov_style_map: ov_style_map, ov_options: ov_options, scale: scale} =
+      Map.get(scale_maps, assigns.entry.scale_id, default_maps)
 
     socket
     |> assign(assigns)
-    |> assign_ov_values_and_styles(ov_map, ov_style_map)
+    |> assign_ov_values_and_styles(ov_map, ov_style_map, scale)
     |> assign_form_and_related_assigns(ov_options)
     |> assign_grid_class()
   end
 
-  defp assign_ov_values_and_styles(socket, ov_map, ov_style_map) do
+  defp assign_ov_values_and_styles(socket, ov_map, ov_style_map, scale) do
     entry = socket.assigns.entry
 
-    teacher_ov = Map.get(ov_map, entry.ordinal_value_id)
-    teacher_ov_name = teacher_ov && teacher_ov.name
-    teacher_ov_style = Map.get(ov_style_map, entry.ordinal_value_id)
+    {teacher_ov_name, teacher_ov_style, student_ov_name, student_ov_style} =
+      case entry.scale_type do
+        "ordinal" ->
+          teacher_ov = Map.get(ov_map, entry.ordinal_value_id)
+          student_ov = Map.get(ov_map, entry.student_ordinal_value_id)
 
-    student_ov = Map.get(ov_map, entry.student_ordinal_value_id)
-    student_ov_name = student_ov && student_ov.name
-    student_ov_style = Map.get(ov_style_map, entry.student_ordinal_value_id)
+          {
+            teacher_ov && teacher_ov.name,
+            Map.get(ov_style_map, entry.ordinal_value_id),
+            student_ov && student_ov.name,
+            Map.get(ov_style_map, entry.student_ordinal_value_id)
+          }
+
+        "numeric" ->
+          {nil, numeric_style(scale, entry.score), nil, numeric_style(scale, entry.student_score)}
+      end
 
     socket
     |> assign(:teacher_ov_name, teacher_ov_name)
     |> assign(:teacher_ov_style, teacher_ov_style)
     |> assign(:student_ov_name, student_ov_name)
     |> assign(:student_ov_style, student_ov_style)
+  end
+
+  defp numeric_style(nil, _score), do: nil
+  defp numeric_style(_scale, nil), do: nil
+
+  defp numeric_style(scale, score) do
+    case ColorUtils.interpolate_numeric_scale_colors(scale, score) do
+      {bg, text} ->
+        bg_part = if bg, do: "background-color: #{bg};", else: ""
+        text_part = if text, do: " color: #{text};", else: ""
+        bg_part <> text_part
+
+      nil ->
+        nil
+    end
   end
 
   defp assign_grid_class(socket) do

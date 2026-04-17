@@ -46,6 +46,7 @@ defmodule LantternWeb.Assessments.StrandGoalDetailsOverlayComponent do
         <div class="py-10 border-b-2 border-ltrn-lighter">
           <.assessment_point_entry_display
             entry={@entry}
+            scale={@strand_goal.scale}
             show_student_assessment
             prevent_preview={@prevent_preview}
           />

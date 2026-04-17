@@ -62,60 +62,54 @@ defmodule LantternWeb.StrandReportLive.StrandReportOverviewComponent do
               class="mt-4"
             />
           </div>
-          <%= if @moments_ids == [] do %>
-            <.card_base class="p-10">
-              <.empty_state>{gettext("No moments for this strand yet")}</.empty_state>
-            </.card_base>
-          <% else %>
-            <div id="strand-moments" phx-update="stream">
-              <div
-                :for={{dom_id, moment} <- @streams.moments}
-                class="mt-12"
-                id={dom_id}
-              >
-                <%!-- moment --%>
-                <div class="flex items-start gap-4">
-                  <div class="py-3">
-                    <hr class="w-4 sm:w-6 h-1 border-0 rounded-full bg-ltrn-dark" />
-                  </div>
-                  <div class="flex-1">
-                    <button
-                      type="button"
-                      phx-click={
-                        JS.push("view_moment_details", value: %{id: moment.id}, target: @myself)
-                      }
-                      class="font-display font-bold text-left text-xl hover:text-ltrn-subtle"
-                    >
-                      {moment.name}
-                    </button>
-                    <button
-                      type="button"
-                      phx-click={
-                        JS.push("view_moment_details", value: %{id: moment.id}, target: @myself)
-                      }
-                      class="block mt-4 text-left"
-                    >
-                      <.markdown
-                        text={moment.description}
-                        strip_tags
-                        class="hover:text-ltrn-subtle line-clamp-3"
-                      />
-                    </button>
-                  </div>
+          <div :if={!Enum.empty?(@moments_ids)} id="strand-moments" phx-update="stream">
+            <div
+              :for={{dom_id, moment} <- @streams.moments}
+              class="mt-12"
+              id={dom_id}
+            >
+              <%!-- moment --%>
+              <div class="flex items-start gap-4">
+                <div class="py-3">
+                  <hr class="w-4 sm:w-6 h-1 border-0 rounded-full bg-ltrn-dark" />
                 </div>
-                <%!-- lessons --%>
-                <div id={"moment-#{moment.id}-lessons"} phx-update="stream">
-                  <.lesson_entry
-                    :for={{dom_id, lesson} <- @streams["moment_#{moment.id}_lessons"] || []}
-                    lesson={lesson}
-                    base_path={@base_path}
-                    id={dom_id}
-                    class="mt-4"
-                  />
+                <div class="flex-1">
+                  <button
+                    type="button"
+                    phx-click={
+                      JS.push("view_moment_details", value: %{id: moment.id}, target: @myself)
+                    }
+                    class="font-display font-bold text-left text-xl hover:text-ltrn-subtle"
+                  >
+                    {moment.name}
+                  </button>
+                  <button
+                    type="button"
+                    phx-click={
+                      JS.push("view_moment_details", value: %{id: moment.id}, target: @myself)
+                    }
+                    class="block mt-4 text-left"
+                  >
+                    <.markdown
+                      text={moment.description}
+                      strip_tags
+                      class="hover:text-ltrn-subtle line-clamp-3"
+                    />
+                  </button>
                 </div>
               </div>
+              <%!-- lessons --%>
+              <div id={"moment-#{moment.id}-lessons"} phx-update="stream">
+                <.lesson_entry
+                  :for={{dom_id, lesson} <- @streams["moment_#{moment.id}_lessons"] || []}
+                  lesson={lesson}
+                  base_path={@base_path}
+                  id={dom_id}
+                  class="mt-4"
+                />
+              </div>
             </div>
-          <% end %>
+          </div>
         </section>
       </.responsive_container>
       <.modal

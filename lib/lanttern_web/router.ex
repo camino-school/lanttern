@@ -57,6 +57,8 @@ defmodule LantternWeb.Router do
     # Redirect old /students tab URL to the unified /people tab
     get "/school/classes/:id/students", PageController, :redirect_class_students
 
+    get "/settings", PageController, :redirect_settings
+
     live_session :authenticated_staff_member,
       on_mount: [
         {LantternWeb.UserAuth, :ensure_authenticated_staff_member},
@@ -205,13 +207,9 @@ defmodule LantternWeb.Router do
       live "/strand_report/:strand_report_id/rubrics", StrandReportLive, :rubrics
       live "/strand_report/:strand_report_id/assessment", StrandReportLive, :assessment
 
-      live "/strand_report/:strand_report_id/ongoing_assessment",
+      live "/strand_report/:strand_report_id/assessment/assessment_point/:assessment_point_id",
            StrandReportLive,
-           :ongoing_assessment
-
-      live "/strand_report/:strand_report_id/ongoing_assessment/:assessment_point_id",
-           StrandReportLive,
-           :ongoing_assessment_details
+           :assessment_point
 
       live "/strand_report/:strand_report_id/assessment/strand_goal/:strand_goal_id",
            StrandReportLive,
@@ -256,17 +254,13 @@ defmodule LantternWeb.Router do
            StrandReportLive,
            :rubrics
 
-      live "/student_report_cards/:student_report_card_id/strand_report/:strand_report_id/ongoing_assessment",
-           StrandReportLive,
-           :ongoing_assessment
-
-      live "/student_report_cards/:student_report_card_id/strand_report/:strand_report_id/ongoing_assessment/:assessment_point_id",
-           StrandReportLive,
-           :ongoing_assessment_details
-
       live "/student_report_cards/:student_report_card_id/strand_report/:strand_report_id/assessment",
            StrandReportLive,
            :assessment
+
+      live "/student_report_cards/:student_report_card_id/strand_report/:strand_report_id/assessment/assessment_point/:assessment_point_id",
+           StrandReportLive,
+           :assessment_point
 
       live "/student_report_cards/:student_report_card_id/strand_report/:strand_report_id/assessment/strand_goal/:strand_goal_id",
            StrandReportLive,

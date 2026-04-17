@@ -671,36 +671,40 @@ defmodule Lanttern.Reporting do
       year: %Year{} = year
     } = report_card
 
-    cycle_id_for_classes = cycle.parent_cycle_id || cycle.id
-
     where_cycle_filter =
       if cycle.parent_cycle_id,
-        do: dynamic([_s, sci], sci.cycle_id == ^cycle.parent_cycle_id),
+        do: dynamic([_s, _c, _y, cy], cy.id == ^cycle.parent_cycle_id),
         else: true
-
-    classes_query =
-      from(c in Lanttern.Schools.Class,
-        join: y in assoc(c, :years),
-        where: y.id == ^year.id,
-        where: c.cycle_id == ^cycle_id_for_classes
-      )
 
     from(
       s in Student,
-      join: sci in assoc(s, :cycles_info),
-      on: sci.year_id == ^year.id,
+      join: c in assoc(s, :classes),
+      join: y in assoc(c, :years),
+      join: cy in assoc(c, :cycle),
       left_join: sr in StudentReportCard,
       on: sr.student_id == s.id and sr.report_card_id == ^report_card_id,
       where: is_nil(sr),
+      where: y.id == ^year.id,
       where: ^where_cycle_filter,
       where: is_nil(s.deactivated_at),
-      order_by: [asc: s.name],
-      preload: [classes: ^classes_query],
-      select_merge: %{profile_picture_url: sci.profile_picture_url},
-      distinct: s.id
+      order_by: [asc: c.name, asc: s.name],
+      preload: [classes: c]
     )
+    |> maybe_load_profile_picture_url(cycle)
     |> Repo.all()
   end
+
+  defp maybe_load_profile_picture_url(queryable, %{parent_cycle_id: cycle_id})
+       when not is_nil(cycle_id) do
+    from(
+      s in queryable,
+      left_join: sci in assoc(s, :cycles_info),
+      on: sci.cycle_id == ^cycle_id,
+      select_merge: %{profile_picture_url: sci.profile_picture_url}
+    )
+  end
+
+  defp maybe_load_profile_picture_url(queryable, _), do: queryable
 
   @doc """
   Returns the list of cycles related to student report cards.

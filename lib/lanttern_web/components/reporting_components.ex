@@ -88,6 +88,7 @@ defmodule LantternWeb.ReportingComponents do
         </div>
         <.assessment_point_entry_display
           entry={@assessment_point.student_entry}
+          scale={@assessment_point.scale}
           show_student_assessment
           class="mt-4 sm:mt-0"
         />
@@ -437,7 +438,11 @@ defmodule LantternWeb.ReportingComponents do
           {gettext("Diff")}
         </.badge>
         <p class="flex-1 text-base font-bold">{@assessment_point.name}</p>
-        <.assessment_point_entry_badge entry={@entry} class="shrink-0" />
+        <.assessment_point_entry_badge
+          entry={@entry}
+          class="shrink-0"
+          show_stop
+        />
       </div>
       <.markdown
         :if={@assessment_point.report_info}
@@ -484,7 +489,7 @@ defmodule LantternWeb.ReportingComponents do
     grid_template_columns_style =
       case assessment_points_count do
         n when n > 0 ->
-          "grid-template-columns: 200px repeat(#{n}, 16px)"
+          "grid-template-columns: 200px repeat(#{n}, minmax(0, max-content))"
 
         _ ->
           "grid-template-columns: 200px minmax(10px, 1fr)"
@@ -511,22 +516,24 @@ defmodule LantternWeb.ReportingComponents do
           class="sticky top-0 z-20 grid grid-cols-subgrid py-1 pr-1 bg-white"
           style={@grid_column_style}
         >
-          <div class="sticky left-0 bg-white"></div>
+          <div class="sticky left-0 bg-white min-h-8"></div>
           <%= if @strands != [] do %>
-            <a
+            <div
               :for={strand <- @strands}
               id={"moments-entries-grid-strand-#{strand.id}"}
-              href={"/strands/#{strand.id}/assessment"}
-              target="_blank"
-              class="w-full p-1 rounded-xs border border-ltrn-lighter text-center truncate bg-white hover:bg-ltrn-lighter"
+              class="relative"
               style={"grid-column: span #{strand.assessment_points_count} / span #{strand.assessment_points_count}"}
-              title={"#{if strand.type, do: "#{strand.type} | "}#{strand.name}"}
             >
-              <span class="font-display font-black text-sm">
+              <a
+                href={"/strands/#{strand.id}/assessment"}
+                target="_blank"
+                class="absolute inset-0 p-1 rounded-xs border border-ltrn-lighter font-display font-black text-sm text-center truncate bg-white hover:bg-ltrn-lighter"
+                title={"#{if strand.type, do: "#{strand.type} | "}#{strand.name}"}
+              >
                 {if strand.type, do: "#{strand.type} | "}
                 {strand.name}
-              </span>
-            </a>
+              </a>
+            </div>
           <% else %>
             <div class="w-full p-2 rounded-sm text-ltrn-subtle text-center bg-ltrn-lightest">
               {gettext("No strands with moments assessment linked to this report card")}
@@ -553,15 +560,16 @@ defmodule LantternWeb.ReportingComponents do
             do %>
                 <%= for {moment_id, assessment_point_id, entry} <- @students_entries_map[student.id][strand.id] do %>
                   <a
-                    href={"/strands/moment/#{moment_id}/assessment"}
+                    href={"/strands/#{strand.id}/assessment/marking/moment/#{moment_id}"}
                     target="_blank"
-                    class="block w-min rounded-xs outline-ltrn-primary text-center hover:outline"
+                    class="block w-full rounded-xs outline-ltrn-primary text-center hover:outline"
                   >
                     <.live_component
                       module={EntryParticleComponent}
                       id={"student-#{student.id}-ap-#{assessment_point_id}"}
                       entry={entry}
                       size="sm"
+                      class="w-full"
                     />
                   </a>
                 <% end %>

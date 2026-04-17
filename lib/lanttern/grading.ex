@@ -309,6 +309,21 @@ defmodule Lanttern.Grading do
   defp check_ordinal_value_school_access(_scope, _attrs), do: :ok
 
   @doc """
+  Returns a list of scales filtered by ids, without scope enforcement.
+  Intended for internal batch loading where ids come from trusted data.
+
+  ## Options
+
+  - `:ids` – filter scales by given ids
+
+  """
+  def list_scales_unscoped(opts) when is_list(opts) do
+    from(s in Scale, order_by: s.position)
+    |> apply_list_scales_opts(opts)
+    |> Repo.all()
+  end
+
+  @doc """
   Returns the list of scales for the current scope's school.
 
   ## Options
