@@ -52,7 +52,7 @@ defmodule LantternWeb.StrandReportLive.StrandReportOngoingAssessmentComponentTes
         })
 
       {:ok, view, _html} =
-        live(conn, "#{@live_view_path_base}/#{strand_report.id}/ongoing_assessment")
+        live(conn, "#{@live_view_path_base}/#{strand_report.id}/assessment")
 
       assert view |> has_element?("h4", "Moment Alpha")
       assert view |> has_element?("[id*='assessment-point']", "Assessment Point Alpha")
@@ -90,7 +90,7 @@ defmodule LantternWeb.StrandReportLive.StrandReportOngoingAssessmentComponentTes
         })
 
       {:ok, view, _html} =
-        live(conn, "#{@live_view_path_base}/#{strand_report.id}/ongoing_assessment")
+        live(conn, "#{@live_view_path_base}/#{strand_report.id}/assessment")
 
       assert view |> has_element?("h4", "Moment Beta")
       refute view |> has_element?("[id*='assessment-point']", "AP Without Entry")
@@ -142,7 +142,7 @@ defmodule LantternWeb.StrandReportLive.StrandReportOngoingAssessmentComponentTes
       {:ok, view, _html} =
         live(
           conn,
-          "#{@live_view_path_base}/#{strand_report.id}/ongoing_assessment/#{ap.id}"
+          "#{@live_view_path_base}/#{strand_report.id}/assessment/assessment_point/#{ap.id}"
         )
 
       assert view |> has_element?("h3", "AP With Details")
@@ -183,7 +183,7 @@ defmodule LantternWeb.StrandReportLive.StrandReportOngoingAssessmentComponentTes
       {:ok, view, _html} =
         live(
           conn,
-          "#{@live_view_path_base}/#{strand_report.id}/ongoing_assessment/#{unrelated_ap.id}"
+          "#{@live_view_path_base}/#{strand_report.id}/assessment/assessment_point/#{unrelated_ap.id}"
         )
 
       refute view |> has_element?("h3", "Unrelated AP")

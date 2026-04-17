@@ -34,14 +34,13 @@
           </:tab>
           <:tab
             text={gettext("Assessment")}
-            patch={"#{@base_path}/ongoing_assessment"}
+            patch={"#{@base_path}/assessment"}
             is_current={
               @live_action in [
                 :assessment,
+                :assessment_point,
                 :strand_goal,
-                :student_grade_report_entry,
-                :ongoing_assessment,
-                :ongoing_assessment_details
+                :student_grade_report_entry
               ]
             }
           >
@@ -72,10 +71,9 @@
   <div :if={
     @live_action in [
       :assessment,
+      :assessment_point,
       :strand_goal,
-      :student_grade_report_entry,
-      :ongoing_assessment,
-      :ongoing_assessment_details
+      :student_grade_report_entry
     ]
   }>
     <.responsive_container class="pt-10">
@@ -90,47 +88,14 @@
         text={@strand_report.strand.assessment_info}
         class="mt-10"
       />
-      <div class="flex gap-4 mt-10">
-        <.button
-          type="link"
-          patch={"#{@base_path}/ongoing_assessment"}
-          theme={
-            if @live_action in [:ongoing_assessment, :ongoing_assessment_details], do: "primary"
-          }
-        >
-          {gettext("Ongoing")}
-        </.button>
-        <.button
-          type="link"
-          patch={"#{@base_path}/assessment"}
-          theme={
-            if @live_action in [:assessment, :strand_goal, :student_grade_report_entry],
-              do: "primary"
-          }
-        >
-          {gettext("Final")}
-        </.button>
-      </div>
     </.responsive_container>
     <.live_component
-      :if={@live_action in [:ongoing_assessment, :ongoing_assessment_details]}
-      module={StrandReportOngoingAssessmentComponent}
-      id="student-ongoing-assessment"
-      strand_report={@strand_report}
-      student_report_card={@student_report_card}
-      params={@params}
-      current_scope={@current_scope}
-      class="py-10"
-      base_path={"#{@base_path}/ongoing_assessment"}
-      current_profile={@current_user.current_profile}
-    />
-    <.live_component
-      :if={@live_action in [:assessment, :strand_goal, :student_grade_report_entry]}
       module={StrandReportAssessmentComponent}
       id="student-assessment"
       strand_report={@strand_report}
       student_report_card={@student_report_card}
       params={@params}
+      current_scope={@current_scope}
       class="py-10"
       base_path={"#{@base_path}/assessment"}
       current_profile={@current_user.current_profile}
