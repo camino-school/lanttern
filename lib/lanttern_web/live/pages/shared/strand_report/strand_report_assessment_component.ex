@@ -96,7 +96,7 @@ defmodule LantternWeb.StrandReportLive.StrandReportAssessmentComponent do
             {gettext("No assessment entries for this strand yet")}
           </.empty_state>
         </section>
-        <section :if={@has_student_grades_report_entries} id="grades-report-entries" class="mt-10">
+        <section :if={@has_student_grades_report_entries} class="mt-10">
           <h3 class="font-display font-black text-xl">{gettext("Grading")}</h3>
           <div id="grades-report-entries" phx-update="stream">
             <.card_base
@@ -519,7 +519,6 @@ defmodule LantternWeb.StrandReportLive.StrandReportAssessmentComponent do
     strand_id = socket.assigns.strand_report.strand_id
 
     moments = LearningContext.list_moments(strands_ids: [strand_id])
-    moments_ids = Enum.map(moments, & &1.id)
 
     assessment_points =
       Assessments.list_strand_moments_assessment_points_with_student_entries(
@@ -528,14 +527,16 @@ defmodule LantternWeb.StrandReportLive.StrandReportAssessmentComponent do
         socket.assigns.strand_report.strand_id
       )
 
+    moment_ids_with_entries =
+      assessment_points
+      |> Enum.map(& &1.moment_id)
+      |> MapSet.new()
+
     moments_with_entries =
-      Enum.filter(moments, fn moment ->
-        Enum.any?(assessment_points, &(&1.moment_id == moment.id))
-      end)
+      Enum.filter(moments, &MapSet.member?(moment_ids_with_entries, &1.id))
 
     socket
     |> assign(:moments, moments_with_entries)
-    |> assign(:moments_ids, moments_ids)
     |> assign(:assessment_points_ids, Enum.map(assessment_points, &"#{&1.id}"))
     |> assign(:has_ongoing_assessment, !Enum.empty?(assessment_points))
     |> stream_assessment_points_by_moment(assessment_points, moments_with_entries)

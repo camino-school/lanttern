@@ -20,7 +20,7 @@ defmodule Lanttern.StudentsCycleInfo.StudentCycleInfo do
           profile_picture_url: String.t(),
           student: Student.t(),
           student_id: pos_integer(),
-          cycle: Cycle.t(),
+          cycle: Cycle.t() | Ecto.Association.NotLoaded.t(),
           cycle_id: pos_integer(),
           school: School.t(),
           school_id: pos_integer(),

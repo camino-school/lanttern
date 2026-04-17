@@ -1,4 +1,4 @@
-defmodule LantternWeb.StrandReportLive.StrandReportOngoingAssessmentComponentTest do
+defmodule LantternWeb.StrandReportLive.StrandReportAssessmentComponentTest do
   use LantternWeb.ConnCase
 
   import Lanttern.AssessmentsFixtures
@@ -9,7 +9,7 @@ defmodule LantternWeb.StrandReportLive.StrandReportOngoingAssessmentComponentTes
 
   @live_view_path_base "/strand_report"
 
-  describe "StrandReportOngoingAssessmentComponent" do
+  describe "StrandReportAssessmentComponent" do
     test "renders moment names and assessment point cards for student entries", context do
       %{conn: conn, student: student} = register_and_log_in_student(context)
 
