@@ -272,7 +272,6 @@ defmodule LantternWeb.StrandReportLive.StrandReportAssessmentComponent do
                 module={EntryParticleComponent}
                 id={moment_entry.id}
                 entry={moment_entry}
-                class="flex-1"
               />
             </div>
           </div>

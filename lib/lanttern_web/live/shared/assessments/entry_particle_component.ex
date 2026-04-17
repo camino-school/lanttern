@@ -30,8 +30,8 @@ defmodule LantternWeb.Assessments.EntryParticleComponent do
       class={[
         "flex items-center justify-center rounded-full font-sans",
         if(@size == "sm",
-          do: "min-w-4 h-4 w-auto px-1 text-xs",
-          else: "min-w-6 h-6 w-auto px-1 text-sm"
+          do: "min-w-4 h-4 px-1 text-xs",
+          else: "min-w-6 h-6 px-1 text-sm"
         ),
         @additional_classes,
         @class
