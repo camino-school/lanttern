@@ -69,6 +69,17 @@ defmodule LantternWeb.Assessments.EntryParticleComponent do
       |> Enum.filter(&(not is_nil(&1)))
       |> Enum.uniq()
 
+    scale_ids =
+      assigns_sockets
+      |> Enum.flat_map(fn {assigns, _socket} ->
+        case assigns.entry do
+          %{scale_type: "numeric", scale_id: scale_id} -> [scale_id]
+          _ -> []
+        end
+      end)
+      |> Enum.filter(&(not is_nil(&1)))
+      |> Enum.uniq()
+
     # map format
     # %{
     #   ordinal_value_id: %OrdinalValue{},
@@ -79,11 +90,16 @@ defmodule LantternWeb.Assessments.EntryParticleComponent do
       |> Enum.map(&{&1.id, &1})
       |> Enum.into(%{})
 
+    scales_map =
+      Grading.list_scales_unscoped(ids: scale_ids)
+      |> Enum.map(&{&1.id, &1})
+      |> Enum.into(%{})
+
     assigns_sockets
-    |> Enum.map(&update_single(&1, ovs_map))
+    |> Enum.map(&update_single(&1, ovs_map, scales_map))
   end
 
-  defp update_single({assigns, socket}, ovs_map) do
+  defp update_single({assigns, socket}, ovs_map, scales_map) do
     is_student = Map.get(assigns, :is_student)
 
     ordinal_value_or_score =
@@ -99,8 +115,14 @@ defmodule LantternWeb.Assessments.EntryParticleComponent do
           nil
       end
 
+    scale =
+      case assigns.entry do
+        %{scale_type: "numeric", scale_id: scale_id} -> Map.get(scales_map, scale_id)
+        _ -> nil
+      end
+
     {additional_classes, style, particle_text, full_text} =
-      get_particle_styles_and_text(ordinal_value_or_score, assigns.entry, is_student)
+      get_particle_styles_and_text(ordinal_value_or_score, assigns.entry, is_student, scale)
 
     socket
     |> assign(assigns)
@@ -110,19 +132,29 @@ defmodule LantternWeb.Assessments.EntryParticleComponent do
     |> assign(:full_text, full_text)
   end
 
-  defp get_particle_styles_and_text(%OrdinalValue{} = ordinal_value, _, _) do
+  defp get_particle_styles_and_text(%OrdinalValue{} = ordinal_value, _, _, _) do
     style =
       "color: #{ordinal_value.text_color}; background-color: #{ordinal_value.bg_color}"
 
     {nil, style, String.first(ordinal_value.name), ordinal_value.name}
   end
 
-  defp get_particle_styles_and_text(score, _, _) when is_float(score),
-    do:
-      {"text-ltrn-dark bg-ltrn-lighter",
-       "width: auto; max-width: fit-content; padding: 0 var(--spacing)", "#{score}", score}
+  defp get_particle_styles_and_text(score, _entry, _is_student, scale) when is_float(score) do
+    base_style = "width: auto; max-width: fit-content; padding: 0 var(--spacing)"
 
-  defp get_particle_styles_and_text(_, entry, is_student) do
+    {additional_classes, style} =
+      case scale && Lanttern.ColorUtils.interpolate_numeric_scale_colors(scale, score) do
+        {bg_color, text_color} ->
+          {nil, "#{base_style}; background-color: #{bg_color}; color: #{text_color}"}
+
+        _ ->
+          {"text-ltrn-dark bg-ltrn-lighter", base_style}
+      end
+
+    {additional_classes, style, "#{score}", score}
+  end
+
+  defp get_particle_styles_and_text(_, entry, is_student, _) do
     full_text =
       case {entry, is_student} do
         {%AssessmentPointEntry{}, true} -> gettext("No student self-assessment")
