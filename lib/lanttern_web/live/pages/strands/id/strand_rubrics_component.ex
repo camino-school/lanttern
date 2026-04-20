@@ -191,6 +191,7 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
         id="strand-rubric-overlay"
         rubric={@rubric}
         title={@rubric_overlay_title}
+        current_scope={@current_scope}
         on_cancel={JS.patch(~p"/strands/#{@strand}/rubrics")}
         notify_component={@myself}
       />
