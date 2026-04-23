@@ -45,8 +45,9 @@ defmodule Lanttern.LLM do
   ## Tool-result persistence (Agent Chat)
 
   `messages` on the returned response is a flat list of user/assistant/system
-  text turns. Tool calls and tool results are NOT included — they live only
-  inside the library's internal context during a single wrapper invocation.
+  text turns — the wrapper filters tool-call and tool-result entries out at
+  the boundary so they never leak to callers. Tool exchanges live only inside
+  the underlying library's internal context during a single wrapper invocation.
   Conversations retrieved from the `agent_messages` table therefore will not
   contain tool-call history from previous runs; the model only ever sees the
   user/assistant transcript when a job resumes a conversation.
@@ -263,9 +264,15 @@ defmodule Lanttern.LLM do
     )
   end
 
+  # Only user/assistant/system turns are exposed. Tool-call and tool-result
+  # entries from ReqLLM's internal context are library-internal and are
+  # filtered here so callers never see them on `Response.messages`.
+  @exposed_message_roles [:user, :assistant, :system]
+
   defp to_plain_messages(context) do
     context
     |> ReqLLM.Context.to_list()
+    |> Enum.filter(&(&1.role in @exposed_message_roles))
     |> Enum.map(fn msg ->
       text =
         msg.content

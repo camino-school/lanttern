@@ -11,15 +11,18 @@ defmodule Lanttern.LLM.Response do
   - `usage` — token counts (`%{input_tokens: n, output_tokens: n}`)
   - `object` — structured output map (from `generate_object/4`)
   - `messages` — conversation history for reference/display only.
-    May contain `:tool` role entries that cannot be fed back into
-    `generate_text/3` or `generate_text_with_tools/4`.
+    Limited to `:user`, `:assistant`, and `:system` turns; tool-call and
+    tool-result entries are filtered out by `Lanttern.LLM` at the wrapper
+    boundary.
   """
+
+  @type role :: :user | :assistant | :system
 
   @type t :: %__MODULE__{
           text: String.t() | nil,
           usage: %{input_tokens: non_neg_integer(), output_tokens: non_neg_integer()},
           object: map() | nil,
-          messages: [%{role: atom(), content: String.t()}]
+          messages: [%{role: role(), content: String.t()}]
         }
 
   defstruct text: nil, usage: %{input_tokens: 0, output_tokens: 0}, object: nil, messages: []

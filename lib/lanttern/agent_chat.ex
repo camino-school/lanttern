@@ -269,10 +269,11 @@ defmodule Lanttern.AgentChat do
 
     llm_module = Keyword.get(opts, :llm_module, Lanttern.LLM)
 
-    # Extract context from result messages (user message + assistant response)
+    # Extract context from result messages (user message + assistant response).
+    # `result.messages` is already limited to user/assistant/system by the LLM
+    # wrapper, so no role filtering is needed here.
     context =
       result.messages
-      |> Enum.filter(&(&1.role in [:user, :assistant]))
       |> Enum.take(4)
       |> Enum.map_join("\n", fn msg ->
         "#{msg.role}: #{msg.content}"
@@ -412,9 +413,13 @@ defmodule Lanttern.AgentChat do
   @spec run_llm_chain(Scope.t(), [Message.t()], String.t(), Keyword.t()) ::
           {:ok, LLM.Response.t()} | {:error, term()}
   def run_llm_chain(%Scope{} = scope, messages, model, opts \\ []) do
-    # check if last message is a user message (prevent LLM from running improperly)
-    %{role: "user"} = messages |> Enum.at(-1)
+    case Enum.at(messages, -1) do
+      %{role: "user"} -> do_run_llm_chain(scope, messages, model, opts)
+      _ -> {:error, :last_message_must_be_user}
+    end
+  end
 
+  defp do_run_llm_chain(%Scope{} = scope, messages, model, opts) do
     llm_module = Keyword.get(opts, :llm_module, Lanttern.LLM)
 
     # as strand is used in different helper functions,

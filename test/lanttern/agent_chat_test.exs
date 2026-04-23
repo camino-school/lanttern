@@ -1199,7 +1199,7 @@ defmodule Lanttern.AgentChatTest do
                )
     end
 
-    test "raises when last message is not a user message", %{
+    test "returns error when last message is not a user message", %{
       scope: scope
     } do
       conversation = insert(:conversation)
@@ -1217,9 +1217,8 @@ defmodule Lanttern.AgentChatTest do
         })
       ]
 
-      assert_raise MatchError, fn ->
-        AgentChat.run_llm_chain(scope, messages, "gpt-4", llm_module: Lanttern.LLM)
-      end
+      assert {:error, :last_message_must_be_user} =
+               AgentChat.run_llm_chain(scope, messages, "gpt-4", llm_module: Lanttern.LLM)
     end
 
     test "returns error when LLM chain fails", %{scope: scope, messages: messages} do
