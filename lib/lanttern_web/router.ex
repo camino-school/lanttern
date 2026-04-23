@@ -57,6 +57,8 @@ defmodule LantternWeb.Router do
     # Redirect old /students tab URL to the unified /people tab
     get "/school/classes/:id/students", PageController, :redirect_class_students
 
+    get "/settings", PageController, :redirect_settings
+
     live_session :authenticated_staff_member,
       on_mount: [
         {LantternWeb.UserAuth, :ensure_authenticated_staff_member},
@@ -117,7 +119,6 @@ defmodule LantternWeb.Router do
       live "/strands/lesson/:lesson_id/chat/:conversation_id", LessonChatLive, :show
 
       live "/curriculum", CurriculaLive, :index
-      live "/curriculum/bncc_ef", BnccEfLive, :index
       live "/curriculum/:id", CurriculumLive, :show
       live "/curriculum/component/:id", CurriculumComponentLive, :show
 
@@ -162,6 +163,9 @@ defmodule LantternWeb.Router do
 
       live "/settings/grading_scales", GradingScalesLive, :index
       live "/settings/grading_scales/:id", GradingScalesLive, :show
+
+      live "/settings/curricula", CurriculaSettingsLive, :index
+      live "/settings/curricula/:id", CurriculaSettingsLive, :show
     end
 
     live_session :authenticated_guardian,
@@ -203,13 +207,9 @@ defmodule LantternWeb.Router do
       live "/strand_report/:strand_report_id/rubrics", StrandReportLive, :rubrics
       live "/strand_report/:strand_report_id/assessment", StrandReportLive, :assessment
 
-      live "/strand_report/:strand_report_id/ongoing_assessment",
+      live "/strand_report/:strand_report_id/assessment/assessment_point/:assessment_point_id",
            StrandReportLive,
-           :ongoing_assessment
-
-      live "/strand_report/:strand_report_id/ongoing_assessment/:assessment_point_id",
-           StrandReportLive,
-           :ongoing_assessment_details
+           :assessment_point
 
       live "/strand_report/:strand_report_id/assessment/strand_goal/:strand_goal_id",
            StrandReportLive,
@@ -254,17 +254,13 @@ defmodule LantternWeb.Router do
            StrandReportLive,
            :rubrics
 
-      live "/student_report_cards/:student_report_card_id/strand_report/:strand_report_id/ongoing_assessment",
-           StrandReportLive,
-           :ongoing_assessment
-
-      live "/student_report_cards/:student_report_card_id/strand_report/:strand_report_id/ongoing_assessment/:assessment_point_id",
-           StrandReportLive,
-           :ongoing_assessment_details
-
       live "/student_report_cards/:student_report_card_id/strand_report/:strand_report_id/assessment",
            StrandReportLive,
            :assessment
+
+      live "/student_report_cards/:student_report_card_id/strand_report/:strand_report_id/assessment/assessment_point/:assessment_point_id",
+           StrandReportLive,
+           :assessment_point
 
       live "/student_report_cards/:student_report_card_id/strand_report/:strand_report_id/assessment/strand_goal/:strand_goal_id",
            StrandReportLive,
@@ -293,7 +289,6 @@ defmodule LantternWeb.Router do
 
     get "/", AdminController, :home
     post "/seed_base_taxonomy", AdminController, :seed_base_taxonomy
-    post "/seed_bncc", AdminController, :seed_bncc
 
     # Identity context
     resources "/users", UserController
@@ -304,12 +299,6 @@ defmodule LantternWeb.Router do
 
     # Assessments context
     resources "/feedback", FeedbackController
-
-    # Curricula context
-    resources "/curricula", CurriculumController
-    resources "/curriculum_components", CurriculumComponentController
-    resources "/curriculum_items", CurriculumItemController
-    resources "/curriculum_relationships", CurriculumRelationshipController
 
     # Schools context
     resources "/schools", SchoolController

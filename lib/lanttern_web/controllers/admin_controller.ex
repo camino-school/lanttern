@@ -1,7 +1,6 @@
 defmodule LantternWeb.AdminController do
   use LantternWeb, :controller
 
-  alias Lanttern.BNCC
   alias Lanttern.Taxonomy
 
   def home(conn, _params) do
@@ -18,28 +17,9 @@ defmodule LantternWeb.AdminController do
     render(conn, :home, generate_assigns())
   end
 
-  def seed_bncc(conn, _params) do
-    case BNCC.seed_bncc() do
-      {:ok, _} ->
-        conn =
-          conn
-          |> put_flash(:info, "BNCC registered!")
-
-        render(conn, :home, generate_assigns())
-
-      {:error, error} ->
-        conn =
-          conn
-          |> put_flash(:error, error)
-
-        render(conn, :home, generate_assigns())
-    end
-  end
-
   defp generate_assigns do
     [
-      has_base_taxonomy: Taxonomy.has_base_taxonomy?(),
-      is_bncc_registered: BNCC.bncc_registered?()
+      has_base_taxonomy: Taxonomy.has_base_taxonomy?()
     ]
   end
 end

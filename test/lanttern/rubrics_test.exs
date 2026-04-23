@@ -10,7 +10,6 @@ defmodule Lanttern.RubricsTest do
     alias Lanttern.Rubrics.Rubric
 
     alias Lanttern.AssessmentsFixtures
-    alias Lanttern.CurriculaFixtures
     alias Lanttern.LearningContextFixtures
     alias Lanttern.SchoolsFixtures
 
@@ -47,15 +46,15 @@ defmodule Lanttern.RubricsTest do
       strand = LearningContextFixtures.strand_fixture()
       moment = LearningContextFixtures.moment_fixture(%{strand_id: strand.id})
 
-      curriculum_component = CurriculaFixtures.curriculum_component_fixture()
+      curriculum_component = insert(:curriculum_component)
 
       curriculum_item =
-        CurriculaFixtures.curriculum_item_fixture(%{
+        insert(:curriculum_item, %{
           curriculum_component_id: curriculum_component.id
         })
 
       diff_curriculum_item =
-        CurriculaFixtures.curriculum_item_fixture(%{
+        insert(:curriculum_item, %{
           curriculum_component_id: curriculum_component.id
         })
 
@@ -239,7 +238,7 @@ defmodule Lanttern.RubricsTest do
 
     test "list_assessment_point_rubrics/1 returns all rubrics matching the assessment point" do
       strand = LearningContextFixtures.strand_fixture()
-      curriculum_item = CurriculaFixtures.curriculum_item_fixture()
+      curriculum_item = insert(:curriculum_item)
       scale = insert(:scale)
 
       rubric =
@@ -288,7 +287,7 @@ defmodule Lanttern.RubricsTest do
 
     test "list_assessment_point_rubrics/1 with `exclude_diff` returns all not diff rubrics matching the assessment point" do
       strand = LearningContextFixtures.strand_fixture()
-      curriculum_item = CurriculaFixtures.curriculum_item_fixture()
+      curriculum_item = insert(:curriculum_item)
       scale = insert(:scale)
 
       rubric =
@@ -336,7 +335,7 @@ defmodule Lanttern.RubricsTest do
 
     test "list_assessment_point_rubrics/1 with `only_diff` returns all diff rubrics matching the assessment point" do
       strand = LearningContextFixtures.strand_fixture()
-      curriculum_item = CurriculaFixtures.curriculum_item_fixture()
+      curriculum_item = insert(:curriculum_item)
       scale = insert(:scale)
 
       diff_rubric_1 =
@@ -395,7 +394,7 @@ defmodule Lanttern.RubricsTest do
     test "list_assessment_point_rubrics/1 with `only_diff` returns all diff rubrics matching the moment assessment point" do
       strand = LearningContextFixtures.strand_fixture()
       moment = LearningContextFixtures.moment_fixture(%{strand_id: strand.id})
-      curriculum_item = CurriculaFixtures.curriculum_item_fixture()
+      curriculum_item = insert(:curriculum_item)
       scale = insert(:scale)
 
       diff_rubric_1 =
@@ -454,15 +453,15 @@ defmodule Lanttern.RubricsTest do
     test "list_strand_rubrics_grouped_by_goal/1 returns all strand rubrics" do
       strand = LearningContextFixtures.strand_fixture()
 
-      curriculum_component = CurriculaFixtures.curriculum_component_fixture()
+      curriculum_component = insert(:curriculum_component)
 
       curriculum_item =
-        CurriculaFixtures.curriculum_item_fixture(%{
+        insert(:curriculum_item, %{
           curriculum_component_id: curriculum_component.id
         })
 
       diff_curriculum_item =
-        CurriculaFixtures.curriculum_item_fixture(%{
+        insert(:curriculum_item, %{
           curriculum_component_id: curriculum_component.id
         })
 
@@ -742,7 +741,7 @@ defmodule Lanttern.RubricsTest do
         criteria: "some criteria",
         scale_id: insert(:scale).id,
         strand_id: LearningContextFixtures.strand_fixture().id,
-        curriculum_item_id: CurriculaFixtures.curriculum_item_fixture().id,
+        curriculum_item_id: insert(:curriculum_item).id,
         is_differentiation: true
       }
 
@@ -755,7 +754,7 @@ defmodule Lanttern.RubricsTest do
       scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
       ordinal_value = insert(:ordinal_value, scale_id: scale.id)
       strand = LearningContextFixtures.strand_fixture()
-      curriculum_item = CurriculaFixtures.curriculum_item_fixture()
+      curriculum_item = insert(:curriculum_item)
 
       valid_attrs = %{
         criteria: "some criteria with descriptors",
@@ -785,7 +784,7 @@ defmodule Lanttern.RubricsTest do
     test "create_rubric/1 with valid data and preloads opt creates a rubric and return it with preloaded data" do
       scale = insert(:scale)
       strand = LearningContextFixtures.strand_fixture()
-      curriculum_item = CurriculaFixtures.curriculum_item_fixture()
+      curriculum_item = insert(:curriculum_item)
 
       valid_attrs = %{
         criteria: "some criteria",
@@ -965,15 +964,14 @@ defmodule Lanttern.RubricsTest do
     alias Lanttern.Rubrics.Rubric
 
     alias Lanttern.AssessmentsFixtures
-    alias Lanttern.CurriculaFixtures
     alias Lanttern.LearningContextFixtures
     alias Lanttern.SchoolsFixtures
     alias Lanttern.StudentsCycleInfoFixtures
 
     test "list_diff_students_for_rubric/1 returns all diff students linked to given rubric" do
       strand = LearningContextFixtures.strand_fixture()
-      curriculum_item = CurriculaFixtures.curriculum_item_fixture()
-      diff_curriculum_item = CurriculaFixtures.curriculum_item_fixture()
+      curriculum_item = insert(:curriculum_item)
+      diff_curriculum_item = insert(:curriculum_item)
       scale = insert(:scale)
 
       diff_rubric =
@@ -1209,14 +1207,13 @@ defmodule Lanttern.RubricsTest do
 
   describe "rubric assessment points" do
     alias Lanttern.AssessmentsFixtures
-    alias Lanttern.CurriculaFixtures
     alias Lanttern.LearningContextFixtures
 
     alias Lanttern.Assessments
 
     test "list_rubric_assessment_points_options/1 returns all assessment points eligible to rubric connection" do
       scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
-      curriculum_item = CurriculaFixtures.curriculum_item_fixture()
+      curriculum_item = insert(:curriculum_item)
 
       strand = LearningContextFixtures.strand_fixture()
       moment_1 = LearningContextFixtures.moment_fixture(%{strand_id: strand.id})
@@ -1301,7 +1298,7 @@ defmodule Lanttern.RubricsTest do
 
     test "create_rubric/1 with link_to_assessment_points_ids params updates the assessment points" do
       scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
-      curriculum_item = CurriculaFixtures.curriculum_item_fixture()
+      curriculum_item = insert(:curriculum_item)
 
       strand = LearningContextFixtures.strand_fixture()
       moment_1 = LearningContextFixtures.moment_fixture(%{strand_id: strand.id})
@@ -1358,7 +1355,7 @@ defmodule Lanttern.RubricsTest do
 
     test "update_rubric/1 with link_to and unlink_from_assessment_points_ids params updates the assessment points" do
       scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
-      curriculum_item = CurriculaFixtures.curriculum_item_fixture()
+      curriculum_item = insert(:curriculum_item)
 
       strand = LearningContextFixtures.strand_fixture()
       moment_1 = LearningContextFixtures.moment_fixture(%{strand_id: strand.id})

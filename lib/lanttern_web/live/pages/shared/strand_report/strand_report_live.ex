@@ -8,7 +8,6 @@ defmodule LantternWeb.StrandReportLive do
 
   # view components
   alias __MODULE__.StrandReportAssessmentComponent
-  alias __MODULE__.StrandReportOngoingAssessmentComponent
   alias __MODULE__.StrandReportOverviewComponent
   alias __MODULE__.StrandReportRubricsComponent
 
@@ -150,7 +149,7 @@ defmodule LantternWeb.StrandReportLive do
     overview: "overview",
     rubrics: "rubrics",
     assessment: "assessment",
-    ongoing_assessment: "ongoing_assessment"
+    assessment_point: "assessment"
   }
 
   @impl true

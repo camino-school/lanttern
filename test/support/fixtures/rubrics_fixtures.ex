@@ -5,7 +5,6 @@ defmodule Lanttern.RubricsFixtures do
   """
 
   import Lanttern.Factory
-  alias Lanttern.CurriculaFixtures
   alias Lanttern.GradingFixtures
   alias Lanttern.LearningContextFixtures
 
@@ -20,7 +19,7 @@ defmodule Lanttern.RubricsFixtures do
         criteria: "some criteria",
         scale_id: GradingFixtures.maybe_gen_scale_id(attrs),
         strand_id: LearningContextFixtures.maybe_gen_strand_id(attrs),
-        curriculum_item_id: CurriculaFixtures.maybe_gen_curriculum_item_id(attrs),
+        curriculum_item_id: maybe_gen_curriculum_item_id(attrs),
         is_differentiation: false
       })
       |> Lanttern.Rubrics.create_rubric()
@@ -65,4 +64,7 @@ defmodule Lanttern.RubricsFixtures do
 
     rubric_descriptor
   end
+
+  defp maybe_gen_curriculum_item_id(%{curriculum_item_id: id}), do: id
+  defp maybe_gen_curriculum_item_id(_attrs), do: insert(:curriculum_item).id
 end

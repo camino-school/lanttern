@@ -13,6 +13,7 @@ defmodule LantternWeb.Assessments.StudentAssessmentPointDetailsOverlayComponent 
 
   alias Lanttern.Assessments
   alias Lanttern.Assessments.AssessmentPoint
+  alias Lanttern.Attachments
   alias Lanttern.Rubrics
 
   # shared components
@@ -36,6 +37,7 @@ defmodule LantternWeb.Assessments.StudentAssessmentPointDetailsOverlayComponent 
         <div class="mt-10">
           <.assessment_point_entry_display
             entry={@entry}
+            scale={@assessment_point.scale}
             show_student_assessment
           />
           <.comment_area :if={@entry && @entry.report_note} comment={@entry.report_note} class="mt-4" />
@@ -138,8 +140,16 @@ defmodule LantternWeb.Assessments.StudentAssessmentPointDetailsOverlayComponent 
       Assessments.get_assessment_point_student_entry(
         socket.assigns.assessment_point.id,
         socket.assigns.student_id,
-        preloads: [:scale, :ordinal_value, :student_ordinal_value, :evidences]
+        preloads: [:scale, :ordinal_value, :student_ordinal_value]
       )
+
+    entry =
+      if entry do
+        evidences = Attachments.list_attachments(assessment_point_entry_id: entry.id)
+        %{entry | evidences: evidences}
+      else
+        entry
+      end
 
     assign(socket, :entry, entry)
   end

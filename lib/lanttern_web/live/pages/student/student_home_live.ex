@@ -57,6 +57,24 @@ defmodule LantternWeb.StudentHomeLive do
         socket.assigns.current_cycle.id,
         check_attachments_for: :student
       )
+      |> case do
+        nil ->
+          # create student cycle info if it does not exist
+          {:ok, info} =
+            StudentsCycleInfo.create_student_cycle_info(
+              %{
+                school_id: socket.assigns.student.school_id,
+                student_id: socket.assigns.student.id,
+                cycle_id: socket.assigns.current_cycle.id
+              },
+              log_profile_id: socket.assigns.current_user.current_profile_id
+            )
+
+          info
+
+        student_cycle_info ->
+          student_cycle_info
+      end
 
     assign(socket, :student_cycle_info, student_cycle_info)
   end

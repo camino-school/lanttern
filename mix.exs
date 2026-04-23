@@ -4,7 +4,7 @@ defmodule Lanttern.MixProject do
   def project do
     [
       app: :lanttern,
-      version: "2026.3.20-alpha.90",
+      version: "2026.4.20-alpha.94",
       elixir: "~> 1.18",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
@@ -59,8 +59,6 @@ defmodule Lanttern.MixProject do
       {:phoenix_live_view, "~> 1.1.3"},
       {:lazy_html, ">= 0.1.0", only: :test},
       {:phoenix_live_dashboard, "~> 0.8.2"},
-      {:esbuild, "~> 0.10", runtime: Mix.env() == :dev},
-      {:tailwind, "~> 0.3.0", runtime: Mix.env() == :dev},
       {:swoosh, "~> 1.23"},
       {:req, "~> 0.5.0"},
       {:telemetry_metrics, "~> 0.6"},
@@ -97,7 +95,11 @@ defmodule Lanttern.MixProject do
       {:igniter, "~> 0.6", only: [:dev]},
       {:html_sanitize_ex, "~> 1.4"},
       {:req_llm, "~> 1.6"},
-      {:llm_db, "~> 2026.3.1"}
+      {:llm_db, "~> 2026.3.1"},
+      {:live_react, "~> 1.1.0"},
+      {:floki, "~> 0.38.0", only: :test},
+      {:colorex, "~> 1.0"},
+      {:decimal, "~> 2.0"}
     ]
   end
 
@@ -115,12 +117,14 @@ defmodule Lanttern.MixProject do
       "ecto.reset": ["ecto.drop", "ecto.setup"],
       test: ["ecto.create --quiet", "ecto.migrate --quiet", "test --cover"],
       "test.drop": ["ecto.drop", "test"],
-      "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],
-      "assets.build": ["cmd --cd assets npm i", "tailwind lanttern", "esbuild lanttern"],
+      "assets.setup": ["cmd --cd assets npm install"],
+      "assets.build": [
+        "cmd --cd assets npm run build",
+        "cmd --cd assets npm run build-server"
+      ],
       "assets.deploy": [
-        "cmd --cd assets npm ci --only=prod",
-        "tailwind lanttern --minify",
-        "esbuild lanttern --minify",
+        "cmd --cd assets npm run build",
+        "cmd --cd assets npm run build-server",
         "phx.digest"
       ],
       precommit: [

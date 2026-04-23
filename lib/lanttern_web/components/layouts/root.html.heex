@@ -21,9 +21,6 @@
       href="https://fonts.googleapis.com/css2?family=Montserrat:wght@100..900&family=PT+Mono&family=PT+Sans:ital,wght@0,400;0,700;1,400;1,700&family=PT+Serif:ital,wght@0,400;0,700;1,400;1,700&display=swap"
     />
     <link phx-track-static rel="stylesheet" href={~p"/vendor/glider.min.css"} />
-    <link phx-track-static rel="stylesheet" href={~p"/assets/css/app.css"} />
-    <script defer phx-track-static type="text/javascript" src={~p"/assets/js/app.js"}>
-    </script>
     <%= if ga_id = System.get_env("GA_MEASUREMENT_ID") do %>
       <!-- Google Analytics 4 (Consent Mode v2) -->
       <script nonce={@csp_nonce}>
@@ -46,6 +43,12 @@
       <script async src={"https://www.googletagmanager.com/gtag/js?id=#{ga_id}"}>
       </script>
     <% end %>
+
+    <LiveReact.Reload.vite_assets assets={["/js/app.js", "/css/app.css"]}>
+      <link phx-track-static rel="stylesheet" href={~p"/assets/app.css"} />
+      <script type="module" phx-track-static type="text/javascript" src={~p"/assets/app.js"}>
+      </script>
+    </LiveReact.Reload.vite_assets>
   </head>
   <body class="bg-white antialiased min-h-screen font-serif text-base text-ltrn-dark">
     {@inner_content}

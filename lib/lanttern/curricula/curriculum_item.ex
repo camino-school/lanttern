@@ -8,25 +8,31 @@ defmodule Lanttern.Curricula.CurriculumItem do
 
   import Lanttern.SchemaHelpers
 
+  alias Lanttern.Assessments.AssessmentPoint
+  alias Lanttern.Curricula.CurriculumComponent
+  alias Lanttern.Identity.Scope
+  alias Lanttern.Schools.School
   alias Lanttern.Taxonomy.Subject
   alias Lanttern.Taxonomy.Year
 
   @type t :: %__MODULE__{
           id: pos_integer(),
           name: String.t(),
-          code: String.t(),
+          code: String.t() | nil,
           subjects_ids: [pos_integer()],
           years_ids: [pos_integer()],
-          assessment_point_id: pos_integer(),
+          assessment_point_id: pos_integer() | nil,
           is_differentiation: boolean(),
           has_rubric: boolean(),
-          assessment_points: [map()],
-          curriculum_component: map(),
+          assessment_points: [AssessmentPoint.t()] | Ecto.Association.NotLoaded.t(),
+          curriculum_component: CurriculumComponent.t() | Ecto.Association.NotLoaded.t(),
           curriculum_component_id: pos_integer(),
-          subjects: [Subject.t()],
-          years: [Year.t()],
-          children_id: pos_integer(),
-          component_code: String.t(),
+          subjects: [Subject.t()] | Ecto.Association.NotLoaded.t(),
+          years: [Year.t()] | Ecto.Association.NotLoaded.t(),
+          school: School.t() | Ecto.Association.NotLoaded.t(),
+          school_id: pos_integer() | nil,
+          children_id: pos_integer() | nil,
+          component_code: String.t() | nil,
           inserted_at: DateTime.t(),
           updated_at: DateTime.t()
         }
@@ -46,8 +52,9 @@ defmodule Lanttern.Curricula.CurriculumItem do
     # reflecting the parent assessment_point rubric_id
     field :has_rubric, :boolean, virtual: true, default: false
 
-    has_many :assessment_points, Lanttern.Assessments.AssessmentPoint
-    belongs_to :curriculum_component, Lanttern.Curricula.CurriculumComponent
+    has_many :assessment_points, AssessmentPoint
+    belongs_to :curriculum_component, CurriculumComponent
+    belongs_to :school, School
 
     many_to_many :subjects, Subject,
       join_through: "curriculum_items_subjects",
@@ -65,10 +72,11 @@ defmodule Lanttern.Curricula.CurriculumItem do
   end
 
   @doc false
-  def changeset(curriculum_item, attrs) do
+  def changeset(curriculum_item, attrs, %Scope{} = scope) do
     curriculum_item
     |> cast(attrs, [:name, :code, :curriculum_component_id, :subjects_ids, :years_ids])
-    |> validate_required([:name, :curriculum_component_id])
+    |> put_change(:school_id, scope.school_id)
+    |> validate_required([:name, :curriculum_component_id, :school_id])
     |> put_subjects()
     |> put_years()
   end

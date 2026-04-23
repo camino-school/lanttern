@@ -159,6 +159,11 @@ defmodule LantternWeb.MenuComponent do
                 </.link>
               </li>
               <li :if={@current_user.is_root_admin}>
+                <.link href={~p"/settings"} class="flex items-center gap-2 hover:text-ltrn-subtle">
+                  {gettext("Settings")}
+                </.link>
+              </li>
+              <li :if={@current_user.is_root_admin}>
                 <.link href={~p"/admin"} class="flex items-center gap-2 hover:text-ltrn-subtle">
                   {gettext("Admin")}
                 </.link>
@@ -358,7 +363,6 @@ defmodule LantternWeb.MenuComponent do
     LantternWeb.CurriculaLive => :curriculum,
     LantternWeb.CurriculumLive => :curriculum,
     LantternWeb.CurriculumComponentLive => :curriculum,
-    LantternWeb.CurriculumBNCCEFLive => :curriculum,
 
     # report cards
     LantternWeb.ReportCardsLive => :report_cards,

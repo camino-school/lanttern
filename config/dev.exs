@@ -25,8 +25,7 @@ config :lanttern, LantternWeb.Endpoint,
   debug_errors: true,
   secret_key_base: "HHWaL4wdvifHzU6yX99MXzes7c+1PrCoPOaanQBH60/edoVqR8r1FsswZTG87k4F",
   watchers: [
-    esbuild: {Esbuild, :install_and_run, [:lanttern, ~w(--sourcemap=inline --watch)]},
-    tailwind: {Tailwind, :install_and_run, [:lanttern, ~w(--watch)]}
+    npm: ["run", "dev", cd: Path.expand("../assets", __DIR__)]
   ]
 
 # ## SSL Support
@@ -55,10 +54,16 @@ config :lanttern, LantternWeb.Endpoint,
 # Watch static and templates for browser reloading.
 config :lanttern, LantternWeb.Endpoint,
   live_reload: [
+    notify: [
+      live_view: [
+        ~r"lib/lanttern_web/core_components.ex$",
+        ~r"lib/lanttern_web/(live|components)/.*(ex|heex)$"
+      ]
+    ],
     patterns: [
-      ~r"priv/static/.*(js|css|png|jpeg|jpg|gif|svg)$",
+      ~r"priv/static/(?!uploads/).*(js|css|png|jpeg|jpg|gif|svg)$",
       ~r"priv/gettext/.*(po)$",
-      ~r"lib/lanttern_web/(controllers|live|components)/.*(ex|heex)$"
+      ~r"lib/lanttern_web/controllers/.*(ex|heex)$"
     ]
   ]
 
@@ -85,3 +90,8 @@ config :swoosh, :api_client, false
 #   adapter: Swoosh.Adapters.Mailgun,
 #   api_key: System.get_env("MAILGUN_API_KEY"),
 #   domain: System.get_env("MAILGUN_DOMAIN")
+
+config :live_react,
+  vite_host: "http://localhost:5173",
+  ssr_module: LiveReact.SSR.ViteJS,
+  ssr: true

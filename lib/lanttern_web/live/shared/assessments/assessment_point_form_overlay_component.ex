@@ -69,6 +69,7 @@ defmodule LantternWeb.Assessments.AssessmentPointFormOverlayComponent do
             <.live_component
               module={CurriculumItemSearchComponent}
               id="curriculum-item-search"
+              current_scope={@current_scope}
               notify_component={@myself}
               label={gettext("Curriculum")}
             />
@@ -299,8 +300,13 @@ defmodule LantternWeb.Assessments.AssessmentPointFormOverlayComponent do
   defp assign_curriculum_item_and_options(socket) do
     curriculum_item =
       case socket.assigns.assessment_point.curriculum_item_id do
-        nil -> nil
-        id -> Curricula.get_curriculum_item!(id, preloads: :curriculum_component)
+        nil ->
+          nil
+
+        id ->
+          Curricula.get_curriculum_item!(socket.assigns.current_scope, id,
+            preloads: :curriculum_component
+          )
       end
 
     curriculum_item_options =

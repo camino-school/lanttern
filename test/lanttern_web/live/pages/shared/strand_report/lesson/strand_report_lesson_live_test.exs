@@ -5,8 +5,6 @@ defmodule LantternWeb.StrandReportLessonLiveTest do
   import Lanttern.Factory
   import PhoenixTest
 
-  alias Lanttern.CurriculaFixtures
-
   @live_view_path_base "/strand_report"
 
   describe "lesson assessment point cards" do
@@ -28,7 +26,7 @@ defmodule LantternWeb.StrandReportLessonLiveTest do
 
       scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
       ov = insert(:ordinal_value, scale_id: scale.id)
-      ci = CurriculaFixtures.curriculum_item_fixture()
+      ci = insert(:curriculum_item)
 
       ap =
         assessment_point_fixture(%{
@@ -69,7 +67,7 @@ defmodule LantternWeb.StrandReportLessonLiveTest do
       lesson = insert(:lesson, strand: strand, is_published: true)
 
       scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
-      ci = CurriculaFixtures.curriculum_item_fixture()
+      ci = insert(:curriculum_item)
 
       _ap_without_entry =
         assessment_point_fixture(%{
@@ -104,7 +102,7 @@ defmodule LantternWeb.StrandReportLessonLiveTest do
 
       scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
       ov = insert(:ordinal_value, scale_id: scale.id)
-      ci = CurriculaFixtures.curriculum_item_fixture(%{name: "Some Curriculum Item"})
+      ci = insert(:curriculum_item, %{name: "Some Curriculum Item"})
 
       ap =
         assessment_point_fixture(%{
@@ -148,7 +146,7 @@ defmodule LantternWeb.StrandReportLessonLiveTest do
       lesson = insert(:lesson, strand: strand, is_published: true)
 
       scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
-      ci = CurriculaFixtures.curriculum_item_fixture()
+      ci = insert(:curriculum_item)
 
       unrelated_ap =
         assessment_point_fixture(%{

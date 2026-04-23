@@ -18,6 +18,7 @@ defmodule Lanttern.Taxonomy.Subject do
           updated_at: DateTime.t()
         }
 
+  @derive {Jason.Encoder, only: [:id, :name, :short_name, :code]}
   schema "subjects" do
     field :name, :string
     field :short_name, :string

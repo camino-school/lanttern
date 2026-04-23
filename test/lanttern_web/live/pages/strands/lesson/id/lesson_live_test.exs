@@ -5,7 +5,6 @@ defmodule LantternWeb.LessonLiveTest do
   import PhoenixTest
 
   alias Lanttern.AssessmentsFixtures
-  alias Lanttern.CurriculaFixtures
 
   @live_view_base_path "/strands/lesson"
 
@@ -79,7 +78,7 @@ defmodule LantternWeb.LessonLiveTest do
       lesson = insert(:lesson, strand: strand)
       moment = insert(:moment, strand: strand)
       scale = insert(:scale)
-      curriculum_item = CurriculaFixtures.curriculum_item_fixture()
+      curriculum_item = insert(:curriculum_item)
 
       AssessmentsFixtures.assessment_point_fixture(%{
         name: "AP to link",
@@ -107,7 +106,7 @@ defmodule LantternWeb.LessonLiveTest do
       lesson_b = insert(:lesson, strand: strand, name: "Lesson Beta")
       moment = insert(:moment, strand: strand)
       scale = insert(:scale)
-      curriculum_item = CurriculaFixtures.curriculum_item_fixture()
+      curriculum_item = insert(:curriculum_item)
 
       AssessmentsFixtures.assessment_point_fixture(%{
         name: "Already linked AP",

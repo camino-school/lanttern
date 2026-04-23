@@ -1,8 +1,9 @@
 defmodule LantternWeb.StrandOverviewLiveTest do
   use LantternWeb.ConnCase
 
+  import Lanttern.Factory
+
   alias Lanttern.AssessmentsFixtures
-  alias Lanttern.CurriculaFixtures
   alias Lanttern.LearningContextFixtures
   alias Lanttern.TaxonomyFixtures
 
@@ -23,7 +24,7 @@ defmodule LantternWeb.StrandOverviewLiveTest do
     test "display strand basic info", %{conn: conn} do
       subject = TaxonomyFixtures.subject_fixture(%{name: "subject abc"})
       year = TaxonomyFixtures.year_fixture(%{name: "year abc"})
-      curriculum_item = CurriculaFixtures.curriculum_item_fixture(%{name: "curriculum item abc"})
+      curriculum_item = insert(:curriculum_item, %{name: "curriculum item abc"})
 
       strand =
         LearningContextFixtures.strand_fixture(%{

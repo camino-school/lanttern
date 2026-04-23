@@ -11,7 +11,7 @@ defmodule LantternWeb.Filters.FiltersOverlayComponent do
   def render(assigns) do
     ~H"""
     <div>
-      <.modal id={@id}>
+      <.modal id={@id} show={@show} on_cancel={@on_cancel}>
         <h5 class="mb-10 font-display font-black text-xl">
           {@title}
         </h5>
@@ -84,6 +84,8 @@ defmodule LantternWeb.Filters.FiltersOverlayComponent do
   def mount(socket) do
     socket =
       socket
+      |> assign(:show, false)
+      |> assign(:on_cancel, %JS{})
       |> assign(:has_changes, false)
       |> assign(:filter_opts, [])
 

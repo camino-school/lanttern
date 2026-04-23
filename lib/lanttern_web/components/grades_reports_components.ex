@@ -65,73 +65,80 @@ defmodule LantternWeb.GradesReportsComponents do
     ~H"""
     <div class={["relative p-4 overflow-x-auto", @class]} id={@id}>
       <div class="grid gap-1 text-sm" style={@grid_template_columns_style}>
-        <%= if @on_configure do %>
-          <.button
-            type="button"
-            theme="ghost"
-            icon_name="hero-cog-6-tooth-mini"
-            phx-click={@on_configure}
-          >
-            {gettext("Configure")}
-          </.button>
-        <% else %>
-          <div class="flex items-center justify-center p-2 rounded-sm font-display font-black bg-white shadow-lg">
-            <.link :if={@title_navigate} navigate={@title_navigate} class="hover:text-ltrn-subtle">
-              {@grades_report.name}
-            </.link>
-            <span :if={!@title_navigate}>
-              {@grades_report.name}
-            </span>
-          </div>
-        <% end %>
-        <%= if @has_cycles do %>
-          <div
-            :for={grades_report_cycle <- @grades_report.grades_report_cycles}
-            id={"grid-header-cycle-#{grades_report_cycle.id}"}
-            class={[
-              "flex items-center justify-center gap-1 p-4 rounded-sm shadow-lg",
-              if(@report_card_cycle_id == grades_report_cycle.school_cycle_id,
-                do: "font-bold bg-ltrn-mesh-cyan",
-                else: "bg-white"
-              )
-            ]}
-          >
-            {grades_report_cycle.school_cycle.name}
+        <div class="grid grid-cols-subgrid" style={@grid_column_style}>
+          <%= if @on_configure do %>
+            <.button
+              type="button"
+              theme="ghost"
+              icon_name="hero-cog-6-tooth-mini"
+              phx-click={@on_configure}
+              class="sticky left-0"
+            >
+              {gettext("Configure")}
+            </.button>
+          <% else %>
+            <div class="sticky left-0 flex items-center justify-center p-2 rounded-sm font-display font-black bg-white shadow-lg">
+              <.link :if={@title_navigate} navigate={@title_navigate} class="hover:text-ltrn-subtle">
+                {@grades_report.name}
+              </.link>
+              <span :if={!@title_navigate}>
+                {@grades_report.name}
+              </span>
+            </div>
+          <% end %>
+          <%= if @has_cycles do %>
             <div
-              :if={@show_cycle_visibility}
+              :for={grades_report_cycle <- @grades_report.grades_report_cycles}
+              id={"grid-header-cycle-#{grades_report_cycle.id}"}
               class={[
-                "flex items-center justify-center p-1 rounded-full",
-                if(grades_report_cycle.is_visible,
-                  do: "text-ltrn-primary bg-ltrn-mesh-cyan",
-                  else: "text-ltrn-subtle"
+                "flex items-center justify-center gap-1 p-4 rounded-sm shadow-lg",
+                if(@report_card_cycle_id == grades_report_cycle.school_cycle_id,
+                  do: "font-bold bg-ltrn-mesh-cyan",
+                  else: "bg-white"
                 )
               ]}
             >
-              <.icon name={if grades_report_cycle.is_visible, do: "hero-eye", else: "hero-eye-slash"} />
+              {grades_report_cycle.school_cycle.name}
+              <div
+                :if={@show_cycle_visibility}
+                class={[
+                  "flex items-center justify-center p-1 rounded-full",
+                  if(grades_report_cycle.is_visible,
+                    do: "text-ltrn-primary bg-ltrn-mesh-cyan",
+                    else: "text-ltrn-subtle"
+                  )
+                ]}
+              >
+                <.icon name={
+                  if grades_report_cycle.is_visible, do: "hero-eye", else: "hero-eye-slash"
+                } />
+              </div>
             </div>
-          </div>
-          <div class="flex items-center justify-center gap-1 p-4 rounded-sm text-center bg-white shadow-lg">
-            <span class={if !@report_card_cycle_id, do: "font-bold"}>
-              {@grades_report.school_cycle.name}
-            </span>
-            <div
-              :if={@show_cycle_visibility}
-              class={[
-                "flex items-center justify-center p-1 rounded-full",
-                if(@grades_report.final_is_visible,
-                  do: "text-ltrn-primary bg-ltrn-mesh-cyan",
-                  else: "text-ltrn-subtle"
-                )
-              ]}
-            >
-              <.icon name={if @grades_report.final_is_visible, do: "hero-eye", else: "hero-eye-slash"} />
+            <div class="flex items-center justify-center gap-1 p-4 rounded-sm text-center bg-white shadow-lg">
+              <span class={if !@report_card_cycle_id, do: "font-bold"}>
+                {@grades_report.school_cycle.name}
+              </span>
+              <div
+                :if={@show_cycle_visibility}
+                class={[
+                  "flex items-center justify-center p-1 rounded-full",
+                  if(@grades_report.final_is_visible,
+                    do: "text-ltrn-primary bg-ltrn-mesh-cyan",
+                    else: "text-ltrn-subtle"
+                  )
+                ]}
+              >
+                <.icon name={
+                  if @grades_report.final_is_visible, do: "hero-eye", else: "hero-eye-slash"
+                } />
+              </div>
             </div>
-          </div>
-        <% else %>
-          <div class="p-4 rounded-sm text-ltrn-subtle bg-ltrn-lightest">
-            {gettext("No cycles linked to this grades report")}
-          </div>
-        <% end %>
+          <% else %>
+            <div class="p-4 rounded-sm text-ltrn-subtle bg-ltrn-lightest">
+              {gettext("No cycles linked to this grades report")}
+            </div>
+          <% end %>
+        </div>
         <%= if @has_subjects do %>
           <div
             :for={grades_report_subject <- @grades_report.grades_report_subjects}
@@ -139,7 +146,7 @@ defmodule LantternWeb.GradesReportsComponents do
             class="grid grid-cols-subgrid"
             style={@grid_column_style}
           >
-            <div class="sticky left-0 p-4 rounded-sm bg-white shadow-lg">
+            <div class="sticky left-0 z-10 p-4 rounded-sm bg-white shadow-lg">
               {Gettext.dgettext(
                 Lanttern.Gettext,
                 "taxonomy",
@@ -214,6 +221,7 @@ defmodule LantternWeb.GradesReportsComponents do
         id={"student-grades-report-entry-#{@student_grades_report_entry.id}-pre-retake"}
         student_grades_report_entry={@student_grades_report_entry}
         class="flex-1 my-2 opacity-70"
+        use_short_name
         on_click={
           if(@on_student_grade_click, do: @on_student_grade_click.(@student_grades_report_entry.id))
         }
@@ -223,6 +231,7 @@ defmodule LantternWeb.GradesReportsComponents do
         id={"student-grades-report-entry-#{@student_grades_report_entry.id}"}
         student_grades_report_entry={@student_grades_report_entry}
         class="flex-2"
+        use_short_name
         on_click={
           if(@on_student_grade_click, do: @on_student_grade_click.(@student_grades_report_entry.id))
         }
@@ -312,6 +321,7 @@ defmodule LantternWeb.GradesReportsComponents do
         id={"student-grades-report-final-entry-#{@student_grades_report_final_entry.id}-pre-retake"}
         student_grades_report_entry={@student_grades_report_final_entry}
         class="flex-1 my-2 opacity-70"
+        use_short_name
         on_click={
           if(@on_click,
             do: @on_click.(@student_grades_report_final_entry.id)
@@ -323,6 +333,7 @@ defmodule LantternWeb.GradesReportsComponents do
         id={"student-grades-report-final-entry-#{@student_grades_report_final_entry.id}"}
         student_grades_report_entry={@student_grades_report_final_entry}
         class="flex-2"
+        use_short_name
         on_click={
           if(@on_click,
             do: @on_click.(@student_grades_report_final_entry.id)
@@ -1012,8 +1023,9 @@ defmodule LantternWeb.GradesReportsComponents do
     <.live_component
       :if={@has_retake_history}
       module={StudentGradesReportEntryButtonComponent}
-      is_pre_retake
       id={"pre-retake-#{@id}"}
+      is_pre_retake
+      use_short_name
       student_grades_report_entry={@entry}
       class="flex-1 self-stretch my-2 text-xs opacity-70"
       on_click={if(@on_entry_click, do: @on_entry_click.(@entry.id))}
@@ -1021,6 +1033,7 @@ defmodule LantternWeb.GradesReportsComponents do
     <.live_component
       module={StudentGradesReportEntryButtonComponent}
       id={@id}
+      use_short_name
       student_grades_report_entry={@entry}
       class="flex-2 self-stretch"
       on_click={if(@on_entry_click, do: @on_entry_click.(@entry.id))}
@@ -1090,10 +1103,10 @@ defmodule LantternWeb.GradesReportsComponents do
               end}
             </td>
             <td colspan="2" class="p-2 text-right">
-              {:erlang.float_to_binary(
-                Float.floor(@student_grades_report_entry.composition_normalized_value, 2),
-                decimals: 2
-              )}
+              {@student_grades_report_entry.composition_normalized_value
+              |> Decimal.from_float()
+              |> Decimal.round(2, :floor)
+              |> Decimal.to_string()}
             </td>
           </tr>
         </tbody>
@@ -1157,10 +1170,10 @@ defmodule LantternWeb.GradesReportsComponents do
               end}
             </td>
             <td class="p-2 text-right">
-              {:erlang.float_to_binary(
-                Float.floor(@student_grades_report_final_entry.composition_normalized_value, 2),
-                decimals: 2
-              )}
+              {@student_grades_report_final_entry.composition_normalized_value
+              |> Decimal.from_float()
+              |> Decimal.round(2, :floor)
+              |> Decimal.to_string()}
             </td>
           </tr>
         </tbody>

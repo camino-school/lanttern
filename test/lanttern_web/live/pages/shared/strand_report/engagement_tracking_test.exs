@@ -94,7 +94,7 @@ defmodule LantternWeb.StrandReport.EngagementTrackingTest do
       assert Enum.any?(views, &(&1.tab == "rubrics"))
     end
 
-    test "records all four trackable tabs as separate rows", context do
+    test "records all three trackable tabs as separate rows", context do
       %{conn: conn, student: student} = register_and_log_in_student(context)
 
       strand_report = insert(:strand_report)
@@ -108,10 +108,9 @@ defmodule LantternWeb.StrandReport.EngagementTrackingTest do
       conn |> visit(~p"/strand_report/#{strand_report.id}")
       conn |> visit(~p"/strand_report/#{strand_report.id}/rubrics")
       conn |> visit(~p"/strand_report/#{strand_report.id}/assessment")
-      conn |> visit(~p"/strand_report/#{strand_report.id}/ongoing_assessment")
 
       tabs = Repo.all(StrandReportView) |> Enum.map(& &1.tab) |> Enum.sort()
-      assert tabs == ~w(assessment ongoing_assessment overview rubrics)
+      assert tabs == ~w(assessment overview rubrics)
     end
   end
 

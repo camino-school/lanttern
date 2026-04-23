@@ -55,6 +55,9 @@ COPY lib lib
 
 COPY assets assets
 
+# install Node.js dependencies (required for tsc and vite)
+RUN mix assets.setup
+
 # Compile the release (must happen before assets.deploy so that
 # the phoenix_live_view compiler generates colocated hooks JS)
 RUN mix compile

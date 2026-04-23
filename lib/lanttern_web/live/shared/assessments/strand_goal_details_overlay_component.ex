@@ -13,6 +13,7 @@ defmodule LantternWeb.Assessments.StrandGoalDetailsOverlayComponent do
   use LantternWeb, :live_component
 
   alias Lanttern.Assessments
+  alias Lanttern.Attachments
   alias Lanttern.Reporting
   alias Lanttern.Rubrics
 
@@ -46,6 +47,7 @@ defmodule LantternWeb.Assessments.StrandGoalDetailsOverlayComponent do
         <div class="py-10 border-b-2 border-ltrn-lighter">
           <.assessment_point_entry_display
             entry={@entry}
+            scale={@strand_goal.scale}
             show_student_assessment
             prevent_preview={@prevent_preview}
           />
@@ -171,8 +173,16 @@ defmodule LantternWeb.Assessments.StrandGoalDetailsOverlayComponent do
       Assessments.get_assessment_point_student_entry(
         socket.assigns.strand_goal.id,
         socket.assigns.student_id,
-        preloads: [:scale, :ordinal_value, :student_ordinal_value, :evidences]
+        preloads: [:scale, :ordinal_value, :student_ordinal_value]
       )
+
+    entry =
+      if entry do
+        evidences = Attachments.list_attachments(assessment_point_entry_id: entry.id)
+        %{entry | evidences: evidences}
+      else
+        entry
+      end
 
     assign(socket, :entry, entry)
   end

@@ -752,7 +752,6 @@ defmodule Lanttern.GradesReportsTest do
     import Lanttern.GradesReportsFixtures
 
     alias Lanttern.AssessmentsFixtures
-    alias Lanttern.CurriculaFixtures
     alias Lanttern.GradingFixtures
     alias Lanttern.LearningContextFixtures
     alias Lanttern.TaxonomyFixtures
@@ -760,13 +759,13 @@ defmodule Lanttern.GradesReportsTest do
     test "list_grade_composition/2 returns all report card's subject grade composition assessment points" do
       strand = LearningContextFixtures.strand_fixture()
 
-      cur_component = CurriculaFixtures.curriculum_component_fixture()
+      cur_component = insert(:curriculum_component)
 
       ci_1 =
-        CurriculaFixtures.curriculum_item_fixture(curriculum_component_id: cur_component.id)
+        insert(:curriculum_item, curriculum_component_id: cur_component.id)
 
       ci_2 =
-        CurriculaFixtures.curriculum_item_fixture(curriculum_component_id: cur_component.id)
+        insert(:curriculum_item, curriculum_component_id: cur_component.id)
 
       ast_point_1 =
         AssessmentsFixtures.assessment_point_fixture(
