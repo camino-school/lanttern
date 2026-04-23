@@ -12,11 +12,12 @@ defmodule Lanttern.ChatResponseWorkerTest do
   alias Lanttern.ChatResponseWorker
   alias Lanttern.Identity.User
   alias Lanttern.IdentityFixtures
+  alias Lanttern.LLM
   alias Lanttern.SchoolsFixtures
 
   describe "perform/1" do
     setup do
-      Mimic.copy(LangChain.Chains.LLMChain)
+      Mimic.copy(Lanttern.LLM)
 
       # Create a properly linked user/profile/school setup
       school = SchoolsFixtures.school_fixture()
@@ -61,47 +62,25 @@ defmodule Lanttern.ChatResponseWorkerTest do
       user: user,
       conversation: conversation
     } do
-      # Mock LLMChain.run to return a successful response
-      Mimic.expect(LangChain.Chains.LLMChain, :run, fn chain, _opts ->
-        assistant_message =
-          LangChain.Message.new_assistant!(%{
-            content: "The capital of France is Paris.",
-            metadata: %{usage: %{input: 50, output: 100}}
-          })
-
+      # Mock the main LLM call
+      Mimic.expect(Lanttern.LLM, :generate_text_with_tools, fn _model, _messages, _tools ->
         {:ok,
-         %{
-           chain
-           | last_message: assistant_message,
-             messages: chain.messages ++ [assistant_message],
-             exchanged_messages: [assistant_message]
+         %LLM.Response{
+           text: "The capital of France is Paris.",
+           usage: %{input_tokens: 50, output_tokens: 100},
+           messages: [
+             %{role: :user, content: "What is the capital of France?"},
+             %{role: :assistant, content: "The capital of France is Paris."}
+           ]
          }}
       end)
 
-      # Mock the rename chain call (since conversation has no name)
-      Mimic.expect(LangChain.Chains.LLMChain, :run, fn naming_chain, _opts ->
-        [rename_function] = naming_chain.tools
-
-        {:ok, content, updated_conv} =
-          rename_function.function.(%{"title" => "Capital of France"}, %{})
-
-        tool_result =
-          LangChain.Message.ToolResult.new!(%{
-            type: :function,
-            tool_call_id: "call_123",
-            name: "set_conversation_title",
-            content: content,
-            processed_content: updated_conv
-          })
-
-        result_chain = %{
-          naming_chain
-          | messages:
-              naming_chain.messages ++
-                [LangChain.Message.new_tool_result!(%{tool_results: [tool_result]})]
-        }
-
-        {:ok, result_chain}
+      # Mock the rename call (since conversation has no name)
+      Mimic.expect(Lanttern.LLM, :generate_object, fn _model, _prompt, _schema ->
+        {:ok,
+         %LLM.Response{
+           object: %{"title" => "Capital of France"}
+         }}
       end)
 
       args = %{
@@ -137,47 +116,25 @@ defmodule Lanttern.ChatResponseWorkerTest do
       # Subscribe to conversation updates
       AgentChat.subscribe_conversation(conversation.id)
 
-      # Mock LLMChain.run
-      Mimic.expect(LangChain.Chains.LLMChain, :run, fn chain, _opts ->
-        assistant_message =
-          LangChain.Message.new_assistant!(%{
-            content: "Paris is the capital.",
-            metadata: %{usage: %{input: 10, output: 20}}
-          })
-
+      # Mock the main LLM call
+      Mimic.expect(Lanttern.LLM, :generate_text_with_tools, fn _model, _messages, _tools ->
         {:ok,
-         %{
-           chain
-           | last_message: assistant_message,
-             messages: chain.messages ++ [assistant_message],
-             exchanged_messages: [assistant_message]
+         %LLM.Response{
+           text: "Paris is the capital.",
+           usage: %{input_tokens: 10, output_tokens: 20},
+           messages: [
+             %{role: :user, content: "What is the capital of France?"},
+             %{role: :assistant, content: "Paris is the capital."}
+           ]
          }}
       end)
 
-      # Mock the rename chain call
-      Mimic.expect(LangChain.Chains.LLMChain, :run, fn naming_chain, _opts ->
-        [rename_function] = naming_chain.tools
-
-        {:ok, content, updated_conv} =
-          rename_function.function.(%{"title" => "Paris Capital"}, %{})
-
-        tool_result =
-          LangChain.Message.ToolResult.new!(%{
-            type: :function,
-            tool_call_id: "call_123",
-            name: "set_conversation_title",
-            content: content,
-            processed_content: updated_conv
-          })
-
-        result_chain = %{
-          naming_chain
-          | messages:
-              naming_chain.messages ++
-                [LangChain.Message.new_tool_result!(%{tool_results: [tool_result]})]
-        }
-
-        {:ok, result_chain}
+      # Mock the rename call
+      Mimic.expect(Lanttern.LLM, :generate_object, fn _model, _prompt, _schema ->
+        {:ok,
+         %LLM.Response{
+           object: %{"title" => "Paris Capital"}
+         }}
       end)
 
       args = %{
@@ -202,11 +159,9 @@ defmodule Lanttern.ChatResponseWorkerTest do
       # Subscribe to conversation updates
       AgentChat.subscribe_conversation(conversation.id)
 
-      error = %LangChain.LangChainError{message: "API error"}
-
-      # Mock LLMChain.run to fail
-      Mimic.expect(LangChain.Chains.LLMChain, :run, fn chain, _opts ->
-        {:error, chain, error}
+      # Mock generate_text_with_tools to fail
+      Mimic.expect(Lanttern.LLM, :generate_text_with_tools, fn _model, _messages, _tools ->
+        {:error, "API error"}
       end)
 
       args = %{
@@ -219,7 +174,7 @@ defmodule Lanttern.ChatResponseWorkerTest do
       assert :ok = perform_job(ChatResponseWorker, args)
 
       # Verify failed broadcast was received
-      assert_receive {:conversation, {:failed, {:error, _chain, %LangChain.LangChainError{}}}}
+      assert_receive {:conversation, {:failed, {:error, "API error"}}}
 
       # Verify no assistant message was created
       messages = Repo.all(from m in Message, where: m.conversation_id == ^conversation.id)
@@ -234,57 +189,34 @@ defmodule Lanttern.ChatResponseWorkerTest do
     } do
       agent = insert(:agent, school: school)
 
-      # Expect run to be called with agent system messages
-      Mimic.expect(LangChain.Chains.LLMChain, :run, fn chain, _opts ->
-        # Verify agent system messages are included
-        system_messages = Enum.filter(chain.messages, &(&1.role == :system))
-        assert length(system_messages) >= 4
+      # Expect generate_text_with_tools to be called with agent system messages
+      Mimic.expect(Lanttern.LLM, :generate_text_with_tools, fn _model, messages, _tools ->
+        # Verify agent system messages are included in the single system message
+        system_msg = Enum.find(messages, &(&1.role == :system))
+        assert system_msg != nil
 
-        contents =
-          Enum.map(system_messages, &LangChain.Message.ContentPart.content_to_string(&1.content))
-
-        assert Enum.any?(contents, &(&1 =~ "agent_personality"))
-        assert Enum.any?(contents, &(&1 =~ "agent_instructions"))
-        assert Enum.any?(contents, &(&1 =~ "agent_knowledge"))
-        assert Enum.any?(contents, &(&1 =~ "agent_guardrails"))
-
-        assistant_message =
-          LangChain.Message.new_assistant!(%{
-            content: "Response with agent context.",
-            metadata: %{usage: %{input: 100, output: 50}}
-          })
+        assert system_msg.content =~ "agent_personality"
+        assert system_msg.content =~ "agent_instructions"
+        assert system_msg.content =~ "agent_knowledge"
+        assert system_msg.content =~ "agent_guardrails"
 
         {:ok,
-         %{
-           chain
-           | last_message: assistant_message,
-             messages: chain.messages ++ [assistant_message],
-             exchanged_messages: [assistant_message]
+         %LLM.Response{
+           text: "Response with agent context.",
+           usage: %{input_tokens: 100, output_tokens: 50},
+           messages: [
+             %{role: :user, content: "What is the capital of France?"},
+             %{role: :assistant, content: "Response with agent context."}
+           ]
          }}
       end)
 
-      # Mock the rename chain call
-      Mimic.expect(LangChain.Chains.LLMChain, :run, fn naming_chain, _opts ->
-        [rename_function] = naming_chain.tools
-        {:ok, content, updated_conv} = rename_function.function.(%{"title" => "Agent Chat"}, %{})
-
-        tool_result =
-          LangChain.Message.ToolResult.new!(%{
-            type: :function,
-            tool_call_id: "call_123",
-            name: "set_conversation_title",
-            content: content,
-            processed_content: updated_conv
-          })
-
-        result_chain = %{
-          naming_chain
-          | messages:
-              naming_chain.messages ++
-                [LangChain.Message.new_tool_result!(%{tool_results: [tool_result]})]
-        }
-
-        {:ok, result_chain}
+      # Mock the rename call
+      Mimic.expect(Lanttern.LLM, :generate_object, fn _model, _prompt, _schema ->
+        {:ok,
+         %LLM.Response{
+           object: %{"title" => "Agent Chat"}
+         }}
       end)
 
       args = %{
@@ -304,55 +236,32 @@ defmodule Lanttern.ChatResponseWorkerTest do
     } do
       lesson_template = insert(:lesson_template, school: school)
 
-      # Expect run to be called with lesson template system messages
-      Mimic.expect(LangChain.Chains.LLMChain, :run, fn chain, _opts ->
-        # Verify lesson template system messages are included
-        system_messages = Enum.filter(chain.messages, &(&1.role == :system))
-        assert length(system_messages) >= 2
+      # Expect generate_text_with_tools to be called with lesson template system messages
+      Mimic.expect(Lanttern.LLM, :generate_text_with_tools, fn _model, messages, _tools ->
+        # Verify lesson template system messages are included in the single system message
+        system_msg = Enum.find(messages, &(&1.role == :system))
+        assert system_msg != nil
 
-        contents =
-          Enum.map(system_messages, &LangChain.Message.ContentPart.content_to_string(&1.content))
-
-        assert Enum.any?(contents, &(&1 =~ "lesson_template_info"))
-        assert Enum.any?(contents, &(&1 =~ "lesson_template"))
-
-        assistant_message =
-          LangChain.Message.new_assistant!(%{
-            content: "Response with lesson context.",
-            metadata: %{usage: %{input: 80, output: 40}}
-          })
+        assert system_msg.content =~ "lesson_template_info"
+        assert system_msg.content =~ "lesson_template"
 
         {:ok,
-         %{
-           chain
-           | last_message: assistant_message,
-             messages: chain.messages ++ [assistant_message],
-             exchanged_messages: [assistant_message]
+         %LLM.Response{
+           text: "Response with lesson context.",
+           usage: %{input_tokens: 80, output_tokens: 40},
+           messages: [
+             %{role: :user, content: "What is the capital of France?"},
+             %{role: :assistant, content: "Response with lesson context."}
+           ]
          }}
       end)
 
-      # Mock the rename chain call
-      Mimic.expect(LangChain.Chains.LLMChain, :run, fn naming_chain, _opts ->
-        [rename_function] = naming_chain.tools
-        {:ok, content, updated_conv} = rename_function.function.(%{"title" => "Lesson Chat"}, %{})
-
-        tool_result =
-          LangChain.Message.ToolResult.new!(%{
-            type: :function,
-            tool_call_id: "call_123",
-            name: "set_conversation_title",
-            content: content,
-            processed_content: updated_conv
-          })
-
-        result_chain = %{
-          naming_chain
-          | messages:
-              naming_chain.messages ++
-                [LangChain.Message.new_tool_result!(%{tool_results: [tool_result]})]
-        }
-
-        {:ok, result_chain}
+      # Mock the rename call
+      Mimic.expect(Lanttern.LLM, :generate_object, fn _model, _prompt, _schema ->
+        {:ok,
+         %LLM.Response{
+           object: %{"title" => "Lesson Chat"}
+         }}
       end)
 
       args = %{
@@ -380,20 +289,16 @@ defmodule Lanttern.ChatResponseWorkerTest do
         content: "Hello"
       })
 
-      # Only expect one LLMChain.run call (no rename call)
-      Mimic.expect(LangChain.Chains.LLMChain, :run, fn chain, _opts ->
-        assistant_message =
-          LangChain.Message.new_assistant!(%{
-            content: "Hi there!",
-            metadata: %{usage: %{input: 10, output: 5}}
-          })
-
+      # Only expect one generate_text_with_tools call (no generate_object for rename)
+      Mimic.expect(Lanttern.LLM, :generate_text_with_tools, fn _model, _messages, _tools ->
         {:ok,
-         %{
-           chain
-           | last_message: assistant_message,
-             messages: chain.messages ++ [assistant_message],
-             exchanged_messages: [assistant_message]
+         %LLM.Response{
+           text: "Hi there!",
+           usage: %{input_tokens: 10, output_tokens: 5},
+           messages: [
+             %{role: :user, content: "Hello"},
+             %{role: :assistant, content: "Hi there!"}
+           ]
          }}
       end)
 
@@ -414,45 +319,26 @@ defmodule Lanttern.ChatResponseWorkerTest do
       user: user,
       conversation: conversation
     } do
-      # Mock LLMChain.run with missing usage metadata
-      Mimic.expect(LangChain.Chains.LLMChain, :run, fn chain, _opts ->
-        assistant_message =
-          LangChain.Message.new_assistant!(%{
-            content: "Response without usage data.",
-            metadata: %{}
-          })
-
+      # Mock generate_text_with_tools with zero usage
+      # (Lanttern.LLM normalizes nil usage from underlying provider to zero values)
+      Mimic.expect(Lanttern.LLM, :generate_text_with_tools, fn _model, _messages, _tools ->
         {:ok,
-         %{
-           chain
-           | last_message: assistant_message,
-             messages: chain.messages ++ [assistant_message],
-             exchanged_messages: [assistant_message]
+         %LLM.Response{
+           text: "Response without usage data.",
+           usage: %{input_tokens: 0, output_tokens: 0},
+           messages: [
+             %{role: :user, content: "What is the capital of France?"},
+             %{role: :assistant, content: "Response without usage data."}
+           ]
          }}
       end)
 
-      # Mock the rename chain call
-      Mimic.expect(LangChain.Chains.LLMChain, :run, fn naming_chain, _opts ->
-        [rename_function] = naming_chain.tools
-        {:ok, content, updated_conv} = rename_function.function.(%{"title" => "No Usage"}, %{})
-
-        tool_result =
-          LangChain.Message.ToolResult.new!(%{
-            type: :function,
-            tool_call_id: "call_123",
-            name: "set_conversation_title",
-            content: content,
-            processed_content: updated_conv
-          })
-
-        result_chain = %{
-          naming_chain
-          | messages:
-              naming_chain.messages ++
-                [LangChain.Message.new_tool_result!(%{tool_results: [tool_result]})]
-        }
-
-        {:ok, result_chain}
+      # Mock the rename call
+      Mimic.expect(Lanttern.LLM, :generate_object, fn _model, _prompt, _schema ->
+        {:ok,
+         %LLM.Response{
+           object: %{"title" => "No Usage"}
+         }}
       end)
 
       args = %{
@@ -470,11 +356,51 @@ defmodule Lanttern.ChatResponseWorkerTest do
       assert model_call.prompt_tokens == 0
       assert model_call.completion_tokens == 0
     end
+
+    test "silently skips rename when generate_object fails, keeping the message",
+         %{user: user, conversation: conversation} do
+      AgentChat.subscribe_conversation(conversation.id)
+
+      Mimic.expect(Lanttern.LLM, :generate_text_with_tools, fn _model, _messages, _tools ->
+        {:ok,
+         %LLM.Response{
+           text: "Answer.",
+           usage: %{input_tokens: 1, output_tokens: 2},
+           messages: [
+             %{role: :user, content: "What is the capital of France?"},
+             %{role: :assistant, content: "Answer."}
+           ]
+         }}
+      end)
+
+      Mimic.expect(Lanttern.LLM, :generate_object, fn _model, _prompt, _schema ->
+        {:error, "rename API failed"}
+      end)
+
+      args = %{
+        "user_id" => user.id,
+        "conversation_id" => conversation.id,
+        "model" => "gpt-4o"
+      }
+
+      # Oban job succeeds — rename failure must not fail the job.
+      assert :ok = perform_job(ChatResponseWorker, args)
+
+      # Assistant message was persisted and broadcast.
+      assert_receive {:conversation, {:message_added, %Message{content: "Answer."}}}
+
+      # Rename broadcast must NOT happen.
+      refute_receive {:conversation, {:conversation_renamed, _}}, 100
+
+      # Conversation name stays nil (worker setup creates it with name: nil).
+      reloaded = Repo.get!(Conversation, conversation.id)
+      assert is_nil(reloaded.name)
+    end
   end
 
   describe "model resolution" do
     setup do
-      Mimic.copy(LangChain.Chains.LLMChain)
+      Mimic.copy(Lanttern.LLM)
 
       school = SchoolsFixtures.school_fixture()
       staff_member = SchoolsFixtures.staff_member_fixture(%{school_id: school.id})
@@ -515,22 +441,18 @@ defmodule Lanttern.ChatResponseWorkerTest do
       user: user,
       conversation: conversation
     } do
-      Mimic.expect(LangChain.Chains.LLMChain, :run, fn chain, _opts ->
+      Mimic.expect(Lanttern.LLM, :generate_text_with_tools, fn model, _messages, _tools ->
         # Verify the model used is from args
-        assert chain.llm.model == "gpt-5-turbo"
-
-        assistant_message =
-          LangChain.Message.new_assistant!(%{
-            content: "Response",
-            metadata: %{usage: %{input: 10, output: 20}}
-          })
+        assert model == "gpt-5-turbo"
 
         {:ok,
-         %{
-           chain
-           | last_message: assistant_message,
-             messages: chain.messages ++ [assistant_message],
-             exchanged_messages: [assistant_message]
+         %LLM.Response{
+           text: "Response",
+           usage: %{input_tokens: 10, output_tokens: 20},
+           messages: [
+             %{role: :user, content: "Test message"},
+             %{role: :assistant, content: "Response"}
+           ]
          }}
       end)
 
@@ -557,22 +479,18 @@ defmodule Lanttern.ChatResponseWorkerTest do
       # Create ai_config with base_model for the school
       insert(:ai_config, school: school, base_model: "school-preferred-model")
 
-      Mimic.expect(LangChain.Chains.LLMChain, :run, fn chain, _opts ->
+      Mimic.expect(Lanttern.LLM, :generate_text_with_tools, fn model, _messages, _tools ->
         # Verify the model used is from school ai_config
-        assert chain.llm.model == "school-preferred-model"
-
-        assistant_message =
-          LangChain.Message.new_assistant!(%{
-            content: "Response",
-            metadata: %{usage: %{input: 10, output: 20}}
-          })
+        assert model == "school-preferred-model"
 
         {:ok,
-         %{
-           chain
-           | last_message: assistant_message,
-             messages: chain.messages ++ [assistant_message],
-             exchanged_messages: [assistant_message]
+         %LLM.Response{
+           text: "Response",
+           usage: %{input_tokens: 10, output_tokens: 20},
+           messages: [
+             %{role: :user, content: "Test message"},
+             %{role: :assistant, content: "Response"}
+           ]
          }}
       end)
 
@@ -598,22 +516,18 @@ defmodule Lanttern.ChatResponseWorkerTest do
       # No ai_config for the school, no model in args
       # Should fall back to app config default (gpt-5-nano)
 
-      Mimic.expect(LangChain.Chains.LLMChain, :run, fn chain, _opts ->
-        # Verify the model used is the default
-        assert chain.llm.model == "gpt-5-nano"
-
-        assistant_message =
-          LangChain.Message.new_assistant!(%{
-            content: "Response",
-            metadata: %{usage: %{input: 10, output: 20}}
-          })
+      Mimic.expect(Lanttern.LLM, :generate_text_with_tools, fn model, _messages, _tools ->
+        # Verify the model used is the default (normalized with provider prefix)
+        assert model == "openai:gpt-5-nano"
 
         {:ok,
-         %{
-           chain
-           | last_message: assistant_message,
-             messages: chain.messages ++ [assistant_message],
-             exchanged_messages: [assistant_message]
+         %LLM.Response{
+           text: "Response",
+           usage: %{input_tokens: 10, output_tokens: 20},
+           messages: [
+             %{role: :user, content: "Test message"},
+             %{role: :assistant, content: "Response"}
+           ]
          }}
       end)
 
@@ -624,11 +538,11 @@ defmodule Lanttern.ChatResponseWorkerTest do
 
       assert :ok = perform_job(ChatResponseWorker, args)
 
-      # Verify the default model was recorded
+      # Verify the default model was recorded (with provider prefix)
       messages = Repo.all(from m in Message, where: m.conversation_id == ^conversation.id)
       assistant_message = Enum.find(messages, &(&1.role == "assistant"))
       model_call = Repo.get_by(ModelCall, message_id: assistant_message.id)
-      assert model_call.model == "gpt-5-nano"
+      assert model_call.model == "openai:gpt-5-nano"
     end
 
     test "model in args takes precedence over school ai_config", %{
@@ -639,22 +553,18 @@ defmodule Lanttern.ChatResponseWorkerTest do
       # Create ai_config with base_model for the school
       insert(:ai_config, school: school, base_model: "school-model")
 
-      Mimic.expect(LangChain.Chains.LLMChain, :run, fn chain, _opts ->
+      Mimic.expect(Lanttern.LLM, :generate_text_with_tools, fn model, _messages, _tools ->
         # Should use the model from args, not from school config
-        assert chain.llm.model == "args-model"
-
-        assistant_message =
-          LangChain.Message.new_assistant!(%{
-            content: "Response",
-            metadata: %{usage: %{input: 10, output: 20}}
-          })
+        assert model == "args-model"
 
         {:ok,
-         %{
-           chain
-           | last_message: assistant_message,
-             messages: chain.messages ++ [assistant_message],
-             exchanged_messages: [assistant_message]
+         %LLM.Response{
+           text: "Response",
+           usage: %{input_tokens: 10, output_tokens: 20},
+           messages: [
+             %{role: :user, content: "Test message"},
+             %{role: :assistant, content: "Response"}
+           ]
          }}
       end)
 
@@ -679,22 +589,18 @@ defmodule Lanttern.ChatResponseWorkerTest do
     } do
       insert(:ai_config, school: school, base_model: "school-fallback-model")
 
-      Mimic.expect(LangChain.Chains.LLMChain, :run, fn chain, _opts ->
+      Mimic.expect(Lanttern.LLM, :generate_text_with_tools, fn model, _messages, _tools ->
         # Empty string model should be ignored, use school config
-        assert chain.llm.model == "school-fallback-model"
-
-        assistant_message =
-          LangChain.Message.new_assistant!(%{
-            content: "Response",
-            metadata: %{usage: %{input: 10, output: 20}}
-          })
+        assert model == "school-fallback-model"
 
         {:ok,
-         %{
-           chain
-           | last_message: assistant_message,
-             messages: chain.messages ++ [assistant_message],
-             exchanged_messages: [assistant_message]
+         %LLM.Response{
+           text: "Response",
+           usage: %{input_tokens: 10, output_tokens: 20},
+           messages: [
+             %{role: :user, content: "Test message"},
+             %{role: :assistant, content: "Response"}
+           ]
          }}
       end)
 
@@ -719,22 +625,18 @@ defmodule Lanttern.ChatResponseWorkerTest do
     } do
       insert(:ai_config, school: school, base_model: "")
 
-      Mimic.expect(LangChain.Chains.LLMChain, :run, fn chain, _opts ->
-        # Empty base_model should be ignored, use app default
-        assert chain.llm.model == "gpt-5-nano"
-
-        assistant_message =
-          LangChain.Message.new_assistant!(%{
-            content: "Response",
-            metadata: %{usage: %{input: 10, output: 20}}
-          })
+      Mimic.expect(Lanttern.LLM, :generate_text_with_tools, fn model, _messages, _tools ->
+        # Empty base_model should be ignored, use app default (normalized with provider prefix)
+        assert model == "openai:gpt-5-nano"
 
         {:ok,
-         %{
-           chain
-           | last_message: assistant_message,
-             messages: chain.messages ++ [assistant_message],
-             exchanged_messages: [assistant_message]
+         %LLM.Response{
+           text: "Response",
+           usage: %{input_tokens: 10, output_tokens: 20},
+           messages: [
+             %{role: :user, content: "Test message"},
+             %{role: :assistant, content: "Response"}
+           ]
          }}
       end)
 
@@ -748,7 +650,7 @@ defmodule Lanttern.ChatResponseWorkerTest do
       messages = Repo.all(from m in Message, where: m.conversation_id == ^conversation.id)
       assistant_message = Enum.find(messages, &(&1.role == "assistant"))
       model_call = Repo.get_by(ModelCall, message_id: assistant_message.id)
-      assert model_call.model == "gpt-5-nano"
+      assert model_call.model == "openai:gpt-5-nano"
     end
   end
 

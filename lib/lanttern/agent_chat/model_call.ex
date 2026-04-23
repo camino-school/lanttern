@@ -1,6 +1,19 @@
 defmodule Lanttern.AgentChat.ModelCall do
   @moduledoc """
   LLM calls info schema.
+
+  Stores one row per assistant response for token accounting.
+
+  ## `model` field
+
+  Persists the raw model identifier as configured by the caller (args,
+  school AI config, or the app default) — not the normalized
+  `"provider:model"` value sent to the provider by `Lanttern.LLM`. This is
+  intentional: `model` reflects the *configuration in effect* at the time,
+  which is the auditable value; the actual request string is a
+  deterministic derivation of it. Analytics that roll up by model should
+  normalize on read (or treat `"gpt-4o"` and `"openai:gpt-4o"` as the same
+  bucket).
   """
 
   use Ecto.Schema
