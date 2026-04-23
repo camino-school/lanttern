@@ -293,9 +293,17 @@ defmodule Lanttern.AgentChat do
         title =
           response.object
           |> Map.get("title", "")
+          |> to_string()
+          |> String.trim()
           |> String.slice(0, 50)
 
-        rename_conversation(scope, conversation, title)
+        # `rename_conversation/3` is guarded on a non-empty string. A blank
+        # title from the LLM would otherwise raise FunctionClauseError and
+        # crash the caller (e.g. the ChatResponseWorker job).
+        case title do
+          "" -> {:error, :blank_title}
+          _ -> rename_conversation(scope, conversation, title)
+        end
 
       {:error, _} = error ->
         error

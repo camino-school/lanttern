@@ -94,6 +94,11 @@ if config_env() == :prod do
 
   config :lanttern, LantternWeb.UserAuth, google_client_id: google_client_id
 
+  # ReqLLM config — read at runtime so release builds pick up the key from
+  # the deployed environment (the compile-time config in config/config.exs
+  # runs during build, when OPENAI_API_KEY is not available).
+  config :req_llm, openai_api_key: System.get_env("OPENAI_API_KEY")
+
   # Upload config
   default_profile_picture_accept = ".jpg .jpeg .png .webp"
   default_profile_picture_size = "3000000"
