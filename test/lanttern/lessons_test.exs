@@ -816,4 +816,108 @@ defmodule Lanttern.LessonsTest do
       assert %Ecto.Changeset{} = Lessons.change_tag(scope, tag)
     end
   end
+
+  describe "lesson_curriculum_items" do
+    alias Lanttern.Lessons.LessonCurriculumItem
+
+    import Lanttern.IdentityFixtures, only: [staff_scope_fixture: 0]
+
+    @invalid_attrs %{position: nil}
+
+    test "list_lesson_curriculum_items/1 returns all lesson_curriculum_items" do
+      scope = staff_scope_fixture()
+      %{id: id} = insert(:lesson_curriculum_item)
+      assert [%LessonCurriculumItem{id: ^id}] = Lessons.list_lesson_curriculum_items(scope)
+    end
+
+    test "get_lesson_curriculum_item!/2 returns the lesson_curriculum_item with given id" do
+      scope = staff_scope_fixture()
+      %{id: id} = insert(:lesson_curriculum_item)
+      assert %LessonCurriculumItem{id: ^id} = Lessons.get_lesson_curriculum_item!(scope, id)
+    end
+
+    test "create_lesson_curriculum_item/2 with valid data creates a lesson_curriculum_item" do
+      scope = staff_scope_fixture()
+      lesson = insert(:lesson)
+      curriculum_item = insert(:curriculum_item)
+      valid_attrs = %{position: 42, lesson_id: lesson.id, curriculum_item_id: curriculum_item.id}
+
+      assert {:ok, %LessonCurriculumItem{position: 42}} =
+               Lessons.create_lesson_curriculum_item(scope, valid_attrs)
+    end
+
+    test "create_lesson_curriculum_item/2 with invalid data returns error changeset" do
+      scope = staff_scope_fixture()
+
+      assert {:error, %Ecto.Changeset{}} =
+               Lessons.create_lesson_curriculum_item(scope, @invalid_attrs)
+    end
+
+    test "create_lesson_curriculum_item/2 raises when scope is not staff" do
+      scope = %Lanttern.Identity.Scope{profile_type: "student"}
+      assert_raise MatchError, fn -> Lessons.create_lesson_curriculum_item(scope, %{}) end
+    end
+
+    test "update_lesson_curriculum_item/3 with valid data updates the lesson_curriculum_item" do
+      scope = staff_scope_fixture()
+      lesson_curriculum_item = insert(:lesson_curriculum_item)
+
+      assert {:ok, %LessonCurriculumItem{position: 43}} =
+               Lessons.update_lesson_curriculum_item(scope, lesson_curriculum_item, %{
+                 position: 43
+               })
+    end
+
+    test "update_lesson_curriculum_item/3 with invalid data returns error changeset" do
+      scope = staff_scope_fixture()
+      %{id: id} = lesson_curriculum_item = insert(:lesson_curriculum_item)
+
+      assert {:error, %Ecto.Changeset{}} =
+               Lessons.update_lesson_curriculum_item(
+                 scope,
+                 lesson_curriculum_item,
+                 @invalid_attrs
+               )
+
+      assert %LessonCurriculumItem{id: ^id} = Lessons.get_lesson_curriculum_item!(scope, id)
+    end
+
+    test "update_lesson_curriculum_item/3 raises when scope is not staff" do
+      scope = %Lanttern.Identity.Scope{profile_type: "student"}
+      lesson_curriculum_item = insert(:lesson_curriculum_item)
+
+      assert_raise MatchError, fn ->
+        Lessons.update_lesson_curriculum_item(scope, lesson_curriculum_item, %{})
+      end
+    end
+
+    test "delete_lesson_curriculum_item/2 deletes the lesson_curriculum_item" do
+      scope = staff_scope_fixture()
+      %{id: id} = lesson_curriculum_item = insert(:lesson_curriculum_item)
+
+      assert {:ok, %LessonCurriculumItem{id: ^id}} =
+               Lessons.delete_lesson_curriculum_item(scope, lesson_curriculum_item)
+
+      assert_raise Ecto.NoResultsError, fn ->
+        Lessons.get_lesson_curriculum_item!(scope, id)
+      end
+    end
+
+    test "delete_lesson_curriculum_item/2 raises when scope is not staff" do
+      scope = %Lanttern.Identity.Scope{profile_type: "student"}
+      lesson_curriculum_item = insert(:lesson_curriculum_item)
+
+      assert_raise MatchError, fn ->
+        Lessons.delete_lesson_curriculum_item(scope, lesson_curriculum_item)
+      end
+    end
+
+    test "change_lesson_curriculum_item/2 returns a lesson_curriculum_item changeset" do
+      scope = staff_scope_fixture()
+      lesson_curriculum_item = insert(:lesson_curriculum_item)
+
+      assert %Ecto.Changeset{} =
+               Lessons.change_lesson_curriculum_item(scope, lesson_curriculum_item)
+    end
+  end
 end
