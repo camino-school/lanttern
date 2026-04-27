@@ -39,6 +39,7 @@ defmodule Lanttern.Factory do
   use Lanttern.SectionFactory
   use Lanttern.StaffMemberFactory
   use Lanttern.StrandConversationFactory
+  use Lanttern.StrandCurriculumItemFactory
   use Lanttern.StrandFactory
   use Lanttern.StrandReportFactory
   use Lanttern.StudentFactory
