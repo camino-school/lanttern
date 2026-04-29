@@ -6,10 +6,14 @@ defmodule LantternWeb.LessonLive do
   alias Lanttern.LearningContext
   alias Lanttern.LearningContext.Moment
   alias Lanttern.Lessons
+  alias Lanttern.Strands
+
+  import Lanttern.Utils, only: [reorder: 3]
 
   # shared components
   alias LantternWeb.Assessments.AssessmentPointFormOverlayComponent
   alias LantternWeb.Attachments.AttachmentAreaComponent
+  alias LantternWeb.Curricula.CurriculumItemSearchComponent
   alias LantternWeb.LearningContext.MomentDetailsOverlayComponent
   alias LantternWeb.Lessons.LessonFormComponent
   alias LantternWeb.Lessons.LessonsSideNavComponent
@@ -87,7 +91,13 @@ defmodule LantternWeb.LessonLive do
       |> assign(:unlinking_from_lesson, nil)
       |> assign(:assessment_point, nil)
       |> assign(:assessment_point_overlay_title, nil)
+      |> assign(:show_lesson_curriculum_modal, false)
+      |> assign(:editing_lesson_curriculum_item, nil)
+      |> assign(:lesson_curriculum_error, nil)
+      |> assign(:lesson_curriculum_initial_results, [])
       |> stream_lesson_assessment_points()
+      |> stream_lesson_curriculum_section()
+      |> assign_strand_curriculum_items()
       |> assign(
         :has_agents_management_permission,
         Scope.has_permission?(socket.assigns.current_scope, "agents_management")
@@ -127,6 +137,31 @@ defmodule LantternWeb.LessonLive do
 
     socket
     |> assign(:strand, strand)
+  end
+
+  defp stream_lesson_curriculum_section(socket) do
+    items =
+      Lessons.list_lesson_curriculum_items(
+        socket.assigns.current_scope,
+        socket.assigns.lesson.id,
+        preloads: [curriculum_item: :curriculum_component]
+      )
+
+    socket
+    |> stream(:lesson_curriculum_items, items, reset: true)
+    |> assign(:lesson_curriculum_item_ids, Enum.map(items, & &1.id))
+    |> assign(:lesson_curriculum_ids, Enum.map(items, & &1.curriculum_item_id))
+  end
+
+  defp assign_strand_curriculum_items(socket) do
+    items =
+      Strands.list_strand_curriculum_items(
+        socket.assigns.current_scope,
+        socket.assigns.strand.id,
+        preloads: [curriculum_item: :curriculum_component]
+      )
+
+    assign(socket, :strand_curriculum_items, items)
   end
 
   # event handlers
@@ -374,6 +409,76 @@ defmodule LantternWeb.LessonLive do
   def handle_event("close_moment_details", _params, socket),
     do: {:noreply, assign(socket, :moment_id, nil)}
 
+  # -- lesson curriculum items
+
+  def handle_event("new_lesson_curriculum_item", _params, socket) do
+    socket =
+      socket
+      |> assign(:show_lesson_curriculum_modal, true)
+      |> assign(:editing_lesson_curriculum_item, nil)
+      |> assign(:lesson_curriculum_error, nil)
+      |> assign(
+        :lesson_curriculum_initial_results,
+        filtered_initial_results(
+          socket.assigns.strand_curriculum_items,
+          socket.assigns.lesson_curriculum_ids
+        )
+      )
+
+    {:noreply, socket}
+  end
+
+  def handle_event("replace_lesson_curriculum_item", %{"id" => id}, socket) do
+    lci = Lessons.get_lesson_curriculum_item!(socket.assigns.current_scope, id)
+
+    excluded_ids = List.delete(socket.assigns.lesson_curriculum_ids, lci.curriculum_item_id)
+
+    socket =
+      socket
+      |> assign(:show_lesson_curriculum_modal, true)
+      |> assign(:editing_lesson_curriculum_item, lci)
+      |> assign(:lesson_curriculum_error, nil)
+      |> assign(
+        :lesson_curriculum_initial_results,
+        filtered_initial_results(socket.assigns.strand_curriculum_items, excluded_ids)
+      )
+
+    {:noreply, socket}
+  end
+
+  def handle_event("remove_lesson_curriculum_item", %{"id" => id}, socket) do
+    lci = Lessons.get_lesson_curriculum_item!(socket.assigns.current_scope, id)
+    {:ok, _} = Lessons.delete_lesson_curriculum_item(socket.assigns.current_scope, lci)
+
+    socket =
+      socket
+      |> stream_delete(:lesson_curriculum_items, lci)
+      |> update(:lesson_curriculum_item_ids, &List.delete(&1, lci.id))
+      |> update(:lesson_curriculum_ids, &List.delete(&1, lci.curriculum_item_id))
+
+    {:noreply, socket}
+  end
+
+  def handle_event("close_lesson_curriculum_modal", _params, socket) do
+    {:noreply,
+     assign(socket,
+       show_lesson_curriculum_modal: false,
+       editing_lesson_curriculum_item: nil
+     )}
+  end
+
+  def handle_event("lesson_curriculum_sortable_update", payload, socket) do
+    %{"oldIndex" => old_index, "newIndex" => new_index} = payload
+
+    curriculum_item_ids =
+      socket.assigns.lesson_curriculum_item_ids
+      |> reorder(old_index, new_index)
+
+    Lessons.update_lesson_curriculum_items_positions(curriculum_item_ids)
+
+    {:noreply, assign(socket, :lesson_curriculum_item_ids, curriculum_item_ids)}
+  end
+
   # handle_event helpers
 
   defp update_assessment_point_lesson_link(socket, ap, lesson_id) do
@@ -421,5 +526,91 @@ defmodule LantternWeb.LessonLive do
       |> put_flash(:info, gettext("Assessment point deleted"))
 
     {:noreply, socket}
+  end
+
+  def handle_info({CurriculumItemSearchComponent, {:selected, curriculum_item}}, socket) do
+    scope = socket.assigns.current_scope
+    socket = assign(socket, :lesson_curriculum_error, nil)
+
+    socket =
+      case socket.assigns.editing_lesson_curriculum_item do
+        nil ->
+          attrs = %{
+            lesson_id: socket.assigns.lesson.id,
+            curriculum_item_id: curriculum_item.id
+          }
+
+          case Lessons.create_lesson_curriculum_item(scope, attrs) do
+            {:ok, lci} ->
+              lci = Map.put(lci, :curriculum_item, curriculum_item)
+
+              socket
+              |> stream_insert(:lesson_curriculum_items, lci)
+              |> update(:lesson_curriculum_item_ids, &(&1 ++ [lci.id]))
+              |> update(:lesson_curriculum_ids, &(&1 ++ [curriculum_item.id]))
+              |> maybe_add_to_strand_curriculum(curriculum_item)
+              |> assign(
+                show_lesson_curriculum_modal: false,
+                editing_lesson_curriculum_item: nil
+              )
+
+            {:error, changeset} ->
+              assign(socket, :lesson_curriculum_error, changeset_error_string(changeset))
+          end
+
+        lci ->
+          attrs = %{curriculum_item_id: curriculum_item.id}
+
+          case Lessons.update_lesson_curriculum_item(scope, lci, attrs) do
+            {:ok, updated} ->
+              updated = Map.put(updated, :curriculum_item, curriculum_item)
+
+              replaced_ids =
+                socket.assigns.lesson_curriculum_ids
+                |> List.delete(lci.curriculum_item_id)
+                |> then(&(&1 ++ [curriculum_item.id]))
+
+              socket
+              |> stream_insert(:lesson_curriculum_items, updated)
+              |> assign(:lesson_curriculum_ids, replaced_ids)
+              |> assign(
+                show_lesson_curriculum_modal: false,
+                editing_lesson_curriculum_item: nil
+              )
+
+            {:error, changeset} ->
+              assign(socket, :lesson_curriculum_error, changeset_error_string(changeset))
+          end
+      end
+
+    {:noreply, socket}
+  end
+
+  defp filtered_initial_results(strand_curriculum_items, excluded_ids) do
+    strand_curriculum_items
+    |> Enum.map(& &1.curriculum_item)
+    |> Enum.reject(&(&1.id in excluded_ids))
+  end
+
+  defp maybe_add_to_strand_curriculum(socket, curriculum_item) do
+    strand_ci_ids = Enum.map(socket.assigns.strand_curriculum_items, & &1.curriculum_item_id)
+
+    if curriculum_item.id in strand_ci_ids do
+      socket
+    else
+      attrs = %{
+        strand_id: socket.assigns.strand.id,
+        curriculum_item_id: curriculum_item.id
+      }
+
+      case Strands.create_strand_curriculum_item(socket.assigns.current_scope, attrs) do
+        {:ok, sci} ->
+          sci = Map.put(sci, :curriculum_item, curriculum_item)
+          update(socket, :strand_curriculum_items, &(&1 ++ [sci]))
+
+        {:error, _} ->
+          socket
+      end
+    end
   end
 end

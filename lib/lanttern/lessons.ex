@@ -556,8 +556,13 @@ defmodule Lanttern.Lessons do
       [%LessonCurriculumItem{}, ...]
 
   """
-  def list_lesson_curriculum_items(%Scope{} = _scope) do
-    Repo.all(LessonCurriculumItem)
+  def list_lesson_curriculum_items(%Scope{} = _scope, lesson_id, opts \\ []) do
+    from(lci in LessonCurriculumItem,
+      where: lci.lesson_id == ^lesson_id,
+      order_by: [asc: lci.position]
+    )
+    |> Repo.all()
+    |> maybe_preload(opts)
   end
 
   @doc """
@@ -592,6 +597,16 @@ defmodule Lanttern.Lessons do
   """
   def create_lesson_curriculum_item(%Scope{} = scope, attrs) do
     true = Scope.profile_type?(scope, "staff")
+
+    lesson_id = Map.get(attrs, :lesson_id) || Map.get(attrs, "lesson_id")
+
+    attrs =
+      if lesson_id do
+        from(lci in LessonCurriculumItem, where: lci.lesson_id == ^lesson_id)
+        |> set_position_in_attrs(attrs)
+      else
+        attrs
+      end
 
     with {:ok, lesson_curriculum_item = %LessonCurriculumItem{}} <-
            %LessonCurriculumItem{}
@@ -670,5 +685,9 @@ defmodule Lanttern.Lessons do
         attrs \\ %{}
       ) do
     LessonCurriculumItem.changeset(lesson_curriculum_item, attrs)
+  end
+
+  def update_lesson_curriculum_items_positions(ids) do
+    update_positions(LessonCurriculumItem, ids)
   end
 end

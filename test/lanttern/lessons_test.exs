@@ -824,10 +824,13 @@ defmodule Lanttern.LessonsTest do
 
     @invalid_attrs %{position: nil}
 
-    test "list_lesson_curriculum_items/1 returns all lesson_curriculum_items" do
+    test "list_lesson_curriculum_items/2 returns lesson_curriculum_items for given lesson" do
       scope = staff_scope_fixture()
-      %{id: id} = insert(:lesson_curriculum_item)
-      assert [%LessonCurriculumItem{id: ^id}] = Lessons.list_lesson_curriculum_items(scope)
+      %{id: id, lesson_id: lesson_id} = insert(:lesson_curriculum_item)
+      insert(:lesson_curriculum_item)
+
+      assert [%LessonCurriculumItem{id: ^id}] =
+               Lessons.list_lesson_curriculum_items(scope, lesson_id)
     end
 
     test "get_lesson_curriculum_item!/2 returns the lesson_curriculum_item with given id" do

@@ -34,5 +34,6 @@ defmodule Lanttern.Lessons.LessonCurriculumItem do
     lesson_curriculum_item
     |> cast(attrs, [:position, :lesson_id, :curriculum_item_id])
     |> validate_required([:position, :lesson_id, :curriculum_item_id])
+    |> unique_constraint([:curriculum_item_id, :lesson_id])
   end
 end

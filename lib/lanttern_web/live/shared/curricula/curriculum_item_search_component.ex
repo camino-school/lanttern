@@ -99,7 +99,30 @@ defmodule LantternWeb.Curricula.CurriculumItemSearchComponent do
       |> assign(:label, nil)
       |> assign(:class, nil)
       |> assign(:refocus_on_select, "false")
+      |> assign(:initial_results, [])
+      |> assign(:results_initialized, false)
       |> stream(:results, [])
+
+    {:ok, socket}
+  end
+
+  def update(assigns, socket) do
+    socket = assign(socket, assigns)
+
+    socket =
+      if socket.assigns.results_initialized do
+        socket
+      else
+        results = socket.assigns.initial_results
+        results_simplified = Enum.map(results, fn ci -> %{id: ci.id} end)
+
+        socket
+        |> stream(:results, results, reset: true)
+        |> push_event("autocomplete_search_results:#{socket.assigns.id}", %{
+          results: results_simplified
+        })
+        |> assign(:results_initialized, true)
+      end
 
     {:ok, socket}
   end
@@ -116,6 +139,10 @@ defmodule LantternWeb.Curricula.CurriculumItemSearchComponent do
         # or when more than 3 characters were typed
         String.length(query) > 3 ->
           Curricula.search_curriculum_items(socket.assigns.current_scope, query)
+
+        # show initial results when query is empty
+        query == "" ->
+          socket.assigns.initial_results
 
         true ->
           []
@@ -139,7 +166,11 @@ defmodule LantternWeb.Curricula.CurriculumItemSearchComponent do
         preloads: :curriculum_component
       )
 
-    send_update(socket.assigns.notify_component, action: {__MODULE__, {:selected, selected}})
+    if is_pid(socket.assigns.notify_component) do
+      send(socket.assigns.notify_component, {__MODULE__, {:selected, selected}})
+    else
+      send_update(socket.assigns.notify_component, action: {__MODULE__, {:selected, selected}})
+    end
 
     socket =
       socket

@@ -346,6 +346,67 @@
       />
     </.responsive_container>
   </section>
+  <section id="lesson-curriculum" class="py-10">
+    <.responsive_container>
+      <div class="flex items-end justify-between gap-6">
+        <h3 class="font-display font-black text-2xl">{gettext("Lesson Curriculum")}</h3>
+        <.button
+          type="button"
+          id="new-lesson-curriculum-item-button"
+          phx-click="new_lesson_curriculum_item"
+        >
+          {gettext("New")}
+        </.button>
+      </div>
+      <div
+        :if={@lesson_curriculum_item_ids != []}
+        phx-hook="Sortable"
+        id="sortable-lesson-curriculum-items"
+        data-sortable-handle=".sortable-handle"
+        data-sortable-event="lesson_curriculum_sortable_update"
+        phx-update="stream"
+      >
+        <.draggable_card
+          :for={{dom_id, lci} <- @streams.lesson_curriculum_items}
+          class="mt-4"
+          id={dom_id}
+        >
+          <div class="flex items-center gap-4">
+            <div class="flex-1 min-w-0">
+              <p>{lci.curriculum_item.name}</p>
+              <p class="mt-2 font-sans text-sm text-ltrn-subtle truncate">
+                {lci.curriculum_item.curriculum_component.name}
+              </p>
+            </div>
+            <div class="relative shrink-0">
+              <.button type="button" theme="ghost" size="sm" id={"#{dom_id}-edit-button"}>
+                {gettext("Edit")}
+              </.button>
+              <.dropdown_menu
+                id={"#{dom_id}-edit"}
+                button_id={"#{dom_id}-edit-button"}
+                position="right"
+              >
+                <:item
+                  on_click={JS.push("replace_lesson_curriculum_item", value: %{id: lci.id})}
+                  text={gettext("Replace")}
+                />
+                <:item
+                  on_click={JS.push("remove_lesson_curriculum_item", value: %{id: lci.id})}
+                  text={gettext("Remove")}
+                  theme="alert"
+                  confirm_msg={gettext("Are you sure?")}
+                />
+              </.dropdown_menu>
+            </div>
+          </div>
+        </.draggable_card>
+      </div>
+      <.empty_state :if={@lesson_curriculum_item_ids == []} class="mt-10">
+        {gettext("No curriculum items linked to this lesson")}
+      </.empty_state>
+    </.responsive_container>
+  </section>
 </Layouts.app_with_side_nav>
 <.button
   :if={@has_agents_management_permission}
@@ -427,3 +488,23 @@
   on_cancel={JS.push("close_assessment_point_form")}
   curriculum_from_strand_id={@strand.id}
 />
+<.modal
+  :if={@show_lesson_curriculum_modal}
+  id="lesson-curriculum-item-search-modal"
+  show={true}
+  on_cancel={JS.push("close_lesson_curriculum_modal")}
+>
+  <:title>{gettext("Add curriculum item")}</:title>
+  <form>
+    <.live_component
+      module={CurriculumItemSearchComponent}
+      id="lesson-curriculum-item-search"
+      current_scope={@current_scope}
+      notify_component={self()}
+      initial_results={@lesson_curriculum_initial_results}
+    />
+  </form>
+  <.error_block :if={@lesson_curriculum_error} class="mt-6">
+    <p>{@lesson_curriculum_error}</p>
+  </.error_block>
+</.modal>
