@@ -6,6 +6,8 @@ defmodule Lanttern.Lessons.LessonCurriculumItem do
   use Ecto.Schema
   import Ecto.Changeset
 
+  use Gettext, backend: Lanttern.Gettext
+
   alias Lanttern.Curricula.CurriculumItem
   alias Lanttern.Lessons.Lesson
 
@@ -34,6 +36,9 @@ defmodule Lanttern.Lessons.LessonCurriculumItem do
     lesson_curriculum_item
     |> cast(attrs, [:position, :lesson_id, :curriculum_item_id])
     |> validate_required([:position, :lesson_id, :curriculum_item_id])
-    |> unique_constraint([:curriculum_item_id, :lesson_id])
+    |> unique_constraint([:curriculum_item_id, :lesson_id],
+      name: "lesson_curriculum_items_curriculum_item_id_lesson_id_index",
+      message: gettext("Curriculum item already linked to this lesson")
+    )
   end
 end

@@ -38,6 +38,10 @@ defmodule Lanttern.Strands do
   @doc """
   Returns the list of strand_curriculum_items for a given strand, ordered by position.
 
+  This queries the explicit `strand_curriculum_items` join table. For curriculum items
+  derived from strand assessment points (strand goals), see
+  `Lanttern.Curricula.list_strand_curriculum_items/2`.
+
   ## Options
 
   - `:preloads` - preloads to apply

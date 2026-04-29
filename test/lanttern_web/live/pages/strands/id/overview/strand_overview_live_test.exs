@@ -2,6 +2,7 @@ defmodule LantternWeb.StrandOverviewLiveTest do
   use LantternWeb.ConnCase
 
   import Lanttern.Factory
+  import PhoenixTest
 
   alias Lanttern.LearningContextFixtures
   alias Lanttern.TaxonomyFixtures
@@ -44,9 +45,9 @@ defmodule LantternWeb.StrandOverviewLiveTest do
       strand = insert(:strand)
       sci = insert(:strand_curriculum_item, strand: strand)
 
-      {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{strand.id}/overview")
-
-      assert view |> has_element?("p", sci.curriculum_item.name)
+      conn
+      |> visit("#{@live_view_base_path}/#{strand.id}/overview")
+      |> assert_has("p", text: sci.curriculum_item.name)
     end
 
     test "adds a curriculum item via search modal", %{conn: conn, user: user} do
@@ -54,15 +55,15 @@ defmodule LantternWeb.StrandOverviewLiveTest do
       strand = insert(:strand)
       curriculum_item = insert(:curriculum_item, school_id: school_id, name: "New CI xyz")
 
-      {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{strand.id}/overview")
-
-      view |> element("#new-curriculum-item-button") |> render_click()
-
-      view
-      |> element("#curriculum-item-search")
-      |> render_hook("autocomplete_result_select", %{"id" => to_string(curriculum_item.id)})
-
-      assert view |> has_element?("p", "New CI xyz")
+      conn
+      |> visit("#{@live_view_base_path}/#{strand.id}/overview")
+      |> click_button("#new-curriculum-item-button", "New")
+      |> unwrap(fn view ->
+        view
+        |> element("#curriculum-item-search")
+        |> render_hook("autocomplete_result_select", %{"id" => to_string(curriculum_item.id)})
+      end)
+      |> assert_has("p", text: "New CI xyz")
     end
 
     test "removes a curriculum item", %{conn: conn} do
@@ -70,13 +71,11 @@ defmodule LantternWeb.StrandOverviewLiveTest do
       sci = insert(:strand_curriculum_item, strand: strand)
       curriculum_item_name = sci.curriculum_item.name
 
-      {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{strand.id}/overview")
-
-      assert view |> has_element?("p", curriculum_item_name)
-
-      view |> element("button[role='menuitem']", "Remove") |> render_click()
-
-      refute view |> has_element?("p", curriculum_item_name)
+      conn
+      |> visit("#{@live_view_base_path}/#{strand.id}/overview")
+      |> assert_has("p", text: curriculum_item_name)
+      |> click_button("Remove")
+      |> refute_has("p", text: curriculum_item_name)
     end
   end
 

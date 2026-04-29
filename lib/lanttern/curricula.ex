@@ -395,7 +395,12 @@ defmodule Lanttern.Curricula do
     do: apply_list_curriculum_items_opts(queryable, opts)
 
   @doc """
-  Returns the list of curriculum items linked to the given strand.
+  Returns the list of curriculum items linked to the given strand via assessment points (strand goals).
+
+  This queries curriculum items through their associated `AssessmentPoint` records where
+  `strand_id` matches. It is used to populate assessment-related UIs (e.g. the assessment
+  point form overlay). For the explicit strand curriculum tagging, see
+  `Lanttern.Strands.list_strand_curriculum_items/3`.
 
   ## Options:
 
