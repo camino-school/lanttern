@@ -1,4 +1,4 @@
-defmodule Lanttern.Repo.Migrations.CreateStrandCurriculumItems do
+defmodule Lanttern.Repo.Migrations.RecreateStrandCurriculumItems do
   use Ecto.Migration
 
   def change do
