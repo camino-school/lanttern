@@ -1,6 +1,8 @@
 defmodule LantternWeb.StrandOverviewLiveTest do
   use LantternWeb.ConnCase
 
+  import Lanttern.Factory
+
   alias Lanttern.LearningContextFixtures
   alias Lanttern.TaxonomyFixtures
 
@@ -34,6 +36,47 @@ defmodule LantternWeb.StrandOverviewLiveTest do
       assert view |> has_element?("h1", strand.name)
       assert view |> has_element?("span", subject.name)
       assert view |> has_element?("span", year.name)
+    end
+  end
+
+  describe "Strand curriculum items management" do
+    test "displays existing curriculum items", %{conn: conn} do
+      strand = insert(:strand)
+      sci = insert(:strand_curriculum_item, strand: strand)
+
+      {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{strand.id}/overview")
+
+      assert view |> has_element?("p", sci.curriculum_item.name)
+    end
+
+    test "adds a curriculum item via search modal", %{conn: conn, user: user} do
+      school_id = user.current_profile.school_id
+      strand = insert(:strand)
+      curriculum_item = insert(:curriculum_item, school_id: school_id, name: "New CI xyz")
+
+      {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{strand.id}/overview")
+
+      view |> element("#new-curriculum-item-button") |> render_click()
+
+      view
+      |> element("#curriculum-item-search")
+      |> render_hook("autocomplete_result_select", %{"id" => to_string(curriculum_item.id)})
+
+      assert view |> has_element?("p", "New CI xyz")
+    end
+
+    test "removes a curriculum item", %{conn: conn} do
+      strand = insert(:strand)
+      sci = insert(:strand_curriculum_item, strand: strand)
+      curriculum_item_name = sci.curriculum_item.name
+
+      {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{strand.id}/overview")
+
+      assert view |> has_element?("p", curriculum_item_name)
+
+      view |> element("button[role='menuitem']", "Remove") |> render_click()
+
+      refute view |> has_element?("p", curriculum_item_name)
     end
   end
 
