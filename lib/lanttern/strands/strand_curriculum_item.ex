@@ -6,6 +6,8 @@ defmodule Lanttern.Strands.StrandCurriculumItem do
   use Ecto.Schema
   import Ecto.Changeset
 
+  use Gettext, backend: Lanttern.Gettext
+
   alias Lanttern.Curricula.CurriculumItem
   alias Lanttern.LearningContext.Strand
 
@@ -34,5 +36,9 @@ defmodule Lanttern.Strands.StrandCurriculumItem do
     strand_curriculum_item
     |> cast(attrs, [:position, :strand_id, :curriculum_item_id])
     |> validate_required([:position, :strand_id, :curriculum_item_id])
+    |> unique_constraint([:strand_id, :curriculum_item_id],
+      name: "strand_curriculum_items_curriculum_item_id_strand_id_index",
+      message: gettext("Curriculum item already linked to this strand")
+    )
   end
 end

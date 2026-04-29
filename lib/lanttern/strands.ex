@@ -4,6 +4,10 @@ defmodule Lanttern.Strands do
   """
 
   import Ecto.Query, warn: false
+
+  import Lanttern.RepoHelpers,
+    only: [maybe_preload: 2, set_position_in_attrs: 2, update_positions: 2]
+
   alias Lanttern.Repo
 
   alias Lanttern.Identity.Scope
@@ -32,16 +36,25 @@ defmodule Lanttern.Strands do
   end
 
   @doc """
-  Returns the list of strand_curriculum_items.
+  Returns the list of strand_curriculum_items for a given strand, ordered by position.
+
+  ## Options
+
+  - `:preloads` - preloads to apply
 
   ## Examples
 
-      iex> list_strand_curriculum_items(scope)
+      iex> list_strand_curriculum_items(scope, strand_id)
       [%StrandCurriculumItem{}, ...]
 
   """
-  def list_strand_curriculum_items(%Scope{} = _scope) do
-    Repo.all(StrandCurriculumItem)
+  def list_strand_curriculum_items(%Scope{} = _scope, strand_id, opts \\ []) do
+    from(sci in StrandCurriculumItem,
+      where: sci.strand_id == ^strand_id,
+      order_by: [asc: sci.position]
+    )
+    |> Repo.all()
+    |> maybe_preload(opts)
   end
 
   @doc """
@@ -76,6 +89,16 @@ defmodule Lanttern.Strands do
   """
   def create_strand_curriculum_item(%Scope{} = scope, attrs) do
     true = Scope.profile_type?(scope, "staff")
+
+    strand_id = Map.get(attrs, :strand_id) || Map.get(attrs, "strand_id")
+
+    attrs =
+      if strand_id do
+        from(sci in StrandCurriculumItem, where: sci.strand_id == ^strand_id)
+        |> set_position_in_attrs(attrs)
+      else
+        attrs
+      end
 
     with {:ok, strand_curriculum_item = %StrandCurriculumItem{}} <-
            %StrandCurriculumItem{}
@@ -137,6 +160,13 @@ defmodule Lanttern.Strands do
       broadcast_strand_curriculum_item(scope, {:deleted, strand_curriculum_item})
       {:ok, strand_curriculum_item}
     end
+  end
+
+  @doc """
+  Updates positions for a list of strand_curriculum_item ids.
+  """
+  def update_strand_curriculum_items_positions(ids) do
+    update_positions(StrandCurriculumItem, ids)
   end
 
   @doc """

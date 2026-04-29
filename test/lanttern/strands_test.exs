@@ -11,10 +11,14 @@ defmodule Lanttern.StrandsTest do
 
     @invalid_attrs %{position: nil}
 
-    test "list_strand_curriculum_items/1 returns all strand_curriculum_items" do
+    test "list_strand_curriculum_items/2 returns strand_curriculum_items for given strand" do
       scope = staff_scope_fixture()
-      %{id: id} = insert(:strand_curriculum_item)
-      assert [%StrandCurriculumItem{id: ^id}] = Strands.list_strand_curriculum_items(scope)
+      strand = insert(:strand)
+      %{id: id} = insert(:strand_curriculum_item, strand: strand)
+      _other = insert(:strand_curriculum_item)
+
+      assert [%StrandCurriculumItem{id: ^id}] =
+               Strands.list_strand_curriculum_items(scope, strand.id)
     end
 
     test "get_strand_curriculum_item!/2 returns the strand_curriculum_item with given id" do

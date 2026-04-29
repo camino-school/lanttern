@@ -2362,6 +2362,17 @@ defmodule LantternWeb.CoreComponents do
   end
 
   @doc """
+  Converts all errors in a changeset to a single joined string.
+
+  Uses `translate_error/1` so gettext interpolation (e.g. `%{count}`) is handled.
+  """
+  def changeset_error_string(changeset) do
+    Ecto.Changeset.traverse_errors(changeset, &translate_error/1)
+    |> Enum.flat_map(fn {_field, msgs} -> msgs end)
+    |> Enum.join(" ")
+  end
+
+  @doc """
   Renders a mouse-following tooltip (similar to native browser `title` tooltips).
 
   The tooltip appears near the mouse cursor and follows it. It automatically
