@@ -152,6 +152,7 @@ defmodule Lanttern.ChatResponseWorkerTest do
                       {:conversation_renamed, %Conversation{name: "Paris Capital"}}}
     end
 
+    @tag capture_log: true
     test "broadcasts failed event when LLM chain fails", %{
       user: user,
       conversation: conversation
