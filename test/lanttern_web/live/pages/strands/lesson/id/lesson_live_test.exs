@@ -72,6 +72,78 @@ defmodule LantternWeb.LessonLiveTest do
     end
   end
 
+  describe "Lesson curriculum items management" do
+    test "displays existing lesson curriculum items", %{conn: conn} do
+      strand = insert(:strand)
+      lesson = insert(:lesson, strand: strand)
+      lci = insert(:lesson_curriculum_item, lesson: lesson)
+
+      conn
+      |> visit("#{@live_view_base_path}/#{lesson.id}")
+      |> assert_has("p", text: lci.curriculum_item.name)
+    end
+
+    test "adds a lesson curriculum item via search modal", %{conn: conn, user: user} do
+      school_id = user.current_profile.school_id
+      strand = insert(:strand)
+      lesson = insert(:lesson, strand: strand)
+      curriculum_item = insert(:curriculum_item, school_id: school_id, name: "Lesson CI xyz")
+
+      conn
+      |> visit("#{@live_view_base_path}/#{lesson.id}")
+      |> click_button("#new-lesson-curriculum-item-button", "New")
+      |> unwrap(fn view ->
+        view
+        |> element("#lesson-curriculum-item-search")
+        |> render_hook("autocomplete_result_select", %{"id" => to_string(curriculum_item.id)})
+      end)
+      |> assert_has("p", text: "Lesson CI xyz")
+    end
+
+    test "removes a lesson curriculum item", %{conn: conn} do
+      strand = insert(:strand)
+      lesson = insert(:lesson, strand: strand)
+      lci = insert(:lesson_curriculum_item, lesson: lesson)
+      curriculum_item_name = lci.curriculum_item.name
+
+      conn
+      |> visit("#{@live_view_base_path}/#{lesson.id}")
+      |> assert_has("p", text: curriculum_item_name)
+      |> click_button("Remove")
+      |> refute_has("p", text: curriculum_item_name)
+    end
+
+    test "adding a curriculum item not in strand also adds it to strand curriculum", %{
+      conn: conn,
+      user: user
+    } do
+      import Ecto.Query
+
+      school_id = user.current_profile.school_id
+      strand = insert(:strand)
+      lesson = insert(:lesson, strand: strand)
+      curriculum_item = insert(:curriculum_item, school_id: school_id)
+
+      conn
+      |> visit("#{@live_view_base_path}/#{lesson.id}")
+      |> click_button("#new-lesson-curriculum-item-button", "New")
+      |> unwrap(fn view ->
+        view
+        |> element("#lesson-curriculum-item-search")
+        |> render_hook("autocomplete_result_select", %{"id" => to_string(curriculum_item.id)})
+
+        # flush the handle_info sent by the search component to the parent view
+        render(view)
+      end)
+
+      assert Lanttern.Repo.exists?(
+               from sci in Lanttern.Strands.StrandCurriculumItem,
+                 where:
+                   sci.strand_id == ^strand.id and sci.curriculum_item_id == ^curriculum_item.id
+             )
+    end
+  end
+
   describe "Linked assessment points" do
     test "link and unlink assessment point to lesson", %{conn: conn} do
       strand = insert(:strand)

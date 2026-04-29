@@ -2,8 +2,8 @@ defmodule LantternWeb.StrandOverviewLiveTest do
   use LantternWeb.ConnCase
 
   import Lanttern.Factory
+  import PhoenixTest
 
-  alias Lanttern.AssessmentsFixtures
   alias Lanttern.LearningContextFixtures
   alias Lanttern.TaxonomyFixtures
 
@@ -24,7 +24,6 @@ defmodule LantternWeb.StrandOverviewLiveTest do
     test "display strand basic info", %{conn: conn} do
       subject = TaxonomyFixtures.subject_fixture(%{name: "subject abc"})
       year = TaxonomyFixtures.year_fixture(%{name: "year abc"})
-      curriculum_item = insert(:curriculum_item, %{name: "curriculum item abc"})
 
       strand =
         LearningContextFixtures.strand_fixture(%{
@@ -33,17 +32,50 @@ defmodule LantternWeb.StrandOverviewLiveTest do
           years_ids: [year.id]
         })
 
-      AssessmentsFixtures.assessment_point_fixture(%{
-        strand_id: strand.id,
-        curriculum_item_id: curriculum_item.id
-      })
-
       {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{strand.id}/overview")
 
       assert view |> has_element?("h1", strand.name)
       assert view |> has_element?("span", subject.name)
       assert view |> has_element?("span", year.name)
-      assert view |> has_element?("p", curriculum_item.name)
+    end
+  end
+
+  describe "Strand curriculum items management" do
+    test "displays existing curriculum items", %{conn: conn} do
+      strand = insert(:strand)
+      sci = insert(:strand_curriculum_item, strand: strand)
+
+      conn
+      |> visit("#{@live_view_base_path}/#{strand.id}/overview")
+      |> assert_has("p", text: sci.curriculum_item.name)
+    end
+
+    test "adds a curriculum item via search modal", %{conn: conn, user: user} do
+      school_id = user.current_profile.school_id
+      strand = insert(:strand)
+      curriculum_item = insert(:curriculum_item, school_id: school_id, name: "New CI xyz")
+
+      conn
+      |> visit("#{@live_view_base_path}/#{strand.id}/overview")
+      |> click_button("#new-curriculum-item-button", "New")
+      |> unwrap(fn view ->
+        view
+        |> element("#curriculum-item-search")
+        |> render_hook("autocomplete_result_select", %{"id" => to_string(curriculum_item.id)})
+      end)
+      |> assert_has("p", text: "New CI xyz")
+    end
+
+    test "removes a curriculum item", %{conn: conn} do
+      strand = insert(:strand)
+      sci = insert(:strand_curriculum_item, strand: strand)
+      curriculum_item_name = sci.curriculum_item.name
+
+      conn
+      |> visit("#{@live_view_base_path}/#{strand.id}/overview")
+      |> assert_has("p", text: curriculum_item_name)
+      |> click_button("Remove")
+      |> refute_has("p", text: curriculum_item_name)
     end
   end
 

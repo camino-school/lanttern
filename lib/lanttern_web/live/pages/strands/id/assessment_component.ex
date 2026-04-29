@@ -111,6 +111,10 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
                   }
                   text={moment.name}
                 />
+                <:item
+                  on_click={JS.push("new_strand_goal", target: @myself)}
+                  text={gettext("Strand goal")}
+                />
               </.dropdown_menu>
             </div>
             <div class="relative">
@@ -228,7 +232,10 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
         notify_component={@myself}
         title={@assessment_point_overlay_title}
         on_cancel={JS.push("close_assessment_point_form", target: @myself)}
-        curriculum_from_strand_id={@strand.id}
+        curriculum_from_strand_id={
+          # do not use curriculum from strand when creating a strand goal
+          if @assessment_point.strand_id, do: nil, else: @strand.id
+        }
       />
     </div>
     """
@@ -504,6 +511,20 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
       socket
       |> assign(:assessment_point, assessment_point)
       |> assign(:assessment_point_overlay_title, gettext("New assessment point"))
+
+    {:noreply, socket}
+  end
+
+  def handle_event("new_strand_goal", _params, socket) do
+    assessment_point = %AssessmentPoint{
+      strand_id: socket.assigns.strand.id,
+      datetime: DateTime.utc_now()
+    }
+
+    socket =
+      socket
+      |> assign(:assessment_point, assessment_point)
+      |> assign(:assessment_point_overlay_title, gettext("New strand goal"))
 
     {:noreply, socket}
   end

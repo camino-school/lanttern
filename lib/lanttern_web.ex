@@ -95,6 +95,7 @@ defmodule LantternWeb do
       import LiveReact
       # Core UI components and translation
       import LantternWeb.CoreComponents
+      import LantternWeb.ChangesetHelpers
       import LantternWeb.NavigationComponents
       import LantternWeb.FormComponents
       import LantternWeb.OverlayComponents

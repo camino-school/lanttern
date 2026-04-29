@@ -12,6 +12,7 @@ defmodule Lanttern.Lessons do
   alias Lanttern.Identity.Scope
   alias Lanttern.Lessons.Lesson
   alias Lanttern.Lessons.LessonAttachment
+  alias Lanttern.Lessons.LessonCurriculumItem
   alias Lanttern.Lessons.LessonLog
   alias Lanttern.Lessons.Tag
 
@@ -520,5 +521,173 @@ defmodule Lanttern.Lessons do
     true = Scope.has_permission?(scope, "content_management")
 
     Tag.changeset(tag, attrs, scope)
+  end
+
+  # Lesson curriculum items
+
+  @doc """
+  Subscribes to scoped notifications about any lesson_curriculum_item changes.
+
+  The broadcasted messages match the pattern:
+
+    * {:created, %LessonCurriculumItem{}}
+    * {:updated, %LessonCurriculumItem{}}
+    * {:deleted, %LessonCurriculumItem{}}
+
+  """
+  def subscribe_lesson_curriculum_items(%Scope{} = scope) do
+    key = scope.school_id
+
+    Phoenix.PubSub.subscribe(Lanttern.PubSub, "school:#{key}:lesson_curriculum_items")
+  end
+
+  defp broadcast_lesson_curriculum_item(%Scope{} = scope, message) do
+    key = scope.school_id
+
+    Phoenix.PubSub.broadcast(Lanttern.PubSub, "school:#{key}:lesson_curriculum_items", message)
+  end
+
+  @doc """
+  Returns the list of lesson_curriculum_items.
+
+  ## Examples
+
+      iex> list_lesson_curriculum_items(scope)
+      [%LessonCurriculumItem{}, ...]
+
+  """
+  def list_lesson_curriculum_items(%Scope{} = _scope, lesson_id, opts \\ []) do
+    from(lci in LessonCurriculumItem,
+      where: lci.lesson_id == ^lesson_id,
+      order_by: [asc: lci.position]
+    )
+    |> Repo.all()
+    |> maybe_preload(opts)
+  end
+
+  @doc """
+  Gets a single lesson_curriculum_item.
+
+  Raises `Ecto.NoResultsError` if the Lesson curriculum item does not exist.
+
+  ## Examples
+
+      iex> get_lesson_curriculum_item!(scope, 123)
+      %LessonCurriculumItem{}
+
+      iex> get_lesson_curriculum_item!(scope, 456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_lesson_curriculum_item!(%Scope{} = _scope, id) do
+    Repo.get!(LessonCurriculumItem, id)
+  end
+
+  @doc """
+  Creates a lesson_curriculum_item.
+
+  ## Examples
+
+      iex> create_lesson_curriculum_item(scope, %{field: value})
+      {:ok, %LessonCurriculumItem{}}
+
+      iex> create_lesson_curriculum_item(scope, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_lesson_curriculum_item(%Scope{} = scope, attrs) do
+    true = Scope.profile_type?(scope, "staff")
+
+    lesson_id = Map.get(attrs, :lesson_id) || Map.get(attrs, "lesson_id")
+
+    attrs =
+      if lesson_id do
+        from(lci in LessonCurriculumItem, where: lci.lesson_id == ^lesson_id)
+        |> set_position_in_attrs(attrs)
+      else
+        attrs
+      end
+
+    with {:ok, lesson_curriculum_item = %LessonCurriculumItem{}} <-
+           %LessonCurriculumItem{}
+           |> LessonCurriculumItem.changeset(attrs)
+           |> Repo.insert() do
+      broadcast_lesson_curriculum_item(scope, {:created, lesson_curriculum_item})
+      {:ok, lesson_curriculum_item}
+    end
+  end
+
+  @doc """
+  Updates a lesson_curriculum_item.
+
+  ## Examples
+
+      iex> update_lesson_curriculum_item(scope, lesson_curriculum_item, %{field: new_value})
+      {:ok, %LessonCurriculumItem{}}
+
+      iex> update_lesson_curriculum_item(scope, lesson_curriculum_item, %{field: bad_value})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_lesson_curriculum_item(
+        %Scope{} = scope,
+        %LessonCurriculumItem{} = lesson_curriculum_item,
+        attrs
+      ) do
+    true = Scope.profile_type?(scope, "staff")
+
+    with {:ok, lesson_curriculum_item = %LessonCurriculumItem{}} <-
+           lesson_curriculum_item
+           |> LessonCurriculumItem.changeset(attrs)
+           |> Repo.update() do
+      broadcast_lesson_curriculum_item(scope, {:updated, lesson_curriculum_item})
+      {:ok, lesson_curriculum_item}
+    end
+  end
+
+  @doc """
+  Deletes a lesson_curriculum_item.
+
+  ## Examples
+
+      iex> delete_lesson_curriculum_item(scope, lesson_curriculum_item)
+      {:ok, %LessonCurriculumItem{}}
+
+      iex> delete_lesson_curriculum_item(scope, lesson_curriculum_item)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def delete_lesson_curriculum_item(
+        %Scope{} = scope,
+        %LessonCurriculumItem{} = lesson_curriculum_item
+      ) do
+    true = Scope.profile_type?(scope, "staff")
+
+    with {:ok, lesson_curriculum_item = %LessonCurriculumItem{}} <-
+           Repo.delete(lesson_curriculum_item) do
+      broadcast_lesson_curriculum_item(scope, {:deleted, lesson_curriculum_item})
+      {:ok, lesson_curriculum_item}
+    end
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking lesson_curriculum_item changes.
+
+  ## Examples
+
+      iex> change_lesson_curriculum_item(scope, lesson_curriculum_item)
+      %Ecto.Changeset{data: %LessonCurriculumItem{}}
+
+  """
+  def change_lesson_curriculum_item(
+        %Scope{} = _scope,
+        %LessonCurriculumItem{} = lesson_curriculum_item,
+        attrs \\ %{}
+      ) do
+    LessonCurriculumItem.changeset(lesson_curriculum_item, attrs)
+  end
+
+  def update_lesson_curriculum_items_positions(ids) do
+    update_positions(LessonCurriculumItem, ids)
   end
 end

@@ -25,6 +25,7 @@ defmodule Lanttern.Factory do
   use Lanttern.LessonAttachmentFactory
   use Lanttern.LessonFactory
   use Lanttern.LessonLogFactory
+  use Lanttern.LessonCurriculumItemFactory
   use Lanttern.LessonTagFactory
   use Lanttern.LessonTemplateFactory
   use Lanttern.MessageBoardFactory
@@ -39,6 +40,7 @@ defmodule Lanttern.Factory do
   use Lanttern.SectionFactory
   use Lanttern.StaffMemberFactory
   use Lanttern.StrandConversationFactory
+  use Lanttern.StrandCurriculumItemFactory
   use Lanttern.StrandFactory
   use Lanttern.StrandReportFactory
   use Lanttern.StudentFactory

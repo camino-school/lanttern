@@ -65,6 +65,7 @@ defmodule Lanttern.LLMTest do
   end
 
   describe "generate_text_with_tools/4 tool loop" do
+    @tag capture_log: true
     test "returns :max_tool_iterations_exceeded when classify keeps asking for tools" do
       # Always say "call a tool" so the loop runs until the cap.
       Mimic.stub(ReqLLM, :generate_text, fn _model, _context, _opts ->
@@ -90,6 +91,7 @@ defmodule Lanttern.LLMTest do
                )
     end
 
+    @tag capture_log: true
     test "falls back to default max_tool_iterations (10) when opt is absent" do
       # Count how many iterations actually happen before the cap bites.
       counter = :counters.new(1, [])
