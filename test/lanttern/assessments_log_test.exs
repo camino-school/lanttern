@@ -48,6 +48,7 @@ defmodule Lanttern.AssessmentsLogTest do
         scale_id: 42,
         scale_type: "some scale_type",
         differentiation_rubric_id: 42,
+        is_missing: true,
         report_note: "some report_note"
       }
 
@@ -65,6 +66,7 @@ defmodule Lanttern.AssessmentsLogTest do
       assert assessment_point_entry_log.scale_id == 42
       assert assessment_point_entry_log.scale_type == "some scale_type"
       assert assessment_point_entry_log.differentiation_rubric_id == 42
+      assert assessment_point_entry_log.is_missing == true
       assert assessment_point_entry_log.report_note == "some report_note"
     end
 

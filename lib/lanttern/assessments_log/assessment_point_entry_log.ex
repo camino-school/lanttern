@@ -21,6 +21,7 @@ defmodule Lanttern.AssessmentsLog.AssessmentPointEntryLog do
     field :scale_id, :integer
     field :scale_type, :string
     field :differentiation_rubric_id, :integer
+    field :is_missing, :boolean, default: false
     field :report_note, :string
     field :student_report_note, :string
 
@@ -44,6 +45,7 @@ defmodule Lanttern.AssessmentsLog.AssessmentPointEntryLog do
       :scale_id,
       :scale_type,
       :differentiation_rubric_id,
+      :is_missing,
       :report_note,
       :student_report_note
     ])

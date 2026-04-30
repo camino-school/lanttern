@@ -5,8 +5,6 @@ defmodule LantternWeb.ReportCardLive.StrandsReportsComponent do
   alias Lanttern.Reporting
   alias Lanttern.Reporting.StrandReport
 
-  import Lanttern.Utils, only: [swap: 3]
-
   # shared components
   alias LantternWeb.GradesReports.StrandGradesReportSubjectsComponent
   alias LantternWeb.LearningContext.StrandSearchComponent
@@ -153,48 +151,25 @@ defmodule LantternWeb.ReportCardLive.StrandsReportsComponent do
         on_cancel={JS.patch(~p"/report_cards/#{@report_card}/strands")}
       >
         <:title>{gettext("Reorder strands reports")}</:title>
-        <ol>
-          <li
-            :for={{sortable_strand_report, i} <- @sortable_strands_reports}
+        <div
+          id="sortable-strands-reports"
+          phx-hook="Sortable"
+          phx-target={@myself}
+          phx-update="ignore"
+          data-sortable-handle=".sortable-handle"
+          data-sortable-event="sortable_update"
+        >
+          <.draggable_card
+            :for={sortable_strand_report <- @sortable_strands_reports}
             id={"sortable-strand-report-#{sortable_strand_report.id}"}
-            class="mb-4"
+            class="mb-4 font-display font-bold"
           >
-            <.sortable_card
-              is_move_up_disabled={i == 0}
-              on_move_up={
-                JS.push("swap_strands_reports_position",
-                  value: %{from: i, to: i - 1},
-                  target: @myself
-                )
-              }
-              is_move_down_disabled={i + 1 == length(@sortable_strands_reports)}
-              on_move_down={
-                JS.push("swap_strands_reports_position",
-                  value: %{from: i, to: i + 1},
-                  target: @myself
-                )
-              }
-              class="font-display font-bold"
-            >
-              <p>{i + 1}. {sortable_strand_report.name}</p>
-              <p :if={sortable_strand_report.type} class="mt-2 text-sm text-ltrn-subtle">
-                {sortable_strand_report.type}
-              </p>
-            </.sortable_card>
-          </li>
-        </ol>
-        <:actions>
-          <.button
-            type="button"
-            theme="ghost"
-            phx-click={JS.exec("data-cancel", to: "#strands-reports-reorder-overlay")}
-          >
-            {gettext("Cancel")}
-          </.button>
-          <.button type="button" phx-click="save_order" phx-target={@myself}>
-            {gettext("Save")}
-          </.button>
-        </:actions>
+            <p>{sortable_strand_report.name}</p>
+            <p :if={sortable_strand_report.type} class="mt-2 text-sm text-ltrn-subtle">
+              {sortable_strand_report.type}
+            </p>
+          </.draggable_card>
+        </div>
       </.slide_over>
     </div>
     """
@@ -245,7 +220,6 @@ defmodule LantternWeb.ReportCardLive.StrandsReportsComponent do
     sortable_strands_reports =
       strands_reports
       |> Enum.map(&%{id: &1.id, name: &1.strand.name, type: &1.strand.type})
-      |> Enum.with_index()
 
     selected_strands_ids =
       strands_reports
@@ -298,8 +272,28 @@ defmodule LantternWeb.ReportCardLive.StrandsReportsComponent do
   defp assign_is_reordering(socket, %{params: %{"is_reordering" => "true"}}),
     do: assign(socket, :is_reordering, true)
 
-  defp assign_is_reordering(socket, _),
-    do: assign(socket, :is_reordering, false)
+  defp assign_is_reordering(socket, _) do
+    socket
+    |> maybe_refresh_strands_reports_after_reorder()
+    |> assign(:is_reordering, false)
+    |> assign(:reorder_changed, false)
+  end
+
+  defp maybe_refresh_strands_reports_after_reorder(
+         %{assigns: %{is_reordering: true, reorder_changed: true}} = socket
+       ) do
+    strands_reports =
+      Reporting.list_strands_reports(
+        report_card_id: socket.assigns.report_card.id,
+        preloads: [strand: [:subjects, :years]]
+      )
+
+    socket
+    |> stream(:strands_reports, strands_reports, reset: true)
+    |> assign(:has_strands_reports, length(strands_reports) > 0)
+  end
+
+  defp maybe_refresh_strands_reports_after_reorder(socket), do: socket
 
   # event handlers
 
@@ -327,25 +321,20 @@ defmodule LantternWeb.ReportCardLive.StrandsReportsComponent do
     end
   end
 
-  def handle_event("swap_strands_reports_position", %{"from" => i, "to" => j}, socket) do
-    sortable_strands_reports =
-      socket.assigns.sortable_strands_reports
-      |> Enum.map(fn {sr, _i} -> sr end)
-      |> swap(i, j)
-      |> Enum.with_index()
+  def handle_event("sortable_update", %{"oldIndex" => old, "newIndex" => new}, socket) do
+    {item, rest} = List.pop_at(socket.assigns.sortable_strands_reports, old)
+    sortable_strands_reports = List.insert_at(rest, new, item)
 
-    {:noreply, assign(socket, :sortable_strands_reports, sortable_strands_reports)}
-  end
-
-  def handle_event("save_order", _, socket) do
-    strands_reports_ids =
-      socket.assigns.sortable_strands_reports
-      |> Enum.map(fn {sr, _i} -> sr.id end)
+    strands_reports_ids = Enum.map(sortable_strands_reports, & &1.id)
 
     case Reporting.update_strands_reports_positions(strands_reports_ids) do
       :ok ->
-        report_card = socket.assigns.report_card
-        {:noreply, push_navigate(socket, to: ~p"/report_cards/#{report_card}/strands")}
+        socket =
+          socket
+          |> assign(:sortable_strands_reports, sortable_strands_reports)
+          |> assign(:reorder_changed, true)
+
+        {:noreply, socket}
 
       {:error, msg} ->
         {:noreply, put_flash(socket, :error, msg)}

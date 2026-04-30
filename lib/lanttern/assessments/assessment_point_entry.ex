@@ -40,6 +40,7 @@ defmodule Lanttern.Assessments.AssessmentPointEntry do
           score: float() | nil,
           student_score: float() | nil,
           scale_type: String.t(),
+          is_missing: boolean(),
           has_marking: boolean(),
           has_evidences: boolean(),
           is_strand_entry: boolean(),
@@ -69,6 +70,7 @@ defmodule Lanttern.Assessments.AssessmentPointEntry do
     field :score, :float
     field :student_score, :float
     field :scale_type, :string
+    field :is_missing, :boolean, default: false
     # has_marking is generated
     field :has_marking, :boolean, read_after_writes: true
 
@@ -118,6 +120,7 @@ defmodule Lanttern.Assessments.AssessmentPointEntry do
     |> cast(attrs, [
       :observation,
       :score,
+      :is_missing,
       :assessment_point_id,
       :student_id,
       :scale_id,
@@ -137,6 +140,7 @@ defmodule Lanttern.Assessments.AssessmentPointEntry do
       :student_report_note,
       :score,
       :student_score,
+      :is_missing,
       :assessment_point_id,
       :student_id,
       :scale_id,
@@ -147,6 +151,16 @@ defmodule Lanttern.Assessments.AssessmentPointEntry do
     ])
     |> validate_required([:assessment_point_id, :student_id, :scale_id, :scale_type])
     |> validate_score_value()
+    |> maybe_clear_is_missing()
+  end
+
+  defp maybe_clear_is_missing(changeset) do
+    has_value =
+      Enum.any?([:ordinal_value_id, :score], fn field ->
+        get_field(changeset, field) not in [nil, ""]
+      end)
+
+    if has_value, do: put_change(changeset, :is_missing, false), else: changeset
   end
 
   defp validate_score_value(%{valid?: true} = changeset) do

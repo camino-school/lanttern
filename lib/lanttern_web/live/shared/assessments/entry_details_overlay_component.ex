@@ -71,7 +71,7 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
             :if={@has_teacher_change || @has_student_change}
             class="p-2 rounded-sm mt-2 text-sm text-white text-center bg-ltrn-dark"
           >
-            <button class="underline hover:text-ltrn-primary">
+            <button class="underline hover:text-ltrn-light">
               {gettext("Save")}
             </button>
             {gettext("or")}
@@ -85,6 +85,23 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
               {gettext("discard changes")}
             </button>
           </div>
+          <p :if={@save_marking_error} class="mt-2 text-sm text-center text-ltrn-alert-accent">
+            {@save_marking_error}
+          </p>
+        </.form>
+        <.form
+          :if={!@entry.has_marking}
+          for={@form}
+          phx-change="toggle_is_missing"
+          phx-target={@myself}
+          class="mt-10"
+        >
+          <.input
+            field={@form[:is_missing]}
+            type="toggle"
+            label={gettext("Lack of evidence")}
+            theme="alert"
+          />
         </.form>
         <.comment_area
           note={@entry.report_note}
@@ -559,11 +576,7 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
     socket =
       case Assessments.update_assessment_point_entry(socket.assigns.entry, params, opts) do
         {:ok, entry} ->
-          notify(
-            __MODULE__,
-            {:change, entry},
-            socket.assigns
-          )
+          notify(__MODULE__, {:change, entry}, socket.assigns)
 
           socket
           |> assign(:entry, entry)
@@ -591,6 +604,19 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
       |> assign(:form, form)
 
     {:noreply, socket}
+  end
+
+  def handle_event("toggle_is_missing", %{"assessment_point_entry" => params}, socket) do
+    opts = [log_profile_id: socket.assigns.current_user.current_profile_id]
+
+    case Assessments.update_assessment_point_entry(socket.assigns.entry, params, opts) do
+      {:ok, entry} ->
+        notify(__MODULE__, {:change, entry}, socket.assigns)
+        {:noreply, socket |> assign(:entry, entry) |> assign_forms()}
+
+      {:error, _} ->
+        {:noreply, socket}
+    end
   end
 
   def handle_event("edit_note", _, socket),
