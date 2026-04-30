@@ -642,7 +642,7 @@ defmodule Lanttern.AssessmentsTest do
 
     test "update_assessment_point_entry/3 with valid data updates the assessment_point_entry" do
       assessment_point_entry = assessment_point_entry_fixture()
-      update_attrs = %{observation: "some updated observation"}
+      update_attrs = %{observation: "some updated observation", is_missing: true}
 
       # profile to test log
       profile = Lanttern.IdentityFixtures.staff_member_profile_fixture()
@@ -653,6 +653,7 @@ defmodule Lanttern.AssessmentsTest do
                )
 
       assert assessment_point_entry.observation == "some updated observation"
+      assert assessment_point_entry.is_missing == true
 
       on_exit(fn ->
         assert_supervised_tasks_are_down()
@@ -666,6 +667,7 @@ defmodule Lanttern.AssessmentsTest do
         assert assessment_point_entry_log.profile_id == profile.id
         assert assessment_point_entry_log.operation == "UPDATE"
         assert assessment_point_entry_log.observation == "some updated observation"
+        assert assessment_point_entry_log.is_missing == true
       end)
     end
 

@@ -71,7 +71,7 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
             :if={@has_teacher_change || @has_student_change}
             class="p-2 rounded-sm mt-2 text-sm text-white text-center bg-ltrn-dark"
           >
-            <button class="underline hover:text-ltrn-primary">
+            <button class="underline hover:text-ltrn-light">
               {gettext("Save")}
             </button>
             {gettext("or")}
@@ -85,6 +85,18 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
               {gettext("discard changes")}
             </button>
           </div>
+        </.form>
+        <.form
+          for={@form}
+          phx-change="toggle_is_missing"
+          phx-target={@myself}
+          class="mt-10"
+        >
+          <.input
+            field={@form[:is_missing]}
+            type="toggle"
+            label={gettext("Lack of evidence")}
+          />
         </.form>
         <.comment_area
           note={@entry.report_note}
@@ -348,7 +360,6 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
       |> assign(:has_teacher_change, false)
       |> assign(:has_student_change, false)
       |> assign(:has_diff_rubric_change, false)
-      |> assign(:save_marking_error, nil)
       |> assign(:ov_style_map, nil)
       |> assign(:is_editing_note, false)
       |> assign(:is_editing_student_note, false)
@@ -559,20 +570,15 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
     socket =
       case Assessments.update_assessment_point_entry(socket.assigns.entry, params, opts) do
         {:ok, entry} ->
-          notify(
-            __MODULE__,
-            {:change, entry},
-            socket.assigns
-          )
+          notify(__MODULE__, {:change, entry}, socket.assigns)
 
           socket
           |> assign(:entry, entry)
           |> assign(:has_teacher_change, false)
           |> assign(:has_student_change, false)
-          |> assign(:save_marking_error, nil)
 
         {:error, _} ->
-          assign(socket, :save_marking_error, gettext("Something went wrong"))
+          socket
       end
 
     {:noreply, socket}
@@ -591,6 +597,19 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
       |> assign(:form, form)
 
     {:noreply, socket}
+  end
+
+  def handle_event("toggle_is_missing", %{"assessment_point_entry" => params}, socket) do
+    opts = [log_profile_id: socket.assigns.current_user.current_profile_id]
+
+    case Assessments.update_assessment_point_entry(socket.assigns.entry, params, opts) do
+      {:ok, entry} ->
+        notify(__MODULE__, {:change, entry}, socket.assigns)
+        {:noreply, socket |> assign(:entry, entry) |> assign_forms()}
+
+      {:error, _} ->
+        {:noreply, socket}
+    end
   end
 
   def handle_event("edit_note", _, socket),
