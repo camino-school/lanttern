@@ -85,6 +85,9 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
               {gettext("discard changes")}
             </button>
           </div>
+          <p :if={@save_marking_error} class="mt-2 text-sm text-center text-ltrn-alert-accent">
+            {@save_marking_error}
+          </p>
         </.form>
         <.form
           :if={!@entry.has_marking}
@@ -362,6 +365,7 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
       |> assign(:has_teacher_change, false)
       |> assign(:has_student_change, false)
       |> assign(:has_diff_rubric_change, false)
+      |> assign(:save_marking_error, nil)
       |> assign(:ov_style_map, nil)
       |> assign(:is_editing_note, false)
       |> assign(:is_editing_student_note, false)
@@ -578,9 +582,10 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
           |> assign(:entry, entry)
           |> assign(:has_teacher_change, false)
           |> assign(:has_student_change, false)
+          |> assign(:save_marking_error, nil)
 
         {:error, _} ->
-          socket
+          assign(socket, :save_marking_error, gettext("Something went wrong"))
       end
 
     {:noreply, socket}
