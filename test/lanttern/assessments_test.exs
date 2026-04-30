@@ -694,6 +694,43 @@ defmodule Lanttern.AssessmentsTest do
                Assessments.get_assessment_point_entry!(assessment_point_entry.id)
     end
 
+    test "update_assessment_point_entry/3 clears is_missing when ordinal_value_id is set" do
+      scale = insert(:scale, type: "ordinal")
+      ov = insert(:ordinal_value, scale_id: scale.id)
+      student = SchoolsFixtures.student_fixture()
+      assessment_point = assessment_point_fixture(%{scale_id: scale.id})
+
+      entry =
+        assessment_point_entry_fixture(%{
+          student_id: student.id,
+          assessment_point_id: assessment_point.id,
+          scale_id: scale.id,
+          scale_type: "ordinal",
+          is_missing: true
+        })
+
+      assert {:ok, %AssessmentPointEntry{is_missing: false}} =
+               Assessments.update_assessment_point_entry(entry, %{ordinal_value_id: ov.id})
+    end
+
+    test "update_assessment_point_entry/3 clears is_missing when score is set" do
+      scale = insert(:scale, type: "numeric")
+      student = SchoolsFixtures.student_fixture()
+      assessment_point = assessment_point_fixture(%{scale_id: scale.id})
+
+      entry =
+        assessment_point_entry_fixture(%{
+          student_id: student.id,
+          assessment_point_id: assessment_point.id,
+          scale_id: scale.id,
+          scale_type: "numeric",
+          is_missing: true
+        })
+
+      assert {:ok, %AssessmentPointEntry{is_missing: false}} =
+               Assessments.update_assessment_point_entry(entry, %{score: 7.0})
+    end
+
     test "save_assessment_point_entries/2 handles all mapped changes correctly" do
       scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
       ov_1 = insert(:ordinal_value, scale_id: scale.id, normalized_value: 0)
@@ -801,6 +838,34 @@ defmodule Lanttern.AssessmentsTest do
         assert entry_3_log.profile_id == profile.id
         assert entry_3_log.operation == "UPDATE"
       end)
+    end
+
+    test "save_assessment_point_entries/2 clears is_missing when ordinal_value_id is set" do
+      scale = insert(:scale, type: "ordinal")
+      ov = insert(:ordinal_value, scale_id: scale.id)
+      student = SchoolsFixtures.student_fixture()
+      assessment_point = assessment_point_fixture(%{scale_id: scale.id})
+
+      entry =
+        assessment_point_entry_fixture(%{
+          student_id: student.id,
+          assessment_point_id: assessment_point.id,
+          scale_id: scale.id,
+          scale_type: "ordinal",
+          is_missing: true
+        })
+
+      params = %{
+        "student_id" => student.id,
+        "assessment_point_id" => assessment_point.id,
+        "scale_id" => scale.id,
+        "scale_type" => "ordinal",
+        "ordinal_value_id" => ov.id
+      }
+
+      assert {:ok, 1} = Assessments.save_assessment_point_entries([params])
+
+      assert %AssessmentPointEntry{is_missing: false} = Repo.get!(AssessmentPointEntry, entry.id)
     end
 
     test "delete_assessment_point_entry/2 deletes the assessment_point_entry" do

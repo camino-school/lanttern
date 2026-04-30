@@ -43,7 +43,7 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
             phx-change="change"
             phx-target={@myself}
             class={[
-              "flex-1 w-full h-full",
+              "relative flex-1 w-full h-full",
               if(@has_changes, do: "outline outline-4 outline-offset-1 outline-ltrn-dark")
             ]}
             id={"entry-#{@id}-marking-form"}
@@ -54,6 +54,7 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
               field={@field}
               style={if(@has_changes, do: "background-color: white", else: @field_style)}
             />
+            <.missing_indicator entry={@entry} />
           </.form>
           <button
             type="button"
@@ -157,7 +158,7 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
         </span>
       </div>
     <% else %>
-      <.empty />
+      <.empty entry={@entry} />
     <% end %>
     """
   end
@@ -180,16 +181,29 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
         {@value}
       </div>
     <% else %>
-      <.empty />
+      <.empty entry={@entry} />
     <% end %>
     """
   end
 
+  attr :entry, :map, required: true
+
   def empty(assigns) do
     ~H"""
-    <div class="flex items-center justify-center h-full p-2 rounded-xs font-mono text-sm text-ltrn-subtle bg-ltrn-lighter">
-      —
+    <div class="relative flex items-center justify-center h-full p-2 rounded-xs font-mono text-sm text-ltrn-subtle bg-ltrn-lighter">
+      — <.missing_indicator entry={@entry} />
     </div>
+    """
+  end
+
+  attr :entry, :map, required: true
+
+  def missing_indicator(assigns) do
+    ~H"""
+    <div
+      :if={@entry.is_missing}
+      class="absolute -top-1 -left-1 size-3 rounded-full bg-ltrn-alert-accent shadow-sm"
+    />
     """
   end
 

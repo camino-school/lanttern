@@ -87,6 +87,7 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
           </div>
         </.form>
         <.form
+          :if={!@entry.has_marking}
           for={@form}
           phx-change="toggle_is_missing"
           phx-target={@myself}
@@ -96,6 +97,7 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
             field={@form[:is_missing]}
             type="toggle"
             label={gettext("Lack of evidence")}
+            theme="alert"
           />
         </.form>
         <.comment_area

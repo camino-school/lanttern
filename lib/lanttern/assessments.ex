@@ -478,6 +478,7 @@ defmodule Lanttern.Assessments do
           [updated_at: timestamp],
           Map.to_list(map)
         )
+        |> maybe_clear_is_missing_in_conflict_set()
 
       Ecto.Multi.insert(
         multi,
@@ -538,6 +539,11 @@ defmodule Lanttern.Assessments do
 
   defp build_save_assessment_point_entries_on_conflict_set(set, [_ | kvs]),
     do: build_save_assessment_point_entries_on_conflict_set(set, kvs)
+
+  defp maybe_clear_is_missing_in_conflict_set(set) do
+    has_marking = Enum.any?([:ordinal_value_id, :score], &(Keyword.get(set, &1) not in [nil, ""]))
+    if has_marking, do: Keyword.put(set, :is_missing, false), else: set
+  end
 
   defp save_assessment_point_entries_log(_results, nil), do: nil
 

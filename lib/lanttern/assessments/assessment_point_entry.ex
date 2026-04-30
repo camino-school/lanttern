@@ -151,6 +151,16 @@ defmodule Lanttern.Assessments.AssessmentPointEntry do
     ])
     |> validate_required([:assessment_point_id, :student_id, :scale_id, :scale_type])
     |> validate_score_value()
+    |> maybe_clear_is_missing()
+  end
+
+  defp maybe_clear_is_missing(changeset) do
+    has_value =
+      Enum.any?([:ordinal_value_id, :score], fn field ->
+        get_field(changeset, field) not in [nil, ""]
+      end)
+
+    if has_value, do: put_change(changeset, :is_missing, false), else: changeset
   end
 
   defp validate_score_value(%{valid?: true} = changeset) do
