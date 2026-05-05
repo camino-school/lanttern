@@ -10,11 +10,9 @@ defmodule Lanttern.Assessments do
   alias Lanttern.Assessments.AssessmentPoint
   alias Lanttern.Assessments.AssessmentPointEntry
   alias Lanttern.Assessments.AssessmentPointEntryEvidence
-  alias Lanttern.Assessments.Feedback
   alias Lanttern.AssessmentsLog
   alias Lanttern.Attachments
   alias Lanttern.Attachments.Attachment
-  alias Lanttern.Conversation.Comment
   alias Lanttern.Curricula.CurriculumItem
   alias Lanttern.Identity.Scope
   alias Lanttern.Identity.User
@@ -279,7 +277,6 @@ defmodule Lanttern.Assessments do
 
   `:preloads` – preloads associated data
   `:assessment_point_id` – filter entries by provided assessment point id
-  `:load_feedback` - "preloads" the virtual feedback field
 
   ## Examples
 
@@ -290,7 +287,6 @@ defmodule Lanttern.Assessments do
   def list_assessment_point_entries(opts \\ []) do
     AssessmentPointEntry
     |> maybe_filter_entries_by_assessment_point(opts)
-    |> maybe_load_feedback(opts)
     |> Repo.all()
     |> maybe_preload(opts)
   end
@@ -306,23 +302,6 @@ defmodule Lanttern.Assessments do
           join: ap in assoc(e, :assessment_point),
           where: ap.id == ^assessment_point_id
         )
-    end
-  end
-
-  defp maybe_load_feedback(entry_query, opts) do
-    case Keyword.get(opts, :load_feedback) do
-      true ->
-        from(
-          e in entry_query,
-          left_join: f in Feedback,
-          on: e.assessment_point_id == f.assessment_point_id and e.student_id == f.student_id,
-          left_join: c in Comment,
-          on: f.completion_comment_id == c.id,
-          preload: [feedback: {f, completion_comment: c}]
-        )
-
-      _ ->
-        entry_query
     end
   end
 
@@ -621,122 +600,6 @@ defmodule Lanttern.Assessments do
         attrs \\ %{}
       ) do
     AssessmentPointEntry.simple_changeset(assessment_point_entry, attrs)
-  end
-
-  @doc """
-  Returns the list of feedback.
-
-  ### Options:
-
-  `:preloads` – preloads associated data
-
-  ## Examples
-
-      iex> list_feedback()
-      [%Feedback{}, ...]
-
-  """
-  def list_feedback(opts \\ []) do
-    Repo.all(Feedback)
-    |> maybe_preload(opts)
-  end
-
-  @doc """
-  Gets a single feedback.
-
-  Raises `Ecto.NoResultsError` if the Feedback does not exist.
-
-  ### Options:
-
-  `:preloads` – preloads associated data
-
-  ## Examples
-
-      iex> get_feedback!(123)
-      %Feedback{}
-
-      iex> get_feedback!(456)
-      ** (Ecto.NoResultsError)
-
-  """
-  def get_feedback!(id, opts \\ []) do
-    Repo.get!(Feedback, id)
-    |> maybe_preload(opts)
-  end
-
-  @doc """
-  Creates a feedback.
-
-  ## Options:
-
-      - `:preloads` – preloads associated data
-
-  ## Examples
-
-      iex> create_feedback(%{field: value})
-      {:ok, %Feedback{}}
-
-      iex> create_feedback(%{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
-  """
-  def create_feedback(attrs \\ %{}, opts \\ []) do
-    %Feedback{}
-    |> Feedback.changeset(attrs)
-    |> Repo.insert()
-    |> maybe_preload(opts)
-  end
-
-  @doc """
-  Updates a feedback.
-
-  ## Options:
-
-      - `:preloads` – preloads associated data
-
-  ## Examples
-
-      iex> update_feedback(feedback, %{field: new_value})
-      {:ok, %Feedback{}}
-
-      iex> update_feedback(feedback, %{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
-  """
-  def update_feedback(%Feedback{} = feedback, attrs, opts \\ []) do
-    feedback
-    |> Feedback.changeset(attrs)
-    |> Repo.update()
-    |> maybe_preload(opts)
-  end
-
-  @doc """
-  Deletes a feedback.
-
-  ## Examples
-
-      iex> delete_feedback(feedback)
-      {:ok, %Feedback{}}
-
-      iex> delete_feedback(feedback)
-      {:error, %Ecto.Changeset{}}
-
-  """
-  def delete_feedback(%Feedback{} = feedback) do
-    Repo.delete(feedback)
-  end
-
-  @doc """
-  Returns an `%Ecto.Changeset{}` for tracking feedback changes.
-
-  ## Examples
-
-      iex> change_feedback(feedback)
-      %Ecto.Changeset{data: %Feedback{}}
-
-  """
-  def change_feedback(%Feedback{} = feedback, attrs \\ %{}) do
-    Feedback.changeset(feedback, attrs)
   end
 
   @doc """

@@ -11,7 +11,6 @@ defmodule Lanttern.Assessments.AssessmentPoint do
   alias Lanttern.Repo
 
   alias Lanttern.Assessments.AssessmentPointEntry
-  alias Lanttern.Assessments.Feedback
   alias Lanttern.Curricula.CurriculumItem
   alias Lanttern.Grading.GradeComponent
   alias Lanttern.Grading.Scale
@@ -50,7 +49,6 @@ defmodule Lanttern.Assessments.AssessmentPoint do
           strand_id: pos_integer() | nil,
           student_entry: AssessmentPointEntry.t() | nil,
           entries: [AssessmentPointEntry.t()],
-          feedbacks: [Feedback.t()],
           grade_components: [GradeComponent.t()],
           classes: [Class.t()],
           inserted_at: DateTime.t(),
@@ -85,7 +83,6 @@ defmodule Lanttern.Assessments.AssessmentPoint do
     belongs_to :strand, Strand
 
     has_many :entries, AssessmentPointEntry
-    has_many :feedbacks, Feedback
     has_many :grade_components, GradeComponent
 
     many_to_many :classes, Class,
