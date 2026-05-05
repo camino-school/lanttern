@@ -1,130 +1,63 @@
-Lanttern is a web application written using the Phoenix web framework for educational assessment and learning management.
+# AGENTS.md — Lanttern Core
 
-## Legacy tables
+## 🎯 Project Context & Persona
+Lanttern is a Phoenix-based web application for educational assessment and learning management[cite: 1]. 
+*   **Primary Stack**: Elixir, Phoenix 1.8+, LiveView, PostgreSQL[cite: 1].
+*   **Infrastructure**: Supabase, Fly.io[cite: 1].
+*   **AI Philosophy**: We prioritize external LLM workflows for curriculum search and lesson planning[cite: 1]. Lanttern acts as the authoritative data source for these integrations[cite: 1].
 
-Some database tables are retained for historical/data purposes but are no longer backed by application code.
-See [`docs/legacy.md`](docs/legacy.md) for the full list and context.
+## 🛠️ Operational Workflows
+*   **Development Tooling**: Use **Tidewave MCP** and **Claude Code**[cite: 1].
+*   **Validation**: Run `mix credo --strict`, `mix sobelow`, and `mix test`[cite: 1]. 
+    *   *Agent Rule*: Suggest these commands to the user; do not run them automatically unless requested to save tokens[cite: 1].
+*   **HTTP Client**: Use `:req` exclusively. **Avoid** `:httpoison`, `:tesla`, and `:httpc`[cite: 1].
 
-## Project guidelines
+## 🏗️ Architecture & Patterns
 
-- We do use `mix credo` (with `--strict` flag), `mix sobelow`, and tests for code quality, security analysis, and ensuring that everything is working as expected. That being said, use those only when strictly necessary to save some tokens, but always remember the developer to run those tasks
-- Use the already included and available `:req` (`Req`) library for HTTP requests, **avoid** `:httpoison`, `:tesla`, and `:httpc`. Req is included by default and is the preferred HTTP client for Phoenix apps
-- Use Tidewave MCP for development tooling
-- do not alias the module in itself. prefer using `__MODULE__`
-- do not create test functions in contexts — create them in the test file itself
+### 1. Ecto & Database
+*   **Query Syntax**: Always prefer **Keyword Query syntax** over the Macro API (pipe-based queries).
+    *   *Good*: `from(u in User, where: u.active == true)`
+    *   *Avoid*: `User |> where([u], u.active == true)`
+*   **Query Logic**: Write query functions directly in the **Context** file, not the Schema[cite: 1].
+*   **Legacy Data**: Consult `docs/legacy.md` before touching older tables to ensure they aren't retained strictly for historical purposes[cite: 1].
 
-## Design patterns
+### 2. LiveView Conventions
+*   **Event Returns**: Always assign the modified socket to a `socket` variable before returning the tuple.
+    *   *Good*: 
+        ```elixir
+        socket = socket |> assign(:foo, 1) |> push_patch(to: "/path")
+        {:noreply, socket}
+        ```
+    *   *Avoid*: `{:noreply, socket |> assign(:foo, 1) |> push_patch(to: "/path")}`
 
-### Permission validations
+### 3. General Elixir Patterns
+*   **Module References**: Always use `__MODULE__` instead of aliasing the module in itself[cite: 1].
+*   **Permission Checks**: Raise on failure (MatchError) in context functions (e.g., `true = Scope.has_permission?...`)[cite: 1].
+*   **Access Control**: All new CRUD functions must include `current_user` (`%User{}`) as a parameter to facilitate our migration to Phoenix Scopes[cite: 1].
 
-- For permission checks in context functions (e.g. `true = Scope.has_permission?(scope, "some_permission")`), it's OK and expected to raise on failure (MatchError, FunctionClauseError) instead of returning `{:error, :unauthorized}` tuples. These are internal safety nets — users should never reach them via normal navigation, so graceful error handling is unnecessary.
+### 4. Type Specifications (`t()`)
+*   **IDs/Positions**: Use `pos_integer()` for IDs and `non_neg_integer()` for positions[cite: 1].
+*   **Assocs/Nulls**: Always include `| Ecto.Association.NotLoaded.t()` for preloads and `| nil` for nullable fields[cite: 1].
 
-### Schemas
+## 🧪 Testing Strategy
+Focus on **Behavior**, not implementation[cite: 1].
 
-- avoid the creation of query functions in schema files — write them directly in the context file
+*   **Factories vs. Fixtures**: Exclusively use `ExMachina` factories.
+    *   **Proactive Cleanup**: When modifying files with existing Phoenix generator fixtures, **replace and remove** the fixtures in favor of factories.
+    *   **Lazy Evaluation**: Manually handle merge and lazy evaluation in factories (refer to the `a_factory` pattern in the codebase)[cite: 1].
+*   **Frontend**: Use `phoenix_test` (e.g., `conn |> visit("/") |> click_link("...")`) for all new view tests[cite: 1].
+*   **Assertions**: Use **pattern matching** instead of `length/1` or `hd/1`[cite: 1].
+*   **Placement**: Keep test functions in test files; do not add them to context files[cite: 1].
 
-## Testing
+## 📚 Usage Rules
+**IMPORTANT**: Consult these early and often to understand correct patterns and conventions[cite: 1].
 
-- When planning tests, focus on behavior (what) and not on implementation (how). For example: considering a form live component, we don't want to test the form in isolation, we want to test the user flow in the live view where this form is used
-- Avoid unit testing every detail of a feature, and focus on main user workflows. It doesn't cost much to develop lots and lots of tests, but it may be costly to maintain them
-- Prefer using pattern matching for assertions instead of checking with `length/1` and `hd/1`
-
-### Front end tests
-
-- When testing views, use `phoenix_test` (`conn |> visit("some/path") |> click_link...`). This is not the current project pattern because `phoenix_test` was implemented recently, but we want to use it as the default for front end tests from now on, and we will update old tests little by litte
-
-### Test fixtures
-
-- We are favoring `ExMachina` factories instead of default fixture functions.
-- When creating new schemas use factories instead of Phoenix generators' fixtures, and when generating data for testing always prefer using factories, if available.
-- Factories should `build` and `insert` only if needed. For example, if a factory of `A` belongs to `B`, the factory should have a `b = Map.get(attrs, :b, insert(:b))`, which is used in `a = %A{b: b}`. As this is not the default ExMachina behavior, we also need to manually handle merge and lazy evaluation. Putting it all together:
-
-```elixir
- def a_factory(attrs) do
-  b = Map.get(attrs, :b, build(:b))
-
-  %A{b: b}
-  |> merge_attributes(attrs)
-  |> evaluate_lazy_attributes()
-end
- ```
-
-## Type spec
-
-### Schema type `t()` spec
-
-- Use `pos_integer()` for id fields
-- Use `non_neg_integer()` for position fields
-- Always include `| Ecto.Association.NotLoaded.t()` for preloaded structures
-- Always include `| nil` for nullable fields
-
-## Temporary guidelines
-
-### Transition to Phoenix 1.8 scopes
-
-The recent Phoenix framework release introduced [scopes](https://hexdocs.pm/phoenix/scopes.html) for enhanced security.
-
-Currently, the structure we're using more or less like scope is the `current_user` (`%User{}`).
-We will officialy migrate to scopes soon, but until that happens, we want the new context functions (e.g. CRUD) to
-always include `current_user` as one of the params, so we can extract the user profile, school, and etc. for
-access control.
-
-<!-- usage-rules-start -->
-<!-- usage-rules-header -->
-# Usage Rules
-
-**IMPORTANT**: Consult these usage rules early and often when working with the packages listed below.
-Before attempting to use any of these packages or to discover if you should use them, review their
-usage rules to understand the correct patterns, conventions, and best practices.
-<!-- usage-rules-header-end -->
-
-<!-- phoenix:elixir-start -->
-## phoenix:elixir usage
-
-[phoenix:elixir usage rules](deps/phoenix/usage-rules/elixir.md)
-<!-- phoenix:elixir-end -->
-<!-- phoenix:phoenix-start -->
-## phoenix:phoenix usage
-
-[phoenix:phoenix usage rules](deps/phoenix/usage-rules/phoenix.md)
-<!-- phoenix:phoenix-end -->
-<!-- phoenix:ecto-start -->
-## phoenix:ecto usage
-
-[phoenix:ecto usage rules](deps/phoenix/usage-rules/ecto.md)
-<!-- phoenix:ecto-end -->
-<!-- phoenix:html-start -->
-## phoenix:html usage
-
-[phoenix:html usage rules](deps/phoenix/usage-rules/html.md)
-<!-- phoenix:html-end -->
-<!-- phoenix:liveview-start -->
-## phoenix:liveview usage
-
-[phoenix:liveview usage rules](deps/phoenix/usage-rules/liveview.md)
-<!-- phoenix:liveview-end -->
-<!-- igniter-start -->
-## igniter usage
-
-_A code generation and project patching framework_
-
-[igniter usage rules](deps/igniter/usage-rules.md)
-<!-- igniter-end -->
-<!-- usage_rules-start -->
-## usage_rules usage
-
-_A dev tool for Elixir projects to gather LLM usage rules from dependencies_
-
-[usage_rules usage rules](deps/usage_rules/usage-rules.md)
-<!-- usage_rules-end -->
-<!-- usage_rules:elixir-start -->
-## usage_rules:elixir usage
-
-[usage_rules:elixir usage rules](deps/usage_rules/usage-rules/elixir.md)
-<!-- usage_rules:elixir-end -->
-<!-- usage_rules:otp-start -->
-## usage_rules:otp usage
-
-[usage_rules:otp usage rules](deps/usage_rules/usage-rules/otp.md)
-<!-- usage_rules:otp-end -->
-<!-- usage-rules-end -->
+*   **phoenix:elixir**: [elixir.md](deps/phoenix/usage-rules/elixir.md)[cite: 1]
+*   **phoenix:phoenix**: [phoenix.md](deps/phoenix/usage-rules/phoenix.md)[cite: 1]
+*   **phoenix:ecto**: [ecto.md](deps/phoenix/usage-rules/ecto.md)[cite: 1]
+*   **phoenix:html**: [html.md](deps/phoenix/usage-rules/html.md)[cite: 1]
+*   **phoenix:liveview**: [liveview.md](deps/phoenix/usage-rules/liveview.md)[cite: 1]
+*   **igniter**: [usage-rules.md](deps/igniter/usage-rules.md)[cite: 1]
+*   **usage_rules**: [usage-rules.md](deps/usage_rules/usage-rules.md)[cite: 1]
+*   **usage_rules:elixir**: [elixir.md](deps/usage_rules/usage-rules/elixir.md)[cite: 1]
+*   **usage_rules:otp**: [otp.md](deps/usage_rules/usage-rules/otp.md)[cite: 1]
