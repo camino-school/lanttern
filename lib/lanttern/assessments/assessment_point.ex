@@ -10,6 +10,7 @@ defmodule Lanttern.Assessments.AssessmentPoint do
 
   alias Lanttern.Repo
 
+  alias Lanttern.AssessmentComposition.Component
   alias Lanttern.Assessments.AssessmentPointEntry
   alias Lanttern.Curricula.CurriculumItem
   alias Lanttern.Grading.GradeComponent
@@ -51,6 +52,8 @@ defmodule Lanttern.Assessments.AssessmentPoint do
           entries: [AssessmentPointEntry.t()],
           grade_components: [GradeComponent.t()],
           classes: [Class.t()],
+          composition_type: :sum | :avg | nil,
+          composition_components: [Component.t()] | Ecto.Association.NotLoaded.t(),
           inserted_at: DateTime.t(),
           updated_at: DateTime.t()
         }
@@ -62,6 +65,7 @@ defmodule Lanttern.Assessments.AssessmentPoint do
     field :report_info, :string
     field :position, :integer, default: 0
     field :is_differentiation, :boolean, default: false
+    field :composition_type, Ecto.Enum, values: [:sum, :avg]
 
     # create assessment point UI fields
     field :date, :date, virtual: true
@@ -84,6 +88,7 @@ defmodule Lanttern.Assessments.AssessmentPoint do
 
     has_many :entries, AssessmentPointEntry
     has_many :grade_components, GradeComponent
+    has_many :composition_components, Component, foreign_key: :parent_id
 
     many_to_many :classes, Class,
       join_through: "assessment_points_classes",
@@ -111,6 +116,7 @@ defmodule Lanttern.Assessments.AssessmentPoint do
       :moment_id,
       :strand_id,
       :lesson_id,
+      :composition_type,
       :classes_ids,
       :students_ids
     ])
