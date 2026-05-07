@@ -1,6 +1,9 @@
 defmodule LantternWeb.SchoolLiveTest do
   use LantternWeb.ConnCase
 
+  import Lanttern.Factory
+  import PhoenixTest
+
   alias Lanttern.Identity.Scope
   alias Lanttern.SchoolConfigFixtures
   alias Lanttern.SchoolsFixtures
@@ -58,33 +61,22 @@ defmodule LantternWeb.SchoolLiveTest do
     end
 
     test "renders non-core class in extra classes section", %{conn: conn, user: user} do
-      school_id = user.current_profile.school_id
-      cycle_id = user.current_profile.current_school_cycle.id
+      school = Lanttern.Schools.get_school!(user.current_profile.school_id)
+      cycle = Lanttern.Schools.get_cycle!(user.current_profile.current_school_cycle.id)
 
       core_class =
-        SchoolsFixtures.class_fixture(%{
-          school_id: school_id,
-          cycle_id: cycle_id,
-          name: "core class abc",
-          is_core: true
-        })
+        insert(:class, school: school, cycle: cycle, name: "core class abc", is_core: true)
 
       extra_class =
-        SchoolsFixtures.class_fixture(%{
-          school_id: school_id,
-          cycle_id: cycle_id,
-          name: "extra class abc",
-          is_core: false
-        })
+        insert(:class, school: school, cycle: cycle, name: "extra class abc", is_core: false)
 
-      {:ok, view, _html} = live(conn, "#{@live_view_base_path}/classes")
-
-      assert view |> has_element?("#school-core-classes a", core_class.name)
-      refute view |> has_element?("#school-core-classes a", extra_class.name)
-
-      assert view |> has_element?("h2", "Extra classes")
-      assert view |> has_element?("#school-extra-classes a", extra_class.name)
-      refute view |> has_element?("#school-extra-classes a", core_class.name)
+      conn
+      |> visit("#{@live_view_base_path}/classes")
+      |> assert_has("#school-core-classes a", text: core_class.name)
+      |> refute_has("#school-core-classes a", text: extra_class.name)
+      |> assert_has("h2", text: "Extra classes")
+      |> assert_has("#school-extra-classes a", text: extra_class.name)
+      |> refute_has("#school-extra-classes a", text: core_class.name)
     end
   end
 
