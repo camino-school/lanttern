@@ -90,6 +90,13 @@ defmodule LantternWeb.SchoolsComponents do
   def student_card(assigns) do
     age = calculate_age(assigns.student.birthdate)
 
+    {core_classes, extra_classes} =
+      if is_list(assigns.student.classes) do
+        Enum.split_with(assigns.student.classes, & &1.is_core)
+      else
+        {[], []}
+      end
+
     has_badge =
       age != nil ||
         (is_list(assigns.student.classes) && assigns.student.classes != []) ||
@@ -99,6 +106,8 @@ defmodule LantternWeb.SchoolsComponents do
       assigns
       |> assign(:has_badge, has_badge)
       |> assign(:age, age)
+      |> assign(:core_classes, core_classes)
+      |> assign(:extra_classes, extra_classes)
 
     ~H"""
     <.card_base id={@id} class={["flex items-center gap-4 p-4", @class]}>
@@ -136,9 +145,17 @@ defmodule LantternWeb.SchoolsComponents do
             </.badge>
           <% end %>
           <%= if is_list(@student.classes) do %>
-            <.badge :for={class <- @student.classes}>
+            <.badge :for={class <- @core_classes}>
               {class.name}
             </.badge>
+            <%= if @extra_classes != [] do %>
+              <div class="group relative" tabindex="0">
+                <.badge>+{length(@extra_classes)}</.badge>
+                <.tooltip id={"student-#{@student.id}-extra-classes-tooltip"}>
+                  {Enum.map_join(@extra_classes, ", ", & &1.name)}
+                </.tooltip>
+              </div>
+            <% end %>
           <% end %>
         </div>
         <div
