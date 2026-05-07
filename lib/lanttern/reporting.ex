@@ -687,6 +687,7 @@ defmodule Lanttern.Reporting do
       where: y.id == ^year.id,
       where: ^where_cycle_filter,
       where: is_nil(s.deactivated_at),
+      where: c.is_core,
       order_by: [asc: c.name, asc: s.name],
       preload: [classes: c]
     )
@@ -1337,6 +1338,7 @@ defmodule Lanttern.Reporting do
       join: src in assoc(s, :student_report_cards),
       where: src.report_card_id == ^report_card.id,
       where: y.id == ^report_card.year_id,
+      where: c.is_core,
       group_by: c.id,
       order_by: [asc: min(y.id), asc: c.name]
     )

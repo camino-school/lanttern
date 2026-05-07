@@ -26,6 +26,10 @@ defmodule Lanttern.StudentFactory do
         |> merge_attributes(attrs)
         |> evaluate_lazy_attributes()
       end
+
+      def after_build(student, %{classes: classes}) when is_list(classes) do
+        %{student | classes: classes}
+      end
     end
   end
 end
