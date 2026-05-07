@@ -56,6 +56,36 @@ defmodule LantternWeb.SchoolLiveTest do
 
       assert_redirect(view, "#{@live_view_base_path}/classes/#{class.id}/people")
     end
+
+    test "renders non-core class in extra classes section", %{conn: conn, user: user} do
+      school_id = user.current_profile.school_id
+      cycle_id = user.current_profile.current_school_cycle.id
+
+      core_class =
+        SchoolsFixtures.class_fixture(%{
+          school_id: school_id,
+          cycle_id: cycle_id,
+          name: "core class abc",
+          is_core: true
+        })
+
+      extra_class =
+        SchoolsFixtures.class_fixture(%{
+          school_id: school_id,
+          cycle_id: cycle_id,
+          name: "extra class abc",
+          is_core: false
+        })
+
+      {:ok, view, _html} = live(conn, "#{@live_view_base_path}/classes")
+
+      assert view |> has_element?("#school-core-classes a", core_class.name)
+      refute view |> has_element?("#school-core-classes a", extra_class.name)
+
+      assert view |> has_element?("h2", "Extra classes")
+      assert view |> has_element?("#school-extra-classes a", extra_class.name)
+      refute view |> has_element?("#school-extra-classes a", core_class.name)
+    end
   end
 
   describe "Students management permissions" do
