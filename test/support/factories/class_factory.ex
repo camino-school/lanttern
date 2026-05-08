@@ -17,6 +17,10 @@ defmodule Lanttern.ClassFactory do
         |> merge_attributes(attrs)
         |> evaluate_lazy_attributes()
       end
+
+      def after_build(class, %{years: years}) when is_list(years) do
+        %{class | years: years}
+      end
     end
   end
 end

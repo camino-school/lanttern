@@ -37,11 +37,26 @@ defmodule LantternWeb.Filters.ClassesFilterOverlayComponent do
               target: @myself
             )
           }
-          items={@classes}
+          items={@core_classes}
           selected_ids={@selected_classes_ids}
           label_setter="class_with_cycle"
           current_user={@current_user}
         />
+        <div :if={@extra_classes != []} class="mt-4">
+          <p class="mb-2 text-sm font-semibold text-ltrn-subtle">{gettext("Extra classes")}</p>
+          <.badge_button_picker
+            on_select={
+              &JS.push("toggle_filter",
+                value: %{"id" => &1},
+                target: @myself
+              )
+            }
+            items={@extra_classes}
+            selected_ids={@selected_classes_ids}
+            label_setter="class_with_cycle"
+            current_user={@current_user}
+          />
+        </div>
         <form class="mt-6">
           <.live_component
             module={ClassSearchComponent}
@@ -105,8 +120,17 @@ defmodule LantternWeb.Filters.ClassesFilterOverlayComponent do
     socket =
       socket
       |> assign(assigns)
+      |> assign_classes_groups()
 
     {:ok, socket}
+  end
+
+  defp assign_classes_groups(socket) do
+    {core, extra} = Enum.split_with(socket.assigns.classes, & &1.is_core)
+
+    socket
+    |> assign(:core_classes, core)
+    |> assign(:extra_classes, extra)
   end
 
   # the selected class may not be part of the initial class list
@@ -118,7 +142,10 @@ defmodule LantternWeb.Filters.ClassesFilterOverlayComponent do
       socket
     else
       classes = socket.assigns.classes ++ [class]
-      assign(socket, :classes, classes)
+
+      socket
+      |> assign(:classes, classes)
+      |> assign_classes_groups()
     end
   end
 

@@ -93,9 +93,19 @@ defmodule LantternWeb.Schools.StudentHeaderComponent do
               {gettext("No classes linked to student in cycle")}
             </.badge>
           <% else %>
-            <.badge :for={class <- @student.classes} id={"#{@id}-student-class-#{class.id}"}>
+            <.badge :for={class <- @core_classes} id={"#{@id}-student-class-#{class.id}"}>
               {class.name}
             </.badge>
+            <%= if @extra_classes != [] do %>
+              <div class="group relative" tabindex="0">
+                <.badge>
+                  +{ngettext("1 extra class", "%{count} extra classes", length(@extra_classes))}
+                </.badge>
+                <.tooltip id={"#{@id}-extra-classes-tooltip"}>
+                  {Enum.map_join(@extra_classes, ", ", & &1.name)}
+                </.tooltip>
+              </div>
+            <% end %>
           <% end %>
         </div>
       </div>
@@ -166,8 +176,12 @@ defmodule LantternWeb.Schools.StudentHeaderComponent do
 
     age = calculate_age(student.birthdate)
 
+    {core_classes, extra_classes} = Enum.split_with(student.classes, & &1.is_core)
+
     socket
     |> assign(:student, student)
     |> assign(:age, age)
+    |> assign(:core_classes, core_classes)
+    |> assign(:extra_classes, extra_classes)
   end
 end
