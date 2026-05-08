@@ -31,10 +31,15 @@ defmodule LantternWeb.SchoolLive.ClassesComponent do
           {gettext("Add class")}
         </.action>
       </div>
-      <%= if @has_classes do %>
-        <.responsive_grid id="school-classes" phx-update="stream" is_full_width class="px-4 pb-4">
+      <%= if @has_core_classes do %>
+        <.responsive_grid
+          id="school-core-classes"
+          phx-update="stream"
+          is_full_width
+          class="px-4 pb-4"
+        >
           <.card_base
-            :for={{dom_id, class} <- @streams.classes}
+            :for={{dom_id, class} <- @streams.core_classes}
             id={dom_id}
             class="min-w-[16rem] sm:min-w-0 p-4"
           >
@@ -119,7 +124,105 @@ defmodule LantternWeb.SchoolLive.ClassesComponent do
             <% end %>
           </.card_base>
         </.responsive_grid>
-      <% else %>
+      <% end %>
+      <%= if @has_extra_classes do %>
+        <h2 class="px-4 pt-4 pb-2 font-display font-black text-lg">
+          {gettext("Extra classes")}
+        </h2>
+        <.responsive_grid
+          id="school-extra-classes"
+          phx-update="stream"
+          is_full_width
+          class="px-4 pb-4"
+        >
+          <.card_base
+            :for={{dom_id, class} <- @streams.extra_classes}
+            id={dom_id}
+            class="min-w-[16rem] sm:min-w-0 p-4"
+          >
+            <div class="flex items-center justify-between gap-4">
+              <.link
+                navigate={~p"/school/classes/#{class}/people"}
+                class="font-display font-black hover:text-ltrn-subtle"
+              >
+                {class.name}
+              </.link>
+              <.button
+                :if={@is_school_manager}
+                type="link"
+                icon_name="hero-pencil-mini"
+                sr_text={gettext("Edit class")}
+                rounded
+                size="sm"
+                theme="ghost"
+                patch={~p"/school/classes?edit=#{class}"}
+              />
+            </div>
+            <div class="font-sans text-ltrn-subtle">
+              {ngettext(
+                "1 active student",
+                "%{count} active students",
+                class.active_students_count
+              )}
+            </div>
+            <%= if is_list(class.staff_members) && class.staff_members != [] do %>
+              <div class="group relative flex items-center gap-1 mt-1 font-sans text-ltrn-subtle">
+                {ngettext("1 staff member", "%{count} staff members", length(class.staff_members))}
+                <.icon name="hero-information-circle-mini" />
+                <.tooltip id={"class-#{class.id}-staff-members-tooltip"}>
+                  {Enum.map_join(class.staff_members, ", ", & &1.name)}
+                </.tooltip>
+              </div>
+            <% end %>
+            <div class="flex flex-wrap gap-2 mt-4">
+              <.badge :for={year <- class.years}>
+                {year.name}
+              </.badge>
+            </div>
+            <%= if class.students != [] do %>
+              <ul class="mt-4 font-sans text-sm leading-relaxed">
+                <li :for={std <- class.students} class="flex items-center gap-2 w-full">
+                  <% age = calculate_age(std.birthdate) %>
+                  <div class="relative inline-block">
+                    <.link
+                      navigate={~p"/school/students/#{std}"}
+                      class={[
+                        "truncate hover:text-ltrn-subtle hover:underline",
+                        if(std.deactivated_at, do: "text-ltrn-subtle")
+                      ]}
+                    >
+                      {std.name}
+                      <%= if age do %>
+                        <span class="font-normal text-ltrn-subtle ml-1">
+                          ({format_age_short(age)})
+                        </span>
+                      <% end %>
+                    </.link>
+                    <%= if age do %>
+                      <.tooltip id={"student-#{std.id}-birthdate-tooltip"}>
+                        {format_birthdate(std.birthdate)}
+                      </.tooltip>
+                    <% end %>
+                  </div>
+                  <%= if is_list(std.tags) do %>
+                    <.badge :for={tag <- std.tags} :if={is_list(std.tags)} color_map={tag}>
+                      {tag.name}
+                    </.badge>
+                  <% end %>
+                  <.badge :if={std.deactivated_at} theme="subtle" class="shrink-0">
+                    {gettext("Deactivated")}
+                  </.badge>
+                </li>
+              </ul>
+            <% else %>
+              <.empty_state_simple class="mt-4">
+                {gettext("No students in this class")}
+              </.empty_state_simple>
+            <% end %>
+          </.card_base>
+        </.responsive_grid>
+      <% end %>
+      <%= if not @has_core_classes and not @has_extra_classes do %>
         <.responsive_container class="pt-6 pb-10">
           <.empty_state>
             {gettext("No classes matching current filters")}
@@ -183,7 +286,13 @@ defmodule LantternWeb.SchoolLive.ClassesComponent do
     socket =
       socket
       |> delegate_navigation(nav_opts)
-      |> stream_insert(:classes, updated_class)
+      |> stream_delete(:core_classes, updated_class)
+      |> stream_delete(:extra_classes, updated_class)
+      |> then(fn s ->
+        if updated_class.is_core,
+          do: stream_insert(s, :core_classes, updated_class),
+          else: stream_insert(s, :extra_classes, updated_class)
+      end)
 
     {:ok, socket}
   end
@@ -197,7 +306,8 @@ defmodule LantternWeb.SchoolLive.ClassesComponent do
     socket =
       socket
       |> delegate_navigation(nav_opts)
-      |> stream_delete(:classes, class)
+      |> stream_delete(:core_classes, class)
+      |> stream_delete(:extra_classes, class)
 
     {:ok, socket}
   end
@@ -237,9 +347,14 @@ defmodule LantternWeb.SchoolLive.ClassesComponent do
         preloads: [:staff_members, students: :tags]
       )
 
+    core_classes = Enum.filter(classes, & &1.is_core)
+    extra_classes = Enum.reject(classes, & &1.is_core)
+
     socket
-    |> stream(:classes, classes)
-    |> assign(:has_classes, length(classes) > 0)
+    |> stream(:core_classes, core_classes)
+    |> stream(:extra_classes, extra_classes)
+    |> assign(:has_core_classes, core_classes != [])
+    |> assign(:has_extra_classes, extra_classes != [])
   end
 
   defp assign_class(%{assigns: %{is_school_manager: false}} = socket),

@@ -38,6 +38,12 @@ defmodule LantternWeb.Schools.ClassFormOverlayComponent do
             class="mb-6"
             phx-debounce="1500"
           />
+          <.input
+            field={@form[:is_core]}
+            type="toggle"
+            label={gettext("Core class")}
+            class="mb-6"
+          />
           <div class="mb-6">
             <.label>{gettext("Cycle")}</.label>
             <.badge_button_picker

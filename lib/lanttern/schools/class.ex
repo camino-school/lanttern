@@ -19,6 +19,7 @@ defmodule Lanttern.Schools.Class do
   @type t :: %__MODULE__{
           id: pos_integer(),
           name: String.t(),
+          is_core: boolean(),
           students_ids: [pos_integer()],
           years_ids: [pos_integer()],
           staff_members_ids: [pos_integer()],
@@ -34,6 +35,7 @@ defmodule Lanttern.Schools.Class do
 
   schema "classes" do
     field :name, :string
+    field :is_core, :boolean, default: true
     field :students_ids, {:array, :id}, virtual: true
     field :years_ids, {:array, :id}, virtual: true
     field :staff_members_ids, {:array, :id}, virtual: true
@@ -64,7 +66,7 @@ defmodule Lanttern.Schools.Class do
   @doc false
   def changeset(class, attrs) do
     class
-    |> cast(attrs, [:name, :school_id, :students_ids, :years_ids, :cycle_id])
+    |> cast(attrs, [:name, :is_core, :school_id, :students_ids, :years_ids, :cycle_id])
     |> validate_required([:name, :cycle_id])
     |> put_students()
     |> put_years()
@@ -72,7 +74,7 @@ defmodule Lanttern.Schools.Class do
 
   def changeset(class, attrs, %Scope{school_id: school_id}) do
     class
-    |> cast(attrs, [:name, :students_ids, :years_ids, :staff_members_ids, :cycle_id])
+    |> cast(attrs, [:name, :is_core, :students_ids, :years_ids, :staff_members_ids, :cycle_id])
     |> put_change(:school_id, school_id)
     |> validate_required([:name, :cycle_id])
     |> foreign_key_constraint(

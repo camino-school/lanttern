@@ -1,6 +1,9 @@
 defmodule LantternWeb.SchoolLiveTest do
   use LantternWeb.ConnCase
 
+  import Lanttern.Factory
+  import PhoenixTest
+
   alias Lanttern.Identity.Scope
   alias Lanttern.SchoolConfigFixtures
   alias Lanttern.SchoolsFixtures
@@ -55,6 +58,25 @@ defmodule LantternWeb.SchoolLiveTest do
       |> render_click()
 
       assert_redirect(view, "#{@live_view_base_path}/classes/#{class.id}/people")
+    end
+
+    test "renders non-core class in extra classes section", %{conn: conn, user: user} do
+      school = Lanttern.Schools.get_school!(user.current_profile.school_id)
+      cycle = Lanttern.Schools.get_cycle!(user.current_profile.current_school_cycle.id)
+
+      core_class =
+        insert(:class, school: school, cycle: cycle, name: "core class abc", is_core: true)
+
+      extra_class =
+        insert(:class, school: school, cycle: cycle, name: "extra class abc", is_core: false)
+
+      conn
+      |> visit("#{@live_view_base_path}/classes")
+      |> assert_has("#school-core-classes a", text: core_class.name)
+      |> refute_has("#school-core-classes a", text: extra_class.name)
+      |> assert_has("h2", text: "Extra classes")
+      |> assert_has("#school-extra-classes a", text: extra_class.name)
+      |> refute_has("#school-extra-classes a", text: core_class.name)
     end
   end
 

@@ -653,6 +653,25 @@ defmodule Lanttern.ReportingTest do
                student_j_k_cycle_info.profile_picture_url
     end
 
+    test "list_students_not_linked_to_report_card/1 excludes students from non-core classes" do
+      school = insert(:school)
+      cycle = insert(:cycle, school: school)
+      year = insert(:year)
+      report_card = insert(:report_card, school_cycle: cycle, year: year)
+
+      core_class = insert(:class, school: school, cycle: cycle, years: [year], is_core: true)
+      core_student = insert(:student, school: school, classes: [core_class])
+
+      extra_class = insert(:class, school: school, cycle: cycle, years: [year], is_core: false)
+      extra_student = insert(:student, school: school, classes: [extra_class])
+
+      result = Reporting.list_students_not_linked_to_report_card(report_card)
+      result_ids = Enum.map(result, & &1.id)
+
+      assert core_student.id in result_ids
+      refute extra_student.id in result_ids
+    end
+
     test "list_students_linked_to_report_card/2 with students_only = true opt omits report cards from the returned list" do
       school = SchoolsFixtures.school_fixture()
       parent_cycle = SchoolsFixtures.cycle_fixture(%{school_id: school.id})
@@ -2151,6 +2170,28 @@ defmodule Lanttern.ReportingTest do
 
       assert expected_class_1.id == class_1.id
       assert expected_class_2.id == class_2.id
+    end
+
+    test "list_report_card_linked_students_classes/1 excludes non-core classes", _context do
+      school = insert(:school)
+      cycle = insert(:cycle, school: school)
+      year = TaxonomyFixtures.year_fixture()
+      report_card = report_card_fixture(%{year_id: year.id})
+
+      core_class = insert(:class, school: school, cycle: cycle, years: [year], is_core: true)
+      extra_class = insert(:class, school: school, cycle: cycle, years: [year], is_core: false)
+
+      core_student = SchoolsFixtures.student_fixture(%{classes_ids: [core_class.id]})
+      extra_student = SchoolsFixtures.student_fixture(%{classes_ids: [extra_class.id]})
+
+      student_report_card_fixture(%{report_card_id: report_card.id, student_id: core_student.id})
+      student_report_card_fixture(%{report_card_id: report_card.id, student_id: extra_student.id})
+
+      result = Reporting.list_report_card_linked_students_classes(report_card)
+      result_ids = Enum.map(result, & &1.id)
+
+      assert core_class.id in result_ids
+      refute extra_class.id in result_ids
     end
   end
 end
