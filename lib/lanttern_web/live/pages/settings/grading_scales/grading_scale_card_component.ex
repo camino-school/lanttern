@@ -43,13 +43,13 @@ defmodule LantternWeb.GradingScalesLive.GradingScaleCardComponent do
               <.badge color_map={
                 %{bg_color: @scale.start_bg_color, text_color: @scale.start_text_color}
               }>
-                {@scale.start}
+                {0}
               </.badge>
               —
               <.badge color_map={
                 %{bg_color: @scale.stop_bg_color, text_color: @scale.stop_text_color}
               }>
-                {@scale.stop}
+                {@scale.max_score}
               </.badge>
             </div>
           </div>
@@ -143,8 +143,8 @@ defmodule LantternWeb.GradingScalesLive.GradingScaleCardComponent do
           <%!-- Numeric scale details --%>
           <p :if={@scale.type == "numeric"}>
             {gettext("Numeric scale, from %{start} to %{stop}",
-              start: @scale.start,
-              stop: @scale.stop
+              start: 0,
+              stop: @scale.max_score
             )}
           </p>
         </div>

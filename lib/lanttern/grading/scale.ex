@@ -18,10 +18,9 @@ defmodule Lanttern.Grading.Scale do
           name: String.t(),
           type: String.t(),
           position: non_neg_integer(),
-          start: float(),
+          max_score: float(),
           start_bg_color: String.t(),
           start_text_color: String.t(),
-          stop: float(),
           stop_bg_color: String.t(),
           stop_text_color: String.t(),
           breakpoints: [float()],
@@ -38,10 +37,9 @@ defmodule Lanttern.Grading.Scale do
     field :name, :string
     field :type, :string
     field :position, :integer, default: 0
-    field :start, :float
+    field :max_score, :float
     field :start_bg_color, :string
     field :start_text_color, :string
-    field :stop, :float
     field :stop_bg_color, :string
     field :stop_text_color, :string
     field :breakpoints, {:array, :float}
@@ -61,10 +59,9 @@ defmodule Lanttern.Grading.Scale do
       :name,
       :type,
       :position,
-      :start,
+      :max_score,
       :start_bg_color,
       :start_text_color,
-      :stop,
       :stop_bg_color,
       :stop_text_color,
       :breakpoints,
@@ -122,7 +119,7 @@ defmodule Lanttern.Grading.Scale do
 
   defp validate_start_stop(%{changes: %{type: "numeric"}} = changeset) do
     changeset
-    |> validate_required([:start, :stop], message: "can't be blank when type is numeric")
+    |> validate_required([:max_score], message: "can't be blank when type is numeric")
   end
 
   defp validate_start_stop(changeset), do: changeset

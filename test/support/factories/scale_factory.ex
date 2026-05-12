@@ -13,8 +13,7 @@ defmodule Lanttern.ScaleFactory do
         base = %Lanttern.Grading.Scale{
           name: "Scale",
           type: "numeric",
-          start: 0.0,
-          stop: 100.0,
+          max_score: 100.0,
           breakpoints: []
         }
 

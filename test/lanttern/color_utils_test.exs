@@ -4,8 +4,7 @@ defmodule Lanttern.ColorUtilsTest do
   alias Lanttern.ColorUtils
 
   @scale %{
-    start: 0.0,
-    stop: 10.0,
+    max_score: 10.0,
     start_bg_color: "#000000",
     start_text_color: "#ffffff",
     stop_bg_color: "#ffffff",
@@ -38,23 +37,23 @@ defmodule Lanttern.ColorUtilsTest do
     end
 
     test "returns {bg, nil} when only bg colors are present" do
-      scale = %{start: 0.0, stop: 10.0, start_bg_color: "#000000", stop_bg_color: "#ffffff"}
+      scale = %{max_score: 10.0, start_bg_color: "#000000", stop_bg_color: "#ffffff"}
       assert {bg, nil} = ColorUtils.interpolate_numeric_scale_colors(scale, 5.0)
       assert String.match?(bg, ~r/^#[0-9a-f]{6}$/i)
     end
 
     test "returns {nil, text} when only text colors are present" do
-      scale = %{start: 0.0, stop: 10.0, start_text_color: "#000000", stop_text_color: "#ffffff"}
+      scale = %{max_score: 10.0, start_text_color: "#000000", stop_text_color: "#ffffff"}
       assert {nil, text} = ColorUtils.interpolate_numeric_scale_colors(scale, 5.0)
       assert String.match?(text, ~r/^#[0-9a-f]{6}$/i)
     end
 
     test "returns nil when scale has no color fields" do
-      assert ColorUtils.interpolate_numeric_scale_colors(%{start: 0.0, stop: 10.0}, 5.0) == nil
+      assert ColorUtils.interpolate_numeric_scale_colors(%{max_score: 10.0}, 5.0) == nil
     end
 
     test "handles degenerate scale where start equals stop" do
-      degenerate = %{@scale | stop: 0.0}
+      degenerate = %{@scale | max_score: 0.0}
       assert {"#000000", _} = ColorUtils.interpolate_numeric_scale_colors(degenerate, 0.0)
     end
   end

@@ -1075,7 +1075,7 @@ defmodule Lanttern.ReportingTest do
       student_report_card =
         student_report_card_fixture(%{report_card_id: report_card.id, student_id: student.id})
 
-      n_scale = insert(:scale, type: "numeric", start: 0, stop: 10)
+      n_scale = insert(:scale, type: "numeric", max_score: 10)
       o_scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
       ov_1 = insert(:ordinal_value, scale_id: o_scale.id)
       ov_2 = insert(:ordinal_value, scale_id: o_scale.id)
@@ -1218,7 +1218,7 @@ defmodule Lanttern.ReportingTest do
 
       student = SchoolsFixtures.student_fixture()
 
-      n_scale = insert(:scale, type: "numeric", start: 0, stop: 10)
+      n_scale = insert(:scale, type: "numeric", max_score: 10)
       o_scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
       ov_1 = insert(:ordinal_value, scale_id: o_scale.id)
       ov_2 = insert(:ordinal_value, scale_id: o_scale.id)
@@ -1344,7 +1344,7 @@ defmodule Lanttern.ReportingTest do
       # assessment points
 
       curriculum_item = insert(:curriculum_item)
-      scale = insert(:scale, type: "numeric", start: 0.0, stop: 100.0)
+      scale = insert(:scale, type: "numeric", max_score: 100.0)
 
       goal =
         AssessmentsFixtures.assessment_point_fixture(%{
@@ -1426,7 +1426,7 @@ defmodule Lanttern.ReportingTest do
 
       student = SchoolsFixtures.student_fixture()
 
-      n_scale = insert(:scale, type: "numeric", start: 0, stop: 10)
+      n_scale = insert(:scale, type: "numeric", max_score: 10)
       o_scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
       ov_1 = insert(:ordinal_value, scale_id: o_scale.id)
       ov_2 = insert(:ordinal_value, scale_id: o_scale.id)
@@ -1616,7 +1616,7 @@ defmodule Lanttern.ReportingTest do
 
       student = SchoolsFixtures.student_fixture()
 
-      n_scale = insert(:scale, type: "numeric", start: 0, stop: 10)
+      n_scale = insert(:scale, type: "numeric", max_score: 10)
       o_scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
       ov_1 = insert(:ordinal_value, scale_id: o_scale.id)
       ov_2 = insert(:ordinal_value, scale_id: o_scale.id)
@@ -1805,7 +1805,7 @@ defmodule Lanttern.ReportingTest do
 
       # assessments fixtures
 
-      scale = insert(:scale, type: "numeric", start: 0.0, stop: 100.0)
+      scale = insert(:scale, type: "numeric", max_score: 100.0)
 
       ap_1_1_1 =
         AssessmentsFixtures.assessment_point_fixture(%{

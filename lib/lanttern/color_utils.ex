@@ -18,8 +18,8 @@ defmodule Lanttern.ColorUtils do
   """
   @spec interpolate_numeric_scale_colors(map(), float()) ::
           {String.t() | nil, String.t() | nil} | nil
-  def interpolate_numeric_scale_colors(%{start: range_start, stop: range_stop} = scale, score) do
-    t = compute_t(score, range_start, range_stop)
+  def interpolate_numeric_scale_colors(%{max_score: range_stop} = scale, score) do
+    t = compute_t(score, 0.0, range_stop)
 
     bg =
       case scale do

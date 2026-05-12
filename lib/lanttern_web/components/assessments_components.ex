@@ -68,7 +68,7 @@ defmodule LantternWeb.AssessmentsComponents do
     <.badge color_map={@color_map} class={@class} id={@id}>
       {@entry.score}
       <span :if={@show_stop} class="inline-block ml-1 opacity-60">
-        / {@entry.scale.stop}
+        / {@entry.scale.max_score}
       </span>
     </.badge>
     """
@@ -205,7 +205,7 @@ defmodule LantternWeb.AssessmentsComponents do
               _ -> nil
             end
 
-          {scale.stop, color_map}
+          {scale.max_score, color_map}
 
         _ ->
           {nil, nil}

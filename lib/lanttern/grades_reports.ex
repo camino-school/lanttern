@@ -954,7 +954,7 @@ defmodule Lanttern.GradesReports do
     do: entry.ordinal_value.normalized_value
 
   defp get_normalized_value_from_entry(%AssessmentPointEntry{scale_type: "numeric"} = entry),
-    do: (entry.score - entry.scale.start) / (entry.scale.stop - entry.scale.start)
+    do: entry.score / entry.scale.max_score
 
   defp build_comp_component(
          metadata,

@@ -185,8 +185,8 @@ defmodule LantternWeb.Rubrics.RubricFormOverlayComponent do
           <.input type="hidden" field={ef[:scale_type]} />
           <.input
             type="number"
-            min={@scale.start}
-            max={@scale.stop}
+            min={0}
+            max={@scale.max_score}
             field={ef[:score]}
             label={gettext("Score")}
             class="mt-6"
@@ -475,10 +475,10 @@ defmodule LantternWeb.Rubrics.RubricFormOverlayComponent do
         %{
           "0" =>
             blank_numeric_descriptor(scale)
-            |> Map.put("score", scale.start),
+            |> Map.put("score", 0.0),
           "1" =>
             blank_numeric_descriptor(scale)
-            |> Map.put("score", scale.stop)
+            |> Map.put("score", scale.max_score)
         }
     end
   end

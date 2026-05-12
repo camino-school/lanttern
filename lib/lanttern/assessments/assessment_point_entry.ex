@@ -146,9 +146,9 @@ defmodule Lanttern.Assessments.AssessmentPointEntry do
 
         changeset
         |> validate_number(:score,
-          greater_than_or_equal_to: scale.start,
-          less_than_or_equal_to: scale.stop,
-          message: "score should be between #{scale.start} and #{scale.stop}"
+          greater_than_or_equal_to: 0.0,
+          less_than_or_equal_to: scale.max_score,
+          message: "score should be between 0 and #{scale.max_score}"
         )
 
       _ ->

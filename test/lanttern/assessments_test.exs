@@ -531,7 +531,7 @@ defmodule Lanttern.AssessmentsTest do
     end
 
     test "create_assessment_point_entry/1 of type numeric with valid data creates a assessment_point_entry" do
-      scale = insert(:scale, type: "numeric", start: 0, stop: 1)
+      scale = insert(:scale, type: "numeric", max_score: 1)
       assessment_point = assessment_point_fixture(%{scale_id: scale.id})
       student = SchoolsFixtures.student_fixture()
 
@@ -579,7 +579,7 @@ defmodule Lanttern.AssessmentsTest do
     end
 
     test "create_assessment_point_entry/1 with score out of scale returns error changeset" do
-      scale = insert(:scale, type: "numeric", start: 0, stop: 10)
+      scale = insert(:scale, type: "numeric", max_score: 10)
       assessment_point = assessment_point_fixture(%{scale_id: scale.id})
       student = SchoolsFixtures.student_fixture()
 
@@ -992,7 +992,7 @@ defmodule Lanttern.AssessmentsTest do
 
       ordinal_scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
       ordinal_value = insert(:ordinal_value, scale_id: ordinal_scale.id)
-      numeric_scale = insert(:scale, type: "numeric", start: 0.0, stop: 100.0)
+      numeric_scale = insert(:scale, type: "numeric", max_score: 100.0)
 
       rubric_1 = RubricsFixtures.rubric_fixture(%{scale_id: ordinal_scale.id})
       rubric_3 = RubricsFixtures.rubric_fixture(%{scale_id: ordinal_scale.id})
