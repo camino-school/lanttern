@@ -100,19 +100,20 @@ defmodule LantternWeb.AssessmentComposition.AssessmentPointCompositionOverlayCom
             bg_class={if(sibling_ap.id in @selected_ids, do: nil, else: "bg-ltrn-lightest")}
             remove_shadow={sibling_ap.id not in @selected_ids}
           >
-            <input
-              type="checkbox"
-              checked={sibling_ap.id in @selected_ids}
-              phx-click={JS.push("toggle_ap", value: %{id: sibling_ap.id}, target: @myself)}
-            />
-            <div class="flex-1 min-w-0">
-              <p class="truncate">
-                {ap_display_name(sibling_ap)}
-              </p>
-              <p :if={sibling_ap.moment_id} class="mt-1 font-sans text-sm text-ltrn-subtle truncate">
-                {sibling_ap.moment.name}
-              </p>
-            </div>
+            <label class="flex items-center gap-4 flex-1 min-w-0">
+              <input
+                type="checkbox"
+                checked={sibling_ap.id in @selected_ids}
+                phx-click={JS.push("toggle_ap", value: %{id: sibling_ap.id}, target: @myself)}
+                class="appearance-none rounded-xs size-5 border-2 border-ltrn-subtle checked:border-ltrn-primary checked:bg-ltrn-primary indeterminate:border-ltrn-dark indeterminate:bg-ltrn-dark focus:outline-2 focus:outline-offset-2 focus:outline-ltrn-primary disabled:border-ltrn-subtle disabled:bg-ltrn-light disabled:checked:bg-ltrn-light forced-colors:appearance-auto"
+              />
+              <div class="flex-1 min-w-0">
+                <p>{ap_display_name(sibling_ap)}</p>
+                <p :if={sibling_ap.moment_id} class="mt-1 font-sans text-sm text-ltrn-subtle truncate">
+                  {sibling_ap.moment.name}
+                </p>
+              </div>
+            </label>
             <div class="w-16 text-right shrink-0">
               <%= if @ap.composition_type == :sum do %>
                 <span class={[
