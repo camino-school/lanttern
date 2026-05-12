@@ -572,7 +572,7 @@ defmodule LantternWeb.CoreComponents do
 
   attr :class, :any, default: nil
   attr :theme, :string, default: "default", doc: "default | ghost"
-  attr :size, :string, default: "normal", doc: "xs | sm | normal"
+  attr :size, :string, default: "md", doc: "xs | sm | md"
   attr :rounded, :boolean, default: false
   attr :icon_name, :string, default: nil
 
@@ -653,7 +653,7 @@ defmodule LantternWeb.CoreComponents do
 
   ## Options
 
-  * `:size` - "sm" | "normal" (default)
+  * `:size` - "xs" | "sm" | "md" (default)
   * `:is_icon` - boolean, defaults to false
 
   ## Examples
@@ -661,7 +661,7 @@ defmodule LantternWeb.CoreComponents do
       <.link patch={~p"/somepath"} class={[get_button_styles()]}>Link</.link>
   """
   def get_button_styles(theme \\ "default", opts \\ []) do
-    size = Keyword.get(opts, :size, "normal")
+    size = Keyword.get(opts, :size, "md")
     is_icon = Keyword.get(opts, :is_icon, false)
 
     [
@@ -669,8 +669,6 @@ defmodule LantternWeb.CoreComponents do
       "disabled:shadow-none",
       get_button_text_styles(size),
       get_button_spacing_styles(size, is_icon),
-      # if(Keyword.get(opts, :size, "normal") == "sm", do: "text-sm", else: "text-base"),
-      # if(Keyword.get(opts, :is_icon, false), do: "p-2", else: "py-2 px-4"),
       # if(rounded, do: "rounded-full", else: "rounded-xs"),
       "phx-submit-loading:opacity-50 phx-click-loading:opacity-50 phx-click-loading:pointer-events-none",
       button_theme(theme)
@@ -679,11 +677,11 @@ defmodule LantternWeb.CoreComponents do
 
   defp get_button_text_styles("xs"), do: "text-sm"
   defp get_button_text_styles("sm"), do: "text-sm"
-  defp get_button_text_styles("normal"), do: "text-base"
+  defp get_button_text_styles("md"), do: "text-base"
 
   defp get_button_spacing_styles("xs", false), do: "py-1 px-2"
   defp get_button_spacing_styles("sm", false), do: "py-1.5 px-3"
-  defp get_button_spacing_styles("normal", false), do: "py-2 px-4"
+  defp get_button_spacing_styles("md", false), do: "py-2 px-4"
   defp get_button_spacing_styles(_, true), do: "p-2"
 
   @button_themes %{
@@ -1375,7 +1373,7 @@ defmodule LantternWeb.CoreComponents do
   attr :type, :string, default: "button"
   attr :class, :any, default: nil
   attr :theme, :string, default: "default", doc: "default | ghost"
-  attr :size, :string, default: "normal", doc: "sm | normal"
+  attr :size, :string, default: "md", doc: "xs | sm | md"
   attr :rounded, :boolean, default: false
   attr :name, :string, required: true
   attr :sr_text, :string, required: true

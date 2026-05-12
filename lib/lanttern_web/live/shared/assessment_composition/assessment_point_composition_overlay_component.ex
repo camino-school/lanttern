@@ -360,7 +360,12 @@ defmodule LantternWeb.AssessmentComposition.AssessmentPointCompositionOverlayCom
 
   def handle_event("delete_composition", _params, socket) do
     ap = socket.assigns.ap
-    AssessmentComposition.delete_all_assessment_point_components(socket.assigns.current_scope, ap.id)
+
+    AssessmentComposition.delete_all_assessment_point_components(
+      socket.assigns.current_scope,
+      ap.id
+    )
+
     Assessments.update_assessment_point(ap, %{composition_type: nil})
     notify(__MODULE__, {:deleted, ap.id}, socket.assigns)
     {:noreply, socket}

@@ -8,10 +8,11 @@ defmodule Lanttern.AssessmentComposition do
 
   import Ecto.Query
 
+  alias Lanttern.Repo
+
+  alias Lanttern.AssessmentComposition.Component
   alias Lanttern.Assessments.AssessmentPoint
   alias Lanttern.Identity.Scope
-  alias Lanttern.Repo
-  alias Lanttern.AssessmentComposition.Component
 
   @doc """
   Returns the list of composition components for the given parent assessment point id.
@@ -20,7 +21,8 @@ defmodule Lanttern.AssessmentComposition do
   """
   def list_assessment_point_components(%Scope{} = _scope, parent_id) do
     from(c in Component,
-      join: ap in AssessmentPoint, on: c.component_id == ap.id,
+      join: ap in AssessmentPoint,
+      on: c.component_id == ap.id,
       where: c.parent_id == ^parent_id,
       order_by: [asc_nulls_last: ap.moment_id, asc: ap.position]
     )

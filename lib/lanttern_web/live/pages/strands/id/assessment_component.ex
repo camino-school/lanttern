@@ -339,7 +339,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
                 do: gettext("Sum"),
                 else: gettext("Average")}
             </.button>
-            <.tooltip id={"ap-#{@assessment_point.id}-composition-tooltip"} }>
+            <.tooltip id={"ap-#{@assessment_point.id}-composition-tooltip"}>
               {gettext("Uses a grade composition")}
             </.tooltip>
           </div>

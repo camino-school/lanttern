@@ -785,6 +785,7 @@ defmodule Lanttern.GradesReportsTest do
 
       grade_component_1 =
         GradingFixtures.grade_component_fixture(%{
+          position: 0,
           weight: 2.0,
           assessment_point_id: ast_point_1.id,
           grades_report_id: grades_report.id,
@@ -794,6 +795,7 @@ defmodule Lanttern.GradesReportsTest do
 
       grade_component_2 =
         GradingFixtures.grade_component_fixture(%{
+          position: 1,
           weight: 1.0,
           assessment_point_id: ast_point_2.id,
           grades_report_id: grades_report.id,
