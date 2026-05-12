@@ -6,6 +6,8 @@ defmodule Lanttern.Factory do
   use Lanttern.AgentFactory
   use Lanttern.AgentMessageFactory
   use Lanttern.AiConfigFactory
+  use Lanttern.AssessmentPointComponentFactory
+  use Lanttern.AssessmentPointFactory
   use Lanttern.AttachmentFactory
   use Lanttern.ClassFactory
   use Lanttern.ClassStaffMemberFactory

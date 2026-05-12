@@ -4,6 +4,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponentTest do
   import Lanttern.Factory
   import PhoenixTest
 
+  alias Lanttern.Assessments
   alias Lanttern.AssessmentsFixtures
 
   @live_view_base_path "/strands"
@@ -286,6 +287,113 @@ defmodule LantternWeb.StrandLive.AssessmentComponentTest do
 
       updated_ap = Lanttern.Repo.get!(Lanttern.Assessments.AssessmentPoint, ap.id)
       assert updated_ap.moment_id == moment2.id
+    end
+  end
+
+  describe "composition overlay" do
+    test "shows 'Add composition' button for AP without composition type", %{conn: conn} do
+      strand = insert(:strand)
+      moment = insert(:moment, strand: strand)
+      insert(:assessment_point, name: "AP no composition", moment_id: moment.id)
+
+      conn
+      |> visit("#{@live_view_base_path}/#{strand.id}/assessment")
+      |> assert_has("button", text: "Add composition")
+    end
+
+    test "shows composition type button when AP has composition_type set", %{conn: conn} do
+      strand = insert(:strand)
+      moment = insert(:moment, strand: strand)
+      ap = insert(:assessment_point, name: "AP with avg composition", moment_id: moment.id)
+      {:ok, _} = Assessments.update_assessment_point(ap, %{composition_type: "avg"})
+
+      conn
+      |> visit("#{@live_view_base_path}/#{strand.id}/assessment")
+      |> assert_has("button", text: "Average")
+    end
+
+    test "opens composition overlay when clicking composition type button", %{conn: conn} do
+      strand = insert(:strand)
+      moment = insert(:moment, strand: strand)
+      ap = insert(:assessment_point, name: "AP with avg composition", moment_id: moment.id)
+      {:ok, _} = Assessments.update_assessment_point(ap, %{composition_type: "avg"})
+
+      conn
+      |> visit("#{@live_view_base_path}/#{strand.id}/assessment")
+      |> click_button("Average")
+      |> assert_has("#ap-composition-overlay")
+      |> assert_has("#ap-composition-overlay", text: "Grade composition")
+    end
+
+    test "composition overview shows existing components", %{conn: conn} do
+      strand = insert(:strand)
+      moment = insert(:moment, strand: strand)
+      ap = insert(:assessment_point, name: "Parent AP", moment_id: moment.id)
+      {:ok, parent_ap} = Assessments.update_assessment_point(ap, %{composition_type: "avg"})
+      sibling_ap = insert(:assessment_point, name: "Sibling AP", moment_id: moment.id)
+      insert(:assessment_point_component, parent: parent_ap, component: sibling_ap)
+
+      conn
+      |> visit("#{@live_view_base_path}/#{strand.id}/assessment")
+      |> click_button("button:not([role='menuitem'])", "Average")
+      |> assert_has("#ap-composition-overlay", text: "Sibling AP")
+    end
+
+    test "setup view shows sibling APs for selection", %{conn: conn} do
+      strand = insert(:strand)
+      moment = insert(:moment, strand: strand)
+      ap = insert(:assessment_point, name: "Parent AP", moment_id: moment.id)
+      {:ok, _} = Assessments.update_assessment_point(ap, %{composition_type: "avg"})
+      sibling_ap = insert(:assessment_point, name: "Sibling AP to select", moment_id: moment.id)
+
+      conn
+      |> visit("#{@live_view_base_path}/#{strand.id}/assessment")
+      |> click_button("button:not([role='menuitem'])", "Average")
+      |> within("#ap-composition-overlay", fn session ->
+        click_button(session, "Setup composition")
+      end)
+      |> assert_has("#ap-composition-overlay", text: sibling_ap.name)
+    end
+
+    test "save composition re-saves existing selection and returns to overview", %{conn: conn} do
+      strand = insert(:strand)
+      moment = insert(:moment, strand: strand)
+      ap = insert(:assessment_point, name: "Parent AP", moment_id: moment.id)
+      {:ok, parent_ap} = Assessments.update_assessment_point(ap, %{composition_type: "avg"})
+      sibling_ap = insert(:assessment_point, name: "Sibling AP", moment_id: moment.id)
+      insert(:assessment_point_component, parent: parent_ap, component: sibling_ap)
+
+      conn
+      |> visit("#{@live_view_base_path}/#{strand.id}/assessment")
+      |> click_button("button:not([role='menuitem'])", "Average")
+      |> within("#ap-composition-overlay", fn session ->
+        click_button(session, "Manage composition")
+      end)
+      |> within("#ap-composition-overlay", fn session ->
+        click_button(session, "Save")
+      end)
+      |> assert_has("#ap-composition-overlay", text: "Sibling AP")
+    end
+
+    test "delete composition removes components and closes overlay", %{conn: conn} do
+      strand = insert(:strand)
+      moment = insert(:moment, strand: strand)
+      ap = insert(:assessment_point, name: "Parent AP", moment_id: moment.id)
+      {:ok, parent_ap} = Assessments.update_assessment_point(ap, %{composition_type: "avg"})
+      sibling_ap = insert(:assessment_point, name: "Sibling AP", moment_id: moment.id)
+      insert(:assessment_point_component, parent: parent_ap, component: sibling_ap)
+
+      conn
+      |> visit("#{@live_view_base_path}/#{strand.id}/assessment")
+      |> click_button("button:not([role='menuitem'])", "Average")
+      |> within("#ap-composition-overlay", fn session ->
+        click_button(session, "Manage composition")
+      end)
+      |> within("#ap-composition-overlay", fn session ->
+        click_button(session, "Delete")
+      end)
+      |> refute_has("#ap-composition-overlay")
+      |> assert_has("button", text: "Add composition")
     end
   end
 end

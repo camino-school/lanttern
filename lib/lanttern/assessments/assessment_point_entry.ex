@@ -1,31 +1,11 @@
 defmodule Lanttern.Assessments.AssessmentPointEntry do
-  @moduledoc """
-  ### 🔺 don't use `Repo.preload/3` with `has_one :feedback` association
-
-  There's actually no way Ecto can identify the exactly feedback
-  that is associated to one entry only through schema — thus **using
-  `Repo.preload/3` is not possible**.
-
-  That's because the rule to this association is not based on
-  `AssessmentPointEntry` or `Feedback` ids, but in the fact that
-  both schemas share the same `assessment_point_id` and `student_id`.
-
-  If we just use `Repo.preload/3`, Ecto will get all feedbacks related
-  to the assessment point (using the `has_many :feedbacks` in `AssessmentPoint`)
-  and return the first in the list — which is not what we want.
-
-  BUT, having this `has_one` association is usefull because it allows
-  us to use `Ecto.Query.preload/3` given that we build the correct query
-  for this association.
-
-  """
+  @moduledoc false
 
   use Ecto.Schema
   import Ecto.Changeset
 
   alias Lanttern.Assessments.AssessmentPoint
   alias Lanttern.Assessments.AssessmentPointEntryEvidence
-  alias Lanttern.Assessments.Feedback
   alias Lanttern.Attachments.Attachment
   alias Lanttern.Grading.OrdinalValue
   alias Lanttern.Grading.Scale
@@ -58,7 +38,6 @@ defmodule Lanttern.Assessments.AssessmentPointEntry do
           differentiation_rubric_id: pos_integer() | nil,
           assessment_point_entry_evidences: [AssessmentPointEntryEvidence.t()],
           evidences: [Attachment.t()],
-          feedback: Feedback.t() | nil,
           inserted_at: DateTime.t(),
           updated_at: DateTime.t()
         }
@@ -90,11 +69,6 @@ defmodule Lanttern.Assessments.AssessmentPointEntry do
 
     has_many :assessment_point_entry_evidences, AssessmentPointEntryEvidence
     has_many :evidences, through: [:assessment_point_entry_evidences, :attachment]
-
-    # warning: don't use `Repo.preload/3` with this association.
-    # we can get this in query, usign assessment_point_id and student_id
-    # see moduledoc for more information
-    has_one :feedback, through: [:assessment_point, :feedback]
 
     timestamps()
   end

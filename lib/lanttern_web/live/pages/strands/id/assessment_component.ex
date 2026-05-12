@@ -8,7 +8,10 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
   import Lanttern.Utils, only: [reorder: 3]
 
   # shared components
+  alias LantternWeb.AssessmentComposition.AssessmentPointCompositionOverlayComponent
   alias LantternWeb.Assessments.AssessmentPointFormOverlayComponent
+
+  @ap_preloads [:scale, :lesson, curriculum_item: :curriculum_component]
 
   @impl true
   def render(assigns) do
@@ -172,6 +175,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
                     assessment_point={ap}
                     class="mt-2"
                     on_edit={JS.push("edit_assessment_point", value: %{id: ap.id}, target: @myself)}
+                    myself={@myself}
                   />
                   <.empty_state_simple
                     class="p-4 mt-4 hidden only:block"
@@ -217,6 +221,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
                   assessment_point={ap}
                   class="mb-2"
                   on_edit={JS.push("edit_assessment_point", value: %{id: ap.id}, target: @myself)}
+                  myself={@myself}
                 />
               </div>
             </div>
@@ -237,6 +242,16 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
           if @assessment_point.strand_id, do: nil, else: @strand.id
         }
       />
+      <.live_component
+        :if={@composition_overlay_ap}
+        module={AssessmentPointCompositionOverlayComponent}
+        id="ap-composition-overlay"
+        current_scope={@current_scope}
+        ap={@composition_overlay_ap}
+        strand_id={@strand.id}
+        notify_component={@myself}
+        on_cancel={JS.push("close_composition_overlay", target: @myself)}
+      />
     </div>
     """
   end
@@ -244,6 +259,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
   attr :id, :string, required: true
   attr :assessment_point, :map, required: true
   attr :on_edit, :any, required: true
+  attr :myself, Phoenix.LiveComponent.CID, required: true
   attr :class, :any, default: nil
 
   defp assessment_point_card(assigns) do
@@ -267,6 +283,66 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
           class="line-clamp-2"
         />
         <div class="flex items-center gap-2">
+          <div :if={is_nil(@assessment_point.composition_type)} class="relative">
+            <.button
+              type="button"
+              size="xs"
+              id={"#{@id}-composition-button"}
+            >
+              {gettext("Add composition")}
+            </.button>
+            <.dropdown_menu
+              id={"#{@id}-composition-menu"}
+              button_id={"#{@id}-composition-button"}
+            >
+              <:instructions>
+                {gettext("Create composition using")}
+              </:instructions>
+              <:item
+                on_click={
+                  JS.push("add_composition",
+                    value: %{"assessment_point_id" => @assessment_point.id, "type" => "avg"},
+                    target: @myself
+                  )
+                }
+                text={gettext("Average")}
+              />
+              <:item
+                on_click={
+                  JS.push("add_composition",
+                    value: %{"assessment_point_id" => @assessment_point.id, "type" => "sum"},
+                    target: @myself
+                  )
+                }
+                text={gettext("Sum")}
+              />
+            </.dropdown_menu>
+          </div>
+          <div :if={@assessment_point.composition_type} class="relative">
+            <.button
+              type="button"
+              size="xs"
+              theme="primary"
+              icon_name={
+                if @assessment_point.composition_type == :sum,
+                  do: "hero-plus-micro",
+                  else: "hero-divide-micro"
+              }
+              phx-click={
+                JS.push("open_composition",
+                  value: %{id: @assessment_point.id},
+                  target: @myself
+                )
+              }
+            >
+              {if @assessment_point.composition_type == :sum,
+                do: gettext("Sum"),
+                else: gettext("Average")}
+            </.button>
+            <.tooltip id={"ap-#{@assessment_point.id}-composition-tooltip"}>
+              {gettext("Uses grade composition")}
+            </.tooltip>
+          </div>
           <div :if={@assessment_point.rubric_id}>
             <.icon name="hero-view-columns" />
             <.tooltip id={"ap-#{@assessment_point.id}-rubric-tooltip"}>
@@ -309,6 +385,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
       socket
       |> assign(:strand_form, nil)
       |> assign(:assessment_point, nil)
+      |> assign(:composition_overlay_ap, nil)
       |> assign(:initialized, false)
 
     {:ok, socket}
@@ -318,7 +395,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
   def update(%{action: {AssessmentPointFormOverlayComponent, {:created, created_ap}}}, socket) do
     ap =
       Assessments.get_assessment_point!(created_ap.id,
-        preloads: [:scale, :lesson, curriculum_item: :curriculum_component]
+        preloads: @ap_preloads
       )
 
     stream_key = ap_stream_key(ap.moment_id)
@@ -344,7 +421,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
   def update(%{action: {AssessmentPointFormOverlayComponent, {:updated, updated_ap}}}, socket) do
     ap =
       Assessments.get_assessment_point!(updated_ap.id,
-        preloads: [:scale, :lesson, curriculum_item: :curriculum_component]
+        preloads: @ap_preloads
       )
 
     socket =
@@ -389,6 +466,28 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
     {:ok, socket}
   end
 
+  def update(
+        %{action: {AssessmentPointCompositionOverlayComponent, {:composition_updated, ap_id}}},
+        socket
+      ) do
+    ap = Assessments.get_assessment_point!(ap_id, preloads: @ap_preloads)
+    {:ok, stream_insert(socket, ap_stream_key(ap.moment_id), ap)}
+  end
+
+  def update(
+        %{action: {AssessmentPointCompositionOverlayComponent, {:deleted, ap_id}}},
+        socket
+      ) do
+    ap = Assessments.get_assessment_point!(ap_id, preloads: @ap_preloads)
+
+    socket =
+      socket
+      |> stream_insert(ap_stream_key(ap.moment_id), ap)
+      |> assign(:composition_overlay_ap, nil)
+
+    {:ok, socket}
+  end
+
   def update(assigns, socket) do
     socket =
       socket
@@ -412,7 +511,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
     moments = LearningContext.list_moments(strands_ids: [strand.id])
     moments_ids = Enum.map(moments, & &1.id)
 
-    preloads = [:scale, :lesson, curriculum_item: :curriculum_component]
+    preloads = @ap_preloads
 
     # moment-linked APs have strand_id: nil, so we must query by moments_ids
     moment_aps =
@@ -543,6 +642,29 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
 
     {:noreply, socket}
   end
+
+  # -- composition
+
+  def handle_event("add_composition", %{"assessment_point_id" => ap_id, "type" => type}, socket) do
+    ap = Assessments.get_assessment_point!(ap_id)
+    {:ok, updated_ap} = Assessments.update_assessment_point(ap, %{composition_type: type})
+    ap = Assessments.get_assessment_point!(updated_ap.id, preloads: @ap_preloads)
+
+    socket =
+      socket
+      |> stream_insert(ap_stream_key(ap.moment_id), ap)
+      |> assign(:composition_overlay_ap, ap)
+
+    {:noreply, socket}
+  end
+
+  def handle_event("open_composition", %{"id" => ap_id}, socket) do
+    ap = Assessments.get_assessment_point!(ap_id, preloads: @ap_preloads)
+    {:noreply, assign(socket, :composition_overlay_ap, ap)}
+  end
+
+  def handle_event("close_composition_overlay", _params, socket),
+    do: {:noreply, assign(socket, :composition_overlay_ap, nil)}
 
   def handle_event("close_assessment_point_form", _params, socket),
     do: {:noreply, assign(socket, :assessment_point, nil)}

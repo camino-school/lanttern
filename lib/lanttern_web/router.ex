@@ -297,9 +297,6 @@ defmodule LantternWeb.Router do
     live "/profile_settings", Admin.ProfileSettingsLive.Index, :index
     live "/profile_settings/:profile_id/edit", Admin.ProfileSettingsLive.Index, :edit
 
-    # Assessments context
-    resources "/feedback", FeedbackController
-
     # Schools context
     resources "/schools", SchoolController
     resources "/classes", ClassController
@@ -319,9 +316,6 @@ defmodule LantternWeb.Router do
     # Taxonomy context
     resources "/subjects", SubjectController
     resources "/years", YearController
-
-    # Conversation context
-    resources "/comments", CommentController
 
     # Learning Context context
     live "/strands", Admin.StrandLive.Index, :index
