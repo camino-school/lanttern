@@ -250,4 +250,111 @@ defmodule Lanttern.AssessmentCompositionTest do
       end
     end
   end
+
+  describe "replace_assessment_point_components/3" do
+    test "inserts new components when none exist" do
+      parent_ap = insert(:assessment_point)
+      child_ap = insert(:assessment_point)
+
+      assert {:ok, :replaced} =
+               AssessmentComposition.replace_assessment_point_components(
+                 @staff_scope,
+                 parent_ap.id,
+                 [
+                   %{component_id: child_ap.id, weight: 1.5}
+                 ]
+               )
+
+      [component] =
+        AssessmentComposition.list_assessment_point_components(@staff_scope, parent_ap.id)
+
+      assert component.component_id == child_ap.id
+      assert component.weight == 1.5
+    end
+
+    test "replaces existing components atomically" do
+      parent_ap = insert(:assessment_point)
+      old_child = insert(:assessment_point)
+      new_child = insert(:assessment_point)
+
+      insert(:assessment_point_component, parent: parent_ap, component: old_child)
+
+      assert {:ok, :replaced} =
+               AssessmentComposition.replace_assessment_point_components(
+                 @staff_scope,
+                 parent_ap.id,
+                 [
+                   %{component_id: new_child.id, weight: 2.0}
+                 ]
+               )
+
+      [component] =
+        AssessmentComposition.list_assessment_point_components(@staff_scope, parent_ap.id)
+
+      assert component.component_id == new_child.id
+    end
+
+    test "clears all components when given empty list" do
+      parent_ap = insert(:assessment_point)
+      child_ap = insert(:assessment_point)
+
+      insert(:assessment_point_component, parent: parent_ap, component: child_ap)
+
+      assert {:ok, :replaced} =
+               AssessmentComposition.replace_assessment_point_components(
+                 @staff_scope,
+                 parent_ap.id,
+                 []
+               )
+
+      assert AssessmentComposition.list_assessment_point_components(@staff_scope, parent_ap.id) ==
+               []
+    end
+
+    test "returns error changeset on invalid component attrs" do
+      parent_ap = insert(:assessment_point)
+
+      assert {:error, %Ecto.Changeset{}} =
+               AssessmentComposition.replace_assessment_point_components(
+                 @staff_scope,
+                 parent_ap.id,
+                 [
+                   %{component_id: parent_ap.id, weight: 0.0}
+                 ]
+               )
+    end
+
+    test "rolls back all inserts when one is invalid" do
+      parent_ap = insert(:assessment_point)
+      child_ap = insert(:assessment_point)
+
+      insert(:assessment_point_component, parent: parent_ap, component: child_ap)
+
+      assert {:error, _} =
+               AssessmentComposition.replace_assessment_point_components(
+                 @staff_scope,
+                 parent_ap.id,
+                 [
+                   %{component_id: child_ap.id, weight: 1.0},
+                   %{component_id: child_ap.id, weight: 0.0}
+                 ]
+               )
+
+      # original component must still exist (transaction rolled back)
+      assert [_] =
+               AssessmentComposition.list_assessment_point_components(@staff_scope, parent_ap.id)
+    end
+
+    test "raises when scope is not staff" do
+      parent_ap = insert(:assessment_point)
+
+      assert_raise MatchError, fn ->
+        AssessmentComposition.replace_assessment_point_components(
+          @student_scope,
+          parent_ap.id,
+          []
+        )
+      end
+    end
+  end
 end

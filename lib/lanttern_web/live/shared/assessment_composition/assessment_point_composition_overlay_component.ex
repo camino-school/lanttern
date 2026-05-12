@@ -76,7 +76,7 @@ defmodule LantternWeb.AssessmentComposition.AssessmentPointCompositionOverlayCom
               </div>
               <div class="flex items-center gap-12 font-bold mt-4">
                 <span class="flex-1 truncate">{ap_display_name(@ap)}</span>
-                <span class="shrink-0 tabular-nums">
+                <span :if={@ap.composition_type == :sum} class="shrink-0 tabular-nums">
                   {composition_total(@ap.composition_type, @composition_components)}
                 </span>
               </div>
@@ -337,17 +337,12 @@ defmodule LantternWeb.AssessmentComposition.AssessmentPointCompositionOverlayCom
     selected_ids = socket.assigns.selected_ids
     weights_map = socket.assigns.weights_map
 
-    AssessmentComposition.delete_all_assessment_point_components(scope, ap.id)
+    components =
+      Enum.map(selected_ids, fn ap_id ->
+        %{component_id: ap_id, weight: Map.get(weights_map, ap_id, 1.0)}
+      end)
 
-    for ap_id <- selected_ids do
-      weight = Map.get(weights_map, ap_id, 1.0)
-
-      AssessmentComposition.create_assessment_point_component(scope, %{
-        parent_id: ap.id,
-        component_id: ap_id,
-        weight: weight
-      })
-    end
+    {:ok, _} = AssessmentComposition.replace_assessment_point_components(scope, ap.id, components)
 
     composition_components = AssessmentComposition.list_assessment_point_components(scope, ap.id)
 

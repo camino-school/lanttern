@@ -294,15 +294,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponentTest do
     test "shows 'Add composition' button for AP without composition type", %{conn: conn} do
       strand = insert(:strand)
       moment = insert(:moment, strand: strand)
-      scale = insert(:scale)
-      curriculum_item = insert(:curriculum_item)
-
-      AssessmentsFixtures.assessment_point_fixture(%{
-        name: "AP no composition",
-        moment_id: moment.id,
-        scale_id: scale.id,
-        curriculum_item_id: curriculum_item.id
-      })
+      insert(:assessment_point, name: "AP no composition", moment_id: moment.id)
 
       conn
       |> visit("#{@live_view_base_path}/#{strand.id}/assessment")
@@ -312,18 +304,8 @@ defmodule LantternWeb.StrandLive.AssessmentComponentTest do
     test "shows composition type button when AP has composition_type set", %{conn: conn} do
       strand = insert(:strand)
       moment = insert(:moment, strand: strand)
-      scale = insert(:scale)
-      curriculum_item = insert(:curriculum_item)
-
-      ap =
-        AssessmentsFixtures.assessment_point_fixture(%{
-          name: "AP with avg composition",
-          moment_id: moment.id,
-          scale_id: scale.id,
-          curriculum_item_id: curriculum_item.id
-        })
-
-      Assessments.update_assessment_point(ap, %{composition_type: "avg"})
+      ap = insert(:assessment_point, name: "AP with avg composition", moment_id: moment.id)
+      {:ok, _} = Assessments.update_assessment_point(ap, %{composition_type: "avg"})
 
       conn
       |> visit("#{@live_view_base_path}/#{strand.id}/assessment")
@@ -333,18 +315,8 @@ defmodule LantternWeb.StrandLive.AssessmentComponentTest do
     test "opens composition overlay when clicking composition type button", %{conn: conn} do
       strand = insert(:strand)
       moment = insert(:moment, strand: strand)
-      scale = insert(:scale)
-      curriculum_item = insert(:curriculum_item)
-
-      ap =
-        AssessmentsFixtures.assessment_point_fixture(%{
-          name: "AP with avg composition",
-          moment_id: moment.id,
-          scale_id: scale.id,
-          curriculum_item_id: curriculum_item.id
-        })
-
-      Assessments.update_assessment_point(ap, %{composition_type: "avg"})
+      ap = insert(:assessment_point, name: "AP with avg composition", moment_id: moment.id)
+      {:ok, _} = Assessments.update_assessment_point(ap, %{composition_type: "avg"})
 
       conn
       |> visit("#{@live_view_base_path}/#{strand.id}/assessment")
@@ -356,29 +328,9 @@ defmodule LantternWeb.StrandLive.AssessmentComponentTest do
     test "composition overview shows existing components", %{conn: conn} do
       strand = insert(:strand)
       moment = insert(:moment, strand: strand)
-      scale = insert(:scale)
-      curriculum_item = insert(:curriculum_item)
-
-      ap =
-        AssessmentsFixtures.assessment_point_fixture(%{
-          name: "Parent AP",
-          moment_id: moment.id,
-          scale_id: scale.id,
-          curriculum_item_id: curriculum_item.id
-        })
-
+      ap = insert(:assessment_point, name: "Parent AP", moment_id: moment.id)
       {:ok, parent_ap} = Assessments.update_assessment_point(ap, %{composition_type: "avg"})
-
-      sibling_curriculum_item = insert(:curriculum_item)
-
-      sibling_ap =
-        AssessmentsFixtures.assessment_point_fixture(%{
-          name: "Sibling AP",
-          moment_id: moment.id,
-          scale_id: scale.id,
-          curriculum_item_id: sibling_curriculum_item.id
-        })
-
+      sibling_ap = insert(:assessment_point, name: "Sibling AP", moment_id: moment.id)
       insert(:assessment_point_component, parent: parent_ap, component: sibling_ap)
 
       conn
@@ -390,28 +342,9 @@ defmodule LantternWeb.StrandLive.AssessmentComponentTest do
     test "setup view shows sibling APs for selection", %{conn: conn} do
       strand = insert(:strand)
       moment = insert(:moment, strand: strand)
-      scale = insert(:scale)
-      curriculum_item = insert(:curriculum_item)
-
-      ap =
-        AssessmentsFixtures.assessment_point_fixture(%{
-          name: "Parent AP",
-          moment_id: moment.id,
-          scale_id: scale.id,
-          curriculum_item_id: curriculum_item.id
-        })
-
-      Assessments.update_assessment_point(ap, %{composition_type: "avg"})
-
-      sibling_curriculum_item = insert(:curriculum_item)
-
-      sibling_ap =
-        AssessmentsFixtures.assessment_point_fixture(%{
-          name: "Sibling AP to select",
-          moment_id: moment.id,
-          scale_id: scale.id,
-          curriculum_item_id: sibling_curriculum_item.id
-        })
+      ap = insert(:assessment_point, name: "Parent AP", moment_id: moment.id)
+      {:ok, _} = Assessments.update_assessment_point(ap, %{composition_type: "avg"})
+      sibling_ap = insert(:assessment_point, name: "Sibling AP to select", moment_id: moment.id)
 
       conn
       |> visit("#{@live_view_base_path}/#{strand.id}/assessment")
@@ -425,29 +358,9 @@ defmodule LantternWeb.StrandLive.AssessmentComponentTest do
     test "save composition re-saves existing selection and returns to overview", %{conn: conn} do
       strand = insert(:strand)
       moment = insert(:moment, strand: strand)
-      scale = insert(:scale)
-      curriculum_item = insert(:curriculum_item)
-
-      ap =
-        AssessmentsFixtures.assessment_point_fixture(%{
-          name: "Parent AP",
-          moment_id: moment.id,
-          scale_id: scale.id,
-          curriculum_item_id: curriculum_item.id
-        })
-
+      ap = insert(:assessment_point, name: "Parent AP", moment_id: moment.id)
       {:ok, parent_ap} = Assessments.update_assessment_point(ap, %{composition_type: "avg"})
-
-      sibling_curriculum_item = insert(:curriculum_item)
-
-      sibling_ap =
-        AssessmentsFixtures.assessment_point_fixture(%{
-          name: "Sibling AP",
-          moment_id: moment.id,
-          scale_id: scale.id,
-          curriculum_item_id: sibling_curriculum_item.id
-        })
-
+      sibling_ap = insert(:assessment_point, name: "Sibling AP", moment_id: moment.id)
       insert(:assessment_point_component, parent: parent_ap, component: sibling_ap)
 
       conn
@@ -465,29 +378,9 @@ defmodule LantternWeb.StrandLive.AssessmentComponentTest do
     test "delete composition removes components and closes overlay", %{conn: conn} do
       strand = insert(:strand)
       moment = insert(:moment, strand: strand)
-      scale = insert(:scale)
-      curriculum_item = insert(:curriculum_item)
-
-      ap =
-        AssessmentsFixtures.assessment_point_fixture(%{
-          name: "Parent AP",
-          moment_id: moment.id,
-          scale_id: scale.id,
-          curriculum_item_id: curriculum_item.id
-        })
-
+      ap = insert(:assessment_point, name: "Parent AP", moment_id: moment.id)
       {:ok, parent_ap} = Assessments.update_assessment_point(ap, %{composition_type: "avg"})
-
-      sibling_curriculum_item = insert(:curriculum_item)
-
-      sibling_ap =
-        AssessmentsFixtures.assessment_point_fixture(%{
-          name: "Sibling AP",
-          moment_id: moment.id,
-          scale_id: scale.id,
-          curriculum_item_id: sibling_curriculum_item.id
-        })
-
+      sibling_ap = insert(:assessment_point, name: "Sibling AP", moment_id: moment.id)
       insert(:assessment_point_component, parent: parent_ap, component: sibling_ap)
 
       conn

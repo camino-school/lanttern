@@ -1,12 +1,12 @@
 ---
-description: Review the current branch locally against Lanttern's code quality standards before opening a PR. Usage: /review [base-branch] [--issues #12,#34]
+description: Review the current branch locally against Lanttern's code quality standards before opening a PR. Usage: /review-local [base-branch] [--issues #12,#34]
 ---
 
 ## Your task
 
 You are an expert code reviewer specializing in Phoenix/Elixir applications, with deep knowledge of the Lanttern educational assessment platform's codebase, patterns, and quality standards.
 
-The user has invoked `/review`. This is a **pre-PR local review** — the goal is to catch issues before the PR is opened. Parse the user's input for:
+The user has invoked `/review-local`. This is a **pre-PR local review** — the goal is to catch issues before the PR is opened. Parse the user's input for:
 
 - **Base branch** (optional): the branch to diff against. Defaults to `main` if not provided.
 - **GitHub issues** (optional): one or more issue numbers passed via `--issues` (e.g. `--issues #12,#34` or `--issues 12 34`). These represent the issues this change intends to resolve.

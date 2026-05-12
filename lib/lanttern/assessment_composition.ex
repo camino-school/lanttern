@@ -24,10 +24,10 @@ defmodule Lanttern.AssessmentComposition do
       join: ap in AssessmentPoint,
       on: c.component_id == ap.id,
       where: c.parent_id == ^parent_id,
-      order_by: [asc_nulls_last: ap.moment_id, asc: ap.position]
+      order_by: [asc_nulls_last: ap.moment_id, asc: ap.position],
+      preload: [component: {ap, [:scale, curriculum_item: :curriculum_component]}]
     )
     |> Repo.all()
-    |> Repo.preload(component: [:scale, curriculum_item: :curriculum_component])
   end
 
   @doc """
@@ -89,5 +89,42 @@ defmodule Lanttern.AssessmentComposition do
     |> Repo.delete_all()
 
     :ok
+  end
+
+  @doc """
+  Atomically replaces all composition components for the given parent assessment point.
+
+  Deletes existing components and inserts the new ones within a single transaction.
+  `components` is a list of maps with `:component_id` and `:weight` keys.
+
+  Returns `{:ok, :replaced}` on success or `{:error, changeset}` on validation failure.
+  """
+  def replace_assessment_point_components(%Scope{} = scope, parent_id, components) do
+    true = Scope.profile_type?(scope, "staff")
+
+    delete_query = from(c in Component, where: c.parent_id == ^parent_id)
+
+    multi =
+      Ecto.Multi.new()
+      |> Ecto.Multi.delete_all(:delete_existing, delete_query)
+
+    multi =
+      components
+      |> Enum.with_index()
+      |> Enum.reduce(multi, fn {%{component_id: component_id, weight: weight}, index}, multi ->
+        changeset =
+          Component.changeset(%Component{}, %{
+            parent_id: parent_id,
+            component_id: component_id,
+            weight: weight
+          })
+
+        Ecto.Multi.insert(multi, {:insert, index}, changeset)
+      end)
+
+    case Repo.transaction(multi) do
+      {:ok, _} -> {:ok, :replaced}
+      {:error, _op, changeset, _changes} -> {:error, changeset}
+    end
   end
 end
