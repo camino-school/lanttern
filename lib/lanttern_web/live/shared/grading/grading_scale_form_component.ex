@@ -12,22 +12,25 @@ defmodule LantternWeb.Grading.GradingScaleFormComponent do
     ~H"""
     <div class={@class}>
       <.form for={@form} id={@id} phx-target={@myself} phx-change="validate" phx-submit="save">
-        <.input
-          field={@form[:name]}
-          type="text"
-          label={gettext("Scale name")}
-          class="mb-6"
-          phx-debounce="500"
-        />
+        <div class="flex gap-4 mb-6">
+          <.input
+            field={@form[:name]}
+            type="text"
+            label={gettext("Scale name")}
+            class="flex-1 shrink-0"
+            phx-debounce="500"
+          />
+          <.input
+            :if={@scale.type == "numeric"}
+            field={@form[:max_score]}
+            type="number"
+            label={gettext("Max score")}
+            step="any"
+            class="shrink-0 min-w-20"
+          />
+        </div>
         <div :if={@scale.type == "numeric"} class="mb-6">
           <div class="flex items-start gap-4 mb-6">
-            <.input
-              field={@form[:start]}
-              type="number"
-              label={gettext("Start")}
-              step="1"
-              class="flex-1 shrink-0"
-            />
             <.input
               field={@form[:start_bg_color]}
               type="color"
@@ -42,13 +45,6 @@ defmodule LantternWeb.Grading.GradingScaleFormComponent do
             />
           </div>
           <div class="flex items-start gap-4 mb-6">
-            <.input
-              field={@form[:stop]}
-              type="number"
-              label={gettext("Stop")}
-              step="any"
-              class="flex-1 shrink-0"
-            />
             <.input
               field={@form[:stop_bg_color]}
               type="color"
@@ -67,12 +63,12 @@ defmodule LantternWeb.Grading.GradingScaleFormComponent do
             <.badge color_map={
               %{bg_color: @form[:start_bg_color].value, text_color: @form[:start_text_color].value}
             }>
-              {@form[:start].value}
+              0
             </.badge>
             <.badge color_map={
               %{bg_color: @form[:stop_bg_color].value, text_color: @form[:stop_text_color].value}
             }>
-              {@form[:stop].value}
+              {@form[:max_score].value}
             </.badge>
           </.card_base>
         </div>

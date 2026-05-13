@@ -147,10 +147,10 @@ Use the versioned `AGENTS.md` as reference for setting your own LLM agent instru
 
 /open-pr main                    # run precommit checks and creates the PR
 
-/review                          # diff current branch vs main
-/review develop                  # diff vs develop
-/review --issues #12,#34         # with issue context
-/review develop --issues 12      # both
+/review-local                          # diff current branch vs main
+/review-local develop                  # diff vs develop
+/review-local --issues #12,#34         # with issue context
+/review-local develop --issues 12      # both
 
 /pr-review 123                   # GitHub PR (issues auto-detected from PR)
 ```

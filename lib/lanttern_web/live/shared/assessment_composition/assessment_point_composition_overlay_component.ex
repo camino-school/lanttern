@@ -12,6 +12,8 @@ defmodule LantternWeb.AssessmentComposition.AssessmentPointCompositionOverlayCom
 
   use LantternWeb, :live_component
 
+  import Lanttern.Utils, only: [format_float: 1]
+
   alias Lanttern.AssessmentComposition
   alias Lanttern.Assessments
   alias Lanttern.LearningContext
@@ -26,16 +28,16 @@ defmodule LantternWeb.AssessmentComposition.AssessmentPointCompositionOverlayCom
         <:title>{gettext("Grade composition")}</:title>
         <%= if @view == :overview do %>
           <div class="flex items-start justify-between gap-6">
-            <.input
-              type="select"
-              name="composition_type"
-              label={gettext("Composition type")}
-              options={[{gettext("Sum"), "sum"}, {gettext("Average"), "avg"}]}
-              value={@ap.composition_type}
-              phx-change="update_type"
-              phx-target={@myself}
-              class="w-56"
-            />
+            <form phx-change="update_type" phx-target={@myself}>
+              <.input
+                type="select"
+                name="composition_type"
+                label={gettext("Composition type")}
+                options={[{gettext("Sum"), "sum"}, {gettext("Average"), "avg"}]}
+                value={@ap.composition_type}
+                class="w-56"
+              />
+            </form>
             <.button
               type="button"
               theme={if @composition_components == [], do: "primary"}
@@ -185,9 +187,9 @@ defmodule LantternWeb.AssessmentComposition.AssessmentPointCompositionOverlayCom
 
   defp ap_display_name(ap), do: ap.name
 
-  defp ap_score_display(%{scale: %{type: "numeric", stop: stop}}) when not is_nil(stop) do
-    if trunc(stop) == stop, do: trunc(stop), else: stop
-  end
+  defp ap_score_display(%{scale: %{type: "numeric", max_score: max_score}})
+       when not is_nil(max_score),
+       do: format_float(max_score)
 
   defp ap_score_display(_), do: "—"
 
@@ -196,12 +198,15 @@ defmodule LantternWeb.AssessmentComposition.AssessmentPointCompositionOverlayCom
       components
       |> Enum.reduce(0, fn comp, acc ->
         case comp.component do
-          %{scale: %{type: "numeric", stop: stop}} when not is_nil(stop) -> acc + stop
-          _ -> acc
+          %{scale: %{type: "numeric", max_score: max_score}} when not is_nil(max_score) ->
+            acc + max_score
+
+          _ ->
+            acc
         end
       end)
 
-    if trunc(total) == total, do: trunc(total), else: total
+    format_float(total)
   end
 
   defp composition_total(:avg, components) do
@@ -290,6 +295,7 @@ defmodule LantternWeb.AssessmentComposition.AssessmentPointCompositionOverlayCom
   def handle_event("update_type", %{"composition_type" => type}, socket) do
     ap = socket.assigns.ap
     {:ok, updated_ap} = Assessments.update_assessment_point(ap, %{composition_type: type})
+    notify(__MODULE__, {:composition_updated, ap.id}, socket.assigns)
     {:noreply, assign(socket, :ap, %{ap | composition_type: updated_ap.composition_type})}
   end
 

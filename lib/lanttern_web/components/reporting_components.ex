@@ -9,6 +9,7 @@ defmodule LantternWeb.ReportingComponents do
   import LantternWeb.CoreComponents
 
   import Lanttern.SupabaseHelpers, only: [object_url_to_render_url: 2]
+  import Lanttern.Utils, only: [format_float: 1]
 
   alias Lanttern.Assessments.AssessmentPoint
   alias Lanttern.Assessments.AssessmentPointEntry
@@ -375,12 +376,12 @@ defmodule LantternWeb.ReportingComponents do
       style={create_color_map_gradient_bg_style(@scale)}
     >
       <div style={if @scale.start_text_color, do: "color: #{@scale.start_text_color}"}>
-        {@scale.start}
+        0
       </div>
       <div
         :if={@score}
         class="absolute z-10 flex-1 flex items-center h-full"
-        style={"left: calc(#{(@score - @scale.start) * 100 / (@scale.stop - @scale.start)}% - #{((@score - @scale.start) / (@scale.stop - @scale.start)) * 48}px)"}
+        style={"left: calc(#{@score * 100 / @scale.max_score}% - #{(@score / @scale.max_score) * 48}px)"}
       >
         <div class={[
           "absolute flex items-center justify-center w-12 h-8 rounded-sm text-sm shadow-lg",
@@ -396,7 +397,7 @@ defmodule LantternWeb.ReportingComponents do
         class="text-right"
         style={if @scale.stop_text_color, do: "color: #{@scale.stop_text_color}"}
       >
-        {@scale.stop}
+        {format_float(@scale.max_score)}
       </div>
     </div>
     """

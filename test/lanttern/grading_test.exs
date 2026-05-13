@@ -147,14 +147,12 @@ defmodule Lanttern.GradingTest do
     import Lanttern.Factory
     import Lanttern.IdentityFixtures
 
-    @invalid_attrs %{name: nil, start: nil, stop: nil, type: nil}
+    @invalid_attrs %{name: nil, type: nil}
 
-    @invalid_numeric_attrs %{name: "0 to 10", start: nil, stop: nil, type: "numeric"}
+    @invalid_numeric_attrs %{name: "0 to 10", max_score: nil, type: "numeric"}
 
     @invalid_breakpoint_attrs %{
       name: "Letter grades",
-      start: nil,
-      stop: nil,
       type: "ordinal",
       breakpoints: [0.5, 1.5]
     }
@@ -172,7 +170,7 @@ defmodule Lanttern.GradingTest do
     test "list_scales/1 with preloads and scales_ids opts returns all scales as expected",
          %{scope: scope} do
       num_scale =
-        insert(:scale, school_id: scope.school_id, type: "numeric", start: 0.0, stop: 100.0)
+        insert(:scale, school_id: scope.school_id, type: "numeric", max_score: 100.0)
 
       ord_scale = insert(:scale, school_id: scope.school_id, type: "ordinal")
       ov_1 = insert(:ordinal_value, scale_id: ord_scale.id, normalized_value: 0.0)
@@ -231,16 +229,14 @@ defmodule Lanttern.GradingTest do
     test "create_scale/1 with valid data creates a scale", %{scope: scope} do
       valid_attrs = %{
         name: "some name",
-        start: 120.5,
-        stop: 120.5,
+        max_score: 120.5,
         type: "numeric",
         breakpoints: [0.4, 0.8]
       }
 
       assert {:ok, %Scale{} = scale} = Grading.create_scale(scope, valid_attrs)
       assert scale.name == "some name"
-      assert scale.start == 120.5
-      assert scale.stop == 120.5
+      assert scale.max_score == 120.5
       assert scale.type == "numeric"
       assert scale.breakpoints == [0.4, 0.8]
     end
@@ -248,8 +244,6 @@ defmodule Lanttern.GradingTest do
     test "create_scale/1 orders and remove duplications of breakpoints", %{scope: scope} do
       valid_attrs = %{
         name: "some name",
-        start: nil,
-        stop: nil,
         type: "ordinal",
         breakpoints: [0.4, 0.8, 0.80, 0.6]
       }
@@ -264,7 +258,7 @@ defmodule Lanttern.GradingTest do
       assert {:error, %Ecto.Changeset{}} = Grading.create_scale(scope, @invalid_attrs)
     end
 
-    test "create_scale/1 of type numeric without start and stop returns error changeset",
+    test "create_scale/1 of type numeric without max_score returns error changeset",
          %{scope: scope} do
       assert {:error, %Ecto.Changeset{}} = Grading.create_scale(scope, @invalid_numeric_attrs)
     end
@@ -278,15 +272,13 @@ defmodule Lanttern.GradingTest do
 
       update_attrs = %{
         name: "some updated name",
-        start: 456.7,
-        stop: 456.7,
+        max_score: 456.7,
         type: "numeric"
       }
 
       assert {:ok, %Scale{} = scale} = Grading.update_scale(scope, scale, update_attrs)
       assert scale.name == "some updated name"
-      assert scale.start == 456.7
-      assert scale.stop == 456.7
+      assert scale.max_score == 456.7
       assert scale.type == "numeric"
     end
 
@@ -528,11 +520,11 @@ defmodule Lanttern.GradingTest do
     end
 
     test "convert_normalized_value_to_scale_value/1 returns the correct values for a numeric scale" do
-      scale = insert(:scale, type: "numeric", start: 5.0, stop: 10.0)
+      scale = insert(:scale, type: "numeric", max_score: 10.0)
 
-      assert Grading.convert_normalized_value_to_scale_value(0, scale) == 5.0
-      assert Grading.convert_normalized_value_to_scale_value(0.5, scale) == 7.5
-      assert Grading.convert_normalized_value_to_scale_value(0.789, scale) == 8.945
+      assert Grading.convert_normalized_value_to_scale_value(0, scale) == 0.0
+      assert Grading.convert_normalized_value_to_scale_value(0.5, scale) == 5.0
+      assert_in_delta Grading.convert_normalized_value_to_scale_value(0.789, scale), 7.89, 0.0001
       assert Grading.convert_normalized_value_to_scale_value(1, scale) == 10.0
     end
   end

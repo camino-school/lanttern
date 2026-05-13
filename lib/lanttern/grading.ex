@@ -567,7 +567,7 @@ defmodule Lanttern.Grading do
   end
 
   def convert_normalized_value_to_scale_value(normalized_value, %Scale{type: "numeric"} = scale) do
-    normalized_value * (scale.stop - scale.start) + scale.start
+    normalized_value * scale.max_score
   end
 
   defp get_normalized_value_breakpoint_index(breakpoints, normalized_value, i \\ 0)

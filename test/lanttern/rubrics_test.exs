@@ -1149,7 +1149,7 @@ defmodule Lanttern.RubricsTest do
     end
 
     test "create_rubric_descriptor/1 with valid data creates a rubric_descriptor" do
-      scale = insert(:scale, type: "numeric", start: 0.0, stop: 100.0)
+      scale = insert(:scale, type: "numeric", max_score: 100.0)
       rubric = rubric_fixture(%{scale_id: scale.id})
 
       valid_attrs = %{

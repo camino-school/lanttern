@@ -8,6 +8,7 @@ defmodule LantternWeb.AssessmentsComponents do
   use Gettext, backend: Lanttern.Gettext
   import LantternWeb.CoreComponents
   import LantternWeb.OverlayComponents
+  import Lanttern.Utils, only: [format_float: 1]
 
   alias Lanttern.Grading.OrdinalValue
 
@@ -68,7 +69,7 @@ defmodule LantternWeb.AssessmentsComponents do
     <.badge color_map={@color_map} class={@class} id={@id}>
       {@entry.score}
       <span :if={@show_stop} class="inline-block ml-1 opacity-60">
-        / {@entry.scale.stop}
+        / {@entry.scale.max_score}
       </span>
     </.badge>
     """
@@ -196,7 +197,7 @@ defmodule LantternWeb.AssessmentsComponents do
         do: assigns.entry.student_score,
         else: assigns.entry.score
 
-    {stop, color_map} =
+    {max_score, color_map} =
       case assigns.scale do
         %Lanttern.Grading.Scale{} = scale ->
           color_map =
@@ -205,7 +206,7 @@ defmodule LantternWeb.AssessmentsComponents do
               _ -> nil
             end
 
-          {scale.stop, color_map}
+          {scale.max_score, color_map}
 
         _ ->
           {nil, nil}
@@ -213,9 +214,9 @@ defmodule LantternWeb.AssessmentsComponents do
 
     assigns =
       assigns
-      |> assign(:score, score)
+      |> assign(:score, score && format_float(score))
       |> assign(:color_map, color_map)
-      |> assign(:stop, stop)
+      |> assign(:max_score, max_score && format_float(max_score))
 
     ~H"""
     <%= if @score do %>
@@ -228,7 +229,9 @@ defmodule LantternWeb.AssessmentsComponents do
         style={create_color_map_style(@color_map)}
       >
         {@score}
-        <span :if={@stop} class="opacity-60"><span class="inline-block mx-1">/</span>{@stop}</span>
+        <span :if={@max_score} class="opacity-60">
+          <span class="inline-block mx-1">/</span>{@max_score}
+        </span>
       </div>
     <% else %>
       <.assessment_point_entry_value_empty_display />
