@@ -19,6 +19,8 @@ defmodule LantternWeb.Assessments.EntryParticleComponent do
   """
   use LantternWeb, :live_component
 
+  import Lanttern.Utils, only: [format_float: 1]
+
   alias Lanttern.Assessments.AssessmentPointEntry
   alias Lanttern.Grading
   alias Lanttern.Grading.OrdinalValue
@@ -156,7 +158,7 @@ defmodule LantternWeb.Assessments.EntryParticleComponent do
           {"text-ltrn-dark bg-ltrn-lighter", nil}
       end
 
-    {additional_classes, style, "#{score}", score}
+    {additional_classes, style, format_float(score), score}
   end
 
   defp get_particle_styles_and_text(_, %AssessmentPointEntry{is_missing: true}, _is_student, _) do

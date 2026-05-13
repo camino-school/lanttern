@@ -63,7 +63,7 @@ defmodule LantternWeb.Grading.GradingScaleFormComponent do
             <.badge color_map={
               %{bg_color: @form[:start_bg_color].value, text_color: @form[:start_text_color].value}
             }>
-              {0}
+              0
             </.badge>
             <.badge color_map={
               %{bg_color: @form[:stop_bg_color].value, text_color: @form[:stop_text_color].value}

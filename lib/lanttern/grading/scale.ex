@@ -70,7 +70,7 @@ defmodule Lanttern.Grading.Scale do
     |> validate_required([:name, :type])
     |> put_change(:school_id, scope.school_id)
     |> validate_scale_type()
-    |> validate_start_stop()
+    |> validate_max_score()
     |> parse_breakpoints_input()
     |> adjust_breakpoints()
     |> validate_hex_color(:start_bg_color, :scale_start_bg_color_should_be_hex)
@@ -112,17 +112,17 @@ defmodule Lanttern.Grading.Scale do
       if type in @valid_types do
         []
       else
-        [type: ~s(must be "numeric" or "ordinal")]
+        [type: gettext(~s(must be "numeric" or "ordinal"))]
       end
     end)
   end
 
-  defp validate_start_stop(%{changes: %{type: "numeric"}} = changeset) do
+  defp validate_max_score(%{changes: %{type: "numeric"}} = changeset) do
     changeset
-    |> validate_required([:max_score], message: "can't be blank when type is numeric")
+    |> validate_required([:max_score], message: gettext("can't be blank when type is numeric"))
   end
 
-  defp validate_start_stop(changeset), do: changeset
+  defp validate_max_score(changeset), do: changeset
 
   defp parse_breakpoints_input(changeset) do
     case get_change(changeset, :breakpoints_input) do

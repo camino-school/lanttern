@@ -185,7 +185,7 @@ defmodule LantternWeb.Rubrics.RubricFormOverlayComponent do
           <.input type="hidden" field={ef[:scale_type]} />
           <.input
             type="number"
-            min={0}
+            min="0"
             max={@scale.max_score}
             field={ef[:score]}
             label={gettext("Score")}

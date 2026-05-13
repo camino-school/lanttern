@@ -209,7 +209,7 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
     assigns = assign(assigns, :field, field)
 
     ~H"""
-    <.input field={@field} type="number" phx-debounce="1000" min={0} max={@scale.max_score} />
+    <.input field={@field} type="number" phx-debounce="1000" min="0" max={@scale.max_score} />
     """
   end
 
