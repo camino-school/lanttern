@@ -197,15 +197,6 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
                   sr_text={gettext("Marking")}
                 />
               </div>
-              <p class="mb-4">
-                {gettext("Goals assessment are defined by the strand curriculum.")}
-                <.link
-                  patch={~p"/strands/#{@strand}/overview#strand-curriculum"}
-                  class="hover:text-ltrn-subtle"
-                >
-                  {gettext("You can manage curriculum items in the overview section.")}
-                </.link>
-              </p>
               <div
                 id="strand-sortable-aps"
                 phx-hook="Sortable"
