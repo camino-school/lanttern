@@ -24,4 +24,14 @@ defmodule Lanttern.Utils do
     {item, rest} = List.pop_at(list, cur_i)
     List.insert_at(rest, new_i, item)
   end
+
+  @doc """
+  Formats a float for display, removing `.0` suffix (showing as integer)
+  and removing trailing zeros from decimal places.
+  """
+  def format_float(float) do
+    float
+    |> Float.to_string()
+    |> String.replace(~r/\.0$|(?<=\.\d)0+$/, "")
+  end
 end

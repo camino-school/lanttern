@@ -12,6 +12,8 @@ defmodule LantternWeb.AssessmentComposition.AssessmentPointCompositionOverlayCom
 
   use LantternWeb, :live_component
 
+  import Lanttern.Utils, only: [format_float: 1]
+
   alias Lanttern.AssessmentComposition
   alias Lanttern.Assessments
   alias Lanttern.LearningContext
@@ -185,9 +187,9 @@ defmodule LantternWeb.AssessmentComposition.AssessmentPointCompositionOverlayCom
 
   defp ap_display_name(ap), do: ap.name
 
-  defp ap_score_display(%{scale: %{type: "numeric", stop: stop}}) when not is_nil(stop) do
-    if trunc(stop) == stop, do: trunc(stop), else: stop
-  end
+  defp ap_score_display(%{scale: %{type: "numeric", max_score: max_score}})
+       when not is_nil(max_score),
+       do: format_float(max_score)
 
   defp ap_score_display(_), do: "—"
 
@@ -196,12 +198,15 @@ defmodule LantternWeb.AssessmentComposition.AssessmentPointCompositionOverlayCom
       components
       |> Enum.reduce(0, fn comp, acc ->
         case comp.component do
-          %{scale: %{type: "numeric", stop: stop}} when not is_nil(stop) -> acc + stop
-          _ -> acc
+          %{scale: %{type: "numeric", max_score: max_score}} when not is_nil(max_score) ->
+            acc + max_score
+
+          _ ->
+            acc
         end
       end)
 
-    if trunc(total) == total, do: trunc(total), else: total
+    format_float(total)
   end
 
   defp composition_total(:avg, components) do

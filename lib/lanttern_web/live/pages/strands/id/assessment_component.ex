@@ -5,13 +5,13 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
   alias Lanttern.Assessments.AssessmentPoint
   alias Lanttern.LearningContext
 
-  import Lanttern.Utils, only: [reorder: 3]
+  import Lanttern.Utils, only: [format_float: 1, reorder: 3]
 
   # shared components
   alias LantternWeb.AssessmentComposition.AssessmentPointCompositionOverlayComponent
   alias LantternWeb.Assessments.AssessmentPointFormOverlayComponent
 
-  @ap_preloads [:scale, :lesson, curriculum_item: :curriculum_component]
+  @ap_preloads [:lesson, scale: :ordinal_values, curriculum_item: :curriculum_component]
 
   @impl true
   def render(assigns) do
@@ -265,117 +265,167 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
   defp assessment_point_card(assigns) do
     ~H"""
     <.draggable_card id={@id} class={@class}>
-      <div class="py-4 space-y-4">
-        <button
-          type="button"
-          phx-click={@on_edit}
-          class="flex-1 font-bold text-left text-ltrn-darkest hover:text-ltrn-subtle"
-        >
-          {if @assessment_point.moment_id,
-            do: @assessment_point.name,
-            else:
-              "(#{@assessment_point.curriculum_item.curriculum_component.name}) #{@assessment_point.curriculum_item.name}"}
-        </button>
+      <div class="flex items-center gap-4 py-4">
+        <div class="flex-1 space-y-4">
+          <button
+            type="button"
+            phx-click={@on_edit}
+            class="flex-1 font-bold text-left text-ltrn-darkest hover:text-ltrn-subtle"
+          >
+            {if @assessment_point.moment_id,
+              do: @assessment_point.name,
+              else:
+                "(#{@assessment_point.curriculum_item.curriculum_component.name}) #{@assessment_point.curriculum_item.name}"}
+          </button>
 
-        <.markdown
-          :if={@assessment_point.report_info}
-          text={@assessment_point.report_info}
-          class="line-clamp-2"
-        />
-        <div class="flex items-center gap-2">
-          <div :if={is_nil(@assessment_point.composition_type)} class="relative">
-            <.button
-              type="button"
-              size="xs"
-              id={"#{@id}-composition-button"}
-            >
-              {gettext("Add composition")}
-            </.button>
-            <.dropdown_menu
-              id={"#{@id}-composition-menu"}
-              button_id={"#{@id}-composition-button"}
-            >
-              <:instructions>
-                {gettext("Create composition using")}
-              </:instructions>
-              <:item
-                on_click={
-                  JS.push("add_composition",
-                    value: %{"assessment_point_id" => @assessment_point.id, "type" => "avg"},
+          <.markdown
+            :if={@assessment_point.report_info}
+            text={@assessment_point.report_info}
+            class="line-clamp-2"
+          />
+          <div class="flex items-center gap-2">
+            <div :if={is_nil(@assessment_point.composition_type)} class="relative">
+              <.button
+                type="button"
+                size="xs"
+                id={"#{@id}-composition-button"}
+              >
+                {gettext("Add composition")}
+              </.button>
+              <.dropdown_menu
+                id={"#{@id}-composition-menu"}
+                button_id={"#{@id}-composition-button"}
+              >
+                <:instructions>
+                  {gettext("Create composition using")}
+                </:instructions>
+                <:item
+                  on_click={
+                    JS.push("add_composition",
+                      value: %{"assessment_point_id" => @assessment_point.id, "type" => "avg"},
+                      target: @myself
+                    )
+                  }
+                  text={gettext("Average")}
+                />
+                <:item
+                  on_click={
+                    JS.push("add_composition",
+                      value: %{"assessment_point_id" => @assessment_point.id, "type" => "sum"},
+                      target: @myself
+                    )
+                  }
+                  text={gettext("Sum")}
+                />
+              </.dropdown_menu>
+            </div>
+            <div :if={@assessment_point.composition_type} class="relative">
+              <.button
+                type="button"
+                size="xs"
+                theme="primary"
+                icon_name={
+                  if @assessment_point.composition_type == :sum,
+                    do: "hero-plus-micro",
+                    else: "hero-divide-micro"
+                }
+                phx-click={
+                  JS.push("open_composition",
+                    value: %{id: @assessment_point.id},
                     target: @myself
                   )
                 }
-                text={gettext("Average")}
-              />
-              <:item
-                on_click={
-                  JS.push("add_composition",
-                    value: %{"assessment_point_id" => @assessment_point.id, "type" => "sum"},
-                    target: @myself
-                  )
-                }
-                text={gettext("Sum")}
-              />
-            </.dropdown_menu>
+              >
+                {if @assessment_point.composition_type == :sum,
+                  do: gettext("Sum"),
+                  else: gettext("Average")}
+              </.button>
+              <.tooltip id={"ap-#{@assessment_point.id}-composition-tooltip"}>
+                {gettext("Uses grade composition")}
+              </.tooltip>
+            </div>
+            <div :if={@assessment_point.rubric_id}>
+              <.icon name="hero-view-columns" />
+              <.tooltip id={"ap-#{@assessment_point.id}-rubric-tooltip"}>
+                {gettext("Uses rubric in assessment")}
+              </.tooltip>
+            </div>
+            <.badge :if={@assessment_point.is_differentiation} theme="diff" class="shrink-0">
+              {gettext("Differentiation")}
+            </.badge>
+            <%!-- render curriculum only for moment assessment poiint --%>
+            <div :if={@assessment_point.moment_id} class="flex-1 min-w-0">
+              <p class="max-w-sm font-sans text-sm text-ltrn-subtle truncate">
+                {@assessment_point.curriculum_item.name}
+              </p>
+              <.tooltip id={"ap-#{@assessment_point.id}-curriculum-tooltip"}>
+                ({@assessment_point.curriculum_item.curriculum_component.name}) {@assessment_point.curriculum_item.name}
+              </.tooltip>
+            </div>
           </div>
-          <div :if={@assessment_point.composition_type} class="relative">
-            <.button
-              type="button"
-              size="xs"
-              theme="primary"
-              icon_name={
-                if @assessment_point.composition_type == :sum,
-                  do: "hero-plus-micro",
-                  else: "hero-divide-micro"
-              }
-              phx-click={
-                JS.push("open_composition",
-                  value: %{id: @assessment_point.id},
-                  target: @myself
-                )
-              }
-            >
-              {if @assessment_point.composition_type == :sum,
-                do: gettext("Sum"),
-                else: gettext("Average")}
-            </.button>
-            <.tooltip id={"ap-#{@assessment_point.id}-composition-tooltip"}>
-              {gettext("Uses grade composition")}
-            </.tooltip>
-          </div>
-          <div :if={@assessment_point.rubric_id}>
-            <.icon name="hero-view-columns" />
-            <.tooltip id={"ap-#{@assessment_point.id}-rubric-tooltip"}>
-              {gettext("Uses rubric in assessment")}
-            </.tooltip>
-          </div>
-          <.badge :if={@assessment_point.is_differentiation} theme="diff" class="shrink-0">
-            {gettext("Differentiation")}
-          </.badge>
-          <.badge class="shrink-0">{@assessment_point.scale.name}</.badge>
-          <%!-- render curriculum only for moment assessment poiint --%>
-          <div :if={@assessment_point.moment_id} class="flex-1 min-w-0">
-            <p class="max-w-sm font-sans text-sm text-ltrn-subtle truncate">
-              {@assessment_point.curriculum_item.name}
-            </p>
-            <.tooltip id={"ap-#{@assessment_point.id}-curriculum-tooltip"}>
-              ({@assessment_point.curriculum_item.curriculum_component.name}) {@assessment_point.curriculum_item.name}
-            </.tooltip>
-          </div>
+          <.link
+            :if={@assessment_point.lesson}
+            navigate={~p"/strands/lesson/#{@assessment_point.lesson}"}
+            class="flex items-center gap-2 font-sans text-sm text-ltrn-subtle hover:text-ltrn-dark"
+          >
+            <.icon name="hero-link-mini" />
+            {gettext("Lesson:")}
+            <span>{@assessment_point.lesson.name}</span>
+          </.link>
         </div>
-        <.link
-          :if={@assessment_point.lesson}
-          navigate={~p"/strands/lesson/#{@assessment_point.lesson}"}
-          class="flex items-center gap-2 font-sans text-sm text-ltrn-subtle hover:text-ltrn-dark"
-        >
-          <.icon name="hero-link-mini" />
-          {gettext("Lesson:")}
-          <span>{@assessment_point.lesson.name}</span>
-        </.link>
+        <%= if @assessment_point.scale.type == "numeric" do %>
+          <div class="shrink-0 text-lg text-ltrn-subtle tabular-nums">
+            {format_float(@assessment_point.scale.max_score)}
+          </div>
+        <% else %>
+          <.ordinal_scale_range scale={@assessment_point.scale} id={"ap-#{@assessment_point.id}"} />
+        <% end %>
       </div>
     </.draggable_card>
     """
   end
+
+  defp ordinal_scale_range(%{scale: %{ordinal_values: []}} = assigns) do
+    ~H"""
+    —
+    """
+  end
+
+  defp ordinal_scale_range(%{scale: %{ordinal_values: [_only]}} = assigns) do
+    ~H"""
+    <div class="flex items-center gap-1">
+      <.badge class="shrink-0" color_map={hd(@scale.ordinal_values)}>
+        {ov_short(hd(@scale.ordinal_values))}
+      </.badge>
+      <.tooltip id={"#{@id}-scale-tooltip"}>
+        {@scale.name}: {ov_list_label(@scale.ordinal_values)}
+      </.tooltip>
+    </div>
+    """
+  end
+
+  defp ordinal_scale_range(assigns) do
+    ~H"""
+    <div class="flex items-center gap-1">
+      <.badge class="shrink-0" color_map={hd(@scale.ordinal_values)}>
+        {ov_short(hd(@scale.ordinal_values))}
+      </.badge>
+      —
+      <.badge class="shrink-0" color_map={List.last(@scale.ordinal_values)}>
+        {ov_short(List.last(@scale.ordinal_values))}
+      </.badge>
+      <.tooltip id={"#{@id}-scale-tooltip"}>
+        {@scale.name}: {ov_list_label(@scale.ordinal_values)}
+      </.tooltip>
+    </div>
+    """
+  end
+
+  defp ov_short(%{short_name: short_name, name: name}),
+    do: short_name || String.slice(name, 0..2)
+
+  defp ov_list_label(ordinal_values),
+    do: Enum.map_join(ordinal_values, ", ", & &1.name)
 
   # lifecycle
 
