@@ -170,7 +170,7 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
       name={@field.name}
       type="number"
       phx-debounce="1000"
-      value={@field.value}
+      value={format_score_input_value(@field.value)}
       errors={@field.errors}
       style={@style}
       class={[
@@ -231,7 +231,7 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
         class="flex items-center justify-center h-full p-2 rounded-xs font-mono text-sm bg-white shadow-lg"
         style={@style}
       >
-        {@value}
+        {Lanttern.Utils.format_float(@value)}
       </div>
     <% else %>
       <.empty entry={@entry} />
@@ -386,6 +386,9 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
     |> assign(:student_ov_name, student_ov_name)
     |> assign(:student_ov_style, student_ov_style)
   end
+
+  defp format_score_input_value(value) when is_float(value), do: Lanttern.Utils.format_float(value)
+  defp format_score_input_value(value), do: value
 
   defp numeric_style(nil, _score), do: nil
   defp numeric_style(_scale, nil), do: nil
