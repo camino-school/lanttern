@@ -493,6 +493,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
     ~H"""
     <div
       id={@id}
+      data-grid-row
       class="grid grid-cols-subgrid"
       style={"grid-column: span #{length(@entries) + 1} / span #{length(@entries) + 1}"}
     >
@@ -504,7 +505,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
           navigate={~p"/school/students/#{@student}"}
         />
       </div>
-      <div :for={entry <- @entries} class="p-2">
+      <div :for={entry <- @entries} data-grid-cell class="p-2">
         <.live_component
           module={EntryCellComponent}
           current_scope={@current_scope}
@@ -668,10 +669,10 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
           "repeat(#{assessment_points_count}, 12rem)"
 
         %{moment_id: moment_id} when moment_id != nil ->
-          "repeat(#{assessment_points_count}, 15rem)"
+          "repeat(#{assessment_points_count}, 12rem)"
 
         _ ->
-          "repeat(#{assessment_points_count}, 15rem)"
+          "repeat(#{assessment_points_count}, 12rem)"
       end
 
     socket

@@ -35,8 +35,17 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class={["w-full h-full", @grid_class, @class]}>
+    <div
+      id={"cell-#{@id}"}
+      class={["relative w-full h-full", @grid_class, @class]}
+      tabindex={if @form, do: "0"}
+      phx-hook={if @form, do: "EntryCell"}
+      data-scale-type={if @form, do: @entry.scale_type}
+    >
       <%= if @form do %>
+        <.tooltip id={"cell-#{@id}-tooltip"}>
+          {gettext("Ctrl (⌘) + D view details")}
+        </.tooltip>
         <div class="flex items-center gap-2 w-full h-full">
           <.form
             for={@form}
@@ -58,16 +67,17 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
           </.form>
           <button
             type="button"
+            tabindex="-1"
             class={[
-              "flex items-center justify-center shrink-0 p-1 rounded-full text-ltrn-light bg-white shadow-sm hover:bg-ltrn-lightest",
+              "flex flex-col shrink-0 rounded-full text-ltrn-light hover:bg-ltrn-lightest",
               "disabled:bg-ltrn-lighter disabled:shadow-none"
             ]}
             phx-click="view_details"
             phx-target={@myself}
           >
-            <.icon name="hero-chat-bubble-oval-left-micro" class={["w-4 h-4", @note_icon_class]} />
-            <.icon name="hero-paper-clip-micro" class={["w-4 h-4", @evidences_icon_class]} />
-            <.icon name="hero-view-columns-micro" class={["w-4 h-4", @diff_rubric_icon_class]} />
+            <.icon name="hero-chat-bubble-oval-left-micro" class={["size-3", @note_icon_class]} />
+            <.icon name="hero-paper-clip-micro" class={["size-3", @evidences_icon_class]} />
+            <.icon name="hero-view-columns-micro" class={["size-3", @diff_rubric_icon_class]} />
           </button>
         </div>
       <% else %>
