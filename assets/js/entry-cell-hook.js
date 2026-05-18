@@ -93,6 +93,11 @@ const EntryCellHook = {
         this._enterInput();
         return;
       }
+      if (e.key === "Delete" || e.key === "Backspace") {
+        e.preventDefault();
+        this._clearAndEnterInput();
+        return;
+      }
       if (/^[0-9]$/.test(e.key) && this.el.dataset.scaleType === "numeric") {
         e.preventDefault();
         this._enterInput(e.key);
@@ -217,6 +222,13 @@ const EntryCellHook = {
     if (this._inner.tagName === "SELECT") {
       this._inner.click();
     }
+  },
+
+  _clearAndEnterInput() {
+    if (!this._inner) return;
+    this._inner.value = "";
+    this._inner.dispatchEvent(new Event("input", { bubbles: true }));
+    this._enterInput();
   },
 
   _exitInput(refocusCell) {

@@ -37,15 +37,17 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
     ~H"""
     <div
       id={"cell-#{@id}"}
-      class={["relative w-full h-full", @grid_class, @class]}
+      class={[
+        "relative w-full h-full",
+        @form && "focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-ltrn-subtle",
+        @grid_class,
+        @class
+      ]}
       tabindex={if @form, do: "0"}
       phx-hook={if @form, do: "EntryCell"}
       data-scale-type={if @form, do: @entry.scale_type}
     >
       <%= if @form do %>
-        <.tooltip id={"cell-#{@id}-tooltip"}>
-          {gettext("Ctrl (⌘) + D view details")}
-        </.tooltip>
         <div class="flex items-center gap-2 w-full h-full">
           <.form
             for={@form}
@@ -78,6 +80,14 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
             <.icon name="hero-chat-bubble-oval-left-micro" class={["size-3", @note_icon_class]} />
             <.icon name="hero-paper-clip-micro" class={["size-3", @evidences_icon_class]} />
             <.icon name="hero-view-columns-micro" class={["size-3", @diff_rubric_icon_class]} />
+            <.tooltip
+              :if={@entry_note || @entry.has_evidences || @entry.differentiation_rubric_id}
+              id={"cell-#{@id}-details-tooltip"}
+            >
+              <p :if={@entry_note}>{gettext("Has teacher comment")}</p>
+              <p :if={@entry.has_evidences}>{gettext("Has attachment")}</p>
+              <p :if={@entry.differentiation_rubric_id}>{gettext("Has differentiation rubric")}</p>
+            </.tooltip>
           </button>
         </div>
       <% else %>
