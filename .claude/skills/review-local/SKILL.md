@@ -33,11 +33,10 @@ git fetch origin <baseBranch>
 
 ### Step 3 — Build diff context
 
+Run the shared diff script (outputs full diff, file list, stat, and log):
+
 ```
-git diff origin/<baseBranch>...<headBranch>
-git diff origin/<baseBranch>...<headBranch> --name-only
-git diff origin/<baseBranch>...<headBranch> --stat -- 'lib/**'
-git log origin/<baseBranch>..<headBranch> --oneline
+bash .claude/skills/scripts/diff-context.sh origin/<baseBranch> <headBranch>
 ```
 
 ### Step 4 — GitHub issues context (if provided)
