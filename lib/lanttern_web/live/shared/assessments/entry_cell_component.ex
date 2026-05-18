@@ -39,7 +39,7 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
       id={"cell-#{@id}"}
       class={[
         "relative w-full h-full",
-        @form && "focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-ltrn-subtle",
+        @form && "focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-ltrn-dark",
         @grid_class,
         @class
       ]}
@@ -116,18 +116,51 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
   attr :style, :string
 
   def marking_input(%{scale_type: "ordinal"} = assigns) do
+    current_label =
+      Enum.find_value(assigns.ov_options, fn {label, val} ->
+        to_string(val) == to_string(assigns.field.value) && label
+      end)
+
+    assigns = assign(assigns, :current_label, current_label)
+
     ~H"""
-    <.select
-      name={@field.name}
-      prompt="—"
-      options={@ov_options}
-      value={@field.value}
-      class={[
-        "w-full h-full rounded-xs font-mono text-sm text-center truncate text-clip",
-        @field.value in [nil, ""] && "bg-ltrn-lighter"
-      ]}
-      style={@style}
-    />
+    <div class="relative w-full h-full">
+      <input type="hidden" id={@field.id} name={@field.name} value={@field.value || ""} />
+      <div
+        class={[
+          "flex items-center justify-center w-full h-full rounded-xs font-mono text-sm truncate px-1",
+          is_nil(@current_label) && "bg-ltrn-lighter"
+        ]}
+        style={if @current_label, do: @style}
+      >
+        <span class={[is_nil(@current_label) && "text-ltrn-subtle"]}>
+          {@current_label || "—"}
+        </span>
+      </div>
+      <ul
+        class="hidden absolute z-30 left-0 top-full mt-0.5 min-w-max rounded-sm shadow-md bg-white ring-1 ring-ltrn-lighter overflow-y-auto max-h-48"
+        role="listbox"
+        data-ordinal-list
+      >
+        <li
+          class="px-3 py-1.5 font-mono text-sm cursor-pointer text-ltrn-subtle hover:bg-ltrn-lightest data-[active=true]:bg-ltrn-lightest"
+          role="option"
+          data-ordinal-item
+          data-value=""
+        >
+          {gettext("None")}
+        </li>
+        <li
+          :for={{label, value} <- @ov_options}
+          class="px-3 py-1.5 font-mono text-sm cursor-pointer hover:bg-ltrn-lightest data-[active=true]:bg-ltrn-lightest"
+          role="option"
+          data-ordinal-item
+          data-value={value}
+        >
+          {label}
+        </li>
+      </ul>
+    </div>
     """
   end
 
