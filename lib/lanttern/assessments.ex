@@ -775,6 +775,17 @@ defmodule Lanttern.Assessments do
     )
   end
 
+  @spec list_strand_assessment_point_ids(pos_integer()) :: [pos_integer()]
+  def list_strand_assessment_point_ids(strand_id) do
+    from(
+      ap in AssessmentPoint,
+      left_join: m in assoc(ap, :moment),
+      where: ap.strand_id == ^strand_id or m.strand_id == ^strand_id,
+      select: ap.id
+    )
+    |> Repo.all()
+  end
+
   @doc """
   Returns the list of assessment point entries for every student in the given strand.
 

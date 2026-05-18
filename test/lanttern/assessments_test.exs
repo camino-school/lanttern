@@ -1364,6 +1364,36 @@ defmodule Lanttern.AssessmentsTest do
       assert expected_s_ap_3_ci_3.curriculum_item.curriculum_component.id == cc.id
     end
 
+    test "list_strand_assessment_point_ids/1 returns ids of all strand and moment assessment points",
+         %{
+           strand: strand,
+           s_ap_1_ci_1: s_ap_1_ci_1,
+           s_ap_2_ci_2: s_ap_2_ci_2,
+           s_ap_3_ci_3: s_ap_3_ci_3,
+           m_1_ap_1_ci_1: m_1_ap_1_ci_1,
+           m_1_ap_2_ci_2: m_1_ap_2_ci_2,
+           m_2_ap_1_ci_2: m_2_ap_1_ci_2
+         } do
+      result = Assessments.list_strand_assessment_point_ids(strand.id)
+
+      assert s_ap_1_ci_1.id in result
+      assert s_ap_2_ci_2.id in result
+      assert s_ap_3_ci_3.id in result
+      assert m_1_ap_1_ci_1.id in result
+      assert m_1_ap_2_ci_2.id in result
+      assert m_2_ap_1_ci_2.id in result
+      assert length(result) == 6
+    end
+
+    test "list_strand_assessment_point_ids/1 does not return assessment points from other strands",
+         %{strand: strand} do
+      other_ap = insert(:assessment_point)
+
+      result = Assessments.list_strand_assessment_point_ids(strand.id)
+
+      refute other_ap.id in result
+    end
+
     test "create_assessment_point/2 with valid data creates an assessment point linked to a strand" do
       strand = LearningContextFixtures.strand_fixture()
       curriculum_item = insert(:curriculum_item)

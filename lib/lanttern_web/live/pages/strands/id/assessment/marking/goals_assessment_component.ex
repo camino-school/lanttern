@@ -5,7 +5,6 @@ defmodule LantternWeb.MarkingLive.GoalsAssessmentComponent do
     only: [assign_user_filters: 2]
 
   alias Lanttern.Assessments
-  alias Lanttern.Curricula
   alias Lanttern.Filters
 
   # shared components
@@ -153,23 +152,23 @@ defmodule LantternWeb.MarkingLive.GoalsAssessmentComponent do
   defp initialize(%{assigns: %{initialized: false}} = socket) do
     socket
     |> assign_user_filters([:assessment_view, :assessment_group_by])
-    |> assign_goals_ids()
+    |> assign_assessment_points_ids()
     |> assign(:initialized, true)
   end
 
   defp initialize(socket), do: socket
 
-  defp assign_goals_ids(socket) do
-    goals_ids =
-      Curricula.list_strand_curriculum_items(socket.assigns.strand.id)
-      |> Enum.map(&"#{&1.assessment_point_id}")
+  defp assign_assessment_points_ids(socket) do
+    assessment_points_ids =
+      Assessments.list_strand_assessment_point_ids(socket.assigns.strand.id)
+      |> Enum.map(&"#{&1}")
 
     socket
-    |> assign(:goals_ids, goals_ids)
+    |> assign(:assessment_points_ids, assessment_points_ids)
   end
 
   defp assign_goal(%{assigns: %{params: %{"edit_assessment_point" => id}}} = socket) do
-    if id in socket.assigns.goals_ids do
+    if id in socket.assigns.assessment_points_ids do
       goal = Assessments.get_assessment_point(id)
       assign(socket, :goal, goal)
     else

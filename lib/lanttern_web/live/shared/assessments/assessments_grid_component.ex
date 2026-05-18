@@ -334,7 +334,10 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
       )
       when not is_nil(moment_id) do
     ~H"""
-    <div class="flex flex-col">
+    <.link
+      patch={"?edit_assessment_point=#{@assessment_point.id}"}
+      class="flex flex-col p-1 rounded-sm hover:bg-ltrn-lightest"
+    >
       <div :if={@assessment_point.is_differentiation} class="mb-1">
         <.badge theme="diff">{gettext("Diff")}</.badge>
       </div>
@@ -358,7 +361,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
           class="mt-2"
         />
       </.tooltip>
-    </div>
+    </.link>
     """
   end
 
@@ -509,7 +512,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
           class="w-full h-full"
           entry={entry}
           view={@current_assessment_view}
-          allow_edit={@is_moment || entry.is_strand_entry}
+          allow_edit={true}
           notify_component={@myself}
         />
       </div>
@@ -668,11 +671,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
           "repeat(#{assessment_points_count}, 15rem)"
 
         _ ->
-          assessment_points
-          |> Enum.map_join(" ", fn
-            %{strand_id: id} when not is_nil(id) -> "15rem"
-            _ -> "6rem"
-          end)
+          "repeat(#{assessment_points_count}, 15rem)"
       end
 
     socket
