@@ -143,16 +143,21 @@ Use the versioned `AGENTS.md` as reference for setting your own LLM agent instru
 ### Claude skills usage
 
 ```
-/commit                          # creates commit message (based on staged) and commits
+# Committing & shipping
+/commit                               # craft commit message from staged diff and commit
+/open-pr main                         # pre-flight checks then open a PR against main
 
-/open-pr main                    # run precommit checks and creates the PR
+# Testing
+/add-tests                            # infer target from git diff and add missing tests
+/add-tests lib/lanttern/foo.ex        # add/fill tests for a specific module
 
-/review-local                          # diff current branch vs main
-/review-local develop                  # diff vs develop
-/review-local --issues #12,#34         # with issue context
-/review-local develop --issues 12      # both
+# Code review
+/review-local                         # diff current branch vs main
+/review-local develop                 # diff vs develop
+/review-local --issues #12,#34        # with linked issue context
+/review-local develop --issues 12     # branch + issues
 
-/pr-review 123                   # GitHub PR (issues auto-detected from PR)
+/pr-review 123                        # review a GitHub PR (issues auto-detected from PR)
 ```
 
 ## Restoring a PostgreSQL Backup
