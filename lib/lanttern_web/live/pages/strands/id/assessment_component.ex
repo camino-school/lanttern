@@ -3,6 +3,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
 
   alias Lanttern.Assessments
   alias Lanttern.Assessments.AssessmentPoint
+  alias Lanttern.Curricula
   alias Lanttern.LearningContext
 
   import Lanttern.Utils, only: [format_float: 1, reorder: 3]
@@ -228,9 +229,8 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
         notify_component={@myself}
         title={@assessment_point_overlay_title}
         on_cancel={JS.push("close_assessment_point_form", target: @myself)}
-        curriculum_from_strand_id={
-          # do not use curriculum from strand when creating a strand goal
-          if @assessment_point.strand_id, do: nil, else: @strand.id
+        initial_curriculum_results={
+          if @assessment_point.strand_id, do: [], else: @strand_curriculum_items
         }
       />
       <.live_component
@@ -541,10 +541,21 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
   defp initialize(%{assigns: %{initialized: false}} = socket) do
     socket
     |> load_moments_and_assessment_points()
+    |> assign_strand_curriculum_items()
     |> assign(:initialized, true)
   end
 
   defp initialize(socket), do: socket
+
+  defp assign_strand_curriculum_items(socket) do
+    items =
+      Curricula.list_strand_curriculum_items(
+        socket.assigns.strand.id,
+        preloads: :curriculum_component
+      )
+
+    assign(socket, :strand_curriculum_items, items)
+  end
 
   defp load_moments_and_assessment_points(socket) do
     strand = socket.assigns.strand

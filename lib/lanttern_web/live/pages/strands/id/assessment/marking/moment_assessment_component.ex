@@ -3,6 +3,7 @@ defmodule LantternWeb.MarkingLive.MomentAssessmentComponent do
 
   alias Lanttern.Assessments
   alias Lanttern.Assessments.AssessmentPoint
+  alias Lanttern.Curricula
   alias Lanttern.Filters
 
   import LantternWeb.FiltersHelpers,
@@ -89,7 +90,7 @@ defmodule LantternWeb.MarkingLive.MomentAssessmentComponent do
         assessment_point={@assessment_point}
         title={gettext("Assessment Point")}
         on_cancel={JS.patch(~p"/strands/#{@strand}/assessment/marking/moment/#{@moment}")}
-        curriculum_from_strand_id={@moment.strand_id}
+        initial_curriculum_results={@strand_curriculum_items}
       />
     </div>
     """
@@ -157,10 +158,21 @@ defmodule LantternWeb.MarkingLive.MomentAssessmentComponent do
     socket
     |> assign_user_filters([:assessment_view, :assessment_group_by])
     |> assign_sortable_assessment_points()
+    |> assign_strand_curriculum_items()
     |> assign(:initialized, true)
   end
 
   defp initialize(socket), do: socket
+
+  defp assign_strand_curriculum_items(socket) do
+    items =
+      Curricula.list_strand_curriculum_items(
+        socket.assigns.moment.strand_id,
+        preloads: :curriculum_component
+      )
+
+    assign(socket, :strand_curriculum_items, items)
+  end
 
   defp assign_assessment_point(
          %{assigns: %{params: %{"new_assessment_point" => "true"}}} = socket

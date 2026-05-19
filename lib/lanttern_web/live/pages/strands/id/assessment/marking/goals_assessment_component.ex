@@ -5,6 +5,7 @@ defmodule LantternWeb.MarkingLive.GoalsAssessmentComponent do
     only: [assign_user_filters: 2]
 
   alias Lanttern.Assessments
+  alias Lanttern.Curricula
   alias Lanttern.Filters
 
   # shared components
@@ -93,6 +94,7 @@ defmodule LantternWeb.MarkingLive.GoalsAssessmentComponent do
         notify_component={@myself}
         assessment_point={@goal}
         title={gettext("Strand goal")}
+        initial_curriculum_results={@strand_curriculum_items}
         on_cancel={JS.patch(~p"/strands/#{@strand}/assessment/marking")}
       />
     </div>
@@ -153,10 +155,21 @@ defmodule LantternWeb.MarkingLive.GoalsAssessmentComponent do
     socket
     |> assign_user_filters([:assessment_view, :assessment_group_by])
     |> assign_assessment_points_ids()
+    |> assign_strand_curriculum_items()
     |> assign(:initialized, true)
   end
 
   defp initialize(socket), do: socket
+
+  defp assign_strand_curriculum_items(socket) do
+    items =
+      Curricula.list_strand_curriculum_items(
+        socket.assigns.strand.id,
+        preloads: :curriculum_component
+      )
+
+    assign(socket, :strand_curriculum_items, items)
+  end
 
   defp assign_assessment_points_ids(socket) do
     assessment_points_ids =
