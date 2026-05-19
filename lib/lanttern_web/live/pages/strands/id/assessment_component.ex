@@ -121,45 +121,19 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
                 />
               </.dropdown_menu>
             </div>
-            <div class="relative">
-              <.button
-                type="button"
-                id="marking-button"
-                icon_name="hero-pencil-square-mini"
-              >
-                {gettext("Marking")}
-              </.button>
-              <.dropdown_menu
-                id="marking-menu"
-                button_id="marking-button"
-              >
-                <:item
-                  :for={moment <- @moments}
-                  type="link"
-                  navigate={~p"/strands/#{@strand}/assessment/marking/moment/#{moment}"}
-                  text={moment.name}
-                />
-                <:item
-                  type="link"
-                  navigate={~p"/strands/#{@strand}/assessment/marking"}
-                  text={gettext("Strand goals")}
-                />
-              </.dropdown_menu>
-            </div>
+            <.button
+              type="link"
+              id="marking-button"
+              icon_name="hero-pencil-square-mini"
+              navigate={~p"/strands/#{@strand}/assessment/marking"}
+            >
+              {gettext("Marking")}
+            </.button>
           </div>
           <div class="mt-6 space-y-10">
             <%= for moment <- @moments do %>
               <div id={"moment-#{moment.id}-ap-group"}>
-                <div class="flex items-center justify-between gap-4">
-                  <h4 class="font-display font-bold text-lg">{moment.name}</h4>
-                  <.button
-                    type="link"
-                    theme="ghost"
-                    icon_name="hero-pencil-square-mini"
-                    navigate={~p"/strands/#{@strand}/assessment/marking/moment/#{moment}"}
-                    sr_text={gettext("Marking")}
-                  />
-                </div>
+                <h4 class="font-display font-bold text-lg">{moment.name}</h4>
                 <div
                   id={"moment-#{moment.id}-sortable-aps"}
                   phx-hook="Sortable"
@@ -188,16 +162,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
               </div>
             <% end %>
             <div id="strand-ap-group">
-              <div class="flex items-center justify-between gap-4 mb-4">
-                <h4 class="font-display font-bold text-lg">{gettext("Goals assessment")}</h4>
-                <.button
-                  type="link"
-                  theme="ghost"
-                  icon_name="hero-pencil-square-mini"
-                  navigate={~p"/strands/#{@strand}/assessment/marking"}
-                  sr_text={gettext("Marking")}
-                />
-              </div>
+              <h4 class="mb-4 font-display font-bold text-lg">{gettext("Goals assessment")}</h4>
               <div
                 id="strand-sortable-aps"
                 phx-hook="Sortable"

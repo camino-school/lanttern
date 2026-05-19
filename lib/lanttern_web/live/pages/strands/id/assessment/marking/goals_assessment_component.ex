@@ -18,35 +18,6 @@ defmodule LantternWeb.MarkingLive.GoalsAssessmentComponent do
     ~H"""
     <div>
       <div class="flex items-center justify-center gap-4 px-4 mb-4">
-        <div class="relative">
-          <.button
-            type="button"
-            id="moment-dropdown-button"
-            size="sm"
-            icon_name="hero-bars-3-micro"
-          >
-            {gettext("Strand goals")}
-          </.button>
-          <.dropdown_menu
-            id="moment-dropdown"
-            button_id="moment-dropdown-button"
-            z_index="30"
-          >
-            <:item
-              :for={moment <- @moments}
-              type="link"
-              navigate={~p"/strands/#{@strand}/assessment/marking/moment/#{moment}"}
-              text={moment.name}
-            />
-            <:item
-              type="link"
-              navigate={~p"/strands/#{@strand}/assessment/marking"}
-              text={gettext("Strand goals")}
-              is_active
-            />
-          </.dropdown_menu>
-        </div>
-
         <.button
           type="button"
           phx-click={JS.exec("data-show", to: "#strand-classes-filter-modal")}

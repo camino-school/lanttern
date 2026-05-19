@@ -39,25 +39,6 @@
     module={GoalsAssessmentComponent}
     id="strand-assessment"
     strand={@strand}
-    moments={@moments}
-    current_user={@current_user}
-    current_scope={@current_scope}
-    selected_classes_text={
-      format_action_items_text(
-        @selected_classes,
-        gettext("No class selected")
-      )
-    }
-    selected_classes_ids={@selected_classes_ids}
-    params={@params}
-  />
-  <.live_component
-    :if={@live_action == :moment_assessment}
-    module={MomentAssessmentComponent}
-    id="moment-assessment"
-    strand={@strand}
-    moments={@moments}
-    moment={@moment}
     current_user={@current_user}
     current_scope={@current_scope}
     selected_classes_text={
@@ -78,5 +59,5 @@
   profile_filter_opts={[strand_id: @strand.id]}
   classes={@classes}
   selected_classes_ids={@selected_classes_ids}
-  navigate={@select_classes_overlay_navigate}
+  navigate={~p"/strands/#{@strand}/assessment/marking"}
 />

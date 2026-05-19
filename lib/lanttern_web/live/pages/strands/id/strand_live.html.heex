@@ -31,33 +31,16 @@
             patch={~p"/strands/#{@strand}/assessment"}
             is_current={@live_action == :assessment}
           >
-            <div class="relative">
-              <.button
-                type="button"
-                size="sm"
-                theme="ghost"
-                icon_name="hero-pencil-square-micro"
-                id="tab-marking-button"
-              >
-                {gettext("Marking")}
-              </.button>
-              <.dropdown_menu
-                id="tab-marking-menu"
-                button_id="tab-marking-button"
-              >
-                <:item
-                  :for={moment <- @strand.moments}
-                  type="link"
-                  navigate={~p"/strands/#{@strand}/assessment/marking/moment/#{moment}"}
-                  text={moment.name}
-                />
-                <:item
-                  type="link"
-                  navigate={~p"/strands/#{@strand}/assessment/marking"}
-                  text={gettext("Strand goals")}
-                />
-              </.dropdown_menu>
-            </div>
+            <.button
+              type="link"
+              size="sm"
+              theme="ghost"
+              icon_name="hero-pencil-square-micro"
+              id="tab-marking-button"
+              navigate={~p"/strands/#{@strand}/assessment/marking"}
+            >
+              {gettext("Marking")}
+            </.button>
           </:tab>
         </.tabs>
         <div class="flex items-center gap-4">
