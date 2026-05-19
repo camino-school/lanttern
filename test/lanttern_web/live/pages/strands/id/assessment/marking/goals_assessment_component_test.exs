@@ -27,7 +27,7 @@ defmodule LantternWeb.MarkingLive.GoalsAssessmentComponentTest do
 
       assert view |> has_element?("button", class.name)
       assert view |> has_element?("div", student.name)
-      assert view |> has_element?("option[selected]", ordinal_value_1.name)
+      assert view |> has_element?("span", ordinal_value_1.name)
     end
 
     test "display student view", %{
@@ -45,7 +45,7 @@ defmodule LantternWeb.MarkingLive.GoalsAssessmentComponentTest do
 
       assert view |> has_element?("button", class.name)
       assert view |> has_element?("div", student.name)
-      assert view |> has_element?("option[selected]", ordinal_value_2.name)
+      assert view |> has_element?("span", ordinal_value_2.name)
     end
 
     test "display compare view", %{

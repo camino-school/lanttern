@@ -315,11 +315,6 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
                 type="button"
                 size="xs"
                 theme="primary"
-                icon_name={
-                  if @assessment_point.composition_type == :sum,
-                    do: "hero-plus-micro",
-                    else: "hero-divide-micro"
-                }
                 phx-click={
                   JS.push("open_composition",
                     value: %{id: @assessment_point.id},
@@ -327,12 +322,12 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
                   )
                 }
               >
-                {if @assessment_point.composition_type == :sum,
-                  do: gettext("Sum"),
-                  else: gettext("Average")}
+                {gettext("Uses composition")}
               </.button>
               <.tooltip id={"ap-#{@assessment_point.id}-composition-tooltip"}>
-                {gettext("Uses grade composition")}
+                {if @assessment_point.composition_type == :sum,
+                  do: gettext("Sum-based"),
+                  else: gettext("Average-based")}
               </.tooltip>
             </div>
             <div :if={@assessment_point.rubric_id}>

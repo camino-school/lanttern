@@ -84,7 +84,7 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
               :if={@entry_note || @entry.has_evidences || @entry.differentiation_rubric_id}
               id={"cell-#{@id}-details-tooltip"}
             >
-              <p :if={@entry_note}>{gettext("Has teacher comment")}</p>
+              <p :if={@entry_note}><.markdown text={@entry_note} size="sm" invert /></p>
               <p :if={@entry.has_evidences}>{gettext("Has attachment")}</p>
               <p :if={@entry.differentiation_rubric_id}>{gettext("Has differentiation rubric")}</p>
             </.tooltip>
@@ -387,7 +387,9 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
     |> assign(:student_ov_style, student_ov_style)
   end
 
-  defp format_score_input_value(value) when is_float(value), do: Lanttern.Utils.format_float(value)
+  defp format_score_input_value(value) when is_float(value),
+    do: Lanttern.Utils.format_float(value)
+
   defp format_score_input_value(value), do: value
 
   defp numeric_style(nil, _score), do: nil
