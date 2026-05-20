@@ -14,15 +14,11 @@ defmodule LantternWeb.MarkingLive.GoalsAssessmentComponentTest do
   describe "Assessment views" do
     test "display teacher view", %{
       conn: conn,
-      user: user,
       strand: strand,
       class: class,
       student: student,
       ordinal_value_1: ordinal_value_1
     } do
-      # setup current user view
-      Filters.set_profile_current_filters(user, %{assessment_view: "teacher"})
-
       {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{strand.id}/assessment/marking")
 
       assert view |> has_element?("button", class.name)
@@ -32,16 +28,16 @@ defmodule LantternWeb.MarkingLive.GoalsAssessmentComponentTest do
 
     test "display student view", %{
       conn: conn,
-      user: user,
       strand: strand,
       class: class,
       student: student,
       ordinal_value_2: ordinal_value_2
     } do
-      # setup current user view
-      Filters.set_profile_current_filters(user, %{assessment_view: "student"})
-
-      {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{strand.id}/assessment/marking")
+      {:ok, view, _html} =
+        live(
+          conn,
+          "#{@live_view_base_path}/#{strand.id}/assessment/marking?assessment_view=student"
+        )
 
       assert view |> has_element?("button", class.name)
       assert view |> has_element?("div", student.name)
@@ -50,17 +46,17 @@ defmodule LantternWeb.MarkingLive.GoalsAssessmentComponentTest do
 
     test "display compare view", %{
       conn: conn,
-      user: user,
       strand: strand,
       class: class,
       student: student,
       ordinal_value_1: ordinal_value_1,
       ordinal_value_2: ordinal_value_2
     } do
-      # setup current user view
-      Filters.set_profile_current_filters(user, %{assessment_view: "compare"})
-
-      {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{strand.id}/assessment/marking")
+      {:ok, view, _html} =
+        live(
+          conn,
+          "#{@live_view_base_path}/#{strand.id}/assessment/marking?assessment_view=compare"
+        )
 
       assert view |> has_element?("button", class.name)
       assert view |> has_element?("div", student.name)

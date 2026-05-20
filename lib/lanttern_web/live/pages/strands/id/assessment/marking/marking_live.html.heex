@@ -33,7 +33,8 @@
       current_assessment_view={@current_assessment_view}
       strand_id={@strand.id}
       classes_ids={@selected_classes_ids}
-      navigate={~p"/strands/#{@strand}/assessment/marking"}
+      url_params={@url_filter_params}
+      navigate={~p"/strands/#{@strand}/assessment/marking?#{@url_filter_params}"}
     />
     <.live_component
       :if={@goal}
@@ -44,7 +45,7 @@
       assessment_point={@goal}
       title={gettext("Strand goal")}
       initial_curriculum_results={@strand_curriculum_items}
-      on_cancel={JS.patch(~p"/strands/#{@strand}/assessment/marking")}
+      on_cancel={JS.patch(~p"/strands/#{@strand}/assessment/marking?#{@url_filter_params}")}
     />
   </div>
 </Layouts.app_logged_in>
@@ -56,5 +57,5 @@
   profile_filter_opts={[strand_id: @strand.id]}
   classes={@classes}
   selected_classes_ids={@selected_classes_ids}
-  navigate={~p"/strands/#{@strand}/assessment/marking"}
+  navigate={~p"/strands/#{@strand}/assessment/marking?#{@url_filter_params}"}
 />

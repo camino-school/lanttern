@@ -36,10 +36,6 @@ defmodule LantternWeb.FiltersHelpers do
   - `:selected_years_ids`
   - `:selected_years`
 
-  ### `:assessment_view assigns
-
-  - `:current_assessment_view`
-
   ### `:student` assigns
 
   - `:selected_student`
@@ -140,20 +136,6 @@ defmodule LantternWeb.FiltersHelpers do
     |> assign(:years, years)
     |> assign(:selected_years_ids, selected_years_ids)
     |> assign(:selected_years, selected_years)
-    |> assign_filter_type(current_user, current_filters, filter_types)
-  end
-
-  defp assign_filter_type(
-         socket,
-         current_user,
-         current_filters,
-         [:assessment_view | filter_types]
-       ) do
-    current_assessment_view =
-      Map.get(current_filters, :assessment_view) || "teacher"
-
-    socket
-    |> assign(:current_assessment_view, current_assessment_view)
     |> assign_filter_type(current_user, current_filters, filter_types)
   end
 
@@ -765,4 +747,34 @@ defmodule LantternWeb.FiltersHelpers do
 
   defp apply_save_profile_filters(current_user, attrs, _),
     do: Filters.set_profile_current_filters(current_user, attrs)
+
+  @valid_assessment_views ["teacher", "student", "compare"]
+  # Grows as more filters migrate from DB-persisted to URL-based
+  @url_filter_keys ["assessment_view"]
+
+  @doc """
+  Assigns URL param-based filter values to socket assigns.
+  The URL-based counterpart to `assign_user_filters/2` — for filters that
+  live in query params rather than persisted profile settings.
+
+  Assigns:
+  - `:current_assessment_view` — defaults to "teacher"
+  """
+  @spec assign_url_filters(Phoenix.LiveView.Socket.t(), map()) :: Phoenix.LiveView.Socket.t()
+  def assign_url_filters(socket, params) do
+    assessment_view =
+      case Map.get(params, "assessment_view") do
+        v when v in @valid_assessment_views -> v
+        _ -> "teacher"
+      end
+
+    assign(socket, :current_assessment_view, assessment_view)
+  end
+
+  @doc """
+  Extracts the URL-based filter params from a params map.
+  Use this to build navigation paths that preserve current filter state.
+  """
+  @spec url_filter_params(map()) :: map()
+  def url_filter_params(params), do: Map.take(params, @url_filter_keys)
 end

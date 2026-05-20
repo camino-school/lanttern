@@ -3,17 +3,19 @@ defmodule LantternWeb.MarkingLive do
 
   alias Lanttern.Assessments
   alias Lanttern.Curricula
-  alias Lanttern.Filters
   alias Lanttern.LearningContext
 
   # shared components
   import LantternWeb.AssessmentsComponents
 
   import LantternWeb.FiltersHelpers,
-    only: [assign_strand_classes_filter: 1, assign_user_filters: 2]
+    only: [assign_strand_classes_filter: 1, assign_url_filters: 2, url_filter_params: 1]
 
   alias LantternWeb.Assessments.AssessmentPointFormOverlayComponent
   alias LantternWeb.Assessments.AssessmentsGridComponent
+
+  # params that come from the route pattern, not the query string
+  @route_params ["id"]
 
   # lifecycle
 
@@ -23,7 +25,6 @@ defmodule LantternWeb.MarkingLive do
       socket
       |> assign_strand(params)
       |> assign_strand_classes_filter()
-      |> assign_user_filters([:assessment_view])
       |> assign_assessment_points_ids()
       |> assign_strand_curriculum_items()
 
@@ -68,9 +69,14 @@ defmodule LantternWeb.MarkingLive do
 
   @impl true
   def handle_params(params, _url, socket) do
+    query_params = Map.drop(params, @route_params)
+
     socket =
       socket
       |> assign(:params, params)
+      |> assign(:query_params, query_params)
+      |> assign_url_filters(query_params)
+      |> assign(:url_filter_params, url_filter_params(query_params))
       |> assign_goal()
 
     {:noreply, socket}
@@ -90,30 +96,15 @@ defmodule LantternWeb.MarkingLive do
   # event handlers
 
   @impl true
-  def handle_event(
-        "change_view",
-        %{"view" => view},
-        %{assigns: %{current_assessment_view: view}} = socket
-      ),
-      do: {:noreply, socket}
-
   def handle_event("change_view", %{"view" => view}, socket) do
-    Filters.set_profile_current_filters(
-      socket.assigns.current_user,
-      %{assessment_view: view}
-    )
-    |> case do
-      {:ok, _} ->
-        socket =
-          socket
-          |> assign(:current_assessment_view, view)
-          |> push_navigate(to: ~p"/strands/#{socket.assigns.strand}/assessment/marking")
+    params = Map.put(socket.assigns.query_params, "assessment_view", view)
 
-        {:noreply, socket}
+    socket =
+      push_patch(socket,
+        to: ~p"/strands/#{socket.assigns.strand}/assessment/marking?#{params}"
+      )
 
-      {:error, _} ->
-        {:noreply, socket}
-    end
+    {:noreply, socket}
   end
 
   # info handlers
@@ -135,7 +126,10 @@ defmodule LantternWeb.MarkingLive do
     socket =
       socket
       |> put_flash(:info, flash_msg)
-      |> push_navigate(to: ~p"/strands/#{socket.assigns.strand}/assessment/marking")
+      |> push_navigate(
+        to:
+          ~p"/strands/#{socket.assigns.strand}/assessment/marking?#{url_filter_params(socket.assigns.query_params)}"
+      )
 
     {:noreply, socket}
   end

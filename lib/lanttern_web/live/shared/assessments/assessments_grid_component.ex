@@ -15,6 +15,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
       attr :strand_id, :integer, doc: "defines a strand grid view"
       attr :class, :any
       attr :navigate, :string, doc: "defines push_navigate target"
+      attr :url_params, :map, doc: "URL-based filter params to preserve in navigation", default: %{}
 
   """
 
@@ -96,6 +97,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
                   id={dom_id}
                   assessment_point={assessment_point}
                   assessment_view={@current_assessment_view}
+                  url_params={@url_params}
                 />
               </div>
             </div>
@@ -221,13 +223,14 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
 
   attr :assessment_point, AssessmentPoint, required: true
   attr :assessment_view, :string, required: true
+  attr :url_params, :map, required: true
   attr :id, :string, required: true
 
   def assessment_point(assigns) do
     ~H"""
     <div id={@id} class="flex flex-col p-2">
       <div class="flex-1">
-        <.assessment_point_struct assessment_point={@assessment_point} />
+        <.assessment_point_struct assessment_point={@assessment_point} url_params={@url_params} />
       </div>
       <.compare_header :if={@assessment_view == "compare"} />
     </div>
@@ -235,6 +238,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
   end
 
   attr :assessment_point, AssessmentPoint, required: true
+  attr :url_params, :map, required: true
 
   def assessment_point_struct(
         %{assessment_point: %{curriculum_item: %CurriculumItem{}, moment_id: moment_id}} = assigns
@@ -242,7 +246,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
       when not is_nil(moment_id) do
     ~H"""
     <.link
-      patch={"?edit_assessment_point=#{@assessment_point.id}"}
+      patch={"?#{URI.encode_query(Map.put(@url_params, "edit_assessment_point", @assessment_point.id))}"}
       class="flex flex-col p-1 rounded-sm hover:bg-ltrn-lightest"
     >
       <div
@@ -286,7 +290,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
       ) do
     ~H"""
     <.link
-      patch={"?edit_assessment_point=#{@assessment_point.id}"}
+      patch={"?#{URI.encode_query(Map.put(@url_params, "edit_assessment_point", @assessment_point.id))}"}
       class="flex flex-col p-1 rounded-sm hover:bg-ltrn-lightest"
     >
       <div class="flex items-center gap-2">
@@ -350,7 +354,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
       when not is_nil(strand_id) do
     ~H"""
     <.link
-      patch={"?edit_assessment_point=#{@assessment_point.id}"}
+      patch={"?#{URI.encode_query(Map.put(@url_params, "edit_assessment_point", @assessment_point.id))}"}
       class="flex flex-col p-1 rounded-sm hover:bg-ltrn-lightest"
     >
       <div class="font-sans whitespace-nowrap overflow-hidden">
@@ -453,6 +457,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
       |> assign(:has_assessment_points, false)
       |> assign(:assessment_points_count, 0)
       |> assign(:assessment_points_columns_grid, "")
+      |> assign(:url_params, %{})
       |> stream_configure(
         :assessment_point_headers,
         dom_id: fn
