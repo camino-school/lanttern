@@ -54,7 +54,7 @@
   id="strand-classes-filter-modal"
   current_user={@current_user}
   title={gettext("Select classes for marking")}
-  profile_filter_opts={[strand_id: @strand.id]}
+  url_based={true}
   classes={@classes}
   selected_classes_ids={@selected_classes_ids}
   navigate={~p"/strands/#{@strand}/assessment/marking?#{@url_filter_params}"}

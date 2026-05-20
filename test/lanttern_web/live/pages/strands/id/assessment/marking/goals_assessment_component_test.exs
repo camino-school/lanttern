@@ -2,7 +2,6 @@ defmodule LantternWeb.MarkingLive.GoalsAssessmentComponentTest do
   use LantternWeb.ConnCase
 
   alias Lanttern.AssessmentsFixtures
-  alias Lanttern.Filters
   alias Lanttern.LearningContextFixtures
   alias Lanttern.SchoolsFixtures
   import Lanttern.Factory
@@ -19,7 +18,11 @@ defmodule LantternWeb.MarkingLive.GoalsAssessmentComponentTest do
       student: student,
       ordinal_value_1: ordinal_value_1
     } do
-      {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{strand.id}/assessment/marking")
+      {:ok, view, _html} =
+        live(
+          conn,
+          "#{@live_view_base_path}/#{strand.id}/assessment/marking?classes_ids=#{class.id}"
+        )
 
       assert view |> has_element?("button", class.name)
       assert view |> has_element?("div", student.name)
@@ -36,7 +39,7 @@ defmodule LantternWeb.MarkingLive.GoalsAssessmentComponentTest do
       {:ok, view, _html} =
         live(
           conn,
-          "#{@live_view_base_path}/#{strand.id}/assessment/marking?assessment_view=student"
+          "#{@live_view_base_path}/#{strand.id}/assessment/marking?classes_ids=#{class.id}&assessment_view=student"
         )
 
       assert view |> has_element?("button", class.name)
@@ -55,7 +58,7 @@ defmodule LantternWeb.MarkingLive.GoalsAssessmentComponentTest do
       {:ok, view, _html} =
         live(
           conn,
-          "#{@live_view_base_path}/#{strand.id}/assessment/marking?assessment_view=compare"
+          "#{@live_view_base_path}/#{strand.id}/assessment/marking?classes_ids=#{class.id}&assessment_view=compare"
         )
 
       assert view |> has_element?("button", class.name)
@@ -92,9 +95,6 @@ defmodule LantternWeb.MarkingLive.GoalsAssessmentComponentTest do
         ordinal_value_id: ordinal_value_1.id,
         student_ordinal_value_id: ordinal_value_2.id
       })
-
-    # setup current user class filter
-    Filters.set_profile_strand_filters(user, strand.id, %{classes_ids: [class.id]})
 
     {:ok,
      strand: strand,

@@ -97,6 +97,7 @@ defmodule LantternWeb.Filters.ClassesFilterOverlayComponent do
       socket
       |> assign(:has_changes, false)
       |> assign(:profile_filter_opts, [])
+      |> assign(:url_based, false)
 
     {:ok, socket}
   end
@@ -166,22 +167,32 @@ defmodule LantternWeb.Filters.ClassesFilterOverlayComponent do
   end
 
   def handle_event("clear_filters", _, socket) do
-    clear_profile_filters(
-      socket.assigns.current_user,
-      [:classes],
-      socket.assigns.profile_filter_opts
-    )
+    if socket.assigns.url_based do
+      send(self(), {__MODULE__, {:apply, []}})
+      {:noreply, socket}
+    else
+      clear_profile_filters(
+        socket.assigns.current_user,
+        [:classes],
+        socket.assigns.profile_filter_opts
+      )
 
-    {:noreply, handle_navigation(socket)}
+      {:noreply, handle_navigation(socket)}
+    end
   end
 
   def handle_event("apply_filters", _, socket) do
-    socket =
-      socket
-      |> save_profile_filters([:classes], socket.assigns.profile_filter_opts)
-      |> assign(:has_changes, false)
-      |> handle_navigation()
+    if socket.assigns.url_based do
+      send(self(), {__MODULE__, {:apply, socket.assigns.selected_classes_ids}})
+      {:noreply, assign(socket, :has_changes, false)}
+    else
+      socket =
+        socket
+        |> save_profile_filters([:classes], socket.assigns.profile_filter_opts)
+        |> assign(:has_changes, false)
+        |> handle_navigation()
 
-    {:noreply, socket}
+      {:noreply, socket}
+    end
   end
 end

@@ -748,9 +748,99 @@ defmodule LantternWeb.FiltersHelpers do
   defp apply_save_profile_filters(current_user, attrs, _),
     do: Filters.set_profile_current_filters(current_user, attrs)
 
+  @doc """
+  Assigns available strand classes to socket without reading selection from the DB.
+
+  Intended for use in `mount/3` when class selection comes from URL params.
+  Call `assign_strand_classes_from_url/2` in `handle_params/3` to set the selection.
+
+  ## Expected assigns in socket
+
+  - `current_user` - used to get school and current cycle information
+  - `strand` with preloaded `years` - used to filter classes
+
+  ## Returned socket assigns
+
+  - `:classes`
+  """
+  @spec assign_strand_available_classes(Phoenix.LiveView.Socket.t()) ::
+          Phoenix.LiveView.Socket.t()
+  def assign_strand_available_classes(socket) do
+    %{
+      current_user: %{
+        current_profile: %{
+          school_id: school_id,
+          current_school_cycle: school_cycle
+        }
+      },
+      strand: %{years: years}
+    } = socket.assigns
+
+    years_ids = Enum.map(years, & &1.id)
+
+    cycles_ids =
+      case school_cycle do
+        %Cycle{} -> [school_cycle.id]
+        _ -> nil
+      end
+
+    classes =
+      Schools.list_classes(
+        schools_ids: [school_id],
+        years_ids: years_ids,
+        cycles_ids: cycles_ids
+      )
+
+    assign(socket, :classes, classes)
+  end
+
+  @doc """
+  Reads the `classes_ids` URL param and assigns selection-related socket values.
+
+  Expects `:classes` to already be assigned (via `assign_strand_available_classes/1`).
+  Handles the case where selected classes fall outside the current cycle by loading
+  them separately and merging into `:classes`.
+
+  ## Returned socket assigns
+
+  - `:classes` (may be extended with out-of-cycle selected classes)
+  - `:selected_classes_ids`
+  - `:selected_classes`
+  """
+  @spec assign_strand_classes_from_url(Phoenix.LiveView.Socket.t(), map()) ::
+          Phoenix.LiveView.Socket.t()
+  def assign_strand_classes_from_url(socket, params) do
+    classes = socket.assigns.classes
+
+    selected_classes_ids =
+      case Map.get(params, "classes_ids") do
+        nil -> []
+        "" -> []
+        ids -> String.split(ids, ",") |> Enum.map(&String.to_integer/1)
+      end
+
+    classes_ids = Enum.map(classes, & &1.id)
+    extra_ids = Enum.filter(selected_classes_ids, &(&1 not in classes_ids))
+
+    extra_classes =
+      if extra_ids != [] do
+        Schools.list_classes(classes_ids: extra_ids)
+      else
+        []
+      end
+
+    all_classes = classes ++ extra_classes
+    selected_classes = Enum.filter(all_classes, &(&1.id in selected_classes_ids))
+
+    socket
+    |> assign(:classes, all_classes)
+    |> assign(:selected_classes_ids, selected_classes_ids)
+    |> assign(:selected_classes, selected_classes)
+  end
+
   @valid_assessment_views ["teacher", "student", "compare"]
   # Grows as more filters migrate from DB-persisted to URL-based
-  @url_filter_keys ["assessment_view"]
+  @url_filter_keys ["assessment_view", "classes_ids"]
 
   @doc """
   Assigns URL param-based filter values to socket assigns.

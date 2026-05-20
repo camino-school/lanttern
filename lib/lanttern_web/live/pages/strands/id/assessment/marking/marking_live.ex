@@ -9,10 +9,16 @@ defmodule LantternWeb.MarkingLive do
   import LantternWeb.AssessmentsComponents
 
   import LantternWeb.FiltersHelpers,
-    only: [assign_strand_classes_filter: 1, assign_url_filters: 2, url_filter_params: 1]
+    only: [
+      assign_strand_available_classes: 1,
+      assign_strand_classes_from_url: 2,
+      assign_url_filters: 2,
+      url_filter_params: 1
+    ]
 
   alias LantternWeb.Assessments.AssessmentPointFormOverlayComponent
   alias LantternWeb.Assessments.AssessmentsGridComponent
+  alias LantternWeb.Filters.ClassesFilterOverlayComponent
 
   # params that come from the route pattern, not the query string
   @route_params ["id"]
@@ -24,7 +30,7 @@ defmodule LantternWeb.MarkingLive do
     socket =
       socket
       |> assign_strand(params)
-      |> assign_strand_classes_filter()
+      |> assign_strand_available_classes()
       |> assign_assessment_points_ids()
       |> assign_strand_curriculum_items()
 
@@ -76,6 +82,7 @@ defmodule LantternWeb.MarkingLive do
       |> assign(:params, params)
       |> assign(:query_params, query_params)
       |> assign_url_filters(query_params)
+      |> assign_strand_classes_from_url(query_params)
       |> assign(:url_filter_params, url_filter_params(query_params))
       |> assign_goal()
 
@@ -110,6 +117,24 @@ defmodule LantternWeb.MarkingLive do
   # info handlers
 
   @impl true
+  def handle_info({ClassesFilterOverlayComponent, {:apply, classes_ids}}, socket) do
+    ids_param = Enum.join(classes_ids, ",")
+
+    params =
+      if ids_param == "" do
+        Map.delete(socket.assigns.query_params, "classes_ids")
+      else
+        Map.put(socket.assigns.query_params, "classes_ids", ids_param)
+      end
+
+    socket =
+      push_navigate(socket,
+        to: ~p"/strands/#{socket.assigns.strand}/assessment/marking?#{params}"
+      )
+
+    {:noreply, socket}
+  end
+
   def handle_info(
         {AssessmentPointFormOverlayComponent, {action, _assessment_point}},
         socket
