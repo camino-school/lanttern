@@ -259,56 +259,6 @@ defmodule LantternWeb.AssessmentsComponents do
   defp assessment_point_entry_display_base_classes,
     do: "flex items-center justify-center p-4 rounded-sm font-sans font-bold text-sm text-center"
 
-  @doc """
-  Renders a dropdown to control the assessment group by option.
-  """
-  attr :current_assessment_group_by, :string, required: true
-
-  attr :on_change, :any,
-    required: true,
-    doc: "expects a function. Will pass `nil`, `\"curriculum\"`, or `\"moment\" as args"
-
-  def assessment_group_by_dropdow(assigns) do
-    text =
-      case assigns.current_assessment_group_by do
-        "curriculum" -> gettext("Show all, grouped by curriculum")
-        "moment" -> gettext("Show all, grouped by moment")
-        _ -> gettext("Show only goals assessments")
-      end
-
-    assigns = assign(assigns, :text, text)
-
-    ~H"""
-    <div class="relative">
-      <.button
-        type="button"
-        id="group-by-dropdown-button"
-        size="sm"
-        icon_name="hero-eye-micro"
-      >
-        {@text}
-      </.button>
-      <.dropdown_menu id="group-by-dropdown" button_id="group-by-dropdown-button" z_index="30">
-        <:item
-          text={gettext("Show only goals assessments")}
-          is_active={is_nil(@current_assessment_group_by)}
-          on_click={@on_change.(nil)}
-        />
-        <:item
-          text={gettext("Show all, grouped by curriculum")}
-          is_active={@current_assessment_group_by == "curriculum"}
-          on_click={@on_change.("curriculum")}
-        />
-        <:item
-          text={gettext("Show all, grouped by moment")}
-          is_active={@current_assessment_group_by == "moment"}
-          on_click={@on_change.("moment")}
-        />
-      </.dropdown_menu>
-    </div>
-    """
-  end
-
   attr :current_assessment_view, :string, required: true
 
   attr :on_change, :any,

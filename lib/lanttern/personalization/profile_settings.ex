@@ -30,7 +30,6 @@ defmodule Lanttern.Personalization.ProfileSettings do
           years_ids: [pos_integer()],
           cycles_ids: [pos_integer()],
           assessment_view: String.t(),
-          assessment_group_by: String.t(),
           student_id: pos_integer(),
           students_ids: [pos_integer()],
           student_tags_ids: [pos_integer()],
@@ -54,7 +53,6 @@ defmodule Lanttern.Personalization.ProfileSettings do
       field :years_ids, {:array, :id}
       field :cycles_ids, {:array, :id}
       field :assessment_view, :string
-      field :assessment_group_by, :string
       field :student_id, :id
       field :students_ids, {:array, :id}
       field :student_tags_ids, {:array, :id}
@@ -93,7 +91,6 @@ defmodule Lanttern.Personalization.ProfileSettings do
       :years_ids,
       :cycles_ids,
       :assessment_view,
-      :assessment_group_by,
       :student_id,
       :students_ids,
       :student_tags_ids,
@@ -109,11 +106,6 @@ defmodule Lanttern.Personalization.ProfileSettings do
       if view in ["teacher", "student", "compare"],
         do: [],
         else: [assessment_view: gettext("Invalid assessment view")]
-    end)
-    |> validate_change(:assessment_group_by, fn :assessment_group_by, view ->
-      if view in ["curriculum", "moment"],
-        do: [],
-        else: [assessment_group_by: gettext("Invalid assessment group by option")]
     end)
     |> validate_change(:student_record_staff_member_view, fn :student_record_staff_member_view,
                                                              view ->

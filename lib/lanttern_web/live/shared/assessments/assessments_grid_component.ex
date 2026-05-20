@@ -10,7 +10,6 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
 
       attr :current_user, User
       attr :current_scope, Scope
-      attr :current_assessment_group_by, :string
       attr :current_assessment_view, :string
       attr :classes_ids, :list, doc: "list of classes_ids to filter results"
       attr :strand_id, :integer, doc: "defines a strand grid view"
@@ -74,13 +73,8 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
               class={"sticky top-0 z-20 grid grid-cols-subgrid pt-4 #{@view_bg}"}
               style={"grid-column: span #{@assessment_points_count + 1} / span #{@assessment_points_count + 1}"}
             >
-              <div class={[
-                "sticky left-0 z-20 #{@view_bg}",
-                if(!is_nil(@current_assessment_group_by), do: "row-span-2")
-              ]}>
-              </div>
+              <div class={["sticky left-0 z-20 #{@view_bg}", "row-span-2"]}></div>
               <div
-                :if={!is_nil(@current_assessment_group_by)}
                 id="grid-assessment-point-headers"
                 phx-update="stream"
                 class="grid grid-cols-subgrid"
@@ -244,25 +238,6 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
     <span class="flex items-center w-full h-full p-1 rounded-sm text-sm font-display font-bold truncate">
       {@header_struct.name}
     </span>
-    """
-  end
-
-  def assessment_point_header_struct(%{header_struct: %CurriculumItem{}} = assigns) do
-    ~H"""
-    <div class="flex items-center gap-2">
-      <.badge class="truncate">
-        {@header_struct.curriculum_component.name}
-      </.badge>
-      <.badge :if={@header_struct.is_differentiation} theme="diff">
-        {gettext("Diff")}
-      </.badge>
-    </div>
-    <p class="mt-1 font-sans text-sm line-clamp-2">
-      {@header_struct.name}
-    </p>
-    <.tooltip id={"curriculum-item-#{@header_struct.id}-header-tooltip"}>
-      {@header_struct.name}
-    </.tooltip>
     """
   end
 
@@ -474,7 +449,6 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
       |> stream_configure(
         :assessment_point_headers,
         dom_id: fn
-          {%CurriculumItem{} = ci, _count} -> "ap-group-curriculum-item-#{ci.id}"
           {%Moment{} = moment, _count} -> "ap-group-moment-#{moment.id}"
           {%Strand{} = strand, _count} -> "ap-group-strand-#{strand.id}"
         end
@@ -578,10 +552,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
 
   defp stream_assessment_points(socket) do
     {assessment_point_headers, assessment_points} =
-      Assessments.list_strand_assessment_points(
-        socket.assigns.strand_id,
-        socket.assigns.current_assessment_group_by
-      )
+      Assessments.list_strand_assessment_points(socket.assigns.strand_id)
 
     assessment_points_count = length(assessment_points)
     assessment_points_columns_grid = "repeat(#{assessment_points_count}, 12rem)"
@@ -598,7 +569,6 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
     students_entries =
       Assessments.list_strand_students_entries(
         socket.assigns.strand_id,
-        socket.assigns.current_assessment_group_by,
         classes_ids: socket.assigns.classes_ids,
         load_profile_picture_from_cycle_id:
           socket.assigns.current_user.current_profile.current_school_cycle.id,
