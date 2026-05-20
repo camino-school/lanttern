@@ -38,22 +38,19 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
     ~H"""
     <div class={@class}>
       <.responsive_container>
-        <%!-- if no assessment points, render empty state --%>
-        <div :if={!@has_assessment_points} class="p-10 mt-4 rounded-sm shadow-xl bg-white">
-          <.empty_state>{gettext("No assessment points for this strand yet")}</.empty_state>
+        <%!-- if no class filter is selected, ask user to select one --%>
+        <div :if={@classes_ids == []} class="p-10 rounded-sm shadow-xl bg-white">
+          <p class="flex items-center gap-2">
+            <.icon name="hero-light-bulb-mini" class="text-ltrn-subtle" />
+            {gettext("Select a class to view the assessment grid")}
+          </p>
         </div>
-        <%!-- if no class filter is select, just render assessment points --%>
+        <%!-- if no assessment points, render empty state --%>
         <div
-          :if={@classes_ids == [] && @has_assessment_points}
-          class="p-10 rounded-sm shadow-xl bg-white"
+          :if={@classes_ids != [] && !@has_assessment_points}
+          class="p-10 mt-4 rounded-sm shadow-xl bg-white"
         >
-          <p class="mb-6 font-bold text-ltrn-subtle">{gettext("Current assessment points")}</p>
-          <ol phx-update="stream" id="assessment-points-no-class" class="flex flex-col gap-4">
-            <.no_class_assessment_point
-              :for={{_dom_id, assessment_point} <- @streams.assessment_points}
-              assessment_point={assessment_point}
-            />
-          </ol>
+          <.empty_state>{gettext("No assessment points for this strand yet")}</.empty_state>
         </div>
       </.responsive_container>
       <%!-- show entries only with class filter selected --%>
@@ -177,33 +174,6 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
   end
 
   # function components
-
-  attr :assessment_point, :any, required: true
-
-  def no_class_assessment_point(assigns) do
-    assessment_points =
-      case assigns.assessment_point do
-        {_group_by_struct, assessment_points} -> assessment_points
-        %AssessmentPoint{} = assessment_point -> [assessment_point]
-      end
-
-    assigns = assign(assigns, :assessment_points, assessment_points)
-
-    ~H"""
-    <li :for={assessment_point <- @assessment_points} id={"no-class-#{assessment_point.id}"}>
-      {case assessment_point do
-        %{name: name} when not is_nil(name) ->
-          name
-
-        %{curriculum_item: %CurriculumItem{} = curriculum_item} ->
-          gettext("Strand final assessment for %{item}", item: curriculum_item.name)
-
-        _final_assessment_without_curriculum_preload ->
-          gettext("Strand final assessment for curriculum item")
-      end}
-    </li>
-    """
-  end
 
   attr :id, :string, required: true
   attr :ap_header, :any, required: true
@@ -480,6 +450,9 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
       |> assign(:invalid_changes_set, MapSet.new())
       |> assign(:assessment_point_entry, nil)
       |> assign(:has_entry_details_change, false)
+      |> assign(:has_assessment_points, false)
+      |> assign(:assessment_points_count, 0)
+      |> assign(:assessment_points_columns_grid, "")
       |> stream_configure(
         :assessment_point_headers,
         dom_id: fn
@@ -564,12 +537,16 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
       do: {:ok, socket}
 
   def update(assigns, socket) do
+    socket = socket |> assign(assigns) |> assign_view_bg()
+
     socket =
-      socket
-      |> assign(assigns)
-      |> assign_view_bg()
-      |> stream_assessment_points()
-      |> stream_students_entries()
+      if socket.assigns.classes_ids == [] do
+        socket
+      else
+        socket
+        |> stream_assessment_points()
+        |> stream_students_entries()
+      end
 
     {:ok, socket}
   end

@@ -9,47 +9,44 @@
     </h2>
   </div>
 
-  <%!-- <div>
-    <.header_nav current_user={@current_user}>
-      <:breadcrumb navigate={~p"/strands"}>{gettext("Strands")}</:breadcrumb>
-      <:breadcrumb is_info>
-        <.mini_strand_card strand={@strand} class="w-60" />
-      </:breadcrumb>
-      <:breadcrumb navigate={~p"/strands/#{@strand}/assessment"}>{@strand.name}</:breadcrumb>
-      <:title>{gettext("Marking")}</:title>
-      <div class="flex items-center justify-between gap-4 px-4">
-        <div class="flex items-center gap-4">
-          <.action
-            type="button"
-            phx-click={JS.exec("data-show", to: "#strand-classes-filter-modal")}
-            icon_name="hero-users-mini"
-          >
-            {format_action_items_text(
-              @selected_classes,
-              gettext("No class selected")
-            )}
-          </.action>
-        </div>
-      </div>
-    </.header_nav>
-  </div> --%>
+  <div>
+    <div class="flex items-center justify-center gap-4 px-4 mb-4">
+      <.button
+        type="button"
+        phx-click={JS.exec("data-show", to: "#strand-classes-filter-modal")}
+        icon_name="hero-users-micro"
+        size="sm"
+      >
+        {format_action_items_text(@selected_classes, gettext("No class selected"))}
+      </.button>
 
-  <.live_component
-    :if={@live_action == :goals_assessment}
-    module={GoalsAssessmentComponent}
-    id="strand-assessment"
-    strand={@strand}
-    current_user={@current_user}
-    current_scope={@current_scope}
-    selected_classes_text={
-      format_action_items_text(
-        @selected_classes,
-        gettext("No class selected")
-      )
-    }
-    selected_classes_ids={@selected_classes_ids}
-    params={@params}
-  />
+      <.assessment_view_dropdow
+        current_assessment_view={@current_assessment_view}
+        on_change={fn view -> JS.push("change_view", value: %{"view" => view}) end}
+      />
+    </div>
+    <.live_component
+      module={AssessmentsGridComponent}
+      id={:strand_assessment_grid}
+      current_user={@current_user}
+      current_scope={@current_scope}
+      current_assessment_view={@current_assessment_view}
+      strand_id={@strand.id}
+      classes_ids={@selected_classes_ids}
+      navigate={~p"/strands/#{@strand}/assessment/marking"}
+    />
+    <.live_component
+      :if={@goal}
+      module={AssessmentPointFormOverlayComponent}
+      id={"strand-#{@strand.id}-goal-form-overlay"}
+      current_scope={@current_scope}
+      notify_parent={true}
+      assessment_point={@goal}
+      title={gettext("Strand goal")}
+      initial_curriculum_results={@strand_curriculum_items}
+      on_cancel={JS.patch(~p"/strands/#{@strand}/assessment/marking")}
+    />
+  </div>
 </Layouts.app_logged_in>
 <.live_component
   module={LantternWeb.Filters.ClassesFilterOverlayComponent}
