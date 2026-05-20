@@ -85,9 +85,13 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
               :if={@entry_note || @entry.has_evidences || @entry.differentiation_rubric_id}
               id={"cell-#{@id}-details-tooltip"}
             >
-              <p :if={@entry_note}><.markdown text={@entry_note} size="sm" invert /></p>
-              <p :if={@entry.has_evidences}>{gettext("Has attachment")}</p>
-              <p :if={@entry.differentiation_rubric_id}>{gettext("Has differentiation rubric")}</p>
+              <div class="space-y-2">
+                <p :if={@entry_note}>
+                  <.markdown text={@entry_note} class="line-clamp-4" size="sm" invert strip_tags />
+                </p>
+                <p :if={@entry.has_evidences}>{gettext("Has attachment")}</p>
+                <p :if={@entry.differentiation_rubric_id}>{gettext("Has differentiation rubric")}</p>
+              </div>
             </.tooltip>
           </button>
         </div>

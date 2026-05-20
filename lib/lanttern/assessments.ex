@@ -631,7 +631,8 @@ defmodule Lanttern.Assessments do
         ap in base_query,
         join: ci in assoc(ap, :curriculum_item),
         join: cc in assoc(ci, :curriculum_component),
-        preload: [curriculum_item: {ci, curriculum_component: cc}]
+        join: sc in assoc(ap, :scale),
+        preload: [curriculum_item: {ci, curriculum_component: cc}, scale: sc]
       )
       |> Repo.all()
 

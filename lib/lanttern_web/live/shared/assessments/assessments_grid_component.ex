@@ -275,8 +275,14 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
       patch={"?edit_assessment_point=#{@assessment_point.id}"}
       class="flex flex-col p-1 rounded-sm hover:bg-ltrn-lightest"
     >
-      <div :if={@assessment_point.is_differentiation} class="mb-1">
-        <.badge theme="diff">{gettext("Diff")}</.badge>
+      <div
+        :if={@assessment_point.is_differentiation || @assessment_point.scale.type == "numeric"}
+        class="flex items-center gap-2 mb-1"
+      >
+        <.badge :if={@assessment_point.scale.type == "numeric"}>
+          {@assessment_point.scale.max_score}
+        </.badge>
+        <.badge :if={@assessment_point.is_differentiation} theme="diff">{gettext("Diff")}</.badge>
       </div>
       <p class={[
         "flex-1 font-sans text-sm",
@@ -288,6 +294,9 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
         <p>{@assessment_point.name}</p>
         <p class="mt-2">
           ({@assessment_point.curriculum_item.curriculum_component.name}) {@assessment_point.curriculum_item.name}
+        </p>
+        <p :if={@assessment_point.scale.type == "numeric"} class="mt-2">
+          {gettext("Max score: %{max}", max: @assessment_point.scale.max_score)}
         </p>
         <.markdown
           :if={@assessment_point.report_info}
@@ -311,6 +320,9 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
       class="flex flex-col p-1 rounded-sm hover:bg-ltrn-lightest"
     >
       <div class="flex items-center gap-2">
+        <.badge :if={@assessment_point.scale.type == "numeric"}>
+          {@assessment_point.scale.max_score}
+        </.badge>
         <.badge class="truncate">
           {@assessment_point.curriculum_item.curriculum_component.name}
         </.badge>
@@ -323,7 +335,10 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
         {@assessment_point.curriculum_item.name}
       </p>
       <.tooltip id={"assessment-point-#{@assessment_point.id}-struct-tooltip"}>
-        {@assessment_point.curriculum_item.name}
+        <p>{@assessment_point.curriculum_item.name}</p>
+        <p :if={@assessment_point.scale.type == "numeric"} class="mt-2">
+          {gettext("Max score: %{max}", max: @assessment_point.scale.max_score)}
+        </p>
       </.tooltip>
     </.link>
     """
@@ -334,6 +349,9 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
     <div class="font-sans text-sm whitespace-nowrap">
       <div class="block w-full p-1 rounded-sm overflow-hidden">
         <div class="flex items-center gap-2">
+          <.badge :if={@assessment_point.scale.type == "numeric"}>
+            {@assessment_point.scale.max_score}
+          </.badge>
           <.icon :if={@assessment_point.rubric_id} name="hero-view-columns-micro" class="w-4 h-4" />
           <span class="font-bold">{@assessment_point.moment.name}</span> <br />
         </div>
@@ -342,6 +360,9 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
       <.tooltip id={"assessment-point-#{@assessment_point.id}-subheader-tooltip"}>
         <p>{@assessment_point.moment.name}</p>
         <p class="mt-2">{@assessment_point.name}</p>
+        <p :if={@assessment_point.scale.type == "numeric"} class="mt-2">
+          {gettext("Max score: %{max}", max: @assessment_point.scale.max_score)}
+        </p>
         <.markdown
           :if={@assessment_point.report_info}
           text={@assessment_point.report_info}
@@ -364,15 +385,28 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
     >
       <div class="font-sans whitespace-nowrap overflow-hidden">
         <div class="flex items-center gap-2">
+          <.badge :if={@assessment_point.scale.type == "numeric"}>
+            {@assessment_point.scale.max_score}
+          </.badge>
           <.icon :if={@assessment_point.rubric_id} name="hero-view-columns-micro" />
           <span class="font-bold text-sm">{gettext("Goal assessment")}</span>
         </div>
         <span class="text-xs">{gettext("(Strand final assessment)")}</span>
         <.tooltip
-          :if={@assessment_point.report_info}
+          :if={@assessment_point.report_info || @assessment_point.scale.type == "numeric"}
           id={"assessment-point-#{@assessment_point.id}-struct-tooltip"}
         >
-          <.markdown text={@assessment_point.report_info} invert strip_tags size="sm" />
+          <p :if={@assessment_point.scale.type == "numeric"}>
+            {gettext("Max score: %{max}", max: @assessment_point.scale.max_score)}
+          </p>
+          <.markdown
+            :if={@assessment_point.report_info}
+            text={@assessment_point.report_info}
+            invert
+            strip_tags
+            size="sm"
+            class="mt-2"
+          />
         </.tooltip>
       </div>
     </.link>
