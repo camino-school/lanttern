@@ -135,7 +135,14 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
             {ngettext("1 change", "%{count} changes", map_size(@entries_changes_map))}
           </p>
           <p
-            :if={@current_assessment_view == "student"}
+            :if={MapSet.size(@invalid_changes_set) > 0}
+            class="flex items-center gap-2 font-sans text-sm text-ltrn-alert-lighter"
+          >
+            <.icon name="hero-exclamation-circle-mini" />
+            {gettext("Some values are out of range")}
+          </p>
+          <p
+            :if={@current_assessment_view == "student" && MapSet.size(@invalid_changes_set) == 0}
             class="flex items-center gap-2 font-sans text-sm text-ltrn-student-accent"
           >
             <.icon name="hero-information-circle-mini" />
@@ -154,6 +161,8 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
           phx-click="save_changes"
           phx-target={@myself}
           theme={if @current_assessment_view == "student", do: "student", else: "white"}
+          disabled={MapSet.size(@invalid_changes_set) > 0}
+          class="disabled:opacity-40"
         >
           {if @current_assessment_view == "student",
             do: gettext("Save self-assessments"),
@@ -459,6 +468,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
       |> assign(:classes_ids, [])
       |> assign(:strand_id, nil)
       |> assign(:entries_changes_map, %{})
+      |> assign(:invalid_changes_set, MapSet.new())
       |> assign(:assessment_point_entry, nil)
       |> assign(:has_entry_details_change, false)
       |> stream_configure(
@@ -484,23 +494,23 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
       ) do
     socket =
       socket
-      |> update(:entries_changes_map, fn entries_changes_map ->
-        entries_changes_map
-        |> Map.drop([composite_id])
-      end)
+      |> update(:entries_changes_map, &Map.drop(&1, [composite_id]))
+      |> update(:invalid_changes_set, &MapSet.delete(&1, composite_id))
 
     {:ok, socket}
   end
 
   def update(
-        %{action: {EntryCellComponent, {:change, _type, composite_id, _entry_id, params}}},
+        %{action: {EntryCellComponent, {:change, change_type, composite_id, _entry_id, params}}},
         socket
       ) do
     socket =
       socket
-      |> update(:entries_changes_map, fn entries_changes_map ->
-        entries_changes_map
-        |> Map.put(composite_id, params)
+      |> update(:entries_changes_map, &Map.put(&1, composite_id, params))
+      |> update(:invalid_changes_set, fn set ->
+        if change_type == :invalid,
+          do: MapSet.put(set, composite_id),
+          else: MapSet.delete(set, composite_id)
       end)
 
     {:ok, socket}
@@ -604,28 +614,32 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
 
   @impl true
   def handle_event("save_changes", _params, socket) do
-    %{
-      entries_changes_map: entries_changes_map,
-      current_user: current_user
-    } = socket.assigns
+    if MapSet.size(socket.assigns.invalid_changes_set) > 0 do
+      {:noreply, socket}
+    else
+      %{
+        entries_changes_map: entries_changes_map,
+        current_user: current_user
+      } = socket.assigns
 
-    changes = Map.values(entries_changes_map)
+      changes = Map.values(entries_changes_map)
 
-    socket =
-      case Assessments.save_assessment_point_entries(changes,
-             log_profile_id: current_user.current_profile_id
-           ) do
-        {:ok, count} ->
-          msg = ngettext("1 entry updated", "%{count} entries updated", count)
-          put_flash(socket, :info, msg)
+      socket =
+        case Assessments.save_assessment_point_entries(changes,
+               log_profile_id: current_user.current_profile_id
+             ) do
+          {:ok, count} ->
+            msg = ngettext("1 entry updated", "%{count} entries updated", count)
+            put_flash(socket, :info, msg)
 
-        {:error, _changeset} ->
-          msg = gettext("Error updating assessment point entries")
-          put_flash(socket, :error, msg)
-      end
-      |> push_navigate(to: socket.assigns.navigate)
+          {:error, _changeset} ->
+            msg = gettext("Error updating assessment point entries")
+            put_flash(socket, :error, msg)
+        end
+        |> push_navigate(to: socket.assigns.navigate)
 
-    {:noreply, socket}
+      {:noreply, socket}
+    end
   end
 
   def handle_event("close_entry_details_overlay", _, socket) do

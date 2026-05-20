@@ -55,7 +55,8 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
             phx-target={@myself}
             class={[
               "relative flex-1 w-full h-full",
-              if(@has_changes, do: "outline outline-4 outline-offset-1 outline-ltrn-dark")
+              @is_invalid && "outline outline-4 outline-offset-1 outline-ltrn-alert-accent",
+              !@is_invalid && @has_changes && "outline outline-4 outline-offset-1 outline-ltrn-dark"
             ]}
             id={"entry-#{@id}-marking-form"}
           >
@@ -271,6 +272,8 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
       |> assign(:view, "teacher")
       |> assign(:allow_edit, false)
       |> assign(:has_changes, false)
+      |> assign(:is_invalid, false)
+      |> assign(:scale, nil)
 
     {:ok, socket}
   end
@@ -355,6 +358,7 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
 
     socket
     |> assign(assigns)
+    |> assign(:scale, scale)
     |> assign_ov_values_and_styles(ov_map, ov_style_map, scale)
     |> assign_form_and_related_assigns(ov_options)
     |> assign_grid_class()
@@ -466,6 +470,7 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
     |> assign(:note_icon_class, note_icon_class)
     |> assign(:evidences_icon_class, evidences_icon_class)
     |> assign(:diff_rubric_icon_class, diff_rubric_icon_class)
+    |> assign(:is_invalid, false)
   end
 
   defp assign_form_and_related_assigns(socket, _ov_options), do: assign(socket, :form, nil)
@@ -516,7 +521,17 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
     # get the right ordinal value or score based on view
     param_value = get_param_value(params, view)
     has_changes = "#{entry_value}" != param_value
-    change_type = if has_changes, do: :edit, else: :cancel
+
+    is_invalid =
+      has_changes && score_invalid?(param_value, entry.scale_type, socket.assigns.scale)
+
+    change_type =
+      cond do
+        not has_changes -> :cancel
+        is_invalid -> :invalid
+        true -> :edit
+      end
+
     composite_id = "#{entry_params["student_id"]}_#{entry_params["assessment_point_id"]}"
 
     notify(
@@ -528,6 +543,7 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
     socket =
       socket
       |> assign(:has_changes, has_changes)
+      |> assign(:is_invalid, is_invalid)
       |> assign(:form, form)
       |> assign(:field, field)
 
@@ -558,4 +574,19 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
 
   defp get_param_value(%{"scale_type" => "numeric"} = params, _teacher),
     do: params["score"]
+
+  defp score_invalid?(value, "numeric", %{max_score: max_score}) do
+    str = to_string(value)
+
+    if str == "" do
+      false
+    else
+      case Float.parse(str) do
+        {score, _} -> score < 0.0 || score > max_score
+        :error -> false
+      end
+    end
+  end
+
+  defp score_invalid?(_, _, _), do: false
 end
