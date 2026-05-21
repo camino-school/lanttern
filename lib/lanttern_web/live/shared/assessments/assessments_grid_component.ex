@@ -45,6 +45,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
             <.icon name="hero-light-bulb-mini" class="text-ltrn-subtle" />
             {gettext("Select a class to view the assessment grid")}
           </p>
+          {render_slot(@no_class_action)}
         </div>
         <%!-- if no assessment points, render empty state --%>
         <div
@@ -542,7 +543,11 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
       do: {:ok, socket}
 
   def update(assigns, socket) do
-    socket = socket |> assign(assigns) |> assign_view_bg()
+    socket =
+      socket
+      |> assign(assigns)
+      |> assign_new(:no_class_action, fn -> [] end)
+      |> assign_view_bg()
 
     socket =
       if socket.assigns.classes_ids == [] do

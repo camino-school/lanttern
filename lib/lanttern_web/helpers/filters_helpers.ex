@@ -798,38 +798,50 @@ defmodule LantternWeb.FiltersHelpers do
   Reads the `classes_ids` URL param and assigns selection-related socket values.
 
   Expects `:classes` to already be assigned (via `assign_strand_available_classes/1`).
-  Handles the case where selected classes fall outside the current cycle by loading
-  them separately and merging into `:classes`.
+  Without options, handles the case where selected classes fall outside the current
+  cycle by loading them separately and merging into `:classes`.
+
+  ## Options
+
+  - `:allowed_classes_ids` - when provided, any selected class ID not in this list is
+    silently discarded. The out-of-cycle fetch is also skipped.
 
   ## Returned socket assigns
 
-  - `:classes` (may be extended with out-of-cycle selected classes)
+  - `:classes` (may be extended with out-of-cycle selected classes when no allowlist)
   - `:selected_classes_ids`
   - `:selected_classes`
   """
-  @spec assign_strand_classes_from_url(Phoenix.LiveView.Socket.t(), map()) ::
+  @spec assign_strand_classes_from_url(Phoenix.LiveView.Socket.t(), map(), keyword()) ::
           Phoenix.LiveView.Socket.t()
-  def assign_strand_classes_from_url(socket, params) do
+  def assign_strand_classes_from_url(socket, params, opts \\ []) do
     classes = socket.assigns.classes
+    allowed_classes_ids = Keyword.get(opts, :allowed_classes_ids)
 
-    selected_classes_ids =
+    raw_selected_ids =
       case Map.get(params, "classes_ids") do
         nil -> []
         "" -> []
         ids -> String.split(ids, ",") |> Enum.map(&String.to_integer/1)
       end
 
-    classes_ids = Enum.map(classes, & &1.id)
-    extra_ids = Enum.filter(selected_classes_ids, &(&1 not in classes_ids))
-
-    extra_classes =
-      if extra_ids != [] do
-        Schools.list_classes(classes_ids: extra_ids)
+    {all_classes, selected_classes_ids} =
+      if allowed_classes_ids do
+        {classes, Enum.filter(raw_selected_ids, &(&1 in allowed_classes_ids))}
       else
-        []
+        classes_ids = Enum.map(classes, & &1.id)
+        extra_ids = Enum.filter(raw_selected_ids, &(&1 not in classes_ids))
+
+        extra_classes =
+          if extra_ids != [] do
+            Schools.list_classes(classes_ids: extra_ids)
+          else
+            []
+          end
+
+        {classes ++ extra_classes, raw_selected_ids}
       end
 
-    all_classes = classes ++ extra_classes
     selected_classes = Enum.filter(all_classes, &(&1.id in selected_classes_ids))
 
     socket

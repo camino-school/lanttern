@@ -12,12 +12,20 @@
   <div>
     <div class="flex items-center justify-center gap-4 px-4 mb-4">
       <.button
+        :if={@assigned_classes != []}
         type="button"
-        phx-click={JS.exec("data-show", to: "#strand-classes-filter-modal")}
-        icon_name="hero-users-micro"
+        theme={if Map.has_key?(@query_params, "classes_ids"), do: "primary", else: "default"}
+        phx-click={JS.exec("data-show", to: "#strand-assessment-filter-modal")}
+        icon_name="hero-funnel-micro"
         size="sm"
       >
-        {format_action_items_text(@selected_classes, gettext("No class selected"))}
+        <%= if Map.has_key?(@query_params, "classes_ids") do %>
+          {ngettext("1 filter", "%{count} filters", length(@selected_classes),
+            count: length(@selected_classes)
+          )}
+        <% else %>
+          {gettext("No filters applied")}
+        <% end %>
       </.button>
 
       <.assessment_view_dropdow
@@ -35,7 +43,20 @@
       classes_ids={@selected_classes_ids}
       url_params={@url_filter_params}
       navigate={~p"/strands/#{@strand}/assessment/marking?#{@url_filter_params}"}
-    />
+    >
+      <:no_class_action>
+        <p class="mt-2 text-sm text-ltrn-subtle">
+          {gettext("No classes assigned to this strand yet")}
+        </p>
+        <.button
+          type="button"
+          phx-click={JS.exec("data-show", to: "#strand-class-assignment-modal")}
+          class="mt-4"
+        >
+          {gettext("Assign classes to strand")}
+        </.button>
+      </:no_class_action>
+    </.live_component>
     <.live_component
       :if={@goal}
       module={AssessmentPointFormOverlayComponent}
@@ -49,13 +70,41 @@
     />
   </div>
 </Layouts.app_logged_in>
+<.modal id="strand-assessment-filter-modal">
+  <:title>{gettext("Filter assessment points")}</:title>
+  <p class="mb-4 font-display font-bold text-ltrn-subtle">{gettext("Filter by class")}</p>
+  <.badge_button_picker
+    on_select={fn id -> JS.push("toggle_filter_class", value: %{"id" => id}) end}
+    items={@assigned_classes}
+    selected_ids={@filter_classes_ids}
+    label_setter="class_with_cycle"
+    current_user={@current_user}
+  />
+  <div class="flex justify-between gap-2 mt-10">
+    <.button type="button" theme="ghost" phx-click="clear_assessment_filters">
+      {gettext("Clear all filters")}
+    </.button>
+    <div class="flex gap-2">
+      <.button
+        type="button"
+        theme="ghost"
+        phx-click={JS.exec("data-cancel", to: "#strand-assessment-filter-modal")}
+      >
+        {gettext("Cancel")}
+      </.button>
+      <.button type="button" phx-click="apply_assessment_filters">
+        {gettext("Save")}
+      </.button>
+    </div>
+  </div>
+</.modal>
 <.live_component
-  module={LantternWeb.Filters.ClassesFilterOverlayComponent}
-  id="strand-classes-filter-modal"
+  module={StrandClassAssignmentOverlayComponent}
+  id="strand-class-assignment-modal"
   current_user={@current_user}
-  title={gettext("Select classes for marking")}
-  url_based={true}
+  current_scope={@current_scope}
+  strand={@strand}
   classes={@classes}
-  selected_classes_ids={@selected_classes_ids}
-  navigate={~p"/strands/#{@strand}/assessment/marking?#{@url_filter_params}"}
+  assigned_classes_ids={@assigned_classes_ids}
+  navigate={@current_path}
 />
