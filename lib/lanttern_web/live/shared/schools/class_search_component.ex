@@ -31,7 +31,7 @@ defmodule LantternWeb.Schools.ClassSearchComponent do
           class="peer pr-10"
           role="combobox"
           autocomplete="off"
-          aria-controls="class-search-controls"
+          aria-controls={"#{@id}-controls"}
           aria-expanded="false"
           phx-hook="Autocomplete"
           phx-change="search"
@@ -53,7 +53,7 @@ defmodule LantternWeb.Schools.ClassSearchComponent do
             "absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-hidden sm:text-sm hidden",
             "peer-aria-expanded:block"
           ]}
-          id="class-search-controls"
+          id={"#{@id}-controls"}
           role="listbox"
           phx-update="stream"
         >

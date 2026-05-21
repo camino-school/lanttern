@@ -394,12 +394,14 @@ defmodule LantternWeb.OverlayComponents do
   """
 
   attr :id, :string, required: true
+  attr :indicator, :boolean, default: false
 
   slot :item, required: true do
     attr :id, :string, required: true
     attr :text, :string, required: true
     attr :on_click, JS, required: true
     attr :theme, :string
+    attr :indicator, :boolean
     attr :confirm_msg, :string, doc: "use for adding a data-confirm attr"
   end
 
@@ -422,9 +424,13 @@ defmodule LantternWeb.OverlayComponents do
           class="w-5 h-5 text-ltrn-subtle group-hover:text-ltrn-dark"
         />
       </button>
+      <span
+        :if={@indicator}
+        class="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-ltrn-alert-accent z-20 pointer-events-none"
+      />
       <div
         id={"menu-button-#{@id}"}
-        class="hidden absolute right-0 z-10 mt-1 w-32 origin-top-right rounded-xs bg-white py-2 shadow-lg ring-1 ring-ltrn-lighter focus:outline-hidden"
+        class="hidden absolute right-0 z-10 mt-1 min-w-32 w-max origin-top-right rounded-xs bg-white py-2 shadow-lg ring-1 ring-ltrn-lighter focus:outline-hidden"
         role="menu"
         aria-orientation="vertical"
         aria-labelledby={"menu-button-#{@id}-button"}
@@ -449,7 +455,13 @@ defmodule LantternWeb.OverlayComponents do
           }
           data-confirm={Map.get(item, :confirm_msg)}
         >
-          {item.text}
+          <span class="flex items-center gap-2">
+            {item.text}
+            <span
+              :if={Map.get(item, :indicator, false)}
+              class="w-2 h-2 rounded-full bg-ltrn-alert-accent shrink-0"
+            />
+          </span>
         </button>
       </div>
     </div>

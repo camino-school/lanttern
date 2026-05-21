@@ -3,6 +3,7 @@ defmodule LantternWeb.StrandLive do
 
   alias Lanttern.Identity.Scope
   alias Lanttern.LearningContext
+  alias Lanttern.Strands
 
   # page components
   alias __MODULE__.AssessmentComponent
@@ -11,6 +12,7 @@ defmodule LantternWeb.StrandLive do
   alias __MODULE__.StrandRubricsComponent
 
   # shared components
+  alias LantternWeb.LearningContext.StrandClassAssignmentOverlayComponent
   alias LantternWeb.LearningContext.StrandFormComponent
   alias LantternWeb.LearningContext.ToggleStrandStarActionComponent
   import LantternWeb.FiltersHelpers, only: [assign_strand_classes_filter: 1]
@@ -24,6 +26,7 @@ defmodule LantternWeb.StrandLive do
       socket
       |> assign_strand(params)
       |> assign_strand_classes_filter()
+      |> assign_strand_class_assignments()
       |> assign(
         :has_agents_management_permission,
         Scope.has_permission?(socket.assigns.current_scope, "agents_management")
@@ -106,6 +109,16 @@ defmodule LantternWeb.StrandLive do
 
         {:noreply, socket}
     end
+  end
+
+  defp assign_strand_class_assignments(socket) do
+    assignments =
+      Strands.list_strand_class_assignments(
+        socket.assigns.current_scope,
+        socket.assigns.strand.id
+      )
+
+    assign(socket, :strand_class_assignments, assignments)
   end
 
   # info handlers

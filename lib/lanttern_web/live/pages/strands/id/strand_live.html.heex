@@ -57,7 +57,18 @@
           >
             {gettext("Edit strand")}
           </.action>
-          <.menu_button id="strand-menu-more">
+          <.menu_button id="strand-menu-more" indicator={@strand_class_assignments == []}>
+            <:item
+              id={"assign-classes-strand-#{@strand.id}"}
+              text={
+                if @strand_class_assignments == [],
+                  do: gettext("Assign classes to this strand"),
+                  else:
+                    "#{gettext("Assigned classes")}: #{Enum.map_join(@strand_class_assignments, ", ", & &1.class.name)}"
+              }
+              indicator={@strand_class_assignments == []}
+              on_click={JS.exec("data-show", to: "#strand-class-assignment-modal")}
+            />
             <:item
               id={"remove-strand-#{@strand.id}"}
               text={gettext("Delete")}
@@ -162,4 +173,14 @@
   classes={@classes}
   selected_classes_ids={@selected_classes_ids}
   navigate={~p"/strands/#{@strand}/rubrics"}
+/>
+<.live_component
+  module={StrandClassAssignmentOverlayComponent}
+  id="strand-class-assignment-modal"
+  current_user={@current_user}
+  current_scope={@current_scope}
+  strand={@strand}
+  classes={@classes}
+  assigned_classes_ids={Enum.map(@strand_class_assignments, & &1.class_id)}
+  navigate={@current_path}
 />

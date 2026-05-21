@@ -8,6 +8,7 @@ defmodule Lanttern.Strands do
   import Lanttern.RepoHelpers,
     only: [maybe_preload: 2, set_position_in_attrs: 2, update_positions: 2]
 
+  alias Ecto.Multi
   alias Lanttern.Repo
 
   alias Lanttern.Identity.Scope
@@ -343,5 +344,54 @@ defmodule Lanttern.Strands do
         attrs \\ %{}
       ) do
     ClassAssignment.changeset(class_assignment, attrs)
+  end
+
+  @doc """
+  Syncs class assignments for a strand within a single transaction.
+
+  Deletes assignments whose class IDs are not in `class_ids`, and creates new
+  assignments for class IDs that don't yet have an assignment.
+
+  Requires a staff scope.
+
+  ## Examples
+
+      iex> sync_strand_class_assignments(scope, 1, [2, 3])
+      :ok
+
+  """
+  def sync_strand_class_assignments(%Scope{} = scope, strand_id, class_ids)
+      when is_list(class_ids) do
+    true = Scope.profile_type?(scope, "staff")
+
+    current = list_strand_class_assignments(scope, strand_id)
+    current_ids = Enum.map(current, & &1.class_id)
+
+    to_delete = Enum.filter(current, &(&1.class_id not in class_ids))
+    to_add_ids = class_ids -- current_ids
+
+    multi =
+      Multi.new()
+      |> then(fn m ->
+        Enum.reduce(to_delete, m, fn ca, acc ->
+          Multi.delete(acc, {:delete, ca.id}, ca)
+        end)
+      end)
+      |> then(fn m ->
+        Enum.reduce(to_add_ids, m, fn class_id, acc ->
+          changeset =
+            ClassAssignment.changeset(%ClassAssignment{}, %{
+              strand_id: strand_id,
+              class_id: class_id
+            })
+
+          Multi.insert(acc, {:insert, class_id}, changeset)
+        end)
+      end)
+
+    case Repo.transaction(multi) do
+      {:ok, _} -> :ok
+      {:error, _op, changeset, _changes} -> {:error, changeset}
+    end
   end
 end
