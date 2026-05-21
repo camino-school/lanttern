@@ -105,13 +105,7 @@
       strand={@strand}
       current_user={@current_user}
       current_scope={@current_scope}
-      selected_classes_ids={@selected_classes_ids}
-      selected_classes_text={
-        format_action_items_text(
-          @selected_classes,
-          gettext("No class selected")
-        )
-      }
+      strand_class_ids={Enum.map(@strand_class_assignments, & &1.class_id)}
       params={@params}
     />
     <.live_component
@@ -164,16 +158,6 @@
     </.button>
   </:actions>
 </.slide_over>
-<.live_component
-  module={LantternWeb.Filters.ClassesFilterOverlayComponent}
-  id="strand-classes-filter-modal"
-  current_user={@current_user}
-  title={gettext("Select classes to view students differentiation rubrics")}
-  profile_filter_opts={[strand_id: @strand.id]}
-  classes={@classes}
-  selected_classes_ids={@selected_classes_ids}
-  navigate={~p"/strands/#{@strand}/rubrics"}
-/>
 <.live_component
   module={StrandClassAssignmentOverlayComponent}
   id="strand-class-assignment-modal"
