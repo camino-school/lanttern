@@ -269,5 +269,74 @@ defmodule Lanttern.StrandsTest do
 
       assert %Ecto.Changeset{} = Strands.change_strand_class_assignment(scope, assignment)
     end
+
+    test "sync_strand_class_assignments/3 inserts new and deletes removed assignments" do
+      scope = staff_scope_fixture()
+      school = Repo.get!(Lanttern.Schools.School, scope.school_id)
+      strand = insert(:strand)
+      class_keep = insert(:class, school: school)
+      class_remove = insert(:class, school: school)
+      class_add = insert(:class, school: school)
+
+      insert(:class_assignment, strand: strand, class: class_keep)
+      insert(:class_assignment, strand: strand, class: class_remove)
+
+      assert :ok =
+               Strands.sync_strand_class_assignments(scope, strand.id, [
+                 class_keep.id,
+                 class_add.id
+               ])
+
+      result = Strands.list_strand_class_assignments(scope, strand.id)
+      result_class_ids = Enum.map(result, & &1.class_id)
+
+      assert class_keep.id in result_class_ids
+      assert class_add.id in result_class_ids
+      refute class_remove.id in result_class_ids
+    end
+
+    test "sync_strand_class_assignments/3 is a no-op when class IDs are unchanged" do
+      scope = staff_scope_fixture()
+      school = Repo.get!(Lanttern.Schools.School, scope.school_id)
+      strand = insert(:strand)
+      class = insert(:class, school: school)
+      %{id: id} = insert(:class_assignment, strand: strand, class: class)
+
+      assert :ok = Strands.sync_strand_class_assignments(scope, strand.id, [class.id])
+
+      assert [%ClassAssignment{id: ^id}] = Strands.list_strand_class_assignments(scope, strand.id)
+    end
+
+    test "sync_strand_class_assignments/3 removes all assignments when given empty list" do
+      scope = staff_scope_fixture()
+      school = Repo.get!(Lanttern.Schools.School, scope.school_id)
+      strand = insert(:strand)
+      class = insert(:class, school: school)
+      insert(:class_assignment, strand: strand, class: class)
+
+      assert :ok = Strands.sync_strand_class_assignments(scope, strand.id, [])
+
+      assert [] = Strands.list_strand_class_assignments(scope, strand.id)
+    end
+
+    test "sync_strand_class_assignments/3 raises when scope is not staff" do
+      scope = %Lanttern.Identity.Scope{profile_type: "student"}
+      strand = insert(:strand)
+
+      assert_raise MatchError, fn ->
+        Strands.sync_strand_class_assignments(scope, strand.id, [])
+      end
+    end
+
+    test "sync_strand_class_assignments/3 raises when class_ids contains a class from another school" do
+      scope = staff_scope_fixture()
+      strand = insert(:strand)
+      other_school = insert(:school)
+      other_school_class = insert(:class, school: other_school)
+
+      assert_raise MatchError, fn ->
+        Strands.sync_strand_class_assignments(scope, strand.id, [other_school_class.id])
+      end
+    end
   end
 end

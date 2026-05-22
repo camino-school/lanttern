@@ -3,7 +3,6 @@ defmodule LantternWeb.StrandLive do
 
   alias Lanttern.Identity.Scope
   alias Lanttern.LearningContext
-  alias Lanttern.Strands
 
   # page components
   alias __MODULE__.AssessmentComponent
@@ -15,7 +14,10 @@ defmodule LantternWeb.StrandLive do
   alias LantternWeb.LearningContext.StrandClassAssignmentOverlayComponent
   alias LantternWeb.LearningContext.StrandFormComponent
   alias LantternWeb.LearningContext.ToggleStrandStarActionComponent
-  import LantternWeb.FiltersHelpers, only: [assign_strand_classes_filter: 1]
+
+  import LantternWeb.FiltersHelpers,
+    only: [assign_strand_class_assignments: 1, assign_strand_classes_filter: 1]
+
   import LantternWeb.LearningContextComponents, only: [mini_strand_card: 1]
 
   # lifecycle
@@ -109,16 +111,6 @@ defmodule LantternWeb.StrandLive do
 
         {:noreply, socket}
     end
-  end
-
-  defp assign_strand_class_assignments(socket) do
-    assignments =
-      Strands.list_strand_class_assignments(
-        socket.assigns.current_scope,
-        socket.assigns.strand.id
-      )
-
-    assign(socket, :strand_class_assignments, assignments)
   end
 
   # info handlers

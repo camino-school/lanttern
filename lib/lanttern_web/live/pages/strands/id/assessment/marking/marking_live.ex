@@ -5,7 +5,6 @@ defmodule LantternWeb.MarkingLive do
   alias Lanttern.Assessments
   alias Lanttern.Curricula
   alias Lanttern.LearningContext
-  alias Lanttern.Strands
 
   # shared components
   import LantternWeb.AssessmentsComponents
@@ -13,6 +12,7 @@ defmodule LantternWeb.MarkingLive do
   import LantternWeb.FiltersHelpers,
     only: [
       assign_strand_available_classes: 1,
+      assign_strand_class_assignments: 1,
       assign_strand_classes_from_url: 3,
       assign_url_filters: 2,
       url_filter_params: 1
@@ -57,21 +57,6 @@ defmodule LantternWeb.MarkingLive do
         |> assign(:strand, strand)
         |> assign(:page_title, strand.name)
     end
-  end
-
-  defp assign_strand_class_assignments(socket) do
-    assignments =
-      Strands.list_strand_class_assignments(
-        socket.assigns.current_scope,
-        socket.assigns.strand.id
-      )
-
-    assigned_classes = Enum.map(assignments, & &1.class)
-
-    socket
-    |> assign(:strand_class_assignments, assignments)
-    |> assign(:assigned_classes, assigned_classes)
-    |> assign(:assigned_classes_ids, Enum.map(assignments, & &1.class_id))
   end
 
   defp assign_strand_curriculum_items(socket) do

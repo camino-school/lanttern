@@ -166,18 +166,21 @@ defmodule LantternWeb.LearningContext.StrandClassAssignmentOverlayComponent do
   end
 
   def handle_event("apply_assignments", _, socket) do
-    :ok =
-      Strands.sync_strand_class_assignments(
-        socket.assigns.current_scope,
-        socket.assigns.strand.id,
-        socket.assigns.selected_classes_ids
-      )
+    case Strands.sync_strand_class_assignments(
+           socket.assigns.current_scope,
+           socket.assigns.strand.id,
+           socket.assigns.selected_classes_ids
+         ) do
+      :ok ->
+        socket =
+          socket
+          |> put_flash(:info, gettext("Strand classes updated"))
+          |> push_navigate(to: socket.assigns.navigate)
 
-    socket =
-      socket
-      |> put_flash(:info, gettext("Strand classes updated"))
-      |> push_navigate(to: socket.assigns.navigate)
+        {:noreply, socket}
 
-    {:noreply, socket}
+      {:error, _} ->
+        {:noreply, put_flash(socket, :error, gettext("Failed to update class assignments"))}
+    end
   end
 end

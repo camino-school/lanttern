@@ -1265,6 +1265,7 @@ defmodule Lanttern.AssessmentsTest do
       assert expected_m_1_ap_1_ci_1.id == m_1_ap_1_ci_1.id
       assert expected_m_1_ap_1_ci_1.curriculum_item.id == ci_1.id
       assert expected_m_1_ap_1_ci_1.curriculum_item.curriculum_component.id == cc.id
+      assert %Lanttern.Grading.Scale{} = expected_m_1_ap_1_ci_1.scale
 
       assert expected_m_1_ap_2_ci_2.id == m_1_ap_2_ci_2.id
       assert expected_m_1_ap_2_ci_2.curriculum_item.id == ci_2.id

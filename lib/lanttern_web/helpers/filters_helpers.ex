@@ -13,6 +13,7 @@ defmodule LantternWeb.FiltersHelpers do
   alias Lanttern.Reporting.ReportCard
   alias Lanttern.Schools
   alias Lanttern.Schools.Cycle
+  alias Lanttern.Strands
   alias Lanttern.StudentsRecords
   alias Lanttern.StudentTags
   alias Lanttern.Taxonomy
@@ -879,4 +880,31 @@ defmodule LantternWeb.FiltersHelpers do
   """
   @spec url_filter_params(map()) :: map()
   def url_filter_params(params), do: Map.take(params, @url_filter_keys)
+
+  @doc """
+  Assigns strand class assignments and derived values to socket.
+
+  Intended for use in `mount/3`. Requires `:current_scope` and `:strand` to
+  already be assigned.
+
+  ## Returned socket assigns
+
+  - `:strand_class_assignments`
+  - `:assigned_classes`
+  - `:assigned_classes_ids`
+  """
+  @spec assign_strand_class_assignments(Phoenix.LiveView.Socket.t()) ::
+          Phoenix.LiveView.Socket.t()
+  def assign_strand_class_assignments(socket) do
+    assignments =
+      Strands.list_strand_class_assignments(
+        socket.assigns.current_scope,
+        socket.assigns.strand.id
+      )
+
+    socket
+    |> assign(:strand_class_assignments, assignments)
+    |> assign(:assigned_classes, Enum.map(assignments, & &1.class))
+    |> assign(:assigned_classes_ids, Enum.map(assignments, & &1.class_id))
+  end
 end

@@ -17,8 +17,8 @@ defmodule Lanttern.Strands.ClassAssignment do
           strand_id: pos_integer(),
           class: Class.t() | Ecto.Association.NotLoaded.t(),
           class_id: pos_integer(),
-          inserted_at: DateTime.t(),
-          updated_at: DateTime.t()
+          inserted_at: NaiveDateTime.t(),
+          updated_at: NaiveDateTime.t()
         }
 
   schema "strand_class_assignments" do

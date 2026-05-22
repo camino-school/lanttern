@@ -370,6 +370,11 @@ defmodule Lanttern.Strands do
     to_delete = Enum.filter(current, &(&1.class_id not in class_ids))
     to_add_ids = class_ids -- current_ids
 
+    Enum.each(to_add_ids, fn class_id ->
+      class = Repo.get!(Class, class_id)
+      true = class.school_id == scope.school_id
+    end)
+
     multi =
       Multi.new()
       |> then(fn m ->

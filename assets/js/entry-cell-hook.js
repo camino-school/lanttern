@@ -57,7 +57,9 @@ function findRowWrapTarget(containerEl, shiftKey) {
   return null;
 }
 
-const isMac = /Mac|iPhone|iPad|iPod/.test(navigator.platform || "");
+const isMac = /Mac|iPhone|iPad|iPod/.test(
+  navigator.userAgentData?.platform ?? navigator.platform ?? ""
+);
 
 const EntryCellHook = {
   mounted() {

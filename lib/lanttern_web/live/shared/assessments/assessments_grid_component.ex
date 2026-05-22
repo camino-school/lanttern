@@ -16,6 +16,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
       attr :class, :any
       attr :navigate, :string, doc: "defines push_navigate target"
       attr :url_params, :map, doc: "URL-based filter params to preserve in navigation", default: %{}
+      attr :filter_assessment_points_ids, :list, default: nil, doc: "when set, restricts displayed assessment points to these IDs"
 
   """
 
