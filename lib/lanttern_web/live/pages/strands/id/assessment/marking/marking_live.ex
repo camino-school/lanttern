@@ -1,6 +1,7 @@
 defmodule LantternWeb.MarkingLive do
   use LantternWeb, :live_view
 
+  alias Lanttern.AssessmentComposition
   alias Lanttern.Assessments
   alias Lanttern.Curricula
   alias Lanttern.LearningContext
@@ -35,6 +36,7 @@ defmodule LantternWeb.MarkingLive do
       |> assign_strand_class_assignments()
       |> assign_assessment_points_ids()
       |> assign_strand_curriculum_items()
+      |> assign_strand_composition_assessment_points()
 
     {:ok, socket}
   end
@@ -90,24 +92,44 @@ defmodule LantternWeb.MarkingLive do
     assign(socket, :assessment_points_ids, assessment_points_ids)
   end
 
+  defp assign_strand_composition_assessment_points(socket) do
+    composition_aps =
+      Assessments.list_strand_composition_assessment_points(socket.assigns.strand.id)
+
+    assign(socket, :strand_composition_assessment_points, composition_aps)
+  end
+
   @impl true
   def handle_params(params, _url, socket) do
-    query_params = Map.drop(params, @route_params)
-
     socket =
       socket
-      |> assign(:params, params)
-      |> assign(:query_params, query_params)
-      |> assign_url_filters(query_params)
-      |> assign_strand_classes_from_url(query_params,
-        allowed_classes_ids: socket.assigns.assigned_classes_ids
-      )
-      |> maybe_apply_default_class_filter()
-      |> assign(:url_filter_params, url_filter_params(query_params))
+      |> assign_url_params(params)
+      |> assign_class_filter()
+      |> assign_composition_filter()
       |> assign_goal()
-      |> sync_filter_classes_ids()
 
     {:noreply, socket}
+  end
+
+  defp assign_url_params(socket, params) do
+    query_params = Map.drop(params, @route_params)
+
+    socket
+    |> assign(:params, params)
+    |> assign(:query_params, query_params)
+    |> assign(:url_filter_params, url_filter_params(query_params))
+    |> assign_url_filters(query_params)
+  end
+
+  defp assign_class_filter(socket) do
+    query_params = socket.assigns.query_params
+
+    socket
+    |> assign_strand_classes_from_url(query_params,
+      allowed_classes_ids: socket.assigns.assigned_classes_ids
+    )
+    |> maybe_apply_default_class_filter()
+    |> sync_filter_classes_ids()
   end
 
   defp maybe_apply_default_class_filter(socket) do
@@ -129,6 +151,39 @@ defmodule LantternWeb.MarkingLive do
       end
 
     assign(socket, :filter_classes_ids, filter_classes_ids)
+  end
+
+  defp assign_composition_filter(socket) do
+    case Map.get(socket.assigns.query_params, "composition_ap_id") do
+      nil ->
+        socket
+        |> assign(:selected_composition_ap_id, nil)
+        |> assign(:filter_composition_ap_id, nil)
+        |> assign(:filter_ap_ids, nil)
+
+      raw_id ->
+        case Integer.parse(raw_id) do
+          {id, ""} ->
+            components =
+              AssessmentComposition.list_assessment_point_components(
+                socket.assigns.current_scope,
+                id
+              )
+
+            component_ids = Enum.map(components, & &1.component_id)
+
+            socket
+            |> assign(:selected_composition_ap_id, id)
+            |> assign(:filter_composition_ap_id, raw_id)
+            |> assign(:filter_ap_ids, [id | component_ids])
+
+          _ ->
+            socket
+            |> assign(:selected_composition_ap_id, nil)
+            |> assign(:filter_composition_ap_id, nil)
+            |> assign(:filter_ap_ids, nil)
+        end
+    end
   end
 
   defp assign_goal(%{assigns: %{params: %{"edit_assessment_point" => id}}} = socket) do
@@ -168,13 +223,19 @@ defmodule LantternWeb.MarkingLive do
     {:noreply, socket}
   end
 
-  def handle_event("clear_assessment_filters", _, socket) do
-    params = Map.delete(socket.assigns.query_params, "classes_ids")
+  def handle_event("select_composition_ap", %{"id" => id}, socket) do
+    filter_composition_ap_id =
+      if id == socket.assigns.filter_composition_ap_id, do: nil, else: id
 
+    socket = assign(socket, :filter_composition_ap_id, filter_composition_ap_id)
+    {:noreply, socket}
+  end
+
+  def handle_event("clear_filter_selections", _, socket) do
     socket =
-      push_navigate(socket,
-        to: ~p"/strands/#{socket.assigns.strand}/assessment/marking?#{params}"
-      )
+      socket
+      |> assign(:filter_classes_ids, [])
+      |> assign(:filter_composition_ap_id, nil)
 
     {:noreply, socket}
   end
@@ -192,6 +253,12 @@ defmodule LantternWeb.MarkingLive do
       else
         ids_param = Enum.join(socket.assigns.filter_classes_ids, ",")
         Map.put(socket.assigns.query_params, "classes_ids", ids_param)
+      end
+
+    params =
+      case socket.assigns.filter_composition_ap_id do
+        nil -> Map.delete(params, "composition_ap_id")
+        id -> Map.put(params, "composition_ap_id", id)
       end
 
     socket =

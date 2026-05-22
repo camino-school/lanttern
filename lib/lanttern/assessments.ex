@@ -668,6 +668,20 @@ defmodule Lanttern.Assessments do
     )
   end
 
+  @spec list_strand_composition_assessment_points(pos_integer()) :: [AssessmentPoint.t()]
+  def list_strand_composition_assessment_points(strand_id) do
+    base_query = strand_assessment_points_base_query(strand_id)
+
+    from(
+      ap in base_query,
+      join: ci in assoc(ap, :curriculum_item),
+      join: cc in assoc(ci, :curriculum_component),
+      where: not is_nil(ap.composition_type),
+      preload: [curriculum_item: {ci, curriculum_component: cc}]
+    )
+    |> Repo.all()
+  end
+
   @spec list_strand_assessment_point_ids(pos_integer()) :: [pos_integer()]
   def list_strand_assessment_point_ids(strand_id) do
     from(

@@ -459,6 +459,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
       |> assign(:assessment_points_count, 0)
       |> assign(:assessment_points_columns_grid, "")
       |> assign(:url_params, %{})
+      |> assign(:filter_assessment_points_ids, nil)
       |> stream_configure(
         :assessment_point_headers,
         dom_id: fn
@@ -572,18 +573,46 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
   end
 
   defp stream_assessment_points(socket) do
-    {assessment_point_headers, assessment_points} =
+    {all_headers, all_assessment_points} =
       Assessments.list_strand_assessment_points(socket.assigns.strand_id)
 
+    {assessment_point_headers, assessment_points} =
+      case socket.assigns.filter_assessment_points_ids do
+        nil ->
+          {all_headers, all_assessment_points}
+
+        filter_ids ->
+          filtered_aps = Enum.filter(all_assessment_points, &(&1.id in filter_ids))
+          {recompute_headers(all_headers, filtered_aps), filtered_aps}
+      end
+
     assessment_points_count = length(assessment_points)
-    assessment_points_columns_grid = "repeat(#{assessment_points_count}, 12rem)"
 
     socket
-    |> stream(:assessment_points, assessment_points)
-    |> stream(:assessment_point_headers, assessment_point_headers)
-    |> assign(:assessment_points_count, length(assessment_points))
-    |> assign(:assessment_points_columns_grid, assessment_points_columns_grid)
+    |> stream(:assessment_points, assessment_points, reset: true)
+    |> stream(:assessment_point_headers, assessment_point_headers, reset: true)
+    |> assign(:assessment_points_count, assessment_points_count)
+    |> assign(:assessment_points_columns_grid, "repeat(#{assessment_points_count}, 12rem)")
     |> assign(:has_assessment_points, assessment_points != [])
+  end
+
+  defp recompute_headers(all_headers, filtered_aps) do
+    filtered_count_map =
+      filtered_aps
+      |> Enum.group_by(& &1.moment_id)
+      |> Map.new(fn {moment_id, aps} -> {moment_id, length(aps)} end)
+
+    all_headers
+    |> Enum.map(fn {struct, _} ->
+      key =
+        case struct do
+          %Moment{} -> struct.id
+          _ -> nil
+        end
+
+      {struct, Map.get(filtered_count_map, key, 0)}
+    end)
+    |> Enum.reject(fn {_, count} -> count == 0 end)
   end
 
   defp stream_students_entries(socket) do
@@ -597,8 +626,19 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
         check_if_has_evidences: true
       )
 
+    students_entries =
+      case socket.assigns.filter_assessment_points_ids do
+        nil ->
+          students_entries
+
+        filter_ids ->
+          Enum.map(students_entries, fn {student, entries} ->
+            {student, Enum.filter(entries, &(&1.assessment_point_id in filter_ids))}
+          end)
+      end
+
     socket
-    |> stream(:students_entries, students_entries)
+    |> stream(:students_entries, students_entries, reset: true)
   end
 
   # event handlers

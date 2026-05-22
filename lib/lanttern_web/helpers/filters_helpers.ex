@@ -852,7 +852,7 @@ defmodule LantternWeb.FiltersHelpers do
 
   @valid_assessment_views ["teacher", "student", "compare"]
   # Grows as more filters migrate from DB-persisted to URL-based
-  @url_filter_keys ["assessment_view", "classes_ids"]
+  @url_filter_keys ["assessment_view", "classes_ids", "composition_ap_id"]
 
   @doc """
   Assigns URL param-based filter values to socket assigns.

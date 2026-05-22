@@ -74,6 +74,17 @@ defmodule LantternWeb.MarkingLiveTest do
       |> visit("#{@live_view_path}/#{strand.id}/assessment/marking?assessment_view=student")
       |> assert_has("button#view-dropdown-button", text: "Assessed by students")
     end
+
+    test "hides composition section in modal when strand has no composed APs", %{
+      conn: conn,
+      strand: strand
+    } do
+      conn
+      |> visit("#{@live_view_path}/#{strand.id}/assessment/marking")
+      |> within("#strand-assessment-filter-modal", fn session ->
+        refute_has(session, "p", text: "By grade composition")
+      end)
+    end
   end
 
   describe "handle_event/3 toggle_filter_class" do
@@ -99,10 +110,10 @@ defmodule LantternWeb.MarkingLiveTest do
     end
   end
 
-  describe "handle_event/3 clear_assessment_filters" do
+  describe "handle_event/3 clear_filter_selections" do
     setup :prepare
 
-    test "clears classes_ids param and navigates back to unfiltered view", %{
+    test "clears draft class filter state and Save commits the clear", %{
       conn: conn,
       strand: strand,
       class: class
@@ -110,7 +121,9 @@ defmodule LantternWeb.MarkingLiveTest do
       conn
       |> visit("#{@live_view_path}/#{strand.id}/assessment/marking?classes_ids=#{class.id}")
       |> within("#strand-assessment-filter-modal", fn session ->
-        click_button(session, "Clear all filters")
+        session
+        |> click_button("Clear all filters")
+        |> click_button("Save")
       end)
       |> assert_has("button", text: "No filters applied")
     end
@@ -239,6 +252,109 @@ defmodule LantternWeb.MarkingLiveTest do
         click_button(session, "Save")
       end)
       |> assert_has("button", text: "No filters applied")
+    end
+  end
+
+  describe "filter by grade composition" do
+    setup %{user: user} do
+      school = Repo.get!(Lanttern.Schools.School, user.current_profile.school_id)
+      strand = insert(:strand)
+      class = insert(:class, school: school)
+      insert(:class_assignment, strand: strand, class: class)
+
+      parent_ap =
+        insert(:assessment_point,
+          strand_id: strand.id,
+          name: "Composition AP",
+          composition_type: :sum
+        )
+
+      component_ap_1 =
+        insert(:assessment_point, strand_id: strand.id, name: "Component AP 1")
+
+      component_ap_2 =
+        insert(:assessment_point, strand_id: strand.id, name: "Component AP 2")
+
+      insert(:assessment_point_component, parent: parent_ap, component: component_ap_1)
+      insert(:assessment_point_component, parent: parent_ap, component: component_ap_2)
+
+      {:ok,
+       strand: strand,
+       class: class,
+       parent_ap: parent_ap,
+       component_ap_1: component_ap_1,
+       component_ap_2: component_ap_2}
+    end
+
+    test "shows composition section in modal when strand has composed APs", %{
+      conn: conn,
+      strand: strand,
+      parent_ap: parent_ap
+    } do
+      conn
+      |> visit("#{@live_view_path}/#{strand.id}/assessment/marking")
+      |> within("#strand-assessment-filter-modal", fn session ->
+        session
+        |> assert_has("p", text: "By grade composition")
+        |> assert_has("button", text: parent_ap.name)
+      end)
+    end
+
+    test "selecting a composition AP and saving adds the composition_ap_id param", %{
+      conn: conn,
+      strand: strand,
+      parent_ap: parent_ap
+    } do
+      conn
+      |> visit("#{@live_view_path}/#{strand.id}/assessment/marking")
+      |> within("#strand-assessment-filter-modal", fn session ->
+        session
+        |> click_button(parent_ap.name)
+        |> click_button("Save")
+      end)
+      |> assert_has("button", text: "1 filter")
+    end
+
+    test "visiting with composition_ap_id param shows filter as active", %{
+      conn: conn,
+      strand: strand,
+      parent_ap: parent_ap
+    } do
+      conn
+      |> visit(
+        "#{@live_view_path}/#{strand.id}/assessment/marking?composition_ap_id=#{parent_ap.id}"
+      )
+      |> assert_has("button", text: "1 filter")
+    end
+
+    test "clear_filter_selections clears composition selection and Save removes param", %{
+      conn: conn,
+      strand: strand,
+      parent_ap: parent_ap
+    } do
+      conn
+      |> visit(
+        "#{@live_view_path}/#{strand.id}/assessment/marking?composition_ap_id=#{parent_ap.id}"
+      )
+      |> within("#strand-assessment-filter-modal", fn session ->
+        session
+        |> click_button("Clear all filters")
+        |> click_button("Save")
+      end)
+      |> assert_has("button", text: "No filters applied")
+    end
+
+    test "both class and composition filters active show '2 filters'", %{
+      conn: conn,
+      strand: strand,
+      class: class,
+      parent_ap: parent_ap
+    } do
+      conn
+      |> visit(
+        "#{@live_view_path}/#{strand.id}/assessment/marking?classes_ids=#{class.id}&composition_ap_id=#{parent_ap.id}"
+      )
+      |> assert_has("button", text: "2 filters")
     end
   end
 end

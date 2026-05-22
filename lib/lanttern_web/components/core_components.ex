@@ -407,9 +407,6 @@ defmodule LantternWeb.CoreComponents do
   defp badge_icon_theme(theme),
     do: Map.get(@badge_icon_themes, theme, @badge_icon_themes["default"])
 
-  defp badge_check_icon_theme(false), do: "text-ltrn-light"
-  defp badge_check_icon_theme(true), do: "text-ltrn-primary"
-
   @doc """
   Returns a list of badge button styles.
 
@@ -454,7 +451,9 @@ defmodule LantternWeb.CoreComponents do
   attr :class, :any, default: nil
   attr :theme, :string, default: "default", doc: "default | ghost"
   attr :icon_name, :string, default: nil
-  attr :is_checked, :boolean, doc: "will render a check icon on the left side. impacts styling"
+
+  attr :is_checked, :boolean,
+    doc: "when provided, overrides theme (primary/default) and icon (check/plus on right)"
 
   attr :color_map, :map,
     default: nil,
@@ -465,15 +464,19 @@ defmodule LantternWeb.CoreComponents do
   slot :inner_block, required: true
 
   def badge_button(assigns) do
-    has_check_icon = Map.has_key?(assigns, :is_checked)
-
-    # when is_checked, use cyan theme
-    theme = if has_check_icon && assigns.is_checked, do: "cyan", else: assigns.theme
+    {theme, icon_name} =
+      if Map.has_key?(assigns, :is_checked) do
+        if assigns.is_checked,
+          do: {"primary", "hero-check-mini"},
+          else: {"default", "hero-plus-mini"}
+      else
+        {assigns.theme, assigns.icon_name}
+      end
 
     assigns =
       assigns
-      |> assign(:has_check_icon, has_check_icon)
       |> assign(:theme, theme)
+      |> assign(:icon_name, icon_name)
 
     ~H"""
     <button
@@ -486,20 +489,13 @@ defmodule LantternWeb.CoreComponents do
       style={create_color_map_style(@color_map)}
       {@rest}
     >
+      {render_slot(@inner_block)}
       <.icon
-        :if={@has_check_icon}
-        name="hero-check-circle-mini"
-        class={["w-3.5 h-3.5", badge_check_icon_theme(@is_checked)]}
+        :if={@icon_name}
+        name={@icon_name}
+        class={["w-3.5 h-3.5", badge_icon_theme(@theme)]}
         style={create_color_map_text_style(@color_map)}
       />
-      {render_slot(@inner_block)}
-      <%= if @icon_name do %>
-        <.icon
-          name={@icon_name}
-          class={["w-3.5 h-3.5", badge_icon_theme(@theme)]}
-          style={create_color_map_text_style(@color_map)}
-        />
-      <% end %>
     </button>
     """
   end
