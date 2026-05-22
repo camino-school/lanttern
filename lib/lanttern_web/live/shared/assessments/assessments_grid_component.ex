@@ -43,7 +43,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
         <div :if={@classes_ids == []} class="p-10 rounded-sm shadow-xl bg-white">
           <p class="flex items-center gap-2">
             <.icon name="hero-light-bulb-mini" class="text-ltrn-subtle" />
-            {gettext("Select a class to view the assessment grid")}
+            {gettext("Assign at least one class to the strand to view the assessment grid")}
           </p>
           {render_slot(@no_class_action)}
         </div>

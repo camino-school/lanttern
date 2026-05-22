@@ -45,9 +45,6 @@
       navigate={~p"/strands/#{@strand}/assessment/marking?#{@url_filter_params}"}
     >
       <:no_class_action>
-        <p class="mt-2 text-sm text-ltrn-subtle">
-          {gettext("No classes assigned to this strand yet")}
-        </p>
         <.button
           type="button"
           phx-click={JS.exec("data-show", to: "#strand-class-assignment-modal")}
