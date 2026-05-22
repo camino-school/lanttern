@@ -114,9 +114,14 @@ defmodule LantternWeb.MarkingLive do
   defp assign_url_params(socket, params) do
     query_params = Map.drop(params, @route_params)
 
+    applied_filters_count =
+      [Map.has_key?(query_params, "classes_ids"), Map.has_key?(query_params, "composition_ap_id")]
+      |> Enum.count(& &1)
+
     socket
     |> assign(:params, params)
     |> assign(:query_params, query_params)
+    |> assign(:applied_filters_count, applied_filters_count)
     |> assign(:url_filter_params, url_filter_params(query_params))
     |> assign_url_filters(query_params)
   end

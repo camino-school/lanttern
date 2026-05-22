@@ -14,26 +14,14 @@
       <.button
         :if={@assigned_classes != []}
         type="button"
-        theme={
-          if Map.has_key?(@query_params, "classes_ids") or
-               Map.has_key?(@query_params, "composition_ap_id"),
-             do: "primary",
-             else: "default"
-        }
+        theme={if @applied_filters_count > 0, do: "primary", else: "default"}
         phx-click={JS.exec("data-show", to: "#strand-assessment-filter-modal")}
         icon_name="hero-funnel-micro"
         size="sm"
       >
-        <%= cond do %>
-          <% Map.has_key?(@query_params, "classes_ids") and
-               Map.has_key?(@query_params, "composition_ap_id") -> %>
-            {gettext("2 filters")}
-          <% Map.has_key?(@query_params, "classes_ids") or
-               Map.has_key?(@query_params, "composition_ap_id") -> %>
-            {gettext("1 filter")}
-          <% true -> %>
-            {gettext("No filters applied")}
-        <% end %>
+        {if @applied_filters_count == 0,
+          do: gettext("No filters applied"),
+          else: ngettext("1 filter", "%{count} filters", @applied_filters_count)}
       </.button>
 
       <.assessment_view_dropdow
