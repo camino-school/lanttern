@@ -41,13 +41,10 @@ git fetch origin <headRefName> <baseRefName>
 
 ### Step 3 — Build diff context
 
-Using the fetched refs, run these via Bash:
+Run the shared diff script (outputs full diff, file list, stat, and log):
 
 ```
-git diff origin/<baseRefName>...origin/<headRefName>
-git diff origin/<baseRefName>...origin/<headRefName> --name-only
-git diff origin/<baseRefName>...origin/<headRefName> --stat -- 'lib/**'
-git log origin/<baseRefName>..origin/<headRefName> --oneline
+bash .claude/skills/scripts/diff-context.sh origin/<baseRefName> origin/<headRefName>
 ```
 
 ### Step 4 — PR History Awareness

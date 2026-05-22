@@ -140,14 +140,23 @@ defmodule LantternWeb.StrandLive.AssessmentComponentTest do
         curriculum_item_id: curriculum_item.id
       })
 
-      conn
-      |> visit("#{@live_view_base_path}/#{strand.id}/assessment")
-      |> click_button("#new-moment-assessment button", moment.name)
-      |> fill_in("Assessment point name", with: "New moment AP")
-      |> select("Scale", option: "Test Scale")
-      |> select("Curriculum item", option: "(#{curriculum_component.name}) CI for moment AP")
-      |> click_button("Save")
-      |> assert_has("button", text: "New moment AP")
+      {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{strand.id}/assessment")
+
+      view
+      |> element("#new-moment-assessment button", moment.name)
+      |> render_click()
+
+      view
+      |> element("#assessment-point-form-overlay-form")
+      |> render_submit(%{
+        "assessment_point" => %{
+          "name" => "New moment AP",
+          "scale_id" => "#{scale.id}",
+          "curriculum_item_id" => "#{curriculum_item.id}"
+        }
+      })
+
+      assert view |> has_element?("button", "New moment AP")
     end
 
     test "update moment assessment point name", %{conn: conn, user: user} do
@@ -309,7 +318,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponentTest do
 
       conn
       |> visit("#{@live_view_base_path}/#{strand.id}/assessment")
-      |> assert_has("button", text: "Average")
+      |> assert_has("button", text: "Uses composition")
     end
 
     test "opens composition overlay when clicking composition type button", %{conn: conn} do
@@ -320,7 +329,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponentTest do
 
       conn
       |> visit("#{@live_view_base_path}/#{strand.id}/assessment")
-      |> click_button("Average")
+      |> click_button("Uses composition")
       |> assert_has("#ap-composition-overlay")
       |> assert_has("#ap-composition-overlay", text: "Grade composition")
     end
@@ -335,7 +344,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponentTest do
 
       conn
       |> visit("#{@live_view_base_path}/#{strand.id}/assessment")
-      |> click_button("button:not([role='menuitem'])", "Average")
+      |> click_button("button:not([role='menuitem'])", "Uses composition")
       |> assert_has("#ap-composition-overlay", text: "Sibling AP")
     end
 
@@ -348,7 +357,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponentTest do
 
       conn
       |> visit("#{@live_view_base_path}/#{strand.id}/assessment")
-      |> click_button("button:not([role='menuitem'])", "Average")
+      |> click_button("button:not([role='menuitem'])", "Uses composition")
       |> within("#ap-composition-overlay", fn session ->
         click_button(session, "Setup composition")
       end)
@@ -365,7 +374,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponentTest do
 
       conn
       |> visit("#{@live_view_base_path}/#{strand.id}/assessment")
-      |> click_button("button:not([role='menuitem'])", "Average")
+      |> click_button("button:not([role='menuitem'])", "Uses composition")
       |> within("#ap-composition-overlay", fn session ->
         click_button(session, "Manage composition")
       end)
@@ -385,7 +394,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponentTest do
 
       conn
       |> visit("#{@live_view_base_path}/#{strand.id}/assessment")
-      |> click_button("button:not([role='menuitem'])", "Average")
+      |> click_button("button:not([role='menuitem'])", "Uses composition")
       |> within("#ap-composition-overlay", fn session ->
         click_button(session, "Manage composition")
       end)

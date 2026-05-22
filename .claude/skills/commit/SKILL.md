@@ -89,7 +89,6 @@ Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
 4. Check for breaking changes
 5. Craft the subject line (verify: ≤72 chars, imperative, no period)
 6. Decide if body/footer adds value
-7. Stage any unstaged files that belong to this commit if appropriate
-8. Create the commit
+7. Create the commit
 
 Do not explain the commit message to the user — just stage and commit. Show only the git output confirming the commit was created.

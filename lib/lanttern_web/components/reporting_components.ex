@@ -559,9 +559,9 @@ defmodule LantternWeb.ReportingComponents do
           <-
             @strands
             do %>
-                <%= for {moment_id, assessment_point_id, entry} <- @students_entries_map[student.id][strand.id] do %>
+                <%= for {_moment_id, assessment_point_id, entry} <- @students_entries_map[student.id][strand.id] do %>
                   <a
-                    href={"/strands/#{strand.id}/assessment/marking/moment/#{moment_id}"}
+                    href={"/strands/#{strand.id}/assessment/marking"}
                     target="_blank"
                     class="block w-full rounded-xs outline-ltrn-primary text-center hover:outline"
                   >

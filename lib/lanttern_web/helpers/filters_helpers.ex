@@ -13,6 +13,7 @@ defmodule LantternWeb.FiltersHelpers do
   alias Lanttern.Reporting.ReportCard
   alias Lanttern.Schools
   alias Lanttern.Schools.Cycle
+  alias Lanttern.Strands
   alias Lanttern.StudentsRecords
   alias Lanttern.StudentTags
   alias Lanttern.Taxonomy
@@ -35,14 +36,6 @@ defmodule LantternWeb.FiltersHelpers do
   - `:years`
   - `:selected_years_ids`
   - `:selected_years`
-
-  ### `:assessment_view assigns
-
-  - `:current_assessment_view`
-
-  ### `:assessment_group_by` assigns
-
-  - `:current_assessment_group_by`
 
   ### `:student` assigns
 
@@ -144,34 +137,6 @@ defmodule LantternWeb.FiltersHelpers do
     |> assign(:years, years)
     |> assign(:selected_years_ids, selected_years_ids)
     |> assign(:selected_years, selected_years)
-    |> assign_filter_type(current_user, current_filters, filter_types)
-  end
-
-  defp assign_filter_type(
-         socket,
-         current_user,
-         current_filters,
-         [:assessment_view | filter_types]
-       ) do
-    current_assessment_view =
-      Map.get(current_filters, :assessment_view) || "teacher"
-
-    socket
-    |> assign(:current_assessment_view, current_assessment_view)
-    |> assign_filter_type(current_user, current_filters, filter_types)
-  end
-
-  defp assign_filter_type(
-         socket,
-         current_user,
-         current_filters,
-         [:assessment_group_by | filter_types]
-       ) do
-    current_assessment_group_by =
-      Map.get(current_filters, :assessment_group_by)
-
-    socket
-    |> assign(:current_assessment_group_by, current_assessment_group_by)
     |> assign_filter_type(current_user, current_filters, filter_types)
   end
 
@@ -783,4 +748,163 @@ defmodule LantternWeb.FiltersHelpers do
 
   defp apply_save_profile_filters(current_user, attrs, _),
     do: Filters.set_profile_current_filters(current_user, attrs)
+
+  @doc """
+  Assigns available strand classes to socket without reading selection from the DB.
+
+  Intended for use in `mount/3` when class selection comes from URL params.
+  Call `assign_strand_classes_from_url/2` in `handle_params/3` to set the selection.
+
+  ## Expected assigns in socket
+
+  - `current_user` - used to get school and current cycle information
+  - `strand` with preloaded `years` - used to filter classes
+
+  ## Returned socket assigns
+
+  - `:classes`
+  """
+  @spec assign_strand_available_classes(Phoenix.LiveView.Socket.t()) ::
+          Phoenix.LiveView.Socket.t()
+  def assign_strand_available_classes(socket) do
+    %{
+      current_user: %{
+        current_profile: %{
+          school_id: school_id,
+          current_school_cycle: school_cycle
+        }
+      },
+      strand: %{years: years}
+    } = socket.assigns
+
+    years_ids = Enum.map(years, & &1.id)
+
+    cycles_ids =
+      case school_cycle do
+        %Cycle{} -> [school_cycle.id]
+        _ -> nil
+      end
+
+    classes =
+      Schools.list_classes(
+        schools_ids: [school_id],
+        years_ids: years_ids,
+        cycles_ids: cycles_ids
+      )
+
+    assign(socket, :classes, classes)
+  end
+
+  @doc """
+  Reads the `classes_ids` URL param and assigns selection-related socket values.
+
+  Expects `:classes` to already be assigned (via `assign_strand_available_classes/1`).
+  Without options, handles the case where selected classes fall outside the current
+  cycle by loading them separately and merging into `:classes`.
+
+  ## Options
+
+  - `:allowed_classes_ids` - when provided, any selected class ID not in this list is
+    silently discarded. The out-of-cycle fetch is also skipped.
+
+  ## Returned socket assigns
+
+  - `:classes` (may be extended with out-of-cycle selected classes when no allowlist)
+  - `:selected_classes_ids`
+  - `:selected_classes`
+  """
+  @spec assign_strand_classes_from_url(Phoenix.LiveView.Socket.t(), map(), keyword()) ::
+          Phoenix.LiveView.Socket.t()
+  def assign_strand_classes_from_url(socket, params, opts \\ []) do
+    classes = socket.assigns.classes
+    allowed_classes_ids = Keyword.get(opts, :allowed_classes_ids)
+
+    raw_selected_ids =
+      case Map.get(params, "classes_ids") do
+        nil -> []
+        "" -> []
+        ids -> String.split(ids, ",") |> Enum.map(&String.to_integer/1)
+      end
+
+    {all_classes, selected_classes_ids} =
+      if allowed_classes_ids do
+        {classes, Enum.filter(raw_selected_ids, &(&1 in allowed_classes_ids))}
+      else
+        classes_ids = Enum.map(classes, & &1.id)
+        extra_ids = Enum.filter(raw_selected_ids, &(&1 not in classes_ids))
+
+        extra_classes =
+          if extra_ids != [] do
+            Schools.list_classes(classes_ids: extra_ids)
+          else
+            []
+          end
+
+        {classes ++ extra_classes, raw_selected_ids}
+      end
+
+    selected_classes = Enum.filter(all_classes, &(&1.id in selected_classes_ids))
+
+    socket
+    |> assign(:classes, all_classes)
+    |> assign(:selected_classes_ids, selected_classes_ids)
+    |> assign(:selected_classes, selected_classes)
+  end
+
+  @valid_assessment_views ["teacher", "student", "compare"]
+  # Grows as more filters migrate from DB-persisted to URL-based
+  @url_filter_keys ["assessment_view", "classes_ids", "composition_ap_id"]
+
+  @doc """
+  Assigns URL param-based filter values to socket assigns.
+  The URL-based counterpart to `assign_user_filters/2` — for filters that
+  live in query params rather than persisted profile settings.
+
+  Assigns:
+  - `:current_assessment_view` — defaults to "teacher"
+  """
+  @spec assign_url_filters(Phoenix.LiveView.Socket.t(), map()) :: Phoenix.LiveView.Socket.t()
+  def assign_url_filters(socket, params) do
+    assessment_view =
+      case Map.get(params, "assessment_view") do
+        v when v in @valid_assessment_views -> v
+        _ -> "teacher"
+      end
+
+    assign(socket, :current_assessment_view, assessment_view)
+  end
+
+  @doc """
+  Extracts the URL-based filter params from a params map.
+  Use this to build navigation paths that preserve current filter state.
+  """
+  @spec url_filter_params(map()) :: map()
+  def url_filter_params(params), do: Map.take(params, @url_filter_keys)
+
+  @doc """
+  Assigns strand class assignments and derived values to socket.
+
+  Intended for use in `mount/3`. Requires `:current_scope` and `:strand` to
+  already be assigned.
+
+  ## Returned socket assigns
+
+  - `:strand_class_assignments`
+  - `:assigned_classes`
+  - `:assigned_classes_ids`
+  """
+  @spec assign_strand_class_assignments(Phoenix.LiveView.Socket.t()) ::
+          Phoenix.LiveView.Socket.t()
+  def assign_strand_class_assignments(socket) do
+    assignments =
+      Strands.list_strand_class_assignments(
+        socket.assigns.current_scope,
+        socket.assigns.strand.id
+      )
+
+    socket
+    |> assign(:strand_class_assignments, assignments)
+    |> assign(:assigned_classes, Enum.map(assignments, & &1.class))
+    |> assign(:assigned_classes_ids, Enum.map(assignments, & &1.class_id))
+  end
 end

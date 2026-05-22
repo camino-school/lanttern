@@ -9,6 +9,7 @@ defmodule Lanttern.Factory do
   use Lanttern.AssessmentPointComponentFactory
   use Lanttern.AssessmentPointFactory
   use Lanttern.AttachmentFactory
+  use Lanttern.ClassAssignmentFactory
   use Lanttern.ClassFactory
   use Lanttern.ClassStaffMemberFactory
   use Lanttern.ConversationFactory

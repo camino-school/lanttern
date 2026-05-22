@@ -1,25 +1,24 @@
-defmodule LantternWeb.Filters.ClassesFilterOverlayComponent do
+defmodule LantternWeb.LearningContext.StrandClassAssignmentOverlayComponent do
   @moduledoc """
-  Renders a classes filter overlay.
+  Renders a modal overlay for assigning classes to a strand.
 
   Expected external assigns:
 
   ```elixir
-  attr :profile_filter_opts, :any, doc: "the keyword list used in `clear_profile_filters/3` and `save_profile_fitlers/3` (e.g. `strand_id`)"
   attr :current_user, Lanttern.Identity.User, required: true
-  attr :title, :string, required: true
-  attr :navigate, :string
-  attr :classes, :list, required: true
-  attr :selected_classes_ids, :list, required: true
+  attr :current_scope, Lanttern.Identity.Scope, required: true
+  attr :strand, Lanttern.LearningContext.Strand, required: true, doc: "must have :years preloaded"
+  attr :classes, :list, required: true, doc: "available classes for this strand's years/cycle"
+  attr :assigned_classes_ids, :list, required: true, doc: "IDs of currently assigned classes"
+  attr :navigate, :string, required: true, doc: "path to navigate to after applying"
   ```
   """
 
   use LantternWeb, :live_component
 
-  import LantternWeb.FiltersHelpers
+  import LantternWeb.FiltersHelpers, only: [handle_filter_toggle: 3]
 
-  # shared
-
+  alias Lanttern.Strands
   alias LantternWeb.Schools.ClassSearchComponent
 
   @impl true
@@ -28,11 +27,11 @@ defmodule LantternWeb.Filters.ClassesFilterOverlayComponent do
     <div>
       <.modal id={@id}>
         <h5 class="mb-6 font-display font-black text-xl">
-          {@title}
+          {gettext("Assign classes to this strand")}
         </h5>
         <.badge_button_picker
           on_select={
-            &JS.push("toggle_filter",
+            &JS.push("toggle_class",
               value: %{"id" => &1},
               target: @myself
             )
@@ -46,7 +45,7 @@ defmodule LantternWeb.Filters.ClassesFilterOverlayComponent do
           <p class="mb-2 text-sm font-semibold text-ltrn-subtle">{gettext("Extra classes")}</p>
           <.badge_button_picker
             on_select={
-              &JS.push("toggle_filter",
+              &JS.push("toggle_class",
                 value: %{"id" => &1},
                 target: @myself
               )
@@ -67,8 +66,12 @@ defmodule LantternWeb.Filters.ClassesFilterOverlayComponent do
           />
         </form>
         <div class="flex justify-between gap-2 mt-10">
-          <.button type="button" theme="ghost" phx-click={JS.push("clear_filters", target: @myself)}>
-            {gettext("Clear filters")}
+          <.button
+            type="button"
+            theme="ghost"
+            phx-click={JS.push("clear_assignments", target: @myself)}
+          >
+            {gettext("Clear")}
           </.button>
           <div class="flex gap-2">
             <.button type="button" theme="ghost" phx-click={JS.exec("data-cancel", to: "##{@id}")}>
@@ -77,10 +80,10 @@ defmodule LantternWeb.Filters.ClassesFilterOverlayComponent do
             <.button
               type="button"
               disabled={!@has_changes}
-              phx-click={JS.push("apply_filters", target: @myself)}
-              phx-disable-with={gettext("Applying filters...")}
+              phx-click={JS.push("apply_assignments", target: @myself)}
+              phx-disable-with={gettext("Saving...")}
             >
-              {gettext("Apply filters")}
+              {gettext("Assign classes")}
             </.button>
           </div>
         </div>
@@ -93,13 +96,7 @@ defmodule LantternWeb.Filters.ClassesFilterOverlayComponent do
 
   @impl true
   def mount(socket) do
-    socket =
-      socket
-      |> assign(:has_changes, false)
-      |> assign(:profile_filter_opts, [])
-      |> assign(:url_based, false)
-
-    {:ok, socket}
+    {:ok, assign(socket, :has_changes, false)}
   end
 
   @impl true
@@ -121,6 +118,7 @@ defmodule LantternWeb.Filters.ClassesFilterOverlayComponent do
     socket =
       socket
       |> assign(assigns)
+      |> assign_new(:selected_classes_ids, fn -> assigns.assigned_classes_ids end)
       |> assign_classes_groups()
 
     {:ok, socket}
@@ -134,18 +132,14 @@ defmodule LantternWeb.Filters.ClassesFilterOverlayComponent do
     |> assign(:extra_classes, extra)
   end
 
-  # the selected class may not be part of the initial class list
-  # in this case, we add the selected class to the list
   defp maybe_add_class_from_search(socket, class) do
     classes_ids = Enum.map(socket.assigns.classes, & &1.id)
 
     if class.id in classes_ids do
       socket
     else
-      classes = socket.assigns.classes ++ [class]
-
       socket
-      |> assign(:classes, classes)
+      |> assign(:classes, socket.assigns.classes ++ [class])
       |> assign_classes_groups()
     end
   end
@@ -153,7 +147,7 @@ defmodule LantternWeb.Filters.ClassesFilterOverlayComponent do
   # event handlers
 
   @impl true
-  def handle_event("toggle_filter", %{"id" => id}, socket) do
+  def handle_event("toggle_class", %{"id" => id}, socket) do
     socket =
       socket
       |> handle_filter_toggle(:classes, id)
@@ -162,37 +156,31 @@ defmodule LantternWeb.Filters.ClassesFilterOverlayComponent do
     {:noreply, socket}
   end
 
-  def handle_event("update_filters", _, socket) do
-    {:noreply, assign(socket, :has_changes, false)}
+  def handle_event("clear_assignments", _, socket) do
+    socket =
+      socket
+      |> assign(:selected_classes_ids, [])
+      |> assign(:has_changes, true)
+
+    {:noreply, socket}
   end
 
-  def handle_event("clear_filters", _, socket) do
-    if socket.assigns.url_based do
-      send(self(), {__MODULE__, {:apply, []}})
-      {:noreply, socket}
-    else
-      clear_profile_filters(
-        socket.assigns.current_user,
-        [:classes],
-        socket.assigns.profile_filter_opts
-      )
+  def handle_event("apply_assignments", _, socket) do
+    case Strands.sync_strand_class_assignments(
+           socket.assigns.current_scope,
+           socket.assigns.strand.id,
+           socket.assigns.selected_classes_ids
+         ) do
+      :ok ->
+        socket =
+          socket
+          |> put_flash(:info, gettext("Strand classes updated"))
+          |> push_navigate(to: socket.assigns.navigate)
 
-      {:noreply, handle_navigation(socket)}
-    end
-  end
+        {:noreply, socket}
 
-  def handle_event("apply_filters", _, socket) do
-    if socket.assigns.url_based do
-      send(self(), {__MODULE__, {:apply, socket.assigns.selected_classes_ids}})
-      {:noreply, assign(socket, :has_changes, false)}
-    else
-      socket =
-        socket
-        |> save_profile_filters([:classes], socket.assigns.profile_filter_opts)
-        |> assign(:has_changes, false)
-        |> handle_navigation()
-
-      {:noreply, socket}
+      {:error, _} ->
+        {:noreply, put_flash(socket, :error, gettext("Failed to update class assignments"))}
     end
   end
 end

@@ -486,7 +486,7 @@
   notify_parent
   title={@assessment_point_overlay_title}
   on_cancel={JS.push("close_assessment_point_form")}
-  curriculum_from_strand_id={@strand.id}
+  initial_curriculum_results={@strand_assessment_curriculum_items}
 />
 <.modal
   :if={@show_lesson_curriculum_modal}

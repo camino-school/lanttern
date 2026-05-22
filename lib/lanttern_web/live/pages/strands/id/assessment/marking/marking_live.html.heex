@@ -9,74 +9,118 @@
     </h2>
   </div>
 
-  <%!-- <div>
-    <.header_nav current_user={@current_user}>
-      <:breadcrumb navigate={~p"/strands"}>{gettext("Strands")}</:breadcrumb>
-      <:breadcrumb is_info>
-        <.mini_strand_card strand={@strand} class="w-60" />
-      </:breadcrumb>
-      <:breadcrumb navigate={~p"/strands/#{@strand}/assessment"}>{@strand.name}</:breadcrumb>
-      <:title>{gettext("Marking")}</:title>
-      <div class="flex items-center justify-between gap-4 px-4">
-        <div class="flex items-center gap-4">
-          <.action
-            type="button"
-            phx-click={JS.exec("data-show", to: "#strand-classes-filter-modal")}
-            icon_name="hero-users-mini"
-          >
-            {format_action_items_text(
-              @selected_classes,
-              gettext("No class selected")
-            )}
-          </.action>
-        </div>
-      </div>
-    </.header_nav>
-  </div> --%>
+  <div>
+    <div class="flex items-center justify-center gap-4 px-4 mb-4">
+      <.button
+        :if={@assigned_classes != []}
+        type="button"
+        theme={if @applied_filters_count > 0, do: "primary", else: "default"}
+        phx-click={JS.exec("data-show", to: "#strand-assessment-filter-modal")}
+        icon_name="hero-funnel-micro"
+        size="sm"
+      >
+        {if @applied_filters_count == 0,
+          do: gettext("No filters applied"),
+          else: ngettext("1 filter", "%{count} filters", @applied_filters_count)}
+      </.button>
 
-  <.live_component
-    :if={@live_action == :goals_assessment}
-    module={GoalsAssessmentComponent}
-    id="strand-assessment"
-    strand={@strand}
-    moments={@moments}
-    current_user={@current_user}
-    current_scope={@current_scope}
-    selected_classes_text={
-      format_action_items_text(
-        @selected_classes,
-        gettext("No class selected")
-      )
-    }
-    selected_classes_ids={@selected_classes_ids}
-    params={@params}
-  />
-  <.live_component
-    :if={@live_action == :moment_assessment}
-    module={MomentAssessmentComponent}
-    id="moment-assessment"
-    strand={@strand}
-    moments={@moments}
-    moment={@moment}
-    current_user={@current_user}
-    current_scope={@current_scope}
-    selected_classes_text={
-      format_action_items_text(
-        @selected_classes,
-        gettext("No class selected")
-      )
-    }
-    selected_classes_ids={@selected_classes_ids}
-    params={@params}
-  />
+      <.assessment_view_dropdow
+        current_assessment_view={@current_assessment_view}
+        on_change={fn view -> JS.push("change_view", value: %{"view" => view}) end}
+      />
+    </div>
+    <.live_component
+      module={AssessmentsGridComponent}
+      id={:strand_assessment_grid}
+      current_user={@current_user}
+      current_scope={@current_scope}
+      current_assessment_view={@current_assessment_view}
+      strand_id={@strand.id}
+      classes_ids={@selected_classes_ids}
+      filter_assessment_points_ids={@filter_ap_ids}
+      url_params={@url_filter_params}
+      navigate={~p"/strands/#{@strand}/assessment/marking?#{@url_filter_params}"}
+    >
+      <:no_class_action>
+        <.button
+          type="button"
+          phx-click={JS.exec("data-show", to: "#strand-class-assignment-modal")}
+          class="mt-4"
+        >
+          {gettext("Assign classes to strand")}
+        </.button>
+      </:no_class_action>
+    </.live_component>
+    <.live_component
+      :if={@goal}
+      module={AssessmentPointFormOverlayComponent}
+      id={"strand-#{@strand.id}-goal-form-overlay"}
+      current_scope={@current_scope}
+      notify_parent={true}
+      assessment_point={@goal}
+      title={gettext("Strand goal")}
+      initial_curriculum_results={@strand_curriculum_items}
+      on_cancel={JS.patch(~p"/strands/#{@strand}/assessment/marking?#{@url_filter_params}")}
+    />
+  </div>
 </Layouts.app_logged_in>
+<.modal id="strand-assessment-filter-modal">
+  <:title>{gettext("Filter assessment points")}</:title>
+  <p class="mb-4 font-display font-bold text-ltrn-subtle">{gettext("By class")}</p>
+  <.badge_button_picker
+    on_select={fn id -> JS.push("toggle_filter_class", value: %{"id" => id}) end}
+    items={@assigned_classes}
+    selected_ids={@filter_classes_ids}
+    label_setter="class_with_cycle"
+    current_user={@current_user}
+  />
+  <div :if={@strand_composition_assessment_points != []}>
+    <p class="mt-8 mb-4 font-display font-bold text-ltrn-subtle">
+      {gettext("By grade composition")}
+    </p>
+    <div class="flex flex-wrap gap-2">
+      <.badge_button
+        :for={ap <- @strand_composition_assessment_points}
+        is_checked={Integer.to_string(ap.id) == @filter_composition_ap_id}
+        phx-click="select_composition_ap"
+        phx-value-id={ap.id}
+      >
+        {if ap.name && ap.name != "",
+          do: ap.name,
+          else: "(#{ap.curriculum_item.curriculum_component.name}) #{ap.curriculum_item.name}"}
+      </.badge_button>
+    </div>
+  </div>
+  <div class="flex justify-between gap-2 mt-10">
+    <.button
+      type="button"
+      theme="ghost"
+      phx-click="clear_filter_selections"
+      disabled={@filter_classes_ids == [] and @filter_composition_ap_id == nil}
+    >
+      {gettext("Clear all filters")}
+    </.button>
+    <div class="flex gap-2">
+      <.button
+        type="button"
+        theme="ghost"
+        phx-click={JS.exec("data-cancel", to: "#strand-assessment-filter-modal")}
+      >
+        {gettext("Cancel")}
+      </.button>
+      <.button type="button" phx-click="apply_assessment_filters">
+        {gettext("Save")}
+      </.button>
+    </div>
+  </div>
+</.modal>
 <.live_component
-  module={LantternWeb.Filters.ClassesFilterOverlayComponent}
-  id="strand-classes-filter-modal"
+  module={StrandClassAssignmentOverlayComponent}
+  id="strand-class-assignment-modal"
   current_user={@current_user}
-  title={gettext("Select classes for marking")}
-  profile_filter_opts={[strand_id: @strand.id]}
+  current_scope={@current_scope}
+  strand={@strand}
   classes={@classes}
-  selected_classes_ids={@selected_classes_ids}
-  navigate={@select_classes_overlay_navigate}
+  assigned_classes_ids={@assigned_classes_ids}
+  navigate={@current_path}
 />

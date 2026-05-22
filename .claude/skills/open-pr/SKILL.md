@@ -1,5 +1,6 @@
 ---
 description: Run precommit checks, write a PR description, get approval, and open the PR on GitHub. Usage: /open-pr [base-branch] (e.g. /open-pr main)
+disable-model-invocation: true
 ---
 
 ## Your task

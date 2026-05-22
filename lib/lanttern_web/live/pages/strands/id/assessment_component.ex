@@ -3,6 +3,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
 
   alias Lanttern.Assessments
   alias Lanttern.Assessments.AssessmentPoint
+  alias Lanttern.Curricula
   alias Lanttern.LearningContext
 
   import Lanttern.Utils, only: [format_float: 1, reorder: 3]
@@ -120,45 +121,19 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
                 />
               </.dropdown_menu>
             </div>
-            <div class="relative">
-              <.button
-                type="button"
-                id="marking-button"
-                icon_name="hero-pencil-square-mini"
-              >
-                {gettext("Marking")}
-              </.button>
-              <.dropdown_menu
-                id="marking-menu"
-                button_id="marking-button"
-              >
-                <:item
-                  :for={moment <- @moments}
-                  type="link"
-                  navigate={~p"/strands/#{@strand}/assessment/marking/moment/#{moment}"}
-                  text={moment.name}
-                />
-                <:item
-                  type="link"
-                  navigate={~p"/strands/#{@strand}/assessment/marking"}
-                  text={gettext("Strand goals")}
-                />
-              </.dropdown_menu>
-            </div>
+            <.button
+              type="link"
+              id="marking-button"
+              icon_name="hero-pencil-square-mini"
+              navigate={~p"/strands/#{@strand}/assessment/marking"}
+            >
+              {gettext("Marking")}
+            </.button>
           </div>
           <div class="mt-6 space-y-10">
             <%= for moment <- @moments do %>
               <div id={"moment-#{moment.id}-ap-group"}>
-                <div class="flex items-center justify-between gap-4">
-                  <h4 class="font-display font-bold text-lg">{moment.name}</h4>
-                  <.button
-                    type="link"
-                    theme="ghost"
-                    icon_name="hero-pencil-square-mini"
-                    navigate={~p"/strands/#{@strand}/assessment/marking/moment/#{moment}"}
-                    sr_text={gettext("Marking")}
-                  />
-                </div>
+                <h4 class="font-display font-bold text-lg">{moment.name}</h4>
                 <div
                   id={"moment-#{moment.id}-sortable-aps"}
                   phx-hook="Sortable"
@@ -187,16 +162,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
               </div>
             <% end %>
             <div id="strand-ap-group">
-              <div class="flex items-center justify-between gap-4 mb-4">
-                <h4 class="font-display font-bold text-lg">{gettext("Goals assessment")}</h4>
-                <.button
-                  type="link"
-                  theme="ghost"
-                  icon_name="hero-pencil-square-mini"
-                  navigate={~p"/strands/#{@strand}/assessment/marking"}
-                  sr_text={gettext("Marking")}
-                />
-              </div>
+              <h4 class="mb-4 font-display font-bold text-lg">{gettext("Goals assessment")}</h4>
               <div
                 id="strand-sortable-aps"
                 phx-hook="Sortable"
@@ -228,9 +194,8 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
         notify_component={@myself}
         title={@assessment_point_overlay_title}
         on_cancel={JS.push("close_assessment_point_form", target: @myself)}
-        curriculum_from_strand_id={
-          # do not use curriculum from strand when creating a strand goal
-          if @assessment_point.strand_id, do: nil, else: @strand.id
+        initial_curriculum_results={
+          if @assessment_point.strand_id, do: [], else: @strand_curriculum_items
         }
       />
       <.live_component
@@ -315,11 +280,6 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
                 type="button"
                 size="xs"
                 theme="primary"
-                icon_name={
-                  if @assessment_point.composition_type == :sum,
-                    do: "hero-plus-micro",
-                    else: "hero-divide-micro"
-                }
                 phx-click={
                   JS.push("open_composition",
                     value: %{id: @assessment_point.id},
@@ -327,12 +287,12 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
                   )
                 }
               >
-                {if @assessment_point.composition_type == :sum,
-                  do: gettext("Sum"),
-                  else: gettext("Average")}
+                {gettext("Uses composition")}
               </.button>
               <.tooltip id={"ap-#{@assessment_point.id}-composition-tooltip"}>
-                {gettext("Uses grade composition")}
+                {if @assessment_point.composition_type == :sum,
+                  do: gettext("Sum-based"),
+                  else: gettext("Average-based")}
               </.tooltip>
             </div>
             <div :if={@assessment_point.rubric_id}>
@@ -541,10 +501,21 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
   defp initialize(%{assigns: %{initialized: false}} = socket) do
     socket
     |> load_moments_and_assessment_points()
+    |> assign_strand_curriculum_items()
     |> assign(:initialized, true)
   end
 
   defp initialize(socket), do: socket
+
+  defp assign_strand_curriculum_items(socket) do
+    items =
+      Curricula.list_strand_curriculum_items(
+        socket.assigns.strand.id,
+        preloads: :curriculum_component
+      )
+
+    assign(socket, :strand_curriculum_items, items)
+  end
 
   defp load_moments_and_assessment_points(socket) do
     strand = socket.assigns.strand

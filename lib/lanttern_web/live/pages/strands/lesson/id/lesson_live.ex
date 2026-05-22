@@ -2,6 +2,7 @@ defmodule LantternWeb.LessonLive do
   use LantternWeb, :live_view
 
   alias Lanttern.Assessments
+  alias Lanttern.Curricula
   alias Lanttern.Identity.Scope
   alias Lanttern.LearningContext
   alias Lanttern.LearningContext.Moment
@@ -98,6 +99,7 @@ defmodule LantternWeb.LessonLive do
       |> stream_lesson_assessment_points()
       |> stream_lesson_curriculum_section()
       |> assign_strand_curriculum_items()
+      |> assign_strand_assessment_curriculum_items()
       |> assign(
         :has_agents_management_permission,
         Scope.has_permission?(socket.assigns.current_scope, "agents_management")
@@ -162,6 +164,16 @@ defmodule LantternWeb.LessonLive do
       )
 
     assign(socket, :strand_curriculum_items, items)
+  end
+
+  defp assign_strand_assessment_curriculum_items(socket) do
+    items =
+      Curricula.list_strand_curriculum_items(
+        socket.assigns.strand.id,
+        preloads: :curriculum_component
+      )
+
+    assign(socket, :strand_assessment_curriculum_items, items)
   end
 
   # event handlers

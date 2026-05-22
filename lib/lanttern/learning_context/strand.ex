@@ -12,7 +12,9 @@ defmodule Lanttern.LearningContext.Strand do
   alias Lanttern.Assessments.AssessmentPoint
   alias Lanttern.LearningContext.Moment
   alias Lanttern.Reporting.StrandReport
+  alias Lanttern.Schools.Class
   alias Lanttern.Schools.Cycle
+  alias Lanttern.Strands.ClassAssignment
   alias Lanttern.Taxonomy.Subject
   alias Lanttern.Taxonomy.Year
 
@@ -35,6 +37,8 @@ defmodule Lanttern.LearningContext.Strand do
           moments: [Moment.t()],
           assessment_points: [AssessmentPoint.t()],
           strand_reports: [StrandReport.t()],
+          class_assignments: [ClassAssignment.t()] | Ecto.Association.NotLoaded.t(),
+          classes: [Class.t()] | Ecto.Association.NotLoaded.t(),
           subjects: [Subject.t()],
           years: [Year.t()],
           inserted_at: DateTime.t(),
@@ -60,6 +64,8 @@ defmodule Lanttern.LearningContext.Strand do
     has_many :moments, Moment, preload_order: [asc: :position]
     has_many :assessment_points, AssessmentPoint
     has_many :strand_reports, StrandReport
+    has_many :class_assignments, ClassAssignment
+    has_many :classes, through: [:class_assignments, :class]
 
     many_to_many :subjects, Subject,
       join_through: "strands_subjects",

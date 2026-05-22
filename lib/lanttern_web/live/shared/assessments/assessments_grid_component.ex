@@ -10,13 +10,13 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
 
       attr :current_user, User
       attr :current_scope, Scope
-      attr :current_assessment_group_by, :string
       attr :current_assessment_view, :string
       attr :classes_ids, :list, doc: "list of classes_ids to filter results"
       attr :strand_id, :integer, doc: "defines a strand grid view"
-      attr :moment_id, :integer, doc: "defines a moment grid view. will override the strand id"
       attr :class, :any
       attr :navigate, :string, doc: "defines push_navigate target"
+      attr :url_params, :map, doc: "URL-based filter params to preserve in navigation", default: %{}
+      attr :filter_assessment_points_ids, :list, default: nil, doc: "when set, restricts displayed assessment points to these IDs"
 
   """
 
@@ -40,22 +40,20 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
     ~H"""
     <div class={@class}>
       <.responsive_container>
-        <%!-- if no assessment points, render empty state --%>
-        <div :if={!@has_assessment_points} class="p-10 mt-4 rounded-sm shadow-xl bg-white">
-          <.empty_state>{gettext("No assessment points for this strand yet")}</.empty_state>
+        <%!-- if no class filter is selected, ask user to select one --%>
+        <div :if={@classes_ids == []} class="p-10 rounded-sm shadow-xl bg-white">
+          <p class="flex items-center gap-2">
+            <.icon name="hero-light-bulb-mini" class="text-ltrn-subtle" />
+            {gettext("Assign at least one class to the strand to view the assessment grid")}
+          </p>
+          {render_slot(@no_class_action)}
         </div>
-        <%!-- if no class filter is select, just render assessment points --%>
+        <%!-- if no assessment points, render empty state --%>
         <div
-          :if={@classes_ids == [] && @has_assessment_points}
-          class="p-10 rounded-sm shadow-xl bg-white"
+          :if={@classes_ids != [] && !@has_assessment_points}
+          class="p-10 mt-4 rounded-sm shadow-xl bg-white"
         >
-          <p class="mb-6 font-bold text-ltrn-subtle">{gettext("Current assessment points")}</p>
-          <ol phx-update="stream" id="assessment-points-no-class" class="flex flex-col gap-4">
-            <.no_class_assessment_point
-              :for={{_dom_id, assessment_point} <- @streams.assessment_points}
-              assessment_point={assessment_point}
-            />
-          </ol>
+          <.empty_state>{gettext("No assessment points for this strand yet")}</.empty_state>
         </div>
       </.responsive_container>
       <%!-- show entries only with class filter selected --%>
@@ -75,13 +73,8 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
               class={"sticky top-0 z-20 grid grid-cols-subgrid pt-4 #{@view_bg}"}
               style={"grid-column: span #{@assessment_points_count + 1} / span #{@assessment_points_count + 1}"}
             >
-              <div class={[
-                "sticky left-0 z-20 #{@view_bg}",
-                if(@moment_id || !is_nil(@current_assessment_group_by), do: "row-span-2")
-              ]}>
-              </div>
+              <div class={["sticky left-0 z-20 #{@view_bg}", "row-span-2"]}></div>
               <div
-                :if={@moment_id || !is_nil(@current_assessment_group_by)}
                 id="grid-assessment-point-headers"
                 phx-update="stream"
                 class="grid grid-cols-subgrid"
@@ -106,7 +99,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
                   id={dom_id}
                   assessment_point={assessment_point}
                   assessment_view={@current_assessment_view}
-                  is_moment={@moment_id != nil}
+                  url_params={@url_params}
                 />
               </div>
             </div>
@@ -126,7 +119,6 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
                 current_assessment_view={@current_assessment_view}
                 view_bg={@view_bg}
                 current_user={@current_user}
-                is_moment={@moment_id != nil}
               />
             </div>
           </div>
@@ -138,7 +130,14 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
             {ngettext("1 change", "%{count} changes", map_size(@entries_changes_map))}
           </p>
           <p
-            :if={@current_assessment_view == "student"}
+            :if={MapSet.size(@invalid_changes_set) > 0}
+            class="flex items-center gap-2 font-sans text-sm text-ltrn-alert-lighter"
+          >
+            <.icon name="hero-exclamation-circle-mini" />
+            {gettext("Some values are out of range")}
+          </p>
+          <p
+            :if={@current_assessment_view == "student" && MapSet.size(@invalid_changes_set) == 0}
             class="flex items-center gap-2 font-sans text-sm text-ltrn-student-accent"
           >
             <.icon name="hero-information-circle-mini" />
@@ -157,6 +156,8 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
           phx-click="save_changes"
           phx-target={@myself}
           theme={if @current_assessment_view == "student", do: "student", else: "white"}
+          disabled={MapSet.size(@invalid_changes_set) > 0}
+          class="disabled:opacity-40"
         >
           {if @current_assessment_view == "student",
             do: gettext("Save self-assessments"),
@@ -178,64 +179,10 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
 
   # function components
 
-  attr :assessment_point, :any, required: true
-
-  def no_class_assessment_point(assigns) do
-    assessment_points =
-      case assigns.assessment_point do
-        {_group_by_struct, assessment_points} -> assessment_points
-        %AssessmentPoint{} = assessment_point -> [assessment_point]
-      end
-
-    assigns = assign(assigns, :assessment_points, assessment_points)
-
-    ~H"""
-    <li :for={assessment_point <- @assessment_points} id={"no-class-#{assessment_point.id}"}>
-      {case assessment_point do
-        %{name: name} when not is_nil(name) ->
-          name
-
-        %{curriculum_item: %CurriculumItem{} = curriculum_item} ->
-          gettext("Strand final assessment for %{item}", item: curriculum_item.name)
-
-        _final_assessment_without_curriculum_preload ->
-          gettext("Strand final assessment for curriculum item")
-      end}
-    </li>
-    """
-  end
-
   attr :id, :string, required: true
   attr :ap_header, :any, required: true
   attr :assessment_view, :string, required: true
   attr :strand_id, :integer, default: nil
-
-  def assessment_point_header(%{ap_header: %AssessmentPoint{}} = assigns) do
-    # when in a moment grid, the header is the assessment point
-
-    ~H"""
-    <div class="flex flex-col p-2" id={@id}>
-      <.link
-        patch={"?edit_assessment_point=#{@ap_header.id}"}
-        class="flex-1 p-1 rounded-sm font-bold line-clamp-1 hover:bg-ltrn-lightest"
-      >
-        {@ap_header.name}
-      </.link>
-      <hr class="h-px mt-2 bg-ltrn-light" />
-      <.tooltip id={"assessment-point-#{@ap_header.id}-header-tooltip"}>
-        <p>{@ap_header.name}</p>
-        <.markdown
-          :if={@ap_header.report_info}
-          text={@ap_header.report_info}
-          invert
-          strip_tags
-          size="sm"
-          class="mt-2"
-        />
-      </.tooltip>
-    </div>
-    """
-  end
 
   def assessment_point_header(assigns) do
     {header_struct, assessment_points_count} = assigns.ap_header
@@ -260,42 +207,11 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
   attr :header_struct, :any, required: true, doc: "moment, strand, or curriculum item"
   attr :strand_id, :integer, default: nil
 
-  def assessment_point_header_struct(%{header_struct: %Moment{}, strand_id: strand_id} = assigns)
-      when not is_nil(strand_id) do
-    ~H"""
-    <.link
-      navigate={~p"/strands/#{@strand_id}/assessment/marking/moment/#{@header_struct}"}
-      class="flex items-center w-full h-full p-1 rounded-sm font-bold truncate hover:bg-ltrn-lightest"
-    >
-      {@header_struct.name}
-    </.link>
-    """
-  end
-
   def assessment_point_header_struct(%{header_struct: %Moment{}} = assigns) do
     ~H"""
     <span class="flex items-center w-full h-full p-1 rounded-sm text-sm font-display font-bold truncate">
       {@header_struct.name}
     </span>
-    """
-  end
-
-  def assessment_point_header_struct(%{header_struct: %CurriculumItem{}} = assigns) do
-    ~H"""
-    <div class="flex items-center gap-2">
-      <.badge class="truncate">
-        {@header_struct.curriculum_component.name}
-      </.badge>
-      <.badge :if={@header_struct.is_differentiation} theme="diff">
-        {gettext("Diff")}
-      </.badge>
-    </div>
-    <p class="mt-1 font-sans text-sm line-clamp-2">
-      {@header_struct.name}
-    </p>
-    <.tooltip id={"curriculum-item-#{@header_struct.id}-header-tooltip"}>
-      {@header_struct.name}
-    </.tooltip>
     """
   end
 
@@ -309,14 +225,14 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
 
   attr :assessment_point, AssessmentPoint, required: true
   attr :assessment_view, :string, required: true
+  attr :url_params, :map, required: true
   attr :id, :string, required: true
-  attr :is_moment, :boolean, required: true
 
   def assessment_point(assigns) do
     ~H"""
     <div id={@id} class="flex flex-col p-2">
       <div class="flex-1">
-        <.assessment_point_struct assessment_point={@assessment_point} is_moment={@is_moment} />
+        <.assessment_point_struct assessment_point={@assessment_point} url_params={@url_params} />
       </div>
       <.compare_header :if={@assessment_view == "compare"} />
     </div>
@@ -324,19 +240,25 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
   end
 
   attr :assessment_point, AssessmentPoint, required: true
-  attr :is_moment, :boolean, required: true
+  attr :url_params, :map, required: true
 
   def assessment_point_struct(
-        %{
-          assessment_point: %{curriculum_item: %CurriculumItem{}, moment_id: moment_id},
-          is_moment: false
-        } = assigns
+        %{assessment_point: %{curriculum_item: %CurriculumItem{}, moment_id: moment_id}} = assigns
       )
       when not is_nil(moment_id) do
     ~H"""
-    <div class="flex flex-col">
-      <div :if={@assessment_point.is_differentiation} class="mb-1">
-        <.badge theme="diff">{gettext("Diff")}</.badge>
+    <.link
+      patch={"?#{URI.encode_query(Map.put(@url_params, "edit_assessment_point", @assessment_point.id))}"}
+      class="flex flex-col p-1 rounded-sm hover:bg-ltrn-lightest"
+    >
+      <div
+        :if={@assessment_point.is_differentiation || @assessment_point.scale.type == "numeric"}
+        class="flex items-center gap-2 mb-1"
+      >
+        <.badge :if={@assessment_point.scale.type == "numeric"}>
+          {@assessment_point.scale.max_score}
+        </.badge>
+        <.badge :if={@assessment_point.is_differentiation} theme="diff">{gettext("Diff")}</.badge>
       </div>
       <p class={[
         "flex-1 font-sans text-sm",
@@ -349,6 +271,9 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
         <p class="mt-2">
           ({@assessment_point.curriculum_item.curriculum_component.name}) {@assessment_point.curriculum_item.name}
         </p>
+        <p :if={@assessment_point.scale.type == "numeric"} class="mt-2">
+          {gettext("Max score: %{max}", max: @assessment_point.scale.max_score)}
+        </p>
         <.markdown
           :if={@assessment_point.report_info}
           text={@assessment_point.report_info}
@@ -358,19 +283,22 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
           class="mt-2"
         />
       </.tooltip>
-    </div>
+    </.link>
     """
   end
 
   def assessment_point_struct(
-        %{assessment_point: %{curriculum_item: %CurriculumItem{}}, is_moment: false} = assigns
+        %{assessment_point: %{curriculum_item: %CurriculumItem{}}} = assigns
       ) do
     ~H"""
     <.link
-      patch={"?edit_assessment_point=#{@assessment_point.id}"}
+      patch={"?#{URI.encode_query(Map.put(@url_params, "edit_assessment_point", @assessment_point.id))}"}
       class="flex flex-col p-1 rounded-sm hover:bg-ltrn-lightest"
     >
       <div class="flex items-center gap-2">
+        <.badge :if={@assessment_point.scale.type == "numeric"}>
+          {@assessment_point.scale.max_score}
+        </.badge>
         <.badge class="truncate">
           {@assessment_point.curriculum_item.curriculum_component.name}
         </.badge>
@@ -383,33 +311,12 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
         {@assessment_point.curriculum_item.name}
       </p>
       <.tooltip id={"assessment-point-#{@assessment_point.id}-struct-tooltip"}>
-        {@assessment_point.curriculum_item.name}
+        <p>{@assessment_point.curriculum_item.name}</p>
+        <p :if={@assessment_point.scale.type == "numeric"} class="mt-2">
+          {gettext("Max score: %{max}", max: @assessment_point.scale.max_score)}
+        </p>
       </.tooltip>
     </.link>
-    """
-  end
-
-  def assessment_point_struct(
-        %{assessment_point: %{curriculum_item: %CurriculumItem{}}} = assigns
-      ) do
-    ~H"""
-    <div class="flex flex-col">
-      <div class="flex items-center gap-2">
-        <.badge class="truncate">
-          {@assessment_point.curriculum_item.curriculum_component.name}
-        </.badge>
-        <.badge :if={@assessment_point.is_differentiation} theme="diff">
-          {gettext("Diff")}
-        </.badge>
-        <.icon :if={@assessment_point.rubric_id} name="hero-view-columns-micro" class="w-4 h-4" />
-      </div>
-      <p class="flex-1 mt-1 font-sans text-sm line-clamp-2">
-        {@assessment_point.curriculum_item.name}
-      </p>
-      <.tooltip id={"assessment-point-#{@assessment_point.id}-subheader-tooltip"}>
-        {@assessment_point.curriculum_item.name}
-      </.tooltip>
-    </div>
     """
   end
 
@@ -418,6 +325,9 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
     <div class="font-sans text-sm whitespace-nowrap">
       <div class="block w-full p-1 rounded-sm overflow-hidden">
         <div class="flex items-center gap-2">
+          <.badge :if={@assessment_point.scale.type == "numeric"}>
+            {@assessment_point.scale.max_score}
+          </.badge>
           <.icon :if={@assessment_point.rubric_id} name="hero-view-columns-micro" class="w-4 h-4" />
           <span class="font-bold">{@assessment_point.moment.name}</span> <br />
         </div>
@@ -426,6 +336,9 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
       <.tooltip id={"assessment-point-#{@assessment_point.id}-subheader-tooltip"}>
         <p>{@assessment_point.moment.name}</p>
         <p class="mt-2">{@assessment_point.name}</p>
+        <p :if={@assessment_point.scale.type == "numeric"} class="mt-2">
+          {gettext("Max score: %{max}", max: @assessment_point.scale.max_score)}
+        </p>
         <.markdown
           :if={@assessment_point.report_info}
           text={@assessment_point.report_info}
@@ -443,20 +356,33 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
       when not is_nil(strand_id) do
     ~H"""
     <.link
-      patch={"?edit_assessment_point=#{@assessment_point.id}"}
+      patch={"?#{URI.encode_query(Map.put(@url_params, "edit_assessment_point", @assessment_point.id))}"}
       class="flex flex-col p-1 rounded-sm hover:bg-ltrn-lightest"
     >
       <div class="font-sans whitespace-nowrap overflow-hidden">
         <div class="flex items-center gap-2">
+          <.badge :if={@assessment_point.scale.type == "numeric"}>
+            {@assessment_point.scale.max_score}
+          </.badge>
           <.icon :if={@assessment_point.rubric_id} name="hero-view-columns-micro" />
           <span class="font-bold text-sm">{gettext("Goal assessment")}</span>
         </div>
         <span class="text-xs">{gettext("(Strand final assessment)")}</span>
         <.tooltip
-          :if={@assessment_point.report_info}
+          :if={@assessment_point.report_info || @assessment_point.scale.type == "numeric"}
           id={"assessment-point-#{@assessment_point.id}-struct-tooltip"}
         >
-          <.markdown text={@assessment_point.report_info} invert strip_tags size="sm" />
+          <p :if={@assessment_point.scale.type == "numeric"}>
+            {gettext("Max score: %{max}", max: @assessment_point.scale.max_score)}
+          </p>
+          <.markdown
+            :if={@assessment_point.report_info}
+            text={@assessment_point.report_info}
+            invert
+            strip_tags
+            size="sm"
+            class="mt-2"
+          />
         </.tooltip>
       </div>
     </.link>
@@ -484,12 +410,12 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
   attr :current_assessment_view, :string, required: true
   attr :view_bg, :string, required: true
   attr :current_user, User, required: true
-  attr :is_moment, :boolean, required: true
 
   def student_entries(assigns) do
     ~H"""
     <div
       id={@id}
+      data-grid-row
       class="grid grid-cols-subgrid"
       style={"grid-column: span #{length(@entries) + 1} / span #{length(@entries) + 1}"}
     >
@@ -501,7 +427,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
           navigate={~p"/school/students/#{@student}"}
         />
       </div>
-      <div :for={entry <- @entries} class="p-2">
+      <div :for={entry <- @entries} data-grid-cell class="p-2">
         <.live_component
           module={EntryCellComponent}
           current_scope={@current_scope}
@@ -509,7 +435,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
           class="w-full h-full"
           entry={entry}
           view={@current_assessment_view}
-          allow_edit={@is_moment || entry.is_strand_entry}
+          allow_edit={true}
           notify_component={@myself}
         />
       </div>
@@ -525,19 +451,21 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
       socket
       |> assign(:class, nil)
       |> assign(:classes_ids, [])
-      |> assign(:moment_id, nil)
       |> assign(:strand_id, nil)
       |> assign(:entries_changes_map, %{})
+      |> assign(:invalid_changes_set, MapSet.new())
       |> assign(:assessment_point_entry, nil)
       |> assign(:has_entry_details_change, false)
+      |> assign(:has_assessment_points, false)
+      |> assign(:assessment_points_count, 0)
+      |> assign(:assessment_points_columns_grid, "")
+      |> assign(:url_params, %{})
+      |> assign(:filter_assessment_points_ids, nil)
       |> stream_configure(
         :assessment_point_headers,
         dom_id: fn
-          {%CurriculumItem{} = ci, _count} -> "ap-group-curriculum-item-#{ci.id}"
           {%Moment{} = moment, _count} -> "ap-group-moment-#{moment.id}"
           {%Strand{} = strand, _count} -> "ap-group-strand-#{strand.id}"
-          %AssessmentPoint{} = assessment_point -> "header-#{assessment_point.id}"
-          _ -> ""
         end
       )
       |> stream_configure(
@@ -555,23 +483,23 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
       ) do
     socket =
       socket
-      |> update(:entries_changes_map, fn entries_changes_map ->
-        entries_changes_map
-        |> Map.drop([composite_id])
-      end)
+      |> update(:entries_changes_map, &Map.drop(&1, [composite_id]))
+      |> update(:invalid_changes_set, &MapSet.delete(&1, composite_id))
 
     {:ok, socket}
   end
 
   def update(
-        %{action: {EntryCellComponent, {:change, _type, composite_id, _entry_id, params}}},
+        %{action: {EntryCellComponent, {:change, change_type, composite_id, _entry_id, params}}},
         socket
       ) do
     socket =
       socket
-      |> update(:entries_changes_map, fn entries_changes_map ->
-        entries_changes_map
-        |> Map.put(composite_id, params)
+      |> update(:entries_changes_map, &Map.put(&1, composite_id, params))
+      |> update(:invalid_changes_set, fn set ->
+        if change_type == :invalid,
+          do: MapSet.put(set, composite_id),
+          else: MapSet.delete(set, composite_id)
       end)
 
     {:ok, socket}
@@ -620,9 +548,17 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
     socket =
       socket
       |> assign(assigns)
+      |> assign_new(:no_class_action, fn -> [] end)
       |> assign_view_bg()
-      |> stream_assessment_points()
-      |> stream_students_entries()
+
+    socket =
+      if socket.assigns.classes_ids == [] do
+        socket
+      else
+        socket
+        |> stream_assessment_points()
+        |> stream_students_entries()
+      end
 
     {:ok, socket}
   end
@@ -638,106 +574,104 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
   end
 
   defp stream_assessment_points(socket) do
+    {all_headers, all_assessment_points} =
+      Assessments.list_strand_assessment_points(socket.assigns.strand_id)
+
     {assessment_point_headers, assessment_points} =
-      case socket.assigns do
-        %{moment_id: moment_id} when not is_nil(moment_id) ->
-          assessment_points =
-            Assessments.list_assessment_points(
-              moments_ids: [moment_id],
-              preloads: [scale: :ordinal_values, curriculum_item: :curriculum_component]
-            )
+      case socket.assigns.filter_assessment_points_ids do
+        nil ->
+          {all_headers, all_assessment_points}
 
-          # when in moment view, we use the assessment point as headers
-          {assessment_points, assessment_points}
-
-        %{strand_id: strand_id} ->
-          Assessments.list_strand_assessment_points(
-            strand_id,
-            socket.assigns.current_assessment_group_by
-          )
+        filter_ids ->
+          filtered_aps = Enum.filter(all_assessment_points, &(&1.id in filter_ids))
+          {recompute_headers(all_headers, filtered_aps), filtered_aps}
       end
 
     assessment_points_count = length(assessment_points)
 
-    assessment_points_columns_grid =
-      case socket.assigns do
-        %{current_assessment_view: "compare"} ->
-          "repeat(#{assessment_points_count}, 12rem)"
-
-        %{moment_id: moment_id} when moment_id != nil ->
-          "repeat(#{assessment_points_count}, 15rem)"
-
-        _ ->
-          assessment_points
-          |> Enum.map_join(" ", fn
-            %{strand_id: id} when not is_nil(id) -> "15rem"
-            _ -> "6rem"
-          end)
-      end
-
     socket
-    |> stream(:assessment_points, assessment_points)
-    |> stream(:assessment_point_headers, assessment_point_headers)
-    |> assign(:assessment_points_count, length(assessment_points))
-    |> assign(:assessment_points_columns_grid, assessment_points_columns_grid)
+    |> stream(:assessment_points, assessment_points, reset: true)
+    |> stream(:assessment_point_headers, assessment_point_headers, reset: true)
+    |> assign(:assessment_points_count, assessment_points_count)
+    |> assign(:assessment_points_columns_grid, "repeat(#{assessment_points_count}, 12rem)")
     |> assign(:has_assessment_points, assessment_points != [])
+  end
+
+  defp recompute_headers(all_headers, filtered_aps) do
+    filtered_count_map =
+      filtered_aps
+      |> Enum.group_by(& &1.moment_id)
+      |> Map.new(fn {moment_id, aps} -> {moment_id, length(aps)} end)
+
+    all_headers
+    |> Enum.map(fn {struct, _} ->
+      key =
+        case struct do
+          %Moment{} -> struct.id
+          _ -> nil
+        end
+
+      {struct, Map.get(filtered_count_map, key, 0)}
+    end)
+    |> Enum.reject(fn {_, count} -> count == 0 end)
   end
 
   defp stream_students_entries(socket) do
     students_entries =
-      case socket.assigns do
-        %{moment_id: moment_id} when moment_id != nil ->
-          Assessments.list_moment_students_entries(
-            moment_id,
-            classes_ids: socket.assigns.classes_ids,
-            load_profile_picture_from_cycle_id:
-              socket.assigns.current_user.current_profile.current_school_cycle.id,
-            active_students_only: true,
-            check_if_has_evidences: true
-          )
+      Assessments.list_strand_students_entries(
+        socket.assigns.strand_id,
+        classes_ids: socket.assigns.classes_ids,
+        load_profile_picture_from_cycle_id:
+          socket.assigns.current_user.current_profile.current_school_cycle.id,
+        active_students_only: true,
+        check_if_has_evidences: true
+      )
 
-        _ ->
-          Assessments.list_strand_students_entries(
-            socket.assigns.strand_id,
-            socket.assigns.current_assessment_group_by,
-            classes_ids: socket.assigns.classes_ids,
-            load_profile_picture_from_cycle_id:
-              socket.assigns.current_user.current_profile.current_school_cycle.id,
-            active_students_only: true,
-            check_if_has_evidences: true
-          )
+    students_entries =
+      case socket.assigns.filter_assessment_points_ids do
+        nil ->
+          students_entries
+
+        filter_ids ->
+          Enum.map(students_entries, fn {student, entries} ->
+            {student, Enum.filter(entries, &(&1.assessment_point_id in filter_ids))}
+          end)
       end
 
     socket
-    |> stream(:students_entries, students_entries)
+    |> stream(:students_entries, students_entries, reset: true)
   end
 
   # event handlers
 
   @impl true
   def handle_event("save_changes", _params, socket) do
-    %{
-      entries_changes_map: entries_changes_map,
-      current_user: current_user
-    } = socket.assigns
+    if MapSet.size(socket.assigns.invalid_changes_set) > 0 do
+      {:noreply, socket}
+    else
+      %{
+        entries_changes_map: entries_changes_map,
+        current_user: current_user
+      } = socket.assigns
 
-    changes = Map.values(entries_changes_map)
+      changes = Map.values(entries_changes_map)
 
-    socket =
-      case Assessments.save_assessment_point_entries(changes,
-             log_profile_id: current_user.current_profile_id
-           ) do
-        {:ok, count} ->
-          msg = ngettext("1 entry updated", "%{count} entries updated", count)
-          put_flash(socket, :info, msg)
+      socket =
+        case Assessments.save_assessment_point_entries(changes,
+               log_profile_id: current_user.current_profile_id
+             ) do
+          {:ok, count} ->
+            msg = ngettext("1 entry updated", "%{count} entries updated", count)
+            put_flash(socket, :info, msg)
 
-        {:error, _changeset} ->
-          msg = gettext("Error updating assessment point entries")
-          put_flash(socket, :error, msg)
-      end
-      |> push_navigate(to: socket.assigns.navigate)
+          {:error, _changeset} ->
+            msg = gettext("Error updating assessment point entries")
+            put_flash(socket, :error, msg)
+        end
+        |> push_navigate(to: socket.assigns.navigate)
 
-    {:noreply, socket}
+      {:noreply, socket}
+    end
   end
 
   def handle_event("close_entry_details_overlay", _, socket) do

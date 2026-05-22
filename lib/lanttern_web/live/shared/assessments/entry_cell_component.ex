@@ -35,7 +35,18 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class={["w-full h-full", @grid_class, @class]}>
+    <div
+      id={"cell-#{@id}"}
+      class={[
+        "relative w-full h-full",
+        @form && "focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-ltrn-dark",
+        @grid_class,
+        @class
+      ]}
+      tabindex={if @form, do: "0"}
+      phx-hook={if @form, do: "EntryCell"}
+      data-scale-type={if @form, do: @entry.scale_type}
+    >
       <%= if @form do %>
         <div class="flex items-center gap-2 w-full h-full">
           <.form
@@ -44,7 +55,8 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
             phx-target={@myself}
             class={[
               "relative flex-1 w-full h-full",
-              if(@has_changes, do: "outline outline-4 outline-offset-1 outline-ltrn-dark")
+              @is_invalid && "outline outline-4 outline-offset-1 outline-ltrn-alert-accent",
+              !@is_invalid && @has_changes && "outline outline-4 outline-offset-1 outline-ltrn-dark"
             ]}
             id={"entry-#{@id}-marking-form"}
           >
@@ -58,16 +70,29 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
           </.form>
           <button
             type="button"
+            tabindex="-1"
             class={[
-              "flex items-center justify-center shrink-0 p-1 rounded-full text-ltrn-light bg-white shadow-sm hover:bg-ltrn-lightest",
+              "flex flex-col shrink-0 rounded-full text-ltrn-light hover:bg-ltrn-lightest",
               "disabled:bg-ltrn-lighter disabled:shadow-none"
             ]}
             phx-click="view_details"
             phx-target={@myself}
           >
-            <.icon name="hero-chat-bubble-oval-left-micro" class={["w-4 h-4", @note_icon_class]} />
-            <.icon name="hero-paper-clip-micro" class={["w-4 h-4", @evidences_icon_class]} />
-            <.icon name="hero-view-columns-micro" class={["w-4 h-4", @diff_rubric_icon_class]} />
+            <.icon name="hero-chat-bubble-oval-left-micro" class={["size-3", @note_icon_class]} />
+            <.icon name="hero-paper-clip-micro" class={["size-3", @evidences_icon_class]} />
+            <.icon name="hero-view-columns-micro" class={["size-3", @diff_rubric_icon_class]} />
+            <.tooltip
+              :if={@entry_note || @entry.has_evidences || @entry.differentiation_rubric_id}
+              id={"cell-#{@id}-details-tooltip"}
+            >
+              <div class="space-y-2">
+                <p :if={@entry_note}>
+                  <.markdown text={@entry_note} class="line-clamp-4" size="sm" invert strip_tags />
+                </p>
+                <p :if={@entry.has_evidences}>{gettext("Has attachment")}</p>
+                <p :if={@entry.differentiation_rubric_id}>{gettext("Has differentiation rubric")}</p>
+              </div>
+            </.tooltip>
           </button>
         </div>
       <% else %>
@@ -96,18 +121,51 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
   attr :style, :string
 
   def marking_input(%{scale_type: "ordinal"} = assigns) do
+    current_label =
+      Enum.find_value(assigns.ov_options, fn {label, val} ->
+        to_string(val) == to_string(assigns.field.value) && label
+      end)
+
+    assigns = assign(assigns, :current_label, current_label)
+
     ~H"""
-    <.select
-      name={@field.name}
-      prompt="—"
-      options={@ov_options}
-      value={@field.value}
-      class={[
-        "w-full h-full rounded-xs font-mono text-sm text-center truncate text-clip",
-        @field.value in [nil, ""] && "bg-ltrn-lighter"
-      ]}
-      style={@style}
-    />
+    <div class="relative w-full h-full">
+      <input type="hidden" id={@field.id} name={@field.name} value={@field.value || ""} />
+      <div
+        class={[
+          "flex items-center justify-center w-full h-full rounded-xs font-mono text-sm truncate px-1",
+          is_nil(@current_label) && "bg-ltrn-lighter"
+        ]}
+        style={if @current_label, do: @style}
+      >
+        <span class={[is_nil(@current_label) && "text-ltrn-subtle"]}>
+          {@current_label || "—"}
+        </span>
+      </div>
+      <ul
+        class="hidden absolute z-30 left-0 top-full mt-0.5 min-w-max rounded-sm shadow-md bg-white ring-1 ring-ltrn-lighter overflow-y-auto max-h-48"
+        role="listbox"
+        data-ordinal-list
+      >
+        <li
+          class="px-3 py-1.5 font-mono text-sm cursor-pointer text-ltrn-subtle hover:bg-ltrn-lightest data-[active=true]:bg-ltrn-lightest"
+          role="option"
+          data-ordinal-item
+          data-value=""
+        >
+          {gettext("None")}
+        </li>
+        <li
+          :for={{label, value} <- @ov_options}
+          class="px-3 py-1.5 font-mono text-sm cursor-pointer hover:bg-ltrn-lightest data-[active=true]:bg-ltrn-lightest"
+          role="option"
+          data-ordinal-item
+          data-value={value}
+        >
+          {label}
+        </li>
+      </ul>
+    </div>
     """
   end
 
@@ -117,7 +175,7 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
       name={@field.name}
       type="number"
       phx-debounce="1000"
-      value={@field.value}
+      value={format_score_input_value(@field.value)}
       errors={@field.errors}
       style={@style}
       class={[
@@ -178,7 +236,7 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
         class="flex items-center justify-center h-full p-2 rounded-xs font-mono text-sm bg-white shadow-lg"
         style={@style}
       >
-        {@value}
+        {Lanttern.Utils.format_float(@value)}
       </div>
     <% else %>
       <.empty entry={@entry} />
@@ -218,6 +276,8 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
       |> assign(:view, "teacher")
       |> assign(:allow_edit, false)
       |> assign(:has_changes, false)
+      |> assign(:is_invalid, false)
+      |> assign(:scale, nil)
 
     {:ok, socket}
   end
@@ -302,6 +362,7 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
 
     socket
     |> assign(assigns)
+    |> assign(:scale, scale)
     |> assign_ov_values_and_styles(ov_map, ov_style_map, scale)
     |> assign_form_and_related_assigns(ov_options)
     |> assign_grid_class()
@@ -333,6 +394,11 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
     |> assign(:student_ov_name, student_ov_name)
     |> assign(:student_ov_style, student_ov_style)
   end
+
+  defp format_score_input_value(value) when is_float(value),
+    do: Lanttern.Utils.format_float(value)
+
+  defp format_score_input_value(value), do: value
 
   defp numeric_style(nil, _score), do: nil
   defp numeric_style(_scale, nil), do: nil
@@ -408,6 +474,7 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
     |> assign(:note_icon_class, note_icon_class)
     |> assign(:evidences_icon_class, evidences_icon_class)
     |> assign(:diff_rubric_icon_class, diff_rubric_icon_class)
+    |> assign(:is_invalid, false)
   end
 
   defp assign_form_and_related_assigns(socket, _ov_options), do: assign(socket, :form, nil)
@@ -458,7 +525,17 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
     # get the right ordinal value or score based on view
     param_value = get_param_value(params, view)
     has_changes = "#{entry_value}" != param_value
-    change_type = if has_changes, do: :edit, else: :cancel
+
+    is_invalid =
+      has_changes && score_invalid?(param_value, entry.scale_type, socket.assigns.scale)
+
+    change_type =
+      cond do
+        not has_changes -> :cancel
+        is_invalid -> :invalid
+        true -> :edit
+      end
+
     composite_id = "#{entry_params["student_id"]}_#{entry_params["assessment_point_id"]}"
 
     notify(
@@ -470,6 +547,7 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
     socket =
       socket
       |> assign(:has_changes, has_changes)
+      |> assign(:is_invalid, is_invalid)
       |> assign(:form, form)
       |> assign(:field, field)
 
@@ -500,4 +578,19 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
 
   defp get_param_value(%{"scale_type" => "numeric"} = params, _teacher),
     do: params["score"]
+
+  defp score_invalid?(value, "numeric", %{max_score: max_score}) do
+    str = to_string(value)
+
+    if str == "" do
+      false
+    else
+      case Float.parse(str) do
+        {score, _} -> score < 0.0 || score > max_score
+        :error -> false
+      end
+    end
+  end
+
+  defp score_invalid?(_, _, _), do: false
 end

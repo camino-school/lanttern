@@ -8,9 +8,12 @@ defmodule Lanttern.Strands do
   import Lanttern.RepoHelpers,
     only: [maybe_preload: 2, set_position_in_attrs: 2, update_positions: 2]
 
+  alias Ecto.Multi
   alias Lanttern.Repo
 
   alias Lanttern.Identity.Scope
+  alias Lanttern.Schools.Class
+  alias Lanttern.Strands.ClassAssignment
   alias Lanttern.Strands.StrandCurriculumItem
 
   @doc """
@@ -188,5 +191,212 @@ defmodule Lanttern.Strands do
         attrs \\ %{}
       ) do
     StrandCurriculumItem.changeset(strand_curriculum_item, attrs)
+  end
+
+  # class_assignments
+
+  @doc """
+  Returns the list of class assignments for a given strand, ordered by class name.
+
+  Only returns assignments whose class belongs to the scope's school.
+  Always preloads `:class`.
+
+  ## Examples
+
+      iex> list_strand_class_assignments(scope, strand_id)
+      [%ClassAssignment{}, ...]
+
+  """
+  def list_strand_class_assignments(%Scope{} = scope, strand_id) do
+    from(ca in ClassAssignment,
+      join: c in assoc(ca, :class),
+      where: ca.strand_id == ^strand_id,
+      where: c.school_id == ^scope.school_id,
+      order_by: c.name,
+      preload: [class: c]
+    )
+    |> Repo.all()
+  end
+
+  @doc """
+  Gets a single class assignment.
+
+  Only returns the assignment if the class belongs to the scope's school.
+  Always preloads `:class`.
+
+  Raises `Ecto.NoResultsError` if the class assignment does not exist.
+
+  ## Examples
+
+      iex> get_strand_class_assignment!(scope, 123)
+      %ClassAssignment{}
+
+      iex> get_strand_class_assignment!(scope, 456)
+      ** (Ecto.NoResultsError)
+
+  """
+  def get_strand_class_assignment!(%Scope{} = scope, id) do
+    from(ca in ClassAssignment,
+      join: c in assoc(ca, :class),
+      where: ca.id == ^id,
+      where: c.school_id == ^scope.school_id,
+      preload: [class: c]
+    )
+    |> Repo.one!()
+  end
+
+  @doc """
+  Creates a class assignment linking a strand to a class.
+
+  Requires a staff scope. The class must belong to the scope's school.
+
+  ## Examples
+
+      iex> create_strand_class_assignment(scope, %{strand_id: 1, class_id: 2})
+      {:ok, %ClassAssignment{}}
+
+      iex> create_strand_class_assignment(scope, %{})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def create_strand_class_assignment(%Scope{} = scope, attrs) do
+    true = Scope.profile_type?(scope, "staff")
+
+    class_id = Map.get(attrs, :class_id) || Map.get(attrs, "class_id")
+
+    if class_id do
+      class = Repo.get!(Class, class_id)
+      true = class.school_id == scope.school_id
+    end
+
+    %ClassAssignment{}
+    |> ClassAssignment.changeset(attrs)
+    |> Repo.insert()
+  end
+
+  @doc """
+  Updates a class assignment.
+
+  Requires a staff scope. If `class_id` is changed, the new class must belong to the scope's school.
+
+  ## Examples
+
+      iex> update_strand_class_assignment(scope, class_assignment, %{class_id: 3})
+      {:ok, %ClassAssignment{}}
+
+      iex> update_strand_class_assignment(scope, class_assignment, %{class_id: nil})
+      {:error, %Ecto.Changeset{}}
+
+  """
+  def update_strand_class_assignment(
+        %Scope{} = scope,
+        %ClassAssignment{} = class_assignment,
+        attrs
+      ) do
+    true = Scope.profile_type?(scope, "staff")
+
+    class_id =
+      Map.get(attrs, :class_id) || Map.get(attrs, "class_id") || class_assignment.class_id
+
+    class = Repo.get!(Class, class_id)
+    true = class.school_id == scope.school_id
+
+    class_assignment
+    |> ClassAssignment.changeset(attrs)
+    |> Repo.update()
+  end
+
+  @doc """
+  Deletes a class assignment.
+
+  Requires a staff scope. The assignment's class must belong to the scope's school.
+
+  ## Examples
+
+      iex> delete_strand_class_assignment(scope, class_assignment)
+      {:ok, %ClassAssignment{}}
+
+  """
+  def delete_strand_class_assignment(
+        %Scope{} = scope,
+        %ClassAssignment{} = class_assignment
+      ) do
+    true = Scope.profile_type?(scope, "staff")
+
+    class = Repo.get!(Class, class_assignment.class_id)
+    true = class.school_id == scope.school_id
+
+    Repo.delete(class_assignment)
+  end
+
+  @doc """
+  Returns an `%Ecto.Changeset{}` for tracking class assignment changes.
+
+  ## Examples
+
+      iex> change_strand_class_assignment(scope, class_assignment)
+      %Ecto.Changeset{data: %ClassAssignment{}}
+
+  """
+  def change_strand_class_assignment(
+        %Scope{} = _scope,
+        %ClassAssignment{} = class_assignment,
+        attrs \\ %{}
+      ) do
+    ClassAssignment.changeset(class_assignment, attrs)
+  end
+
+  @doc """
+  Syncs class assignments for a strand within a single transaction.
+
+  Deletes assignments whose class IDs are not in `class_ids`, and creates new
+  assignments for class IDs that don't yet have an assignment.
+
+  Requires a staff scope.
+
+  ## Examples
+
+      iex> sync_strand_class_assignments(scope, 1, [2, 3])
+      :ok
+
+  """
+  def sync_strand_class_assignments(%Scope{} = scope, strand_id, class_ids)
+      when is_list(class_ids) do
+    true = Scope.profile_type?(scope, "staff")
+
+    current = list_strand_class_assignments(scope, strand_id)
+    current_ids = Enum.map(current, & &1.class_id)
+
+    to_delete = Enum.filter(current, &(&1.class_id not in class_ids))
+    to_add_ids = class_ids -- current_ids
+
+    Enum.each(to_add_ids, fn class_id ->
+      class = Repo.get!(Class, class_id)
+      true = class.school_id == scope.school_id
+    end)
+
+    multi =
+      Multi.new()
+      |> then(fn m ->
+        Enum.reduce(to_delete, m, fn ca, acc ->
+          Multi.delete(acc, {:delete, ca.id}, ca)
+        end)
+      end)
+      |> then(fn m ->
+        Enum.reduce(to_add_ids, m, fn class_id, acc ->
+          changeset =
+            ClassAssignment.changeset(%ClassAssignment{}, %{
+              strand_id: strand_id,
+              class_id: class_id
+            })
+
+          Multi.insert(acc, {:insert, class_id}, changeset)
+        end)
+      end)
+
+    case Repo.transaction(multi) do
+      {:ok, _} -> :ok
+      {:error, _op, changeset, _changes} -> {:error, changeset}
+    end
   end
 end

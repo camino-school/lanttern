@@ -13,7 +13,6 @@ defmodule Lanttern.Assessments do
   alias Lanttern.AssessmentsLog
   alias Lanttern.Attachments
   alias Lanttern.Attachments.Attachment
-  alias Lanttern.Curricula.CurriculumItem
   alias Lanttern.Identity.Scope
   alias Lanttern.Identity.User
   alias Lanttern.LearningContext.Moment
@@ -603,103 +602,37 @@ defmodule Lanttern.Assessments do
   end
 
   @doc """
-  Returns the list of assessment points for the given strand.
+  Returns the list of assessment points for the given strand, grouped by moment.
 
-  The return format is comprised of a tuple with two lists:
-  1. a list of "headers", a tuple with the group by struct and a count of assessment points
-  2. the list of assessment points (view below for more info).
+  The return format is a tuple with:
+  1. a list of headers — `{%Moment{}, count}` tuples followed by `{%Strand{}, count}` for strand-level assessment points
+  2. the list of assessment points ordered by moment and assessment point position
 
-  ### `:group_by`
-
-  - `nil` (default) - When `:group_by` is `nil`, there will be only one header
-  (the `%Strand{}`) and the list of the strand assessment points (no moments
-  assessment points) will be ordered by position.
-  Assesment points preloads `curriculum_item` and `curriculum_component`.
-
-  - `"curriculum"` - will return a list of `%CurriculumItem{}`s as headers,
-  ordered by the strand assessment point curriculum items position,
-  and the assessment points will be ordered by moment and assessment point position,
-  with the strand assessment points at the end.
-  Assessment points preloads `moment`, and curriculum items preloads curricumum component.
-  Curriculum `is_differentiation` is set based on strand assessment point.
-
-  - `"moment"` - will return a list of `%Moment{}`s in the header, with
-  a `%Strand{}` at the end. Assessment points are ordered by moment and
-  assessment point position, with strand assessment points at the end.
-  Assessment points preloads `curriculum_item` and `curriculum_component`.
+  Assessment points preload `curriculum_item` and `curriculum_component`.
 
   ## Examples
 
       iex> list_strand_assessment_points(strand_id)
-      {
-        [%Strand{}, 10],
-        [%AssessmentPoint{}, ...]
-      }
-
-      iex> list_strand_assessment_points(strand_id, group_by: "curriculum")
-      {
-        [{%CurriculumItem{}, 5}, ...],
-        [%AssessmentPoint{}, ...]
-      }
-
-      iex> list_strand_assessment_points(strand_id, group_by: "moment")
       {
         [{%Moment{}, 5}, ..., {%Strand{}, 10}],
         [%AssessmentPoint{}, ...]
       }
 
   """
-  @spec list_strand_assessment_points(pos_integer(), String.t() | nil) :: {
-          [{CurriculumItem.t() | Moment.t() | Strand.t(), non_neg_integer()}],
+  @spec list_strand_assessment_points(pos_integer()) :: {
+          [{Moment.t() | Strand.t(), non_neg_integer()}],
           [AssessmentPoint.t()]
         }
-  def list_strand_assessment_points(strand_id, group_by \\ nil)
-
-  def list_strand_assessment_points(strand_id, "curriculum") do
-    # base query handles where and order_by
-    base_query = strand_assessment_points_base_query(strand_id, "curriculum")
-
-    assessment_points =
-      from(
-        [ap, moment: m] in base_query,
-        preload: [moment: m]
-      )
-      |> Repo.all()
-
-    curriculum_items_ap_count_map =
-      assessment_points
-      |> Enum.group_by(& &1.curriculum_item_id)
-      |> Enum.map(fn {curriculum_item_id, assessment_points} ->
-        {curriculum_item_id, length(assessment_points)}
-      end)
-      |> Enum.into(%{})
-
-    headers =
-      from(
-        ci in CurriculumItem,
-        join: cc in assoc(ci, :curriculum_component),
-        join: ap in assoc(ci, :assessment_points),
-        where: ap.strand_id == ^strand_id,
-        order_by: ap.position,
-        select: %{ci | is_differentiation: ap.is_differentiation},
-        preload: [curriculum_component: cc]
-      )
-      |> Repo.all()
-      |> Enum.map(&{&1, curriculum_items_ap_count_map[&1.id]})
-
-    {headers, assessment_points}
-  end
-
-  def list_strand_assessment_points(strand_id, "moment") do
-    # base query handles where and order_by
-    base_query = strand_assessment_points_base_query(strand_id, "moment")
+  def list_strand_assessment_points(strand_id) do
+    base_query = strand_assessment_points_base_query(strand_id)
 
     assessment_points =
       from(
         ap in base_query,
         join: ci in assoc(ap, :curriculum_item),
         join: cc in assoc(ci, :curriculum_component),
-        preload: [curriculum_item: {ci, curriculum_component: cc}]
+        join: sc in assoc(ap, :scale),
+        preload: [curriculum_item: {ci, curriculum_component: cc}, scale: sc]
       )
       |> Repo.all()
 
@@ -726,39 +659,7 @@ defmodule Lanttern.Assessments do
     {moments_headers ++ [strand_header], assessment_points}
   end
 
-  def list_strand_assessment_points(strand_id, nil) do
-    # base query handles where and order_by
-    base_query = strand_assessment_points_base_query(strand_id, nil)
-
-    assessment_points =
-      from(
-        ap in base_query,
-        join: ci in assoc(ap, :curriculum_item),
-        join: cc in assoc(ci, :curriculum_component),
-        preload: [curriculum_item: {ci, curriculum_component: cc}]
-      )
-      |> Repo.all()
-
-    strand = Repo.get(Strand, strand_id)
-
-    {[{strand, length(assessment_points)}], assessment_points}
-  end
-
-  defp strand_assessment_points_base_query(strand_id, group_by)
-
-  defp strand_assessment_points_base_query(strand_id, "curriculum") do
-    from(
-      ap in AssessmentPoint,
-      left_join: m in assoc(ap, :moment),
-      as: :moment,
-      join: ci_ap in AssessmentPoint,
-      on: ci_ap.curriculum_item_id == ap.curriculum_item_id and ci_ap.strand_id == ^strand_id,
-      where: ap.strand_id == ^strand_id or m.strand_id == ^strand_id,
-      order_by: [asc: ci_ap.position, asc: m.position, asc: ap.position]
-    )
-  end
-
-  defp strand_assessment_points_base_query(strand_id, "moment") do
+  defp strand_assessment_points_base_query(strand_id) do
     from(
       ap in AssessmentPoint,
       left_join: m in assoc(ap, :moment),
@@ -767,12 +668,29 @@ defmodule Lanttern.Assessments do
     )
   end
 
-  defp strand_assessment_points_base_query(strand_id, nil) do
+  @spec list_strand_composition_assessment_points(pos_integer()) :: [AssessmentPoint.t()]
+  def list_strand_composition_assessment_points(strand_id) do
+    base_query = strand_assessment_points_base_query(strand_id)
+
+    from(
+      ap in base_query,
+      join: ci in assoc(ap, :curriculum_item),
+      join: cc in assoc(ci, :curriculum_component),
+      where: not is_nil(ap.composition_type),
+      preload: [curriculum_item: {ci, curriculum_component: cc}]
+    )
+    |> Repo.all()
+  end
+
+  @spec list_strand_assessment_point_ids(pos_integer()) :: [pos_integer()]
+  def list_strand_assessment_point_ids(strand_id) do
     from(
       ap in AssessmentPoint,
-      where: ap.strand_id == ^strand_id,
-      order_by: [asc: ap.position]
+      left_join: m in assoc(ap, :moment),
+      where: ap.strand_id == ^strand_id or m.strand_id == ^strand_id,
+      select: ap.id
     )
+    |> Repo.all()
   end
 
   @doc """
@@ -782,27 +700,22 @@ defmodule Lanttern.Assessments do
   `AssessmentPointEntry`s as the second. When there's no entry for the given student
   and assessment point, this function handles the empty `%AssessmentPointEntry{}` creation.
 
-  The order and quantity of the entries are aligned with `list_strand_assessment_points/2`.
+  The order and quantity of the entries are aligned with `list_strand_assessment_points/1`.
 
   ### Options:
 
-  - `:group_by` – `"curriculum"`, `"moment"`, or `nil` (details below)
   - `:classes_ids` – filter entries by classes
   - `:load_profile_picture_from_cycle_id` - will try to load the profile picture from linked `%StudentCycleInfo{}` with the given cycle id
   - `:active_students_only` – (boolean) remove deactivated students from results
   - `:check_if_has_evidences` – (boolean) calculate virtual `has_evidences` field
 
-  #### Order of entries when grouped by
-
-  View `list_strand_assessment_points/2`.
-
   """
 
-  @spec list_strand_students_entries(pos_integer(), String.t() | nil, Keyword.t()) ::
+  @spec list_strand_students_entries(pos_integer(), Keyword.t()) ::
           [{Student.t(), [AssessmentPointEntry.t()]}]
-  def list_strand_students_entries(strand_id, group_by, opts \\ []) do
+  def list_strand_students_entries(strand_id, opts \\ []) do
     assessment_points_query =
-      strand_assessment_points_base_query(strand_id, group_by)
+      strand_assessment_points_base_query(strand_id)
 
     students_entries =
       from(

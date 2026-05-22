@@ -31,33 +31,16 @@
             patch={~p"/strands/#{@strand}/assessment"}
             is_current={@live_action == :assessment}
           >
-            <div class="relative">
-              <.button
-                type="button"
-                size="sm"
-                theme="ghost"
-                icon_name="hero-pencil-square-micro"
-                id="tab-marking-button"
-              >
-                {gettext("Marking")}
-              </.button>
-              <.dropdown_menu
-                id="tab-marking-menu"
-                button_id="tab-marking-button"
-              >
-                <:item
-                  :for={moment <- @strand.moments}
-                  type="link"
-                  navigate={~p"/strands/#{@strand}/assessment/marking/moment/#{moment}"}
-                  text={moment.name}
-                />
-                <:item
-                  type="link"
-                  navigate={~p"/strands/#{@strand}/assessment/marking"}
-                  text={gettext("Strand goals")}
-                />
-              </.dropdown_menu>
-            </div>
+            <.button
+              type="link"
+              size="sm"
+              theme="ghost"
+              icon_name="hero-pencil-square-micro"
+              id="tab-marking-button"
+              navigate={~p"/strands/#{@strand}/assessment/marking"}
+            >
+              {gettext("Marking")}
+            </.button>
           </:tab>
         </.tabs>
         <div class="flex items-center gap-4">
@@ -74,7 +57,18 @@
           >
             {gettext("Edit strand")}
           </.action>
-          <.menu_button id="strand-menu-more">
+          <.menu_button id="strand-menu-more" indicator={@strand_class_assignments == []}>
+            <:item
+              id={"assign-classes-strand-#{@strand.id}"}
+              text={
+                if @strand_class_assignments == [],
+                  do: gettext("Assign classes to this strand"),
+                  else:
+                    "#{gettext("Assigned classes")}: #{Enum.map_join(@strand_class_assignments, ", ", & &1.class.name)}"
+              }
+              indicator={@strand_class_assignments == []}
+              on_click={JS.exec("data-show", to: "#strand-class-assignment-modal")}
+            />
             <:item
               id={"remove-strand-#{@strand.id}"}
               text={gettext("Delete")}
@@ -111,13 +105,7 @@
       strand={@strand}
       current_user={@current_user}
       current_scope={@current_scope}
-      selected_classes_ids={@selected_classes_ids}
-      selected_classes_text={
-        format_action_items_text(
-          @selected_classes,
-          gettext("No class selected")
-        )
-      }
+      strand_class_ids={Enum.map(@strand_class_assignments, & &1.class_id)}
       params={@params}
     />
     <.live_component
@@ -171,12 +159,12 @@
   </:actions>
 </.slide_over>
 <.live_component
-  module={LantternWeb.Filters.ClassesFilterOverlayComponent}
-  id="strand-classes-filter-modal"
+  module={StrandClassAssignmentOverlayComponent}
+  id="strand-class-assignment-modal"
   current_user={@current_user}
-  title={gettext("Select classes to view students differentiation rubrics")}
-  profile_filter_opts={[strand_id: @strand.id]}
+  current_scope={@current_scope}
+  strand={@strand}
   classes={@classes}
-  selected_classes_ids={@selected_classes_ids}
-  navigate={~p"/strands/#{@strand}/rubrics"}
+  assigned_classes_ids={Enum.map(@strand_class_assignments, & &1.class_id)}
+  navigate={@current_path}
 />

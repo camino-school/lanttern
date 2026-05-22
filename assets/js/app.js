@@ -40,6 +40,7 @@ import navScrollspyHook from "./nav-scrollspy-hook";
 import scrollToTopHook from "./scroll-to-top-hook";
 import sliderHook from "./slider-hook";
 import sortableHook from "./sortable-hook";
+import entryCellHook from "./entry-cell-hook";
 
 // colocated hooks (Phoenix.LiveView.ColocatedHook)
 import { hooks as colocatedHooks } from "phoenix-colocated/lanttern";
@@ -54,6 +55,7 @@ Hooks.NavScrollspy = navScrollspyHook;
 Hooks.ScrollToTop = scrollToTopHook;
 Hooks.Slider = sliderHook;
 Hooks.Sortable = sortableHook;
+Hooks.EntryCell = entryCellHook;
 
 Object.assign(Hooks, colocatedHooks);
 

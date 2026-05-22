@@ -73,7 +73,9 @@ function autocompleteSearchResults(event) {
   };
 
   if (event.detail.results.length > 0) {
-    setActive(`results-${event.detail.results[0].id}`, input, controls);
+    if (document.activeElement === input) {
+      setActive(`results-${event.detail.results[0].id}`, input, controls);
+    }
 
     controls.querySelectorAll("li").forEach((li) => {
       li.addEventListener("mouseenter", activateLi, {
@@ -198,6 +200,19 @@ const autocompleteHook = {
     this.el.addEventListener("keydown", keydownHandler.bind(this), {
       signal: hookAbortControllerMap[this.el.id].signal,
     });
+
+    this.el.addEventListener(
+      "focus",
+      () => {
+        const controlId = this.el.getAttribute("aria-controls");
+        const controls = document.getElementById(controlId);
+        const list = controls.querySelectorAll("li");
+        if (list.length > 0) {
+          setActive(list[0].id, this.el, controls);
+        }
+      },
+      { signal: hookAbortControllerMap[this.el.id].signal }
+    );
   },
   destroyed() {
     hookAbortControllerMap[this.el.id].abort();

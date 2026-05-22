@@ -97,18 +97,9 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
           </.card_base>
         </div>
         <section id="differentiation-rubrics-section" class="pb-10 mt-10">
-          <div class="flex items-center justify-between gap-4">
-            <h4 class="font-display font-black text-xl text-ltrn-diff-dark">
-              {gettext("Differentiation")}
-            </h4>
-            <.button
-              type="button"
-              phx-click={JS.exec("data-show", to: "#strand-classes-filter-modal")}
-              icon_name="hero-users-mini"
-            >
-              {@selected_classes_text}
-            </.button>
-          </div>
+          <h4 class="font-display font-black text-xl text-ltrn-diff-dark">
+            {gettext("Differentiation")}
+          </h4>
           <div id="strand-diff-rubrics-list" phx-update="stream">
             <.card_base
               :for={
@@ -396,7 +387,7 @@ defmodule LantternWeb.StrandLive.StrandRubricsComponent do
       Rubrics.list_strand_rubrics_grouped_by_goal(
         socket.assigns.strand.id,
         only_diff: true,
-        preload_diff_students_from_classes_ids: socket.assigns.selected_classes_ids
+        preload_diff_students_from_classes_ids: socket.assigns.strand_class_ids
       )
 
     # keep track of goals ids for edit permission check
