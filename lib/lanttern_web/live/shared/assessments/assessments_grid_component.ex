@@ -24,12 +24,13 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
 
   alias Lanttern.Assessments
   alias Lanttern.Assessments.AssessmentPoint
-  alias Lanttern.Curricula.CurriculumItem
   alias Lanttern.Identity.Scope
   alias Lanttern.Identity.User
   alias Lanttern.LearningContext.Moment
   alias Lanttern.LearningContext.Strand
   alias Lanttern.Schools.Student
+
+  import LantternWeb.GradingComponents
 
   # shared components
   alias LantternWeb.Assessments.EntryCellComponent
@@ -85,7 +86,6 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
                   id={dom_id}
                   ap_header={ap_header}
                   assessment_view={@current_assessment_view}
-                  strand_id={@strand_id}
                 />
               </div>
               <div
@@ -182,7 +182,6 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
   attr :id, :string, required: true
   attr :ap_header, :any, required: true
   attr :assessment_view, :string, required: true
-  attr :strand_id, :integer, default: nil
 
   def assessment_point_header(assigns) do
     {header_struct, assessment_points_count} = assigns.ap_header
@@ -198,28 +197,15 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
     ~H"""
     <div id={@id} class="group pt-2 px-2" style={@grid_column_span_style}>
       <div class="h-full pb-2 border-b border-ltrn-light" style={@grid_column_span_style}>
-        <.assessment_point_header_struct header_struct={@header_struct} strand_id={@strand_id} />
+        <span class="flex items-center w-full text-sm font-display font-bold truncate">
+          <%= if match?(%Moment{}, @header_struct) do %>
+            {@header_struct.name}
+          <% else %>
+            {gettext("Goals assessment")}
+          <% end %>
+        </span>
       </div>
     </div>
-    """
-  end
-
-  attr :header_struct, :any, required: true, doc: "moment, strand, or curriculum item"
-  attr :strand_id, :integer, default: nil
-
-  def assessment_point_header_struct(%{header_struct: %Moment{}} = assigns) do
-    ~H"""
-    <span class="flex items-center w-full h-full p-1 rounded-sm text-sm font-display font-bold truncate">
-      {@header_struct.name}
-    </span>
-    """
-  end
-
-  def assessment_point_header_struct(%{header_struct: %Strand{}} = assigns) do
-    ~H"""
-    <p class="flex items-center h-full font-bold">
-      {gettext("Goals assessment")}
-    </p>
     """
   end
 
@@ -229,151 +215,74 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
   attr :id, :string, required: true
 
   def assessment_point(assigns) do
-    ~H"""
-    <div id={@id} class="flex flex-col p-2">
-      <div class="flex-1">
-        <.assessment_point_struct assessment_point={@assessment_point} url_params={@url_params} />
-      </div>
-      <.compare_header :if={@assessment_view == "compare"} />
-    </div>
-    """
-  end
+    display_name =
+      assigns.assessment_point.name || assigns.assessment_point.curriculum_item.name
 
-  attr :assessment_point, AssessmentPoint, required: true
-  attr :url_params, :map, required: true
+    tooltip_name =
+      if assigns.assessment_point.name do
+        assigns.assessment_point.name
+      else
+        ci = assigns.assessment_point.curriculum_item
+        "#{ci.curriculum_component.name}: #{ci.name}"
+      end
 
-  def assessment_point_struct(
-        %{assessment_point: %{curriculum_item: %CurriculumItem{}, moment_id: moment_id}} = assigns
-      )
-      when not is_nil(moment_id) do
-    ~H"""
-    <.link
-      patch={"?#{URI.encode_query(Map.put(@url_params, "edit_assessment_point", @assessment_point.id))}"}
-      class="flex flex-col p-1 rounded-sm hover:bg-ltrn-lightest"
-    >
-      <div
-        :if={@assessment_point.is_differentiation || @assessment_point.scale.type == "numeric"}
-        class="flex items-center gap-2 mb-1"
-      >
-        <.badge :if={@assessment_point.scale.type == "numeric"}>
-          {@assessment_point.scale.max_score}
-        </.badge>
-        <.badge :if={@assessment_point.is_differentiation} theme="diff">{gettext("Diff")}</.badge>
-      </div>
-      <p class={[
-        "flex-1 font-sans text-sm",
-        if(@assessment_point.is_differentiation, do: "line-clamp-2", else: "line-clamp-3")
-      ]}>
-        {@assessment_point.name}
-      </p>
-      <.tooltip id={"assessment-point-#{@assessment_point.id}-struct-tooltip"}>
-        <p>{@assessment_point.name}</p>
-        <p class="mt-2">
-          ({@assessment_point.curriculum_item.curriculum_component.name}) {@assessment_point.curriculum_item.name}
-        </p>
-        <p :if={@assessment_point.scale.type == "numeric"} class="mt-2">
-          {gettext("Max score: %{max}", max: @assessment_point.scale.max_score)}
-        </p>
-        <.markdown
-          :if={@assessment_point.report_info}
-          text={@assessment_point.report_info}
-          invert
-          strip_tags
-          size="sm"
-          class="mt-2"
-        />
-      </.tooltip>
-    </.link>
-    """
-  end
+    assigns =
+      assigns
+      |> assign(:display_name, display_name)
+      |> assign(:tooltip_name, tooltip_name)
 
-  def assessment_point_struct(
-        %{assessment_point: %{curriculum_item: %CurriculumItem{}}} = assigns
-      ) do
     ~H"""
-    <.link
-      patch={"?#{URI.encode_query(Map.put(@url_params, "edit_assessment_point", @assessment_point.id))}"}
-      class="flex flex-col p-1 rounded-sm hover:bg-ltrn-lightest"
-    >
-      <div class="flex items-center gap-2">
-        <.badge :if={@assessment_point.scale.type == "numeric"}>
-          {@assessment_point.scale.max_score}
-        </.badge>
-        <.badge class="truncate">
-          {@assessment_point.curriculum_item.curriculum_component.name}
-        </.badge>
-        <.badge :if={@assessment_point.is_differentiation} theme="diff">
-          {gettext("Diff")}
-        </.badge>
-        <.icon :if={@assessment_point.rubric_id} name="hero-view-columns-micro" class="w-4 h-4" />
-      </div>
-      <p class="flex-1 mt-1 font-sans text-sm line-clamp-2">
-        {@assessment_point.curriculum_item.name}
-      </p>
-      <.tooltip id={"assessment-point-#{@assessment_point.id}-struct-tooltip"}>
-        <p>{@assessment_point.curriculum_item.name}</p>
-        <p :if={@assessment_point.scale.type == "numeric"} class="mt-2">
-          {gettext("Max score: %{max}", max: @assessment_point.scale.max_score)}
-        </p>
-      </.tooltip>
-    </.link>
-    """
-  end
-
-  def assessment_point_struct(%{assessment_point: %{moment: %Moment{}}} = assigns) do
-    ~H"""
-    <div class="font-sans text-sm whitespace-nowrap">
-      <div class="block w-full p-1 rounded-sm overflow-hidden">
-        <div class="flex items-center gap-2">
-          <.badge :if={@assessment_point.scale.type == "numeric"}>
-            {@assessment_point.scale.max_score}
-          </.badge>
-          <.icon :if={@assessment_point.rubric_id} name="hero-view-columns-micro" class="w-4 h-4" />
-          <span class="font-bold">{@assessment_point.moment.name}</span> <br />
-        </div>
-        <span class="text-xs">{@assessment_point.name}</span>
-      </div>
-      <.tooltip id={"assessment-point-#{@assessment_point.id}-subheader-tooltip"}>
-        <p>{@assessment_point.moment.name}</p>
-        <p class="mt-2">{@assessment_point.name}</p>
-        <p :if={@assessment_point.scale.type == "numeric"} class="mt-2">
-          {gettext("Max score: %{max}", max: @assessment_point.scale.max_score)}
-        </p>
-        <.markdown
-          :if={@assessment_point.report_info}
-          text={@assessment_point.report_info}
-          invert
-          strip_tags
-          size="sm"
-          class="mt-2"
-        />
-      </.tooltip>
-    </div>
-    """
-  end
-
-  def assessment_point_struct(%{assessment_point: %{strand_id: strand_id}} = assigns)
-      when not is_nil(strand_id) do
-    ~H"""
-    <.link
-      patch={"?#{URI.encode_query(Map.put(@url_params, "edit_assessment_point", @assessment_point.id))}"}
-      class="flex flex-col p-1 rounded-sm hover:bg-ltrn-lightest"
-    >
-      <div class="font-sans whitespace-nowrap overflow-hidden">
-        <div class="flex items-center gap-2">
-          <.badge :if={@assessment_point.scale.type == "numeric"}>
-            {@assessment_point.scale.max_score}
-          </.badge>
-          <.icon :if={@assessment_point.rubric_id} name="hero-view-columns-micro" />
-          <span class="font-bold text-sm">{gettext("Goal assessment")}</span>
-        </div>
-        <span class="text-xs">{gettext("(Strand final assessment)")}</span>
-        <.tooltip
-          :if={@assessment_point.report_info || @assessment_point.scale.type == "numeric"}
-          id={"assessment-point-#{@assessment_point.id}-struct-tooltip"}
+    <div id={@id} class="flex flex-col p-1">
+      <div class="flex flex-1 gap-1">
+        <.link
+          patch={"?#{URI.encode_query(Map.put(@url_params, "edit_assessment_point", @assessment_point.id))}"}
+          class="flex flex-1 gap-2 p-1 rounded-sm hover:bg-ltrn-lightest"
         >
-          <p :if={@assessment_point.scale.type == "numeric"}>
-            {gettext("Max score: %{max}", max: @assessment_point.scale.max_score)}
+          <div class="flex flex-col flex-1">
+            <div class="self-start mb-1">
+              <%= if @assessment_point.scale.type == "numeric" do %>
+                <.badge>{@assessment_point.scale.max_score}</.badge>
+              <% else %>
+                <.ordinal_scale_range scale={@assessment_point.scale} />
+              <% end %>
+            </div>
+            <p class="flex-1 font-sans text-sm line-clamp-2">
+              {@display_name}
+            </p>
+          </div>
+          <div class="shrink-0 flex flex-col gap-1 text-ltrn-light">
+            <.icon
+              name="hero-view-columns-micro"
+              class={["size-3", if(@assessment_point.rubric_id, do: "text-ltrn-primary")]}
+            />
+            <.icon
+              name="hero-light-bulb-micro"
+              class={["size-3", if(@assessment_point.is_differentiation, do: "text-ltrn-diff-accent")]}
+            />
+            <.icon
+              name="hero-calculator-micro"
+              class={["size-3", if(@assessment_point.composition_type, do: "text-ltrn-primary")]}
+            />
+          </div>
+        </.link>
+        <.tooltip id={"assessment-point-#{@assessment_point.id}-tooltip"}>
+          <p>{@tooltip_name}</p>
+          <p class="mt-2">
+            <%= if @assessment_point.scale.type == "numeric" do %>
+              {gettext("Max score: %{max}", max: @assessment_point.scale.max_score)}
+            <% else %>
+              {@assessment_point.scale.name}
+            <% end %>
+          </p>
+          <p :if={@assessment_point.rubric_id} class="mt-2">{gettext("Uses rubric")}</p>
+          <p :if={@assessment_point.is_differentiation} class="mt-2">
+            {gettext("Differentiation assessment")}
+          </p>
+          <p :if={@assessment_point.composition_type == :sum} class="mt-2">
+            {gettext("Sum-based grade composition")}
+          </p>
+          <p :if={@assessment_point.composition_type == :avg} class="mt-2">
+            {gettext("Average-based grade composition")}
           </p>
           <.markdown
             :if={@assessment_point.report_info}
@@ -385,7 +294,8 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
           />
         </.tooltip>
       </div>
-    </.link>
+      <.compare_header :if={@assessment_view == "compare"} />
+    </div>
     """
   end
 

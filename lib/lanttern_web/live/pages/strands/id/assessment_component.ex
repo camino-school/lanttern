@@ -7,6 +7,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
   alias Lanttern.LearningContext
 
   import Lanttern.Utils, only: [format_float: 1, reorder: 3]
+  import LantternWeb.GradingComponents
 
   # shared components
   alias LantternWeb.AssessmentComposition.AssessmentPointCompositionOverlayComponent
@@ -335,48 +336,6 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
     </.draggable_card>
     """
   end
-
-  defp ordinal_scale_range(%{scale: %{ordinal_values: []}} = assigns) do
-    ~H"""
-    —
-    """
-  end
-
-  defp ordinal_scale_range(%{scale: %{ordinal_values: [_only]}} = assigns) do
-    ~H"""
-    <div class="flex items-center gap-1">
-      <.badge class="shrink-0" color_map={hd(@scale.ordinal_values)}>
-        {ov_short(hd(@scale.ordinal_values))}
-      </.badge>
-      <.tooltip id={"#{@id}-scale-tooltip"}>
-        {@scale.name}: {ov_list_label(@scale.ordinal_values)}
-      </.tooltip>
-    </div>
-    """
-  end
-
-  defp ordinal_scale_range(assigns) do
-    ~H"""
-    <div class="flex items-center gap-1">
-      <.badge class="shrink-0" color_map={hd(@scale.ordinal_values)}>
-        {ov_short(hd(@scale.ordinal_values))}
-      </.badge>
-      —
-      <.badge class="shrink-0" color_map={List.last(@scale.ordinal_values)}>
-        {ov_short(List.last(@scale.ordinal_values))}
-      </.badge>
-      <.tooltip id={"#{@id}-scale-tooltip"}>
-        {@scale.name}: {ov_list_label(@scale.ordinal_values)}
-      </.tooltip>
-    </div>
-    """
-  end
-
-  defp ov_short(%{short_name: short_name, name: name}),
-    do: short_name || String.slice(name, 0..2)
-
-  defp ov_list_label(ordinal_values),
-    do: Enum.map_join(ordinal_values, ", ", & &1.name)
 
   # lifecycle
 
