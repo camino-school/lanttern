@@ -54,7 +54,7 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
             phx-change="change"
             phx-target={@myself}
             class={[
-              "relative flex-1 w-full h-full",
+              "relative flex-1 w-full h-full min-w-0",
               @is_invalid && "outline outline-4 outline-offset-1 outline-ltrn-alert-accent",
               !@is_invalid && @has_changes && "outline outline-4 outline-offset-1 outline-ltrn-dark"
             ]}
@@ -64,6 +64,7 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
               scale_type={@entry.scale_type}
               ov_options={@ov_options}
               field={@field}
+              input_id={"entry-#{@id}-#{@field.name}"}
               style={if(@has_changes, do: "background-color: white", else: @field_style)}
             />
             <.missing_indicator entry={@entry} />
@@ -119,6 +120,7 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
   attr :field, :map, required: true
   attr :ov_options, :list
   attr :style, :string
+  attr :input_id, :string, required: true
 
   def marking_input(%{scale_type: "ordinal"} = assigns) do
     current_label =
@@ -130,17 +132,17 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
 
     ~H"""
     <div class="relative w-full h-full">
-      <input type="hidden" id={@field.id} name={@field.name} value={@field.value || ""} />
+      <input type="hidden" id={@input_id} name={@field.name} value={@field.value || ""} />
       <div
         class={[
-          "flex items-center justify-center w-full h-full rounded-xs font-mono text-sm truncate px-1",
-          is_nil(@current_label) && "bg-ltrn-lighter"
+          "flex items-center justify-center w-full h-full rounded-xs font-mono text-sm px-1",
+          is_nil(@current_label) && "text-ltrn-subtle bg-ltrn-lighter"
         ]}
         style={if @current_label, do: @style}
       >
-        <span class={[is_nil(@current_label) && "text-ltrn-subtle"]}>
+        <div class="whitespace-nowrap overflow-hidden text-clip">
           {@current_label || "—"}
-        </span>
+        </div>
       </div>
       <ul
         class="hidden absolute z-30 left-0 top-full mt-0.5 min-w-max rounded-sm shadow-md bg-white ring-1 ring-ltrn-lighter overflow-y-auto max-h-48"
