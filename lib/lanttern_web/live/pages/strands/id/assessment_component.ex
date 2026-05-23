@@ -227,7 +227,10 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
           <button
             type="button"
             phx-click={@on_edit}
-            class="flex-1 font-bold text-left text-ltrn-darkest hover:text-ltrn-subtle"
+            class={[
+              "flex-1 font-bold text-left hover:text-ltrn-subtle",
+              if(@assessment_point.is_hidden, do: "text-ltrn-subtle", else: "text-ltrn-darkest")
+            ]}
           >
             {if @assessment_point.moment_id,
               do: @assessment_point.name,
@@ -295,6 +298,45 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
                   do: gettext("Sum-based"),
                   else: gettext("Average-based")}
               </.tooltip>
+            </div>
+            <div class="relative">
+              <%= if @assessment_point.is_hidden do %>
+                <.button
+                  type="button"
+                  size="xs"
+                  theme="primary"
+                  icon_name="hero-eye-slash-micro"
+                  phx-click={
+                    JS.push("toggle_hidden",
+                      value: %{id: @assessment_point.id},
+                      target: @myself
+                    )
+                  }
+                >
+                  {gettext("Hidden")}
+                </.button>
+                <.tooltip id={"ap-#{@assessment_point.id}-hide-flag-tooltip"}>
+                  {gettext("Students won't see marking results for this assessment point.")}
+                </.tooltip>
+              <% else %>
+                <.button
+                  type="button"
+                  size="xs"
+                  phx-click={
+                    JS.push("toggle_hidden",
+                      value: %{id: @assessment_point.id},
+                      target: @myself
+                    )
+                  }
+                >
+                  {gettext("Hide")}
+                </.button>
+                <.tooltip id={"ap-#{@assessment_point.id}-hide-flag-tooltip"}>
+                  {gettext(
+                    "When hidden, students won't see marking results for this assessment point. Use this while marking is in progress."
+                  )}
+                </.tooltip>
+              <% end %>
             </div>
             <div :if={@assessment_point.rubric_id}>
               <.icon name="hero-view-columns" />
@@ -636,6 +678,14 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
 
   def handle_event("close_composition_overlay", _params, socket),
     do: {:noreply, assign(socket, :composition_overlay_ap, nil)}
+
+  def handle_event("toggle_hidden", %{"id" => ap_id}, socket) do
+    ap = Assessments.get_assessment_point!(ap_id)
+    {:ok, updated_ap} = Assessments.update_assessment_point(ap, %{is_hidden: !ap.is_hidden})
+    ap = Assessments.get_assessment_point!(updated_ap.id, preloads: @ap_preloads)
+
+    {:noreply, stream_insert(socket, ap_stream_key(ap.moment_id), ap)}
+  end
 
   def handle_event("close_assessment_point_form", _params, socket),
     do: {:noreply, assign(socket, :assessment_point, nil)}

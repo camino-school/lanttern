@@ -100,6 +100,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
                   assessment_point={assessment_point}
                   assessment_view={@current_assessment_view}
                   url_params={@url_params}
+                  myself={@myself}
                 />
               </div>
             </div>
@@ -213,6 +214,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
   attr :assessment_view, :string, required: true
   attr :url_params, :map, required: true
   attr :id, :string, required: true
+  attr :myself, :any, required: true
 
   def assessment_point(assigns) do
     display_name =
@@ -239,16 +241,18 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
           class="flex flex-1 gap-2 p-1 rounded-sm hover:bg-ltrn-lightest"
         >
           <div class="flex flex-col flex-1">
-            <div class="self-start mb-1">
-              <%= if @assessment_point.scale.type == "numeric" do %>
-                <.badge>{@assessment_point.scale.max_score}</.badge>
-              <% else %>
-                <.ordinal_scale_range scale={@assessment_point.scale} />
-              <% end %>
+            <div class={if(@assessment_point.is_hidden, do: "opacity-50")}>
+              <div class="flex items-center gap-2 mb-1">
+                <%= if @assessment_point.scale.type == "numeric" do %>
+                  <.badge>{@assessment_point.scale.max_score}</.badge>
+                <% else %>
+                  <.ordinal_scale_range scale={@assessment_point.scale} />
+                <% end %>
+              </div>
+              <p class="flex-1 font-sans text-sm line-clamp-2">
+                {@display_name}
+              </p>
             </div>
-            <p class="flex-1 font-sans text-sm line-clamp-2">
-              {@display_name}
-            </p>
           </div>
           <div class="shrink-0 flex flex-col gap-1 text-ltrn-light">
             <.icon
@@ -293,6 +297,43 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
             class="mt-2"
           />
         </.tooltip>
+      </div>
+      <div class="relative mt-2">
+        <%= if @assessment_point.is_hidden do %>
+          <.button
+            type="button"
+            size="xs"
+            theme="primary"
+            icon_name="hero-eye-slash-micro"
+            class="w-full"
+            phx-click="toggle_hidden"
+            phx-value-id={@assessment_point.id}
+            phx-target={@myself}
+          >
+            {gettext("Hidden")}
+          </.button>
+          <.tooltip id={"assessment-point-#{@assessment_point.id}-hide-flag-tooltip"}>
+            {gettext("Students won't see marking results for this assessment point.")}
+          </.tooltip>
+        <% else %>
+          <.button
+            type="button"
+            size="xs"
+            theme="ghost"
+            icon_name="hero-eye-micro"
+            class="w-full"
+            phx-click="toggle_hidden"
+            phx-value-id={@assessment_point.id}
+            phx-target={@myself}
+          >
+            {gettext("Hide")}
+          </.button>
+          <.tooltip id={"assessment-point-#{@assessment_point.id}-hide-flag-tooltip"}>
+            {gettext(
+              "When hidden, students won't see marking results for this assessment point. Use this while marking is in progress."
+            )}
+          </.tooltip>
+        <% end %>
       </div>
       <.compare_header :if={@assessment_view == "compare"} />
     </div>
@@ -582,6 +623,25 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
 
       {:noreply, socket}
     end
+  end
+
+  def handle_event("toggle_hidden", %{"id" => id}, socket) do
+    ap =
+      Assessments.get_assessment_point!(
+        String.to_integer(id),
+        preloads: [curriculum_item: :curriculum_component, scale: :ordinal_values]
+      )
+
+    socket =
+      case Assessments.update_assessment_point(ap, %{is_hidden: !ap.is_hidden}) do
+        {:ok, updated_ap} ->
+          stream_insert(socket, :assessment_points, updated_ap)
+
+        {:error, _changeset} ->
+          put_flash(socket, :error, gettext("Error updating assessment point"))
+      end
+
+    {:noreply, socket}
   end
 
   def handle_event("close_entry_details_overlay", _, socket) do

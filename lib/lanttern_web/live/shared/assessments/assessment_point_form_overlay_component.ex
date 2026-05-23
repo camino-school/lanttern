@@ -56,35 +56,6 @@ defmodule LantternWeb.Assessments.AssessmentPointFormOverlayComponent do
             phx-debounce="1500"
             class="mb-6"
           />
-          <.live_component
-            module={CurriculumItemSearchComponent}
-            id="curriculum-item-search"
-            current_scope={@current_scope}
-            notify_component={@myself}
-            label={gettext("Curriculum")}
-            initial_results={@initial_curriculum_results}
-          />
-          <div class="mt-2 mb-6">
-            <div
-              :if={@selected_curriculum_item}
-              class="flex items-center gap-4 p-4 rounded-sm bg-ltrn-lightest"
-            >
-              <div class="flex-1">
-                <.badge theme="dark">
-                  {@selected_curriculum_item.curriculum_component.name}
-                </.badge>
-                <p class="mt-2">{@selected_curriculum_item.name}</p>
-              </div>
-              <button
-                type="button"
-                phx-click={JS.push("remove_curriculum_item", target: @myself)}
-                class="shrink-0 text-ltrn-subtle hover:text-ltrn-dark"
-              >
-                <.icon name="hero-x-mark" class="w-6 h-6" />
-              </button>
-            </div>
-          </div>
-          <.input field={@form[:curriculum_item_id]} type="hidden" class="mb-6" />
           <.input
             field={@form[:scale_id]}
             type="select"
@@ -114,6 +85,35 @@ defmodule LantternWeb.Assessments.AssessmentPointFormOverlayComponent do
             </p>
           </div>
           <.rubric_area id={@id} field={@form[:rubric_id]} rubric={@rubric} options={@rubric_options} />
+          <.live_component
+            module={CurriculumItemSearchComponent}
+            id="curriculum-item-search"
+            current_scope={@current_scope}
+            notify_component={@myself}
+            label={gettext("Curriculum")}
+            initial_results={@initial_curriculum_results}
+          />
+          <div class="mt-2 mb-6">
+            <div
+              :if={@selected_curriculum_item}
+              class="flex items-center gap-4 p-4 rounded-sm bg-ltrn-lightest"
+            >
+              <div class="flex-1">
+                <.badge theme="dark">
+                  {@selected_curriculum_item.curriculum_component.name}
+                </.badge>
+                <p class="mt-2">{@selected_curriculum_item.name}</p>
+              </div>
+              <button
+                type="button"
+                phx-click={JS.push("remove_curriculum_item", target: @myself)}
+                class="shrink-0 text-ltrn-subtle hover:text-ltrn-dark"
+              >
+                <.icon name="hero-x-mark" class="w-6 h-6" />
+              </button>
+            </div>
+          </div>
+          <.input field={@form[:curriculum_item_id]} type="hidden" class="mb-6" />
         </.form>
         <.delete_error
           error_message={@delete_error}
