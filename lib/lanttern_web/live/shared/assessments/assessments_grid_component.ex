@@ -33,6 +33,9 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
   import LantternWeb.GradingComponents
 
   # shared components
+  alias LantternWeb.AssessmentComposition.AssessmentPointCompositionOverlayComponent
+  alias LantternWeb.Assessments.AssessmentPointCommandPaletteComponent
+  alias LantternWeb.Assessments.AssessmentPointFormOverlayComponent
   alias LantternWeb.Assessments.EntryCellComponent
   alias LantternWeb.Assessments.EntryDetailsOverlayComponent
 
@@ -174,6 +177,35 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
         on_cancel={JS.push("close_entry_details_overlay", target: @myself)}
         notify_component={@myself}
       />
+      <.live_component
+        :if={@command_palette_ap}
+        module={AssessmentPointCommandPaletteComponent}
+        id={"#{@id}-ap-command-palette"}
+        ap={@command_palette_ap}
+        notify_component={@myself}
+        on_cancel={JS.push("close_command_palette", target: @myself)}
+      />
+      <.live_component
+        :if={@assessment_point_overlay}
+        module={AssessmentPointFormOverlayComponent}
+        id={"#{@id}-assessment-point-form-overlay"}
+        current_scope={@current_scope}
+        assessment_point={@assessment_point_overlay}
+        notify_component={@myself}
+        title={gettext("Edit assessment point")}
+        on_cancel={JS.push("close_assessment_point_form", target: @myself)}
+        initial_curriculum_results={[]}
+      />
+      <.live_component
+        :if={@composition_overlay_ap}
+        module={AssessmentPointCompositionOverlayComponent}
+        id={"#{@id}-ap-composition-overlay"}
+        current_scope={@current_scope}
+        ap={@composition_overlay_ap}
+        strand_id={@strand_id}
+        notify_component={@myself}
+        on_cancel={JS.push("close_composition_overlay", target: @myself)}
+      />
     </div>
     """
   end
@@ -236,9 +268,12 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
     ~H"""
     <div id={@id} class="flex flex-col p-1">
       <div class="flex flex-1 gap-1">
-        <.link
-          patch={"?#{URI.encode_query(Map.put(@url_params, "edit_assessment_point", @assessment_point.id))}"}
-          class="flex flex-1 gap-2 p-1 rounded-sm hover:bg-ltrn-lightest"
+        <button
+          type="button"
+          phx-click="open_command_palette"
+          phx-value-id={@assessment_point.id}
+          phx-target={@myself}
+          class="flex flex-1 gap-2 p-1 rounded-sm text-left hover:bg-ltrn-lightest"
         >
           <div class="flex flex-col flex-1">
             <div class={if(@assessment_point.is_hidden, do: "opacity-50")}>
@@ -268,7 +303,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
               class={["size-3", if(@assessment_point.composition_type, do: "text-ltrn-primary")]}
             />
           </div>
-        </.link>
+        </button>
         <.tooltip id={"assessment-point-#{@assessment_point.id}-tooltip"}>
           <p>{@tooltip_name}</p>
           <p class="mt-2">
@@ -298,43 +333,13 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
           />
         </.tooltip>
       </div>
-      <div class="relative mt-2">
-        <%= if @assessment_point.is_hidden do %>
-          <.button
-            type="button"
-            size="xs"
-            theme="primary"
-            icon_name="hero-eye-slash-micro"
-            class="w-full"
-            phx-click="toggle_hidden"
-            phx-value-id={@assessment_point.id}
-            phx-target={@myself}
-          >
-            {gettext("Hidden")}
-          </.button>
-          <.tooltip id={"assessment-point-#{@assessment_point.id}-hide-flag-tooltip"}>
-            {gettext("Students won't see marking results for this assessment point.")}
-          </.tooltip>
-        <% else %>
-          <.button
-            type="button"
-            size="xs"
-            theme="ghost"
-            icon_name="hero-eye-micro"
-            class="w-full"
-            phx-click="toggle_hidden"
-            phx-value-id={@assessment_point.id}
-            phx-target={@myself}
-          >
-            {gettext("Hide")}
-          </.button>
-          <.tooltip id={"assessment-point-#{@assessment_point.id}-hide-flag-tooltip"}>
-            {gettext(
-              "When hidden, students won't see marking results for this assessment point. Use this while marking is in progress."
-            )}
-          </.tooltip>
-        <% end %>
-      </div>
+      <.badge
+        :if={@assessment_point.is_hidden}
+        icon_name="hero-eye-slash-micro"
+        class="w-full mt-2"
+      >
+        {gettext("Hidden")}
+      </.badge>
       <.compare_header :if={@assessment_view == "compare"} />
     </div>
     """
@@ -406,6 +411,9 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
       |> assign(:entries_changes_map, %{})
       |> assign(:invalid_changes_set, MapSet.new())
       |> assign(:assessment_point_entry, nil)
+      |> assign(:command_palette_ap, nil)
+      |> assign(:assessment_point_overlay, nil)
+      |> assign(:composition_overlay_ap, nil)
       |> assign(:has_entry_details_change, false)
       |> assign(:has_assessment_points, false)
       |> assign(:assessment_points_count, 0)
@@ -494,6 +502,110 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
         socket
       ),
       do: {:ok, socket}
+
+  def update(%{action: {AssessmentPointCommandPaletteComponent, {:edit}}}, socket) do
+    ap = socket.assigns.command_palette_ap
+
+    socket =
+      socket
+      |> assign(:command_palette_ap, nil)
+      |> assign(:assessment_point_overlay, ap)
+
+    {:ok, socket}
+  end
+
+  def update(
+        %{action: {AssessmentPointCommandPaletteComponent, {:add_composition, type}}},
+        socket
+      ) do
+    ap = socket.assigns.command_palette_ap
+    {:ok, updated_ap} = Assessments.update_assessment_point(ap, %{composition_type: type})
+
+    ap =
+      Assessments.get_assessment_point!(updated_ap.id,
+        preloads: [curriculum_item: :curriculum_component, scale: :ordinal_values]
+      )
+
+    socket =
+      socket
+      |> stream_insert(:assessment_points, ap)
+      |> assign(:command_palette_ap, nil)
+      |> assign(:composition_overlay_ap, ap)
+
+    {:ok, socket}
+  end
+
+  def update(%{action: {AssessmentPointCommandPaletteComponent, {:manage_composition}}}, socket) do
+    ap = socket.assigns.command_palette_ap
+
+    socket =
+      socket
+      |> assign(:command_palette_ap, nil)
+      |> assign(:composition_overlay_ap, ap)
+
+    {:ok, socket}
+  end
+
+  def update(%{action: {AssessmentPointCommandPaletteComponent, {:toggle_hidden}}}, socket) do
+    ap = socket.assigns.command_palette_ap
+    {:ok, _} = Assessments.update_assessment_point(ap, %{is_hidden: !ap.is_hidden})
+
+    updated_ap =
+      Assessments.get_assessment_point!(ap.id,
+        preloads: [curriculum_item: :curriculum_component, scale: :ordinal_values]
+      )
+
+    socket =
+      socket
+      |> stream_insert(:assessment_points, updated_ap)
+      |> assign(:command_palette_ap, updated_ap)
+
+    {:ok, socket}
+  end
+
+  def update(%{action: {AssessmentPointFormOverlayComponent, {:updated, updated_ap}}}, socket) do
+    socket =
+      socket
+      |> stream_insert(:assessment_points, updated_ap)
+      |> assign(:assessment_point_overlay, nil)
+      |> delegate_navigation(put_flash: {:info, gettext("Assessment point updated successfully")})
+
+    {:ok, socket}
+  end
+
+  def update(%{action: {AssessmentPointFormOverlayComponent, _}}, socket) do
+    {:ok, assign(socket, :assessment_point_overlay, nil)}
+  end
+
+  def update(
+        %{action: {AssessmentPointCompositionOverlayComponent, {:composition_updated, ap_id}}},
+        socket
+      ) do
+    updated_ap =
+      Assessments.get_assessment_point!(ap_id,
+        preloads: [curriculum_item: :curriculum_component, scale: :ordinal_values]
+      )
+
+    {:ok, stream_insert(socket, :assessment_points, updated_ap)}
+  end
+
+  def update(
+        %{action: {AssessmentPointCompositionOverlayComponent, {:deleted, ap_id}}},
+        socket
+      ) do
+    updated_ap =
+      Assessments.get_assessment_point!(ap_id,
+        preloads: [curriculum_item: :curriculum_component, scale: :ordinal_values]
+      )
+
+    socket =
+      socket
+      |> stream_insert(:assessment_points, updated_ap)
+      |> assign(:composition_overlay_ap, nil)
+      |> delegate_navigation(put_flash: {:info, gettext("Grade composition deleted")})
+
+    {:ok, socket}
+  end
 
   def update(assigns, socket) do
     socket =
@@ -625,23 +737,26 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
     end
   end
 
-  def handle_event("toggle_hidden", %{"id" => id}, socket) do
+  def handle_event("open_command_palette", %{"id" => id}, socket) do
     ap =
       Assessments.get_assessment_point!(
         String.to_integer(id),
         preloads: [curriculum_item: :curriculum_component, scale: :ordinal_values]
       )
 
-    socket =
-      case Assessments.update_assessment_point(ap, %{is_hidden: !ap.is_hidden}) do
-        {:ok, updated_ap} ->
-          stream_insert(socket, :assessment_points, updated_ap)
+    {:noreply, assign(socket, :command_palette_ap, ap)}
+  end
 
-        {:error, _changeset} ->
-          put_flash(socket, :error, gettext("Error updating assessment point"))
-      end
+  def handle_event("close_command_palette", _, socket) do
+    {:noreply, assign(socket, :command_palette_ap, nil)}
+  end
 
-    {:noreply, socket}
+  def handle_event("close_assessment_point_form", _, socket) do
+    {:noreply, assign(socket, :assessment_point_overlay, nil)}
+  end
+
+  def handle_event("close_composition_overlay", _, socket) do
+    {:noreply, assign(socket, :composition_overlay_ap, nil)}
   end
 
   def handle_event("close_entry_details_overlay", _, socket) do
