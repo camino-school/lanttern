@@ -13,6 +13,12 @@ defmodule LantternWeb.Assessments.AssessmentPointCommandPaletteComponent do
   """
   use LantternWeb, :live_component
 
+  alias Lanttern.Assessments.AssessmentPoint
+
+  attr :ap, AssessmentPoint, required: true
+  attr :on_cancel, :any, required: true, doc: "JS action to close the palette"
+  attr :notify_component, :any, required: true, doc: "parent LiveComponent CID (`@myself`)"
+
   @impl true
   def render(assigns) do
     ~H"""

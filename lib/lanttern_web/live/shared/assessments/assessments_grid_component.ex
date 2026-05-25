@@ -744,7 +744,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
   def handle_event("open_command_palette", %{"id" => id}, socket) do
     ap =
       Assessments.get_assessment_point!(
-        String.to_integer(id),
+        id,
         preloads: [curriculum_item: :curriculum_component, scale: :ordinal_values]
       )
 

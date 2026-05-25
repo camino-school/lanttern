@@ -405,4 +405,46 @@ defmodule LantternWeb.StrandLive.AssessmentComponentTest do
       |> assert_has("button", text: "Add composition")
     end
   end
+
+  describe "toggle_hidden" do
+    test "clicking 'Hide' changes button label to 'Hidden'", %{conn: conn} do
+      strand = insert(:strand)
+      moment = insert(:moment, strand: strand)
+      scale = insert(:scale)
+      ci = insert(:curriculum_item)
+
+      AssessmentsFixtures.assessment_point_fixture(%{
+        name: "Visible AP",
+        moment_id: moment.id,
+        scale_id: scale.id,
+        curriculum_item_id: ci.id,
+        is_hidden: false
+      })
+
+      conn
+      |> visit("#{@live_view_base_path}/#{strand.id}/assessment")
+      |> click_button("Hide")
+      |> assert_has("button", text: "Hidden")
+    end
+
+    test "clicking 'Hidden' changes button label back to 'Hide'", %{conn: conn} do
+      strand = insert(:strand)
+      moment = insert(:moment, strand: strand)
+      scale = insert(:scale)
+      ci = insert(:curriculum_item)
+
+      AssessmentsFixtures.assessment_point_fixture(%{
+        name: "Test AP",
+        moment_id: moment.id,
+        scale_id: scale.id,
+        curriculum_item_id: ci.id,
+        is_hidden: true
+      })
+
+      conn
+      |> visit("#{@live_view_base_path}/#{strand.id}/assessment")
+      |> click_button("Hidden")
+      |> assert_has("button", text: "Hide")
+    end
+  end
 end

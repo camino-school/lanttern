@@ -589,6 +589,8 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
     not (str == "" or valid_numeric_score?(str, max_score))
   end
 
+  defp score_invalid?(_, _, _), do: false
+
   defp valid_numeric_score?(str, max_score) do
     if Regex.match?(~r/^\d+([,.]\d+)?$/, str) do
       case Float.parse(String.replace(str, ",", ".")) do
@@ -599,8 +601,6 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
       false
     end
   end
-
-  defp score_invalid?(_, _, _), do: false
 
   defp normalize_numeric_score(params) do
     params

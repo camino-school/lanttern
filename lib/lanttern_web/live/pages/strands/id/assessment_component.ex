@@ -309,7 +309,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
                   icon_name="hero-eye-slash-micro"
                   phx-click={
                     JS.push("toggle_hidden",
-                      value: %{id: @assessment_point.id},
+                      value: %{id: @assessment_point.id, hidden: false},
                       target: @myself
                     )
                   }
@@ -325,7 +325,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
                   size="xs"
                   phx-click={
                     JS.push("toggle_hidden",
-                      value: %{id: @assessment_point.id},
+                      value: %{id: @assessment_point.id, hidden: true},
                       target: @myself
                     )
                   }
@@ -373,7 +373,11 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
             {format_float(@assessment_point.scale.max_score)}
           </div>
         <% else %>
-          <.ordinal_scale_range scale={@assessment_point.scale} id={"ap-#{@assessment_point.id}"} />
+          <.ordinal_scale_range
+            scale={@assessment_point.scale}
+            id={"ap-#{@assessment_point.id}"}
+            show_tooltip={true}
+          />
         <% end %>
       </div>
     </.draggable_card>
@@ -688,12 +692,10 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
   def handle_event("close_composition_overlay", _params, socket),
     do: {:noreply, assign(socket, :composition_overlay_ap, nil)}
 
-  def handle_event("toggle_hidden", %{"id" => ap_id}, socket) do
-    ap = Assessments.get_assessment_point!(ap_id)
-    {:ok, updated_ap} = Assessments.update_assessment_point(ap, %{is_hidden: !ap.is_hidden})
-    ap = Assessments.get_assessment_point!(updated_ap.id, preloads: @ap_preloads)
-
-    {:noreply, stream_insert(socket, ap_stream_key(ap.moment_id), ap)}
+  def handle_event("toggle_hidden", %{"id" => ap_id, "hidden" => is_hidden}, socket) do
+    ap = Assessments.get_assessment_point!(ap_id, preloads: @ap_preloads)
+    {:ok, _} = Assessments.update_assessment_point(ap, %{is_hidden: is_hidden})
+    {:noreply, stream_insert(socket, ap_stream_key(ap.moment_id), %{ap | is_hidden: is_hidden})}
   end
 
   def handle_event("close_assessment_point_form", _params, socket),

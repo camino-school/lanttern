@@ -11,13 +11,12 @@ defmodule LantternWeb.GradingComponents do
   giving a quick visual sense of the scale range.
 
   Requires `ordinal_values` preloaded on `scale`.
-  When `id` is omitted, no tooltip is rendered.
+  Set `show_tooltip={true}` to render a tooltip with the full scale name and values.
+  When `show_tooltip` is true, `id` is required.
   """
   attr :scale, :any, required: true
-
-  attr :id, :string,
-    default: nil,
-    doc: "When set, renders a tooltip with the full scale name and values"
+  attr :id, :string, default: nil, doc: "Required when `show_tooltip` is true"
+  attr :show_tooltip, :boolean, default: false
 
   def ordinal_scale_range(%{scale: %{ordinal_values: []}} = assigns) do
     ~H"—"
@@ -29,7 +28,7 @@ defmodule LantternWeb.GradingComponents do
       <.badge class="shrink-0" color_map={hd(@scale.ordinal_values)}>
         {ov_short(hd(@scale.ordinal_values))}
       </.badge>
-      <.tooltip :if={@id} id={"#{@id}-scale-tooltip"}>
+      <.tooltip :if={@show_tooltip} id={"#{@id}-scale-tooltip"}>
         {@scale.name}: {ov_list_label(@scale.ordinal_values)}
       </.tooltip>
     </div>
@@ -46,7 +45,7 @@ defmodule LantternWeb.GradingComponents do
       <.badge class="shrink-0" color_map={List.last(@scale.ordinal_values)}>
         {ov_short(List.last(@scale.ordinal_values))}
       </.badge>
-      <.tooltip :if={@id} id={"#{@id}-scale-tooltip"}>
+      <.tooltip :if={@show_tooltip} id={"#{@id}-scale-tooltip"}>
         {@scale.name}: {ov_list_label(@scale.ordinal_values)}
       </.tooltip>
     </div>
