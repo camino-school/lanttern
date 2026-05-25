@@ -234,12 +234,20 @@ defmodule LantternWeb.AssessmentComposition.AssessmentPointCompositionOverlayCom
     composition_components =
       AssessmentComposition.list_assessment_point_components(assigns.current_scope, assigns.ap.id)
 
-    {:ok,
-     socket
-     |> assign(assigns)
-     |> assign(:view, :overview)
-     |> assign(:composition_components, composition_components)}
+    initial_view = Map.get(assigns, :initial_view, :overview)
+
+    socket =
+      socket
+      |> assign(assigns)
+      |> assign(:view, initial_view)
+      |> assign(:composition_components, composition_components)
+      |> maybe_load_all_aps()
+
+    {:ok, socket}
   end
+
+  defp maybe_load_all_aps(%{assigns: %{view: :setup}} = socket), do: load_all_aps(socket)
+  defp maybe_load_all_aps(socket), do: socket
 
   defp load_all_aps(socket) do
     strand_id = socket.assigns.strand_id

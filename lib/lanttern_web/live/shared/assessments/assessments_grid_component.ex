@@ -204,6 +204,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
         ap={@composition_overlay_ap}
         strand_id={@strand_id}
         notify_component={@myself}
+        initial_view={@composition_overlay_initial_view}
         on_cancel={JS.push("close_composition_overlay", target: @myself)}
       />
     </div>
@@ -414,6 +415,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
       |> assign(:command_palette_ap, nil)
       |> assign(:assessment_point_overlay, nil)
       |> assign(:composition_overlay_ap, nil)
+      |> assign(:composition_overlay_initial_view, :overview)
       |> assign(:has_entry_details_change, false)
       |> assign(:has_assessment_points, false)
       |> assign(:assessment_points_count, 0)
@@ -531,6 +533,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
       |> stream_insert(:assessment_points, ap)
       |> assign(:command_palette_ap, nil)
       |> assign(:composition_overlay_ap, ap)
+      |> assign(:composition_overlay_initial_view, :setup)
 
     {:ok, socket}
   end
@@ -542,6 +545,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
       socket
       |> assign(:command_palette_ap, nil)
       |> assign(:composition_overlay_ap, ap)
+      |> assign(:composition_overlay_initial_view, :overview)
 
     {:ok, socket}
   end

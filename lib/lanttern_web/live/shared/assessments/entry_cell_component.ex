@@ -586,20 +586,17 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
 
   defp score_invalid?(value, "numeric", %{max_score: max_score}) do
     str = to_string(value)
+    not (str == "" or valid_numeric_score?(str, max_score))
+  end
 
-    if str == "" do
-      false
-    else
-      if Regex.match?(~r/^\d+([,.]\d+)?$/, str) do
-        normalized = String.replace(str, ",", ".")
-
-        case Float.parse(normalized) do
-          {score, ""} -> score < 0.0 || score > max_score
-          _ -> true
-        end
-      else
-        true
+  defp valid_numeric_score?(str, max_score) do
+    if Regex.match?(~r/^\d+([,.]\d+)?$/, str) do
+      case Float.parse(String.replace(str, ",", ".")) do
+        {score, ""} -> score >= 0.0 and score <= max_score
+        _ -> false
       end
+    else
+      false
     end
   end
 

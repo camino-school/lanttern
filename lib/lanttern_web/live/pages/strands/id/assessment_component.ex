@@ -207,6 +207,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
         ap={@composition_overlay_ap}
         strand_id={@strand.id}
         notify_component={@myself}
+        initial_view={@composition_overlay_initial_view}
         on_cancel={JS.push("close_composition_overlay", target: @myself)}
       />
     </div>
@@ -388,6 +389,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
       |> assign(:strand_form, nil)
       |> assign(:assessment_point, nil)
       |> assign(:composition_overlay_ap, nil)
+      |> assign(:composition_overlay_initial_view, :overview)
       |> assign(:initialized, false)
 
     {:ok, socket}
@@ -667,13 +669,20 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
       socket
       |> stream_insert(ap_stream_key(ap.moment_id), ap)
       |> assign(:composition_overlay_ap, ap)
+      |> assign(:composition_overlay_initial_view, :setup)
 
     {:noreply, socket}
   end
 
   def handle_event("open_composition", %{"id" => ap_id}, socket) do
     ap = Assessments.get_assessment_point!(ap_id, preloads: @ap_preloads)
-    {:noreply, assign(socket, :composition_overlay_ap, ap)}
+
+    socket =
+      socket
+      |> assign(:composition_overlay_ap, ap)
+      |> assign(:composition_overlay_initial_view, :overview)
+
+    {:noreply, socket}
   end
 
   def handle_event("close_composition_overlay", _params, socket),
