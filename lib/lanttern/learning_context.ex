@@ -246,6 +246,7 @@ defmodule Lanttern.LearningContext do
         where: e.student_id == ^student_id,
         # exclude empty entries and entries where there are only student self-assessments
         where: e.has_marking,
+        where: ap.is_hidden != true,
         order_by: [asc: m.position, asc: ap.position],
         select: {e, m.strand_id}
       )

@@ -148,6 +148,69 @@ defmodule LantternWeb.StudentReportCardLiveTest do
       assert view |> has_element?("h2", "Some report card name abc")
     end
 
+    test "does not display entry badges for hidden assessment points", context do
+      %{conn: conn, student: student} = register_and_log_in_student(context)
+
+      cycle = SchoolsFixtures.cycle_fixture(%{name: "Cycle 2024"})
+
+      report_card =
+        report_card_fixture(%{school_cycle_id: cycle.id, name: "Some report card name abc"})
+
+      student_report_card =
+        student_report_card_fixture(%{
+          report_card_id: report_card.id,
+          student_id: student.id,
+          allow_student_access: true
+        })
+
+      strand =
+        LearningContextFixtures.strand_fixture(%{name: "Strand DDD"})
+
+      strand_report =
+        strand_report_fixture(%{report_card_id: report_card.id, strand_id: strand.id})
+
+      scale = insert(:scale, type: "ordinal")
+      ov_visible = insert(:ordinal_value, scale: scale, short_name: "ovx")
+      ov_hidden = insert(:ordinal_value, scale: scale, short_name: "ovy")
+
+      ap_visible =
+        AssessmentsFixtures.assessment_point_fixture(%{
+          strand_id: strand.id,
+          scale_id: scale.id
+        })
+
+      ap_hidden =
+        AssessmentsFixtures.assessment_point_fixture(%{
+          strand_id: strand.id,
+          scale_id: scale.id,
+          is_hidden: true
+        })
+
+      _entry_visible =
+        AssessmentsFixtures.assessment_point_entry_fixture(%{
+          assessment_point_id: ap_visible.id,
+          student_id: student.id,
+          scale_id: scale.id,
+          scale_type: "ordinal",
+          ordinal_value_id: ov_visible.id
+        })
+
+      _entry_hidden =
+        AssessmentsFixtures.assessment_point_entry_fixture(%{
+          assessment_point_id: ap_hidden.id,
+          student_id: student.id,
+          scale_id: scale.id,
+          scale_type: "ordinal",
+          ordinal_value_id: ov_hidden.id
+        })
+
+      {:ok, view, _html} = live(conn, "#{@live_view_path_base}/#{student_report_card.id}")
+
+      assert view |> has_element?("h5", "Strand DDD")
+      assert view |> has_element?("#strand-report-#{strand_report.id}", "ovx")
+      refute view |> has_element?("#strand-report-#{strand_report.id}", "ovy")
+    end
+
     test "display student report card correctly for guardians", context do
       %{conn: conn, student: student} = register_and_log_in_guardian(context)
 

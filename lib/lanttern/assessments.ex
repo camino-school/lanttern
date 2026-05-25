@@ -948,6 +948,7 @@ defmodule Lanttern.Assessments do
         join: cc in assoc(ci, :curriculum_component),
         left_join: sc in assoc(ap, :scale),
         where: ap.strand_id == ^strand_id,
+        where: ap.is_hidden != true,
         order_by: ap.position,
         preload: [
           curriculum_item: {ci, curriculum_component: cc},
@@ -978,6 +979,7 @@ defmodule Lanttern.Assessments do
         join: e in AssessmentPointEntry,
         on: e.assessment_point_id == ap.id and e.student_id == ^student_id,
         where: m.strand_id == ^strand_id,
+        where: ap.is_hidden != true,
         where: e.has_marking,
         order_by: [asc: m.position, asc: ap.position],
         select: {ap.curriculum_item_id, e}
@@ -1052,6 +1054,7 @@ defmodule Lanttern.Assessments do
       where: m.strand_id == ^strand_id,
       where: e.student_id == ^student.id,
       where: e.has_marking,
+      where: ap.is_hidden != true,
       order_by: [asc: m.position, asc: ap.position],
       select: %{ap | scale: sc, student_entry: %{e | ordinal_value: ov}}
     )
