@@ -521,7 +521,11 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
         socket
       ) do
     ap = socket.assigns.command_palette_ap
-    {:ok, updated_ap} = Assessments.update_assessment_point(ap, %{composition_type: type})
+
+    {:ok, updated_ap} =
+      Assessments.update_assessment_point(socket.assigns.current_scope, ap, %{
+        composition_type: type
+      })
 
     ap =
       Assessments.get_assessment_point!(updated_ap.id,
@@ -552,7 +556,11 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
 
   def update(%{action: {AssessmentPointCommandPaletteComponent, {:toggle_hidden}}}, socket) do
     ap = socket.assigns.command_palette_ap
-    {:ok, _} = Assessments.update_assessment_point(ap, %{is_hidden: !ap.is_hidden})
+
+    {:ok, _} =
+      Assessments.update_assessment_point(socket.assigns.current_scope, ap, %{
+        is_hidden: !ap.is_hidden
+      })
 
     updated_ap =
       Assessments.get_assessment_point!(ap.id,

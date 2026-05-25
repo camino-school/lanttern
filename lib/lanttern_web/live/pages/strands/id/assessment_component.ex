@@ -666,7 +666,12 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
 
   def handle_event("add_composition", %{"assessment_point_id" => ap_id, "type" => type}, socket) do
     ap = Assessments.get_assessment_point!(ap_id)
-    {:ok, updated_ap} = Assessments.update_assessment_point(ap, %{composition_type: type})
+
+    {:ok, updated_ap} =
+      Assessments.update_assessment_point(socket.assigns.current_scope, ap, %{
+        composition_type: type
+      })
+
     ap = Assessments.get_assessment_point!(updated_ap.id, preloads: @ap_preloads)
 
     socket =
@@ -694,7 +699,12 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
 
   def handle_event("toggle_hidden", %{"id" => ap_id, "hidden" => is_hidden}, socket) do
     ap = Assessments.get_assessment_point!(ap_id, preloads: @ap_preloads)
-    {:ok, _} = Assessments.update_assessment_point(ap, %{is_hidden: is_hidden})
+
+    {:ok, _} =
+      Assessments.update_assessment_point(socket.assigns.current_scope, ap, %{
+        is_hidden: is_hidden
+      })
+
     {:noreply, stream_insert(socket, ap_stream_key(ap.moment_id), %{ap | is_hidden: is_hidden})}
   end
 
@@ -729,7 +739,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
     Assessments.update_assessment_points_positions(to_ids)
 
     ap = Assessments.get_assessment_point!(ap_id)
-    Assessments.update_assessment_point(ap, %{moment_id: to_key})
+    Assessments.update_assessment_point(socket.assigns.current_scope, ap, %{moment_id: to_key})
 
     moments_map =
       socket.assigns.moments_assessment_points_ids_map

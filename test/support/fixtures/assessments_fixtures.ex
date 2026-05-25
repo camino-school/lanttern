@@ -17,7 +17,7 @@ defmodule Lanttern.AssessmentsFixtures do
         scale_id: Lanttern.GradingFixtures.maybe_gen_scale_id(attrs),
         curriculum_item_id: maybe_gen_curriculum_item_id(attrs)
       })
-      |> Lanttern.Assessments.create_assessment_point()
+      |> then(&Lanttern.Assessments.create_assessment_point(%Lanttern.Identity.Scope{}, &1))
 
     assessment_point
   end

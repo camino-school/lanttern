@@ -401,7 +401,10 @@ defmodule LantternWeb.Assessments.AssessmentPointFormOverlayComponent do
   end
 
   def handle_event("delete", _params, socket) do
-    case Assessments.delete_assessment_point(socket.assigns.assessment_point) do
+    case Assessments.delete_assessment_point(
+           socket.assigns.current_scope,
+           socket.assigns.assessment_point
+         ) do
       {:ok, assessment_point} ->
         notify(__MODULE__, {:deleted, assessment_point}, socket.assigns)
         {:noreply, socket}
@@ -418,7 +421,10 @@ defmodule LantternWeb.Assessments.AssessmentPointFormOverlayComponent do
   end
 
   def handle_event("delete_assessment_point_and_entries", _, socket) do
-    case Assessments.delete_assessment_point_and_entries(socket.assigns.assessment_point) do
+    case Assessments.delete_assessment_point_and_entries(
+           socket.assigns.current_scope,
+           socket.assigns.assessment_point
+         ) do
       {:ok, assessment_point} ->
         notify(__MODULE__, {:deleted_with_entries, assessment_point}, socket.assigns)
         {:noreply, socket}
@@ -453,7 +459,7 @@ defmodule LantternWeb.Assessments.AssessmentPointFormOverlayComponent do
   end
 
   defp save(socket, nil, params) do
-    case Assessments.create_assessment_point(params) do
+    case Assessments.create_assessment_point(socket.assigns.current_scope, params) do
       {:ok, assessment_point} ->
         notify(__MODULE__, {:created, assessment_point}, socket.assigns)
         {:noreply, socket}
@@ -464,7 +470,11 @@ defmodule LantternWeb.Assessments.AssessmentPointFormOverlayComponent do
   end
 
   defp save(socket, _assessment_point_id, params) do
-    case Assessments.update_assessment_point(socket.assigns.assessment_point, params) do
+    case Assessments.update_assessment_point(
+           socket.assigns.current_scope,
+           socket.assigns.assessment_point,
+           params
+         ) do
       {:ok, assessment_point} ->
         notify(__MODULE__, {:updated, assessment_point}, socket.assigns)
         {:noreply, socket}

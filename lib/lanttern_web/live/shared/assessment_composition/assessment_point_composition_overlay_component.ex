@@ -302,7 +302,12 @@ defmodule LantternWeb.AssessmentComposition.AssessmentPointCompositionOverlayCom
   @impl true
   def handle_event("update_type", %{"composition_type" => type}, socket) do
     ap = socket.assigns.ap
-    {:ok, updated_ap} = Assessments.update_assessment_point(ap, %{composition_type: type})
+
+    {:ok, updated_ap} =
+      Assessments.update_assessment_point(socket.assigns.current_scope, ap, %{
+        composition_type: type
+      })
+
     notify(__MODULE__, {:composition_updated, ap.id}, socket.assigns)
     {:noreply, assign(socket, :ap, %{ap | composition_type: updated_ap.composition_type})}
   end
@@ -376,7 +381,8 @@ defmodule LantternWeb.AssessmentComposition.AssessmentPointCompositionOverlayCom
       ap.id
     )
 
-    Assessments.update_assessment_point(ap, %{composition_type: nil})
+    Assessments.update_assessment_point(socket.assigns.current_scope, ap, %{composition_type: nil})
+
     notify(__MODULE__, {:deleted, ap.id}, socket.assigns)
     {:noreply, socket}
   end
