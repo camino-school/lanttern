@@ -7,6 +7,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
   alias Lanttern.LearningContext
 
   import Lanttern.Utils, only: [format_float: 1, reorder: 3]
+  import LantternWeb.GradingComponents
 
   # shared components
   alias LantternWeb.AssessmentComposition.AssessmentPointCompositionOverlayComponent
@@ -206,6 +207,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
         ap={@composition_overlay_ap}
         strand_id={@strand.id}
         notify_component={@myself}
+        initial_view={@composition_overlay_initial_view}
         on_cancel={JS.push("close_composition_overlay", target: @myself)}
       />
     </div>
@@ -226,7 +228,10 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
           <button
             type="button"
             phx-click={@on_edit}
-            class="flex-1 font-bold text-left text-ltrn-darkest hover:text-ltrn-subtle"
+            class={[
+              "flex-1 font-bold text-left hover:text-ltrn-subtle",
+              if(@assessment_point.is_hidden, do: "text-ltrn-subtle", else: "text-ltrn-darkest")
+            ]}
           >
             {if @assessment_point.moment_id,
               do: @assessment_point.name,
@@ -295,6 +300,45 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
                   else: gettext("Average-based")}
               </.tooltip>
             </div>
+            <div class="relative">
+              <%= if @assessment_point.is_hidden do %>
+                <.button
+                  type="button"
+                  size="xs"
+                  theme="primary"
+                  icon_name="hero-eye-slash-micro"
+                  phx-click={
+                    JS.push("toggle_hidden",
+                      value: %{id: @assessment_point.id, hidden: false},
+                      target: @myself
+                    )
+                  }
+                >
+                  {gettext("Hidden")}
+                </.button>
+                <.tooltip id={"ap-#{@assessment_point.id}-hide-flag-tooltip"}>
+                  {gettext("Students won't see marking results for this assessment point.")}
+                </.tooltip>
+              <% else %>
+                <.button
+                  type="button"
+                  size="xs"
+                  phx-click={
+                    JS.push("toggle_hidden",
+                      value: %{id: @assessment_point.id, hidden: true},
+                      target: @myself
+                    )
+                  }
+                >
+                  {gettext("Hide")}
+                </.button>
+                <.tooltip id={"ap-#{@assessment_point.id}-hide-flag-tooltip"}>
+                  {gettext(
+                    "When hidden, students won't see marking results for this assessment point. Use this while marking is in progress."
+                  )}
+                </.tooltip>
+              <% end %>
+            </div>
             <div :if={@assessment_point.rubric_id}>
               <.icon name="hero-view-columns" />
               <.tooltip id={"ap-#{@assessment_point.id}-rubric-tooltip"}>
@@ -329,54 +373,16 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
             {format_float(@assessment_point.scale.max_score)}
           </div>
         <% else %>
-          <.ordinal_scale_range scale={@assessment_point.scale} id={"ap-#{@assessment_point.id}"} />
+          <.ordinal_scale_range
+            scale={@assessment_point.scale}
+            id={"ap-#{@assessment_point.id}"}
+            show_tooltip={true}
+          />
         <% end %>
       </div>
     </.draggable_card>
     """
   end
-
-  defp ordinal_scale_range(%{scale: %{ordinal_values: []}} = assigns) do
-    ~H"""
-    —
-    """
-  end
-
-  defp ordinal_scale_range(%{scale: %{ordinal_values: [_only]}} = assigns) do
-    ~H"""
-    <div class="flex items-center gap-1">
-      <.badge class="shrink-0" color_map={hd(@scale.ordinal_values)}>
-        {ov_short(hd(@scale.ordinal_values))}
-      </.badge>
-      <.tooltip id={"#{@id}-scale-tooltip"}>
-        {@scale.name}: {ov_list_label(@scale.ordinal_values)}
-      </.tooltip>
-    </div>
-    """
-  end
-
-  defp ordinal_scale_range(assigns) do
-    ~H"""
-    <div class="flex items-center gap-1">
-      <.badge class="shrink-0" color_map={hd(@scale.ordinal_values)}>
-        {ov_short(hd(@scale.ordinal_values))}
-      </.badge>
-      —
-      <.badge class="shrink-0" color_map={List.last(@scale.ordinal_values)}>
-        {ov_short(List.last(@scale.ordinal_values))}
-      </.badge>
-      <.tooltip id={"#{@id}-scale-tooltip"}>
-        {@scale.name}: {ov_list_label(@scale.ordinal_values)}
-      </.tooltip>
-    </div>
-    """
-  end
-
-  defp ov_short(%{short_name: short_name, name: name}),
-    do: short_name || String.slice(name, 0..2)
-
-  defp ov_list_label(ordinal_values),
-    do: Enum.map_join(ordinal_values, ", ", & &1.name)
 
   # lifecycle
 
@@ -387,6 +393,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
       |> assign(:strand_form, nil)
       |> assign(:assessment_point, nil)
       |> assign(:composition_overlay_ap, nil)
+      |> assign(:composition_overlay_initial_view, :overview)
       |> assign(:initialized, false)
 
     {:ok, socket}
@@ -659,24 +666,47 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
 
   def handle_event("add_composition", %{"assessment_point_id" => ap_id, "type" => type}, socket) do
     ap = Assessments.get_assessment_point!(ap_id)
-    {:ok, updated_ap} = Assessments.update_assessment_point(ap, %{composition_type: type})
+
+    {:ok, updated_ap} =
+      Assessments.update_assessment_point(socket.assigns.current_scope, ap, %{
+        composition_type: type
+      })
+
     ap = Assessments.get_assessment_point!(updated_ap.id, preloads: @ap_preloads)
 
     socket =
       socket
       |> stream_insert(ap_stream_key(ap.moment_id), ap)
       |> assign(:composition_overlay_ap, ap)
+      |> assign(:composition_overlay_initial_view, :setup)
 
     {:noreply, socket}
   end
 
   def handle_event("open_composition", %{"id" => ap_id}, socket) do
     ap = Assessments.get_assessment_point!(ap_id, preloads: @ap_preloads)
-    {:noreply, assign(socket, :composition_overlay_ap, ap)}
+
+    socket =
+      socket
+      |> assign(:composition_overlay_ap, ap)
+      |> assign(:composition_overlay_initial_view, :overview)
+
+    {:noreply, socket}
   end
 
   def handle_event("close_composition_overlay", _params, socket),
     do: {:noreply, assign(socket, :composition_overlay_ap, nil)}
+
+  def handle_event("toggle_hidden", %{"id" => ap_id, "hidden" => is_hidden}, socket) do
+    ap = Assessments.get_assessment_point!(ap_id, preloads: @ap_preloads)
+
+    {:ok, _} =
+      Assessments.update_assessment_point(socket.assigns.current_scope, ap, %{
+        is_hidden: is_hidden
+      })
+
+    {:noreply, stream_insert(socket, ap_stream_key(ap.moment_id), %{ap | is_hidden: is_hidden})}
+  end
 
   def handle_event("close_assessment_point_form", _params, socket),
     do: {:noreply, assign(socket, :assessment_point, nil)}
@@ -709,7 +739,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
     Assessments.update_assessment_points_positions(to_ids)
 
     ap = Assessments.get_assessment_point!(ap_id)
-    Assessments.update_assessment_point(ap, %{moment_id: to_key})
+    Assessments.update_assessment_point(socket.assigns.current_scope, ap, %{moment_id: to_key})
 
     moments_map =
       socket.assigns.moments_assessment_points_ids_map

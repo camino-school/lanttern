@@ -2402,6 +2402,8 @@ defmodule LantternWeb.CoreComponents do
       </div>
     </div>
     <script :type={Phoenix.LiveView.ColocatedHook} name=".Tooltip">
+      let _activeTooltip = null;
+
       export default {
         mounted() {
           this.parent = this.el.parentElement;
@@ -2414,10 +2416,15 @@ defmodule LantternWeb.CoreComponents do
           document.body.appendChild(this.el);
 
           this._show = () => {
+            if (_activeTooltip && _activeTooltip !== this) {
+              _activeTooltip._hide();
+            }
+            _activeTooltip = this;
             this.el.style.display = "block";
           };
 
           this._hide = () => {
+            if (_activeTooltip === this) _activeTooltip = null;
             this.el.style.display = "none";
           };
 
@@ -2444,15 +2451,11 @@ defmodule LantternWeb.CoreComponents do
           };
 
           this._onFocus = () => {
+            this._show();
             const parentRect = this.parent.getBoundingClientRect();
-            const rect = this.el.getBoundingClientRect();
+            const tooltipRect = this.el.getBoundingClientRect();
             const vw = window.innerWidth;
             const vh = window.innerHeight;
-
-            this.el.style.display = "block";
-
-            // Re-measure after display to get actual dimensions
-            const tooltipRect = this.el.getBoundingClientRect();
 
             let x = parentRect.left;
             let y = parentRect.bottom + this.offset.y;
@@ -2484,6 +2487,7 @@ defmodule LantternWeb.CoreComponents do
           this.parent.removeEventListener("focusin", this._onFocus);
           this.parent.removeEventListener("focusout", this._hide);
           this.parent.removeAttribute("aria-describedby");
+          if (_activeTooltip === this) _activeTooltip = null;
           // Clean up the element we moved to body
           if (this.el.parentElement === document.body) {
             document.body.removeChild(this.el);

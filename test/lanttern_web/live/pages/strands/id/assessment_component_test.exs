@@ -314,7 +314,11 @@ defmodule LantternWeb.StrandLive.AssessmentComponentTest do
       strand = insert(:strand)
       moment = insert(:moment, strand: strand)
       ap = insert(:assessment_point, name: "AP with avg composition", moment_id: moment.id)
-      {:ok, _} = Assessments.update_assessment_point(ap, %{composition_type: "avg"})
+
+      {:ok, _} =
+        Assessments.update_assessment_point(%Lanttern.Identity.Scope{}, ap, %{
+          composition_type: "avg"
+        })
 
       conn
       |> visit("#{@live_view_base_path}/#{strand.id}/assessment")
@@ -325,7 +329,11 @@ defmodule LantternWeb.StrandLive.AssessmentComponentTest do
       strand = insert(:strand)
       moment = insert(:moment, strand: strand)
       ap = insert(:assessment_point, name: "AP with avg composition", moment_id: moment.id)
-      {:ok, _} = Assessments.update_assessment_point(ap, %{composition_type: "avg"})
+
+      {:ok, _} =
+        Assessments.update_assessment_point(%Lanttern.Identity.Scope{}, ap, %{
+          composition_type: "avg"
+        })
 
       conn
       |> visit("#{@live_view_base_path}/#{strand.id}/assessment")
@@ -338,7 +346,12 @@ defmodule LantternWeb.StrandLive.AssessmentComponentTest do
       strand = insert(:strand)
       moment = insert(:moment, strand: strand)
       ap = insert(:assessment_point, name: "Parent AP", moment_id: moment.id)
-      {:ok, parent_ap} = Assessments.update_assessment_point(ap, %{composition_type: "avg"})
+
+      {:ok, parent_ap} =
+        Assessments.update_assessment_point(%Lanttern.Identity.Scope{}, ap, %{
+          composition_type: "avg"
+        })
+
       sibling_ap = insert(:assessment_point, name: "Sibling AP", moment_id: moment.id)
       insert(:assessment_point_component, parent: parent_ap, component: sibling_ap)
 
@@ -352,7 +365,12 @@ defmodule LantternWeb.StrandLive.AssessmentComponentTest do
       strand = insert(:strand)
       moment = insert(:moment, strand: strand)
       ap = insert(:assessment_point, name: "Parent AP", moment_id: moment.id)
-      {:ok, _} = Assessments.update_assessment_point(ap, %{composition_type: "avg"})
+
+      {:ok, _} =
+        Assessments.update_assessment_point(%Lanttern.Identity.Scope{}, ap, %{
+          composition_type: "avg"
+        })
+
       sibling_ap = insert(:assessment_point, name: "Sibling AP to select", moment_id: moment.id)
 
       conn
@@ -368,7 +386,12 @@ defmodule LantternWeb.StrandLive.AssessmentComponentTest do
       strand = insert(:strand)
       moment = insert(:moment, strand: strand)
       ap = insert(:assessment_point, name: "Parent AP", moment_id: moment.id)
-      {:ok, parent_ap} = Assessments.update_assessment_point(ap, %{composition_type: "avg"})
+
+      {:ok, parent_ap} =
+        Assessments.update_assessment_point(%Lanttern.Identity.Scope{}, ap, %{
+          composition_type: "avg"
+        })
+
       sibling_ap = insert(:assessment_point, name: "Sibling AP", moment_id: moment.id)
       insert(:assessment_point_component, parent: parent_ap, component: sibling_ap)
 
@@ -388,7 +411,12 @@ defmodule LantternWeb.StrandLive.AssessmentComponentTest do
       strand = insert(:strand)
       moment = insert(:moment, strand: strand)
       ap = insert(:assessment_point, name: "Parent AP", moment_id: moment.id)
-      {:ok, parent_ap} = Assessments.update_assessment_point(ap, %{composition_type: "avg"})
+
+      {:ok, parent_ap} =
+        Assessments.update_assessment_point(%Lanttern.Identity.Scope{}, ap, %{
+          composition_type: "avg"
+        })
+
       sibling_ap = insert(:assessment_point, name: "Sibling AP", moment_id: moment.id)
       insert(:assessment_point_component, parent: parent_ap, component: sibling_ap)
 
@@ -403,6 +431,48 @@ defmodule LantternWeb.StrandLive.AssessmentComponentTest do
       end)
       |> refute_has("#ap-composition-overlay")
       |> assert_has("button", text: "Add composition")
+    end
+  end
+
+  describe "toggle_hidden" do
+    test "clicking 'Hide' changes button label to 'Hidden'", %{conn: conn} do
+      strand = insert(:strand)
+      moment = insert(:moment, strand: strand)
+      scale = insert(:scale)
+      ci = insert(:curriculum_item)
+
+      AssessmentsFixtures.assessment_point_fixture(%{
+        name: "Visible AP",
+        moment_id: moment.id,
+        scale_id: scale.id,
+        curriculum_item_id: ci.id,
+        is_hidden: false
+      })
+
+      conn
+      |> visit("#{@live_view_base_path}/#{strand.id}/assessment")
+      |> click_button("Hide")
+      |> assert_has("button", text: "Hidden")
+    end
+
+    test "clicking 'Hidden' changes button label back to 'Hide'", %{conn: conn} do
+      strand = insert(:strand)
+      moment = insert(:moment, strand: strand)
+      scale = insert(:scale)
+      ci = insert(:curriculum_item)
+
+      AssessmentsFixtures.assessment_point_fixture(%{
+        name: "Test AP",
+        moment_id: moment.id,
+        scale_id: scale.id,
+        curriculum_item_id: ci.id,
+        is_hidden: true
+      })
+
+      conn
+      |> visit("#{@live_view_base_path}/#{strand.id}/assessment")
+      |> click_button("Hidden")
+      |> assert_has("button", text: "Hide")
     end
   end
 end

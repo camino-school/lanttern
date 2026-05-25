@@ -494,7 +494,9 @@ defmodule LantternWeb.LessonLive do
   # handle_event helpers
 
   defp update_assessment_point_lesson_link(socket, ap, lesson_id) do
-    case Assessments.update_assessment_point(ap, %{lesson_id: lesson_id}) do
+    case Assessments.update_assessment_point(socket.assigns.current_scope, ap, %{
+           lesson_id: lesson_id
+         }) do
       {:ok, _} ->
         socket
         |> stream_lesson_assessment_points()

@@ -280,6 +280,10 @@ const EntryCellHook = {
       this._inner.dispatchEvent(new Event("input", { bubbles: true }));
     }
     this._inner.focus();
+    if (prefill === null && this._inner.type === "text") {
+      const len = this._inner.value.length;
+      this._inner.setSelectionRange(len, len);
+    }
   },
 
   _clearAndEnterInput() {

@@ -29,6 +29,7 @@ defmodule Lanttern.Assessments.AssessmentPoint do
           report_info: String.t(),
           position: non_neg_integer(),
           is_differentiation: boolean(),
+          is_hidden: boolean(),
           date: Date.t(),
           hour: non_neg_integer(),
           minute: non_neg_integer(),
@@ -65,6 +66,7 @@ defmodule Lanttern.Assessments.AssessmentPoint do
     field :report_info, :string
     field :position, :integer, default: 0
     field :is_differentiation, :boolean, default: false
+    field :is_hidden, :boolean, default: false
     field :composition_type, Ecto.Enum, values: [:sum, :avg]
 
     # create assessment point UI fields
@@ -110,6 +112,7 @@ defmodule Lanttern.Assessments.AssessmentPoint do
       :report_info,
       :position,
       :is_differentiation,
+      :is_hidden,
       :curriculum_item_id,
       :scale_id,
       :rubric_id,

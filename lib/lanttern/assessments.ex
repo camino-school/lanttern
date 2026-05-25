@@ -10,9 +10,11 @@ defmodule Lanttern.Assessments do
   alias Lanttern.Assessments.AssessmentPoint
   alias Lanttern.Assessments.AssessmentPointEntry
   alias Lanttern.Assessments.AssessmentPointEntryEvidence
+  alias Lanttern.Assessments.AssessmentPointLog
   alias Lanttern.AssessmentsLog
   alias Lanttern.Attachments
   alias Lanttern.Attachments.Attachment
+  alias Lanttern.AuditLog
   alias Lanttern.Identity.Scope
   alias Lanttern.Identity.User
   alias Lanttern.LearningContext.Moment
@@ -141,7 +143,7 @@ defmodule Lanttern.Assessments do
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_assessment_point(attrs \\ %{}) do
+  def create_assessment_point(%Scope{} = scope, attrs \\ %{}) do
     attrs =
       AssessmentPoint
       |> filter_assessment_points_by_context(attrs)
@@ -150,6 +152,7 @@ defmodule Lanttern.Assessments do
     %AssessmentPoint{}
     |> AssessmentPoint.changeset(attrs)
     |> Repo.insert()
+    |> AuditLog.maybe_log(AssessmentPointLog, "CREATE", scope, [])
   end
 
   defp filter_assessment_points_by_context(queryable, %{moment_id: moment_id})
@@ -191,10 +194,15 @@ defmodule Lanttern.Assessments do
       {:error, %Ecto.Changeset{}}
 
   """
-  def update_assessment_point(%AssessmentPoint{} = assessment_point, attrs) do
+  def update_assessment_point(
+        %Scope{} = scope,
+        %AssessmentPoint{} = assessment_point,
+        attrs
+      ) do
     assessment_point
     |> AssessmentPoint.changeset(attrs)
     |> Repo.update()
+    |> AuditLog.maybe_log(AssessmentPointLog, "UPDATE", scope, [])
   end
 
   @doc """
@@ -209,10 +217,11 @@ defmodule Lanttern.Assessments do
       {:error, %Ecto.Changeset{}}
 
   """
-  def delete_assessment_point(%AssessmentPoint{} = assessment_point) do
+  def delete_assessment_point(%Scope{} = scope, %AssessmentPoint{} = assessment_point) do
     assessment_point
     |> AssessmentPoint.delete_changeset()
     |> Repo.delete()
+    |> AuditLog.maybe_log(AssessmentPointLog, "DELETE", scope, [])
   end
 
   @doc """
@@ -227,17 +236,28 @@ defmodule Lanttern.Assessments do
       {:error, %Ecto.Changeset{}}
 
   """
-  def delete_assessment_point_and_entries(%AssessmentPoint{} = assessment_point) do
-    Ecto.Multi.new()
-    |> Ecto.Multi.delete_all(
-      :delete_entries,
-      from(
-        e in AssessmentPointEntry,
-        where: e.assessment_point_id == ^assessment_point.id
+  def delete_assessment_point_and_entries(%Scope{} = scope, %AssessmentPoint{} = assessment_point) do
+    result =
+      Ecto.Multi.new()
+      |> Ecto.Multi.delete_all(
+        :delete_entries,
+        from(
+          e in AssessmentPointEntry,
+          where: e.assessment_point_id == ^assessment_point.id
+        )
       )
-    )
-    |> Ecto.Multi.delete(:delete_assessment_point, assessment_point)
-    |> Repo.transaction()
+      |> Ecto.Multi.delete(:delete_assessment_point, assessment_point)
+      |> Repo.transaction()
+
+    case result do
+      {:ok, _} ->
+        AuditLog.maybe_log({:ok, assessment_point}, AssessmentPointLog, "DELETE", scope, [])
+
+      _ ->
+        :noop
+    end
+
+    result
   end
 
   @doc """
@@ -632,7 +652,7 @@ defmodule Lanttern.Assessments do
         join: ci in assoc(ap, :curriculum_item),
         join: cc in assoc(ci, :curriculum_component),
         join: sc in assoc(ap, :scale),
-        preload: [curriculum_item: {ci, curriculum_component: cc}, scale: sc]
+        preload: [curriculum_item: {ci, curriculum_component: cc}, scale: {sc, :ordinal_values}]
       )
       |> Repo.all()
 
@@ -948,6 +968,7 @@ defmodule Lanttern.Assessments do
         join: cc in assoc(ci, :curriculum_component),
         left_join: sc in assoc(ap, :scale),
         where: ap.strand_id == ^strand_id,
+        where: ap.is_hidden == false,
         order_by: ap.position,
         preload: [
           curriculum_item: {ci, curriculum_component: cc},
@@ -978,6 +999,7 @@ defmodule Lanttern.Assessments do
         join: e in AssessmentPointEntry,
         on: e.assessment_point_id == ap.id and e.student_id == ^student_id,
         where: m.strand_id == ^strand_id,
+        where: ap.is_hidden == false,
         where: e.has_marking,
         order_by: [asc: m.position, asc: ap.position],
         select: {ap.curriculum_item_id, e}
@@ -1052,6 +1074,7 @@ defmodule Lanttern.Assessments do
       where: m.strand_id == ^strand_id,
       where: e.student_id == ^student.id,
       where: e.has_marking,
+      where: ap.is_hidden == false,
       order_by: [asc: m.position, asc: ap.position],
       select: %{ap | scale: sc, student_entry: %{e | ordinal_value: ov}}
     )
@@ -1199,7 +1222,7 @@ defmodule Lanttern.Assessments do
           assessment_point -> assessment_point
         end
 
-      case update_assessment_point(assessment_point, %{rubric_id: rubric.id}) do
+      case update_assessment_point(%Scope{}, assessment_point, %{rubric_id: rubric.id}) do
         {:ok, _assessment_point} ->
           :ok
 

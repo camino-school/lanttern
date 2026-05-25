@@ -8,9 +8,11 @@ defmodule Lanttern.AssessmentsTest do
 
   describe "assessment_points" do
     alias Lanttern.Assessments.AssessmentPoint
+    alias Lanttern.Assessments.AssessmentPointLog
 
     import Lanttern.AssessmentsFixtures
 
+    alias Lanttern.IdentityFixtures
     alias Lanttern.RubricsFixtures
 
     @invalid_attrs %{name: nil, date: nil, description: nil}
@@ -99,6 +101,7 @@ defmodule Lanttern.AssessmentsTest do
     end
 
     test "create_assessment_point/1 with valid data creates a assessment point" do
+      scope = IdentityFixtures.scope_fixture()
       curriculum_item = insert(:curriculum_item)
       scale = insert(:scale)
 
@@ -111,7 +114,7 @@ defmodule Lanttern.AssessmentsTest do
       }
 
       assert {:ok, %AssessmentPoint{} = assessment_point} =
-               Assessments.create_assessment_point(valid_attrs)
+               Assessments.create_assessment_point(scope, valid_attrs)
 
       assert assessment_point.name == "some name"
       assert assessment_point.datetime == ~U[2023-08-02 15:30:00Z]
@@ -119,7 +122,10 @@ defmodule Lanttern.AssessmentsTest do
       assert assessment_point.curriculum_item_id == curriculum_item.id
       assert assessment_point.scale_id == scale.id
 
-      # assert log
+      assert [%AssessmentPointLog{} = log] = Repo.all(AssessmentPointLog)
+      assert log.assessment_point_id == assessment_point.id
+      assert log.profile_id == scope.profile_id
+      assert log.operation == "CREATE"
     end
 
     test "create_assessment_point/1 with valid data containing classes creates an assessment point with linked classes" do
@@ -144,7 +150,7 @@ defmodule Lanttern.AssessmentsTest do
       }
 
       assert {:ok, %AssessmentPoint{} = assessment_point} =
-               Assessments.create_assessment_point(valid_attrs)
+               Assessments.create_assessment_point(%Lanttern.Identity.Scope{}, valid_attrs)
 
       assert assessment_point.name == "some name"
       assert Enum.find(assessment_point.classes, fn c -> c.id == class_1.id end)
@@ -174,7 +180,7 @@ defmodule Lanttern.AssessmentsTest do
       }
 
       assert {:ok, %AssessmentPoint{} = assessment_point} =
-               Assessments.create_assessment_point(valid_attrs)
+               Assessments.create_assessment_point(%Lanttern.Identity.Scope{}, valid_attrs)
 
       assert assessment_point.name == "some name"
       assert Enum.find(assessment_point.entries, fn e -> e.student_id == student_1.id end)
@@ -196,17 +202,19 @@ defmodule Lanttern.AssessmentsTest do
         moment_id: nil
       }
 
+      scope = %Lanttern.Identity.Scope{}
+
       # assessment point in strand context should be ok without name
       assert {:ok, %AssessmentPoint{}} =
-               Assessments.create_assessment_point(%{attrs | strand_id: strand.id})
+               Assessments.create_assessment_point(scope, %{attrs | strand_id: strand.id})
 
       # assessment point in moment should return error without name
       assert {:error, %Ecto.Changeset{}} =
-               Assessments.create_assessment_point(%{attrs | moment_id: moment.id})
+               Assessments.create_assessment_point(scope, %{attrs | moment_id: moment.id})
 
       # assessment point in moment should be ok with name
       assert {:ok, %AssessmentPoint{}} =
-               Assessments.create_assessment_point(%{
+               Assessments.create_assessment_point(scope, %{
                  attrs
                  | moment_id: moment.id,
                    name: "some name"
@@ -214,10 +222,12 @@ defmodule Lanttern.AssessmentsTest do
     end
 
     test "create_assessment_point/1 with invalid data returns error changeset" do
-      assert {:error, %Ecto.Changeset{}} = Assessments.create_assessment_point(@invalid_attrs)
+      assert {:error, %Ecto.Changeset{}} =
+               Assessments.create_assessment_point(%Lanttern.Identity.Scope{}, @invalid_attrs)
     end
 
     test "update_assessment_point/2 with valid data updates the assessment" do
+      scope = IdentityFixtures.scope_fixture()
       assessment_point = assessment_point_fixture()
 
       update_attrs = %{
@@ -227,11 +237,16 @@ defmodule Lanttern.AssessmentsTest do
       }
 
       assert {:ok, %AssessmentPoint{} = assessment_point} =
-               Assessments.update_assessment_point(assessment_point, update_attrs)
+               Assessments.update_assessment_point(scope, assessment_point, update_attrs)
 
       assert assessment_point.name == "some updated name"
       assert assessment_point.datetime == ~U[2023-08-03 15:30:00Z]
       assert assessment_point.description == "some updated description"
+
+      assert [%AssessmentPointLog{} = log] = Repo.all(AssessmentPointLog)
+      assert log.assessment_point_id == assessment_point.id
+      assert log.profile_id == scope.profile_id
+      assert log.operation == "UPDATE"
     end
 
     test "update_assessment_point/2 with valid data containing classes updates the assessment point" do
@@ -246,7 +261,11 @@ defmodule Lanttern.AssessmentsTest do
       }
 
       assert {:ok, %AssessmentPoint{} = assessment_point} =
-               Assessments.update_assessment_point(assessment_point, update_attrs)
+               Assessments.update_assessment_point(
+                 %Lanttern.Identity.Scope{},
+                 assessment_point,
+                 update_attrs
+               )
 
       assert assessment_point.name == "some updated name"
       assert length(assessment_point.classes) == 2
@@ -258,21 +277,34 @@ defmodule Lanttern.AssessmentsTest do
       assessment = assessment_point_fixture()
 
       assert {:error, %Ecto.Changeset{}} =
-               Assessments.update_assessment_point(assessment, @invalid_attrs)
+               Assessments.update_assessment_point(
+                 %Lanttern.Identity.Scope{},
+                 assessment,
+                 @invalid_attrs
+               )
 
       assert assessment == Assessments.get_assessment_point!(assessment.id)
     end
 
     test "delete_assessment_point/1 deletes the assessment point" do
+      scope = IdentityFixtures.scope_fixture()
       assessment_point = assessment_point_fixture()
-      assert {:ok, %AssessmentPoint{}} = Assessments.delete_assessment_point(assessment_point)
+
+      assert {:ok, %AssessmentPoint{}} =
+               Assessments.delete_assessment_point(scope, assessment_point)
 
       assert_raise Ecto.NoResultsError, fn ->
         Assessments.get_assessment_point!(assessment_point.id)
       end
+
+      assert [%AssessmentPointLog{} = log] = Repo.all(AssessmentPointLog)
+      assert log.assessment_point_id == assessment_point.id
+      assert log.profile_id == scope.profile_id
+      assert log.operation == "DELETE"
     end
 
     test "delete_assessment_point_and_entries/1 deletes the assessment point and all related entries" do
+      scope = IdentityFixtures.scope_fixture()
       assessment_point = assessment_point_fixture()
 
       _entry =
@@ -282,11 +314,16 @@ defmodule Lanttern.AssessmentsTest do
         })
 
       assert {:ok, %{delete_assessment_point: %AssessmentPoint{}}} =
-               Assessments.delete_assessment_point_and_entries(assessment_point)
+               Assessments.delete_assessment_point_and_entries(scope, assessment_point)
 
       assert_raise Ecto.NoResultsError, fn ->
         Assessments.get_assessment_point!(assessment_point.id)
       end
+
+      assert [%AssessmentPointLog{} = log] = Repo.all(AssessmentPointLog)
+      assert log.assessment_point_id == assessment_point.id
+      assert log.profile_id == scope.profile_id
+      assert log.operation == "DELETE"
     end
 
     test "change_assessment_point/1 returns an assessment point changeset with datetime related virtual fields" do
@@ -322,7 +359,7 @@ defmodule Lanttern.AssessmentsTest do
       }
 
       assert {:ok, %AssessmentPoint{} = assessment_point} =
-               Assessments.create_assessment_point(valid_attrs)
+               Assessments.create_assessment_point(%Lanttern.Identity.Scope{}, valid_attrs)
 
       assert assessment_point.name == "some assessment point name abc"
       assert assessment_point.curriculum_item_id == curriculum_item.id
@@ -1331,7 +1368,7 @@ defmodule Lanttern.AssessmentsTest do
       }
 
       assert {:ok, %AssessmentPoint{} = assessment_point} =
-               Assessments.create_assessment_point(valid_attrs)
+               Assessments.create_assessment_point(%Lanttern.Identity.Scope{}, valid_attrs)
 
       assert assessment_point.name == "some assessment point name abc"
       assert assessment_point.curriculum_item_id == curriculum_item.id

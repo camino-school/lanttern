@@ -173,7 +173,7 @@ defmodule LantternWeb.MarkingLiveTest do
       conn
       |> visit("#{@live_view_path}/#{strand.id}/assessment/marking?classes_ids=#{class.id}")
       |> assert_has("div", text: student.name)
-      |> assert_has("span", text: ordinal_value_1.name)
+      |> assert_has("div", text: ordinal_value_1.name)
     end
 
     test "displays student self-assessment in student view", %{
@@ -188,7 +188,7 @@ defmodule LantternWeb.MarkingLiveTest do
         "#{@live_view_path}/#{strand.id}/assessment/marking?classes_ids=#{class.id}&assessment_view=student"
       )
       |> assert_has("div", text: student.name)
-      |> assert_has("span", text: ordinal_value_2.name)
+      |> assert_has("div", text: ordinal_value_2.name)
     end
 
     test "displays both assessments in compare view", %{

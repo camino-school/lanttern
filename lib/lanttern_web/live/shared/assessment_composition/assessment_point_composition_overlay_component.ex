@@ -234,12 +234,20 @@ defmodule LantternWeb.AssessmentComposition.AssessmentPointCompositionOverlayCom
     composition_components =
       AssessmentComposition.list_assessment_point_components(assigns.current_scope, assigns.ap.id)
 
-    {:ok,
-     socket
-     |> assign(assigns)
-     |> assign(:view, :overview)
-     |> assign(:composition_components, composition_components)}
+    initial_view = Map.get(assigns, :initial_view, :overview)
+
+    socket =
+      socket
+      |> assign(assigns)
+      |> assign(:view, initial_view)
+      |> assign(:composition_components, composition_components)
+      |> maybe_load_all_aps()
+
+    {:ok, socket}
   end
+
+  defp maybe_load_all_aps(%{assigns: %{view: :setup}} = socket), do: load_all_aps(socket)
+  defp maybe_load_all_aps(socket), do: socket
 
   defp load_all_aps(socket) do
     strand_id = socket.assigns.strand_id
@@ -294,7 +302,12 @@ defmodule LantternWeb.AssessmentComposition.AssessmentPointCompositionOverlayCom
   @impl true
   def handle_event("update_type", %{"composition_type" => type}, socket) do
     ap = socket.assigns.ap
-    {:ok, updated_ap} = Assessments.update_assessment_point(ap, %{composition_type: type})
+
+    {:ok, updated_ap} =
+      Assessments.update_assessment_point(socket.assigns.current_scope, ap, %{
+        composition_type: type
+      })
+
     notify(__MODULE__, {:composition_updated, ap.id}, socket.assigns)
     {:noreply, assign(socket, :ap, %{ap | composition_type: updated_ap.composition_type})}
   end
@@ -368,7 +381,8 @@ defmodule LantternWeb.AssessmentComposition.AssessmentPointCompositionOverlayCom
       ap.id
     )
 
-    Assessments.update_assessment_point(ap, %{composition_type: nil})
+    Assessments.update_assessment_point(socket.assigns.current_scope, ap, %{composition_type: nil})
+
     notify(__MODULE__, {:deleted, ap.id}, socket.assigns)
     {:noreply, socket}
   end

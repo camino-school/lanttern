@@ -1029,6 +1029,7 @@ defmodule Lanttern.Reporting do
         join: sr in assoc(s, :strand_reports),
         where: sr.report_card_id == ^report_card_id and e.student_id == ^student_id,
         where: e.has_marking,
+        where: ap.is_hidden == false,
         order_by: ap.position,
         preload: [scale: sc, ordinal_value: ov],
         select: {sr.id, e}
@@ -1254,6 +1255,7 @@ defmodule Lanttern.Reporting do
         left_join: r in assoc(ap, :rubric),
         select: {m, %{ap | rubric: r}},
         where: m.strand_id == ^strand_id,
+        where: ap.is_hidden == false,
         order_by: [asc: m.position, asc: ap.position]
       )
       |> Repo.all()
