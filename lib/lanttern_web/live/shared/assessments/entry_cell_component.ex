@@ -175,7 +175,8 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
     ~H"""
     <.base_input
       name={@field.name}
-      type="number"
+      type="text"
+      inputmode="decimal"
       phx-debounce="1000"
       value={format_score_input_value(@field.value)}
       errors={@field.errors}
@@ -499,12 +500,14 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
   # event handlers
 
   @impl true
-  def handle_event("change", %{"assessment_point_entry" => params}, socket) do
+  def handle_event("change", %{"assessment_point_entry" => raw_params}, socket) do
     %{
       entry: entry,
       view: view,
       entry_value: entry_value
     } = socket.assigns
+
+    params = normalize_numeric_score(raw_params)
 
     form =
       entry
@@ -587,12 +590,31 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
     if str == "" do
       false
     else
-      case Float.parse(str) do
-        {score, _} -> score < 0.0 || score > max_score
-        :error -> false
+      if Regex.match?(~r/^\d+([,.]\d+)?$/, str) do
+        normalized = String.replace(str, ",", ".")
+
+        case Float.parse(normalized) do
+          {score, ""} -> score < 0.0 || score > max_score
+          _ -> true
+        end
+      else
+        true
       end
     end
   end
 
   defp score_invalid?(_, _, _), do: false
+
+  defp normalize_numeric_score(params) do
+    params
+    |> maybe_normalize_score_field("score")
+    |> maybe_normalize_score_field("student_score")
+  end
+
+  defp maybe_normalize_score_field(params, field) do
+    case Map.get(params, field) do
+      value when is_binary(value) -> Map.put(params, field, String.replace(value, ",", "."))
+      _ -> params
+    end
+  end
 end
