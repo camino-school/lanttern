@@ -21,6 +21,7 @@ defmodule Lanttern.Assessments.AssessmentPointEntry do
           student_score: float() | nil,
           scale_type: String.t(),
           is_missing: boolean(),
+          calculation_error: String.t() | nil,
           has_marking: boolean(),
           has_evidences: boolean(),
           is_strand_entry: boolean(),
@@ -50,6 +51,7 @@ defmodule Lanttern.Assessments.AssessmentPointEntry do
     field :student_score, :float
     field :scale_type, :string
     field :is_missing, :boolean, default: false
+    field :calculation_error, :string
     # has_marking is generated
     field :has_marking, :boolean, read_after_writes: true
 
@@ -115,6 +117,7 @@ defmodule Lanttern.Assessments.AssessmentPointEntry do
       :score,
       :student_score,
       :is_missing,
+      :calculation_error,
       :assessment_point_id,
       :student_id,
       :scale_id,

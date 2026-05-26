@@ -52,7 +52,7 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
       <%= if @form do %>
         <div class="flex items-center gap-2 w-full h-full">
           <%= if @is_composed do %>
-            <div class="relative flex-1 w-full h-full min-w-0 opacity-75">
+            <div class="relative flex-1 w-full h-full min-w-0 rounded-xs outline-1 outline-offset-1 outline-ltrn-dark">
               <.entry_view
                 entry={@entry}
                 teacher_ov_name={@teacher_ov_name}

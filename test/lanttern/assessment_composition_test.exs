@@ -3,7 +3,10 @@ defmodule Lanttern.AssessmentCompositionTest do
 
   alias Lanttern.AssessmentComposition
   alias Lanttern.AssessmentComposition.Component
+  alias Lanttern.Assessments.AssessmentPointEntry
+  alias Lanttern.AssessmentsLog.AssessmentPointEntryLog
   alias Lanttern.Identity.Scope
+  alias Lanttern.Repo
 
   import Lanttern.Factory
 
@@ -355,6 +358,185 @@ defmodule Lanttern.AssessmentCompositionTest do
           []
         )
       end
+    end
+  end
+
+  describe "list_composed_parent_pairs/1" do
+    test "returns empty list when input is empty" do
+      assert AssessmentComposition.list_composed_parent_pairs([]) == []
+    end
+
+    test "returns {parent_id, student_id} pairs only for sum parents" do
+      scale = insert(:scale, type: "numeric", max_score: 100.0)
+      sum_parent = insert(:assessment_point, composition_type: :sum, scale: scale)
+      avg_parent = insert(:assessment_point, composition_type: :avg, scale: scale)
+
+      component_ap_1 = insert(:assessment_point, scale: scale)
+      component_ap_2 = insert(:assessment_point, scale: scale)
+
+      insert(:assessment_point_component, parent: sum_parent, component: component_ap_1)
+      insert(:assessment_point_component, parent: avg_parent, component: component_ap_2)
+
+      result =
+        AssessmentComposition.list_composed_parent_pairs([
+          {component_ap_1.id, 1},
+          {component_ap_2.id, 1}
+        ])
+
+      assert result == [{sum_parent.id, 1}]
+    end
+
+    test "fans out across students and dedups duplicate pairs" do
+      scale = insert(:scale, type: "numeric", max_score: 100.0)
+      parent = insert(:assessment_point, composition_type: :sum, scale: scale)
+      component_ap = insert(:assessment_point, scale: scale)
+
+      insert(:assessment_point_component, parent: parent, component: component_ap)
+
+      pairs =
+        AssessmentComposition.list_composed_parent_pairs([
+          {component_ap.id, 10},
+          {component_ap.id, 10},
+          {component_ap.id, 20}
+        ])
+        |> Enum.sort()
+
+      assert pairs == [{parent.id, 10}, {parent.id, 20}]
+    end
+
+    test "returns empty list when no component matches any sum parent" do
+      assessment_point = insert(:assessment_point)
+
+      assert AssessmentComposition.list_composed_parent_pairs([{assessment_point.id, 1}]) == []
+    end
+  end
+
+  describe "recalculate_composed_entries/3" do
+    setup do
+      scale = insert(:scale, type: "numeric", max_score: 100.0)
+      parent = insert(:assessment_point, composition_type: :sum, scale: scale)
+      component_ap_1 = insert(:assessment_point, scale: scale)
+      component_ap_2 = insert(:assessment_point, scale: scale)
+
+      insert(:assessment_point_component, parent: parent, component: component_ap_1)
+      insert(:assessment_point_component, parent: parent, component: component_ap_2)
+
+      student = insert(:student)
+
+      %{
+        scale: scale,
+        parent: parent,
+        component_ap_1: component_ap_1,
+        component_ap_2: component_ap_2,
+        student: student
+      }
+    end
+
+    test "writes the plain sum of the requested field ignoring component weights", %{
+      scale: scale,
+      parent: parent,
+      component_ap_1: component_ap_1,
+      component_ap_2: component_ap_2,
+      student: student
+    } do
+      # set a non-default weight on one component to confirm it is ignored
+      [component | _] = Repo.all(Component)
+      Repo.update!(Component.changeset(component, %{weight: 3.0}))
+
+      insert(:assessment_point_entry,
+        assessment_point: component_ap_1,
+        student: student,
+        scale: scale,
+        scale_type: "numeric",
+        score: 10.0
+      )
+
+      insert(:assessment_point_entry,
+        assessment_point: component_ap_2,
+        student: student,
+        scale: scale,
+        scale_type: "numeric",
+        score: 15.0
+      )
+
+      assert :ok =
+               AssessmentComposition.recalculate_composed_entries(
+                 %Scope{},
+                 [{parent.id, student.id}],
+                 :score
+               )
+
+      entry =
+        Repo.get_by!(AssessmentPointEntry,
+          assessment_point_id: parent.id,
+          student_id: student.id
+        )
+
+      assert entry.score == 25.0
+    end
+
+    test "skips :avg parents", %{scale: scale} do
+      avg_parent = insert(:assessment_point, composition_type: :avg, scale: scale)
+      component_ap = insert(:assessment_point, scale: scale)
+      insert(:assessment_point_component, parent: avg_parent, component: component_ap)
+      student = insert(:student)
+
+      insert(:assessment_point_entry,
+        assessment_point: component_ap,
+        student: student,
+        scale: scale,
+        scale_type: "numeric",
+        score: 10.0
+      )
+
+      assert :ok =
+               AssessmentComposition.recalculate_composed_entries(
+                 %Scope{},
+                 [{avg_parent.id, student.id}],
+                 :score
+               )
+
+      refute Repo.get_by(AssessmentPointEntry,
+               assessment_point_id: avg_parent.id,
+               student_id: student.id
+             )
+    end
+
+    test "creates a log row with the scope's profile_id", %{
+      scale: scale,
+      parent: parent,
+      component_ap_1: component_ap_1,
+      student: student
+    } do
+      profile = Lanttern.IdentityFixtures.staff_member_profile_fixture()
+
+      insert(:assessment_point_entry,
+        assessment_point: component_ap_1,
+        student: student,
+        scale: scale,
+        scale_type: "numeric",
+        score: 5.0
+      )
+
+      assert :ok =
+               AssessmentComposition.recalculate_composed_entries(
+                 %Scope{profile_id: profile.id},
+                 [{parent.id, student.id}],
+                 :score
+               )
+
+      on_exit(fn ->
+        assert_supervised_tasks_are_down()
+
+        log =
+          Repo.get_by!(AssessmentPointEntryLog,
+            assessment_point_id: parent.id,
+            student_id: student.id
+          )
+
+        assert log.profile_id == profile.id
+        assert log.operation == "CREATE"
+      end)
     end
   end
 end

@@ -1,5 +1,6 @@
 defmodule Lanttern.AssessmentsTest do
   use Lanttern.DataCase
+  use Oban.Testing, repo: Lanttern.Repo
 
   alias Lanttern.Repo
 
@@ -873,6 +874,82 @@ defmodule Lanttern.AssessmentsTest do
       assert {:ok, 1} = Assessments.save_assessment_point_entries([params])
 
       assert %AssessmentPointEntry{is_missing: false} = Repo.get!(AssessmentPointEntry, entry.id)
+    end
+
+    test "save_assessment_point_entries/2 enqueues composed entry recalc when saved entry is a component" do
+      scale = insert(:scale, type: "numeric", max_score: 100.0)
+      parent_ap = insert(:assessment_point, composition_type: :sum, scale: scale)
+      component_ap = insert(:assessment_point, scale: scale)
+      insert(:assessment_point_component, parent: parent_ap, component: component_ap)
+
+      student = insert(:student)
+      profile = Lanttern.IdentityFixtures.staff_member_profile_fixture()
+
+      params = %{
+        "student_id" => student.id,
+        "assessment_point_id" => component_ap.id,
+        "scale_id" => scale.id,
+        "scale_type" => "numeric",
+        "score" => 50.0
+      }
+
+      assert {:ok, 1} =
+               Assessments.save_assessment_point_entries([params], log_profile_id: profile.id)
+
+      assert_enqueued(
+        worker: Lanttern.Workers.ComposedEntryRecalcWorker,
+        args: %{
+          "pairs" => [[parent_ap.id, student.id]],
+          "field" => "score",
+          "profile_id" => profile.id
+        }
+      )
+    end
+
+    test "save_assessment_point_entries/2 does not enqueue recalc when no composed parent is affected" do
+      scale = insert(:scale, type: "numeric", max_score: 100.0)
+      assessment_point = insert(:assessment_point, scale: scale)
+      student = insert(:student)
+
+      params = %{
+        "student_id" => student.id,
+        "assessment_point_id" => assessment_point.id,
+        "scale_id" => scale.id,
+        "scale_type" => "numeric",
+        "score" => 10.0
+      }
+
+      assert {:ok, 1} = Assessments.save_assessment_point_entries([params])
+
+      refute_enqueued(worker: Lanttern.Workers.ComposedEntryRecalcWorker)
+    end
+
+    test "save_assessment_point_entries/2 passes student_score field when only student_score is edited" do
+      scale = insert(:scale, type: "numeric", max_score: 100.0)
+      parent_ap = insert(:assessment_point, composition_type: :sum, scale: scale)
+      component_ap = insert(:assessment_point, scale: scale)
+      insert(:assessment_point_component, parent: parent_ap, component: component_ap)
+
+      student = insert(:student)
+
+      params = %{
+        "student_id" => student.id,
+        "assessment_point_id" => component_ap.id,
+        "scale_id" => scale.id,
+        "scale_type" => "numeric",
+        "student_score" => 25.0
+      }
+
+      assert {:ok, 1} = Assessments.save_assessment_point_entries([params])
+
+      assert_enqueued(
+        worker: Lanttern.Workers.ComposedEntryRecalcWorker,
+        args: %{
+          "pairs" => [[parent_ap.id, student.id]],
+          "field" => "student_score",
+          "profile_id" => nil
+        }
+      )
     end
 
     test "delete_assessment_point_entry/2 deletes the assessment_point_entry" do
