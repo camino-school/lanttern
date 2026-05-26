@@ -458,7 +458,7 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
   end
 
   defp assign_is_composed(socket) do
-    is_composed = socket.assigns.assessment_point.composition_type != nil
+    is_composed = socket.assigns.assessment_point.uses_composition
     assign(socket, :is_composed, is_composed)
   end
 

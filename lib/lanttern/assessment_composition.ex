@@ -16,6 +16,7 @@ defmodule Lanttern.AssessmentComposition do
   alias Lanttern.Assessments.AssessmentPoint
   alias Lanttern.Assessments.AssessmentPointEntry
   alias Lanttern.AssessmentsLog
+  alias Lanttern.Grading.Scale
   alias Lanttern.Identity.Scope
 
   @doc """
@@ -136,7 +137,7 @@ defmodule Lanttern.AssessmentComposition do
   Given a list of `{component_ap_id, student_id}` tuples corresponding to
   assessment point entries that were just saved, returns the distinct
   `{parent_ap_id, student_id}` tuples whose parent assessment point uses
-  `composition_type: :sum`.
+  composition on a numeric scale (i.e. sum-based composition).
 
   Used to determine which composed assessment point entries need to be
   recalculated after a batch save.
@@ -155,7 +156,11 @@ defmodule Lanttern.AssessmentComposition do
       from(c in Component,
         join: parent in AssessmentPoint,
         on: parent.id == c.parent_id,
-        where: c.component_id in ^component_ids and parent.composition_type == :sum,
+        join: scale in Scale,
+        on: scale.id == parent.scale_id,
+        where:
+          c.component_id in ^component_ids and parent.uses_composition == true and
+            scale.type == "numeric",
         select: {c.parent_id, c.component_id}
       )
       |> Repo.all()
@@ -169,10 +174,10 @@ defmodule Lanttern.AssessmentComposition do
   @doc """
   Recalculates composed assessment point entries for the given `{parent_id, student_id}` pairs.
 
-  Only sum-based compositions are processed; pairs whose parent is not
-  `composition_type: :sum` are silently skipped. For each pair, the function
-  sums the requested `field` (`:score` or `:student_score`) across the
-  parent's component entries for the student.
+  Only sum-based compositions are processed; pairs whose parent is not a
+  composed assessment point on a numeric scale are silently skipped. For each
+  pair, the function sums the requested `field` (`:score` or
+  `:student_score`) across the parent's component entries for the student.
 
   When the recomputed value exceeds the parent's `scale.max_score`, the
   composed entry's `calculation_error` is set to `"max_score_overflow"` and
@@ -202,7 +207,7 @@ defmodule Lanttern.AssessmentComposition do
       |> Repo.get(parent_id)
       |> Repo.preload(:scale)
 
-    with %AssessmentPoint{composition_type: :sum} <- parent do
+    with %AssessmentPoint{uses_composition: true, scale: %{type: "numeric"}} <- parent do
       maybe_warn_cascading_composition(parent_id)
 
       components = Repo.all(from c in Component, where: c.parent_id == ^parent_id)

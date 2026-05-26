@@ -368,8 +368,9 @@ defmodule Lanttern.AssessmentCompositionTest do
 
     test "returns {parent_id, student_id} pairs only for sum parents" do
       scale = insert(:scale, type: "numeric", max_score: 100.0)
-      sum_parent = insert(:assessment_point, composition_type: :sum, scale: scale)
-      avg_parent = insert(:assessment_point, composition_type: :avg, scale: scale)
+      ordinal_scale = insert(:scale, type: "ordinal")
+      sum_parent = insert(:assessment_point, uses_composition: true, scale: scale)
+      avg_parent = insert(:assessment_point, uses_composition: true, scale: ordinal_scale)
 
       component_ap_1 = insert(:assessment_point, scale: scale)
       component_ap_2 = insert(:assessment_point, scale: scale)
@@ -388,7 +389,7 @@ defmodule Lanttern.AssessmentCompositionTest do
 
     test "fans out across students and dedups duplicate pairs" do
       scale = insert(:scale, type: "numeric", max_score: 100.0)
-      parent = insert(:assessment_point, composition_type: :sum, scale: scale)
+      parent = insert(:assessment_point, uses_composition: true, scale: scale)
       component_ap = insert(:assessment_point, scale: scale)
 
       insert(:assessment_point_component, parent: parent, component: component_ap)
@@ -414,7 +415,7 @@ defmodule Lanttern.AssessmentCompositionTest do
   describe "recalculate_composed_entries/3" do
     setup do
       scale = insert(:scale, type: "numeric", max_score: 100.0)
-      parent = insert(:assessment_point, composition_type: :sum, scale: scale)
+      parent = insert(:assessment_point, uses_composition: true, scale: scale)
       component_ap_1 = insert(:assessment_point, scale: scale)
       component_ap_2 = insert(:assessment_point, scale: scale)
 
@@ -476,7 +477,8 @@ defmodule Lanttern.AssessmentCompositionTest do
     end
 
     test "skips :avg parents", %{scale: scale} do
-      avg_parent = insert(:assessment_point, composition_type: :avg, scale: scale)
+      ordinal_scale = insert(:scale, type: "ordinal")
+      avg_parent = insert(:assessment_point, uses_composition: true, scale: ordinal_scale)
       component_ap = insert(:assessment_point, scale: scale)
       insert(:assessment_point_component, parent: avg_parent, component: component_ap)
       student = insert(:student)

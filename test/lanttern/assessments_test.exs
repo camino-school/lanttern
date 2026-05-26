@@ -878,7 +878,7 @@ defmodule Lanttern.AssessmentsTest do
 
     test "save_assessment_point_entries/2 enqueues composed entry recalc when saved entry is a component" do
       scale = insert(:scale, type: "numeric", max_score: 100.0)
-      parent_ap = insert(:assessment_point, composition_type: :sum, scale: scale)
+      parent_ap = insert(:assessment_point, uses_composition: true, scale: scale)
       component_ap = insert(:assessment_point, scale: scale)
       insert(:assessment_point_component, parent: parent_ap, component: component_ap)
 
@@ -926,7 +926,7 @@ defmodule Lanttern.AssessmentsTest do
 
     test "save_assessment_point_entries/2 passes student_score field when only student_score is edited" do
       scale = insert(:scale, type: "numeric", max_score: 100.0)
-      parent_ap = insert(:assessment_point, composition_type: :sum, scale: scale)
+      parent_ap = insert(:assessment_point, uses_composition: true, scale: scale)
       component_ap = insert(:assessment_point, scale: scale)
       insert(:assessment_point_component, parent: parent_ap, component: component_ap)
 

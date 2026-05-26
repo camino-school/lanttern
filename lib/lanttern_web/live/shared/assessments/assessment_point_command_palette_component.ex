@@ -7,7 +7,7 @@ defmodule LantternWeb.Assessments.AssessmentPointCommandPaletteComponent do
 
   ### Required attrs
 
-  - `:ap` - `AssessmentPoint` (needs `composition_type` and `is_hidden`)
+  - `:ap` - `AssessmentPoint` (needs `uses_composition`, `scale`, and `is_hidden`)
   - `:on_cancel` - JS action to close the palette
   - `:notify_component` - parent LiveComponent CID (`@myself`)
   """
@@ -32,29 +32,20 @@ defmodule LantternWeb.Assessments.AssessmentPointCommandPaletteComponent do
             </.button>
           </div>
           <div class="border-t border-ltrn-light p-10">
-            <%= if is_nil(@ap.composition_type) do %>
-              <div class="flex flex-wrap gap-2">
-                <.button
-                  type="button"
-                  phx-click="add_composition"
-                  phx-value-type="sum"
-                  phx-target={@myself}
-                >
-                  {gettext("Add sum-based composition")}
-                </.button>
-                <.button
-                  type="button"
-                  phx-click="add_composition"
-                  phx-value-type="avg"
-                  phx-target={@myself}
-                >
-                  {gettext("Add average-based composition")}
-                </.button>
-              </div>
+            <%= if !@ap.uses_composition do %>
+              <.button type="button" phx-click="add_composition" phx-target={@myself}>
+                {gettext("Add grade composition")}
+              </.button>
               <p class="mt-4">
-                {gettext(
-                  "Use grade composition to calculate entries based on sum or average of other assessment points."
-                )}
+                <%= if @ap.scale.type == "numeric" do %>
+                  {gettext(
+                    "Use grade composition to calculate this assessment point's score from the sum of other assessment points' scores."
+                  )}
+                <% else %>
+                  {gettext(
+                    "Use grade composition to calculate this assessment point's level from the weighted average of other assessment points."
+                  )}
+                <% end %>
               </p>
             <% else %>
               <.button
@@ -67,7 +58,7 @@ defmodule LantternWeb.Assessments.AssessmentPointCommandPaletteComponent do
                 {gettext("Manage grade composition")}
               </.button>
               <p class="mt-4">
-                <%= if @ap.composition_type == :sum do %>
+                <%= if @ap.scale.type == "numeric" do %>
                   {gettext("This assessment point uses a sum-based grade composition.")}
                 <% else %>
                   {gettext("This assessment point uses an average-based grade composition.")}
@@ -112,8 +103,8 @@ defmodule LantternWeb.Assessments.AssessmentPointCommandPaletteComponent do
     {:noreply, socket}
   end
 
-  def handle_event("add_composition", %{"type" => type}, socket) do
-    notify(__MODULE__, {:add_composition, type}, socket.assigns)
+  def handle_event("add_composition", _params, socket) do
+    notify(__MODULE__, {:add_composition}, socket.assigns)
     {:noreply, socket}
   end
 

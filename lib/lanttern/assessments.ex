@@ -751,7 +751,7 @@ defmodule Lanttern.Assessments do
       ap in base_query,
       join: ci in assoc(ap, :curriculum_item),
       join: cc in assoc(ci, :curriculum_component),
-      where: not is_nil(ap.composition_type),
+      where: ap.uses_composition == true,
       preload: [curriculum_item: {ci, curriculum_component: cc}]
     )
     |> Repo.all()

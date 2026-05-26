@@ -11,7 +11,7 @@ defmodule Lanttern.Workers.ComposedEntryRecalcWorkerTest do
   describe "perform/1" do
     test "writes the sum of the requested field into the composed entry" do
       scale = insert(:scale, type: "numeric", max_score: 100.0)
-      parent_ap = insert(:assessment_point, composition_type: :sum, scale: scale)
+      parent_ap = insert(:assessment_point, uses_composition: true, scale: scale)
       component_ap_1 = insert(:assessment_point, scale: scale)
       component_ap_2 = insert(:assessment_point, scale: scale)
 
@@ -56,7 +56,7 @@ defmodule Lanttern.Workers.ComposedEntryRecalcWorkerTest do
 
     test "recalculates student_score independently" do
       scale = insert(:scale, type: "numeric", max_score: 100.0)
-      parent_ap = insert(:assessment_point, composition_type: :sum, scale: scale)
+      parent_ap = insert(:assessment_point, uses_composition: true, scale: scale)
       component_ap = insert(:assessment_point, scale: scale)
       insert(:assessment_point_component, parent: parent_ap, component: component_ap)
 
@@ -91,7 +91,7 @@ defmodule Lanttern.Workers.ComposedEntryRecalcWorkerTest do
 
     test "writes nil when all component entries are nil for the field" do
       scale = insert(:scale, type: "numeric", max_score: 100.0)
-      parent_ap = insert(:assessment_point, composition_type: :sum, scale: scale)
+      parent_ap = insert(:assessment_point, uses_composition: true, scale: scale)
       component_ap = insert(:assessment_point, scale: scale)
       insert(:assessment_point_component, parent: parent_ap, component: component_ap)
 
@@ -132,7 +132,7 @@ defmodule Lanttern.Workers.ComposedEntryRecalcWorkerTest do
 
     test "flags calculation_error when the recomputed value exceeds scale max_score" do
       scale = insert(:scale, type: "numeric", max_score: 50.0)
-      parent_ap = insert(:assessment_point, composition_type: :sum, scale: scale)
+      parent_ap = insert(:assessment_point, uses_composition: true, scale: scale)
       component_ap_1 = insert(:assessment_point, scale: scale)
       component_ap_2 = insert(:assessment_point, scale: scale)
 
@@ -177,7 +177,7 @@ defmodule Lanttern.Workers.ComposedEntryRecalcWorkerTest do
 
     test "clears a previously set calculation_error once the sum fits again" do
       scale = insert(:scale, type: "numeric", max_score: 50.0)
-      parent_ap = insert(:assessment_point, composition_type: :sum, scale: scale)
+      parent_ap = insert(:assessment_point, uses_composition: true, scale: scale)
       component_ap = insert(:assessment_point, scale: scale)
       insert(:assessment_point_component, parent: parent_ap, component: component_ap)
 
@@ -218,9 +218,10 @@ defmodule Lanttern.Workers.ComposedEntryRecalcWorkerTest do
     end
 
     test "skips parents that are not sum-based" do
-      scale = insert(:scale, type: "numeric", max_score: 100.0)
-      parent_ap = insert(:assessment_point, composition_type: :avg, scale: scale)
-      component_ap = insert(:assessment_point, scale: scale)
+      ordinal_scale = insert(:scale, type: "ordinal")
+      numeric_scale = insert(:scale, type: "numeric", max_score: 100.0)
+      parent_ap = insert(:assessment_point, uses_composition: true, scale: ordinal_scale)
+      component_ap = insert(:assessment_point, scale: numeric_scale)
       insert(:assessment_point_component, parent: parent_ap, component: component_ap)
 
       student = insert(:student)
@@ -228,7 +229,7 @@ defmodule Lanttern.Workers.ComposedEntryRecalcWorkerTest do
       insert(:assessment_point_entry,
         assessment_point: component_ap,
         student: student,
-        scale: scale,
+        scale: numeric_scale,
         scale_type: "numeric",
         score: 30.0
       )

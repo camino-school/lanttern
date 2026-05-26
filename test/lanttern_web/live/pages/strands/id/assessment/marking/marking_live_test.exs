@@ -266,7 +266,7 @@ defmodule LantternWeb.MarkingLiveTest do
         insert(:assessment_point,
           strand_id: strand.id,
           name: "Composition AP",
-          composition_type: :sum
+          uses_composition: true
         )
 
       component_ap_1 =

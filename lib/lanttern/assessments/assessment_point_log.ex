@@ -20,7 +20,7 @@ defmodule Lanttern.Assessments.AssessmentPointLog do
     field :position, :integer
     field :is_differentiation, :boolean
     field :is_hidden, :boolean
-    field :composition_type, :string
+    field :uses_composition, :boolean
     field :curriculum_item_id, :integer
     field :scale_id, :integer
     field :rubric_id, :integer
@@ -45,7 +45,7 @@ defmodule Lanttern.Assessments.AssessmentPointLog do
       :position,
       :is_differentiation,
       :is_hidden,
-      :composition_type,
+      :uses_composition,
       :curriculum_item_id,
       :scale_id,
       :rubric_id,
@@ -69,8 +69,7 @@ defmodule Lanttern.Assessments.AssessmentPointLog do
       position: assessment_point.position,
       is_differentiation: assessment_point.is_differentiation,
       is_hidden: assessment_point.is_hidden,
-      composition_type:
-        assessment_point.composition_type && to_string(assessment_point.composition_type),
+      uses_composition: assessment_point.uses_composition,
       curriculum_item_id: assessment_point.curriculum_item_id,
       scale_id: assessment_point.scale_id,
       rubric_id: assessment_point.rubric_id,

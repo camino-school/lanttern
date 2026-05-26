@@ -302,7 +302,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
             />
             <.icon
               name="hero-calculator-micro"
-              class={["size-3", if(@assessment_point.composition_type, do: "text-ltrn-primary")]}
+              class={["size-3", if(@assessment_point.uses_composition, do: "text-ltrn-primary")]}
             />
           </div>
         </button>
@@ -319,10 +319,16 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
           <p :if={@assessment_point.is_differentiation} class="mt-2">
             {gettext("Differentiation assessment")}
           </p>
-          <p :if={@assessment_point.composition_type == :sum} class="mt-2">
+          <p
+            :if={@assessment_point.uses_composition and @assessment_point.scale.type == "numeric"}
+            class="mt-2"
+          >
             {gettext("Sum-based grade composition")}
           </p>
-          <p :if={@assessment_point.composition_type == :avg} class="mt-2">
+          <p
+            :if={@assessment_point.uses_composition and @assessment_point.scale.type == "ordinal"}
+            class="mt-2"
+          >
             {gettext("Average-based grade composition")}
           </p>
           <.markdown
@@ -521,14 +527,14 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
   end
 
   def update(
-        %{action: {AssessmentPointCommandPaletteComponent, {:add_composition, type}}},
+        %{action: {AssessmentPointCommandPaletteComponent, {:add_composition}}},
         socket
       ) do
     ap = socket.assigns.command_palette_ap
 
     {:ok, updated_ap} =
       Assessments.update_assessment_point(socket.assigns.current_scope, ap, %{
-        composition_type: type
+        uses_composition: true
       })
 
     ap =
@@ -538,7 +544,8 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
 
     socket =
       socket
-      |> stream_insert(:assessment_points, ap)
+      |> stream_assessment_points()
+      |> stream_students_entries()
       |> assign(:command_palette_ap, nil)
       |> assign(:composition_overlay_ap, ap)
       |> assign(:composition_overlay_initial_view, :setup)
@@ -589,34 +596,45 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
     {:ok, socket}
   end
 
+  def update(
+        %{action: {AssessmentPointFormOverlayComponent, {action, _deleted_ap}}},
+        socket
+      )
+      when action in [:deleted, :deleted_with_entries] do
+    socket =
+      socket
+      |> stream_assessment_points()
+      |> stream_students_entries()
+      |> assign(:assessment_point_overlay, nil)
+      |> delegate_navigation(put_flash: {:info, gettext("Assessment point deleted")})
+
+    {:ok, socket}
+  end
+
   def update(%{action: {AssessmentPointFormOverlayComponent, _}}, socket) do
     {:ok, assign(socket, :assessment_point_overlay, nil)}
   end
 
   def update(
-        %{action: {AssessmentPointCompositionOverlayComponent, {:composition_updated, ap_id}}},
+        %{action: {AssessmentPointCompositionOverlayComponent, {:composition_updated, _ap_id}}},
         socket
       ) do
-    updated_ap =
-      Assessments.get_assessment_point!(ap_id,
-        preloads: [curriculum_item: :curriculum_component, scale: :ordinal_values]
-      )
+    socket =
+      socket
+      |> stream_assessment_points()
+      |> stream_students_entries()
 
-    {:ok, stream_insert(socket, :assessment_points, updated_ap)}
+    {:ok, socket}
   end
 
   def update(
-        %{action: {AssessmentPointCompositionOverlayComponent, {:deleted, ap_id}}},
+        %{action: {AssessmentPointCompositionOverlayComponent, {:deleted, _ap_id}}},
         socket
       ) do
-    updated_ap =
-      Assessments.get_assessment_point!(ap_id,
-        preloads: [curriculum_item: :curriculum_component, scale: :ordinal_values]
-      )
-
     socket =
       socket
-      |> stream_insert(:assessment_points, updated_ap)
+      |> stream_assessment_points()
+      |> stream_students_entries()
       |> assign(:composition_overlay_ap, nil)
       |> delegate_navigation(put_flash: {:info, gettext("Grade composition deleted")})
 
@@ -670,7 +688,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
 
     composed_ids =
       assessment_points
-      |> Enum.filter(&(&1.composition_type != nil))
+      |> Enum.filter(& &1.uses_composition)
       |> MapSet.new(& &1.id)
 
     socket
