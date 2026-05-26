@@ -57,6 +57,7 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
               assessment_view="teacher"
               ov_style_map={@ov_style_map}
               has_change={@has_teacher_change}
+              is_composed={@is_composed}
             />
             <.marking_input
               scale={@assessment_point.scale}
@@ -65,8 +66,12 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
               assessment_view="student"
               ov_style_map={@ov_style_map}
               has_change={@has_student_change}
+              is_composed={@is_composed}
             />
           </div>
+          <p :if={@is_composed} class="mt-2 text-center text-ltrn-subtle">
+            {gettext("Manual input disabled (automatic calculation via grade composition)")}
+          </p>
           <div
             :if={@has_teacher_change || @has_student_change}
             class="p-2 rounded-sm mt-2 text-sm text-white text-center bg-ltrn-dark"
@@ -160,6 +165,7 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
   attr :assessment_view, :string, required: true
   attr :ov_style_map, :map, required: true
   attr :has_change, :boolean, required: true
+  attr :is_composed, :boolean, required: true
 
   def marking_input(%{scale: %{type: "ordinal"}} = assigns) do
     field =
@@ -195,6 +201,7 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
       prompt="—"
       class={["py-3 rounded-xs font-mono text-sm text-center truncate", @class]}
       style={@style}
+      disabled={@is_composed}
     />
     """
   end
@@ -209,7 +216,14 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
     assigns = assign(assigns, :field, field)
 
     ~H"""
-    <.input field={@field} type="number" phx-debounce="1000" min="0" max={@scale.max_score} />
+    <.input
+      field={@field}
+      type="number"
+      phx-debounce="1000"
+      min="0"
+      max={@scale.max_score}
+      disabled={@is_composed}
+    />
     """
   end
 
@@ -367,6 +381,7 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
       |> assign(:has_diff_rubric_change, false)
       |> assign(:save_marking_error, nil)
       |> assign(:ov_style_map, nil)
+      |> assign(:is_composed, false)
       |> assign(:is_editing_note, false)
       |> assign(:is_editing_student_note, false)
       |> assign(:save_note_error, nil)
@@ -412,6 +427,7 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
       |> assign(assigns)
       |> assign_student()
       |> assign_assessment_point()
+      |> assign_is_composed()
       |> assign_differentiation_rubric()
       |> maybe_create_and_assign_entry()
       |> assign_forms()
@@ -439,6 +455,11 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
       )
 
     assign(socket, :assessment_point, assessment_point)
+  end
+
+  defp assign_is_composed(socket) do
+    is_composed = socket.assigns.assessment_point.composition_type != nil
+    assign(socket, :is_composed, is_composed)
   end
 
   defp assign_differentiation_rubric(socket) do

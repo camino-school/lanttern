@@ -123,6 +123,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
                 current_assessment_view={@current_assessment_view}
                 view_bg={@view_bg}
                 current_user={@current_user}
+                composed_assessment_point_ids={@composed_assessment_point_ids}
               />
             </div>
           </div>
@@ -367,6 +368,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
   attr :current_assessment_view, :string, required: true
   attr :view_bg, :string, required: true
   attr :current_user, User, required: true
+  attr :composed_assessment_point_ids, :any, required: true
 
   def student_entries(assigns) do
     ~H"""
@@ -393,6 +395,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
           entry={entry}
           view={@current_assessment_view}
           allow_edit={true}
+          is_composed={entry.assessment_point_id in @composed_assessment_point_ids}
           notify_component={@myself}
         />
       </div>
@@ -420,6 +423,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
       |> assign(:has_assessment_points, false)
       |> assign(:assessment_points_count, 0)
       |> assign(:assessment_points_columns_grid, "")
+      |> assign(:composed_assessment_point_ids, MapSet.new())
       |> assign(:url_params, %{})
       |> assign(:filter_assessment_points_ids, nil)
       |> stream_configure(
@@ -664,12 +668,18 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
 
     assessment_points_count = length(assessment_points)
 
+    composed_ids =
+      assessment_points
+      |> Enum.filter(&(&1.composition_type != nil))
+      |> MapSet.new(& &1.id)
+
     socket
     |> stream(:assessment_points, assessment_points, reset: true)
     |> stream(:assessment_point_headers, assessment_point_headers, reset: true)
     |> assign(:assessment_points_count, assessment_points_count)
     |> assign(:assessment_points_columns_grid, "repeat(#{assessment_points_count}, 12rem)")
     |> assign(:has_assessment_points, assessment_points != [])
+    |> assign(:composed_assessment_point_ids, composed_ids)
   end
 
   defp recompute_headers(all_headers, filtered_aps) do
