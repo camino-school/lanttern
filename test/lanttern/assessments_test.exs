@@ -900,7 +900,7 @@ defmodule Lanttern.AssessmentsTest do
         worker: Lanttern.Workers.ComposedEntryRecalcWorker,
         args: %{
           "pairs" => [[parent_ap.id, student.id]],
-          "field" => "score",
+          "domain" => "teacher_entry",
           "profile_id" => profile.id
         }
       )
@@ -946,7 +946,7 @@ defmodule Lanttern.AssessmentsTest do
         worker: Lanttern.Workers.ComposedEntryRecalcWorker,
         args: %{
           "pairs" => [[parent_ap.id, student.id]],
-          "field" => "student_score",
+          "domain" => "student_entry",
           "profile_id" => nil
         }
       )

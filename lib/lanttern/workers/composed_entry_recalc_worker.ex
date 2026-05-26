@@ -5,12 +5,12 @@ defmodule Lanttern.Workers.ComposedEntryRecalcWorker do
 
   Enqueued from `Lanttern.Assessments.save_assessment_point_entries/2` when
   any of the saved entries belong to assessment points that are components
-  of a sum-based composition.
+  of a composed (sum or average) assessment point.
 
   ## Job arguments
 
   - `pairs` — list of `[parent_id, student_id]` pairs to recalculate
-  - `field` — `"score"` or `"student_score"`, the field that was edited
+  - `domain` — `"teacher_entry"` or `"student_entry"`, the edit domain
   - `profile_id` — profile that triggered the save, used for audit logging
   """
 
@@ -21,12 +21,12 @@ defmodule Lanttern.Workers.ComposedEntryRecalcWorker do
 
   @impl Oban.Worker
   def perform(%Oban.Job{args: args}) do
-    %{"pairs" => raw_pairs, "field" => field_str} = args
+    %{"pairs" => raw_pairs, "domain" => domain_str} = args
 
     pairs = Enum.map(raw_pairs, fn [parent_id, student_id] -> {parent_id, student_id} end)
-    field = String.to_existing_atom(field_str)
+    domain = String.to_existing_atom(domain_str)
     scope = %Scope{profile_id: args["profile_id"]}
 
-    AssessmentComposition.recalculate_composed_entries(scope, pairs, field)
+    AssessmentComposition.recalculate_composed_entries(scope, pairs, domain)
   end
 end

@@ -38,7 +38,7 @@ defmodule Lanttern.Workers.ComposedEntryRecalcWorkerTest do
 
       args = %{
         "pairs" => [[parent_ap.id, student.id]],
-        "field" => "score",
+        "domain" => "teacher_entry",
         "profile_id" => nil
       }
 
@@ -73,7 +73,7 @@ defmodule Lanttern.Workers.ComposedEntryRecalcWorkerTest do
 
       args = %{
         "pairs" => [[parent_ap.id, student.id]],
-        "field" => "student_score",
+        "domain" => "student_entry",
         "profile_id" => nil
       }
 
@@ -115,7 +115,7 @@ defmodule Lanttern.Workers.ComposedEntryRecalcWorkerTest do
 
       args = %{
         "pairs" => [[parent_ap.id, student.id]],
-        "field" => "score",
+        "domain" => "teacher_entry",
         "profile_id" => nil
       }
 
@@ -159,7 +159,7 @@ defmodule Lanttern.Workers.ComposedEntryRecalcWorkerTest do
 
       args = %{
         "pairs" => [[parent_ap.id, student.id]],
-        "field" => "score",
+        "domain" => "teacher_entry",
         "profile_id" => nil
       }
 
@@ -201,7 +201,7 @@ defmodule Lanttern.Workers.ComposedEntryRecalcWorkerTest do
 
       args = %{
         "pairs" => [[parent_ap.id, student.id]],
-        "field" => "score",
+        "domain" => "teacher_entry",
         "profile_id" => nil
       }
 
@@ -217,8 +217,11 @@ defmodule Lanttern.Workers.ComposedEntryRecalcWorkerTest do
       assert is_nil(composed_entry.calculation_error)
     end
 
-    test "skips parents that are not sum-based" do
-      ordinal_scale = insert(:scale, type: "ordinal")
+    test "writes ordinal_value_id for avg (ordinal-parent) compositions" do
+      ordinal_scale = insert(:scale, type: "ordinal", breakpoints: [0.5])
+      low = insert(:ordinal_value, scale: ordinal_scale, normalized_value: 0.0, name: "low")
+      _high = insert(:ordinal_value, scale: ordinal_scale, normalized_value: 1.0, name: "high")
+
       numeric_scale = insert(:scale, type: "numeric", max_score: 100.0)
       parent_ap = insert(:assessment_point, uses_composition: true, scale: ordinal_scale)
       component_ap = insert(:assessment_point, scale: numeric_scale)
@@ -236,7 +239,40 @@ defmodule Lanttern.Workers.ComposedEntryRecalcWorkerTest do
 
       args = %{
         "pairs" => [[parent_ap.id, student.id]],
-        "field" => "score",
+        "domain" => "teacher_entry",
+        "profile_id" => nil
+      }
+
+      assert :ok = perform_job(ComposedEntryRecalcWorker, args)
+
+      composed_entry =
+        Repo.get_by!(AssessmentPointEntry,
+          assessment_point_id: parent_ap.id,
+          student_id: student.id
+        )
+
+      assert composed_entry.ordinal_value_id == low.id
+    end
+
+    test "skips parents that don't use composition" do
+      scale = insert(:scale, type: "numeric", max_score: 100.0)
+      parent_ap = insert(:assessment_point, uses_composition: false, scale: scale)
+      component_ap = insert(:assessment_point, scale: scale)
+      insert(:assessment_point_component, parent: parent_ap, component: component_ap)
+
+      student = insert(:student)
+
+      insert(:assessment_point_entry,
+        assessment_point: component_ap,
+        student: student,
+        scale: scale,
+        scale_type: "numeric",
+        score: 30.0
+      )
+
+      args = %{
+        "pairs" => [[parent_ap.id, student.id]],
+        "domain" => "teacher_entry",
         "profile_id" => nil
       }
 

@@ -16,7 +16,8 @@ defmodule Lanttern.AssessmentComposition do
   alias Lanttern.Assessments.AssessmentPoint
   alias Lanttern.Assessments.AssessmentPointEntry
   alias Lanttern.AssessmentsLog
-  alias Lanttern.Grading.Scale
+  alias Lanttern.Grading
+  alias Lanttern.Grading.OrdinalValue
   alias Lanttern.Identity.Scope
 
   @doc """
@@ -137,7 +138,7 @@ defmodule Lanttern.AssessmentComposition do
   Given a list of `{component_ap_id, student_id}` tuples corresponding to
   assessment point entries that were just saved, returns the distinct
   `{parent_ap_id, student_id}` tuples whose parent assessment point uses
-  composition on a numeric scale (i.e. sum-based composition).
+  composition (sum- or average-based).
 
   Used to determine which composed assessment point entries need to be
   recalculated after a batch save.
@@ -156,11 +157,7 @@ defmodule Lanttern.AssessmentComposition do
       from(c in Component,
         join: parent in AssessmentPoint,
         on: parent.id == c.parent_id,
-        join: scale in Scale,
-        on: scale.id == parent.scale_id,
-        where:
-          c.component_id in ^component_ids and parent.uses_composition == true and
-            scale.type == "numeric",
+        where: c.component_id in ^component_ids and parent.uses_composition == true,
         select: {c.parent_id, c.component_id}
       )
       |> Repo.all()
@@ -174,15 +171,28 @@ defmodule Lanttern.AssessmentComposition do
   @doc """
   Recalculates composed assessment point entries for the given `{parent_id, student_id}` pairs.
 
-  Only sum-based compositions are processed; pairs whose parent is not a
-  composed assessment point on a numeric scale are silently skipped. For each
-  pair, the function sums the requested `field` (`:score` or
-  `:student_score`) across the parent's component entries for the student.
+  The `domain` argument selects the edit domain — teacher entries
+  (`:teacher_entry`) or student entries (`:student_entry`). The actual
+  parent field that gets written depends on the parent's scale type:
 
-  When the recomputed value exceeds the parent's `scale.max_score`, the
-  composed entry's `calculation_error` is set to `"max_score_overflow"` and
-  the target field is left untouched. Otherwise the recomputed value is
-  written and `calculation_error` is cleared.
+  | domain           | numeric parent (sum)  | ordinal parent (average)    |
+  |------------------|-----------------------|-----------------------------|
+  | `:teacher_entry` | `:score`              | `:ordinal_value_id`         |
+  | `:student_entry` | `:student_score`      | `:student_ordinal_value_id` |
+
+  Pairs whose parent does not use composition are silently skipped.
+
+  **Sum (numeric parent):** sums the domain's score field across the
+  parent's component entries. When the recomputed value exceeds the
+  parent's `scale.max_score`, the composed entry's `calculation_error` is
+  set to `"max_score_overflow"` and the target field is left untouched.
+
+  **Average (ordinal parent):** computes a weighted mean of each child's
+  normalized value (0–1) using the component weights, then converts the
+  result back to an `OrdinalValue` via the parent scale's breakpoints.
+  When the conversion fails (misconfigured breakpoints / ordinal values),
+  `calculation_error` is set to `"scale_conversion_failed"` and the
+  target field is left untouched.
 
   Audit log rows are created via `Lanttern.AssessmentsLog` using the
   `scope.profile_id` as the actor.
@@ -190,45 +200,98 @@ defmodule Lanttern.AssessmentComposition do
   @spec recalculate_composed_entries(
           Scope.t(),
           [{pos_integer(), pos_integer()}],
-          :score | :student_score
+          :teacher_entry | :student_entry
         ) :: :ok
-  def recalculate_composed_entries(%Scope{} = scope, pairs, field)
-      when field in [:score, :student_score] do
+  def recalculate_composed_entries(%Scope{} = scope, pairs, domain)
+      when domain in [:teacher_entry, :student_entry] do
     pairs
     |> Enum.uniq()
-    |> Enum.each(&recalculate_composed_entry(scope, &1, field))
+    |> Enum.each(&recalculate_composed_entry(scope, &1, domain))
 
     :ok
   end
 
-  defp recalculate_composed_entry(%Scope{} = scope, {parent_id, student_id}, field) do
+  defp recalculate_composed_entry(%Scope{} = scope, {parent_id, student_id}, domain) do
     parent =
       AssessmentPoint
       |> Repo.get(parent_id)
       |> Repo.preload(:scale)
 
-    with %AssessmentPoint{uses_composition: true, scale: %{type: "numeric"}} <- parent do
-      maybe_warn_cascading_composition(parent_id)
+    case parent do
+      %AssessmentPoint{uses_composition: true, scale: %{type: "numeric"}} ->
+        maybe_warn_cascading_composition(parent_id)
+        recalculate_sum(scope, parent, student_id, domain)
 
-      components = Repo.all(from c in Component, where: c.parent_id == ^parent_id)
-      component_ids = Enum.map(components, & &1.component_id)
+      %AssessmentPoint{uses_composition: true, scale: %{type: "ordinal"}} ->
+        maybe_warn_cascading_composition(parent_id)
+        recalculate_avg(scope, parent, student_id, domain)
 
-      entries =
-        Repo.all(
-          from e in AssessmentPointEntry,
-            where: e.assessment_point_id in ^component_ids and e.student_id == ^student_id
-        )
-
-      recomputed = compute_sum(entries, field)
-
-      existing =
-        Repo.one(
-          from e in AssessmentPointEntry,
-            where: e.assessment_point_id == ^parent_id and e.student_id == ^student_id
-        )
-
-      apply_recalculation(scope, parent, student_id, field, recomputed, existing)
+      _ ->
+        :ok
     end
+  end
+
+  defp recalculate_sum(scope, parent, student_id, domain) do
+    field = sum_target_field(domain)
+
+    components = Repo.all(from c in Component, where: c.parent_id == ^parent.id)
+    component_ids = Enum.map(components, & &1.component_id)
+
+    entries =
+      Repo.all(
+        from e in AssessmentPointEntry,
+          where: e.assessment_point_id in ^component_ids and e.student_id == ^student_id
+      )
+
+    recomputed = compute_sum(entries, field)
+    existing = get_existing_parent_entry(parent.id, student_id)
+
+    overflow? = is_number(recomputed) and recomputed > parent.scale.max_score
+
+    {target_value, target_error} =
+      if overflow? do
+        {existing && Map.get(existing, field), "max_score_overflow"}
+      else
+        {recomputed, nil}
+      end
+
+    do_upsert(scope, parent, student_id, field, target_value, target_error, existing)
+  end
+
+  defp recalculate_avg(scope, parent, student_id, domain) do
+    field = avg_target_field(domain)
+
+    components = Repo.all(from c in Component, where: c.parent_id == ^parent.id)
+    component_ids = Enum.map(components, & &1.component_id)
+    weight_by_component = Map.new(components, &{&1.component_id, &1.weight})
+
+    entries =
+      Repo.all(
+        from e in AssessmentPointEntry,
+          where: e.assessment_point_id in ^component_ids and e.student_id == ^student_id,
+          preload: [:scale, :ordinal_value, :student_ordinal_value]
+      )
+
+    normalized_avg = compute_weighted_avg(entries, weight_by_component, domain)
+    existing = get_existing_parent_entry(parent.id, student_id)
+
+    {target_value, target_error} =
+      resolve_avg_target(normalized_avg, parent.scale, existing, field)
+
+    do_upsert(scope, parent, student_id, field, target_value, target_error, existing)
+  end
+
+  defp sum_target_field(:teacher_entry), do: :score
+  defp sum_target_field(:student_entry), do: :student_score
+
+  defp avg_target_field(:teacher_entry), do: :ordinal_value_id
+  defp avg_target_field(:student_entry), do: :student_ordinal_value_id
+
+  defp get_existing_parent_entry(parent_id, student_id) do
+    Repo.one(
+      from e in AssessmentPointEntry,
+        where: e.assessment_point_id == ^parent_id and e.student_id == ^student_id
+    )
   end
 
   defp compute_sum(entries, field) do
@@ -240,17 +303,46 @@ defmodule Lanttern.AssessmentComposition do
     end
   end
 
-  defp apply_recalculation(scope, parent, student_id, field, recomputed, existing) do
-    overflow? = is_number(recomputed) and recomputed > parent.scale.max_score
+  defp compute_weighted_avg(entries, weight_by_component, domain) do
+    {sumprod, sumweight} =
+      Enum.reduce(entries, {0.0, 0.0}, fn entry, {sumprod, sumweight} ->
+        with normalized when is_number(normalized) <- normalized_value(entry, domain),
+             weight when is_number(weight) <-
+               Map.get(weight_by_component, entry.assessment_point_id) do
+          {sumprod + normalized * weight, sumweight + weight}
+        else
+          _ -> {sumprod, sumweight}
+        end
+      end)
 
-    {target_value, target_error} =
-      if overflow? do
-        {existing && Map.get(existing, field), "max_score_overflow"}
-      else
-        {recomputed, nil}
-      end
+    if sumweight > 0, do: sumprod / sumweight, else: nil
+  end
 
-    do_upsert(scope, parent, student_id, field, target_value, target_error, existing)
+  defp normalized_value(%AssessmentPointEntry{scale_type: "ordinal"} = entry, :teacher_entry),
+    do: entry.ordinal_value && entry.ordinal_value.normalized_value
+
+  defp normalized_value(%AssessmentPointEntry{scale_type: "numeric"} = entry, :teacher_entry) do
+    if is_number(entry.score) and entry.scale, do: entry.score / entry.scale.max_score
+  end
+
+  defp normalized_value(%AssessmentPointEntry{scale_type: "ordinal"} = entry, :student_entry),
+    do: entry.student_ordinal_value && entry.student_ordinal_value.normalized_value
+
+  defp normalized_value(%AssessmentPointEntry{scale_type: "numeric"} = entry, :student_entry) do
+    if is_number(entry.student_score) and entry.scale,
+      do: entry.student_score / entry.scale.max_score
+  end
+
+  defp resolve_avg_target(nil, _scale, _existing, _field), do: {nil, nil}
+
+  defp resolve_avg_target(normalized_avg, scale, existing, field) do
+    case Grading.convert_normalized_value_to_scale_value(normalized_avg, scale) do
+      %OrdinalValue{id: id} ->
+        {id, nil}
+
+      nil ->
+        {existing && Map.get(existing, field), "scale_conversion_failed"}
+    end
   end
 
   defp do_upsert(scope, _parent, _student_id, field, target_value, target_error, existing)

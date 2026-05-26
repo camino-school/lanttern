@@ -468,7 +468,7 @@ defmodule Lanttern.Assessments do
       |> NaiveDateTime.truncate(:second)
 
     log_profile_id = Keyword.get(opts, :log_profile_id)
-    edited_field = detect_edited_field(maps)
+    edited_domain = detect_edited_domain(maps)
 
     maps
     |> Enum.reduce(Ecto.Multi.new(), fn map, multi ->
@@ -491,7 +491,7 @@ defmodule Lanttern.Assessments do
       )
     end)
     |> Ecto.Multi.run(:enqueue_recalc, fn _repo, results ->
-      maybe_enqueue_composed_recalc(results, edited_field, log_profile_id)
+      maybe_enqueue_composed_recalc(results, edited_domain, log_profile_id)
     end)
     |> Repo.transaction()
     |> case do
@@ -505,25 +505,31 @@ defmodule Lanttern.Assessments do
     end
   end
 
-  defp detect_edited_field(maps) do
-    has_score? = Enum.any?(maps, &Map.has_key?(&1, "score"))
-    has_student_score? = Enum.any?(maps, &Map.has_key?(&1, "student_score"))
+  @teacher_entry_keys ~w(score ordinal_value_id)
+  @student_entry_keys ~w(student_score student_ordinal_value)
+
+  defp detect_edited_domain(maps) do
+    has_teacher? =
+      Enum.any?(maps, fn m -> Enum.any?(@teacher_entry_keys, &Map.has_key?(m, &1)) end)
+
+    has_student? =
+      Enum.any?(maps, fn m -> Enum.any?(@student_entry_keys, &Map.has_key?(m, &1)) end)
 
     cond do
-      has_score? and has_student_score? ->
+      has_teacher? and has_student? ->
         require Logger
 
         Logger.warning(
-          "save_assessment_point_entries/2 batch contains both score and student_score keys; defaulting to score for composed recalc"
+          "save_assessment_point_entries/2 batch contains both teacher and student entry keys; defaulting to teacher_entry for composed recalc"
         )
 
-        "score"
+        "teacher_entry"
 
-      has_score? ->
-        "score"
+      has_teacher? ->
+        "teacher_entry"
 
-      has_student_score? ->
-        "student_score"
+      has_student? ->
+        "student_entry"
 
       true ->
         nil
@@ -532,7 +538,7 @@ defmodule Lanttern.Assessments do
 
   defp maybe_enqueue_composed_recalc(_results, nil, _profile_id), do: {:ok, :noop}
 
-  defp maybe_enqueue_composed_recalc(results, field, profile_id) do
+  defp maybe_enqueue_composed_recalc(results, domain, profile_id) do
     pairs =
       results
       |> Map.values()
@@ -547,7 +553,7 @@ defmodule Lanttern.Assessments do
       composed_pairs ->
         encoded_pairs = Enum.map(composed_pairs, fn {pid, sid} -> [pid, sid] end)
 
-        %{pairs: encoded_pairs, field: field, profile_id: profile_id}
+        %{pairs: encoded_pairs, domain: domain, profile_id: profile_id}
         |> Lanttern.Workers.ComposedEntryRecalcWorker.new()
         |> Oban.insert()
     end
