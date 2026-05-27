@@ -1104,6 +1104,32 @@ defmodule Lanttern.AssessmentsTest do
       refute_enqueued(worker: Lanttern.Workers.ComposedEntryRecalcWorker)
     end
 
+    test "enqueue_composed_recalc/4 is not deduped for identical rapid re-enqueues" do
+      # regression: `unique: true` used to silently drop a recalc whose args
+      # matched one enqueued (incl. already completed) in the last 60s, leaving
+      # the composed entry stale. Each enqueue must now produce its own job.
+      scale = insert(:scale, type: "numeric", max_score: 100.0)
+      parent_ap = insert(:assessment_point, uses_composition: true, scale: scale)
+      component_ap = insert(:assessment_point, scale: scale)
+      insert(:assessment_point_component, parent: parent_ap, component: component_ap)
+
+      student = insert(:student)
+
+      assert :ok =
+               Assessments.enqueue_composed_recalc(component_ap.id, student.id, ["teacher_entry"])
+
+      assert :ok =
+               Assessments.enqueue_composed_recalc(component_ap.id, student.id, ["teacher_entry"])
+
+      # under the old `unique: true` the second insert was a silent conflict and
+      # produced no second row; without it each enqueue creates its own job.
+      assert [_first, _second] =
+               all_enqueued(
+                 worker: Lanttern.Workers.ComposedEntryRecalcWorker,
+                 args: %{"pairs" => [[parent_ap.id, student.id]], "domain" => "teacher_entry"}
+               )
+    end
+
     test "delete_assessment_point_entry/2 deletes the assessment_point_entry" do
       assessment_point_entry = assessment_point_entry_fixture()
 

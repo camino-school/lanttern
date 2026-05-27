@@ -14,7 +14,7 @@ defmodule Lanttern.Workers.ComposedEntryRecalcWorker do
   - `profile_id` — profile that triggered the save, used for audit logging
   """
 
-  use Oban.Worker, queue: :assessments, max_attempts: 3, unique: true
+  use Oban.Worker, queue: :assessments, max_attempts: 3
 
   alias Lanttern.AssessmentComposition
   alias Lanttern.Identity.Scope
