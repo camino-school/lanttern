@@ -282,8 +282,10 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
     ~H"""
     <div
       :if={@entry.is_missing}
-      class="absolute -top-1 -left-1 size-3 rounded-full bg-ltrn-alert-accent shadow-sm"
-    />
+      class="absolute -top-1 -right-1 size-3 rounded-full bg-ltrn-alert-accent shadow-sm"
+    >
+      <.tooltip id={"entry-#{@entry.id}-missing-tooltip"}>{gettext("Lack of evidence")}</.tooltip>
+    </div>
     """
   end
 

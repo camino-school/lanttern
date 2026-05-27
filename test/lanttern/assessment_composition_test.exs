@@ -481,6 +481,47 @@ defmodule Lanttern.AssessmentCompositionTest do
       assert entry.score == 25.0
     end
 
+    test "leaves the composed entry untouched when it uses manual input", %{
+      scale: scale,
+      parent: parent,
+      component_ap_1: component_ap_1,
+      student: student
+    } do
+      insert(:assessment_point_entry,
+        assessment_point: component_ap_1,
+        student: student,
+        scale: scale,
+        scale_type: "numeric",
+        score: 10.0
+      )
+
+      manual_entry =
+        insert(:assessment_point_entry,
+          assessment_point: parent,
+          student: student,
+          scale: scale,
+          scale_type: "numeric",
+          score: 99.0,
+          use_manual_input: true
+        )
+
+      assert :ok =
+               AssessmentComposition.recalculate_composed_entries(
+                 %Scope{},
+                 [{parent.id, student.id}],
+                 :teacher_entry
+               )
+
+      reloaded = Repo.get!(AssessmentPointEntry, manual_entry.id)
+      assert reloaded.score == 99.0
+
+      # no log row is created since the entry was not touched
+      refute Repo.get_by(AssessmentPointEntryLog,
+               assessment_point_id: parent.id,
+               student_id: student.id
+             )
+    end
+
     test "creates a log row with the scope's profile_id", %{
       scale: scale,
       parent: parent,

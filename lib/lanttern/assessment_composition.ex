@@ -217,21 +217,27 @@ defmodule Lanttern.AssessmentComposition do
       |> Repo.get(parent_id)
       |> Repo.preload(:scale)
 
-    case parent do
-      %AssessmentPoint{uses_composition: true, scale: %{type: "numeric"}} ->
-        maybe_warn_cascading_composition(parent_id)
-        recalculate_sum(scope, parent, student_id, domain)
+    existing = get_existing_parent_entry(parent_id, student_id)
 
-      %AssessmentPoint{uses_composition: true, scale: %{type: "ordinal"}} ->
-        maybe_warn_cascading_composition(parent_id)
-        recalculate_avg(scope, parent, student_id, domain)
+    cond do
+      # the composed entry was switched to manual input — leave it untouched
+      match?(%AssessmentPointEntry{use_manual_input: true}, existing) ->
+        :ok
 
-      _ ->
+      match?(%AssessmentPoint{uses_composition: true, scale: %{type: "numeric"}}, parent) ->
+        maybe_warn_cascading_composition(parent_id)
+        recalculate_sum(scope, parent, student_id, domain, existing)
+
+      match?(%AssessmentPoint{uses_composition: true, scale: %{type: "ordinal"}}, parent) ->
+        maybe_warn_cascading_composition(parent_id)
+        recalculate_avg(scope, parent, student_id, domain, existing)
+
+      true ->
         :ok
     end
   end
 
-  defp recalculate_sum(scope, parent, student_id, domain) do
+  defp recalculate_sum(scope, parent, student_id, domain, existing) do
     field = sum_target_field(domain)
 
     components = Repo.all(from c in Component, where: c.parent_id == ^parent.id)
@@ -244,7 +250,6 @@ defmodule Lanttern.AssessmentComposition do
       )
 
     recomputed = compute_sum(entries, field)
-    existing = get_existing_parent_entry(parent.id, student_id)
 
     overflow? = is_number(recomputed) and recomputed > parent.scale.max_score
 
@@ -258,7 +263,7 @@ defmodule Lanttern.AssessmentComposition do
     do_upsert(scope, parent, student_id, field, target_value, target_error, existing)
   end
 
-  defp recalculate_avg(scope, parent, student_id, domain) do
+  defp recalculate_avg(scope, parent, student_id, domain, existing) do
     field = avg_target_field(domain)
 
     components = Repo.all(from c in Component, where: c.parent_id == ^parent.id)
@@ -273,7 +278,6 @@ defmodule Lanttern.AssessmentComposition do
       )
 
     normalized_avg = compute_weighted_avg(entries, weight_by_component, domain)
-    existing = get_existing_parent_entry(parent.id, student_id)
 
     {target_value, target_error} =
       resolve_avg_target(normalized_avg, parent.scale, existing, field)

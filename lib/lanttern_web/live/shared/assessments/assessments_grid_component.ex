@@ -401,7 +401,10 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
           entry={entry}
           view={@current_assessment_view}
           allow_edit={true}
-          is_composed={entry.assessment_point_id in @composed_assessment_point_ids}
+          is_composed={
+            entry.assessment_point_id in @composed_assessment_point_ids and
+              not entry.use_manual_input
+          }
           notify_component={@myself}
         />
       </div>

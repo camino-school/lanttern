@@ -8,10 +8,12 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
   """
   use LantternWeb, :live_component
 
+  alias Lanttern.AssessmentComposition
   alias Lanttern.Assessments
   alias Lanttern.Assessments.AssessmentPointEntry
   alias Lanttern.Grading.OrdinalValue
   alias Lanttern.Grading.Scale
+  alias Lanttern.Identity.Scope
   alias Lanttern.Rubrics
 
   # shared components
@@ -94,12 +96,46 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
             {@save_marking_error}
           </p>
         </.form>
+        <%!-- <div class="p-4 rounded-sm mb-6 bg-ltrn-diff-lightest">
+          <.input
+            field={@form[:is_differentiation]}
+            type="toggle"
+            theme="diff"
+            label={gettext("Differentiation")}
+          />
+          <p class="mt-4 text-sm">
+            {gettext(
+              "Use the differentiation flag above when creating assessment points related to a curriculum level differentiation."
+            )}
+          </p>
+        </div> --%>
+        <.form
+          :if={@assessment_point.uses_composition}
+          for={@form}
+          phx-change="toggle_use_manual_input"
+          phx-target={@myself}
+          class="p-4 rounded-sm mt-6 bg-ltrn-lightest"
+        >
+          <.input
+            field={@form[:use_manual_input]}
+            type="toggle"
+            label={gettext("Use manual input")}
+          />
+          <p class="mt-4">
+            {gettext(
+              "When enabled, this entry is edited manually and is not recalculated automatically from its grade composition components."
+            )}
+          </p>
+        </.form>
         <.form
           :if={!@entry.has_marking}
           for={@form}
           phx-change="toggle_is_missing"
           phx-target={@myself}
-          class="mt-10"
+          class={[
+            "p-4 rounded-sm mt-6",
+            if(@entry.is_missing, do: "bg-ltrn-alert-lighter", else: "bg-ltrn-lightest")
+          ]}
         >
           <.input
             field={@form[:is_missing]}
@@ -458,7 +494,10 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
   end
 
   defp assign_is_composed(socket) do
-    is_composed = socket.assigns.assessment_point.uses_composition
+    is_composed =
+      socket.assigns.assessment_point.uses_composition and
+        not socket.assigns.entry.use_manual_input
+
     assign(socket, :is_composed, is_composed)
   end
 
@@ -643,6 +682,27 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
       {:ok, entry} ->
         notify(__MODULE__, {:change, entry}, socket.assigns)
         {:noreply, socket |> assign(:entry, entry) |> assign_forms()}
+
+      {:error, _} ->
+        {:noreply, socket}
+    end
+  end
+
+  def handle_event("toggle_use_manual_input", %{"assessment_point_entry" => params}, socket) do
+    opts = [log_profile_id: socket.assigns.current_user.current_profile_id]
+
+    case Assessments.update_assessment_point_entry(socket.assigns.entry, params, opts) do
+      {:ok, entry} ->
+        entry = maybe_restore_composed_value(entry, socket.assigns.current_user)
+        notify(__MODULE__, {:change, entry}, socket.assigns)
+
+        socket =
+          socket
+          |> assign(:entry, entry)
+          |> assign_is_composed()
+          |> assign_forms()
+
+        {:noreply, socket}
 
       {:error, _} ->
         {:noreply, socket}
@@ -838,6 +898,24 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
   defp get_colors_style(%OrdinalValue{} = ov) do
     "background-color: #{ov.bg_color}; color: #{ov.text_color}"
   end
+
+  # when manual input is switched back off, recompute the composed value
+  # immediately (both domains) and reload the entry to reflect it in the form
+  defp maybe_restore_composed_value(%{use_manual_input: false} = entry, current_user) do
+    scope = %Scope{profile_id: current_user.current_profile_id}
+
+    Enum.each([:teacher_entry, :student_entry], fn domain ->
+      AssessmentComposition.recalculate_composed_entries(
+        scope,
+        [{entry.assessment_point_id, entry.student_id}],
+        domain
+      )
+    end)
+
+    Lanttern.Repo.reload!(entry)
+  end
+
+  defp maybe_restore_composed_value(entry, _current_user), do: entry
 
   # returns the recalc domains (`"teacher_entry"` / `"student_entry"`) whose value
   # differs between the existing entry and the submitted params, using the same
