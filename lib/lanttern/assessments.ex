@@ -536,6 +536,33 @@ defmodule Lanttern.Assessments do
     end
   end
 
+  @doc """
+  Enqueues composed entry recalculation for a single component entry, once per
+  given edit domain (`"teacher_entry"` / `"student_entry"`).
+
+  Mirrors the recalc enqueued by `save_assessment_point_entries/2`, but for the
+  single-entry update flow (e.g. the entry details overlay). No-op for any domain
+  whose assessment point is not a component of a composed assessment point.
+
+  ## Options:
+
+  - `:log_profile_id` - profile id passed to the recalc worker for audit logging
+
+  """
+  @spec enqueue_composed_recalc(
+          assessment_point_id :: pos_integer(),
+          student_id :: pos_integer(),
+          domains :: [String.t()],
+          opts :: Keyword.t()
+        ) :: :ok
+  def enqueue_composed_recalc(assessment_point_id, student_id, domains, opts \\ []) do
+    profile_id = Keyword.get(opts, :log_profile_id)
+
+    Enum.each(domains, fn domain ->
+      enqueue_composed_recalc_for_pairs([{assessment_point_id, student_id}], domain, profile_id)
+    end)
+  end
+
   defp maybe_enqueue_composed_recalc(_results, nil, _profile_id), do: {:ok, :noop}
 
   defp maybe_enqueue_composed_recalc(results, domain, profile_id) do
@@ -546,7 +573,11 @@ defmodule Lanttern.Assessments do
         {entry.assessment_point_id, entry.student_id}
       end)
 
-    case Lanttern.AssessmentComposition.list_composed_parent_pairs(pairs) do
+    enqueue_composed_recalc_for_pairs(pairs, domain, profile_id)
+  end
+
+  defp enqueue_composed_recalc_for_pairs(component_pairs, domain, profile_id) do
+    case Lanttern.AssessmentComposition.list_composed_parent_pairs(component_pairs) do
       [] ->
         {:ok, :noop}
 

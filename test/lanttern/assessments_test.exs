@@ -952,6 +952,87 @@ defmodule Lanttern.AssessmentsTest do
       )
     end
 
+    test "enqueue_composed_recalc/4 enqueues recalc for the composed parent per domain" do
+      scale = insert(:scale, type: "numeric", max_score: 100.0)
+      parent_ap = insert(:assessment_point, uses_composition: true, scale: scale)
+      component_ap = insert(:assessment_point, scale: scale)
+      insert(:assessment_point_component, parent: parent_ap, component: component_ap)
+
+      student = insert(:student)
+      profile = Lanttern.IdentityFixtures.staff_member_profile_fixture()
+
+      assert :ok =
+               Assessments.enqueue_composed_recalc(
+                 component_ap.id,
+                 student.id,
+                 ["teacher_entry"],
+                 log_profile_id: profile.id
+               )
+
+      assert_enqueued(
+        worker: Lanttern.Workers.ComposedEntryRecalcWorker,
+        args: %{
+          "pairs" => [[parent_ap.id, student.id]],
+          "domain" => "teacher_entry",
+          "profile_id" => profile.id
+        }
+      )
+    end
+
+    test "enqueue_composed_recalc/4 enqueues a job for each given domain" do
+      scale = insert(:scale, type: "numeric", max_score: 100.0)
+      parent_ap = insert(:assessment_point, uses_composition: true, scale: scale)
+      component_ap = insert(:assessment_point, scale: scale)
+      insert(:assessment_point_component, parent: parent_ap, component: component_ap)
+
+      student = insert(:student)
+
+      assert :ok =
+               Assessments.enqueue_composed_recalc(
+                 component_ap.id,
+                 student.id,
+                 ["teacher_entry", "student_entry"]
+               )
+
+      assert_enqueued(
+        worker: Lanttern.Workers.ComposedEntryRecalcWorker,
+        args: %{"pairs" => [[parent_ap.id, student.id]], "domain" => "teacher_entry"}
+      )
+
+      assert_enqueued(
+        worker: Lanttern.Workers.ComposedEntryRecalcWorker,
+        args: %{"pairs" => [[parent_ap.id, student.id]], "domain" => "student_entry"}
+      )
+    end
+
+    test "enqueue_composed_recalc/4 does not enqueue when the AP is not a component" do
+      scale = insert(:scale, type: "numeric", max_score: 100.0)
+      assessment_point = insert(:assessment_point, scale: scale)
+      student = insert(:student)
+
+      assert :ok =
+               Assessments.enqueue_composed_recalc(
+                 assessment_point.id,
+                 student.id,
+                 ["teacher_entry"]
+               )
+
+      refute_enqueued(worker: Lanttern.Workers.ComposedEntryRecalcWorker)
+    end
+
+    test "enqueue_composed_recalc/4 does not enqueue when no domains changed" do
+      scale = insert(:scale, type: "numeric", max_score: 100.0)
+      parent_ap = insert(:assessment_point, uses_composition: true, scale: scale)
+      component_ap = insert(:assessment_point, scale: scale)
+      insert(:assessment_point_component, parent: parent_ap, component: component_ap)
+
+      student = insert(:student)
+
+      assert :ok = Assessments.enqueue_composed_recalc(component_ap.id, student.id, [])
+
+      refute_enqueued(worker: Lanttern.Workers.ComposedEntryRecalcWorker)
+    end
+
     test "delete_assessment_point_entry/2 deletes the assessment_point_entry" do
       assessment_point_entry = assessment_point_entry_fixture()
 

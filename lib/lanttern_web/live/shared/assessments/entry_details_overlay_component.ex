@@ -592,12 +592,21 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
   end
 
   def handle_event("save_marking", %{"assessment_point_entry" => params}, socket) do
+    entry = socket.assigns.entry
     opts = [log_profile_id: socket.assigns.current_user.current_profile_id]
+    changed_domains = changed_marking_domains(entry, params)
 
     socket =
-      case Assessments.update_assessment_point_entry(socket.assigns.entry, params, opts) do
+      case Assessments.update_assessment_point_entry(entry, params, opts) do
         {:ok, entry} ->
           notify(__MODULE__, {:change, entry}, socket.assigns)
+
+          Assessments.enqueue_composed_recalc(
+            entry.assessment_point_id,
+            entry.student_id,
+            changed_domains,
+            opts
+          )
 
           socket
           |> assign(:entry, entry)
@@ -828,5 +837,29 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
 
   defp get_colors_style(%OrdinalValue{} = ov) do
     "background-color: #{ov.bg_color}; color: #{ov.text_color}"
+  end
+
+  # returns the recalc domains (`"teacher_entry"` / `"student_entry"`) whose value
+  # differs between the existing entry and the submitted params, using the same
+  # comparison as the `change_marking` event handler
+  defp changed_marking_domains(entry, params) do
+    {teacher_changed, student_changed} =
+      case entry do
+        %{scale_type: "ordinal"} ->
+          {
+            "#{entry.ordinal_value_id}" != params["ordinal_value_id"],
+            "#{entry.student_ordinal_value_id}" != params["student_ordinal_value_id"]
+          }
+
+        %{scale_type: "numeric"} ->
+          {
+            "#{entry.score}" != params["score"],
+            "#{entry.student_score}" != params["student_score"]
+          }
+      end
+
+    [{"teacher_entry", teacher_changed}, {"student_entry", student_changed}]
+    |> Enum.filter(fn {_domain, changed} -> changed end)
+    |> Enum.map(fn {domain, _changed} -> domain end)
   end
 end
