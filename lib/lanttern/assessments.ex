@@ -506,7 +506,7 @@ defmodule Lanttern.Assessments do
   end
 
   @teacher_entry_keys ~w(score ordinal_value_id)
-  @student_entry_keys ~w(student_score student_ordinal_value)
+  @student_entry_keys ~w(student_score student_ordinal_value_id)
 
   defp detect_edited_domain(maps) do
     has_teacher? =
@@ -606,10 +606,10 @@ defmodule Lanttern.Assessments do
   end
 
   defp build_save_assessment_point_entries_on_conflict_set(set, [
-         {"student_ordinal_value", student_ordinal_value} | kvs
+         {"student_ordinal_value_id", student_ordinal_value_id} | kvs
        ]) do
     set
-    |> Keyword.put(:student_ordinal_value, student_ordinal_value)
+    |> Keyword.put(:student_ordinal_value_id, student_ordinal_value_id)
     |> build_save_assessment_point_entries_on_conflict_set(kvs)
   end
 

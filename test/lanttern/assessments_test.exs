@@ -848,6 +848,48 @@ defmodule Lanttern.AssessmentsTest do
       end)
     end
 
+    test "save_assessment_point_entries/2 updates student_ordinal_value_id on existing entries" do
+      scale = insert(:scale, type: "ordinal")
+      ov_1 = insert(:ordinal_value, scale_id: scale.id)
+      ov_2 = insert(:ordinal_value, scale_id: scale.id)
+
+      student = SchoolsFixtures.student_fixture()
+      assessment_point = assessment_point_fixture(%{scale_id: scale.id})
+
+      # existing entry with an initial student ordinal value, so the save hits the
+      # upsert conflict (update) path rather than a plain insert
+      entry =
+        assessment_point_entry_fixture(%{
+          student_id: student.id,
+          assessment_point_id: assessment_point.id,
+          scale_id: scale.id,
+          scale_type: scale.type,
+          student_ordinal_value_id: ov_1.id
+        })
+
+      base_params = %{
+        "student_id" => student.id,
+        "assessment_point_id" => assessment_point.id,
+        "scale_id" => scale.id,
+        "scale_type" => scale.type
+      }
+
+      assert {:ok, 1} =
+               Assessments.save_assessment_point_entries([
+                 Map.put(base_params, "student_ordinal_value_id", ov_2.id)
+               ])
+
+      assert Repo.get(AssessmentPointEntry, entry.id).student_ordinal_value_id == ov_2.id
+
+      # clearing the value should null the column
+      assert {:ok, 1} =
+               Assessments.save_assessment_point_entries([
+                 Map.put(base_params, "student_ordinal_value_id", "")
+               ])
+
+      assert is_nil(Repo.get(AssessmentPointEntry, entry.id).student_ordinal_value_id)
+    end
+
     test "save_assessment_point_entries/2 clears is_missing when ordinal_value_id is set" do
       scale = insert(:scale, type: "ordinal")
       ov = insert(:ordinal_value, scale_id: scale.id)
@@ -938,6 +980,35 @@ defmodule Lanttern.AssessmentsTest do
         "scale_id" => scale.id,
         "scale_type" => "numeric",
         "student_score" => 25.0
+      }
+
+      assert {:ok, 1} = Assessments.save_assessment_point_entries([params])
+
+      assert_enqueued(
+        worker: Lanttern.Workers.ComposedEntryRecalcWorker,
+        args: %{
+          "pairs" => [[parent_ap.id, student.id]],
+          "domain" => "student_entry",
+          "profile_id" => nil
+        }
+      )
+    end
+
+    test "save_assessment_point_entries/2 enqueues student recalc when only student_ordinal_value_id is edited" do
+      scale = insert(:scale, type: "ordinal")
+      ordinal_value = insert(:ordinal_value, scale: scale)
+      parent_ap = insert(:assessment_point, uses_composition: true, scale: scale)
+      component_ap = insert(:assessment_point, scale: scale)
+      insert(:assessment_point_component, parent: parent_ap, component: component_ap)
+
+      student = insert(:student)
+
+      params = %{
+        "student_id" => student.id,
+        "assessment_point_id" => component_ap.id,
+        "scale_id" => scale.id,
+        "scale_type" => "ordinal",
+        "student_ordinal_value_id" => ordinal_value.id
       }
 
       assert {:ok, 1} = Assessments.save_assessment_point_entries([params])
