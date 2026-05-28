@@ -299,7 +299,13 @@ defmodule Lanttern.AssessmentComposition do
   end
 
   defp compute_sum(entries, field) do
-    values = entries |> Enum.map(&Map.get(&1, field)) |> Enum.reject(&is_nil/1)
+    values =
+      entries
+      |> Enum.map(fn
+        %AssessmentPointEntry{is_missing: true} -> 0
+        entry -> Map.get(entry, field)
+      end)
+      |> Enum.reject(&is_nil/1)
 
     case values do
       [] -> nil
@@ -321,6 +327,8 @@ defmodule Lanttern.AssessmentComposition do
 
     if sumweight > 0, do: sumprod / sumweight, else: nil
   end
+
+  defp normalized_value(%AssessmentPointEntry{is_missing: true}, _domain), do: 0.0
 
   defp normalized_value(%AssessmentPointEntry{scale_type: "ordinal"} = entry, :teacher_entry),
     do: entry.ordinal_value && entry.ordinal_value.normalized_value

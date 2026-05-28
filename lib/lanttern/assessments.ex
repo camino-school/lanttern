@@ -1060,7 +1060,6 @@ defmodule Lanttern.Assessments do
         join: cc in assoc(ci, :curriculum_component),
         left_join: sc in assoc(ap, :scale),
         where: ap.strand_id == ^strand_id,
-        where: ap.is_hidden == false,
         order_by: ap.position,
         preload: [
           curriculum_item: {ci, curriculum_component: cc},
@@ -1162,13 +1161,18 @@ defmodule Lanttern.Assessments do
       join: m in assoc(ap, :moment),
       join: e in assoc(ap, :entries),
       left_join: ov in assoc(e, :ordinal_value),
+      left_join: s_ov in assoc(e, :student_ordinal_value),
       left_join: sc in assoc(ap, :scale),
       where: m.strand_id == ^strand_id,
       where: e.student_id == ^student.id,
       where: e.has_marking,
       where: ap.is_hidden == false,
       order_by: [asc: m.position, asc: ap.position],
-      select: %{ap | scale: sc, student_entry: %{e | ordinal_value: ov}}
+      select: %{
+        ap
+        | scale: sc,
+          student_entry: %{e | ordinal_value: ov, student_ordinal_value: s_ov}
+      }
     )
     |> Repo.all()
     |> put_student_entries_evidences(student.id)
@@ -1204,11 +1208,15 @@ defmodule Lanttern.Assessments do
       left_join: m in assoc(l, :moment),
       join: e in assoc(ap, :entries),
       left_join: ov in assoc(e, :ordinal_value),
+      left_join: s_ov in assoc(e, :student_ordinal_value),
       where: l.id == ^lesson_id,
       where: e.student_id == ^student.id,
       where: e.has_marking,
       order_by: [asc: m.position, asc: ap.position],
-      select: %{ap | student_entry: %{e | ordinal_value: ov}}
+      select: %{
+        ap
+        | student_entry: %{e | ordinal_value: ov, student_ordinal_value: s_ov}
+      }
     )
     |> Repo.all()
     |> put_student_entries_evidences(student.id)

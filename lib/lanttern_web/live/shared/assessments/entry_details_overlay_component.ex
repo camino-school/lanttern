@@ -128,7 +128,7 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
           </p>
         </.form>
         <.form
-          :if={!@entry.has_marking}
+          :if={is_nil(@entry.ordinal_value_id) and is_nil(@entry.score)}
           for={@form}
           phx-change="toggle_is_missing"
           phx-target={@myself}

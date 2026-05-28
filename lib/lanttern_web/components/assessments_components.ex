@@ -30,6 +30,14 @@ defmodule LantternWeb.AssessmentsComponents do
   attr :id, :string, default: nil
   attr :class, :any, default: nil
 
+  def assessment_point_entry_badge(%{entry: %{is_missing: true}} = assigns) do
+    ~H"""
+    <.badge id={@id} theme="alert">
+      {if @is_short, do: gettext("LoE"), else: gettext("Lack of evidence")}
+    </.badge>
+    """
+  end
+
   def assessment_point_entry_badge(
         %{entry: %{ordinal_value: %OrdinalValue{}, scale: %{type: "ordinal"}}} = assigns
       ) do
@@ -168,6 +176,19 @@ defmodule LantternWeb.AssessmentsComponents do
   attr :entry, :any
   attr :is_student, :boolean, default: false
   attr :scale, :any, default: nil
+
+  defp assessment_point_entry_value_display(
+         %{entry: %{is_missing: true}, is_student: false} = assigns
+       ) do
+    ~H"""
+    <div class={[
+      assessment_point_entry_display_base_classes(),
+      "bg-ltrn-alert-lighter text-ltrn-alert-accent"
+    ]}>
+      {gettext("Lack of evidence")}
+    </div>
+    """
+  end
 
   defp assessment_point_entry_value_display(%{entry: %{scale_type: "ordinal"}} = assigns) do
     ov =

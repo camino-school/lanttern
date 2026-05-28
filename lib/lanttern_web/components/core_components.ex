@@ -375,7 +375,8 @@ defmodule LantternWeb.CoreComponents do
     "ai" => "bg-ltrn-ai-lighter text-ltrn-ai-dark",
     "student" => "bg-ltrn-student-lighter text-ltrn-student-dark",
     "staff" => "bg-ltrn-staff-lighter text-ltrn-staff-dark",
-    "empty" => "bg-transparent border border-dashed border-ltrn-light text-ltrn-subtle"
+    "empty" => "bg-transparent border border-dashed border-ltrn-light text-ltrn-subtle",
+    "alert" => "bg-ltrn-alert-lighter text-ltrn-alert-accent"
   }
 
   @badge_themes_hover %{

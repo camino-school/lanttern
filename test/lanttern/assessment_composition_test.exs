@@ -481,6 +481,46 @@ defmodule Lanttern.AssessmentCompositionTest do
       assert entry.score == 25.0
     end
 
+    test "treats is_missing children as 0 contribution to the sum", %{
+      scale: scale,
+      parent: parent,
+      component_ap_1: component_ap_1,
+      component_ap_2: component_ap_2,
+      student: student
+    } do
+      insert(:assessment_point_entry,
+        assessment_point: component_ap_1,
+        student: student,
+        scale: scale,
+        scale_type: "numeric",
+        score: 30.0
+      )
+
+      insert(:assessment_point_entry,
+        assessment_point: component_ap_2,
+        student: student,
+        scale: scale,
+        scale_type: "numeric",
+        score: nil,
+        is_missing: true
+      )
+
+      assert :ok =
+               AssessmentComposition.recalculate_composed_entries(
+                 %Scope{},
+                 [{parent.id, student.id}],
+                 :teacher_entry
+               )
+
+      entry =
+        Repo.get_by!(AssessmentPointEntry,
+          assessment_point_id: parent.id,
+          student_id: student.id
+        )
+
+      assert entry.score == 30.0
+    end
+
     test "leaves the composed entry untouched when it uses manual input", %{
       scale: scale,
       parent: parent,
@@ -845,6 +885,98 @@ defmodule Lanttern.AssessmentCompositionTest do
       # 70/100 = 0.7 → index 3 → L4
       assert entry.student_ordinal_value_id == Enum.at(ov_levels, 3).id
       assert is_nil(entry.ordinal_value_id)
+    end
+
+    test "treats is_missing children as normalized 0 in the weighted average", %{
+      ov_levels: ov_levels,
+      parent: parent,
+      student: student
+    } do
+      numeric_scale = insert(:scale, type: "numeric", max_score: 100.0)
+      child_1 = insert(:assessment_point, scale: numeric_scale)
+      child_2 = insert(:assessment_point, scale: numeric_scale)
+
+      insert(:assessment_point_component, parent: parent, component: child_1, weight: 1.0)
+      insert(:assessment_point_component, parent: parent, component: child_2, weight: 1.0)
+
+      insert(:assessment_point_entry,
+        assessment_point: child_1,
+        student: student,
+        scale: numeric_scale,
+        scale_type: "numeric",
+        score: 100.0
+      )
+
+      insert(:assessment_point_entry,
+        assessment_point: child_2,
+        student: student,
+        scale: numeric_scale,
+        scale_type: "numeric",
+        score: nil,
+        is_missing: true
+      )
+
+      assert :ok =
+               AssessmentComposition.recalculate_composed_entries(
+                 %Scope{},
+                 [{parent.id, student.id}],
+                 :teacher_entry
+               )
+
+      entry =
+        Repo.get_by!(AssessmentPointEntry,
+          assessment_point_id: parent.id,
+          student_id: student.id
+        )
+
+      # avg = (1.0 + 0.0) / 2 = 0.5 → index 2 → L3
+      assert entry.ordinal_value_id == Enum.at(ov_levels, 2).id
+    end
+
+    test "treats is_missing children as normalized 0 under :student_entry domain", %{
+      ov_levels: ov_levels,
+      parent: parent,
+      student: student
+    } do
+      numeric_scale = insert(:scale, type: "numeric", max_score: 100.0)
+      child_1 = insert(:assessment_point, scale: numeric_scale)
+      child_2 = insert(:assessment_point, scale: numeric_scale)
+
+      insert(:assessment_point_component, parent: parent, component: child_1, weight: 1.0)
+      insert(:assessment_point_component, parent: parent, component: child_2, weight: 1.0)
+
+      insert(:assessment_point_entry,
+        assessment_point: child_1,
+        student: student,
+        scale: numeric_scale,
+        scale_type: "numeric",
+        student_score: 100.0
+      )
+
+      insert(:assessment_point_entry,
+        assessment_point: child_2,
+        student: student,
+        scale: numeric_scale,
+        scale_type: "numeric",
+        student_score: nil,
+        is_missing: true
+      )
+
+      assert :ok =
+               AssessmentComposition.recalculate_composed_entries(
+                 %Scope{},
+                 [{parent.id, student.id}],
+                 :student_entry
+               )
+
+      entry =
+        Repo.get_by!(AssessmentPointEntry,
+          assessment_point_id: parent.id,
+          student_id: student.id
+        )
+
+      # avg = (1.0 + 0.0) / 2 = 0.5 → index 2 → L3
+      assert entry.student_ordinal_value_id == Enum.at(ov_levels, 2).id
     end
 
     test "flags scale_conversion_failed when breakpoints don't match ordinal values" do

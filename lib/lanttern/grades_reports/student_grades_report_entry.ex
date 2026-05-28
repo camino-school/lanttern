@@ -74,6 +74,7 @@ defmodule Lanttern.GradesReports.StudentGradesReportEntry do
       field :score, :float
       field :normalized_value, :float
       field :weight, :float
+      field :is_missing, :boolean, default: false
     end
 
     timestamps()
@@ -123,7 +124,8 @@ defmodule Lanttern.GradesReports.StudentGradesReportEntry do
       :weight,
       :ordinal_value_name,
       :score,
-      :normalized_value
+      :normalized_value,
+      :is_missing
     ])
   end
 end

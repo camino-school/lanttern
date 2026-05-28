@@ -1073,8 +1073,16 @@ defmodule LantternWeb.GradesReportsComponents do
               ({component.curriculum_component_name}) {component.curriculum_item_name}
             </td>
             <td class="p-2">
-              {component.ordinal_value_name ||
-                :erlang.float_to_binary(component.score, decimals: 2)}
+              {cond do
+                component.ordinal_value_name ->
+                  component.ordinal_value_name
+
+                component.score ->
+                  :erlang.float_to_binary(component.score, decimals: 2)
+
+                true ->
+                  gettext("Lack of evidence")
+              end}
             </td>
             <td class="p-2 text-right">
               {:erlang.float_to_binary(component.weight, decimals: 1)}

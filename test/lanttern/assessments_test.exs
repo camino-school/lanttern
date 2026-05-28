@@ -746,6 +746,25 @@ defmodule Lanttern.AssessmentsTest do
                Assessments.update_assessment_point_entry(entry, %{score: 7.0})
     end
 
+    test "update_assessment_point_entry/3 setting is_missing flips has_marking to true" do
+      scale = insert(:scale, type: "numeric")
+      student = SchoolsFixtures.student_fixture()
+      assessment_point = assessment_point_fixture(%{scale_id: scale.id})
+
+      entry =
+        assessment_point_entry_fixture(%{
+          student_id: student.id,
+          assessment_point_id: assessment_point.id,
+          scale_id: scale.id,
+          scale_type: "numeric"
+        })
+
+      assert entry.has_marking == false
+
+      assert {:ok, %AssessmentPointEntry{is_missing: true, has_marking: true}} =
+               Assessments.update_assessment_point_entry(entry, %{is_missing: true})
+    end
+
     test "save_assessment_point_entries/2 handles all mapped changes correctly" do
       scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
       ov_1 = insert(:ordinal_value, scale_id: scale.id, normalized_value: 0)
