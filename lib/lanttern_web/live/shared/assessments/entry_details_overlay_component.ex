@@ -24,8 +24,8 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
   def render(assigns) do
     ~H"""
     <div>
-      <.slide_over id={@id} show={true} on_cancel={@on_cancel}>
-        <:title>{gettext("Assessment point entry details")}</:title>
+      <.modal id={@id} show={true} on_cancel={@on_cancel}>
+        <:title>{@assessment_point.name || gettext("Assessment point entry details")}</:title>
         <.metadata class="mb-6" icon_name="hero-user">
           {@student.name}
         </.metadata>
@@ -39,43 +39,26 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
           <p>{@assessment_point.curriculum_item.name}</p>
         </.metadata>
         <.form
-          for={@form}
-          phx-change="change_marking"
-          phx-submit="save_marking"
+          for={@teacher_form}
+          phx-change="change_teacher_marking"
+          phx-submit="save_teacher_marking"
           phx-target={@myself}
           class="mt-10"
         >
-          <div class="grid grid-cols-2 gap-2">
-            <div class="pb-1 border-b-2 border-ltrn-staff-accent text-xs text-center text-ltrn-staff-dark">
-              {gettext("Teacher assessment")}
-            </div>
-            <div class="pb-1 border-b-2 border-ltrn-student-accent text-xs text-center text-ltrn-student-dark">
-              {gettext("Student self-assessment")}
-            </div>
-            <.marking_input
-              scale={@assessment_point.scale}
-              ordinal_value_options={@ordinal_value_options}
-              form={@form}
-              assessment_view="teacher"
-              ov_style_map={@ov_style_map}
-              has_change={@has_teacher_change}
-              is_composed={@is_composed}
-            />
-            <.marking_input
-              scale={@assessment_point.scale}
-              ordinal_value_options={@ordinal_value_options}
-              form={@form}
-              assessment_view="student"
-              ov_style_map={@ov_style_map}
-              has_change={@has_student_change}
-              is_composed={@is_composed}
-            />
-          </div>
+          <.marking_input
+            scale={@assessment_point.scale}
+            ordinal_value_options={@ordinal_value_options}
+            form={@teacher_form}
+            assessment_view="teacher"
+            ov_style_map={@ov_style_map}
+            has_change={@has_teacher_change}
+            is_composed={@is_composed}
+          />
           <p :if={@is_composed} class="mt-2 text-center text-ltrn-subtle">
             {gettext("Manual input disabled (automatic calculation via grade composition)")}
           </p>
           <div
-            :if={@has_teacher_change || @has_student_change}
+            :if={@has_teacher_change}
             class="p-2 rounded-sm mt-2 text-sm text-white text-center bg-ltrn-dark"
           >
             <button class="underline hover:text-ltrn-light">
@@ -86,14 +69,17 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
               type="button"
               theme="ghost"
               class="underline hover:text-ltrn-light"
-              phx-click="cancel_change_marking"
+              phx-click="cancel_change_teacher_marking"
               phx-target={@myself}
             >
               {gettext("discard changes")}
             </button>
           </div>
-          <p :if={@save_marking_error} class="mt-2 text-sm text-center text-ltrn-alert-accent">
-            {@save_marking_error}
+          <p
+            :if={@save_teacher_marking_error}
+            class="mt-2 text-sm text-center text-ltrn-alert-accent"
+          >
+            {@save_teacher_marking_error}
           </p>
         </.form>
         <%!-- <div class="p-4 rounded-sm mb-6 bg-ltrn-diff-lightest">
@@ -111,13 +97,13 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
         </div> --%>
         <.form
           :if={@assessment_point.uses_composition}
-          for={@form}
+          for={@teacher_form}
           phx-change="toggle_use_manual_input"
           phx-target={@myself}
           class="p-4 rounded-sm mt-6 bg-ltrn-lightest"
         >
           <.input
-            field={@form[:use_manual_input]}
+            field={@teacher_form[:use_manual_input]}
             type="toggle"
             label={gettext("Use manual input")}
           />
@@ -129,7 +115,7 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
         </.form>
         <.form
           :if={is_nil(@entry.ordinal_value_id) and is_nil(@entry.score)}
-          for={@form}
+          for={@teacher_form}
           phx-change="toggle_is_missing"
           phx-target={@myself}
           class={[
@@ -138,7 +124,7 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
           ]}
         >
           <.input
-            field={@form[:is_missing]}
+            field={@teacher_form[:is_missing]}
             type="toggle"
             label={gettext("Lack of evidence")}
             theme="alert"
@@ -155,19 +141,6 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
           on_save={JS.push("save_note", target: @myself)}
           on_change={JS.push("validate_note", target: @myself)}
           class="mt-10"
-        />
-        <.comment_area
-          note={@entry.student_report_note}
-          is_editing={@is_editing_student_note}
-          form={@student_note_form}
-          error={@save_student_note_error}
-          theme="student"
-          student_name={@student.name}
-          on_edit={JS.push("edit_student_note", target: @myself)}
-          on_cancel={JS.push("cancel_edit_student_note", target: @myself)}
-          on_save={JS.push("save_student_note", target: @myself)}
-          on_change={JS.push("validate_student_note", target: @myself)}
-          class="mt-6"
         />
         <.diff_rubric_area
           id={@id}
@@ -190,7 +163,69 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
           allow_editing
           notify_component={@myself}
         />
-      </.slide_over>
+        <div class="p-6 rounded mt-10 bg-ltrn-student-lightest">
+          <h6 class="font-display font-bold text-ltrn-student-dark">
+            {gettext("Student self-assessment")}
+          </h6>
+          <.form
+            for={@student_form}
+            phx-change="change_student_marking"
+            phx-submit="save_student_marking"
+            phx-target={@myself}
+            class="mt-6"
+          >
+            <.marking_input
+              scale={@assessment_point.scale}
+              ordinal_value_options={@ordinal_value_options}
+              form={@student_form}
+              assessment_view="student"
+              ov_style_map={@ov_style_map}
+              has_change={@has_student_change}
+              is_composed={@is_composed}
+            />
+            <p :if={@is_composed} class="mt-2 text-center text-ltrn-subtle">
+              {gettext("Manual input disabled (automatic calculation via grade composition)")}
+            </p>
+            <div
+              :if={@has_student_change}
+              class="p-2 rounded-sm mt-2 text-sm text-white text-center bg-ltrn-student-dark"
+            >
+              <button class="underline hover:text-ltrn-light">
+                {gettext("Save")}
+              </button>
+              {gettext("or")}
+              <button
+                type="button"
+                theme="ghost"
+                class="underline hover:text-ltrn-light"
+                phx-click="cancel_change_student_marking"
+                phx-target={@myself}
+              >
+                {gettext("discard changes")}
+              </button>
+            </div>
+            <p
+              :if={@save_student_marking_error}
+              class="mt-2 text-sm text-center text-ltrn-alert-accent"
+            >
+              {@save_student_marking_error}
+            </p>
+          </.form>
+          <.comment_area
+            note={@entry.student_report_note}
+            is_editing={@is_editing_student_note}
+            form={@student_note_form}
+            error={@save_student_note_error}
+            theme="student"
+            student_name={@student.name}
+            on_edit={JS.push("edit_student_note", target: @myself)}
+            on_cancel={JS.push("cancel_edit_student_note", target: @myself)}
+            on_save={JS.push("save_student_note", target: @myself)}
+            on_change={JS.push("validate_student_note", target: @myself)}
+            class="mt-6"
+          />
+        </div>
+      </.modal>
     </div>
     """
   end
@@ -283,7 +318,7 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
             bg_lightest: "bg-ltrn-staff-lightest",
             text_accent: "text-ltrn-staff-accent",
             text_dark: "text-ltrn-staff-dark",
-            comment_text: gettext("Teacher comment"),
+            comment_text: gettext("Comment"),
             no_comment_text: gettext("No teacher comment"),
             field: assigns.form[:report_note]
           }
@@ -415,7 +450,8 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
       |> assign(:has_teacher_change, false)
       |> assign(:has_student_change, false)
       |> assign(:has_diff_rubric_change, false)
-      |> assign(:save_marking_error, nil)
+      |> assign(:save_teacher_marking_error, nil)
+      |> assign(:save_student_marking_error, nil)
       |> assign(:ov_style_map, nil)
       |> assign(:is_composed, false)
       |> assign(:is_editing_note, false)
@@ -541,7 +577,8 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
       |> to_form()
 
     socket
-    |> assign(:form, form)
+    |> assign(:teacher_form, form)
+    |> assign(:student_form, form)
     |> assign(:note_form, form)
     |> assign(:student_note_form, form)
   end
@@ -598,7 +635,7 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
   # event handlers
 
   @impl true
-  def handle_event("change_marking", %{"assessment_point_entry" => params}, socket) do
+  def handle_event("change_teacher_marking", %{"assessment_point_entry" => params}, socket) do
     entry = socket.assigns.entry
 
     form =
@@ -606,61 +643,93 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
       |> Assessments.change_assessment_point_entry(params)
       |> to_form()
 
-    {has_teacher_change, has_student_change} =
-      case entry do
-        %{scale_type: "ordinal"} ->
-          {
-            "#{entry.ordinal_value_id}" != params["ordinal_value_id"],
-            "#{entry.student_ordinal_value_id}" != params["student_ordinal_value_id"]
-          }
-
-        %{scale_type: "numeric"} ->
-          {
-            "#{entry.score}" != params["score"],
-            "#{entry.student_score}" != params["student_score"]
-          }
-      end
-
     socket =
       socket
-      |> assign(:has_teacher_change, has_teacher_change)
-      |> assign(:has_student_change, has_student_change)
-      |> assign(:form, form)
+      |> assign(:has_teacher_change, teacher_value_changed?(entry, params))
+      |> assign(:teacher_form, form)
 
     {:noreply, socket}
   end
 
-  def handle_event("save_marking", %{"assessment_point_entry" => params}, socket) do
+  def handle_event("change_student_marking", %{"assessment_point_entry" => params}, socket) do
+    entry = socket.assigns.entry
+
+    form =
+      entry
+      |> Assessments.change_assessment_point_entry(params)
+      |> to_form()
+
+    socket =
+      socket
+      |> assign(:has_student_change, student_value_changed?(entry, params))
+      |> assign(:student_form, form)
+
+    {:noreply, socket}
+  end
+
+  def handle_event("save_teacher_marking", %{"assessment_point_entry" => params}, socket) do
     entry = socket.assigns.entry
     opts = [log_profile_id: socket.assigns.current_user.current_profile_id]
-    changed_domains = changed_marking_domains(entry, params)
+    teacher_changed = teacher_value_changed?(entry, params)
 
     socket =
       case Assessments.update_assessment_point_entry(entry, params, opts) do
         {:ok, entry} ->
           notify(__MODULE__, {:change, entry}, socket.assigns)
 
-          Assessments.enqueue_composed_recalc(
-            entry.assessment_point_id,
-            entry.student_id,
-            changed_domains,
-            opts
-          )
+          if teacher_changed do
+            Assessments.enqueue_composed_recalc(
+              entry.assessment_point_id,
+              entry.student_id,
+              ["teacher_entry"],
+              opts
+            )
+          end
 
           socket
           |> assign(:entry, entry)
           |> assign(:has_teacher_change, false)
-          |> assign(:has_student_change, false)
-          |> assign(:save_marking_error, nil)
+          |> assign(:save_teacher_marking_error, nil)
 
         {:error, _} ->
-          assign(socket, :save_marking_error, gettext("Something went wrong"))
+          assign(socket, :save_teacher_marking_error, gettext("Something went wrong"))
       end
 
     {:noreply, socket}
   end
 
-  def handle_event("cancel_change_marking", _, socket) do
+  def handle_event("save_student_marking", %{"assessment_point_entry" => params}, socket) do
+    entry = socket.assigns.entry
+    opts = [log_profile_id: socket.assigns.current_user.current_profile_id]
+    student_changed = student_value_changed?(entry, params)
+
+    socket =
+      case Assessments.update_assessment_point_entry(entry, params, opts) do
+        {:ok, entry} ->
+          notify(__MODULE__, {:change, entry}, socket.assigns)
+
+          if student_changed do
+            Assessments.enqueue_composed_recalc(
+              entry.assessment_point_id,
+              entry.student_id,
+              ["student_entry"],
+              opts
+            )
+          end
+
+          socket
+          |> assign(:entry, entry)
+          |> assign(:has_student_change, false)
+          |> assign(:save_student_marking_error, nil)
+
+        {:error, _} ->
+          assign(socket, :save_student_marking_error, gettext("Something went wrong"))
+      end
+
+    {:noreply, socket}
+  end
+
+  def handle_event("cancel_change_teacher_marking", _, socket) do
     form =
       socket.assigns.entry
       |> Assessments.change_assessment_point_entry()
@@ -669,8 +738,21 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
     socket =
       socket
       |> assign(:has_teacher_change, false)
+      |> assign(:teacher_form, form)
+
+    {:noreply, socket}
+  end
+
+  def handle_event("cancel_change_student_marking", _, socket) do
+    form =
+      socket.assigns.entry
+      |> Assessments.change_assessment_point_entry()
+      |> to_form()
+
+    socket =
+      socket
       |> assign(:has_student_change, false)
-      |> assign(:form, form)
+      |> assign(:student_form, form)
 
     {:noreply, socket}
   end
@@ -917,27 +999,15 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
 
   defp maybe_restore_composed_value(entry, _current_user), do: entry
 
-  # returns the recalc domains (`"teacher_entry"` / `"student_entry"`) whose value
-  # differs between the existing entry and the submitted params, using the same
-  # comparison as the `change_marking` event handler
-  defp changed_marking_domains(entry, params) do
-    {teacher_changed, student_changed} =
-      case entry do
-        %{scale_type: "ordinal"} ->
-          {
-            "#{entry.ordinal_value_id}" != params["ordinal_value_id"],
-            "#{entry.student_ordinal_value_id}" != params["student_ordinal_value_id"]
-          }
+  defp teacher_value_changed?(%{scale_type: "ordinal"} = entry, params),
+    do: "#{entry.ordinal_value_id}" != params["ordinal_value_id"]
 
-        %{scale_type: "numeric"} ->
-          {
-            "#{entry.score}" != params["score"],
-            "#{entry.student_score}" != params["student_score"]
-          }
-      end
+  defp teacher_value_changed?(%{scale_type: "numeric"} = entry, params),
+    do: "#{entry.score}" != params["score"]
 
-    [{"teacher_entry", teacher_changed}, {"student_entry", student_changed}]
-    |> Enum.filter(fn {_domain, changed} -> changed end)
-    |> Enum.map(fn {domain, _changed} -> domain end)
-  end
+  defp student_value_changed?(%{scale_type: "ordinal"} = entry, params),
+    do: "#{entry.student_ordinal_value_id}" != params["student_ordinal_value_id"]
+
+  defp student_value_changed?(%{scale_type: "numeric"} = entry, params),
+    do: "#{entry.student_score}" != params["student_score"]
 end
