@@ -598,6 +598,28 @@ defmodule Lanttern.AssessmentCompositionTest do
     end
   end
 
+  describe "list_composition_parent_ids/1" do
+    test "returns the parents an assessment point is a component of" do
+      component_ap = insert(:assessment_point)
+      parent_ap_1 = insert(:assessment_point)
+      parent_ap_2 = insert(:assessment_point)
+      other_ap = insert(:assessment_point)
+
+      insert(:assessment_point_component, parent: parent_ap_1, component: component_ap)
+      insert(:assessment_point_component, parent: parent_ap_2, component: component_ap)
+      insert(:assessment_point_component, parent: other_ap, component: insert(:assessment_point))
+
+      assert AssessmentComposition.list_composition_parent_ids(component_ap.id) |> Enum.sort() ==
+               Enum.sort([parent_ap_1.id, parent_ap_2.id])
+    end
+
+    test "returns empty list when the assessment point is not a component" do
+      assessment_point = insert(:assessment_point)
+
+      assert AssessmentComposition.list_composition_parent_ids(assessment_point.id) == []
+    end
+  end
+
   describe "recalculate_composed_entries/3" do
     setup do
       scale = insert(:scale, type: "numeric", max_score: 100.0)

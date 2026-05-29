@@ -327,6 +327,31 @@ defmodule Lanttern.AssessmentsTest do
       assert log.operation == "DELETE"
     end
 
+    test "delete_assessment_point_and_entries/2 recalculates composition parents when a component is deleted" do
+      scope = IdentityFixtures.scope_fixture()
+      parent_ap = insert(:assessment_point, uses_composition: true)
+      component_ap = insert(:assessment_point)
+      insert(:assessment_point_component, parent: parent_ap, component: component_ap)
+
+      assert {:ok, _} =
+               Assessments.delete_assessment_point_and_entries(scope, component_ap)
+
+      assert_enqueued(
+        worker: Lanttern.Workers.CompositionRecalcWorker,
+        args: %{parent_id: parent_ap.id, profile_id: scope.profile_id}
+      )
+    end
+
+    test "delete_assessment_point_and_entries/2 does not recalculate when the deleted AP is not a component" do
+      scope = IdentityFixtures.scope_fixture()
+      assessment_point = assessment_point_fixture()
+
+      assert {:ok, _} =
+               Assessments.delete_assessment_point_and_entries(scope, assessment_point)
+
+      refute_enqueued(worker: Lanttern.Workers.CompositionRecalcWorker)
+    end
+
     test "change_assessment_point/1 returns an assessment point changeset with datetime related virtual fields" do
       local_datetime = Timex.local(~N[2020-10-01 12:34:56])
       assessment_point = assessment_point_fixture(%{datetime: local_datetime})
@@ -1046,6 +1071,37 @@ defmodule Lanttern.AssessmentsTest do
           "domain" => "student_entry",
           "profile_id" => nil
         }
+      )
+    end
+
+    test "save_assessment_point_entries/2 enqueues recalc for both domains when only is_missing is edited" do
+      scale = insert(:scale, type: "ordinal")
+      parent_ap = insert(:assessment_point, uses_composition: true, scale: scale)
+      component_ap = insert(:assessment_point, scale: scale)
+      insert(:assessment_point_component, parent: parent_ap, component: component_ap)
+
+      student = insert(:student)
+
+      params = %{
+        "student_id" => student.id,
+        "assessment_point_id" => component_ap.id,
+        "scale_id" => scale.id,
+        "scale_type" => "ordinal",
+        "is_missing" => true
+      }
+
+      assert {:ok, 1} = Assessments.save_assessment_point_entries([params])
+
+      # is_missing feeds both the teacher and student average, so both domains
+      # must be recomputed
+      assert_enqueued(
+        worker: Lanttern.Workers.ComposedEntryRecalcWorker,
+        args: %{"pairs" => [[parent_ap.id, student.id]], "domain" => "teacher_entry"}
+      )
+
+      assert_enqueued(
+        worker: Lanttern.Workers.ComposedEntryRecalcWorker,
+        args: %{"pairs" => [[parent_ap.id, student.id]], "domain" => "student_entry"}
       )
     end
 

@@ -176,6 +176,20 @@ defmodule Lanttern.AssessmentComposition do
   end
 
   @doc """
+  Returns the parent assessment point ids for which the given assessment point
+  is a composition component.
+
+  Used to recalculate the affected parents when a component assessment point is
+  deleted (its `Component` rows cascade away, so callers must capture this
+  before the deletion).
+  """
+  @spec list_composition_parent_ids(pos_integer()) :: [pos_integer()]
+  def list_composition_parent_ids(component_ap_id) do
+    from(c in Component, where: c.component_id == ^component_ap_id, select: c.parent_id)
+    |> Repo.all()
+  end
+
+  @doc """
   Recalculates composed assessment point entries for the given `{parent_id, student_id}` pairs.
 
   The `domain` argument selects the edit domain — teacher entries

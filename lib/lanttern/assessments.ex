@@ -237,6 +237,11 @@ defmodule Lanttern.Assessments do
 
   """
   def delete_assessment_point_and_entries(%Scope{} = scope, %AssessmentPoint{} = assessment_point) do
+    # capture the composition parents before deleting — the `Component` rows
+    # linking this assessment point cascade away during the delete
+    composition_parent_ids =
+      Lanttern.AssessmentComposition.list_composition_parent_ids(assessment_point.id)
+
     result =
       Ecto.Multi.new()
       |> Ecto.Multi.delete_all(
@@ -252,12 +257,23 @@ defmodule Lanttern.Assessments do
     case result do
       {:ok, _} ->
         AuditLog.maybe_log({:ok, assessment_point}, AssessmentPointLog, "DELETE", scope, [])
+        enqueue_composition_recalc(composition_parent_ids, scope.profile_id)
 
       _ ->
         :noop
     end
 
     result
+  end
+
+  # recompute parents whose composed entries became stale after a component
+  # assessment point was deleted
+  defp enqueue_composition_recalc(parent_ids, profile_id) do
+    Enum.each(parent_ids, fn parent_id ->
+      %{parent_id: parent_id, profile_id: profile_id}
+      |> Lanttern.Workers.CompositionRecalcWorker.new()
+      |> Oban.insert()
+    end)
   end
 
   @doc """
@@ -468,7 +484,7 @@ defmodule Lanttern.Assessments do
       |> NaiveDateTime.truncate(:second)
 
     log_profile_id = Keyword.get(opts, :log_profile_id)
-    edited_domain = detect_edited_domain(maps)
+    edited_domains = detect_edited_domains(maps)
 
     maps
     |> Enum.reduce(Ecto.Multi.new(), fn map, multi ->
@@ -491,7 +507,7 @@ defmodule Lanttern.Assessments do
       )
     end)
     |> Ecto.Multi.run(:enqueue_recalc, fn _repo, results ->
-      maybe_enqueue_composed_recalc(results, edited_domain, log_profile_id)
+      maybe_enqueue_composed_recalc(results, edited_domains, log_profile_id)
     end)
     |> Repo.transaction()
     |> case do
@@ -508,33 +524,25 @@ defmodule Lanttern.Assessments do
   @teacher_entry_keys ~w(score ordinal_value_id)
   @student_entry_keys ~w(student_score student_ordinal_value_id)
 
-  defp detect_edited_domain(maps) do
+  # Returns the edit domains a batch touches, for composed recalc. `is_missing`
+  # feeds both the teacher and student sum/average, so a batch carrying it marks
+  # both domains.
+  defp detect_edited_domains(maps) do
     has_teacher? =
       Enum.any?(maps, fn m -> Enum.any?(@teacher_entry_keys, &Map.has_key?(m, &1)) end)
 
     has_student? =
       Enum.any?(maps, fn m -> Enum.any?(@student_entry_keys, &Map.has_key?(m, &1)) end)
 
-    cond do
-      has_teacher? and has_student? ->
-        require Logger
+    has_is_missing? = Enum.any?(maps, &Map.has_key?(&1, "is_missing"))
 
-        Logger.warning(
-          "save_assessment_point_entries/2 batch contains both teacher and student entry keys; defaulting to teacher_entry for composed recalc"
-        )
-
-        "teacher_entry"
-
-      has_teacher? ->
-        "teacher_entry"
-
-      has_student? ->
-        "student_entry"
-
-      true ->
-        nil
-    end
+    []
+    |> maybe_add_domain("teacher_entry", has_teacher? or has_is_missing?)
+    |> maybe_add_domain("student_entry", has_student? or has_is_missing?)
   end
+
+  defp maybe_add_domain(domains, domain, true), do: [domain | domains]
+  defp maybe_add_domain(domains, _domain, false), do: domains
 
   @doc """
   Enqueues composed entry recalculation for a single component entry, once per
@@ -563,9 +571,9 @@ defmodule Lanttern.Assessments do
     end)
   end
 
-  defp maybe_enqueue_composed_recalc(_results, nil, _profile_id), do: {:ok, :noop}
+  defp maybe_enqueue_composed_recalc(_results, [], _profile_id), do: {:ok, :noop}
 
-  defp maybe_enqueue_composed_recalc(results, domain, profile_id) do
+  defp maybe_enqueue_composed_recalc(results, domains, profile_id) do
     pairs =
       results
       |> Map.values()
@@ -573,7 +581,8 @@ defmodule Lanttern.Assessments do
         {entry.assessment_point_id, entry.student_id}
       end)
 
-    enqueue_composed_recalc_for_pairs(pairs, domain, profile_id)
+    Enum.each(domains, &enqueue_composed_recalc_for_pairs(pairs, &1, profile_id))
+    {:ok, :enqueued}
   end
 
   defp enqueue_composed_recalc_for_pairs(component_pairs, domain, profile_id) do

@@ -129,14 +129,6 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
             <%= if @is_composed do %>
               <.button
                 size="sm"
-                icon_name="hero-arrow-path-micro"
-                phx-click="recalculate"
-                phx-target={@myself}
-              >
-                {gettext("Recalculate")}
-              </.button>
-              <.button
-                size="sm"
                 icon_name="hero-link-slash-micro"
                 phx-click="use_manual_input"
                 phx-target={@myself}
@@ -778,6 +770,16 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
     case Assessments.update_assessment_point_entry(socket.assigns.entry, params, opts) do
       {:ok, entry} ->
         notify(__MODULE__, {:change, entry}, socket.assigns)
+
+        # is_missing is a composition input (affects both domains' averages),
+        # so recompute any parent composed entries after the change
+        Assessments.enqueue_composed_recalc(
+          entry.assessment_point_id,
+          entry.student_id,
+          ["teacher_entry", "student_entry"],
+          opts
+        )
+
         {:noreply, socket |> assign(:entry, entry) |> assign_forms()}
 
       {:error, _} ->
@@ -791,18 +793,6 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
 
   def handle_event("use_automatic_calculation", _, socket) do
     {:noreply, set_use_manual_input(socket, false)}
-  end
-
-  def handle_event("recalculate", _, socket) do
-    entry = recalculate_entry(socket.assigns.entry, socket.assigns.current_user)
-    notify(__MODULE__, {:change, entry}, socket.assigns)
-
-    socket =
-      socket
-      |> assign(:entry, entry)
-      |> assign_forms()
-
-    {:noreply, socket}
   end
 
   def handle_event("edit_note", _, socket),

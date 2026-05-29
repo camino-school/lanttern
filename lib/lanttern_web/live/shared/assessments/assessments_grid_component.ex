@@ -22,7 +22,6 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
 
   use LantternWeb, :live_component
 
-  alias Lanttern.AssessmentComposition
   alias Lanttern.Assessments
   alias Lanttern.Assessments.AssessmentPoint
   alias Lanttern.Identity.Scope
@@ -569,29 +568,6 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
     {:ok, socket}
   end
 
-  def update(
-        %{action: {AssessmentPointCommandPaletteComponent, {:recalculate_all}}},
-        socket
-      ) do
-    ap = socket.assigns.command_palette_ap
-    pairs = visible_pairs_for_ap(socket, ap.id)
-
-    Enum.each([:teacher_entry, :student_entry], fn domain ->
-      AssessmentComposition.recalculate_composed_entries(
-        socket.assigns.current_scope,
-        pairs,
-        domain
-      )
-    end)
-
-    socket =
-      socket
-      |> stream_students_entries()
-      |> delegate_navigation(put_flash: {:info, gettext("Assessment point recalculated")})
-
-    {:ok, socket}
-  end
-
   def update(%{action: {AssessmentPointCommandPaletteComponent, {:toggle_hidden}}}, socket) do
     ap = socket.assigns.command_palette_ap
 
@@ -770,21 +746,6 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
 
     socket
     |> stream(:students_entries, students_entries, reset: true)
-  end
-
-  defp visible_pairs_for_ap(socket, ap_id) do
-    Assessments.list_strand_students_entries(
-      socket.assigns.strand_id,
-      classes_ids: socket.assigns.classes_ids,
-      load_profile_picture_from_cycle_id:
-        socket.assigns.current_user.current_profile.current_school_cycle.id,
-      active_students_only: true
-    )
-    |> Enum.flat_map(fn {_student, entries} ->
-      entries
-      |> Enum.filter(&(&1.assessment_point_id == ap_id))
-      |> Enum.map(&{&1.assessment_point_id, &1.student_id})
-    end)
   end
 
   # event handlers
