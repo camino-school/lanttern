@@ -1,5 +1,6 @@
 defmodule Lanttern.AssessmentCompositionTest do
   use Lanttern.DataCase
+  use Oban.Testing, repo: Lanttern.Repo
 
   alias Lanttern.AssessmentComposition
   alias Lanttern.AssessmentComposition.Component
@@ -275,6 +276,36 @@ defmodule Lanttern.AssessmentCompositionTest do
       assert component.weight == 1.5
     end
 
+    test "enqueues a recalculation job for the parent on success" do
+      parent_ap = insert(:assessment_point)
+      child_ap = insert(:assessment_point)
+
+      assert {:ok, :replaced} =
+               AssessmentComposition.replace_assessment_point_components(
+                 @staff_scope,
+                 parent_ap.id,
+                 [%{component_id: child_ap.id, weight: 1.0}]
+               )
+
+      assert_enqueued(
+        worker: Lanttern.Workers.CompositionRecalcWorker,
+        args: %{parent_id: parent_ap.id}
+      )
+    end
+
+    test "does not enqueue a recalculation job on failure" do
+      parent_ap = insert(:assessment_point)
+
+      assert {:error, %Ecto.Changeset{}} =
+               AssessmentComposition.replace_assessment_point_components(
+                 @staff_scope,
+                 parent_ap.id,
+                 [%{component_id: parent_ap.id, weight: 0.0}]
+               )
+
+      refute_enqueued(worker: Lanttern.Workers.CompositionRecalcWorker)
+    end
+
     test "replaces existing components atomically" do
       parent_ap = insert(:assessment_point)
       old_child = insert(:assessment_point)
@@ -358,6 +389,156 @@ defmodule Lanttern.AssessmentCompositionTest do
           []
         )
       end
+    end
+  end
+
+  describe "recalculate_all_composed_entries/2" do
+    test "recalculates the composed entry for every student with component entries" do
+      scale = insert(:scale, type: "numeric", max_score: 100.0)
+      parent = insert(:assessment_point, uses_composition: true, scale: scale)
+      component_ap_1 = insert(:assessment_point, scale: scale)
+      component_ap_2 = insert(:assessment_point, scale: scale)
+
+      insert(:assessment_point_component, parent: parent, component: component_ap_1)
+      insert(:assessment_point_component, parent: parent, component: component_ap_2)
+
+      student_a = insert(:student)
+      student_b = insert(:student)
+
+      insert(:assessment_point_entry,
+        assessment_point: component_ap_1,
+        student: student_a,
+        scale: scale,
+        scale_type: "numeric",
+        score: 30.0
+      )
+
+      insert(:assessment_point_entry,
+        assessment_point: component_ap_2,
+        student: student_a,
+        scale: scale,
+        scale_type: "numeric",
+        score: 25.0
+      )
+
+      insert(:assessment_point_entry,
+        assessment_point: component_ap_1,
+        student: student_b,
+        scale: scale,
+        scale_type: "numeric",
+        score: 10.0
+      )
+
+      assert :ok = AssessmentComposition.recalculate_all_composed_entries(%Scope{}, parent.id)
+
+      entry_a =
+        Repo.get_by!(AssessmentPointEntry,
+          assessment_point_id: parent.id,
+          student_id: student_a.id
+        )
+
+      entry_b =
+        Repo.get_by!(AssessmentPointEntry,
+          assessment_point_id: parent.id,
+          student_id: student_b.id
+        )
+
+      assert entry_a.score == 55.0
+      assert entry_b.score == 10.0
+    end
+
+    test "recalculates teacher and student domains independently" do
+      scale = insert(:scale, type: "numeric", max_score: 100.0)
+      parent = insert(:assessment_point, uses_composition: true, scale: scale)
+      component_ap = insert(:assessment_point, scale: scale)
+      insert(:assessment_point_component, parent: parent, component: component_ap)
+
+      student = insert(:student)
+
+      insert(:assessment_point_entry,
+        assessment_point: component_ap,
+        student: student,
+        scale: scale,
+        scale_type: "numeric",
+        score: 40.0,
+        student_score: 20.0
+      )
+
+      assert :ok = AssessmentComposition.recalculate_all_composed_entries(%Scope{}, parent.id)
+
+      entry =
+        Repo.get_by!(AssessmentPointEntry,
+          assessment_point_id: parent.id,
+          student_id: student.id
+        )
+
+      assert entry.score == 40.0
+      assert entry.student_score == 20.0
+    end
+
+    test "ignores students whose only component entry has no marking (e.g. comment-only)" do
+      scale = insert(:scale, type: "numeric", max_score: 100.0)
+      parent = insert(:assessment_point, uses_composition: true, scale: scale)
+      component_ap = insert(:assessment_point, scale: scale)
+      insert(:assessment_point_component, parent: parent, component: component_ap)
+
+      marked_student = insert(:student)
+      comment_only_student = insert(:student)
+
+      insert(:assessment_point_entry,
+        assessment_point: component_ap,
+        student: marked_student,
+        scale: scale,
+        scale_type: "numeric",
+        score: 30.0
+      )
+
+      # comment-only entry: no score / ordinal value, so has_marking is false
+      insert(:assessment_point_entry,
+        assessment_point: component_ap,
+        student: comment_only_student,
+        scale: scale,
+        scale_type: "numeric",
+        score: nil,
+        report_note: "just a comment"
+      )
+
+      assert :ok = AssessmentComposition.recalculate_all_composed_entries(%Scope{}, parent.id)
+
+      assert Repo.get_by(AssessmentPointEntry,
+               assessment_point_id: parent.id,
+               student_id: marked_student.id
+             )
+
+      refute Repo.get_by(AssessmentPointEntry,
+               assessment_point_id: parent.id,
+               student_id: comment_only_student.id
+             )
+    end
+
+    test "recomputes existing parent entries when components are removed" do
+      scale = insert(:scale, type: "numeric", max_score: 100.0)
+      parent = insert(:assessment_point, uses_composition: true, scale: scale)
+      student = insert(:student)
+
+      # an existing composed entry, but no components remain
+      insert(:assessment_point_entry,
+        assessment_point: parent,
+        student: student,
+        scale: scale,
+        scale_type: "numeric",
+        score: 55.0
+      )
+
+      assert :ok = AssessmentComposition.recalculate_all_composed_entries(%Scope{}, parent.id)
+
+      entry =
+        Repo.get_by!(AssessmentPointEntry,
+          assessment_point_id: parent.id,
+          student_id: student.id
+        )
+
+      assert is_nil(entry.score)
     end
   end
 

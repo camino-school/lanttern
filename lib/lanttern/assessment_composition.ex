@@ -129,8 +129,15 @@ defmodule Lanttern.AssessmentComposition do
       end)
 
     case Repo.transaction(multi) do
-      {:ok, _} -> {:ok, :replaced}
-      {:error, _op, changeset, _changes} -> {:error, changeset}
+      {:ok, _} ->
+        %{parent_id: parent_id, profile_id: scope.profile_id}
+        |> Lanttern.Workers.CompositionRecalcWorker.new()
+        |> Oban.insert()
+
+        {:ok, :replaced}
+
+      {:error, _op, changeset, _changes} ->
+        {:error, changeset}
     end
   end
 
@@ -209,6 +216,43 @@ defmodule Lanttern.AssessmentComposition do
     |> Enum.each(&recalculate_composed_entry(scope, &1, domain))
 
     :ok
+  end
+
+  @doc """
+  Recalculates every composed entry for the given parent assessment point,
+  across both edit domains.
+
+  Resolves the affected students from the parent's component entries (the
+  composition inputs) and from any existing entries on the parent itself — the
+  latter ensures stale entries are recomputed (or cleared) when components are
+  removed during an update. Delegates the actual calculation to
+  `recalculate_composed_entries/3`.
+  """
+  @spec recalculate_all_composed_entries(Scope.t(), pos_integer()) :: :ok
+  def recalculate_all_composed_entries(%Scope{} = scope, parent_id) do
+    pairs = composed_pairs_for_parent(parent_id)
+
+    Enum.each([:teacher_entry, :student_entry], fn domain ->
+      recalculate_composed_entries(scope, pairs, domain)
+    end)
+
+    :ok
+  end
+
+  defp composed_pairs_for_parent(parent_id) do
+    component_ids =
+      from(c in Component, where: c.parent_id == ^parent_id, select: c.component_id)
+      |> Repo.all()
+
+    ap_ids = [parent_id | component_ids]
+
+    from(e in AssessmentPointEntry,
+      where: e.assessment_point_id in ^ap_ids and e.has_marking,
+      distinct: true,
+      select: e.student_id
+    )
+    |> Repo.all()
+    |> Enum.map(&{parent_id, &1})
   end
 
   defp recalculate_composed_entry(%Scope{} = scope, {parent_id, student_id}, domain) do
