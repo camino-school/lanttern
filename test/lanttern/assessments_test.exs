@@ -287,6 +287,21 @@ defmodule Lanttern.AssessmentsTest do
       assert assessment == Assessments.get_assessment_point!(assessment.id)
     end
 
+    test "update_assessment_point/2 cannot enable composition on an assessment point that is already a component" do
+      component_ap = insert(:assessment_point)
+      parent_ap = insert(:assessment_point, uses_composition: true)
+      insert(:assessment_point_component, parent: parent_ap, component: component_ap)
+
+      assert {:error, %Ecto.Changeset{} = changeset} =
+               Assessments.update_assessment_point(
+                 %Lanttern.Identity.Scope{},
+                 component_ap,
+                 %{uses_composition: true}
+               )
+
+      assert %{uses_composition: [_]} = errors_on(changeset)
+    end
+
     test "delete_assessment_point/1 deletes the assessment point" do
       scope = IdentityFixtures.scope_fixture()
       assessment_point = assessment_point_fixture()

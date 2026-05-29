@@ -267,7 +267,9 @@ defmodule LantternWeb.AssessmentComposition.AssessmentPointCompositionOverlayCom
 
     all_aps =
       (moment_aps ++ strand_aps)
-      |> Enum.reject(&(&1.id == parent_id))
+      # exclude the parent itself and any composed AP (a composed assessment
+      # point cannot be a component of another composition)
+      |> Enum.reject(&(&1.id == parent_id or &1.uses_composition))
       |> then(fn aps ->
         if scale_type == "numeric" do
           Enum.filter(aps, &match?(%{scale: %{type: "numeric"}}, &1))

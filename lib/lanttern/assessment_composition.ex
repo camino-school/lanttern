@@ -318,11 +318,12 @@ defmodule Lanttern.AssessmentComposition do
         {recomputed, nil}
       end
 
-    do_upsert(scope, parent, student_id, field, target_value, target_error, existing)
+    do_upsert(scope, parent, student_id, %{field => target_value}, target_error, existing)
   end
 
   defp recalculate_avg(scope, parent, student_id, domain, existing) do
     field = avg_target_field(domain)
+    normalized_field = normalized_target_field(domain)
 
     components = Repo.all(from c in Component, where: c.parent_id == ^parent.id)
     component_ids = Enum.map(components, & &1.component_id)
@@ -337,10 +338,10 @@ defmodule Lanttern.AssessmentComposition do
 
     normalized_avg = compute_weighted_avg(entries, weight_by_component, domain)
 
-    {target_value, target_error} =
-      resolve_avg_target(normalized_avg, parent.scale, existing, field)
+    {attrs, target_error} =
+      resolve_avg_target(normalized_avg, parent.scale, existing, field, normalized_field)
 
-    do_upsert(scope, parent, student_id, field, target_value, target_error, existing)
+    do_upsert(scope, parent, student_id, attrs, target_error, existing)
   end
 
   defp sum_target_field(:teacher_entry), do: :score
@@ -348,6 +349,9 @@ defmodule Lanttern.AssessmentComposition do
 
   defp avg_target_field(:teacher_entry), do: :ordinal_value_id
   defp avg_target_field(:student_entry), do: :student_ordinal_value_id
+
+  defp normalized_target_field(:teacher_entry), do: :normalized_value
+  defp normalized_target_field(:student_entry), do: :student_normalized_value
 
   defp get_existing_parent_entry(parent_id, student_id) do
     Repo.one(
@@ -383,7 +387,9 @@ defmodule Lanttern.AssessmentComposition do
         end
       end)
 
-    if sumweight > 0, do: sumprod / sumweight, else: nil
+    # round to 5 decimals to avoid float-representation noise in the stored
+    # normalized value, mirroring the grades-report composition convention
+    if sumweight > 0, do: Float.round(sumprod / sumweight, 5), else: nil
   end
 
   defp normalized_value(%AssessmentPointEntry{is_missing: true}, _domain), do: 0.0
@@ -403,45 +409,53 @@ defmodule Lanttern.AssessmentComposition do
       do: entry.student_score / entry.scale.max_score
   end
 
-  defp resolve_avg_target(nil, _scale, _existing, _field), do: {nil, nil}
+  defp resolve_avg_target(nil, _scale, _existing, field, normalized_field),
+    do: {%{field => nil, normalized_field => nil}, nil}
 
-  defp resolve_avg_target(normalized_avg, scale, existing, field) do
+  defp resolve_avg_target(normalized_avg, scale, existing, field, normalized_field) do
     case Grading.convert_normalized_value_to_scale_value(normalized_avg, scale) do
       %OrdinalValue{id: id} ->
-        {id, nil}
+        {%{field => id, normalized_field => normalized_avg}, nil}
 
       nil ->
-        {existing && Map.get(existing, field), "scale_conversion_failed"}
+        # conversion failed — leave both the ordinal value and the stored
+        # normalized value untouched
+        attrs = %{
+          field => existing && Map.get(existing, field),
+          normalized_field => existing && Map.get(existing, normalized_field)
+        }
+
+        {attrs, "scale_conversion_failed"}
     end
   end
 
-  defp do_upsert(scope, _parent, _student_id, field, target_value, target_error, existing)
+  defp do_upsert(scope, _parent, _student_id, attrs, target_error, existing)
        when not is_nil(existing) do
-    current_value = Map.get(existing, field)
+    unchanged? =
+      Enum.all?(attrs, fn {field, value} -> Map.get(existing, field) == value end) and
+        target_error == existing.calculation_error
 
-    if target_value == current_value and target_error == existing.calculation_error do
+    if unchanged? do
       :noop
     else
       existing
-      |> AssessmentPointEntry.changeset(%{
-        field => target_value,
-        :calculation_error => target_error
-      })
+      |> AssessmentPointEntry.changeset(Map.put(attrs, :calculation_error, target_error))
       |> Repo.update()
       |> log_upsert(scope, "UPDATE")
     end
   end
 
-  defp do_upsert(scope, parent, student_id, field, target_value, target_error, _existing) do
+  defp do_upsert(scope, parent, student_id, attrs, target_error, _existing) do
+    base = %{
+      assessment_point_id: parent.id,
+      student_id: student_id,
+      scale_id: parent.scale_id,
+      scale_type: parent.scale.type,
+      calculation_error: target_error
+    }
+
     %AssessmentPointEntry{}
-    |> AssessmentPointEntry.changeset(%{
-      :assessment_point_id => parent.id,
-      :student_id => student_id,
-      :scale_id => parent.scale_id,
-      :scale_type => parent.scale.type,
-      field => target_value,
-      :calculation_error => target_error
-    })
+    |> AssessmentPointEntry.changeset(Map.merge(base, attrs))
     |> Repo.insert()
     |> log_upsert(scope, "CREATE")
   end

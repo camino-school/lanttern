@@ -142,6 +142,20 @@ defmodule Lanttern.AssessmentCompositionTest do
                  weight: 2.0
                })
     end
+
+    test "returns error changeset when the component is itself a composed assessment point" do
+      parent_ap = insert(:assessment_point)
+      composed_ap = insert(:assessment_point, uses_composition: true)
+
+      assert {:error, %Ecto.Changeset{} = changeset} =
+               AssessmentComposition.create_assessment_point_component(@staff_scope, %{
+                 parent_id: parent_ap.id,
+                 component_id: composed_ap.id,
+                 weight: 1.0
+               })
+
+      assert %{component_id: [_]} = errors_on(changeset)
+    end
   end
 
   describe "update_assessment_point_component/3" do
@@ -343,6 +357,20 @@ defmodule Lanttern.AssessmentCompositionTest do
 
       assert AssessmentComposition.list_assessment_point_components(@staff_scope, parent_ap.id) ==
                []
+    end
+
+    test "returns error changeset when a component is itself a composed assessment point" do
+      parent_ap = insert(:assessment_point)
+      composed_ap = insert(:assessment_point, uses_composition: true)
+
+      assert {:error, %Ecto.Changeset{} = changeset} =
+               AssessmentComposition.replace_assessment_point_components(
+                 @staff_scope,
+                 parent_ap.id,
+                 [%{component_id: composed_ap.id, weight: 1.0}]
+               )
+
+      assert %{component_id: [_]} = errors_on(changeset)
     end
 
     test "returns error changeset on invalid component attrs" do
@@ -867,6 +895,111 @@ defmodule Lanttern.AssessmentCompositionTest do
       assert entry.ordinal_value_id == expected_id
       assert entry.scale_id == ordinal_scale.id
       assert is_nil(entry.calculation_error)
+    end
+
+    test "persists the precise normalized average alongside the ordinal value", %{
+      parent: parent,
+      student: student
+    } do
+      numeric_scale = insert(:scale, type: "numeric", max_score: 100.0)
+      child_1 = insert(:assessment_point, scale: numeric_scale)
+      child_2 = insert(:assessment_point, scale: numeric_scale)
+
+      insert(:assessment_point_component, parent: parent, component: child_1, weight: 1.0)
+      insert(:assessment_point_component, parent: parent, component: child_2, weight: 3.0)
+
+      # weighted avg = (0.8*1 + 0.6*3) / 4 = 0.65
+      insert(:assessment_point_entry,
+        assessment_point: child_1,
+        student: student,
+        scale: numeric_scale,
+        scale_type: "numeric",
+        score: 80.0
+      )
+
+      insert(:assessment_point_entry,
+        assessment_point: child_2,
+        student: student,
+        scale: numeric_scale,
+        scale_type: "numeric",
+        score: 60.0
+      )
+
+      assert :ok =
+               AssessmentComposition.recalculate_composed_entries(
+                 %Scope{},
+                 [{parent.id, student.id}],
+                 :teacher_entry
+               )
+
+      entry =
+        Repo.get_by!(AssessmentPointEntry,
+          assessment_point_id: parent.id,
+          student_id: student.id
+        )
+
+      assert entry.normalized_value == 0.65
+      # the precise value falls within the resolved ordinal value's band, not the
+      # ordinal value's representative normalized_value
+      refute entry.normalized_value == entry.ordinal_value_id
+    end
+
+    test "persists student_normalized_value for the student domain", %{
+      parent: parent,
+      student: student
+    } do
+      numeric_scale = insert(:scale, type: "numeric", max_score: 100.0)
+      child = insert(:assessment_point, scale: numeric_scale)
+      insert(:assessment_point_component, parent: parent, component: child, weight: 1.0)
+
+      insert(:assessment_point_entry,
+        assessment_point: child,
+        student: student,
+        scale: numeric_scale,
+        scale_type: "numeric",
+        student_score: 70.0
+      )
+
+      assert :ok =
+               AssessmentComposition.recalculate_composed_entries(
+                 %Scope{},
+                 [{parent.id, student.id}],
+                 :student_entry
+               )
+
+      entry =
+        Repo.get_by!(AssessmentPointEntry,
+          assessment_point_id: parent.id,
+          student_id: student.id
+        )
+
+      assert entry.student_normalized_value == 0.7
+      assert is_nil(entry.normalized_value)
+    end
+
+    test "a manual ordinal edit clears a previously stored normalized_value", %{
+      ordinal_scale: ordinal_scale,
+      ov_levels: ov_levels,
+      parent: parent,
+      student: student
+    } do
+      entry =
+        insert(:assessment_point_entry,
+          assessment_point: parent,
+          student: student,
+          scale: ordinal_scale,
+          scale_type: "ordinal",
+          ordinal_value: Enum.at(ov_levels, 2),
+          normalized_value: 0.55
+        )
+
+      assert {:ok, updated} =
+               entry
+               |> AssessmentPointEntry.changeset(%{ordinal_value_id: Enum.at(ov_levels, 4).id})
+               |> Repo.update()
+
+      assert updated.ordinal_value_id == Enum.at(ov_levels, 4).id
+      assert is_nil(updated.normalized_value)
     end
 
     test "uses ordinal child entries' normalized_value", %{

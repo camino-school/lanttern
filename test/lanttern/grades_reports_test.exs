@@ -1294,6 +1294,81 @@ defmodule Lanttern.GradesReportsTest do
                )
     end
 
+    test "calculate_student_grade/4 prefers the entry's stored normalized_value over the ordinal value's representative value" do
+      # marking ordinal value represents 0.5, but the entry was computed by a
+      # composition and stores the precise 0.9 — the grade composition must use
+      # 0.9, not 0.5
+      marking_scale = insert(:scale, type: "ordinal", breakpoints: [0.5])
+      ov_repr = insert(:ordinal_value, scale_id: marking_scale.id, normalized_value: 0.5)
+
+      # grading scale: 0.9 → top value (index 1); 0.5 → bottom value (index 0)
+      grading_scale = insert(:scale, type: "ordinal", breakpoints: [0.6])
+      ov_bottom = insert(:ordinal_value, scale_id: grading_scale.id, normalized_value: 0.0)
+      ov_top = insert(:ordinal_value, scale_id: grading_scale.id, normalized_value: 1.0)
+
+      strand = LearningContextFixtures.strand_fixture()
+
+      goal =
+        AssessmentsFixtures.assessment_point_fixture(%{
+          strand_id: strand.id,
+          scale_id: marking_scale.id
+        })
+
+      subject = TaxonomyFixtures.subject_fixture()
+      cycle = SchoolsFixtures.cycle_fixture()
+      grades_report = grades_report_fixture(%{scale_id: grading_scale.id})
+
+      grades_report_cycle =
+        grades_report_cycle_fixture(%{
+          school_cycle_id: cycle.id,
+          grades_report_id: grades_report.id
+        })
+
+      grades_report_subject =
+        grades_report_subject_fixture(%{
+          subject_id: subject.id,
+          grades_report_id: grades_report.id
+        })
+
+      GradingFixtures.grade_component_fixture(%{
+        grades_report_id: grades_report.id,
+        grades_report_cycle_id: grades_report_cycle.id,
+        grades_report_subject_id: grades_report_subject.id,
+        assessment_point_id: goal.id,
+        weight: 1.0
+      })
+
+      student = SchoolsFixtures.student_fixture()
+
+      insert(:assessment_point_entry,
+        student: student,
+        assessment_point: goal,
+        scale: marking_scale,
+        scale_type: "ordinal",
+        ordinal_value_id: ov_repr.id,
+        normalized_value: 0.9
+      )
+
+      expected_std_id = student.id
+      expected_ov_id = ov_top.id
+
+      assert {:ok,
+              %StudentGradesReportEntry{
+                student_id: ^expected_std_id,
+                normalized_value: 0.9,
+                ordinal_value_id: ^expected_ov_id
+              },
+              :created} =
+               GradesReports.calculate_student_grade(
+                 student.id,
+                 grades_report.id,
+                 grades_report_cycle.id,
+                 grades_report_subject.id
+               )
+
+      refute expected_ov_id == ov_bottom.id
+    end
+
     test "calculate_student_grades/3 returns the correct student grades report entries for given cycle" do
       # marking scale
       # ordinal scale, 4 levels

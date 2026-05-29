@@ -953,7 +953,7 @@ defmodule Lanttern.GradesReports do
   defp get_normalized_value_from_entry(%AssessmentPointEntry{is_missing: true}), do: 0.0
 
   defp get_normalized_value_from_entry(%AssessmentPointEntry{scale_type: "ordinal"} = entry),
-    do: entry.ordinal_value.normalized_value
+    do: entry.normalized_value || entry.ordinal_value.normalized_value
 
   defp get_normalized_value_from_entry(%AssessmentPointEntry{scale_type: "numeric"} = entry),
     do: entry.score / entry.scale.max_score
