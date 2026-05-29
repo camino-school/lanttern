@@ -648,6 +648,51 @@ defmodule Lanttern.AssessmentCompositionTest do
     end
   end
 
+  describe "list_compositions_using_component/2" do
+    test "returns the composed parent assessment points using the given AP as a component" do
+      component_ap = insert(:assessment_point)
+      parent_ap_1 = insert(:assessment_point)
+      parent_ap_2 = insert(:assessment_point)
+      other_ap = insert(:assessment_point)
+
+      insert(:assessment_point_component, parent: parent_ap_1, component: component_ap)
+      insert(:assessment_point_component, parent: parent_ap_2, component: component_ap)
+      insert(:assessment_point_component, parent: other_ap, component: insert(:assessment_point))
+
+      result =
+        AssessmentComposition.list_compositions_using_component(@staff_scope, component_ap.id)
+
+      assert Enum.map(result, & &1.id) |> Enum.sort() ==
+               Enum.sort([parent_ap_1.id, parent_ap_2.id])
+    end
+
+    test "preloads curriculum_item with curriculum_component for display" do
+      component_ap = insert(:assessment_point)
+      parent_ap = insert(:assessment_point)
+      insert(:assessment_point_component, parent: parent_ap, component: component_ap)
+
+      assert [parent] =
+               AssessmentComposition.list_compositions_using_component(
+                 @staff_scope,
+                 component_ap.id
+               )
+
+      assert %Lanttern.Curricula.CurriculumItem{} = parent.curriculum_item
+
+      assert %Lanttern.Curricula.CurriculumComponent{} =
+               parent.curriculum_item.curriculum_component
+    end
+
+    test "returns empty list when the assessment point is not a component" do
+      assessment_point = insert(:assessment_point)
+
+      assert AssessmentComposition.list_compositions_using_component(
+               @staff_scope,
+               assessment_point.id
+             ) == []
+    end
+  end
+
   describe "recalculate_composed_entries/3" do
     setup do
       scale = insert(:scale, type: "numeric", max_score: 100.0)

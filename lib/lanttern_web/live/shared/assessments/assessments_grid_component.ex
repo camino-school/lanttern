@@ -183,6 +183,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
         module={AssessmentPointCommandPaletteComponent}
         id={"#{@id}-ap-command-palette"}
         ap={@command_palette_ap}
+        current_scope={@current_scope}
         notify_component={@myself}
         on_cancel={JS.push("close_command_palette", target: @myself)}
       />

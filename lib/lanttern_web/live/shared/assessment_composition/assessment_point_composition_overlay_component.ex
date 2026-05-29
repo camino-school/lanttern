@@ -103,13 +103,19 @@ defmodule LantternWeb.AssessmentComposition.AssessmentPointCompositionOverlayCom
               <input
                 type="checkbox"
                 checked={sibling_ap.id in @selected_ids}
+                disabled={sibling_ap.uses_composition}
                 phx-click={JS.push("toggle_ap", value: %{id: sibling_ap.id}, target: @myself)}
-                class="appearance-none rounded-xs size-5 border-2 border-ltrn-subtle checked:border-ltrn-primary checked:bg-ltrn-primary indeterminate:border-ltrn-dark indeterminate:bg-ltrn-dark focus:outline-2 focus:outline-offset-2 focus:outline-ltrn-primary disabled:border-ltrn-subtle disabled:bg-ltrn-light disabled:checked:bg-ltrn-light forced-colors:appearance-auto"
+                class="appearance-none rounded-xs size-5 border-2 border-ltrn-subtle checked:border-ltrn-primary checked:bg-ltrn-primary indeterminate:border-ltrn-dark indeterminate:bg-ltrn-dark focus:outline-2 focus:outline-offset-2 focus:outline-ltrn-primary disabled:opacity-50 forced-colors:appearance-auto"
               />
               <div class="flex-1 min-w-0">
-                <p>{ap_display_name(sibling_ap)}</p>
+                <p class={if(sibling_ap.uses_composition, do: "text-ltrn-subtle")}>
+                  {ap_display_name(sibling_ap)}
+                </p>
                 <p :if={sibling_ap.moment_id} class="mt-1 font-sans text-sm text-ltrn-subtle truncate">
                   {sibling_ap.moment.name}
+                </p>
+                <p :if={sibling_ap.uses_composition} class="mt-1 font-sans text-sm text-ltrn-subtle">
+                  {gettext("Composed assessment point — can't be part of another composition")}
                 </p>
               </div>
             </label>
@@ -267,9 +273,10 @@ defmodule LantternWeb.AssessmentComposition.AssessmentPointCompositionOverlayCom
 
     all_aps =
       (moment_aps ++ strand_aps)
-      # exclude the parent itself and any composed AP (a composed assessment
-      # point cannot be a component of another composition)
-      |> Enum.reject(&(&1.id == parent_id or &1.uses_composition))
+      # exclude only the parent itself; composed APs stay in the list but are
+      # rendered disabled (a composed AP cannot be a component of another
+      # composition)
+      |> Enum.reject(&(&1.id == parent_id))
       |> then(fn aps ->
         if scale_type == "numeric" do
           Enum.filter(aps, &match?(%{scale: %{type: "numeric"}}, &1))
@@ -308,14 +315,20 @@ defmodule LantternWeb.AssessmentComposition.AssessmentPointCompositionOverlayCom
   end
 
   def handle_event("toggle_ap", %{"id" => ap_id}, socket) do
-    selected_ids =
-      if ap_id in socket.assigns.selected_ids do
-        MapSet.delete(socket.assigns.selected_ids, ap_id)
-      else
-        MapSet.put(socket.assigns.selected_ids, ap_id)
-      end
+    # a composed AP can't be a component of another composition — ignore the
+    # toggle (the checkbox is already rendered disabled, this is defense in depth)
+    if composed_ap?(socket.assigns.all_aps, ap_id) do
+      {:noreply, socket}
+    else
+      selected_ids =
+        if ap_id in socket.assigns.selected_ids do
+          MapSet.delete(socket.assigns.selected_ids, ap_id)
+        else
+          MapSet.put(socket.assigns.selected_ids, ap_id)
+        end
 
-    {:noreply, assign(socket, :selected_ids, selected_ids)}
+      {:noreply, assign(socket, :selected_ids, selected_ids)}
+    end
   end
 
   def handle_event(
@@ -374,5 +387,9 @@ defmodule LantternWeb.AssessmentComposition.AssessmentPointCompositionOverlayCom
 
     notify(__MODULE__, {:deleted, ap.id}, socket.assigns)
     {:noreply, socket}
+  end
+
+  defp composed_ap?(all_aps, ap_id) do
+    Enum.any?(all_aps, &(&1.id == ap_id and &1.uses_composition))
   end
 end

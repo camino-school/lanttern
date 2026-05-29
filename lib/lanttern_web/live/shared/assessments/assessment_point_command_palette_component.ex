@@ -8,14 +8,18 @@ defmodule LantternWeb.Assessments.AssessmentPointCommandPaletteComponent do
   ### Required attrs
 
   - `:ap` - `AssessmentPoint` (needs `uses_composition`, `scale`, and `is_hidden`)
+  - `:current_scope` - `Scope` (used to check if the AP is itself a component)
   - `:on_cancel` - JS action to close the palette
   - `:notify_component` - parent LiveComponent CID (`@myself`)
   """
   use LantternWeb, :live_component
 
+  alias Lanttern.AssessmentComposition
   alias Lanttern.Assessments.AssessmentPoint
+  alias Lanttern.Identity.Scope
 
   attr :ap, AssessmentPoint, required: true
+  attr :current_scope, Scope, required: true
   attr :on_cancel, :any, required: true, doc: "JS action to close the palette"
   attr :notify_component, :any, required: true, doc: "parent LiveComponent CID (`@myself`)"
 
@@ -33,20 +37,37 @@ defmodule LantternWeb.Assessments.AssessmentPointCommandPaletteComponent do
           </div>
           <div class="border-t border-ltrn-light p-10">
             <%= if !@ap.uses_composition do %>
-              <.button type="button" phx-click="add_composition" phx-target={@myself}>
-                {gettext("Add grade composition")}
-              </.button>
-              <p class="mt-4">
-                <%= if @ap.scale.type == "numeric" do %>
+              <%= if @component_of == [] do %>
+                <.button type="button" phx-click="add_composition" phx-target={@myself}>
+                  {gettext("Add grade composition")}
+                </.button>
+                <p class="mt-4">
+                  <%= if @ap.scale.type == "numeric" do %>
+                    {gettext(
+                      "Use grade composition to calculate this assessment point's score from the sum of other assessment points' scores."
+                    )}
+                  <% else %>
+                    {gettext(
+                      "Use grade composition to calculate this assessment point's level from the weighted average of other assessment points."
+                    )}
+                  <% end %>
+                </p>
+              <% else %>
+                <.button type="button" disabled>
+                  {gettext("Add grade composition")}
+                </.button>
+                <p class="mt-4">
                   {gettext(
-                    "Use grade composition to calculate this assessment point's score from the sum of other assessment points' scores."
+                    "This assessment point is part of another grade composition, so it can't have its own grade composition."
                   )}
-                <% else %>
-                  {gettext(
-                    "Use grade composition to calculate this assessment point's level from the weighted average of other assessment points."
-                  )}
-                <% end %>
-              </p>
+                </p>
+                <p class="mt-4 font-sans text-sm">{gettext("Component of:")}</p>
+                <ul class="list-disc list-inside">
+                  <li :for={component <- @component_of} class="mt-2 font-sans text-sm">
+                    {ap_display_name(component)}
+                  </li>
+                </ul>
+              <% end %>
             <% else %>
               <.button
                 type="button"
@@ -96,6 +117,29 @@ defmodule LantternWeb.Assessments.AssessmentPointCommandPaletteComponent do
     </div>
     """
   end
+
+  @impl true
+  def update(assigns, socket) do
+    component_of =
+      AssessmentComposition.list_compositions_using_component(
+        assigns.current_scope,
+        assigns.ap.id
+      )
+
+    socket =
+      socket
+      |> assign(assigns)
+      |> assign(:component_of, component_of)
+
+    {:ok, socket}
+  end
+
+  # prefer the assessment point's name, falling back to its curriculum item
+  # (mirrors the palette title's `@ap.name || @ap.curriculum_item.name`)
+  defp ap_display_name(%{name: name}) when is_binary(name) and name != "", do: name
+
+  defp ap_display_name(ap),
+    do: "(#{ap.curriculum_item.curriculum_component.name}) #{ap.curriculum_item.name}"
 
   @impl true
   def handle_event("edit", _, socket) do

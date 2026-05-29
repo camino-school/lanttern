@@ -83,6 +83,15 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
               {@save_teacher_marking_error}
             </p>
           </.form>
+          <div
+            :if={@is_composed && @entry.normalized_value}
+            class="relative py-3 px-4 rounded-xs bg-ltrn-lightest font-mono text-sm tabular-nums"
+          >
+            {@entry.normalized_value}
+            <.tooltip id={"entry-#{@id}-normalized-value-tooltip"}>
+              {gettext("Calculated normalized value")}
+            </.tooltip>
+          </div>
           <.form
             :if={is_nil(@entry.ordinal_value_id) and is_nil(@entry.score)}
             for={@teacher_form}

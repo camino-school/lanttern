@@ -684,7 +684,7 @@ defmodule LantternWeb.CoreComponents do
   @button_themes %{
     "default" => [
       "border border-ltrn-darkest text-ltrn-darkest bg-transparent hover:bg-ltrn-darkest/10",
-      "disabled:text-ltrn-subtle disabled:bg-ltrn-darkest/10"
+      "disabled:border-ltrn-light disabled:text-ltrn-subtle disabled:bg-ltrn-lightest"
     ],
     "primary_light" => "bg-ltrn-mesh-cyan hover:bg-white text-ltrn-primary",
     "primary" => "bg-ltrn-darkest hover:bg-ltrn-darkest/90 text-white",

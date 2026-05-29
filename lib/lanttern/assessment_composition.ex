@@ -190,6 +190,27 @@ defmodule Lanttern.AssessmentComposition do
   end
 
   @doc """
+  Returns the composed (parent) assessment points that use the given assessment
+  point as a composition component.
+
+  Ordered for display and preloaded with `curriculum_item: :curriculum_component`
+  so callers can render a name/curriculum label. Used by the UI to explain why a
+  component assessment point can't have its own grade composition.
+  """
+  @spec list_compositions_using_component(Scope.t(), pos_integer()) :: [AssessmentPoint.t()]
+  def list_compositions_using_component(%Scope{} = _scope, component_ap_id) do
+    from(c in Component,
+      join: parent in AssessmentPoint,
+      on: parent.id == c.parent_id,
+      where: c.component_id == ^component_ap_id,
+      order_by: [asc_nulls_last: parent.moment_id, asc: parent.position],
+      select: parent
+    )
+    |> Repo.all()
+    |> Repo.preload(curriculum_item: :curriculum_component)
+  end
+
+  @doc """
   Recalculates composed assessment point entries for the given `{parent_id, student_id}` pairs.
 
   The `domain` argument selects the edit domain — teacher entries
