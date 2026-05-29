@@ -38,98 +38,69 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
           </div>
           <p>{@assessment_point.curriculum_item.name}</p>
         </.metadata>
-        <.form
-          for={@teacher_form}
-          phx-change="change_teacher_marking"
-          phx-submit="save_teacher_marking"
-          phx-target={@myself}
-          class="mt-10"
-        >
-          <.marking_input
-            scale={@assessment_point.scale}
-            ordinal_value_options={@ordinal_value_options}
-            form={@teacher_form}
-            assessment_view="teacher"
-            ov_style_map={@ov_style_map}
-            has_change={@has_teacher_change}
-            is_composed={@is_composed}
-          />
-          <p :if={@is_composed} class="mt-2 text-center text-ltrn-subtle">
-            {gettext("Manual input disabled (automatic calculation via grade composition)")}
-          </p>
-          <div
-            :if={@has_teacher_change}
-            class="p-2 rounded-sm mt-2 text-sm text-white text-center bg-ltrn-dark"
+        <div class="flex items-start gap-4 mt-10">
+          <.form
+            for={@teacher_form}
+            phx-change="change_teacher_marking"
+            phx-submit="save_teacher_marking"
+            phx-target={@myself}
+            class="flex-1 relative"
           >
-            <button class="underline hover:text-ltrn-light">
-              {gettext("Save")}
-            </button>
-            {gettext("or")}
-            <button
-              type="button"
-              theme="ghost"
-              class="underline hover:text-ltrn-light"
-              phx-click="cancel_change_teacher_marking"
-              phx-target={@myself}
+            <.marking_input
+              scale={@assessment_point.scale}
+              ordinal_value_options={@ordinal_value_options}
+              form={@teacher_form}
+              assessment_view="teacher"
+              ov_style_map={@ov_style_map}
+              has_change={@has_teacher_change}
+              is_composed={@is_composed}
+            />
+            <.tooltip :if={@is_composed} id={"entry-#{@id}-teacher-disabled-tooltip"}>
+              {gettext("Manual input disabled (automatic calculation via grade composition)")}
+            </.tooltip>
+            <div
+              :if={@has_teacher_change}
+              class="p-2 rounded-sm mt-2 text-sm text-white text-center bg-ltrn-dark"
             >
-              {gettext("discard changes")}
-            </button>
-          </div>
-          <p
-            :if={@save_teacher_marking_error}
-            class="mt-2 text-sm text-center text-ltrn-alert-accent"
+              <button class="underline hover:text-ltrn-light">
+                {gettext("Save")}
+              </button>
+              {gettext("or")}
+              <button
+                type="button"
+                theme="ghost"
+                class="underline hover:text-ltrn-light"
+                phx-click="cancel_change_teacher_marking"
+                phx-target={@myself}
+              >
+                {gettext("discard changes")}
+              </button>
+            </div>
+            <p
+              :if={@save_teacher_marking_error}
+              class="mt-2 text-sm text-center text-ltrn-alert-accent"
+            >
+              {@save_teacher_marking_error}
+            </p>
+          </.form>
+          <.form
+            :if={is_nil(@entry.ordinal_value_id) and is_nil(@entry.score)}
+            for={@teacher_form}
+            phx-change="toggle_is_missing"
+            phx-target={@myself}
+            class={[
+              "p-2.5 rounded-sm",
+              if(@entry.is_missing, do: "bg-ltrn-alert-lighter")
+            ]}
           >
-            {@save_teacher_marking_error}
-          </p>
-        </.form>
-        <%!-- <div class="p-4 rounded-sm mb-6 bg-ltrn-diff-lightest">
-          <.input
-            field={@form[:is_differentiation]}
-            type="toggle"
-            theme="diff"
-            label={gettext("Differentiation")}
-          />
-          <p class="mt-4 text-sm">
-            {gettext(
-              "Use the differentiation flag above when creating assessment points related to a curriculum level differentiation."
-            )}
-          </p>
-        </div> --%>
-        <.form
-          :if={@assessment_point.uses_composition}
-          for={@teacher_form}
-          phx-change="toggle_use_manual_input"
-          phx-target={@myself}
-          class="p-4 rounded-sm mt-6 bg-ltrn-lightest"
-        >
-          <.input
-            field={@teacher_form[:use_manual_input]}
-            type="toggle"
-            label={gettext("Use manual input")}
-          />
-          <p class="mt-4">
-            {gettext(
-              "When enabled, this entry is edited manually and is not recalculated automatically from its grade composition components."
-            )}
-          </p>
-        </.form>
-        <.form
-          :if={is_nil(@entry.ordinal_value_id) and is_nil(@entry.score)}
-          for={@teacher_form}
-          phx-change="toggle_is_missing"
-          phx-target={@myself}
-          class={[
-            "p-4 rounded-sm mt-6",
-            if(@entry.is_missing, do: "bg-ltrn-alert-lighter", else: "bg-ltrn-lightest")
-          ]}
-        >
-          <.input
-            field={@teacher_form[:is_missing]}
-            type="toggle"
-            label={gettext("Lack of evidence")}
-            theme="alert"
-          />
-        </.form>
+            <.input
+              field={@teacher_form[:is_missing]}
+              type="toggle"
+              label={gettext("Lack of evidence")}
+              theme="alert"
+            />
+          </.form>
+        </div>
         <.comment_area
           note={@entry.report_note}
           is_editing={@is_editing_note}
@@ -140,7 +111,59 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
           on_cancel={JS.push("cancel_edit_note", target: @myself)}
           on_save={JS.push("save_note", target: @myself)}
           on_change={JS.push("validate_note", target: @myself)}
+          class="mt-4"
+        />
+        <div :if={@assessment_point.uses_composition} class="p-4 rounded-sm mt-4 bg-ltrn-lightest">
+          <h6 class="font-display font-bold">{gettext("Grade composition")}</h6>
+          <p
+            :if={@is_composed}
+            class="p-2 rounded-sm mt-4 text-white bg-ltrn-dark"
+          >
+            {gettext("Grades are calculated automatically")}
+            <span :if={!@is_composed}>({gettext("disabled")})</span>
+          </p>
+          <p :if={!@is_composed} class="mt-4">
+            {gettext("Using manual input. Automatic calculation is disabled for this entry.")}
+          </p>
+          <div class="flex items-center gap-2 mt-6">
+            <%= if @is_composed do %>
+              <.button
+                size="sm"
+                icon_name="hero-arrow-path-micro"
+                phx-click="recalculate"
+                phx-target={@myself}
+              >
+                {gettext("Recalculate")}
+              </.button>
+              <.button
+                size="sm"
+                icon_name="hero-link-slash-micro"
+                phx-click="use_manual_input"
+                phx-target={@myself}
+              >
+                {gettext("Use manual input")}
+              </.button>
+            <% else %>
+              <.button
+                size="sm"
+                icon_name="hero-link-micro"
+                phx-click="use_automatic_calculation"
+                phx-target={@myself}
+              >
+                {gettext("Use automatic calculation")}
+              </.button>
+            <% end %>
+          </div>
+        </div>
+        <.live_component
+          module={AttachmentAreaComponent}
+          id={"assessment-point-entry-#{@id}-evidences"}
           class="mt-10"
+          current_user={@current_user}
+          assessment_point_entry_id={@entry.id}
+          title={gettext("Assessment point entry's evidences")}
+          allow_editing
+          notify_component={@myself}
         />
         <.diff_rubric_area
           id={@id}
@@ -152,18 +175,7 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
           on_cancel={JS.push("cancel_edit_diff_rubric", target: @myself)}
           on_save={JS.push("save_diff_rubric", target: @myself)}
         />
-        <.live_component
-          :if={@entry && @entry.id}
-          module={AttachmentAreaComponent}
-          id="assessment-point-entry-evidences"
-          class="mt-10"
-          current_user={@current_user}
-          assessment_point_entry_id={@entry.id}
-          title={gettext("Assessment point entry's evidences")}
-          allow_editing
-          notify_component={@myself}
-        />
-        <div class="p-6 rounded mt-10 bg-ltrn-student-lightest">
+        <div class="p-4 rounded mt-10 bg-ltrn-student-lightest">
           <h6 class="font-display font-bold text-ltrn-student-dark">
             {gettext("Student self-assessment")}
           </h6>
@@ -172,7 +184,7 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
             phx-change="change_student_marking"
             phx-submit="save_student_marking"
             phx-target={@myself}
-            class="mt-6"
+            class="relative mt-4"
           >
             <.marking_input
               scale={@assessment_point.scale}
@@ -183,9 +195,9 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
               has_change={@has_student_change}
               is_composed={@is_composed}
             />
-            <p :if={@is_composed} class="mt-2 text-center text-ltrn-subtle">
+            <.tooltip :if={@is_composed} id={"entry-#{@id}-student-disabled-tooltip"}>
               {gettext("Manual input disabled (automatic calculation via grade composition)")}
-            </p>
+            </.tooltip>
             <div
               :if={@has_student_change}
               class="p-2 rounded-sm mt-2 text-sm text-white text-center bg-ltrn-student-dark"
@@ -222,7 +234,7 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
             on_cancel={JS.push("cancel_edit_student_note", target: @myself)}
             on_save={JS.push("save_student_note", target: @myself)}
             on_change={JS.push("validate_student_note", target: @myself)}
-            class="mt-6"
+            class="mt-4"
           />
         </div>
       </.modal>
@@ -393,7 +405,10 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
   def diff_rubric_area(assigns) do
     ~H"""
     <div class="p-4 rounded-sm mt-10 bg-ltrn-diff-lightest">
-      <div class="flex items-center gap-2 mb-4 font-bold text-sm">
+      <h6 class="font-display font-bold text-ltrn-diff-dark">
+        {gettext("Differentiation")}
+      </h6>
+      <div class="flex items-center gap-2 my-4 font-bold text-sm">
         <.icon name="hero-view-columns" class="w-6 h-6 text-ltrn-diff-accent" />
         <span class="text-ltrn-diff-dark">{gettext("Differentiation rubric")}</span>
       </div>
@@ -770,25 +785,24 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
     end
   end
 
-  def handle_event("toggle_use_manual_input", %{"assessment_point_entry" => params}, socket) do
-    opts = [log_profile_id: socket.assigns.current_user.current_profile_id]
+  def handle_event("use_manual_input", _, socket) do
+    {:noreply, set_use_manual_input(socket, true)}
+  end
 
-    case Assessments.update_assessment_point_entry(socket.assigns.entry, params, opts) do
-      {:ok, entry} ->
-        entry = maybe_restore_composed_value(entry, socket.assigns.current_user)
-        notify(__MODULE__, {:change, entry}, socket.assigns)
+  def handle_event("use_automatic_calculation", _, socket) do
+    {:noreply, set_use_manual_input(socket, false)}
+  end
 
-        socket =
-          socket
-          |> assign(:entry, entry)
-          |> assign_is_composed()
-          |> assign_forms()
+  def handle_event("recalculate", _, socket) do
+    entry = recalculate_entry(socket.assigns.entry, socket.assigns.current_user)
+    notify(__MODULE__, {:change, entry}, socket.assigns)
 
-        {:noreply, socket}
+    socket =
+      socket
+      |> assign(:entry, entry)
+      |> assign_forms()
 
-      {:error, _} ->
-        {:noreply, socket}
-    end
+    {:noreply, socket}
   end
 
   def handle_event("edit_note", _, socket),
@@ -981,9 +995,33 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
     "background-color: #{ov.bg_color}; color: #{ov.text_color}"
   end
 
+  defp set_use_manual_input(socket, value) do
+    opts = [log_profile_id: socket.assigns.current_user.current_profile_id]
+    params = %{"use_manual_input" => value}
+
+    case Assessments.update_assessment_point_entry(socket.assigns.entry, params, opts) do
+      {:ok, entry} ->
+        entry = maybe_restore_composed_value(entry, socket.assigns.current_user)
+        notify(__MODULE__, {:change, entry}, socket.assigns)
+
+        socket
+        |> assign(:entry, entry)
+        |> assign_is_composed()
+        |> assign_forms()
+
+      {:error, _} ->
+        socket
+    end
+  end
+
   # when manual input is switched back off, recompute the composed value
   # immediately (both domains) and reload the entry to reflect it in the form
-  defp maybe_restore_composed_value(%{use_manual_input: false} = entry, current_user) do
+  defp maybe_restore_composed_value(%{use_manual_input: false} = entry, current_user),
+    do: recalculate_entry(entry, current_user)
+
+  defp maybe_restore_composed_value(entry, _current_user), do: entry
+
+  defp recalculate_entry(entry, current_user) do
     scope = %Scope{profile_id: current_user.current_profile_id}
 
     Enum.each([:teacher_entry, :student_entry], fn domain ->
@@ -996,8 +1034,6 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
 
     Lanttern.Repo.reload!(entry)
   end
-
-  defp maybe_restore_composed_value(entry, _current_user), do: entry
 
   defp teacher_value_changed?(%{scale_type: "ordinal"} = entry, params),
     do: "#{entry.ordinal_value_id}" != params["ordinal_value_id"]

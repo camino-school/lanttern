@@ -748,6 +748,7 @@ defmodule LantternWeb.FormComponents do
       class={[
         "appearance-none block w-full rounded-xs border-0 shadown-sm ring-1 ring-ltrn-lighter sm:text-sm",
         "focus:ring-2 focus:ring-ltrn-primary focus:ring-inset",
+        "disabled:opacity-60",
         @class
       ]}
       multiple={@multiple}

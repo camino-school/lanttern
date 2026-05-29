@@ -48,15 +48,26 @@ defmodule LantternWeb.Assessments.AssessmentPointCommandPaletteComponent do
                 <% end %>
               </p>
             <% else %>
-              <.button
-                type="button"
-                theme="primary"
-                icon_name="hero-calculator-micro"
-                phx-click="manage_composition"
-                phx-target={@myself}
-              >
-                {gettext("Manage grade composition")}
-              </.button>
+              <div class="flex items-center gap-2">
+                <.button
+                  type="button"
+                  theme="primary"
+                  icon_name="hero-calculator-micro"
+                  phx-click="manage_composition"
+                  phx-target={@myself}
+                >
+                  {gettext("Manage grade composition")}
+                </.button>
+                <.button
+                  type="button"
+                  theme="ghost"
+                  icon_name="hero-arrow-path-mini"
+                  phx-click="recalculate_all"
+                  phx-target={@myself}
+                >
+                  {gettext("Recalculate all")}
+                </.button>
+              </div>
               <p class="mt-4">
                 <%= if @ap.scale.type == "numeric" do %>
                   {gettext("This assessment point uses a sum-based grade composition.")}
@@ -115,6 +126,11 @@ defmodule LantternWeb.Assessments.AssessmentPointCommandPaletteComponent do
 
   def handle_event("toggle_hidden", _, socket) do
     notify(__MODULE__, {:toggle_hidden}, socket.assigns)
+    {:noreply, socket}
+  end
+
+  def handle_event("recalculate_all", _, socket) do
+    notify(__MODULE__, {:recalculate_all}, socket.assigns)
     {:noreply, socket}
   end
 end
