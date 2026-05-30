@@ -52,7 +52,11 @@ defmodule LantternWeb.GradingComponents do
     """
   end
 
-  defp ov_short(%{short_name: short_name, name: name}),
+  @doc """
+  Returns an ordinal value's short label — its `short_name`, falling back to the
+  first three characters of its `name`.
+  """
+  def ov_short(%{short_name: short_name, name: name}),
     do: short_name || String.slice(name, 0..2)
 
   defp ov_list_label(ordinal_values),

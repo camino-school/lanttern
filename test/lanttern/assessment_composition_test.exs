@@ -1399,4 +1399,168 @@ defmodule Lanttern.AssessmentCompositionTest do
       assert is_nil(entry.ordinal_value_id)
     end
   end
+
+  describe "get_composition_breakdown/3" do
+    test "returns the average-based (ordinal) breakdown with rows, total weight and composed summary" do
+      parent_scale = insert(:scale, type: "ordinal", breakpoints: [0.2, 0.4, 0.6, 0.8])
+
+      parent_ovs =
+        for {name, n} <- [{"L1", 0.0}, {"L2", 0.25}, {"L3", 0.5}, {"L4", 0.75}, {"L5", 1.0}] do
+          insert(:ordinal_value, scale: parent_scale, name: name, normalized_value: n)
+        end
+
+      parent = insert(:assessment_point, uses_composition: true, scale: parent_scale)
+      student = insert(:student)
+
+      child_scale = insert(:scale, type: "ordinal", breakpoints: [0.5])
+
+      ov_half =
+        insert(:ordinal_value,
+          scale: child_scale,
+          name: "Progressing",
+          short_name: "Pro",
+          normalized_value: 0.5
+        )
+
+      ov_high =
+        insert(:ordinal_value,
+          scale: child_scale,
+          name: "Achieving",
+          short_name: "Ach",
+          normalized_value: 0.75
+        )
+
+      child_1 = insert(:assessment_point, scale: child_scale)
+      child_2 = insert(:assessment_point, scale: child_scale)
+      child_3 = insert(:assessment_point, scale: child_scale)
+      child_4 = insert(:assessment_point, scale: child_scale)
+
+      insert(:assessment_point_component, parent: parent, component: child_1, weight: 1.0)
+      insert(:assessment_point_component, parent: parent, component: child_2, weight: 1.0)
+      insert(:assessment_point_component, parent: parent, component: child_3, weight: 2.0)
+      insert(:assessment_point_component, parent: parent, component: child_4, weight: 1.0)
+
+      insert(:assessment_point_entry,
+        assessment_point: child_1,
+        student: student,
+        scale: child_scale,
+        scale_type: "ordinal",
+        ordinal_value: ov_half
+      )
+
+      insert(:assessment_point_entry,
+        assessment_point: child_2,
+        student: student,
+        scale: child_scale,
+        scale_type: "ordinal",
+        ordinal_value: ov_high
+      )
+
+      insert(:assessment_point_entry,
+        assessment_point: child_3,
+        student: student,
+        scale: child_scale,
+        scale_type: "ordinal",
+        ordinal_value: ov_half
+      )
+
+      # child_4: no entry → excluded from the weighted average
+
+      # weighted avg = (0.5*1 + 0.75*1 + 0.5*2) / (1+1+2) = 2.25 / 4 = 0.5625
+      :ok =
+        AssessmentComposition.recalculate_composed_entries(
+          %Scope{},
+          [{parent.id, student.id}],
+          :teacher_entry
+        )
+
+      breakdown =
+        AssessmentComposition.get_composition_breakdown(@staff_scope, parent.id, student.id)
+
+      assert breakdown.scale_type == "ordinal"
+      assert breakdown.total_weight == 4.0
+
+      assert [_, _, _, _] = breakdown.components
+      rows = Map.new(breakdown.components, &{&1.assessment_point.id, &1})
+
+      assert rows[child_1.id].weight == 1.0
+      assert rows[child_1.id].ordinal_value.id == ov_half.id
+      assert rows[child_1.id].normalized_value == 0.5
+
+      assert rows[child_2.id].ordinal_value.id == ov_high.id
+      assert rows[child_2.id].normalized_value == 0.75
+
+      assert rows[child_3.id].weight == 2.0
+      assert rows[child_3.id].normalized_value == 0.5
+
+      assert is_nil(rows[child_4.id].ordinal_value)
+      assert is_nil(rows[child_4.id].normalized_value)
+
+      assert breakdown.composed.normalized_value == 0.5625
+      assert breakdown.composed.ordinal_value.id == Enum.at(parent_ovs, 2).id
+    end
+
+    test "returns the sum-based (numeric) breakdown with scores, max scores and composed summary" do
+      parent_scale = insert(:scale, type: "numeric", max_score: 100.0)
+      parent = insert(:assessment_point, uses_composition: true, scale: parent_scale)
+      student = insert(:student)
+
+      scale_20 = insert(:scale, type: "numeric", max_score: 20.0)
+      scale_30 = insert(:scale, type: "numeric", max_score: 30.0)
+      scale_40 = insert(:scale, type: "numeric", max_score: 40.0)
+
+      child_1 = insert(:assessment_point, scale: scale_20)
+      child_2 = insert(:assessment_point, scale: scale_30)
+      child_3 = insert(:assessment_point, scale: scale_40)
+
+      insert(:assessment_point_component, parent: parent, component: child_1, weight: 1.0)
+      insert(:assessment_point_component, parent: parent, component: child_2, weight: 1.0)
+      insert(:assessment_point_component, parent: parent, component: child_3, weight: 1.0)
+
+      insert(:assessment_point_entry,
+        assessment_point: child_1,
+        student: student,
+        scale: scale_20,
+        scale_type: "numeric",
+        score: 15.0
+      )
+
+      insert(:assessment_point_entry,
+        assessment_point: child_2,
+        student: student,
+        scale: scale_30,
+        scale_type: "numeric",
+        score: 23.0
+      )
+
+      # child_3: no entry
+
+      :ok =
+        AssessmentComposition.recalculate_composed_entries(
+          %Scope{},
+          [{parent.id, student.id}],
+          :teacher_entry
+        )
+
+      breakdown =
+        AssessmentComposition.get_composition_breakdown(@staff_scope, parent.id, student.id)
+
+      assert breakdown.scale_type == "numeric"
+
+      assert [_, _, _] = breakdown.components
+      rows = Map.new(breakdown.components, &{&1.assessment_point.id, &1})
+
+      assert rows[child_1.id].score == 15.0
+      assert rows[child_1.id].assessment_point.scale.max_score == 20.0
+      assert rows[child_2.id].score == 23.0
+      assert rows[child_2.id].assessment_point.scale.max_score == 30.0
+
+      assert is_nil(rows[child_3.id].score)
+      assert rows[child_3.id].assessment_point.scale.max_score == 40.0
+
+      # composed = sum of child scores (15 + 23), with the parent scale max
+      assert breakdown.composed.score == 38.0
+      assert breakdown.composed.max_score == 100.0
+    end
+  end
 end

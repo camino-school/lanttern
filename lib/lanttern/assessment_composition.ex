@@ -211,6 +211,114 @@ defmodule Lanttern.AssessmentComposition do
   end
 
   @doc """
+  Returns the teacher-domain composition breakdown for a composed (parent)
+  assessment point and student, for display in the UI.
+
+  The returned map contains:
+
+    * `:scale_type` — the parent scale type (`"numeric"` for sum-based,
+      `"ordinal"` for average-based compositions)
+    * `:components` — one row per composition component, each a map with
+      `:assessment_point`, `:weight`, `:ordinal_value`, `:score`,
+      `:normalized_value` (0–1, or `nil` when the component has no value),
+      `:is_missing` and `:has_marking`
+    * `:total_weight` — the sum of the weights that actually contribute to the
+      average (components with a numeric normalized value), mirroring the
+      denominator used by the average composition calculation
+    * `:composed` — the composed (parent) entry summary: `:ordinal_value`,
+      `:score`, `:normalized_value` and the parent scale `:max_score`
+
+  Only the teacher edit domain is currently supported (the student domain is a
+  straightforward extension following the same field mapping used by
+  `recalculate_composed_entries/3`).
+  """
+  @spec get_composition_breakdown(Scope.t(), pos_integer(), pos_integer()) :: %{
+          scale_type: String.t(),
+          components: [map()],
+          total_weight: float(),
+          composed: map()
+        }
+  def get_composition_breakdown(%Scope{} = scope, parent_id, student_id) do
+    parent =
+      AssessmentPoint
+      |> Repo.get(parent_id)
+      |> Repo.preload(:scale)
+
+    components = list_assessment_point_components(scope, parent_id)
+    component_ids = Enum.map(components, & &1.component_id)
+
+    entries_by_ap =
+      from(e in AssessmentPointEntry,
+        where: e.assessment_point_id in ^component_ids and e.student_id == ^student_id,
+        preload: [:scale, :ordinal_value]
+      )
+      |> Repo.all()
+      |> Map.new(&{&1.assessment_point_id, &1})
+
+    rows = Enum.map(components, &build_breakdown_row(&1, entries_by_ap))
+
+    total_weight =
+      rows
+      |> Enum.filter(&is_number(&1.normalized_value))
+      |> Enum.reduce(0.0, fn row, acc -> acc + row.weight end)
+
+    %{
+      scale_type: parent.scale.type,
+      components: rows,
+      total_weight: total_weight,
+      composed: build_composed_summary(parent, parent_id, student_id)
+    }
+  end
+
+  defp build_breakdown_row(component, entries_by_ap) do
+    case Map.get(entries_by_ap, component.component_id) do
+      nil ->
+        %{
+          assessment_point: component.component,
+          weight: component.weight,
+          ordinal_value: nil,
+          score: nil,
+          normalized_value: nil,
+          is_missing: false,
+          has_marking: false
+        }
+
+      entry ->
+        %{
+          assessment_point: component.component,
+          weight: component.weight,
+          ordinal_value: entry.ordinal_value,
+          score: entry.score,
+          normalized_value: normalized_value(entry, :teacher_entry),
+          is_missing: entry.is_missing,
+          has_marking: entry.has_marking
+        }
+    end
+  end
+
+  defp build_composed_summary(parent, parent_id, student_id) do
+    case get_existing_parent_entry(parent_id, student_id) do
+      nil ->
+        %{
+          ordinal_value: nil,
+          score: nil,
+          normalized_value: nil,
+          max_score: parent.scale.max_score
+        }
+
+      entry ->
+        entry = Repo.preload(entry, :ordinal_value)
+
+        %{
+          ordinal_value: entry.ordinal_value,
+          score: entry.score,
+          normalized_value: entry.normalized_value,
+          max_score: parent.scale.max_score
+        }
+    end
+  end
+
+  @doc """
   Recalculates composed assessment point entries for the given `{parent_id, student_id}` pairs.
 
   The `domain` argument selects the edit domain — teacher entries
