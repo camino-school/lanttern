@@ -1,5 +1,6 @@
 ---
 description: Review a GitHub PR by number against Lanttern's code quality standards. Usage: /pr-review #123
+disable-model-invocation: true
 ---
 
 ## Your task

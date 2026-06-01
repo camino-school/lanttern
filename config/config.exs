@@ -78,7 +78,7 @@ config :req_llm, openai_api_key: System.get_env("OPENAI_API_KEY")
 # Oban config
 config :lanttern, Oban,
   engine: Oban.Engines.Basic,
-  queues: [cleanup: 1, ai: 10],
+  queues: [cleanup: 1, ai: 10, assessments: 5],
   repo: Lanttern.Repo,
   plugins: [
     Oban.Plugins.Pruner,

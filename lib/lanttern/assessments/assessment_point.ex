@@ -53,7 +53,7 @@ defmodule Lanttern.Assessments.AssessmentPoint do
           entries: [AssessmentPointEntry.t()],
           grade_components: [GradeComponent.t()],
           classes: [Class.t()],
-          composition_type: :sum | :avg | nil,
+          uses_composition: boolean(),
           composition_components: [Component.t()] | Ecto.Association.NotLoaded.t(),
           inserted_at: DateTime.t(),
           updated_at: DateTime.t()
@@ -67,7 +67,7 @@ defmodule Lanttern.Assessments.AssessmentPoint do
     field :position, :integer, default: 0
     field :is_differentiation, :boolean, default: false
     field :is_hidden, :boolean, default: false
-    field :composition_type, Ecto.Enum, values: [:sum, :avg]
+    field :uses_composition, :boolean, default: false
 
     # create assessment point UI fields
     field :date, :date, virtual: true
@@ -99,8 +99,15 @@ defmodule Lanttern.Assessments.AssessmentPoint do
     timestamps()
   end
 
-  @doc false
-  def changeset(assessment, attrs) do
+  @doc """
+  Assessment point changeset.
+
+  `is_already_a_component` is determined by the caller (a context query). When it
+  is true and the change enables composition, the changeset is rejected: an
+  assessment point that is already a component of another composition cannot
+  itself become composed (cascading composition is not supported).
+  """
+  def changeset(assessment, attrs, is_already_a_component \\ false) do
     assessment
     |> cast(attrs, [
       :name,
@@ -119,11 +126,12 @@ defmodule Lanttern.Assessments.AssessmentPoint do
       :moment_id,
       :strand_id,
       :lesson_id,
-      :composition_type,
+      :uses_composition,
       :classes_ids,
       :students_ids
     ])
     |> validate_required([:curriculum_item_id, :scale_id])
+    |> validate_not_already_a_component(is_already_a_component)
     |> validate_and_build_datetime()
     |> put_classes()
     |> cast_entries()
@@ -151,6 +159,20 @@ defmodule Lanttern.Assessments.AssessmentPoint do
           "You may already have some entries for this assessment point. Changing the scale when entries exist is not allowed, as it would cause data loss."
         )
     )
+  end
+
+  defp validate_not_already_a_component(changeset, is_already_a_component) do
+    if get_change(changeset, :uses_composition) == true and is_already_a_component do
+      add_error(
+        changeset,
+        :uses_composition,
+        gettext(
+          "This assessment point is a component of another composition and cannot be composed"
+        )
+      )
+    else
+      changeset
+    end
   end
 
   defp validate_and_build_datetime(changeset) do

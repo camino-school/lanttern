@@ -75,11 +75,17 @@ const EntryCellHook = {
       if (this._mode === "cell") {
         e.preventDefault();
         this.el.focus();
+        // Ordinal (dropdown) cells enter edit mode on a single click;
+        // numeric cells stay in navigation mode and require double-click.
+        if (this.el.dataset.scaleType === "ordinal" && !this.el.dataset.isComposed) {
+          this._enterInput();
+        }
       }
     };
 
     this._onCellDblclick = (e) => {
       if (e.target.closest("button")) return;
+      if (this.el.dataset.isComposed) return;
       if (this._mode !== "input") this._enterInput();
     };
 
@@ -135,19 +141,25 @@ const EntryCellHook = {
         return;
       }
       if (e.key === "Enter" || e.key === " ") {
-        e.preventDefault();
-        this._enterInput();
-        return;
+        if (!this.el.dataset.isComposed) {
+          e.preventDefault();
+          this._enterInput();
+          return;
+        }
       }
       if (e.key === "Delete" || e.key === "Backspace") {
-        e.preventDefault();
-        this._clearAndEnterInput();
-        return;
+        if (!this.el.dataset.isComposed) {
+          e.preventDefault();
+          this._clearAndEnterInput();
+          return;
+        }
       }
       if (/^[0-9]$/.test(e.key) && this.el.dataset.scaleType === "numeric") {
-        e.preventDefault();
-        this._enterInput(e.key);
-        return;
+        if (!this.el.dataset.isComposed) {
+          e.preventDefault();
+          this._enterInput(e.key);
+          return;
+        }
       }
       const arrowDir = {
         ArrowUp: "up",

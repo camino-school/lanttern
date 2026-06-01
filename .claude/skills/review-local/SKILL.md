@@ -1,5 +1,6 @@
 ---
 description: Review the current branch locally against Lanttern's code quality standards before opening a PR. Usage: /review-local [base-branch] [--issues #12,#34]
+disable-model-invocation: true
 ---
 
 ## Your task

@@ -162,8 +162,7 @@ defmodule LantternWeb.Assessments.EntryParticleComponent do
   end
 
   defp get_particle_styles_and_text(_, %AssessmentPointEntry{is_missing: true}, _is_student, _) do
-    {"border border-ltrn-alert-accent text-ltrn-alert-accent", nil, "!",
-     gettext("Lack of evidence")}
+    {"bg-ltrn-alert-lighter text-ltrn-alert-accent", nil, "!", gettext("Lack of evidence")}
   end
 
   defp get_particle_styles_and_text(_, entry, is_student, _) do

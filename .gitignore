@@ -44,7 +44,6 @@ npm-debug.log
 .envrc
 
 # LLMs
-CLAUDE.md
 .windsurfrules
 .claude/settings.local.json
 

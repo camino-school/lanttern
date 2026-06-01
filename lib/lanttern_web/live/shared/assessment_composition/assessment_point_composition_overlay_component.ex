@@ -3,8 +3,12 @@ defmodule LantternWeb.AssessmentComposition.AssessmentPointCompositionOverlayCom
   Modal for setting up or managing an assessment point's grade composition.
 
   Has two internal views:
-  - `:overview` — shows the current composition state (type select, placeholder or component list)
+  - `:overview` — shows the current composition state (placeholder or component list)
   - `:setup` — shows the AP checklist for selecting which APs contribute to the composition
+
+  The composition type (sum vs average) is derived from the parent assessment
+  point's scale type: numeric scales use sum-based composition, ordinal scales
+  use average-based composition.
 
   Navigates between views without closing the modal. Notifies the parent on
   composition updates (so the card refreshes) and on deletion (which closes the modal).
@@ -28,22 +32,15 @@ defmodule LantternWeb.AssessmentComposition.AssessmentPointCompositionOverlayCom
         <:title>{gettext("Grade composition")}</:title>
         <%= if @view == :overview do %>
           <div class="flex items-start justify-between gap-6">
-            <form phx-change="update_type" phx-target={@myself}>
-              <.input
-                type="select"
-                name="composition_type"
-                label={gettext("Composition type")}
-                options={[{gettext("Sum"), "sum"}, {gettext("Average"), "avg"}]}
-                value={@ap.composition_type}
-                class="w-56"
-              />
-            </form>
+            <p class="font-display font-bold text-ltrn-subtle">
+              {composition_subtitle(@ap.scale.type)}
+            </p>
             <.button
               type="button"
               theme={if @composition_components == [], do: "primary"}
               phx-click="show_setup"
               phx-target={@myself}
-              class="mt-6 shrink-0"
+              class="shrink-0"
             >
               {if @composition_components == [],
                 do: gettext("Setup composition"),
@@ -61,7 +58,7 @@ defmodule LantternWeb.AssessmentComposition.AssessmentPointCompositionOverlayCom
               <div class="flex items-center font-sans text-sm text-ltrn-subtle">
                 <div class="flex-1">{gettext("Assessment point")}</div>
                 <div>
-                  {if @ap.composition_type == :sum, do: gettext("Score"), else: gettext("Weight")}
+                  {if @ap.scale.type == "numeric", do: gettext("Score"), else: gettext("Weight")}
                 </div>
               </div>
               <div
@@ -71,28 +68,28 @@ defmodule LantternWeb.AssessmentComposition.AssessmentPointCompositionOverlayCom
                 <span class="truncate">{ap_display_name(comp.component)}</span>
                 <span class="flex-1 border-b border-ltrn-lighter" />
                 <span class="shrink-0 tabular-nums">
-                  {if @ap.composition_type == :sum,
+                  {if @ap.scale.type == "numeric",
                     do: ap_score_display(comp.component),
                     else: comp.weight}
                 </span>
               </div>
               <div class="flex items-center gap-12 font-bold mt-4">
                 <span class="flex-1 truncate">{ap_display_name(@ap)}</span>
-                <span :if={@ap.composition_type == :sum} class="shrink-0 tabular-nums">
-                  {composition_total(@ap.composition_type, @composition_components)}
+                <span :if={@ap.scale.type == "numeric"} class="shrink-0 tabular-nums">
+                  {composition_total(@ap.scale.type, @composition_components)}
                 </span>
               </div>
             </div>
           <% end %>
         <% else %>
           <p class="font-display font-bold text-ltrn-subtle mb-4">
-            {composition_subtitle(@ap.composition_type)}
+            {composition_subtitle(@ap.scale.type)}
           </p>
           <p>{gettext("Select the assessment points that will be part of the grade composition")}</p>
           <div class="flex items-center px-4 mt-10 mb-2 font-sans text-sm text-ltrn-subtle">
             <div class="flex-1">{gettext("Assessment point")}</div>
             <div>
-              {if @ap.composition_type == :sum, do: gettext("Score"), else: gettext("Weight")}
+              {if @ap.scale.type == "numeric", do: gettext("Score"), else: gettext("Weight")}
             </div>
           </div>
           <.card_base
@@ -106,18 +103,24 @@ defmodule LantternWeb.AssessmentComposition.AssessmentPointCompositionOverlayCom
               <input
                 type="checkbox"
                 checked={sibling_ap.id in @selected_ids}
+                disabled={sibling_ap.uses_composition}
                 phx-click={JS.push("toggle_ap", value: %{id: sibling_ap.id}, target: @myself)}
-                class="appearance-none rounded-xs size-5 border-2 border-ltrn-subtle checked:border-ltrn-primary checked:bg-ltrn-primary indeterminate:border-ltrn-dark indeterminate:bg-ltrn-dark focus:outline-2 focus:outline-offset-2 focus:outline-ltrn-primary disabled:border-ltrn-subtle disabled:bg-ltrn-light disabled:checked:bg-ltrn-light forced-colors:appearance-auto"
+                class="appearance-none rounded-xs size-5 border-2 border-ltrn-subtle checked:border-ltrn-primary checked:bg-ltrn-primary indeterminate:border-ltrn-dark indeterminate:bg-ltrn-dark focus:outline-2 focus:outline-offset-2 focus:outline-ltrn-primary disabled:opacity-50 forced-colors:appearance-auto"
               />
               <div class="flex-1 min-w-0">
-                <p>{ap_display_name(sibling_ap)}</p>
+                <p class={if(sibling_ap.uses_composition, do: "text-ltrn-subtle")}>
+                  {ap_display_name(sibling_ap)}
+                </p>
                 <p :if={sibling_ap.moment_id} class="mt-1 font-sans text-sm text-ltrn-subtle truncate">
                   {sibling_ap.moment.name}
+                </p>
+                <p :if={sibling_ap.uses_composition} class="mt-1 font-sans text-sm text-ltrn-subtle">
+                  {gettext("Composed assessment point — can't be part of another composition")}
                 </p>
               </div>
             </label>
             <div class="w-16 text-right shrink-0">
-              <%= if @ap.composition_type == :sum do %>
+              <%= if @ap.scale.type == "numeric" do %>
                 <span class={[
                   "tabular-nums",
                   if(sibling_ap.id in @selected_ids, do: "font-bold", else: "text-ltrn-subtle")
@@ -179,8 +182,8 @@ defmodule LantternWeb.AssessmentComposition.AssessmentPointCompositionOverlayCom
     """
   end
 
-  defp composition_subtitle(:sum), do: gettext("Sum-based grade composition")
-  defp composition_subtitle(:avg), do: gettext("Average-based grade composition")
+  defp composition_subtitle("numeric"), do: gettext("Sum-based grade composition")
+  defp composition_subtitle("ordinal"), do: gettext("Average-based grade composition")
 
   defp ap_display_name(%{moment_id: nil} = ap),
     do: "(#{ap.curriculum_item.curriculum_component.name}) #{ap.curriculum_item.name}"
@@ -193,7 +196,7 @@ defmodule LantternWeb.AssessmentComposition.AssessmentPointCompositionOverlayCom
 
   defp ap_score_display(_), do: "—"
 
-  defp composition_total(:sum, components) do
+  defp composition_total("numeric", components) do
     total =
       components
       |> Enum.reduce(0, fn comp, acc ->
@@ -209,7 +212,7 @@ defmodule LantternWeb.AssessmentComposition.AssessmentPointCompositionOverlayCom
     format_float(total)
   end
 
-  defp composition_total(:avg, components) do
+  defp composition_total("ordinal", components) do
     components
     |> Enum.reduce(0.0, fn comp, acc -> acc + comp.weight end)
   end
@@ -266,13 +269,16 @@ defmodule LantternWeb.AssessmentComposition.AssessmentPointCompositionOverlayCom
     strand_aps =
       Assessments.list_assessment_points(strand_id: strand_id, preloads: @ap_preloads)
 
-    composition_type = socket.assigns.ap.composition_type
+    scale_type = socket.assigns.ap.scale.type
 
     all_aps =
       (moment_aps ++ strand_aps)
+      # exclude only the parent itself; composed APs stay in the list but are
+      # rendered disabled (a composed AP cannot be a component of another
+      # composition)
       |> Enum.reject(&(&1.id == parent_id))
       |> then(fn aps ->
-        if composition_type == :sum do
+        if scale_type == "numeric" do
           Enum.filter(aps, &match?(%{scale: %{type: "numeric"}}, &1))
         else
           aps
@@ -300,18 +306,6 @@ defmodule LantternWeb.AssessmentComposition.AssessmentPointCompositionOverlayCom
   # event handlers
 
   @impl true
-  def handle_event("update_type", %{"composition_type" => type}, socket) do
-    ap = socket.assigns.ap
-
-    {:ok, updated_ap} =
-      Assessments.update_assessment_point(socket.assigns.current_scope, ap, %{
-        composition_type: type
-      })
-
-    notify(__MODULE__, {:composition_updated, ap.id}, socket.assigns)
-    {:noreply, assign(socket, :ap, %{ap | composition_type: updated_ap.composition_type})}
-  end
-
   def handle_event("show_setup", _params, socket) do
     {:noreply, socket |> assign(:view, :setup) |> load_all_aps()}
   end
@@ -321,14 +315,20 @@ defmodule LantternWeb.AssessmentComposition.AssessmentPointCompositionOverlayCom
   end
 
   def handle_event("toggle_ap", %{"id" => ap_id}, socket) do
-    selected_ids =
-      if ap_id in socket.assigns.selected_ids do
-        MapSet.delete(socket.assigns.selected_ids, ap_id)
-      else
-        MapSet.put(socket.assigns.selected_ids, ap_id)
-      end
+    # a composed AP can't be a component of another composition — ignore the
+    # toggle (the checkbox is already rendered disabled, this is defense in depth)
+    if composed_ap?(socket.assigns.all_aps, ap_id) do
+      {:noreply, socket}
+    else
+      selected_ids =
+        if ap_id in socket.assigns.selected_ids do
+          MapSet.delete(socket.assigns.selected_ids, ap_id)
+        else
+          MapSet.put(socket.assigns.selected_ids, ap_id)
+        end
 
-    {:noreply, assign(socket, :selected_ids, selected_ids)}
+      {:noreply, assign(socket, :selected_ids, selected_ids)}
+    end
   end
 
   def handle_event(
@@ -381,9 +381,15 @@ defmodule LantternWeb.AssessmentComposition.AssessmentPointCompositionOverlayCom
       ap.id
     )
 
-    Assessments.update_assessment_point(socket.assigns.current_scope, ap, %{composition_type: nil})
+    Assessments.update_assessment_point(socket.assigns.current_scope, ap, %{
+      uses_composition: false
+    })
 
     notify(__MODULE__, {:deleted, ap.id}, socket.assigns)
     {:noreply, socket}
+  end
+
+  defp composed_ap?(all_aps, ap_id) do
+    Enum.any?(all_aps, &(&1.id == ap_id and &1.uses_composition))
   end
 end

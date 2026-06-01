@@ -62,7 +62,7 @@
               entries,
               entry.ordinal_value
               ||
-              entry.score
+              entry.score || entry.is_missing
               do %>
                 <.assessment_point_entry_badge entry={entry} is_short />
               <% end %>

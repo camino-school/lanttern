@@ -19,8 +19,12 @@ defmodule Lanttern.Assessments.AssessmentPointEntry do
           student_report_note: String.t() | nil,
           score: float() | nil,
           student_score: float() | nil,
+          normalized_value: float() | nil,
+          student_normalized_value: float() | nil,
           scale_type: String.t(),
           is_missing: boolean(),
+          use_manual_input: boolean(),
+          calculation_error: String.t() | nil,
           has_marking: boolean(),
           has_evidences: boolean(),
           is_strand_entry: boolean(),
@@ -48,8 +52,16 @@ defmodule Lanttern.Assessments.AssessmentPointEntry do
     field :student_report_note, :string
     field :score, :float
     field :student_score, :float
+    # precise pre-rounding weighted average stored when an ordinal entry is
+    # computed via average composition. Lets downstream (grade-report)
+    # compositions use the exact value instead of the ordinal value's
+    # rounded representative normalized_value.
+    field :normalized_value, :float
+    field :student_normalized_value, :float
     field :scale_type, :string
     field :is_missing, :boolean, default: false
+    field :use_manual_input, :boolean, default: false
+    field :calculation_error, :string
     # has_marking is generated
     field :has_marking, :boolean, read_after_writes: true
 
@@ -94,7 +106,10 @@ defmodule Lanttern.Assessments.AssessmentPointEntry do
     |> cast(attrs, [
       :observation,
       :score,
+      :normalized_value,
+      :student_normalized_value,
       :is_missing,
+      :use_manual_input,
       :assessment_point_id,
       :student_id,
       :scale_id,
@@ -114,7 +129,11 @@ defmodule Lanttern.Assessments.AssessmentPointEntry do
       :student_report_note,
       :score,
       :student_score,
+      :normalized_value,
+      :student_normalized_value,
       :is_missing,
+      :use_manual_input,
+      :calculation_error,
       :assessment_point_id,
       :student_id,
       :scale_id,
@@ -126,6 +145,11 @@ defmodule Lanttern.Assessments.AssessmentPointEntry do
     |> validate_required([:assessment_point_id, :student_id, :scale_id, :scale_type])
     |> validate_score_value()
     |> maybe_clear_is_missing()
+    |> maybe_clear_normalized_value(:ordinal_value_id, :normalized_value)
+    |> maybe_clear_normalized_value(:student_ordinal_value_id, :student_normalized_value)
+    # one entry per (assessment point, student); lets concurrent composed-entry
+    # recalcs recover from a conflict instead of raising (see AssessmentComposition)
+    |> unique_constraint([:assessment_point_id, :student_id])
   end
 
   defp maybe_clear_is_missing(changeset) do
@@ -135,6 +159,21 @@ defmodule Lanttern.Assessments.AssessmentPointEntry do
       end)
 
     if has_value, do: put_change(changeset, :is_missing, false), else: changeset
+  end
+
+  # The stored normalized value is only valid alongside the ordinal value it was
+  # computed for. When the ordinal value is changed by any path that doesn't also
+  # supply the normalized value (e.g. manual teacher input), invalidate it. The
+  # composition recalc always supplies both, so it keeps the precise value.
+  defp maybe_clear_normalized_value(changeset, ordinal_field, normalized_field) do
+    changing_ordinal? = Map.has_key?(changeset.changes, ordinal_field)
+    keeping_normalized? = Map.has_key?(changeset.changes, normalized_field)
+
+    if changing_ordinal? and not keeping_normalized? do
+      put_change(changeset, normalized_field, nil)
+    else
+      changeset
+    end
   end
 
   defp validate_score_value(%{valid?: true} = changeset) do

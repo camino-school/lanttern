@@ -1,5 +1,6 @@
 defmodule Lanttern.AssessmentsTest do
   use Lanttern.DataCase
+  use Oban.Testing, repo: Lanttern.Repo
 
   alias Lanttern.Repo
 
@@ -286,6 +287,21 @@ defmodule Lanttern.AssessmentsTest do
       assert assessment == Assessments.get_assessment_point!(assessment.id)
     end
 
+    test "update_assessment_point/2 cannot enable composition on an assessment point that is already a component" do
+      component_ap = insert(:assessment_point)
+      parent_ap = insert(:assessment_point, uses_composition: true)
+      insert(:assessment_point_component, parent: parent_ap, component: component_ap)
+
+      assert {:error, %Ecto.Changeset{} = changeset} =
+               Assessments.update_assessment_point(
+                 %Lanttern.Identity.Scope{},
+                 component_ap,
+                 %{uses_composition: true}
+               )
+
+      assert %{uses_composition: [_]} = errors_on(changeset)
+    end
+
     test "delete_assessment_point/1 deletes the assessment point" do
       scope = IdentityFixtures.scope_fixture()
       assessment_point = assessment_point_fixture()
@@ -324,6 +340,31 @@ defmodule Lanttern.AssessmentsTest do
       assert log.assessment_point_id == assessment_point.id
       assert log.profile_id == scope.profile_id
       assert log.operation == "DELETE"
+    end
+
+    test "delete_assessment_point_and_entries/2 recalculates composition parents when a component is deleted" do
+      scope = IdentityFixtures.scope_fixture()
+      parent_ap = insert(:assessment_point, uses_composition: true)
+      component_ap = insert(:assessment_point)
+      insert(:assessment_point_component, parent: parent_ap, component: component_ap)
+
+      assert {:ok, _} =
+               Assessments.delete_assessment_point_and_entries(scope, component_ap)
+
+      assert_enqueued(
+        worker: Lanttern.Workers.CompositionRecalcWorker,
+        args: %{parent_id: parent_ap.id, profile_id: scope.profile_id}
+      )
+    end
+
+    test "delete_assessment_point_and_entries/2 does not recalculate when the deleted AP is not a component" do
+      scope = IdentityFixtures.scope_fixture()
+      assessment_point = assessment_point_fixture()
+
+      assert {:ok, _} =
+               Assessments.delete_assessment_point_and_entries(scope, assessment_point)
+
+      refute_enqueued(worker: Lanttern.Workers.CompositionRecalcWorker)
     end
 
     test "change_assessment_point/1 returns an assessment point changeset with datetime related virtual fields" do
@@ -649,7 +690,12 @@ defmodule Lanttern.AssessmentsTest do
 
     test "update_assessment_point_entry/3 with valid data updates the assessment_point_entry" do
       assessment_point_entry = assessment_point_entry_fixture()
-      update_attrs = %{observation: "some updated observation", is_missing: true}
+
+      update_attrs = %{
+        observation: "some updated observation",
+        is_missing: true,
+        use_manual_input: true
+      }
 
       # profile to test log
       profile = Lanttern.IdentityFixtures.staff_member_profile_fixture()
@@ -661,6 +707,7 @@ defmodule Lanttern.AssessmentsTest do
 
       assert assessment_point_entry.observation == "some updated observation"
       assert assessment_point_entry.is_missing == true
+      assert assessment_point_entry.use_manual_input == true
 
       on_exit(fn ->
         assert_supervised_tasks_are_down()
@@ -675,6 +722,7 @@ defmodule Lanttern.AssessmentsTest do
         assert assessment_point_entry_log.operation == "UPDATE"
         assert assessment_point_entry_log.observation == "some updated observation"
         assert assessment_point_entry_log.is_missing == true
+        assert assessment_point_entry_log.use_manual_input == true
       end)
     end
 
@@ -736,6 +784,25 @@ defmodule Lanttern.AssessmentsTest do
 
       assert {:ok, %AssessmentPointEntry{is_missing: false}} =
                Assessments.update_assessment_point_entry(entry, %{score: 7.0})
+    end
+
+    test "update_assessment_point_entry/3 setting is_missing flips has_marking to true" do
+      scale = insert(:scale, type: "numeric")
+      student = SchoolsFixtures.student_fixture()
+      assessment_point = assessment_point_fixture(%{scale_id: scale.id})
+
+      entry =
+        assessment_point_entry_fixture(%{
+          student_id: student.id,
+          assessment_point_id: assessment_point.id,
+          scale_id: scale.id,
+          scale_type: "numeric"
+        })
+
+      assert entry.has_marking == false
+
+      assert {:ok, %AssessmentPointEntry{is_missing: true, has_marking: true}} =
+               Assessments.update_assessment_point_entry(entry, %{is_missing: true})
     end
 
     test "save_assessment_point_entries/2 handles all mapped changes correctly" do
@@ -847,6 +914,48 @@ defmodule Lanttern.AssessmentsTest do
       end)
     end
 
+    test "save_assessment_point_entries/2 updates student_ordinal_value_id on existing entries" do
+      scale = insert(:scale, type: "ordinal")
+      ov_1 = insert(:ordinal_value, scale_id: scale.id)
+      ov_2 = insert(:ordinal_value, scale_id: scale.id)
+
+      student = SchoolsFixtures.student_fixture()
+      assessment_point = assessment_point_fixture(%{scale_id: scale.id})
+
+      # existing entry with an initial student ordinal value, so the save hits the
+      # upsert conflict (update) path rather than a plain insert
+      entry =
+        assessment_point_entry_fixture(%{
+          student_id: student.id,
+          assessment_point_id: assessment_point.id,
+          scale_id: scale.id,
+          scale_type: scale.type,
+          student_ordinal_value_id: ov_1.id
+        })
+
+      base_params = %{
+        "student_id" => student.id,
+        "assessment_point_id" => assessment_point.id,
+        "scale_id" => scale.id,
+        "scale_type" => scale.type
+      }
+
+      assert {:ok, 1} =
+               Assessments.save_assessment_point_entries([
+                 Map.put(base_params, "student_ordinal_value_id", ov_2.id)
+               ])
+
+      assert Repo.get(AssessmentPointEntry, entry.id).student_ordinal_value_id == ov_2.id
+
+      # clearing the value should null the column
+      assert {:ok, 1} =
+               Assessments.save_assessment_point_entries([
+                 Map.put(base_params, "student_ordinal_value_id", "")
+               ])
+
+      assert is_nil(Repo.get(AssessmentPointEntry, entry.id).student_ordinal_value_id)
+    end
+
     test "save_assessment_point_entries/2 clears is_missing when ordinal_value_id is set" do
       scale = insert(:scale, type: "ordinal")
       ov = insert(:ordinal_value, scale_id: scale.id)
@@ -873,6 +982,278 @@ defmodule Lanttern.AssessmentsTest do
       assert {:ok, 1} = Assessments.save_assessment_point_entries([params])
 
       assert %AssessmentPointEntry{is_missing: false} = Repo.get!(AssessmentPointEntry, entry.id)
+    end
+
+    test "save_assessment_point_entries/2 enqueues composed entry recalc when saved entry is a component" do
+      scale = insert(:scale, type: "numeric", max_score: 100.0)
+      parent_ap = insert(:assessment_point, uses_composition: true, scale: scale)
+      component_ap = insert(:assessment_point, scale: scale)
+      insert(:assessment_point_component, parent: parent_ap, component: component_ap)
+
+      student = insert(:student)
+      profile = Lanttern.IdentityFixtures.staff_member_profile_fixture()
+
+      params = %{
+        "student_id" => student.id,
+        "assessment_point_id" => component_ap.id,
+        "scale_id" => scale.id,
+        "scale_type" => "numeric",
+        "score" => 50.0
+      }
+
+      assert {:ok, 1} =
+               Assessments.save_assessment_point_entries([params], log_profile_id: profile.id)
+
+      assert_enqueued(
+        worker: Lanttern.Workers.ComposedEntryRecalcWorker,
+        args: %{
+          "pairs" => [[parent_ap.id, student.id]],
+          "domain" => "teacher_entry",
+          "profile_id" => profile.id
+        }
+      )
+    end
+
+    test "save_assessment_point_entries/2 does not enqueue recalc when no composed parent is affected" do
+      scale = insert(:scale, type: "numeric", max_score: 100.0)
+      assessment_point = insert(:assessment_point, scale: scale)
+      student = insert(:student)
+
+      params = %{
+        "student_id" => student.id,
+        "assessment_point_id" => assessment_point.id,
+        "scale_id" => scale.id,
+        "scale_type" => "numeric",
+        "score" => 10.0
+      }
+
+      assert {:ok, 1} = Assessments.save_assessment_point_entries([params])
+
+      refute_enqueued(worker: Lanttern.Workers.ComposedEntryRecalcWorker)
+    end
+
+    test "save_assessment_point_entries/2 passes student_score field when only student_score is edited" do
+      scale = insert(:scale, type: "numeric", max_score: 100.0)
+      parent_ap = insert(:assessment_point, uses_composition: true, scale: scale)
+      component_ap = insert(:assessment_point, scale: scale)
+      insert(:assessment_point_component, parent: parent_ap, component: component_ap)
+
+      student = insert(:student)
+
+      params = %{
+        "student_id" => student.id,
+        "assessment_point_id" => component_ap.id,
+        "scale_id" => scale.id,
+        "scale_type" => "numeric",
+        "student_score" => 25.0
+      }
+
+      assert {:ok, 1} = Assessments.save_assessment_point_entries([params])
+
+      assert_enqueued(
+        worker: Lanttern.Workers.ComposedEntryRecalcWorker,
+        args: %{
+          "pairs" => [[parent_ap.id, student.id]],
+          "domain" => "student_entry",
+          "profile_id" => nil
+        }
+      )
+    end
+
+    test "save_assessment_point_entries/2 enqueues student recalc when only student_ordinal_value_id is edited" do
+      scale = insert(:scale, type: "ordinal")
+      ordinal_value = insert(:ordinal_value, scale: scale)
+      parent_ap = insert(:assessment_point, uses_composition: true, scale: scale)
+      component_ap = insert(:assessment_point, scale: scale)
+      insert(:assessment_point_component, parent: parent_ap, component: component_ap)
+
+      student = insert(:student)
+
+      params = %{
+        "student_id" => student.id,
+        "assessment_point_id" => component_ap.id,
+        "scale_id" => scale.id,
+        "scale_type" => "ordinal",
+        "student_ordinal_value_id" => ordinal_value.id
+      }
+
+      assert {:ok, 1} = Assessments.save_assessment_point_entries([params])
+
+      assert_enqueued(
+        worker: Lanttern.Workers.ComposedEntryRecalcWorker,
+        args: %{
+          "pairs" => [[parent_ap.id, student.id]],
+          "domain" => "student_entry",
+          "profile_id" => nil
+        }
+      )
+    end
+
+    test "save_assessment_point_entries/2 enqueues recalc for both domains when only is_missing is edited" do
+      scale = insert(:scale, type: "ordinal")
+      parent_ap = insert(:assessment_point, uses_composition: true, scale: scale)
+      component_ap = insert(:assessment_point, scale: scale)
+      insert(:assessment_point_component, parent: parent_ap, component: component_ap)
+
+      student = insert(:student)
+
+      params = %{
+        "student_id" => student.id,
+        "assessment_point_id" => component_ap.id,
+        "scale_id" => scale.id,
+        "scale_type" => "ordinal",
+        "is_missing" => true
+      }
+
+      assert {:ok, 1} = Assessments.save_assessment_point_entries([params])
+
+      # is_missing feeds both the teacher and student average, so both domains
+      # must be recomputed
+      assert_enqueued(
+        worker: Lanttern.Workers.ComposedEntryRecalcWorker,
+        args: %{"pairs" => [[parent_ap.id, student.id]], "domain" => "teacher_entry"}
+      )
+
+      assert_enqueued(
+        worker: Lanttern.Workers.ComposedEntryRecalcWorker,
+        args: %{"pairs" => [[parent_ap.id, student.id]], "domain" => "student_entry"}
+      )
+    end
+
+    test "update_assessment_point_entry/3 enqueues composed recalc for the changed teacher domain" do
+      scale = insert(:scale, type: "numeric", max_score: 100.0)
+      parent_ap = insert(:assessment_point, uses_composition: true, scale: scale)
+      component_ap = insert(:assessment_point, scale: scale)
+      insert(:assessment_point_component, parent: parent_ap, component: component_ap)
+
+      student = insert(:student)
+      profile = Lanttern.IdentityFixtures.staff_member_profile_fixture()
+
+      entry =
+        insert(:assessment_point_entry,
+          assessment_point: component_ap,
+          student: student,
+          scale: scale,
+          scale_type: "numeric",
+          score: 10.0
+        )
+
+      assert {:ok, _entry} =
+               Assessments.update_assessment_point_entry(entry, %{score: 50.0},
+                 log_profile_id: profile.id
+               )
+
+      assert_enqueued(
+        worker: Lanttern.Workers.ComposedEntryRecalcWorker,
+        args: %{
+          "pairs" => [[parent_ap.id, student.id]],
+          "domain" => "teacher_entry",
+          "profile_id" => profile.id
+        }
+      )
+    end
+
+    test "update_assessment_point_entry/3 enqueues both domains when is_missing changes" do
+      scale = insert(:scale, type: "numeric", max_score: 100.0)
+      parent_ap = insert(:assessment_point, uses_composition: true, scale: scale)
+      component_ap = insert(:assessment_point, scale: scale)
+      insert(:assessment_point_component, parent: parent_ap, component: component_ap)
+
+      student = insert(:student)
+
+      entry =
+        insert(:assessment_point_entry,
+          assessment_point: component_ap,
+          student: student,
+          scale: scale,
+          scale_type: "numeric"
+        )
+
+      assert {:ok, _entry} = Assessments.update_assessment_point_entry(entry, %{is_missing: true})
+
+      assert_enqueued(
+        worker: Lanttern.Workers.ComposedEntryRecalcWorker,
+        args: %{"pairs" => [[parent_ap.id, student.id]], "domain" => "teacher_entry"}
+      )
+
+      assert_enqueued(
+        worker: Lanttern.Workers.ComposedEntryRecalcWorker,
+        args: %{"pairs" => [[parent_ap.id, student.id]], "domain" => "student_entry"}
+      )
+    end
+
+    test "update_assessment_point_entry/3 does not enqueue when the AP is not a component" do
+      scale = insert(:scale, type: "numeric", max_score: 100.0)
+      assessment_point = insert(:assessment_point, scale: scale)
+      student = insert(:student)
+
+      entry =
+        insert(:assessment_point_entry,
+          assessment_point: assessment_point,
+          student: student,
+          scale: scale,
+          scale_type: "numeric",
+          score: 10.0
+        )
+
+      assert {:ok, _entry} = Assessments.update_assessment_point_entry(entry, %{score: 20.0})
+
+      refute_enqueued(worker: Lanttern.Workers.ComposedEntryRecalcWorker)
+    end
+
+    test "update_assessment_point_entry/3 does not enqueue when no marking domain changes" do
+      scale = insert(:scale, type: "numeric", max_score: 100.0)
+      parent_ap = insert(:assessment_point, uses_composition: true, scale: scale)
+      component_ap = insert(:assessment_point, scale: scale)
+      insert(:assessment_point_component, parent: parent_ap, component: component_ap)
+
+      student = insert(:student)
+
+      entry =
+        insert(:assessment_point_entry,
+          assessment_point: component_ap,
+          student: student,
+          scale: scale,
+          scale_type: "numeric",
+          score: 10.0
+        )
+
+      # only a comment changes — no composition input is touched
+      assert {:ok, _entry} =
+               Assessments.update_assessment_point_entry(entry, %{report_note: "a comment"})
+
+      refute_enqueued(worker: Lanttern.Workers.ComposedEntryRecalcWorker)
+    end
+
+    test "save_assessment_point_entries/2 is not deduped for identical rapid re-saves" do
+      # regression: `unique: true` used to silently drop a recalc whose args
+      # matched one enqueued (incl. already completed) in the last 60s, leaving
+      # the composed entry stale. Each enqueue must produce its own job.
+      scale = insert(:scale, type: "numeric", max_score: 100.0)
+      parent_ap = insert(:assessment_point, uses_composition: true, scale: scale)
+      component_ap = insert(:assessment_point, scale: scale)
+      insert(:assessment_point_component, parent: parent_ap, component: component_ap)
+
+      student = insert(:student)
+
+      params = %{
+        "student_id" => student.id,
+        "assessment_point_id" => component_ap.id,
+        "scale_id" => scale.id,
+        "scale_type" => "numeric",
+        "score" => 50.0
+      }
+
+      assert {:ok, 1} = Assessments.save_assessment_point_entries([params])
+      assert {:ok, 1} = Assessments.save_assessment_point_entries([params])
+
+      # under the old `unique: true` the second insert was a silent conflict and
+      # produced no second row; without it each enqueue creates its own job.
+      assert [_first, _second] =
+               all_enqueued(
+                 worker: Lanttern.Workers.ComposedEntryRecalcWorker,
+                 args: %{"pairs" => [[parent_ap.id, student.id]], "domain" => "teacher_entry"}
+               )
     end
 
     test "delete_assessment_point_entry/2 deletes the assessment_point_entry" do

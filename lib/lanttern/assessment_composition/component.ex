@@ -33,16 +33,39 @@ defmodule Lanttern.AssessmentComposition.Component do
     timestamps()
   end
 
-  @doc false
-  def changeset(component, attrs) do
+  @doc """
+  Component changeset.
+
+  `composed_component_ids` is the list of component ids the caller has already
+  determined (via a context query) to be composed assessment points. A composed
+  assessment point cannot itself be a component of another composition (cascading
+  composition is intentionally not supported), so the changeset rejects a
+  `component_id` found in that list.
+  """
+  def changeset(component, attrs, composed_component_ids \\ []) do
     component
     |> cast(attrs, [:weight, :parent_id, :component_id])
     |> validate_required([:weight, :parent_id, :component_id])
     |> validate_number(:weight, greater_than: 0)
+    |> validate_component_not_composed(composed_component_ids)
     |> unique_constraint([:parent_id, :component_id])
     |> check_constraint(:component_id,
       name: :parent_and_component_must_differ,
       message: gettext("Component cannot be the same as the parent assessment point")
     )
+  end
+
+  defp validate_component_not_composed(changeset, composed_component_ids) do
+    component_id = get_field(changeset, :component_id)
+
+    if not is_nil(component_id) and component_id in composed_component_ids do
+      add_error(
+        changeset,
+        :component_id,
+        gettext("A composed assessment point cannot be used as a component")
+      )
+    else
+      changeset
+    end
   end
 end

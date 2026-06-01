@@ -266,7 +266,7 @@ defmodule LantternWeb.MarkingLiveTest do
         insert(:assessment_point,
           strand_id: strand.id,
           name: "Composition AP",
-          composition_type: :sum
+          uses_composition: true
         )
 
       component_ap_1 =
@@ -355,6 +355,73 @@ defmodule LantternWeb.MarkingLiveTest do
         "#{@live_view_path}/#{strand.id}/assessment/marking?classes_ids=#{class.id}&composition_ap_id=#{parent_ap.id}"
       )
       |> assert_has("button", text: "2 filters")
+    end
+  end
+
+  describe "command palette" do
+    setup %{user: user} do
+      school = Repo.get!(Lanttern.Schools.School, user.current_profile.school_id)
+      strand = insert(:strand)
+      class = insert(:class, school: school)
+      insert(:class_assignment, strand: strand, class: class)
+
+      student = insert(:student, school: school) |> Repo.preload(:classes)
+      {:ok, _student} = Schools.update_student(student, %{classes_ids: [class.id]})
+
+      parent_ap =
+        insert(:assessment_point,
+          strand_id: strand.id,
+          name: "Composition AP",
+          uses_composition: true
+        )
+
+      component_ap =
+        insert(:assessment_point, strand_id: strand.id, name: "Component AP")
+
+      plain_ap =
+        insert(:assessment_point, strand_id: strand.id, name: "Plain AP")
+
+      insert(:assessment_point_component, parent: parent_ap, component: component_ap)
+
+      {:ok,
+       strand: strand,
+       class: class,
+       parent_ap: parent_ap,
+       component_ap: component_ap,
+       plain_ap: plain_ap}
+    end
+
+    test "command palette of an AP part of a composition opens with add composition button disabled",
+         %{conn: conn, strand: strand, class: class} do
+      conn
+      |> visit("#{@live_view_path}/#{strand.id}/assessment/marking?classes_ids=#{class.id}")
+      |> within("#grid-assessment-points", &click_button(&1, "Component AP"))
+      |> assert_has("button[disabled]", text: "Add grade composition")
+      |> assert_has("p", text: "part of another grade composition")
+      |> assert_has("li", text: "Composition AP")
+    end
+
+    test "command palette of a plain AP opens with an enabled add composition button", %{
+      conn: conn,
+      strand: strand,
+      class: class
+    } do
+      conn
+      |> visit("#{@live_view_path}/#{strand.id}/assessment/marking?classes_ids=#{class.id}")
+      |> within("#grid-assessment-points", &click_button(&1, "Plain AP"))
+      |> assert_has("button", text: "Add grade composition")
+      |> refute_has("button[disabled]", text: "Add grade composition")
+    end
+
+    test "command palette of a composed AP opens with the manage composition button", %{
+      conn: conn,
+      strand: strand,
+      class: class
+    } do
+      conn
+      |> visit("#{@live_view_path}/#{strand.id}/assessment/marking?classes_ids=#{class.id}")
+      |> within("#grid-assessment-points", &click_button(&1, "Composition AP"))
+      |> assert_has("button", text: "Manage grade composition")
     end
   end
 end

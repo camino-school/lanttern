@@ -245,42 +245,21 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
             class="line-clamp-2"
           />
           <div class="flex items-center gap-2">
-            <div :if={is_nil(@assessment_point.composition_type)} class="relative">
+            <div :if={!@assessment_point.uses_composition} class="relative">
               <.button
                 type="button"
                 size="xs"
-                id={"#{@id}-composition-button"}
+                phx-click={
+                  JS.push("add_composition",
+                    value: %{"assessment_point_id" => @assessment_point.id},
+                    target: @myself
+                  )
+                }
               >
                 {gettext("Add composition")}
               </.button>
-              <.dropdown_menu
-                id={"#{@id}-composition-menu"}
-                button_id={"#{@id}-composition-button"}
-              >
-                <:instructions>
-                  {gettext("Create composition using")}
-                </:instructions>
-                <:item
-                  on_click={
-                    JS.push("add_composition",
-                      value: %{"assessment_point_id" => @assessment_point.id, "type" => "avg"},
-                      target: @myself
-                    )
-                  }
-                  text={gettext("Average")}
-                />
-                <:item
-                  on_click={
-                    JS.push("add_composition",
-                      value: %{"assessment_point_id" => @assessment_point.id, "type" => "sum"},
-                      target: @myself
-                    )
-                  }
-                  text={gettext("Sum")}
-                />
-              </.dropdown_menu>
             </div>
-            <div :if={@assessment_point.composition_type} class="relative">
+            <div :if={@assessment_point.uses_composition} class="relative">
               <.button
                 type="button"
                 size="xs"
@@ -295,7 +274,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
                 {gettext("Uses composition")}
               </.button>
               <.tooltip id={"ap-#{@assessment_point.id}-composition-tooltip"}>
-                {if @assessment_point.composition_type == :sum,
+                {if @assessment_point.scale.type == "numeric",
                   do: gettext("Sum-based"),
                   else: gettext("Average-based")}
               </.tooltip>
@@ -664,12 +643,12 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
 
   # -- composition
 
-  def handle_event("add_composition", %{"assessment_point_id" => ap_id, "type" => type}, socket) do
+  def handle_event("add_composition", %{"assessment_point_id" => ap_id}, socket) do
     ap = Assessments.get_assessment_point!(ap_id)
 
     {:ok, updated_ap} =
       Assessments.update_assessment_point(socket.assigns.current_scope, ap, %{
-        composition_type: type
+        uses_composition: true
       })
 
     ap = Assessments.get_assessment_point!(updated_ap.id, preloads: @ap_preloads)

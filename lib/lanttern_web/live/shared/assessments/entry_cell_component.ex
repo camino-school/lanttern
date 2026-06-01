@@ -19,6 +19,7 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
       attr :entry, AssessmentPointEntry
       attr :current_scope, Scope
       attr :allow_edit, :boolean
+      attr :is_composed, :boolean, default: false
       attr :view, :string, default: "teacher", doc: "teacher | student | compare. When compare, disallow edit"
       attr :class, :any
 
@@ -46,34 +47,52 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
       tabindex={if @form, do: "0"}
       phx-hook={if @form, do: "EntryCell"}
       data-scale-type={if @form, do: @entry.scale_type}
+      data-is-composed={if @is_composed, do: "true"}
     >
       <%= if @form do %>
         <div class="flex items-center gap-2 w-full h-full">
-          <.form
-            for={@form}
-            phx-change="change"
-            phx-target={@myself}
-            class={[
-              "relative flex-1 w-full h-full min-w-0",
-              @is_invalid && "outline outline-4 outline-offset-1 outline-ltrn-alert-accent",
-              !@is_invalid && @has_changes && "outline outline-4 outline-offset-1 outline-ltrn-dark"
-            ]}
-            id={"entry-#{@id}-marking-form"}
-          >
-            <.marking_input
-              scale_type={@entry.scale_type}
-              ov_options={@ov_options}
-              field={@field}
-              input_id={"entry-#{@id}-#{@field.name}"}
-              style={if(@has_changes, do: "background-color: white", else: @field_style)}
-            />
-            <.missing_indicator entry={@entry} />
-          </.form>
+          <%= if @is_composed do %>
+            <div class="relative flex-1 w-full h-full min-w-0 rounded-xs outline-1 outline-offset-1 outline-ltrn-dark">
+              <.entry_view
+                entry={@entry}
+                teacher_ov_name={@teacher_ov_name}
+                teacher_ov_style={@teacher_ov_style}
+                student_ov_name={@student_ov_name}
+                student_ov_style={@student_ov_style}
+                view={@view}
+              />
+              <.missing_indicator entry={@entry} />
+              <.tooltip id={"composed-cell-tooltip-#{@id}"}>
+                {gettext("Manual input disabled (automatic calculation via grade composition)")}
+              </.tooltip>
+            </div>
+          <% else %>
+            <.form
+              for={@form}
+              phx-change="change"
+              phx-target={@myself}
+              class={[
+                "relative flex-1 w-full h-full min-w-0",
+                @is_invalid && "outline outline-4 outline-offset-1 outline-ltrn-alert-accent",
+                !@is_invalid && @has_changes && "outline outline-4 outline-offset-1 outline-ltrn-dark"
+              ]}
+              id={"entry-#{@id}-marking-form"}
+            >
+              <.marking_input
+                scale_type={@entry.scale_type}
+                ov_options={@ov_options}
+                field={@field}
+                input_id={"entry-#{@id}-#{@field.name}"}
+                style={if(@has_changes, do: "background-color: white", else: @field_style)}
+              />
+              <.missing_indicator entry={@entry} />
+            </.form>
+          <% end %>
           <button
             type="button"
             tabindex="-1"
             class={[
-              "flex flex-col shrink-0 rounded-full text-ltrn-light hover:bg-ltrn-lightest",
+              "flex flex-col shrink-0 rounded-full text-ltrn-light hover:opacity-60",
               "disabled:bg-ltrn-lighter disabled:shadow-none"
             ]}
             phx-click="view_details"
@@ -136,6 +155,7 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
       <div
         class={[
           "flex items-center justify-center w-full h-full rounded-xs font-mono text-sm px-1",
+          "cursor-pointer hover:opacity-60",
           is_nil(@current_label) && "text-ltrn-subtle bg-ltrn-lighter"
         ]}
         style={if @current_label, do: @style}
@@ -211,7 +231,7 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
     ~H"""
     <%= if @value do %>
       <div
-        class="flex items-center justify-center h-full px-1 py-2 rounded-xs font-mono text-xs bg-white"
+        class="flex items-center justify-center h-full px-1 py-2 rounded-xs font-mono text-sm bg-white"
         style={@style}
       >
         <span class="truncate text-clip">
@@ -263,8 +283,10 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
     ~H"""
     <div
       :if={@entry.is_missing}
-      class="absolute -top-1 -left-1 size-3 rounded-full bg-ltrn-alert-accent shadow-sm"
-    />
+      class="absolute -top-1 -right-1 size-3 rounded-full bg-ltrn-alert-accent shadow-sm"
+    >
+      <.tooltip id={"entry-#{@entry.id}-missing-tooltip"}>{gettext("Lack of evidence")}</.tooltip>
+    </div>
     """
   end
 
@@ -278,6 +300,7 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
       |> assign(:grid_class, nil)
       |> assign(:view, "teacher")
       |> assign(:allow_edit, false)
+      |> assign(:is_composed, false)
       |> assign(:has_changes, false)
       |> assign(:is_invalid, false)
       |> assign(:scale, nil)

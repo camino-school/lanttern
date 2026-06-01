@@ -7,6 +7,7 @@ defmodule Lanttern.Assessments do
   import Lanttern.RepoHelpers
   alias Lanttern.Repo
 
+  alias Lanttern.AssessmentComposition.Component
   alias Lanttern.Assessments.AssessmentPoint
   alias Lanttern.Assessments.AssessmentPointEntry
   alias Lanttern.Assessments.AssessmentPointEntryEvidence
@@ -199,8 +200,16 @@ defmodule Lanttern.Assessments do
         %AssessmentPoint{} = assessment_point,
         attrs
       ) do
+    # an assessment point that is already a component of another composition can't
+    # itself become composed — query that here (only when composition is being
+    # enabled) and let the schema changeset surface the error
+    is_already_a_component =
+      Map.get(attrs, :uses_composition, Map.get(attrs, "uses_composition")) in [true, "true"] and
+        not is_nil(assessment_point.id) and
+        Repo.exists?(from c in Component, where: c.component_id == ^assessment_point.id)
+
     assessment_point
-    |> AssessmentPoint.changeset(attrs)
+    |> AssessmentPoint.changeset(attrs, is_already_a_component)
     |> Repo.update()
     |> AuditLog.maybe_log(AssessmentPointLog, "UPDATE", scope, [])
   end
@@ -237,7 +246,12 @@ defmodule Lanttern.Assessments do
 
   """
   def delete_assessment_point_and_entries(%Scope{} = scope, %AssessmentPoint{} = assessment_point) do
-    result =
+    # capture the composition parents before deleting — the `Component` rows
+    # linking this assessment point cascade away during the delete
+    composition_parent_ids =
+      Lanttern.AssessmentComposition.list_composition_parent_ids(assessment_point.id)
+
+    multi =
       Ecto.Multi.new()
       |> Ecto.Multi.delete_all(
         :delete_entries,
@@ -247,7 +261,22 @@ defmodule Lanttern.Assessments do
         )
       )
       |> Ecto.Multi.delete(:delete_assessment_point, assessment_point)
-      |> Repo.transaction()
+
+    # recompute parents whose composed entries become stale after this component
+    # is deleted — enqueued inside the transaction so the recalc can't be lost
+    multi =
+      Enum.reduce(composition_parent_ids, multi, fn parent_id, multi ->
+        Oban.insert(
+          multi,
+          {:recalc, parent_id},
+          Lanttern.Workers.CompositionRecalcWorker.new(%{
+            parent_id: parent_id,
+            profile_id: scope.profile_id
+          })
+        )
+      end)
+
+    result = Repo.transaction(multi)
 
     case result do
       {:ok, _} ->
@@ -433,11 +462,46 @@ defmodule Lanttern.Assessments do
         attrs,
         opts \\ []
       ) do
-    assessment_point_entry
-    |> AssessmentPointEntry.changeset(attrs)
-    |> Repo.update()
-    |> maybe_preload(opts)
-    |> AssessmentsLog.maybe_create_assessment_point_entry_log("UPDATE", opts)
+    changeset = AssessmentPointEntry.changeset(assessment_point_entry, attrs)
+    log_profile_id = Keyword.get(opts, :log_profile_id)
+    domains = changed_recalc_domains(changeset)
+
+    Ecto.Multi.new()
+    |> Ecto.Multi.update(:entry, changeset)
+    |> Ecto.Multi.run(:enqueue_recalc, fn _repo, %{entry: entry} ->
+      pairs = [{entry.assessment_point_id, entry.student_id}]
+      Enum.each(domains, &enqueue_composed_recalc_for_pairs(pairs, &1, log_profile_id))
+      {:ok, :enqueued}
+    end)
+    |> Repo.transaction()
+    |> case do
+      {:ok, %{entry: entry}} ->
+        {:ok, entry}
+        |> maybe_preload(opts)
+        |> AssessmentsLog.maybe_create_assessment_point_entry_log("UPDATE", opts)
+
+      {:error, :entry, changeset, _changes} ->
+        {:error, changeset}
+    end
+  end
+
+  # Edit domains touched by a single-entry update, derived from the changeset's
+  # actual changes (so note-only / use_manual_input-only updates enqueue nothing).
+  # `is_missing` feeds both the teacher and student sum/average.
+  defp changed_recalc_domains(changeset) do
+    changes = changeset.changes
+    is_missing_changed? = Map.has_key?(changes, :is_missing)
+
+    teacher? =
+      Enum.any?([:score, :ordinal_value_id], &Map.has_key?(changes, &1)) or is_missing_changed?
+
+    student? =
+      Enum.any?([:student_score, :student_ordinal_value_id], &Map.has_key?(changes, &1)) or
+        is_missing_changed?
+
+    []
+    |> maybe_add_domain("teacher_entry", teacher?)
+    |> maybe_add_domain("student_entry", student?)
   end
 
   @doc """
@@ -467,6 +531,9 @@ defmodule Lanttern.Assessments do
       NaiveDateTime.utc_now()
       |> NaiveDateTime.truncate(:second)
 
+    log_profile_id = Keyword.get(opts, :log_profile_id)
+    edited_domains = detect_edited_domains(maps)
+
     maps
     |> Enum.reduce(Ecto.Multi.new(), fn map, multi ->
       name = "upsert_#{map["assessment_point_id"]}_#{map["student_id"]}"
@@ -487,14 +554,69 @@ defmodule Lanttern.Assessments do
         returning: true
       )
     end)
+    |> Ecto.Multi.run(:enqueue_recalc, fn _repo, results ->
+      maybe_enqueue_composed_recalc(results, edited_domains, log_profile_id)
+    end)
     |> Repo.transaction()
     |> case do
       {:ok, results} ->
-        save_assessment_point_entries_log(results, Keyword.get(opts, :log_profile_id))
-        {:ok, length(Map.keys(results))}
+        entries_count = results |> Map.delete(:enqueue_recalc) |> map_size()
+        save_assessment_point_entries_log(Map.delete(results, :enqueue_recalc), log_profile_id)
+        {:ok, entries_count}
 
       {:error, _name, value, _changes_so_far} ->
         {:error, value}
+    end
+  end
+
+  @teacher_entry_keys ~w(score ordinal_value_id)
+  @student_entry_keys ~w(student_score student_ordinal_value_id)
+
+  # Returns the edit domains a batch touches, for composed recalc. `is_missing`
+  # feeds both the teacher and student sum/average, so a batch carrying it marks
+  # both domains.
+  defp detect_edited_domains(maps) do
+    has_teacher? =
+      Enum.any?(maps, fn m -> Enum.any?(@teacher_entry_keys, &Map.has_key?(m, &1)) end)
+
+    has_student? =
+      Enum.any?(maps, fn m -> Enum.any?(@student_entry_keys, &Map.has_key?(m, &1)) end)
+
+    has_is_missing? = Enum.any?(maps, &Map.has_key?(&1, "is_missing"))
+
+    []
+    |> maybe_add_domain("teacher_entry", has_teacher? or has_is_missing?)
+    |> maybe_add_domain("student_entry", has_student? or has_is_missing?)
+  end
+
+  defp maybe_add_domain(domains, domain, true), do: [domain | domains]
+  defp maybe_add_domain(domains, _domain, false), do: domains
+
+  defp maybe_enqueue_composed_recalc(_results, [], _profile_id), do: {:ok, :noop}
+
+  defp maybe_enqueue_composed_recalc(results, domains, profile_id) do
+    pairs =
+      results
+      |> Map.values()
+      |> Enum.map(fn %AssessmentPointEntry{} = entry ->
+        {entry.assessment_point_id, entry.student_id}
+      end)
+
+    Enum.each(domains, &enqueue_composed_recalc_for_pairs(pairs, &1, profile_id))
+    {:ok, :enqueued}
+  end
+
+  defp enqueue_composed_recalc_for_pairs(component_pairs, domain, profile_id) do
+    case Lanttern.AssessmentComposition.list_composed_parent_pairs(component_pairs) do
+      [] ->
+        {:ok, :noop}
+
+      composed_pairs ->
+        encoded_pairs = Enum.map(composed_pairs, fn {pid, sid} -> [pid, sid] end)
+
+        %{pairs: encoded_pairs, domain: domain, profile_id: profile_id}
+        |> Lanttern.Workers.ComposedEntryRecalcWorker.new()
+        |> Oban.insert()
     end
   end
 
@@ -514,10 +636,10 @@ defmodule Lanttern.Assessments do
   end
 
   defp build_save_assessment_point_entries_on_conflict_set(set, [
-         {"student_ordinal_value", student_ordinal_value} | kvs
+         {"student_ordinal_value_id", student_ordinal_value_id} | kvs
        ]) do
     set
-    |> Keyword.put(:student_ordinal_value, student_ordinal_value)
+    |> Keyword.put(:student_ordinal_value_id, student_ordinal_value_id)
     |> build_save_assessment_point_entries_on_conflict_set(kvs)
   end
 
@@ -696,7 +818,7 @@ defmodule Lanttern.Assessments do
       ap in base_query,
       join: ci in assoc(ap, :curriculum_item),
       join: cc in assoc(ci, :curriculum_component),
-      where: not is_nil(ap.composition_type),
+      where: ap.uses_composition == true,
       preload: [curriculum_item: {ci, curriculum_component: cc}]
     )
     |> Repo.all()
@@ -968,7 +1090,6 @@ defmodule Lanttern.Assessments do
         join: cc in assoc(ci, :curriculum_component),
         left_join: sc in assoc(ap, :scale),
         where: ap.strand_id == ^strand_id,
-        where: ap.is_hidden == false,
         order_by: ap.position,
         preload: [
           curriculum_item: {ci, curriculum_component: cc},
@@ -1070,13 +1191,18 @@ defmodule Lanttern.Assessments do
       join: m in assoc(ap, :moment),
       join: e in assoc(ap, :entries),
       left_join: ov in assoc(e, :ordinal_value),
+      left_join: s_ov in assoc(e, :student_ordinal_value),
       left_join: sc in assoc(ap, :scale),
       where: m.strand_id == ^strand_id,
       where: e.student_id == ^student.id,
       where: e.has_marking,
       where: ap.is_hidden == false,
       order_by: [asc: m.position, asc: ap.position],
-      select: %{ap | scale: sc, student_entry: %{e | ordinal_value: ov}}
+      select: %{
+        ap
+        | scale: sc,
+          student_entry: %{e | ordinal_value: ov, student_ordinal_value: s_ov}
+      }
     )
     |> Repo.all()
     |> put_student_entries_evidences(student.id)
@@ -1112,11 +1238,15 @@ defmodule Lanttern.Assessments do
       left_join: m in assoc(l, :moment),
       join: e in assoc(ap, :entries),
       left_join: ov in assoc(e, :ordinal_value),
+      left_join: s_ov in assoc(e, :student_ordinal_value),
       where: l.id == ^lesson_id,
       where: e.student_id == ^student.id,
       where: e.has_marking,
       order_by: [asc: m.position, asc: ap.position],
-      select: %{ap | student_entry: %{e | ordinal_value: ov}}
+      select: %{
+        ap
+        | student_entry: %{e | ordinal_value: ov, student_ordinal_value: s_ov}
+      }
     )
     |> Repo.all()
     |> put_student_entries_evidences(student.id)

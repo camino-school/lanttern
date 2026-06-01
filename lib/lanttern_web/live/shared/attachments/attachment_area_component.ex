@@ -45,7 +45,7 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class={[@class, if(!@allow_editing && @attachments_length == 0, do: "hidden")]}>
+    <div id={@id} class={[@class, if(!@allow_editing && @attachments_length == 0, do: "hidden")]}>
       <div
         :if={@title}
         class={[

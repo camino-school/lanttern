@@ -198,29 +198,16 @@ defmodule LantternWeb.StrandReportLive.StrandReportAssessmentComponent do
   attr :prevent_preview, :boolean, required: true
 
   defp goal_card(assigns) do
-    %{
-      goal: goal,
-      entry: entry,
-      moment_entries: moment_entries,
-      has_evidence: has_evidence
-    } = assigns
+    %{goal: goal, entry: entry, moment_entries: moment_entries, has_evidence: has_evidence} =
+      assigns
 
-    render_icons_area =
-      goal.is_differentiation ||
-        (entry && entry.report_note) ||
-        (entry && entry.student_report_note) ||
-        has_evidence ||
-        goal.report_info ||
-        goal.rubric_id
-
-    render_extra_fields_area =
-      render_icons_area ||
-        moment_entries != []
+    render_icons_area = render_icons_area?(goal, entry, has_evidence)
+    render_extra_fields_area = render_icons_area || moment_entries != []
 
     assigns =
       assigns
       |> assign(:render_extra_fields_area, render_extra_fields_area)
-      |> assign(:render_icons_area, render_extra_fields_area)
+      |> assign(:render_icons_area, render_icons_area)
 
     ~H"""
     <.link
@@ -280,12 +267,22 @@ defmodule LantternWeb.StrandReportLive.StrandReportAssessmentComponent do
           entry={@entry}
           scale={@goal.scale}
           show_student_assessment
-          prevent_preview={@prevent_preview}
+          prevent_preview={@prevent_preview or @goal.is_hidden}
           class="mt-4 sm:mt-0"
         />
       </.card_base>
     </.link>
     """
+  end
+
+  defp render_icons_area?(goal, entry, has_evidence) do
+    goal.is_differentiation ||
+      goal.has_diff_rubric_for_student ||
+      (entry && entry.report_note) ||
+      (entry && entry.student_report_note) ||
+      has_evidence ||
+      goal.report_info ||
+      goal.rubric_id
   end
 
   attr :type, :atom, required: true
@@ -401,8 +398,8 @@ defmodule LantternWeb.StrandReportLive.StrandReportAssessmentComponent do
 
     strand_goals_student_entries =
       all_strand_goals_student_entries
-      |> Enum.filter(fn {_, entry, moments_entries} ->
-        not is_nil(entry) or moments_entries != []
+      |> Enum.filter(fn {goal, entry, moments_entries} ->
+        moments_entries != [] or (not goal.is_hidden and not is_nil(entry))
       end)
 
     socket

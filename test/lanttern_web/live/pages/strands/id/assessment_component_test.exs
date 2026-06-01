@@ -300,7 +300,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponentTest do
   end
 
   describe "composition overlay" do
-    test "shows 'Add composition' button for AP without composition type", %{conn: conn} do
+    test "shows 'Add composition' button for AP without composition", %{conn: conn} do
       strand = insert(:strand)
       moment = insert(:moment, strand: strand)
       insert(:assessment_point, name: "AP no composition", moment_id: moment.id)
@@ -310,14 +310,14 @@ defmodule LantternWeb.StrandLive.AssessmentComponentTest do
       |> assert_has("button", text: "Add composition")
     end
 
-    test "shows composition type button when AP has composition_type set", %{conn: conn} do
+    test "shows composition type button when AP uses composition", %{conn: conn} do
       strand = insert(:strand)
       moment = insert(:moment, strand: strand)
       ap = insert(:assessment_point, name: "AP with avg composition", moment_id: moment.id)
 
       {:ok, _} =
         Assessments.update_assessment_point(%Lanttern.Identity.Scope{}, ap, %{
-          composition_type: "avg"
+          uses_composition: true
         })
 
       conn
@@ -332,7 +332,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponentTest do
 
       {:ok, _} =
         Assessments.update_assessment_point(%Lanttern.Identity.Scope{}, ap, %{
-          composition_type: "avg"
+          uses_composition: true
         })
 
       conn
@@ -349,7 +349,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponentTest do
 
       {:ok, parent_ap} =
         Assessments.update_assessment_point(%Lanttern.Identity.Scope{}, ap, %{
-          composition_type: "avg"
+          uses_composition: true
         })
 
       sibling_ap = insert(:assessment_point, name: "Sibling AP", moment_id: moment.id)
@@ -368,7 +368,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponentTest do
 
       {:ok, _} =
         Assessments.update_assessment_point(%Lanttern.Identity.Scope{}, ap, %{
-          composition_type: "avg"
+          uses_composition: true
         })
 
       sibling_ap = insert(:assessment_point, name: "Sibling AP to select", moment_id: moment.id)
@@ -389,7 +389,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponentTest do
 
       {:ok, parent_ap} =
         Assessments.update_assessment_point(%Lanttern.Identity.Scope{}, ap, %{
-          composition_type: "avg"
+          uses_composition: true
         })
 
       sibling_ap = insert(:assessment_point, name: "Sibling AP", moment_id: moment.id)
@@ -414,7 +414,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponentTest do
 
       {:ok, parent_ap} =
         Assessments.update_assessment_point(%Lanttern.Identity.Scope{}, ap, %{
-          composition_type: "avg"
+          uses_composition: true
         })
 
       sibling_ap = insert(:assessment_point, name: "Sibling AP", moment_id: moment.id)
