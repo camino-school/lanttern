@@ -20,14 +20,18 @@ defmodule LantternWeb.ReportCardLive.StrandsReportsComponent do
         <div class="shrink-0 flex items-center gap-4">
           <.action
             type="link"
-            patch={~p"/report_cards/#{@report_card}/strands?is_reordering=true"}
+            patch={
+              ~p"/report_cards/#{@report_card}/strands?#{Map.put(@url_filter_params, "is_reordering", "true")}"
+            }
             icon_name="hero-arrows-up-down-mini"
           >
             {gettext("Reorder")}
           </.action>
           <.action
             type="link"
-            patch={~p"/report_cards/#{@report_card}/strands?is_creating_strand_report=true"}
+            patch={
+              ~p"/report_cards/#{@report_card}/strands?#{Map.put(@url_filter_params, "is_creating_strand_report", "true")}"
+            }
             icon_name="hero-link-mini"
           >
             {gettext("Link strand")}
@@ -46,7 +50,7 @@ defmodule LantternWeb.ReportCardLive.StrandsReportsComponent do
             hide_description
             on_edit={
               JS.patch(
-                ~p"/report_cards/#{@report_card}/strands?is_editing_strand_report=#{strand_report.id}"
+                ~p"/report_cards/#{@report_card}/strands?#{Map.put(@url_filter_params, "is_editing_strand_report", strand_report.id)}"
               )
             }
             class="shrink-0 w-64 sm:w-auto"
@@ -80,7 +84,7 @@ defmodule LantternWeb.ReportCardLive.StrandsReportsComponent do
         :if={@show_strand_report_form}
         id="strand-report-form-overlay"
         show={true}
-        on_cancel={JS.patch(~p"/report_cards/#{@report_card}/strands")}
+        on_cancel={JS.patch(~p"/report_cards/#{@report_card}/strands?#{@url_filter_params}")}
       >
         <:title>{@form_overlay_title}</:title>
         <%= if @strand do %>
@@ -107,7 +111,7 @@ defmodule LantternWeb.ReportCardLive.StrandsReportsComponent do
             module={StrandReportFormComponent}
             id={@strand_report.id || :new}
             strand_report={@strand_report}
-            navigate={~p"/report_cards/#{@report_card}/strands"}
+            navigate={~p"/report_cards/#{@report_card}/strands?#{@url_filter_params}"}
             hide_submit
           />
         <% else %>
@@ -148,7 +152,7 @@ defmodule LantternWeb.ReportCardLive.StrandsReportsComponent do
         :if={@is_reordering}
         id="strands-reports-reorder-overlay"
         show={true}
-        on_cancel={JS.patch(~p"/report_cards/#{@report_card}/strands")}
+        on_cancel={JS.patch(~p"/report_cards/#{@report_card}/strands?#{@url_filter_params}")}
       >
         <:title>{gettext("Reorder strands reports")}</:title>
         <div
@@ -308,7 +312,10 @@ defmodule LantternWeb.ReportCardLive.StrandsReportsComponent do
         socket =
           socket
           |> put_flash(:info, gettext("Strand report deleted"))
-          |> push_navigate(to: ~p"/report_cards/#{socket.assigns.report_card}/strands")
+          |> push_navigate(
+            to:
+              ~p"/report_cards/#{socket.assigns.report_card}/strands?#{socket.assigns.url_filter_params}"
+          )
 
         {:noreply, socket}
 

@@ -570,9 +570,11 @@ defmodule LantternWeb.FiltersHelpers do
   end
 
   @doc """
-  Handle report card linked student classes filter assigns in socket.
+  Reads the `classes_ids` URL param and assigns report card linked student classes
+  filter values to socket.
 
-
+  The available classes are the report card's linked students classes, so any selected
+  ID not among them is silently discarded.
 
   ## Filter assigns
 
@@ -582,33 +584,31 @@ defmodule LantternWeb.FiltersHelpers do
 
   ## Examples
 
-      iex> assign_report_card_linked_student_classes_filter(socket)
+      iex> assign_report_card_linked_student_classes_from_url(socket, report_card, params)
       socket
   """
-  @spec assign_report_card_linked_student_classes_filter(
+  @spec assign_report_card_linked_student_classes_from_url(
           Phoenix.LiveView.Socket.t(),
-          report_card :: ReportCard.t()
+          report_card :: ReportCard.t(),
+          params :: map()
         ) ::
           Phoenix.LiveView.Socket.t()
-  def assign_report_card_linked_student_classes_filter(socket, %ReportCard{} = report_card) do
-    current_user = socket.assigns.current_user
+  def assign_report_card_linked_student_classes_from_url(
+        socket,
+        %ReportCard{} = report_card,
+        params
+      ) do
+    classes = Reporting.list_report_card_linked_students_classes(report_card)
+    classes_ids = Enum.map(classes, & &1.id)
 
-    current_filters =
-      Filters.list_profile_report_card_filters(current_user.current_profile_id, report_card.id)
+    selected_classes_ids =
+      case Map.get(params, "classes_ids") do
+        nil -> []
+        "" -> []
+        ids -> ids |> String.split(",") |> Enum.map(&String.to_integer/1)
+      end
+      |> Enum.filter(&(&1 in classes_ids))
 
-    socket
-    |> set_assign_report_card_linked_student_classes_filter_socket(current_filters, report_card)
-  end
-
-  defp set_assign_report_card_linked_student_classes_filter_socket(
-         socket,
-         current_filters,
-         report_card
-       ) do
-    classes =
-      Reporting.list_report_card_linked_students_classes(report_card)
-
-    selected_classes_ids = Map.get(current_filters, :linked_students_classes_ids) || []
     selected_classes = Enum.filter(classes, &(&1.id in selected_classes_ids))
 
     socket
@@ -880,6 +880,34 @@ defmodule LantternWeb.FiltersHelpers do
   """
   @spec url_filter_params(map()) :: map()
   def url_filter_params(params), do: Map.take(params, @url_filter_keys)
+
+  @doc """
+  Builds a path string from a base `path`, preserving the URL filter params and
+  optionally merging `extra_params` into the query string.
+
+  Useful for navigations built from a dynamic base path (e.g. `@current_path`)
+  where the `~p` sigil can't be used. Returns the bare `path` when there are no
+  params to append.
+
+  ## Examples
+
+      iex> path_with_url_filters("/report_cards/1/students", %{"classes_ids" => "2"})
+      "/report_cards/1/students?classes_ids=2"
+
+      iex> path_with_url_filters("/report_cards/1/students", %{}, %{"is_editing" => "true"})
+      "/report_cards/1/students?is_editing=true"
+
+      iex> path_with_url_filters("/report_cards/1/students", %{})
+      "/report_cards/1/students"
+  """
+  @spec path_with_url_filters(String.t(), map(), map()) :: String.t()
+  def path_with_url_filters(path, url_filter_params, extra_params \\ %{}) do
+    case Map.merge(url_filter_params, extra_params) do
+      params when map_size(params) == 0 -> path
+      # sort for a stable, predictable query string ordering
+      params -> "#{path}?#{URI.encode_query(Enum.sort(params))}"
+    end
+  end
 
   @doc """
   Assigns strand class assignments and derived values to socket.

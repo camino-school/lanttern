@@ -5,7 +5,7 @@ defmodule LantternWeb.ReportCardLive.StudentsTrackingComponent do
   alias Lanttern.Reporting
 
   import LantternWeb.FiltersHelpers,
-    only: [assign_report_card_linked_student_classes_filter: 2, save_profile_filters: 3]
+    only: [assign_report_card_linked_student_classes_from_url: 3]
 
   # shared
   alias LantternWeb.Filters.InlineFiltersComponent
@@ -21,7 +21,8 @@ defmodule LantternWeb.ReportCardLive.StudentsTrackingComponent do
           id="linked-students-grades-classes-filter"
           filter_items={@linked_students_classes}
           selected_items_ids={@selected_linked_students_classes_ids}
-          notify_component={@myself}
+          apply_on_select={true}
+          notify_parent={true}
         />
       </.action_bar>
       <%= if !@has_students do %>
@@ -52,24 +53,11 @@ defmodule LantternWeb.ReportCardLive.StudentsTrackingComponent do
   end
 
   @impl true
-  def update(%{action: {InlineFiltersComponent, {:apply, classes_ids}}}, socket) do
-    socket =
-      socket
-      |> assign(:selected_linked_students_classes_ids, classes_ids)
-      |> save_profile_filters(
-        [:linked_students_classes],
-        report_card_id: socket.assigns.report_card.id
-      )
-      |> assign_students_entries_grid()
-
-    {:ok, socket}
-  end
-
   def update(assigns, socket) do
     socket =
       socket
       |> assign(assigns)
-      |> assign_report_card_linked_student_classes_filter(assigns.report_card)
+      |> assign_report_card_linked_student_classes_from_url(assigns.report_card, assigns.params)
       |> stream_report_card_strands()
       |> assign_students_entries_grid()
 

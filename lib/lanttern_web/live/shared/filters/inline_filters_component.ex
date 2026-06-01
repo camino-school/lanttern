@@ -77,6 +77,7 @@ defmodule LantternWeb.Filters.InlineFiltersComponent do
       |> assign(:class, nil)
       |> assign(:hide_all_opt, false)
       |> assign(:is_single, false)
+      |> assign(:apply_on_select, false)
       |> assign(:all_text, gettext("All"))
 
     {:ok, socket}
@@ -102,6 +103,12 @@ defmodule LantternWeb.Filters.InlineFiltersComponent do
     {:noreply, socket}
   end
 
+  def handle_event("toggle_all", _params, %{assigns: %{apply_on_select: true}} = socket) do
+    notify(__MODULE__, {:apply, []}, socket.assigns)
+
+    {:noreply, socket}
+  end
+
   def handle_event("toggle_all", _params, socket) do
     socket =
       socket
@@ -117,16 +124,15 @@ defmodule LantternWeb.Filters.InlineFiltersComponent do
     {:noreply, socket}
   end
 
-  def handle_event("toggle_filter", %{"id" => id}, socket) do
-    selected_items_ids =
-      case id in socket.assigns.selected_items_ids do
-        true ->
-          socket.assigns.selected_items_ids
-          |> Enum.filter(&(&1 != id))
+  def handle_event("toggle_filter", %{"id" => id}, %{assigns: %{apply_on_select: true}} = socket) do
+    selected_items_ids = toggle_item(socket.assigns.selected_items_ids, id)
+    notify(__MODULE__, {:apply, selected_items_ids}, socket.assigns)
 
-        false ->
-          [id | socket.assigns.selected_items_ids]
-      end
+    {:noreply, socket}
+  end
+
+  def handle_event("toggle_filter", %{"id" => id}, socket) do
+    selected_items_ids = toggle_item(socket.assigns.selected_items_ids, id)
 
     socket =
       socket
@@ -143,6 +149,14 @@ defmodule LantternWeb.Filters.InlineFiltersComponent do
     notify(__MODULE__, {:apply, socket.assigns.selected_items_ids}, socket.assigns)
 
     {:noreply, socket}
+  end
+
+  defp toggle_item(selected_items_ids, id) do
+    if id in selected_items_ids do
+      Enum.filter(selected_items_ids, &(&1 != id))
+    else
+      [id | selected_items_ids]
+    end
   end
 
   defp check_if_has_changes([], []), do: false

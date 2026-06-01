@@ -13,7 +13,11 @@ defmodule LantternWeb.ReportCardLive do
   alias __MODULE__.StudentsTrackingComponent
 
   # shared components
+  alias LantternWeb.Filters.InlineFiltersComponent
   alias LantternWeb.Reporting.ReportCardFormComponent
+
+  import LantternWeb.FiltersHelpers,
+    only: [url_filter_params: 1, path_with_url_filters: 2, path_with_url_filters: 3]
 
   @tabs %{
     "students" => :students,
@@ -56,9 +60,12 @@ defmodule LantternWeb.ReportCardLive do
 
   @impl true
   def handle_params(params, _url, socket) do
+    url_filter_params = url_filter_params(Map.drop(params, ["id"]))
+
     socket =
       socket
       |> assign(:params, params)
+      |> assign(:url_filter_params, url_filter_params)
       |> assign_current_tab(params)
       |> assign_is_editing(params)
 
@@ -97,5 +104,27 @@ defmodule LantternWeb.ReportCardLive do
 
         {:noreply, socket}
     end
+  end
+
+  # info handlers
+
+  @impl true
+  def handle_info({InlineFiltersComponent, {:apply, classes_ids}}, socket) do
+    params =
+      case Enum.join(classes_ids, ",") do
+        "" -> Map.delete(socket.assigns.url_filter_params, "classes_ids")
+        ids -> Map.put(socket.assigns.url_filter_params, "classes_ids", ids)
+      end
+
+    report_card = socket.assigns.report_card
+
+    path =
+      case socket.assigns.live_action do
+        :students -> ~p"/report_cards/#{report_card}/students?#{params}"
+        :grades -> ~p"/report_cards/#{report_card}/grades?#{params}"
+        :tracking -> ~p"/report_cards/#{report_card}/tracking?#{params}"
+      end
+
+    {:noreply, push_patch(socket, to: path)}
   end
 end
