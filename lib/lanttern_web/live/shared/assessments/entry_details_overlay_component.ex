@@ -935,6 +935,7 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
 
     socket =
       socket
+      |> maybe_sync_composed_entry()
       |> assign(:show_composition_breakdown, true)
       |> assign_async(:composition_breakdown, fn ->
         {:ok,
@@ -1181,6 +1182,43 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
     do: recalculate_entry(entry, current_user)
 
   defp maybe_restore_composed_value(entry, _current_user), do: entry
+
+  # Opening the composition breakdown doubles as a self-healing check: recompute
+  # the persisted composed entry from its components (both edit domains). The
+  # recalc is idempotent — a no-op when already in sync — so only when a stored
+  # value actually changed do we refresh the form inputs and notify the parent
+  # grid to re-render the (now corrected) value.
+  defp maybe_sync_composed_entry(%{assigns: %{is_composed: true}} = socket) do
+    current = socket.assigns.entry
+    synced = recalculate_entry(current, socket.assigns.current_user)
+
+    if composed_values_changed?(current, synced) do
+      notify(__MODULE__, {:change, synced}, socket.assigns)
+
+      socket
+      |> assign(:entry, synced)
+      |> assign_forms()
+    else
+      socket
+    end
+  end
+
+  defp maybe_sync_composed_entry(socket), do: socket
+
+  @composed_value_fields [
+    :score,
+    :normalized_value,
+    :ordinal_value_id,
+    :student_score,
+    :student_normalized_value,
+    :student_ordinal_value_id
+  ]
+
+  defp composed_values_changed?(before_entry, after_entry) do
+    Enum.any?(@composed_value_fields, fn field ->
+      Map.get(before_entry, field) != Map.get(after_entry, field)
+    end)
+  end
 
   defp recalculate_entry(entry, current_user) do
     scope = %Scope{profile_id: current_user.current_profile_id}
