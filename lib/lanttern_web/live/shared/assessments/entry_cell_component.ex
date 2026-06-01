@@ -92,7 +92,7 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
             type="button"
             tabindex="-1"
             class={[
-              "flex flex-col shrink-0 rounded-full text-ltrn-light hover:bg-ltrn-lightest",
+              "flex flex-col shrink-0 rounded-full text-ltrn-light hover:opacity-60",
               "disabled:bg-ltrn-lighter disabled:shadow-none"
             ]}
             phx-click="view_details"
@@ -155,6 +155,7 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
       <div
         class={[
           "flex items-center justify-center w-full h-full rounded-xs font-mono text-sm px-1",
+          "cursor-pointer hover:opacity-60",
           is_nil(@current_label) && "text-ltrn-subtle bg-ltrn-lighter"
         ]}
         style={if @current_label, do: @style}

@@ -75,6 +75,11 @@ const EntryCellHook = {
       if (this._mode === "cell") {
         e.preventDefault();
         this.el.focus();
+        // Ordinal (dropdown) cells enter edit mode on a single click;
+        // numeric cells stay in navigation mode and require double-click.
+        if (this.el.dataset.scaleType === "ordinal" && !this.el.dataset.isComposed) {
+          this._enterInput();
+        }
       }
     };
 
