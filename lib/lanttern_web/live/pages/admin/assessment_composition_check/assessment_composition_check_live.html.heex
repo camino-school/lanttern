@@ -32,6 +32,12 @@
         <p class="font-display font-black text-2xl text-red-600">{@status.out_of_sync_count}</p>
         <p class="text-sm text-ltrn-subtle">{gettext("Out of sync")}</p>
       </div>
+      <div class="p-4 rounded-sm bg-white shadow-lg">
+        <p class="font-display font-black text-2xl text-ltrn-subtle">
+          {@status.manual_input_count}
+        </p>
+        <p class="text-sm text-ltrn-subtle">{gettext("Manual input")}</p>
+      </div>
       <.button :if={@status.out_of_sync_count > 0} phx-click="sync" class="ml-auto">
         {gettext("Sync")}
       </.button>

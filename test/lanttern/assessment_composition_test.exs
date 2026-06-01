@@ -1866,6 +1866,49 @@ defmodule Lanttern.AssessmentCompositionTest do
       assert row.expected.normalized_value == 0.7
     end
 
+    test "counts a manual-input entry separately, never as in or out of sync", %{
+      strand: strand,
+      numeric_scale: numeric_scale,
+      student: student
+    } do
+      parent =
+        insert(:assessment_point,
+          strand_id: strand.id,
+          scale: numeric_scale,
+          uses_composition: true
+        )
+
+      child = insert(:assessment_point, strand_id: strand.id, scale: numeric_scale)
+      insert(:assessment_point_component, parent: parent, component: child, weight: 1.0)
+
+      insert(:assessment_point_entry,
+        assessment_point: child,
+        student: student,
+        scale: numeric_scale,
+        scale_type: "numeric",
+        score: 38.0
+      )
+
+      # stored value drifts from the components, but it's a manual-input override —
+      # the sync leaves it untouched, so the check must not flag it as out of sync
+      insert(:assessment_point_entry,
+        assessment_point: parent,
+        student: student,
+        scale: numeric_scale,
+        scale_type: "numeric",
+        score: 99.0,
+        use_manual_input: true
+      )
+
+      status = AssessmentComposition.list_strand_composition_sync_status(@admin_scope, strand.id)
+
+      assert status.total_count == 1
+      assert status.manual_input_count == 1
+      assert status.in_sync_count == 0
+      assert status.out_of_sync_count == 0
+      assert status.out_of_sync == []
+    end
+
     test "raises for a non-admin scope", %{strand: strand} do
       assert_raise MatchError, fn ->
         AssessmentComposition.list_strand_composition_sync_status(%Scope{}, strand.id)

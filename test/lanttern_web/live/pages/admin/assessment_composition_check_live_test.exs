@@ -43,12 +43,12 @@ defmodule LantternWeb.Admin.AssessmentCompositionCheckLiveTest do
         use_manual_input: false
       )
 
-    %{strand: strand, parent: parent, parent_entry: parent_entry, student: student}
+    %{strand: strand, parent_entry: parent_entry, student: student}
   end
 
   describe "Assessment composition check page" do
     test "lists an out-of-sync entry on strand select and re-syncs it", %{conn: conn} do
-      %{strand: strand, parent: parent, parent_entry: parent_entry, student: student} =
+      %{strand: strand, parent_entry: parent_entry, student: student} =
         stale_numeric_composition()
 
       {:ok, view, _html} = live(conn, ~p"/admin/assessment_composition_check")
@@ -78,8 +78,6 @@ defmodule LantternWeb.Admin.AssessmentCompositionCheckLiveTest do
 
       assert %AssessmentPointEntry{score: 38.0} =
                Repo.get!(AssessmentPointEntry, parent_entry.id)
-
-      _ = parent
     end
   end
 end

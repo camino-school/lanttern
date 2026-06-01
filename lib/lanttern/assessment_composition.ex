@@ -424,9 +424,13 @@ defmodule Lanttern.AssessmentComposition do
   out-of-sync entries:
 
     * `:total_count` — relevant composed entries (`{parent, student}` pairs that
-      the recalculation would touch)
-    * `:in_sync_count` / `:out_of_sync_count` — split of `:total_count`; a pair is
-      out of sync when either edit domain (teacher or student) has drifted
+      the recalculation would consider)
+    * `:in_sync_count` / `:out_of_sync_count` / `:manual_input_count` — split of
+      `:total_count`; a pair is out of sync when either edit domain (teacher or
+      student) has drifted, and counted under `:manual_input_count` when the
+      composed entry was switched to manual input (which the sync leaves
+      untouched, mirroring `recalculate_student/8`) — those never count as in or
+      out of sync
     * `:out_of_sync` — one row **per (entry, domain)**, so an entry that drifted in
       both domains appears twice. Each row is a map with `:student`,
       `:assessment_point` (the composed parent), `:scale_type`, `:domain`
@@ -440,6 +444,7 @@ defmodule Lanttern.AssessmentComposition do
           total_count: non_neg_integer(),
           in_sync_count: non_neg_integer(),
           out_of_sync_count: non_neg_integer(),
+          manual_input_count: non_neg_integer(),
           out_of_sync: [map()]
         }
   def list_strand_composition_sync_status(%Scope{} = scope, strand_id) do
@@ -457,11 +462,13 @@ defmodule Lanttern.AssessmentComposition do
 
     total_count = Enum.sum(Enum.map(results, & &1.total))
     out_of_sync_count = Enum.sum(Enum.map(results, & &1.out_of_sync_count))
+    manual_input_count = Enum.sum(Enum.map(results, & &1.manual_count))
 
     %{
       total_count: total_count,
-      in_sync_count: total_count - out_of_sync_count,
+      in_sync_count: total_count - out_of_sync_count - manual_input_count,
       out_of_sync_count: out_of_sync_count,
+      manual_input_count: manual_input_count,
       out_of_sync: Enum.flat_map(results, & &1.rows)
     }
   end
@@ -496,10 +503,10 @@ defmodule Lanttern.AssessmentComposition do
 
     case {composition_mode(parent), student_ids} do
       {nil, _} ->
-        %{total: 0, out_of_sync_count: 0, rows: []}
+        %{total: 0, out_of_sync_count: 0, manual_count: 0, rows: []}
 
       {_mode, []} ->
-        %{total: 0, out_of_sync_count: 0, rows: []}
+        %{total: 0, out_of_sync_count: 0, manual_count: 0, rows: []}
 
       {mode, student_ids} ->
         compute_parent_sync_status(parent, mode, student_ids)
@@ -514,6 +521,10 @@ defmodule Lanttern.AssessmentComposition do
 
   defp composition_mode(_parent), do: nil
 
+  # Runs a handful of queries *per composed parent* (components, component
+  # entries, existing parent entries, students). That's fine for the admin check
+  # over a single strand — composed assessment points per strand are few — but
+  # it is not meant to be run across many strands at once.
   defp compute_parent_sync_status(parent, mode, student_ids) do
     components = Repo.all(from c in Component, where: c.parent_id == ^parent.id)
     component_ids = Enum.map(components, & &1.component_id)
@@ -541,23 +552,56 @@ defmodule Lanttern.AssessmentComposition do
 
     ordinal_values_by_id = Map.new(parent.scale.ordinal_values, &{&1.id, &1})
 
-    {rows, out_of_sync_count} =
-      Enum.reduce(student_ids, {[], 0}, fn student_id, {acc_rows, acc_count} ->
-        {student_rows, is_out_of_sync} =
-          student_sync_rows(
-            parent,
-            mode,
-            Map.get(students_by_id, student_id),
-            Map.get(entries_by_student, student_id, []),
-            weight_by_component,
-            Map.get(existing_by_student, student_id),
-            ordinal_values_by_id
-          )
-
-        {acc_rows ++ student_rows, acc_count + if(is_out_of_sync, do: 1, else: 0)}
+    {rows, out_of_sync_count, manual_count} =
+      Enum.reduce(student_ids, {[], 0, 0}, fn student_id, acc ->
+        classify_student_sync(
+          parent,
+          mode,
+          Map.get(students_by_id, student_id),
+          Map.get(entries_by_student, student_id, []),
+          weight_by_component,
+          Map.get(existing_by_student, student_id),
+          ordinal_values_by_id,
+          acc
+        )
       end)
 
-    %{total: Enum.count(student_ids), out_of_sync_count: out_of_sync_count, rows: rows}
+    %{
+      total: Enum.count(student_ids),
+      out_of_sync_count: out_of_sync_count,
+      manual_count: manual_count,
+      rows: rows
+    }
+  end
+
+  # manual-input entries are left untouched by the sync (mirrors
+  # `recalculate_student/8`), so they count toward neither in nor out of sync
+  defp classify_student_sync(
+         _parent,
+         _mode,
+         _student,
+         _entries,
+         _weights,
+         %{use_manual_input: true},
+         _ordinal_values_by_id,
+         {rows, out_of_sync_count, manual_count}
+       ),
+       do: {rows, out_of_sync_count, manual_count + 1}
+
+  defp classify_student_sync(
+         parent,
+         mode,
+         student,
+         entries,
+         weights,
+         existing,
+         ordinal_values_by_id,
+         {rows, out_of_sync_count, manual_count}
+       ) do
+    {student_rows, is_out_of_sync} =
+      student_sync_rows(parent, mode, student, entries, weights, existing, ordinal_values_by_id)
+
+    {rows ++ student_rows, out_of_sync_count + if(is_out_of_sync, do: 1, else: 0), manual_count}
   end
 
   defp student_sync_rows(parent, mode, student, entries, weights, existing, ordinal_values_by_id) do
@@ -653,17 +697,13 @@ defmodule Lanttern.AssessmentComposition do
       |> Repo.get(parent_id)
       |> Repo.preload(:scale)
 
-    cond do
-      match?(%AssessmentPoint{uses_composition: true, scale: %{type: "numeric"}}, parent) ->
-        maybe_warn_cascading_composition(parent_id)
-        do_recalculate_parent(scope, parent, student_ids, domain, :sum)
-
-      match?(%AssessmentPoint{uses_composition: true, scale: %{type: "ordinal"}}, parent) ->
-        maybe_warn_cascading_composition(parent_id)
-        do_recalculate_parent(scope, parent, student_ids, domain, :avg)
-
-      true ->
+    case composition_mode(parent) do
+      nil ->
         :ok
+
+      mode ->
+        maybe_warn_cascading_composition(parent_id)
+        do_recalculate_parent(scope, parent, student_ids, domain, mode)
     end
   end
 
