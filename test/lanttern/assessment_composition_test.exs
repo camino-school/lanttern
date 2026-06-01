@@ -1635,4 +1635,297 @@ defmodule Lanttern.AssessmentCompositionTest do
       assert breakdown.composed.max_score == 100.0
     end
   end
+
+  describe "list_strand_composition_sync_status/2" do
+    @admin_scope %Scope{is_root_admin: true}
+
+    setup do
+      strand = insert(:strand)
+      numeric_scale = insert(:scale, type: "numeric", max_score: 100.0)
+      student = insert(:student)
+
+      %{strand: strand, numeric_scale: numeric_scale, student: student}
+    end
+
+    test "flags a stale numeric composed entry with stored and expected values", %{
+      strand: strand,
+      numeric_scale: numeric_scale,
+      student: student
+    } do
+      parent =
+        insert(:assessment_point,
+          strand_id: strand.id,
+          scale: numeric_scale,
+          uses_composition: true
+        )
+
+      child_1 = insert(:assessment_point, strand_id: strand.id, scale: numeric_scale)
+      child_2 = insert(:assessment_point, strand_id: strand.id, scale: numeric_scale)
+      insert(:assessment_point_component, parent: parent, component: child_1, weight: 1.0)
+      insert(:assessment_point_component, parent: parent, component: child_2, weight: 1.0)
+
+      # components sum to 38, parent stored at a stale 99
+      insert(:assessment_point_entry,
+        assessment_point: child_1,
+        student: student,
+        scale: numeric_scale,
+        scale_type: "numeric",
+        score: 30.0
+      )
+
+      insert(:assessment_point_entry,
+        assessment_point: child_2,
+        student: student,
+        scale: numeric_scale,
+        scale_type: "numeric",
+        score: 8.0
+      )
+
+      insert(:assessment_point_entry,
+        assessment_point: parent,
+        student: student,
+        scale: numeric_scale,
+        scale_type: "numeric",
+        score: 99.0,
+        use_manual_input: false
+      )
+
+      status = AssessmentComposition.list_strand_composition_sync_status(@admin_scope, strand.id)
+
+      assert status.total_count == 1
+      assert status.in_sync_count == 0
+      assert status.out_of_sync_count == 1
+
+      assert [row] = status.out_of_sync
+      assert row.domain == :teacher_entry
+      assert row.scale_type == "numeric"
+      assert row.student.id == student.id
+      assert row.assessment_point.id == parent.id
+      assert row.stored.score == 99.0
+      assert row.expected.score == 38.0
+    end
+
+    test "treats a numeric composed entry that matches its components as in sync", %{
+      strand: strand,
+      numeric_scale: numeric_scale,
+      student: student
+    } do
+      parent =
+        insert(:assessment_point,
+          strand_id: strand.id,
+          scale: numeric_scale,
+          uses_composition: true
+        )
+
+      child = insert(:assessment_point, strand_id: strand.id, scale: numeric_scale)
+      insert(:assessment_point_component, parent: parent, component: child, weight: 1.0)
+
+      insert(:assessment_point_entry,
+        assessment_point: child,
+        student: student,
+        scale: numeric_scale,
+        scale_type: "numeric",
+        score: 38.0
+      )
+
+      insert(:assessment_point_entry,
+        assessment_point: parent,
+        student: student,
+        scale: numeric_scale,
+        scale_type: "numeric",
+        score: 38.0,
+        use_manual_input: false
+      )
+
+      status = AssessmentComposition.list_strand_composition_sync_status(@admin_scope, strand.id)
+
+      assert status.total_count == 1
+      assert status.in_sync_count == 1
+      assert status.out_of_sync_count == 0
+      assert status.out_of_sync == []
+    end
+
+    test "emits one row per domain when both teacher and student values drift", %{
+      strand: strand,
+      numeric_scale: numeric_scale,
+      student: student
+    } do
+      parent =
+        insert(:assessment_point,
+          strand_id: strand.id,
+          scale: numeric_scale,
+          uses_composition: true
+        )
+
+      child_1 = insert(:assessment_point, strand_id: strand.id, scale: numeric_scale)
+      child_2 = insert(:assessment_point, strand_id: strand.id, scale: numeric_scale)
+      insert(:assessment_point_component, parent: parent, component: child_1, weight: 1.0)
+      insert(:assessment_point_component, parent: parent, component: child_2, weight: 1.0)
+
+      # teacher sums to 38, student sums to 15
+      insert(:assessment_point_entry,
+        assessment_point: child_1,
+        student: student,
+        scale: numeric_scale,
+        scale_type: "numeric",
+        score: 30.0,
+        student_score: 10.0
+      )
+
+      insert(:assessment_point_entry,
+        assessment_point: child_2,
+        student: student,
+        scale: numeric_scale,
+        scale_type: "numeric",
+        score: 8.0,
+        student_score: 5.0
+      )
+
+      insert(:assessment_point_entry,
+        assessment_point: parent,
+        student: student,
+        scale: numeric_scale,
+        scale_type: "numeric",
+        score: 99.0,
+        student_score: 88.0,
+        use_manual_input: false
+      )
+
+      status = AssessmentComposition.list_strand_composition_sync_status(@admin_scope, strand.id)
+
+      # the entry is counted once, but listed once per drifted domain
+      assert status.total_count == 1
+      assert status.out_of_sync_count == 1
+
+      by_domain = Map.new(status.out_of_sync, &{&1.domain, &1})
+      assert by_domain[:teacher_entry].expected.score == 38.0
+      assert by_domain[:student_entry].expected.score == 15.0
+    end
+
+    test "flags a stale ordinal composed entry with the expected ordinal value", %{
+      strand: strand,
+      numeric_scale: numeric_scale,
+      student: student
+    } do
+      ordinal_scale = insert(:scale, type: "ordinal", breakpoints: [0.2, 0.4, 0.6, 0.8])
+
+      ov_levels =
+        for {name, n} <- [{"L1", 0.0}, {"L2", 0.25}, {"L3", 0.5}, {"L4", 0.75}, {"L5", 1.0}] do
+          insert(:ordinal_value, scale: ordinal_scale, name: name, normalized_value: n)
+        end
+
+      [l1, _l2, _l3, l4, _l5] = ov_levels
+
+      parent =
+        insert(:assessment_point,
+          strand_id: strand.id,
+          scale: ordinal_scale,
+          uses_composition: true
+        )
+
+      child_1 = insert(:assessment_point, strand_id: strand.id, scale: numeric_scale)
+      child_2 = insert(:assessment_point, strand_id: strand.id, scale: numeric_scale)
+      insert(:assessment_point_component, parent: parent, component: child_1, weight: 1.0)
+      insert(:assessment_point_component, parent: parent, component: child_2, weight: 1.0)
+
+      # 0.8 and 0.6 → weighted avg 0.7 → bucket [0.6, 0.8) → L4
+      insert(:assessment_point_entry,
+        assessment_point: child_1,
+        student: student,
+        scale: numeric_scale,
+        scale_type: "numeric",
+        score: 80.0
+      )
+
+      insert(:assessment_point_entry,
+        assessment_point: child_2,
+        student: student,
+        scale: numeric_scale,
+        scale_type: "numeric",
+        score: 60.0
+      )
+
+      # stored stale at L1
+      insert(:assessment_point_entry,
+        assessment_point: parent,
+        student: student,
+        scale: ordinal_scale,
+        scale_type: "ordinal",
+        ordinal_value_id: l1.id,
+        normalized_value: 0.1,
+        use_manual_input: false
+      )
+
+      status = AssessmentComposition.list_strand_composition_sync_status(@admin_scope, strand.id)
+
+      assert [row] = status.out_of_sync
+      assert row.scale_type == "ordinal"
+      assert row.domain == :teacher_entry
+      assert row.stored.ordinal_value.id == l1.id
+      assert row.expected.ordinal_value.id == l4.id
+      assert row.expected.normalized_value == 0.7
+    end
+
+    test "raises for a non-admin scope", %{strand: strand} do
+      assert_raise MatchError, fn ->
+        AssessmentComposition.list_strand_composition_sync_status(%Scope{}, strand.id)
+      end
+    end
+  end
+
+  describe "sync_strand_composed_entries/2" do
+    @admin_scope %Scope{is_root_admin: true}
+
+    test "recomputes every drifted composed entry in the strand" do
+      strand = insert(:strand)
+      numeric_scale = insert(:scale, type: "numeric", max_score: 100.0)
+      student = insert(:student)
+
+      parent =
+        insert(:assessment_point,
+          strand_id: strand.id,
+          scale: numeric_scale,
+          uses_composition: true
+        )
+
+      child = insert(:assessment_point, strand_id: strand.id, scale: numeric_scale)
+      insert(:assessment_point_component, parent: parent, component: child, weight: 1.0)
+
+      insert(:assessment_point_entry,
+        assessment_point: child,
+        student: student,
+        scale: numeric_scale,
+        scale_type: "numeric",
+        score: 38.0
+      )
+
+      insert(:assessment_point_entry,
+        assessment_point: parent,
+        student: student,
+        scale: numeric_scale,
+        scale_type: "numeric",
+        score: 99.0,
+        use_manual_input: false
+      )
+
+      assert :ok = AssessmentComposition.sync_strand_composed_entries(@admin_scope, strand.id)
+
+      entry =
+        Repo.get_by!(AssessmentPointEntry, assessment_point_id: parent.id, student_id: student.id)
+
+      assert entry.score == 38.0
+
+      status = AssessmentComposition.list_strand_composition_sync_status(@admin_scope, strand.id)
+      assert status.out_of_sync_count == 0
+      assert status.out_of_sync == []
+    end
+
+    test "raises for a non-admin scope" do
+      strand = insert(:strand)
+
+      assert_raise MatchError, fn ->
+        AssessmentComposition.sync_strand_composed_entries(%Scope{}, strand.id)
+      end
+    end
+  end
 end

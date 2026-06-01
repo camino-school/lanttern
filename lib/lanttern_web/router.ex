@@ -368,6 +368,15 @@ defmodule LantternWeb.Router do
 
     live "/student_record_statuses/:id", Admin.StudentRecordStatusLive.Show, :show
     live "/student_record_statuses/:id/show/edit", Admin.StudentRecordStatusLive.Show, :edit
+
+    # Assessments — scope is needed for the admin-only composition check
+    live_session :admin_assessment_composition_check,
+      on_mount: [
+        {LantternWeb.UserAuth, :ensure_authenticated},
+        {LantternWeb.UserAuth, :mount_current_scope}
+      ] do
+      live "/assessment_composition_check", Admin.AssessmentCompositionCheckLive
+    end
   end
 
   # Other scopes may use custom stacks.

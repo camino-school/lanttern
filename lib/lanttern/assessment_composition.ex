@@ -413,6 +413,224 @@ defmodule Lanttern.AssessmentComposition do
     :ok
   end
 
+  @doc """
+  Returns the composition sync status for every composed assessment point in a
+  strand, comparing each stored composed entry against the value recomputed from
+  its components — without writing anything.
+
+  Admin only (`scope.is_root_admin` must be true).
+
+  The returned map contains entry-level counts and a per-domain list of the
+  out-of-sync entries:
+
+    * `:total_count` — relevant composed entries (`{parent, student}` pairs that
+      the recalculation would touch)
+    * `:in_sync_count` / `:out_of_sync_count` — split of `:total_count`; a pair is
+      out of sync when either edit domain (teacher or student) has drifted
+    * `:out_of_sync` — one row **per (entry, domain)**, so an entry that drifted in
+      both domains appears twice. Each row is a map with `:student`,
+      `:assessment_point` (the composed parent), `:scale_type`, `:domain`
+      (`:teacher_entry | :student_entry`) and `:stored` / `:expected` value
+      summaries (`%{score, normalized_value, ordinal_value}`)
+
+  This mirrors exactly what `sync_strand_composed_entries/2` would change, so the
+  counts stay consistent across a check → sync → re-check cycle.
+  """
+  @spec list_strand_composition_sync_status(Scope.t(), pos_integer()) :: %{
+          total_count: non_neg_integer(),
+          in_sync_count: non_neg_integer(),
+          out_of_sync_count: non_neg_integer(),
+          out_of_sync: [map()]
+        }
+  def list_strand_composition_sync_status(%Scope{} = scope, strand_id) do
+    true = scope.is_root_admin
+
+    parents =
+      from(ap in AssessmentPoint,
+        where: ap.strand_id == ^strand_id and ap.uses_composition == true,
+        order_by: [asc_nulls_last: ap.moment_id, asc: ap.position],
+        preload: [scale: :ordinal_values, curriculum_item: :curriculum_component]
+      )
+      |> Repo.all()
+
+    results = Enum.map(parents, &parent_sync_status/1)
+
+    total_count = Enum.sum(Enum.map(results, & &1.total))
+    out_of_sync_count = Enum.sum(Enum.map(results, & &1.out_of_sync_count))
+
+    %{
+      total_count: total_count,
+      in_sync_count: total_count - out_of_sync_count,
+      out_of_sync_count: out_of_sync_count,
+      out_of_sync: Enum.flat_map(results, & &1.rows)
+    }
+  end
+
+  @doc """
+  Recalculates every composed entry of every composed assessment point in a
+  strand, across both edit domains.
+
+  Admin only (`scope.is_root_admin` must be true). Delegates to the idempotent
+  `recalculate_all_composed_entries/2`, so in-sync entries are left untouched
+  (no DB write, no audit-log row).
+  """
+  @spec sync_strand_composed_entries(Scope.t(), pos_integer()) :: :ok
+  def sync_strand_composed_entries(%Scope{} = scope, strand_id) do
+    true = scope.is_root_admin
+
+    from(ap in AssessmentPoint,
+      where: ap.strand_id == ^strand_id and ap.uses_composition == true,
+      select: ap.id
+    )
+    |> Repo.all()
+    |> Enum.each(&recalculate_all_composed_entries(scope, &1))
+
+    :ok
+  end
+
+  defp parent_sync_status(parent) do
+    student_ids =
+      parent.id
+      |> composed_pairs_for_parent()
+      |> Enum.map(fn {_parent_id, student_id} -> student_id end)
+
+    case {composition_mode(parent), student_ids} do
+      {nil, _} ->
+        %{total: 0, out_of_sync_count: 0, rows: []}
+
+      {_mode, []} ->
+        %{total: 0, out_of_sync_count: 0, rows: []}
+
+      {mode, student_ids} ->
+        compute_parent_sync_status(parent, mode, student_ids)
+    end
+  end
+
+  defp composition_mode(%AssessmentPoint{uses_composition: true, scale: %{type: "numeric"}}),
+    do: :sum
+
+  defp composition_mode(%AssessmentPoint{uses_composition: true, scale: %{type: "ordinal"}}),
+    do: :avg
+
+  defp composition_mode(_parent), do: nil
+
+  defp compute_parent_sync_status(parent, mode, student_ids) do
+    components = Repo.all(from c in Component, where: c.parent_id == ^parent.id)
+    component_ids = Enum.map(components, & &1.component_id)
+    weight_by_component = Map.new(components, &{&1.component_id, &1.weight})
+
+    entries_by_student =
+      from(e in AssessmentPointEntry,
+        where: e.assessment_point_id in ^component_ids and e.student_id in ^student_ids,
+        preload: [:scale, :ordinal_value, :student_ordinal_value]
+      )
+      |> Repo.all()
+      |> Enum.group_by(& &1.student_id)
+
+    existing_by_student =
+      from(e in AssessmentPointEntry,
+        where: e.assessment_point_id == ^parent.id and e.student_id in ^student_ids
+      )
+      |> Repo.all()
+      |> Map.new(&{&1.student_id, &1})
+
+    students_by_id =
+      from(s in Lanttern.Schools.Student, where: s.id in ^student_ids)
+      |> Repo.all()
+      |> Map.new(&{&1.id, &1})
+
+    ordinal_values_by_id = Map.new(parent.scale.ordinal_values, &{&1.id, &1})
+
+    {rows, out_of_sync_count} =
+      Enum.reduce(student_ids, {[], 0}, fn student_id, {acc_rows, acc_count} ->
+        {student_rows, is_out_of_sync} =
+          student_sync_rows(
+            parent,
+            mode,
+            Map.get(students_by_id, student_id),
+            Map.get(entries_by_student, student_id, []),
+            weight_by_component,
+            Map.get(existing_by_student, student_id),
+            ordinal_values_by_id
+          )
+
+        {acc_rows ++ student_rows, acc_count + if(is_out_of_sync, do: 1, else: 0)}
+      end)
+
+    %{total: Enum.count(student_ids), out_of_sync_count: out_of_sync_count, rows: rows}
+  end
+
+  defp student_sync_rows(parent, mode, student, entries, weights, existing, ordinal_values_by_id) do
+    Enum.reduce([:teacher_entry, :student_entry], {[], false}, fn domain, {rows, out_of_sync} ->
+      {attrs, target_error} =
+        case mode do
+          :sum -> compute_sum_target(parent, domain, entries, existing)
+          :avg -> compute_avg_target(parent, domain, entries, weights, existing)
+        end
+
+      case domain_sync_row(parent, mode, student, domain, attrs, target_error, existing,
+             ordinal_values_by_id: ordinal_values_by_id
+           ) do
+        :in_sync -> {rows, out_of_sync}
+        {:out_of_sync, row} -> {rows ++ [row], true}
+      end
+    end)
+  end
+
+  defp domain_sync_row(parent, mode, student, domain, attrs, target_error, existing, opts) do
+    ordinal_values_by_id = Keyword.fetch!(opts, :ordinal_values_by_id)
+    primary = primary_target_field(mode, domain)
+    expected_primary = Map.get(attrs, primary)
+    stored_primary = existing && Map.get(existing, primary)
+
+    has_value = not is_nil(expected_primary) or not is_nil(stored_primary)
+
+    in_sync? =
+      not is_nil(existing) and
+        Enum.all?(attrs, fn {field, value} -> Map.get(existing, field) == value end) and
+        target_error == existing.calculation_error
+
+    if not has_value or in_sync? do
+      :in_sync
+    else
+      {:out_of_sync,
+       %{
+         student: student,
+         assessment_point: parent,
+         scale_type: parent.scale.type,
+         domain: domain,
+         stored: build_value_summary(mode, domain, existing, ordinal_values_by_id),
+         expected: build_value_summary(mode, domain, attrs, ordinal_values_by_id)
+       }}
+    end
+  end
+
+  defp primary_target_field(:sum, domain), do: sum_target_field(domain)
+  defp primary_target_field(:avg, domain), do: avg_target_field(domain)
+
+  # `source` is either the existing entry struct or the computed attrs map; both
+  # respond to `Map.get/2` for the relevant fields.
+  defp build_value_summary(:sum, domain, source, _ordinal_values_by_id) do
+    %{
+      score: read_field(source, sum_target_field(domain)),
+      normalized_value: nil,
+      ordinal_value: nil
+    }
+  end
+
+  defp build_value_summary(:avg, domain, source, ordinal_values_by_id) do
+    ordinal_value_id = read_field(source, avg_target_field(domain))
+
+    %{
+      score: nil,
+      normalized_value: read_field(source, normalized_target_field(domain)),
+      ordinal_value: ordinal_value_id && Map.get(ordinal_values_by_id, ordinal_value_id)
+    }
+  end
+
+  defp read_field(nil, _field), do: nil
+  defp read_field(source, field), do: Map.get(source, field)
+
   defp composed_pairs_for_parent(parent_id) do
     component_ids =
       from(c in Component, where: c.parent_id == ^parent_id, select: c.component_id)
@@ -500,6 +718,21 @@ defmodule Lanttern.AssessmentComposition do
   end
 
   defp recalculate_sum(scope, parent, student_id, domain, entries, existing) do
+    {attrs, target_error} = compute_sum_target(parent, domain, entries, existing)
+    do_upsert(scope, parent, student_id, attrs, target_error, existing)
+  end
+
+  defp recalculate_avg(scope, parent, student_id, domain, entries, weight_by_component, existing) do
+    {attrs, target_error} =
+      compute_avg_target(parent, domain, entries, weight_by_component, existing)
+
+    do_upsert(scope, parent, student_id, attrs, target_error, existing)
+  end
+
+  # Pure computation of a sum-composed entry's target attrs — shared by the
+  # recalculation pipeline and the read-only sync-status check so both derive
+  # the expected value the same way.
+  defp compute_sum_target(parent, domain, entries, existing) do
     field = sum_target_field(domain)
     recomputed = compute_sum(entries, field)
     max_score = parent.scale.max_score
@@ -513,19 +746,18 @@ defmodule Lanttern.AssessmentComposition do
         {recomputed, nil}
       end
 
-    do_upsert(scope, parent, student_id, %{field => target_value}, target_error, existing)
+    {%{field => target_value}, target_error}
   end
 
-  defp recalculate_avg(scope, parent, student_id, domain, entries, weight_by_component, existing) do
+  # Pure computation of an average-composed entry's target attrs — shared by the
+  # recalculation pipeline and the read-only sync-status check.
+  defp compute_avg_target(parent, domain, entries, weight_by_component, existing) do
     field = avg_target_field(domain)
     normalized_field = normalized_target_field(domain)
 
     normalized_avg = compute_weighted_avg(entries, weight_by_component, domain)
 
-    {attrs, target_error} =
-      resolve_avg_target(normalized_avg, parent.scale, existing, field, normalized_field)
-
-    do_upsert(scope, parent, student_id, attrs, target_error, existing)
+    resolve_avg_target(normalized_avg, parent.scale, existing, field, normalized_field)
   end
 
   defp sum_target_field(:teacher_entry), do: :score

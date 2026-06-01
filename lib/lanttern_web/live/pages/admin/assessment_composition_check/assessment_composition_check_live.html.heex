@@ -1,0 +1,74 @@
+<Layouts.admin flash={@flash}>
+  <.header>
+    {gettext("Assessment composition check")}
+  </.header>
+
+  <p class="mt-4 text-ltrn-subtle">
+    {gettext(
+      "Search a strand to check whether its composed assessment point entries match the values computed from their components, and re-sync any that have drifted."
+    )}
+  </p>
+
+  <div class="mt-10 max-w-2xl">
+    <.live_component
+      module={StrandSearchComponent}
+      id="strand-search"
+      is_combobox
+      notify_parent={true}
+    />
+  </div>
+
+  <div :if={@status} class="mt-10">
+    <div class="flex flex-wrap items-center gap-4">
+      <div class="p-4 rounded-sm bg-white shadow-lg">
+        <p class="font-display font-black text-2xl">{@status.total_count}</p>
+        <p class="text-sm text-ltrn-subtle">{gettext("Relevant entries")}</p>
+      </div>
+      <div class="p-4 rounded-sm bg-white shadow-lg">
+        <p class="font-display font-black text-2xl text-green-600">{@status.in_sync_count}</p>
+        <p class="text-sm text-ltrn-subtle">{gettext("In sync")}</p>
+      </div>
+      <div class="p-4 rounded-sm bg-white shadow-lg">
+        <p class="font-display font-black text-2xl text-red-600">{@status.out_of_sync_count}</p>
+        <p class="text-sm text-ltrn-subtle">{gettext("Out of sync")}</p>
+      </div>
+      <.button :if={@status.out_of_sync_count > 0} phx-click="sync" class="ml-auto">
+        {gettext("Sync")}
+      </.button>
+    </div>
+
+    <div
+      :if={@status.out_of_sync_count == 0}
+      class="p-10 mt-6 rounded-sm bg-white text-center text-ltrn-subtle"
+    >
+      {gettext("All composed entries are in sync.")}
+    </div>
+
+    <table :if={@status.out_of_sync != []} class="w-full mt-6 border-collapse font-sans text-sm">
+      <thead>
+        <tr class="text-ltrn-subtle border-b border-ltrn-lighter">
+          <th class="py-2 pr-4 font-bold text-left">{gettext("Student")}</th>
+          <th class="py-2 pr-4 font-bold text-left">{gettext("Composed assessment point")}</th>
+          <th class="py-2 px-4 font-bold text-left">{gettext("Context")}</th>
+          <th class="py-2 px-4 font-bold text-right">{gettext("Stored")}</th>
+          <th class="py-2 pl-4 font-bold text-right">{gettext("Expected")}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr :for={row <- @status.out_of_sync} class="border-b border-ltrn-lighter last:border-b-0">
+          <td class="py-2 pr-4">{student_name(row.student)}</td>
+          <td class="py-2 pr-4">{ap_display_name(row.assessment_point)}</td>
+          <td class="py-2 px-4">
+            <.badge>{domain_label(row.domain)}</.badge>
+          </td>
+          <td class="py-2 px-4 text-right">
+            <.value_cell scale_type={row.scale_type} value={row.stored} />
+          </td>
+          <td class="py-2 pl-4 text-right">
+            <.value_cell scale_type={row.scale_type} value={row.expected} />
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</Layouts.admin>
