@@ -831,21 +831,13 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
   def handle_event("save_teacher_marking", %{"assessment_point_entry" => params}, socket) do
     entry = socket.assigns.entry
     opts = [log_profile_id: socket.assigns.current_user.current_profile_id]
-    teacher_changed = teacher_value_changed?(entry, params)
 
     socket =
       case Assessments.update_assessment_point_entry(entry, params, opts) do
         {:ok, entry} ->
+          # recalc of any composed parent is enqueued atomically inside
+          # update_assessment_point_entry/3 based on what actually changed
           notify(__MODULE__, {:change, entry}, socket.assigns)
-
-          if teacher_changed do
-            Assessments.enqueue_composed_recalc(
-              entry.assessment_point_id,
-              entry.student_id,
-              ["teacher_entry"],
-              opts
-            )
-          end
 
           socket
           |> assign(:entry, entry)
@@ -862,21 +854,11 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
   def handle_event("save_student_marking", %{"assessment_point_entry" => params}, socket) do
     entry = socket.assigns.entry
     opts = [log_profile_id: socket.assigns.current_user.current_profile_id]
-    student_changed = student_value_changed?(entry, params)
 
     socket =
       case Assessments.update_assessment_point_entry(entry, params, opts) do
         {:ok, entry} ->
           notify(__MODULE__, {:change, entry}, socket.assigns)
-
-          if student_changed do
-            Assessments.enqueue_composed_recalc(
-              entry.assessment_point_id,
-              entry.student_id,
-              ["student_entry"],
-              opts
-            )
-          end
 
           socket
           |> assign(:entry, entry)
@@ -923,16 +905,9 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
 
     case Assessments.update_assessment_point_entry(socket.assigns.entry, params, opts) do
       {:ok, entry} ->
+        # is_missing is a composition input (affects both domains' averages);
+        # update_assessment_point_entry/3 enqueues the parent recalc atomically
         notify(__MODULE__, {:change, entry}, socket.assigns)
-
-        # is_missing is a composition input (affects both domains' averages),
-        # so recompute any parent composed entries after the change
-        Assessments.enqueue_composed_recalc(
-          entry.assessment_point_id,
-          entry.student_id,
-          ["teacher_entry", "student_entry"],
-          opts
-        )
 
         {:noreply, socket |> assign(:entry, entry) |> assign_forms()}
 
@@ -1167,7 +1142,7 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
 
   defp ap_display_name(ap), do: ap.name
 
-  defp format_normalized(nil), do: "-"
+  defp format_normalized(nil), do: "—"
   defp format_normalized(value), do: :erlang.float_to_binary(value * 1.0, decimals: 2)
 
   defp format_max(nil), do: "—"

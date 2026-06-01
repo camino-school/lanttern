@@ -99,8 +99,15 @@ defmodule Lanttern.Assessments.AssessmentPoint do
     timestamps()
   end
 
-  @doc false
-  def changeset(assessment, attrs) do
+  @doc """
+  Assessment point changeset.
+
+  `is_already_a_component` is determined by the caller (a context query). When it
+  is true and the change enables composition, the changeset is rejected: an
+  assessment point that is already a component of another composition cannot
+  itself become composed (cascading composition is not supported).
+  """
+  def changeset(assessment, attrs, is_already_a_component \\ false) do
     assessment
     |> cast(attrs, [
       :name,
@@ -124,7 +131,7 @@ defmodule Lanttern.Assessments.AssessmentPoint do
       :students_ids
     ])
     |> validate_required([:curriculum_item_id, :scale_id])
-    |> validate_not_already_a_component()
+    |> validate_not_already_a_component(is_already_a_component)
     |> validate_and_build_datetime()
     |> put_classes()
     |> cast_entries()
@@ -154,12 +161,8 @@ defmodule Lanttern.Assessments.AssessmentPoint do
     )
   end
 
-  # An assessment point that is already a component of another composition
-  # cannot itself become composed (cascading composition is not supported).
-  defp validate_not_already_a_component(changeset) do
-    with true <- get_change(changeset, :uses_composition) == true,
-         id when not is_nil(id) <- get_field(changeset, :id),
-         true <- Repo.exists?(from c in Component, where: c.component_id == ^id) do
+  defp validate_not_already_a_component(changeset, is_already_a_component) do
+    if get_change(changeset, :uses_composition) == true and is_already_a_component do
       add_error(
         changeset,
         :uses_composition,
@@ -168,7 +171,7 @@ defmodule Lanttern.Assessments.AssessmentPoint do
         )
       )
     else
-      _ -> changeset
+      changeset
     end
   end
 

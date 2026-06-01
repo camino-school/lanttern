@@ -51,8 +51,10 @@ defmodule Lanttern.AssessmentComposition do
   def create_assessment_point_component(%Scope{} = scope, attrs \\ %{}) do
     true = Scope.profile_type?(scope, "staff")
 
+    component_id = Map.get(attrs, :component_id, Map.get(attrs, "component_id"))
+
     %Component{}
-    |> Component.changeset(attrs)
+    |> Component.changeset(attrs, composed_component_ids(List.wrap(component_id)))
     |> Repo.insert()
   end
 
@@ -71,8 +73,11 @@ defmodule Lanttern.AssessmentComposition do
   def update_assessment_point_component(%Scope{} = scope, %Component{} = component, attrs) do
     true = Scope.profile_type?(scope, "staff")
 
+    component_id =
+      Map.get(attrs, :component_id, Map.get(attrs, "component_id")) || component.component_id
+
     component
-    |> Component.changeset(attrs)
+    |> Component.changeset(attrs, composed_component_ids(List.wrap(component_id)))
     |> Repo.update()
   end
 
@@ -108,6 +113,8 @@ defmodule Lanttern.AssessmentComposition do
   def replace_assessment_point_components(%Scope{} = scope, parent_id, components) do
     true = Scope.profile_type?(scope, "staff")
 
+    composed_ids = composed_component_ids(Enum.map(components, & &1.component_id))
+
     delete_query = from(c in Component, where: c.parent_id == ^parent_id)
 
     multi =
@@ -119,26 +126,41 @@ defmodule Lanttern.AssessmentComposition do
       |> Enum.with_index()
       |> Enum.reduce(multi, fn {%{component_id: component_id, weight: weight}, index}, multi ->
         changeset =
-          Component.changeset(%Component{}, %{
-            parent_id: parent_id,
-            component_id: component_id,
-            weight: weight
-          })
+          Component.changeset(
+            %Component{},
+            %{parent_id: parent_id, component_id: component_id, weight: weight},
+            composed_ids
+          )
 
         Ecto.Multi.insert(multi, {:insert, index}, changeset)
       end)
 
+    # enqueue the recalc inside the transaction so a saved composition always has
+    # a scheduled recalc (and a rolled-back save never enqueues a stale one)
+    multi =
+      Oban.insert(
+        multi,
+        :recalc_job,
+        Lanttern.Workers.CompositionRecalcWorker.new(%{
+          parent_id: parent_id,
+          profile_id: scope.profile_id
+        })
+      )
+
     case Repo.transaction(multi) do
-      {:ok, _} ->
-        %{parent_id: parent_id, profile_id: scope.profile_id}
-        |> Lanttern.Workers.CompositionRecalcWorker.new()
-        |> Oban.insert()
-
-        {:ok, :replaced}
-
-      {:error, _op, changeset, _changes} ->
-        {:error, changeset}
+      {:ok, _} -> {:ok, :replaced}
+      {:error, _op, changeset, _changes} -> {:error, changeset}
     end
+  end
+
+  defp composed_component_ids([]), do: []
+
+  defp composed_component_ids(component_ids) do
+    from(ap in AssessmentPoint,
+      where: ap.id in ^component_ids and ap.uses_composition == true,
+      select: ap.id
+    )
+    |> Repo.all()
   end
 
   @doc """
@@ -198,6 +220,9 @@ defmodule Lanttern.AssessmentComposition do
   component assessment point can't have its own grade composition.
   """
   @spec list_compositions_using_component(Scope.t(), pos_integer()) :: [AssessmentPoint.t()]
+  # `scope` is intentionally unused for now: callers already operate on an
+  # assessment point loaded within the current user's context, so no extra
+  # school-level filtering is applied here.
   def list_compositions_using_component(%Scope{} = _scope, component_ap_id) do
     from(c in Component,
       join: parent in AssessmentPoint,
@@ -356,7 +381,13 @@ defmodule Lanttern.AssessmentComposition do
       when domain in [:teacher_entry, :student_entry] do
     pairs
     |> Enum.uniq()
-    |> Enum.each(&recalculate_composed_entry(scope, &1, domain))
+    |> Enum.group_by(
+      fn {parent_id, _student_id} -> parent_id end,
+      fn {_parent_id, student_id} -> student_id end
+    )
+    |> Enum.each(fn {parent_id, student_ids} ->
+      recalculate_parent_composed_entries(scope, parent_id, student_ids, domain)
+    end)
 
     :ok
   end
@@ -398,47 +429,82 @@ defmodule Lanttern.AssessmentComposition do
     |> Enum.map(&{parent_id, &1})
   end
 
-  defp recalculate_composed_entry(%Scope{} = scope, {parent_id, student_id}, domain) do
+  defp recalculate_parent_composed_entries(scope, parent_id, student_ids, domain) do
     parent =
       AssessmentPoint
       |> Repo.get(parent_id)
       |> Repo.preload(:scale)
 
-    existing = get_existing_parent_entry(parent_id, student_id)
-
     cond do
-      # the composed entry was switched to manual input — leave it untouched
-      match?(%AssessmentPointEntry{use_manual_input: true}, existing) ->
-        :ok
-
       match?(%AssessmentPoint{uses_composition: true, scale: %{type: "numeric"}}, parent) ->
         maybe_warn_cascading_composition(parent_id)
-        recalculate_sum(scope, parent, student_id, domain, existing)
+        do_recalculate_parent(scope, parent, student_ids, domain, :sum)
 
       match?(%AssessmentPoint{uses_composition: true, scale: %{type: "ordinal"}}, parent) ->
         maybe_warn_cascading_composition(parent_id)
-        recalculate_avg(scope, parent, student_id, domain, existing)
+        do_recalculate_parent(scope, parent, student_ids, domain, :avg)
 
       true ->
         :ok
     end
   end
 
-  defp recalculate_sum(scope, parent, student_id, domain, existing) do
-    field = sum_target_field(domain)
-
+  # Loads the parent's components and every relevant entry once (instead of
+  # per student) and recomputes each student's composed entry in memory.
+  defp do_recalculate_parent(scope, parent, student_ids, domain, mode) do
     components = Repo.all(from c in Component, where: c.parent_id == ^parent.id)
     component_ids = Enum.map(components, & &1.component_id)
+    weight_by_component = Map.new(components, &{&1.component_id, &1.weight})
 
-    entries =
-      Repo.all(
-        from e in AssessmentPointEntry,
-          where: e.assessment_point_id in ^component_ids and e.student_id == ^student_id
+    entries_by_student =
+      from(e in AssessmentPointEntry,
+        where: e.assessment_point_id in ^component_ids and e.student_id in ^student_ids,
+        preload: [:scale, :ordinal_value, :student_ordinal_value]
       )
+      |> Repo.all()
+      |> Enum.group_by(& &1.student_id)
 
+    existing_by_student =
+      from(e in AssessmentPointEntry,
+        where: e.assessment_point_id == ^parent.id and e.student_id in ^student_ids
+      )
+      |> Repo.all()
+      |> Map.new(&{&1.student_id, &1})
+
+    Enum.each(student_ids, fn student_id ->
+      recalculate_student(
+        scope,
+        parent,
+        student_id,
+        domain,
+        mode,
+        Map.get(entries_by_student, student_id, []),
+        weight_by_component,
+        Map.get(existing_by_student, student_id)
+      )
+    end)
+  end
+
+  defp recalculate_student(scope, parent, student_id, domain, mode, entries, weights, existing) do
+    cond do
+      # the composed entry was switched to manual input — leave it untouched
+      match?(%AssessmentPointEntry{use_manual_input: true}, existing) ->
+        :ok
+
+      mode == :sum ->
+        recalculate_sum(scope, parent, student_id, domain, entries, existing)
+
+      mode == :avg ->
+        recalculate_avg(scope, parent, student_id, domain, entries, weights, existing)
+    end
+  end
+
+  defp recalculate_sum(scope, parent, student_id, domain, entries, existing) do
+    field = sum_target_field(domain)
     recomputed = compute_sum(entries, field)
+    max_score = parent.scale.max_score
 
-    overflow? = is_number(recomputed) and recomputed > parent.scale.max_score
+    overflow? = is_number(recomputed) and is_number(max_score) and recomputed > max_score
 
     {target_value, target_error} =
       if overflow? do
@@ -450,20 +516,9 @@ defmodule Lanttern.AssessmentComposition do
     do_upsert(scope, parent, student_id, %{field => target_value}, target_error, existing)
   end
 
-  defp recalculate_avg(scope, parent, student_id, domain, existing) do
+  defp recalculate_avg(scope, parent, student_id, domain, entries, weight_by_component, existing) do
     field = avg_target_field(domain)
     normalized_field = normalized_target_field(domain)
-
-    components = Repo.all(from c in Component, where: c.parent_id == ^parent.id)
-    component_ids = Enum.map(components, & &1.component_id)
-    weight_by_component = Map.new(components, &{&1.component_id, &1.weight})
-
-    entries =
-      Repo.all(
-        from e in AssessmentPointEntry,
-          where: e.assessment_point_id in ^component_ids and e.student_id == ^student_id,
-          preload: [:scale, :ordinal_value, :student_ordinal_value]
-      )
 
     normalized_avg = compute_weighted_avg(entries, weight_by_component, domain)
 
@@ -560,6 +615,43 @@ defmodule Lanttern.AssessmentComposition do
 
   defp do_upsert(scope, _parent, _student_id, attrs, target_error, existing)
        when not is_nil(existing) do
+    update_existing_parent_entry(scope, existing, attrs, target_error)
+  end
+
+  defp do_upsert(scope, parent, student_id, attrs, target_error, nil) do
+    base = %{
+      assessment_point_id: parent.id,
+      student_id: student_id,
+      scale_id: parent.scale_id,
+      scale_type: parent.scale.type,
+      calculation_error: target_error
+    }
+
+    %AssessmentPointEntry{}
+    |> AssessmentPointEntry.changeset(Map.merge(base, attrs))
+    |> Repo.insert()
+    |> case do
+      {:ok, %AssessmentPointEntry{} = entry} ->
+        log_upsert({:ok, entry}, scope, "CREATE")
+
+      {:error, %Ecto.Changeset{} = changeset} ->
+        recover_from_insert_conflict(changeset, scope, parent, student_id, attrs, target_error)
+    end
+  end
+
+  # a concurrent recalc (e.g. the other edit domain) may have inserted the parent
+  # entry between our existence check and this insert — recover by reloading and
+  # applying this domain's values as an update; otherwise surface the error
+  defp recover_from_insert_conflict(changeset, scope, parent, student_id, attrs, target_error) do
+    with true <- unique_conflict?(changeset),
+         %AssessmentPointEntry{} = existing <- get_existing_parent_entry(parent.id, student_id) do
+      update_existing_parent_entry(scope, existing, attrs, target_error)
+    else
+      _ -> {:error, changeset}
+    end
+  end
+
+  defp update_existing_parent_entry(scope, existing, attrs, target_error) do
     unchanged? =
       Enum.all?(attrs, fn {field, value} -> Map.get(existing, field) == value end) and
         target_error == existing.calculation_error
@@ -574,19 +666,11 @@ defmodule Lanttern.AssessmentComposition do
     end
   end
 
-  defp do_upsert(scope, parent, student_id, attrs, target_error, _existing) do
-    base = %{
-      assessment_point_id: parent.id,
-      student_id: student_id,
-      scale_id: parent.scale_id,
-      scale_type: parent.scale.type,
-      calculation_error: target_error
-    }
-
-    %AssessmentPointEntry{}
-    |> AssessmentPointEntry.changeset(Map.merge(base, attrs))
-    |> Repo.insert()
-    |> log_upsert(scope, "CREATE")
+  defp unique_conflict?(%Ecto.Changeset{errors: errors}) do
+    Enum.any?(errors, fn
+      {_field, {_msg, opts}} -> Keyword.get(opts, :constraint) == :unique
+      _ -> false
+    end)
   end
 
   defp log_upsert(

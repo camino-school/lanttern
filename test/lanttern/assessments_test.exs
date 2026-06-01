@@ -1120,7 +1120,7 @@ defmodule Lanttern.AssessmentsTest do
       )
     end
 
-    test "enqueue_composed_recalc/4 enqueues recalc for the composed parent per domain" do
+    test "update_assessment_point_entry/3 enqueues composed recalc for the changed teacher domain" do
       scale = insert(:scale, type: "numeric", max_score: 100.0)
       parent_ap = insert(:assessment_point, uses_composition: true, scale: scale)
       component_ap = insert(:assessment_point, scale: scale)
@@ -1129,11 +1129,17 @@ defmodule Lanttern.AssessmentsTest do
       student = insert(:student)
       profile = Lanttern.IdentityFixtures.staff_member_profile_fixture()
 
-      assert :ok =
-               Assessments.enqueue_composed_recalc(
-                 component_ap.id,
-                 student.id,
-                 ["teacher_entry"],
+      entry =
+        insert(:assessment_point_entry,
+          assessment_point: component_ap,
+          student: student,
+          scale: scale,
+          scale_type: "numeric",
+          score: 10.0
+        )
+
+      assert {:ok, _entry} =
+               Assessments.update_assessment_point_entry(entry, %{score: 50.0},
                  log_profile_id: profile.id
                )
 
@@ -1147,7 +1153,7 @@ defmodule Lanttern.AssessmentsTest do
       )
     end
 
-    test "enqueue_composed_recalc/4 enqueues a job for each given domain" do
+    test "update_assessment_point_entry/3 enqueues both domains when is_missing changes" do
       scale = insert(:scale, type: "numeric", max_score: 100.0)
       parent_ap = insert(:assessment_point, uses_composition: true, scale: scale)
       component_ap = insert(:assessment_point, scale: scale)
@@ -1155,12 +1161,15 @@ defmodule Lanttern.AssessmentsTest do
 
       student = insert(:student)
 
-      assert :ok =
-               Assessments.enqueue_composed_recalc(
-                 component_ap.id,
-                 student.id,
-                 ["teacher_entry", "student_entry"]
-               )
+      entry =
+        insert(:assessment_point_entry,
+          assessment_point: component_ap,
+          student: student,
+          scale: scale,
+          scale_type: "numeric"
+        )
+
+      assert {:ok, _entry} = Assessments.update_assessment_point_entry(entry, %{is_missing: true})
 
       assert_enqueued(
         worker: Lanttern.Workers.ComposedEntryRecalcWorker,
@@ -1173,22 +1182,26 @@ defmodule Lanttern.AssessmentsTest do
       )
     end
 
-    test "enqueue_composed_recalc/4 does not enqueue when the AP is not a component" do
+    test "update_assessment_point_entry/3 does not enqueue when the AP is not a component" do
       scale = insert(:scale, type: "numeric", max_score: 100.0)
       assessment_point = insert(:assessment_point, scale: scale)
       student = insert(:student)
 
-      assert :ok =
-               Assessments.enqueue_composed_recalc(
-                 assessment_point.id,
-                 student.id,
-                 ["teacher_entry"]
-               )
+      entry =
+        insert(:assessment_point_entry,
+          assessment_point: assessment_point,
+          student: student,
+          scale: scale,
+          scale_type: "numeric",
+          score: 10.0
+        )
+
+      assert {:ok, _entry} = Assessments.update_assessment_point_entry(entry, %{score: 20.0})
 
       refute_enqueued(worker: Lanttern.Workers.ComposedEntryRecalcWorker)
     end
 
-    test "enqueue_composed_recalc/4 does not enqueue when no domains changed" do
+    test "update_assessment_point_entry/3 does not enqueue when no marking domain changes" do
       scale = insert(:scale, type: "numeric", max_score: 100.0)
       parent_ap = insert(:assessment_point, uses_composition: true, scale: scale)
       component_ap = insert(:assessment_point, scale: scale)
@@ -1196,15 +1209,26 @@ defmodule Lanttern.AssessmentsTest do
 
       student = insert(:student)
 
-      assert :ok = Assessments.enqueue_composed_recalc(component_ap.id, student.id, [])
+      entry =
+        insert(:assessment_point_entry,
+          assessment_point: component_ap,
+          student: student,
+          scale: scale,
+          scale_type: "numeric",
+          score: 10.0
+        )
+
+      # only a comment changes — no composition input is touched
+      assert {:ok, _entry} =
+               Assessments.update_assessment_point_entry(entry, %{report_note: "a comment"})
 
       refute_enqueued(worker: Lanttern.Workers.ComposedEntryRecalcWorker)
     end
 
-    test "enqueue_composed_recalc/4 is not deduped for identical rapid re-enqueues" do
+    test "save_assessment_point_entries/2 is not deduped for identical rapid re-saves" do
       # regression: `unique: true` used to silently drop a recalc whose args
       # matched one enqueued (incl. already completed) in the last 60s, leaving
-      # the composed entry stale. Each enqueue must now produce its own job.
+      # the composed entry stale. Each enqueue must produce its own job.
       scale = insert(:scale, type: "numeric", max_score: 100.0)
       parent_ap = insert(:assessment_point, uses_composition: true, scale: scale)
       component_ap = insert(:assessment_point, scale: scale)
@@ -1212,11 +1236,16 @@ defmodule Lanttern.AssessmentsTest do
 
       student = insert(:student)
 
-      assert :ok =
-               Assessments.enqueue_composed_recalc(component_ap.id, student.id, ["teacher_entry"])
+      params = %{
+        "student_id" => student.id,
+        "assessment_point_id" => component_ap.id,
+        "scale_id" => scale.id,
+        "scale_type" => "numeric",
+        "score" => 50.0
+      }
 
-      assert :ok =
-               Assessments.enqueue_composed_recalc(component_ap.id, student.id, ["teacher_entry"])
+      assert {:ok, 1} = Assessments.save_assessment_point_entries([params])
+      assert {:ok, 1} = Assessments.save_assessment_point_entries([params])
 
       # under the old `unique: true` the second insert was a silent conflict and
       # produced no second row; without it each enqueue creates its own job.

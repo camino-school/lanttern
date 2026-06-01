@@ -7,6 +7,7 @@ defmodule Lanttern.Assessments do
   import Lanttern.RepoHelpers
   alias Lanttern.Repo
 
+  alias Lanttern.AssessmentComposition.Component
   alias Lanttern.Assessments.AssessmentPoint
   alias Lanttern.Assessments.AssessmentPointEntry
   alias Lanttern.Assessments.AssessmentPointEntryEvidence
@@ -199,8 +200,16 @@ defmodule Lanttern.Assessments do
         %AssessmentPoint{} = assessment_point,
         attrs
       ) do
+    # an assessment point that is already a component of another composition can't
+    # itself become composed — query that here (only when composition is being
+    # enabled) and let the schema changeset surface the error
+    is_already_a_component =
+      Map.get(attrs, :uses_composition, Map.get(attrs, "uses_composition")) in [true, "true"] and
+        not is_nil(assessment_point.id) and
+        Repo.exists?(from c in Component, where: c.component_id == ^assessment_point.id)
+
     assessment_point
-    |> AssessmentPoint.changeset(attrs)
+    |> AssessmentPoint.changeset(attrs, is_already_a_component)
     |> Repo.update()
     |> AuditLog.maybe_log(AssessmentPointLog, "UPDATE", scope, [])
   end
@@ -242,7 +251,7 @@ defmodule Lanttern.Assessments do
     composition_parent_ids =
       Lanttern.AssessmentComposition.list_composition_parent_ids(assessment_point.id)
 
-    result =
+    multi =
       Ecto.Multi.new()
       |> Ecto.Multi.delete_all(
         :delete_entries,
@@ -252,28 +261,32 @@ defmodule Lanttern.Assessments do
         )
       )
       |> Ecto.Multi.delete(:delete_assessment_point, assessment_point)
-      |> Repo.transaction()
+
+    # recompute parents whose composed entries become stale after this component
+    # is deleted — enqueued inside the transaction so the recalc can't be lost
+    multi =
+      Enum.reduce(composition_parent_ids, multi, fn parent_id, multi ->
+        Oban.insert(
+          multi,
+          {:recalc, parent_id},
+          Lanttern.Workers.CompositionRecalcWorker.new(%{
+            parent_id: parent_id,
+            profile_id: scope.profile_id
+          })
+        )
+      end)
+
+    result = Repo.transaction(multi)
 
     case result do
       {:ok, _} ->
         AuditLog.maybe_log({:ok, assessment_point}, AssessmentPointLog, "DELETE", scope, [])
-        enqueue_composition_recalc(composition_parent_ids, scope.profile_id)
 
       _ ->
         :noop
     end
 
     result
-  end
-
-  # recompute parents whose composed entries became stale after a component
-  # assessment point was deleted
-  defp enqueue_composition_recalc(parent_ids, profile_id) do
-    Enum.each(parent_ids, fn parent_id ->
-      %{parent_id: parent_id, profile_id: profile_id}
-      |> Lanttern.Workers.CompositionRecalcWorker.new()
-      |> Oban.insert()
-    end)
   end
 
   @doc """
@@ -449,11 +462,46 @@ defmodule Lanttern.Assessments do
         attrs,
         opts \\ []
       ) do
-    assessment_point_entry
-    |> AssessmentPointEntry.changeset(attrs)
-    |> Repo.update()
-    |> maybe_preload(opts)
-    |> AssessmentsLog.maybe_create_assessment_point_entry_log("UPDATE", opts)
+    changeset = AssessmentPointEntry.changeset(assessment_point_entry, attrs)
+    log_profile_id = Keyword.get(opts, :log_profile_id)
+    domains = changed_recalc_domains(changeset)
+
+    Ecto.Multi.new()
+    |> Ecto.Multi.update(:entry, changeset)
+    |> Ecto.Multi.run(:enqueue_recalc, fn _repo, %{entry: entry} ->
+      pairs = [{entry.assessment_point_id, entry.student_id}]
+      Enum.each(domains, &enqueue_composed_recalc_for_pairs(pairs, &1, log_profile_id))
+      {:ok, :enqueued}
+    end)
+    |> Repo.transaction()
+    |> case do
+      {:ok, %{entry: entry}} ->
+        {:ok, entry}
+        |> maybe_preload(opts)
+        |> AssessmentsLog.maybe_create_assessment_point_entry_log("UPDATE", opts)
+
+      {:error, :entry, changeset, _changes} ->
+        {:error, changeset}
+    end
+  end
+
+  # Edit domains touched by a single-entry update, derived from the changeset's
+  # actual changes (so note-only / use_manual_input-only updates enqueue nothing).
+  # `is_missing` feeds both the teacher and student sum/average.
+  defp changed_recalc_domains(changeset) do
+    changes = changeset.changes
+    is_missing_changed? = Map.has_key?(changes, :is_missing)
+
+    teacher? =
+      Enum.any?([:score, :ordinal_value_id], &Map.has_key?(changes, &1)) or is_missing_changed?
+
+    student? =
+      Enum.any?([:student_score, :student_ordinal_value_id], &Map.has_key?(changes, &1)) or
+        is_missing_changed?
+
+    []
+    |> maybe_add_domain("teacher_entry", teacher?)
+    |> maybe_add_domain("student_entry", student?)
   end
 
   @doc """
@@ -543,33 +591,6 @@ defmodule Lanttern.Assessments do
 
   defp maybe_add_domain(domains, domain, true), do: [domain | domains]
   defp maybe_add_domain(domains, _domain, false), do: domains
-
-  @doc """
-  Enqueues composed entry recalculation for a single component entry, once per
-  given edit domain (`"teacher_entry"` / `"student_entry"`).
-
-  Mirrors the recalc enqueued by `save_assessment_point_entries/2`, but for the
-  single-entry update flow (e.g. the entry details overlay). No-op for any domain
-  whose assessment point is not a component of a composed assessment point.
-
-  ## Options:
-
-  - `:log_profile_id` - profile id passed to the recalc worker for audit logging
-
-  """
-  @spec enqueue_composed_recalc(
-          assessment_point_id :: pos_integer(),
-          student_id :: pos_integer(),
-          domains :: [String.t()],
-          opts :: Keyword.t()
-        ) :: :ok
-  def enqueue_composed_recalc(assessment_point_id, student_id, domains, opts \\ []) do
-    profile_id = Keyword.get(opts, :log_profile_id)
-
-    Enum.each(domains, fn domain ->
-      enqueue_composed_recalc_for_pairs([{assessment_point_id, student_id}], domain, profile_id)
-    end)
-  end
 
   defp maybe_enqueue_composed_recalc(_results, [], _profile_id), do: {:ok, :noop}
 

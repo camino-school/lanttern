@@ -9,11 +9,9 @@ defmodule Lanttern.AssessmentComposition.Component do
 
   use Ecto.Schema
   import Ecto.Changeset
-  import Ecto.Query
   use Gettext, backend: Lanttern.Gettext
 
   alias Lanttern.Assessments.AssessmentPoint
-  alias Lanttern.Repo
 
   @type t :: %__MODULE__{
           id: pos_integer(),
@@ -35,13 +33,21 @@ defmodule Lanttern.AssessmentComposition.Component do
     timestamps()
   end
 
-  @doc false
-  def changeset(component, attrs) do
+  @doc """
+  Component changeset.
+
+  `composed_component_ids` is the list of component ids the caller has already
+  determined (via a context query) to be composed assessment points. A composed
+  assessment point cannot itself be a component of another composition (cascading
+  composition is intentionally not supported), so the changeset rejects a
+  `component_id` found in that list.
+  """
+  def changeset(component, attrs, composed_component_ids \\ []) do
     component
     |> cast(attrs, [:weight, :parent_id, :component_id])
     |> validate_required([:weight, :parent_id, :component_id])
     |> validate_number(:weight, greater_than: 0)
-    |> validate_component_not_composed()
+    |> validate_component_not_composed(composed_component_ids)
     |> unique_constraint([:parent_id, :component_id])
     |> check_constraint(:component_id,
       name: :parent_and_component_must_differ,
@@ -49,29 +55,17 @@ defmodule Lanttern.AssessmentComposition.Component do
     )
   end
 
-  # A composed assessment point cannot itself be a component of another
-  # composition (cascading composition is intentionally not supported).
-  defp validate_component_not_composed(changeset) do
-    case get_field(changeset, :component_id) do
-      nil ->
-        changeset
+  defp validate_component_not_composed(changeset, composed_component_ids) do
+    component_id = get_field(changeset, :component_id)
 
-      component_id ->
-        composed? =
-          Repo.exists?(
-            from ap in AssessmentPoint,
-              where: ap.id == ^component_id and ap.uses_composition == true
-          )
-
-        if composed? do
-          add_error(
-            changeset,
-            :component_id,
-            gettext("A composed assessment point cannot be used as a component")
-          )
-        else
-          changeset
-        end
+    if not is_nil(component_id) and component_id in composed_component_ids do
+      add_error(
+        changeset,
+        :component_id,
+        gettext("A composed assessment point cannot be used as a component")
+      )
+    else
+      changeset
     end
   end
 end

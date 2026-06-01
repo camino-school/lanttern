@@ -147,6 +147,9 @@ defmodule Lanttern.Assessments.AssessmentPointEntry do
     |> maybe_clear_is_missing()
     |> maybe_clear_normalized_value(:ordinal_value_id, :normalized_value)
     |> maybe_clear_normalized_value(:student_ordinal_value_id, :student_normalized_value)
+    # one entry per (assessment point, student); lets concurrent composed-entry
+    # recalcs recover from a conflict instead of raising (see AssessmentComposition)
+    |> unique_constraint([:assessment_point_id, :student_id])
   end
 
   defp maybe_clear_is_missing(changeset) do

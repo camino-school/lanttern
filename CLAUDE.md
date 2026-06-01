@@ -41,6 +41,7 @@ Lanttern is a Phoenix-based web application for educational assessment and learn
 *   **Module References**: Always use `__MODULE__` instead of aliasing the module in itself[cite: 1].
 *   **Type Specs**: Use `pos_integer()` for IDs and `non_neg_integer()` for positions[cite: 1]. Always include `| Ecto.Association.NotLoaded.t()` for preloads[cite: 1].
 *   **User-Facing Strings**: Always wrap user-facing text in `gettext()`. This applies to all changeset error messages, validation messages, and any string shown to users.
+*   **Boolean Naming**: Reserve the trailing `?` for **functions** that return a boolean (e.g., `def composed?(...)`). For variables, function parameters, and schema fields, use an `is_`/`has_` prefix instead (e.g., `is_already_a_component`, `has_marking`) — never a trailing `?`.
 
 ## 🧪 Testing Strategy
 *   **Factories vs. Fixtures**: Exclusively use `ExMachina` factories.

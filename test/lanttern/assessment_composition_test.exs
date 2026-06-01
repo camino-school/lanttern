@@ -1400,6 +1400,78 @@ defmodule Lanttern.AssessmentCompositionTest do
     end
   end
 
+  describe "composed-entry upsert idempotency" do
+    test "the assessment point entry changeset surfaces a duplicate as an error (no raise)" do
+      scale = insert(:scale, type: "numeric", max_score: 100.0)
+      ap = insert(:assessment_point, scale: scale)
+      student = insert(:student)
+
+      attrs = %{
+        assessment_point_id: ap.id,
+        student_id: student.id,
+        scale_id: scale.id,
+        scale_type: "numeric",
+        score: 10.0
+      }
+
+      assert {:ok, _} =
+               %AssessmentPointEntry{} |> AssessmentPointEntry.changeset(attrs) |> Repo.insert()
+
+      # a second insert for the same (assessment_point, student) must return an
+      # error changeset (unique_constraint), not raise Ecto.ConstraintError —
+      # this is what lets concurrent composed-entry recalcs recover instead of
+      # crashing the worker
+      assert {:error, %Ecto.Changeset{} = changeset} =
+               %AssessmentPointEntry{} |> AssessmentPointEntry.changeset(attrs) |> Repo.insert()
+
+      assert %{assessment_point_id: [_]} = errors_on(changeset)
+    end
+
+    test "teacher and student recalcs converge on a single composed entry" do
+      scale = insert(:scale, type: "numeric", max_score: 100.0)
+      parent = insert(:assessment_point, uses_composition: true, scale: scale)
+      component_ap = insert(:assessment_point, scale: scale)
+      insert(:assessment_point_component, parent: parent, component: component_ap)
+
+      student = insert(:student)
+
+      insert(:assessment_point_entry,
+        assessment_point: component_ap,
+        student: student,
+        scale: scale,
+        scale_type: "numeric",
+        score: 30.0,
+        student_score: 20.0
+      )
+
+      # no parent entry exists yet; recalc each domain independently (as the two
+      # separate workers do) — they must land on one row carrying both values
+      assert :ok =
+               AssessmentComposition.recalculate_composed_entries(
+                 %Scope{},
+                 [{parent.id, student.id}],
+                 :teacher_entry
+               )
+
+      assert :ok =
+               AssessmentComposition.recalculate_composed_entries(
+                 %Scope{},
+                 [{parent.id, student.id}],
+                 :student_entry
+               )
+
+      assert [entry] =
+               Repo.all(
+                 from e in AssessmentPointEntry,
+                   where: e.assessment_point_id == ^parent.id and e.student_id == ^student.id
+               )
+
+      assert entry.score == 30.0
+      assert entry.student_score == 20.0
+      assert is_nil(entry.calculation_error)
+    end
+  end
+
   describe "get_composition_breakdown/3" do
     test "returns the average-based (ordinal) breakdown with rows, total weight and composed summary" do
       parent_scale = insert(:scale, type: "ordinal", breakpoints: [0.2, 0.4, 0.6, 0.8])
