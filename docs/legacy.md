@@ -134,3 +134,29 @@ Audit log for note operations (CREATE, UPDATE, DELETE).
 | `type` | text | Optional context type |
 | `type_id` | bigint | Optional context ID |
 | `inserted_at` | timestamp | |
+
+---
+
+## Profile Report Card Filters (feature removed — class filter migrated to URL state)
+
+**Removed in:** branch `546-students-order-in-report-card`
+
+**Why kept:** Data retention — persisted per-profile report card class filters are kept
+in case they are needed for auditing. The report card class filter is now driven entirely
+by the `classes_ids` URL param and no longer persists across sessions.
+
+**Safe to drop?** Not yet decided. Review data before dropping.
+
+### `profile_report_card_filters`
+
+Stored a profile's selected class / linked-students-class filters within a report card.
+
+| Column | Type | Description |
+|---|---|---|
+| `id` | bigint | Primary key |
+| `profile_id` | bigint | FK → `profiles.id` |
+| `report_card_id` | bigint | FK → `report_cards.id` |
+| `class_id` | bigint | FK → `classes.id` (report card classes filter) |
+| `linked_students_class_id` | bigint | FK → `classes.id` (linked students classes filter) |
+| `inserted_at` | timestamp | |
+| `updated_at` | timestamp | |

@@ -328,7 +328,6 @@ defmodule LantternWeb.FiltersHelpers do
     years: :years_ids,
     cycles: :cycles_ids,
     classes: :classes_ids,
-    linked_students_classes: :linked_students_classes_ids,
     student: :student_id,
     students: :students_ids,
     student_tags: :student_tags_ids,
@@ -344,7 +343,6 @@ defmodule LantternWeb.FiltersHelpers do
     years: :selected_years_ids,
     cycles: :selected_cycles_ids,
     classes: :selected_classes_ids,
-    linked_students_classes: :selected_linked_students_classes_ids,
     student: :selected_student_id,
     students: :selected_students_ids,
     student_tags: :selected_student_tags_ids,
@@ -602,11 +600,9 @@ defmodule LantternWeb.FiltersHelpers do
     classes_ids = Enum.map(classes, & &1.id)
 
     selected_classes_ids =
-      case Map.get(params, "classes_ids") do
-        nil -> []
-        "" -> []
-        ids -> ids |> String.split(",") |> Enum.map(&String.to_integer/1)
-      end
+      params
+      |> Map.get("classes_ids")
+      |> parse_classes_ids_param()
       |> Enum.filter(&(&1 in classes_ids))
 
     selected_classes = Enum.filter(classes, &(&1.id in selected_classes_ids))
@@ -615,6 +611,21 @@ defmodule LantternWeb.FiltersHelpers do
     |> assign(:linked_students_classes, classes)
     |> assign(:selected_linked_students_classes_ids, selected_classes_ids)
     |> assign(:selected_linked_students_classes, selected_classes)
+  end
+
+  # Parses a comma-separated `classes_ids` URL param into a list of integers,
+  # silently dropping empty or non-integer segments (e.g. a hand-edited URL).
+  defp parse_classes_ids_param(nil), do: []
+
+  defp parse_classes_ids_param(ids) when is_binary(ids) do
+    ids
+    |> String.split(",", trim: true)
+    |> Enum.flat_map(fn segment ->
+      case Integer.parse(segment) do
+        {int, ""} -> [int]
+        _ -> []
+      end
+    end)
   end
 
   @doc """
@@ -659,7 +670,6 @@ defmodule LantternWeb.FiltersHelpers do
   ## Supported opts
 
   - `:strand_id` - will persist data in the strand context. supports `:classes` type
-  - `:report_card_id` - will persist data in the report card context. supports `:classes` type
 
   ## Supported types
 
@@ -697,7 +707,6 @@ defmodule LantternWeb.FiltersHelpers do
   ## Supported opts
 
   - `:strand_id` - will persist data in the strand context. supports `:classes` type
-  - `:report_card_id` - will persist data in the report card context. supports `:classes` type
 
   ## Supported types
 
@@ -741,10 +750,6 @@ defmodule LantternWeb.FiltersHelpers do
   defp apply_save_profile_filters(current_user, attrs, strand_id: strand_id)
        when is_integer(strand_id),
        do: Filters.set_profile_strand_filters(current_user, strand_id, attrs)
-
-  defp apply_save_profile_filters(current_user, attrs, report_card_id: report_card_id)
-       when is_integer(report_card_id),
-       do: Filters.set_profile_report_card_filters(current_user, report_card_id, attrs)
 
   defp apply_save_profile_filters(current_user, attrs, _),
     do: Filters.set_profile_current_filters(current_user, attrs)
