@@ -2744,6 +2744,62 @@ defmodule Lanttern.AssessmentsTest do
                )
     end
 
+    test "list_lesson_assessment_points_with_student_entries/3 excludes hidden assessment points" do
+      school = SchoolsFixtures.school_fixture()
+      student = SchoolsFixtures.student_fixture(%{school_id: school.id})
+      scope = %Scope{school_id: school.id}
+
+      strand = LearningContextFixtures.strand_fixture()
+      lesson = insert(:lesson, strand: strand)
+
+      scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
+      ov = insert(:ordinal_value, scale_id: scale.id)
+      ci = insert(:curriculum_item)
+
+      ap_visible =
+        assessment_point_fixture(%{
+          lesson_id: lesson.id,
+          scale_id: scale.id,
+          curriculum_item_id: ci.id
+        })
+
+      ap_hidden =
+        assessment_point_fixture(%{
+          lesson_id: lesson.id,
+          scale_id: scale.id,
+          curriculum_item_id: ci.id,
+          is_hidden: true
+        })
+
+      _entry_visible =
+        assessment_point_entry_fixture(%{
+          assessment_point_id: ap_visible.id,
+          student_id: student.id,
+          scale_id: scale.id,
+          scale_type: scale.type,
+          ordinal_value_id: ov.id
+        })
+
+      # marked entry on the hidden assessment point – should still be excluded
+      _entry_hidden =
+        assessment_point_entry_fixture(%{
+          assessment_point_id: ap_hidden.id,
+          student_id: student.id,
+          scale_id: scale.id,
+          scale_type: scale.type,
+          ordinal_value_id: ov.id
+        })
+
+      ap_visible_id = ap_visible.id
+
+      assert [%AssessmentPoint{id: ^ap_visible_id}] =
+               Assessments.list_lesson_assessment_points_with_student_entries(
+                 scope,
+                 student,
+                 lesson.id
+               )
+    end
+
     test "list_lesson_assessment_points_with_student_entries/3 calculates has_evidences correctly" do
       school = SchoolsFixtures.school_fixture()
       student = SchoolsFixtures.student_fixture(%{school_id: school.id})
