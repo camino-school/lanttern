@@ -508,9 +508,9 @@ defmodule Lanttern.Reporting do
   given base report card.
 
   Students will have their classes preloaded and will be
-  ordered by class name, and them by student name.
+  ordered by core class name, and them by student name.
 
-  Preloaded classes will be restricted to classes from the same
+  Preloaded classes will be restricted to core classes from the same
   report card's year and parent school cycle (if possible).
 
   Students' `profile_picture_url` will be loaded if report card parent cycle exists.
@@ -563,9 +563,9 @@ defmodule Lanttern.Reporting do
   end
 
   defp build_list_students_linked_to_report_card_allowed_classes_ids(report_card) do
-    # restrict classes to same report card year
+    # restrict classes to core classes from the same report card year
     conditions =
-      dynamic([_c, y], y.id == ^report_card.year_id)
+      dynamic([c, y], c.is_core and y.id == ^report_card.year_id)
 
     # restrict classes to same report card parent cycle if possible
     conditions =

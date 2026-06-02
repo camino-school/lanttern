@@ -1242,6 +1242,7 @@ defmodule Lanttern.Assessments do
       where: l.id == ^lesson_id,
       where: e.student_id == ^student.id,
       where: e.has_marking,
+      where: ap.is_hidden == false,
       order_by: [asc: m.position, asc: ap.position],
       select: %{
         ap

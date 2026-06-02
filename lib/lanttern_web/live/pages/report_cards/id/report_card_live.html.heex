@@ -7,31 +7,31 @@
         <.tabs>
           <:tab
             text={gettext("Overview")}
-            patch={~p"/report_cards/#{@report_card}"}
+            patch={~p"/report_cards/#{@report_card}?#{@url_filter_params}"}
             is_current={@live_action == :show}
           >
           </:tab>
           <:tab
             text={gettext("Students")}
-            patch={~p"/report_cards/#{@report_card}/students"}
+            patch={~p"/report_cards/#{@report_card}/students?#{@url_filter_params}"}
             is_current={@live_action == :students}
           >
           </:tab>
           <:tab
             text={gettext("Strands")}
-            patch={~p"/report_cards/#{@report_card}/strands"}
+            patch={~p"/report_cards/#{@report_card}/strands?#{@url_filter_params}"}
             is_current={@live_action == :strands}
           >
           </:tab>
           <:tab
             text={gettext("Grades")}
-            patch={~p"/report_cards/#{@report_card}/grades"}
+            patch={~p"/report_cards/#{@report_card}/grades?#{@url_filter_params}"}
             is_current={@live_action == :grades}
           >
           </:tab>
           <:tab
             text={gettext("Tracking")}
-            patch={~p"/report_cards/#{@report_card}/tracking"}
+            patch={~p"/report_cards/#{@report_card}/tracking?#{@url_filter_params}"}
             is_current={@live_action == :tracking}
           >
           </:tab>
@@ -39,7 +39,9 @@
         <div class="flex items-center gap-4">
           <.action
             type="link"
-            patch={"#{@current_path}?is_editing=true"}
+            patch={
+              path_with_url_filters(@current_path, @url_filter_params, %{"is_editing" => "true"})
+            }
             icon_name="hero-pencil-mini"
           >
             {gettext("Edit")}
@@ -82,6 +84,7 @@
       report_card={@report_card}
       current_user={@current_user}
       params={@params}
+      url_filter_params={@url_filter_params}
     />
     <.live_component
       :if={@live_action == :strands}
@@ -89,6 +92,7 @@
       id="report-card-strands-reports"
       report_card={@report_card}
       params={@params}
+      url_filter_params={@url_filter_params}
     />
     <.live_component
       :if={@live_action == :grades}
@@ -97,6 +101,7 @@
       report_card={@report_card}
       current_user={@current_user}
       params={@params}
+      url_filter_params={@url_filter_params}
     />
   </div>
   <.live_component
@@ -106,6 +111,7 @@
     report_card={@report_card}
     current_user={@current_user}
     params={@params}
+    url_filter_params={@url_filter_params}
   />
   <div :if={@live_action == :tracking}>
     <.live_component
@@ -114,20 +120,21 @@
       report_card={@report_card}
       current_user={@current_user}
       params={@params}
+      url_filter_params={@url_filter_params}
     />
   </div>
   <.slide_over
     :if={@is_editing}
     id="report-card-form-overlay"
     show={true}
-    on_cancel={JS.patch(@current_path)}
+    on_cancel={JS.patch(path_with_url_filters(@current_path, @url_filter_params))}
   >
     <:title>{gettext("Edit report card")}</:title>
     <.live_component
       module={ReportCardFormComponent}
       id={@report_card.id}
       report_card={@report_card}
-      navigate={@current_path}
+      navigate={path_with_url_filters(@current_path, @url_filter_params)}
       parent_cycle_id={@report_card.school_cycle.parent_cycle_id}
       hide_submit
     />

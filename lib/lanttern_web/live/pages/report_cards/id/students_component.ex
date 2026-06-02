@@ -10,7 +10,7 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
   alias Lanttern.Schools.Student
 
   import LantternWeb.FiltersHelpers,
-    only: [save_profile_filters: 3, assign_report_card_linked_student_classes_filter: 2]
+    only: [assign_report_card_linked_student_classes_from_url: 3]
 
   # shared components
   alias LantternWeb.Filters.InlineFiltersComponent
@@ -31,7 +31,8 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
             filter_items={@linked_students_classes}
             selected_items_ids={@selected_linked_students_classes_ids}
             class="mt-4"
-            notify_component={@myself}
+            apply_on_select={true}
+            notify_parent={true}
           />
           <%= if @has_students_in_report_card do %>
             <div phx-update="stream" id="students-and-report-cards">
@@ -39,6 +40,7 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
                 :for={{dom_id, {student, student_report_card}} <- @streams.students_in_report_card}
                 id={dom_id}
                 report_card_id={@report_card.id}
+                url_filter_params={@url_filter_params}
                 student={student}
                 student_report_card={student_report_card}
                 disable_on_click={@selected_students_ids != []}
@@ -90,6 +92,7 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
           has_other_students={@other_students_length > 0}
           students_stream={@streams.other_students}
           report_card={@report_card}
+          url_filter_params={@url_filter_params}
           myself={@myself}
         />
       </.responsive_container>
@@ -97,7 +100,7 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
         :if={@show_student_report_card_form}
         id="student-report-card-form-overlay"
         show={true}
-        on_cancel={JS.patch(~p"/report_cards/#{@report_card}/students")}
+        on_cancel={JS.patch(~p"/report_cards/#{@report_card}/students?#{@url_filter_params}")}
       >
         <:title>{@form_overlay_title}</:title>
         <.metadata class="mb-4" icon_name="hero-document-text">
@@ -110,7 +113,7 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
           module={StudentReportCardFormComponent}
           id={@student_report_card.id || :new}
           student_report_card={@student_report_card}
-          navigate={~p"/report_cards/#{@report_card}/students"}
+          navigate={~p"/report_cards/#{@report_card}/students?#{@url_filter_params}"}
           hide_submit
         />
         <:actions_left :if={@student_report_card.id}>
@@ -247,6 +250,7 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
 
   attr :id, :string, required: true
   attr :report_card_id, :string, required: true
+  attr :url_filter_params, :map, required: true
   attr :student, Student, required: true
   attr :student_report_card, StudentReportCard, required: true
   attr :disable_on_click, :boolean, required: true
@@ -314,7 +318,7 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
           <.link
             class={get_button_styles("ghost")}
             patch={
-              ~p"/report_cards/#{@report_card_id}/students?edit_student_report=#{@student_report_card.id}"
+              ~p"/report_cards/#{@report_card_id}/students?#{Map.put(@url_filter_params, "edit_student_report", @student_report_card.id)}"
             }
           >
             <.icon name="hero-pencil-mini" class="w-5 h-5" />
@@ -360,6 +364,7 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
   attr :has_other_students, :boolean, required: true
   attr :students_stream, LiveStream, required: true
   attr :report_card, ReportCard, required: true
+  attr :url_filter_params, :map, required: true
   attr :myself, Phoenix.LiveComponent.CID, required: true
 
   def other_students_list(%{has_other_students: false} = assigns) do
@@ -391,6 +396,7 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
         :for={{dom_id, student} <- @students_stream}
         id={dom_id}
         report_card_id={@report_card.id}
+        url_filter_params={@url_filter_params}
         student={student}
         on_click={
           JS.push("toggle_student_id", value: %{"student_id" => student.id}, target: @myself)
@@ -403,6 +409,7 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
 
   attr :id, :string, required: true
   attr :report_card_id, :string, required: true
+  attr :url_filter_params, :map, required: true
   attr :student, Student, required: true
   attr :on_click, JS, default: nil
 
@@ -423,7 +430,9 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
         <.action
           type="link"
           icon_name="hero-link-mini"
-          patch={~p"/report_cards/#{@report_card_id}/students?create_student_report=#{@student.id}"}
+          patch={
+            ~p"/report_cards/#{@report_card_id}/students?#{Map.put(@url_filter_params, "create_student_report", @student.id)}"
+          }
         >
           {gettext("Link")}
         </.action>
@@ -451,23 +460,12 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
   end
 
   @impl true
-  def update(%{action: {InlineFiltersComponent, {:apply, classes_ids}}}, socket) do
-    socket =
-      socket
-      |> assign(:selected_linked_students_classes_ids, classes_ids)
-      |> save_profile_filters(
-        [:linked_students_classes],
-        report_card_id: socket.assigns.report_card.id
-      )
-      |> stream_students_report_cards()
-
-    {:ok, socket}
-  end
-
   def update(assigns, socket) do
     socket =
       socket
       |> assign(assigns)
+      |> assign_report_card_linked_student_classes_from_url(assigns.report_card, assigns.params)
+      |> stream_students_report_cards()
       |> initialize()
       |> assign_student_report_card()
 
@@ -476,8 +474,6 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
 
   defp initialize(%{assigns: %{initialized: false}} = socket) do
     socket
-    |> assign_report_card_linked_student_classes_filter(socket.assigns.report_card)
-    |> stream_students_report_cards()
     |> stream_students_not_linked_to_report_card()
     |> assign(:initialized, true)
   end
@@ -600,7 +596,10 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
         {:ok, _} ->
           socket
           |> put_flash(:info, gettext("Students report cards access updated"))
-          |> push_navigate(to: ~p"/report_cards/#{socket.assigns.report_card}/students")
+          |> push_navigate(
+            to:
+              ~p"/report_cards/#{socket.assigns.report_card}/students?#{socket.assigns.url_filter_params}"
+          )
 
         {:error, _, _, _} ->
           socket
@@ -637,7 +636,10 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
     socket =
       socket
       |> put_flash(:info, build_batch_create_student_report_card_message(results))
-      |> push_navigate(to: ~p"/report_cards/#{socket.assigns.report_card}/students")
+      |> push_navigate(
+        to:
+          ~p"/report_cards/#{socket.assigns.report_card}/students?#{socket.assigns.url_filter_params}"
+      )
 
     {:noreply, socket}
   end
@@ -651,7 +653,10 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
     socket =
       socket
       |> put_flash(:info, build_batch_create_student_report_card_message(results))
-      |> push_navigate(to: ~p"/report_cards/#{socket.assigns.report_card}/students")
+      |> push_navigate(
+        to:
+          ~p"/report_cards/#{socket.assigns.report_card}/students?#{socket.assigns.url_filter_params}"
+      )
 
     {:noreply, socket}
   end
@@ -662,7 +667,10 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
         socket =
           socket
           |> put_flash(:info, gettext("Student report card deleted"))
-          |> push_navigate(to: ~p"/report_cards/#{socket.assigns.report_card}/students")
+          |> push_navigate(
+            to:
+              ~p"/report_cards/#{socket.assigns.report_card}/students?#{socket.assigns.url_filter_params}"
+          )
 
         {:noreply, socket}
 

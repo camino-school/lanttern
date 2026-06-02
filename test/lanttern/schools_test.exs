@@ -814,6 +814,19 @@ defmodule Lanttern.SchoolsTest do
       assert [student_1, student_2] == Schools.list_students(school_id: school.id)
     end
 
+    test "list_students/1 orders accented names linguistically (ICU collation)" do
+      school = school_fixture()
+
+      # inserted out of order; accented names must interleave with their base
+      # letters (e.g. "Érico" right after "Eric", not dumped at the end)
+      for name <- ["João", "Érico", "Queiroz", "Adriana", "Joana", "Eric"] do
+        student_fixture(%{school_id: school.id, name: name})
+      end
+
+      names = Schools.list_students(school_id: school.id) |> Enum.map(& &1.name)
+      assert ["Adriana", "Eric", "Érico", "Joana", "João", "Queiroz"] == names
+    end
+
     test "list_students/1 with only_active opt returns the students filtered by their deactivated status" do
       active_student = student_fixture()
       _deactivated_student = student_fixture(%{deactivated_at: DateTime.utc_now()})

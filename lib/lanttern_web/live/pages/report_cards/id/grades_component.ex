@@ -42,7 +42,7 @@ defmodule LantternWeb.ReportCardLive.GradesComponent do
         grades_report_id={@grades_report_id}
         grades_report_cycle_id={@grades_report_cycle_id}
         grades_report_subject_id={@grades_report_subject_id}
-        on_cancel={JS.patch(~p"/report_cards/#{@report_card}/grades")}
+        on_cancel={JS.patch(~p"/report_cards/#{@report_card}/grades?#{@url_filter_params}")}
         use_assessment_points_from_report_card_id={@report_card.id}
       />
     </div>
@@ -91,11 +91,12 @@ defmodule LantternWeb.ReportCardLive.GradesComponent do
 
   @impl true
   def handle_event("edit_composition", params, socket) do
-    url_params = %{
-      gr_id: params["gradesreportid"],
-      grc_id: params["gradesreportcycleid"],
-      grs_id: params["gradesreportsubjectid"]
-    }
+    url_params =
+      Map.merge(socket.assigns.url_filter_params, %{
+        "gr_id" => params["gradesreportid"],
+        "grc_id" => params["gradesreportcycleid"],
+        "grs_id" => params["gradesreportsubjectid"]
+      })
 
     socket =
       socket

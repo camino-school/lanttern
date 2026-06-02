@@ -747,6 +747,42 @@ defmodule Lanttern.ReportingTest do
       assert expected_class.id == class.id
     end
 
+    test "list_students_linked_to_report_card/2 preloads only core classes and orders by core class name" do
+      school = insert(:school)
+      cycle = insert(:cycle, school: school)
+      year = insert(:year)
+
+      report_card =
+        insert(:report_card, school_cycle: cycle, year: year)
+        |> Repo.preload(:school_cycle)
+
+      # student_z's only core class ("AAA") sorts first, so they come first
+      # even though their name ("ZZZ") sorts last. Their non-core "ZZZ" class
+      # must be ignored for both ordering and preload.
+      core_class_a = insert(:class, name: "AAA", school: school, years: [year], is_core: true)
+      extra_class_z = insert(:class, name: "ZZZ", school: school, years: [year], is_core: false)
+
+      student_z =
+        insert(:student, name: "ZZZ", school: school, classes: [core_class_a, extra_class_z])
+
+      core_class_z = insert(:class, name: "ZZZ", school: school, years: [year], is_core: true)
+      student_a = insert(:student, name: "AAA", school: school, classes: [core_class_z])
+
+      insert(:student_report_card, report_card: report_card, student: student_z)
+      insert(:student_report_card, report_card: report_card, student: student_a)
+
+      assert [expected_z, expected_a] =
+               Reporting.list_students_linked_to_report_card(report_card, students_only: true)
+
+      # ordered by core class name (AAA, then ZZZ), not student name
+      assert expected_z.id == student_z.id
+      assert expected_a.id == student_a.id
+
+      # only the core class is preloaded as extra info (non-core "ZZZ" excluded)
+      assert [expected_class] = expected_z.classes
+      assert expected_class.id == core_class_a.id
+    end
+
     test "list_student_report_card_cycles/1 returns all cycles linked to given student's report cards" do
       student = SchoolsFixtures.student_fixture()
 

@@ -9,6 +9,7 @@ Systematically analyze the following areas:
 - Verify context functions follow `list_items(opts)` pattern with keyword list options
 - Check that `render/1` is at the top of LiveView files
 - Look for proper use of `stream` for potentially large datasets
+- For new migrations: verify any new sortable `text`/`string` column (names, titles, labels — anything used in `ORDER BY`/`preload_order`) is created with the deterministic `und-x-icu` collation (see the `set_icu_collation_on_name_columns` pattern); flag per-query `COLLATE` fragments as a code smell
 
 #### 2. Type Specifications
 - Verify schema `t()` specs include `| Ecto.Association.NotLoaded.t()` for preloaded structures

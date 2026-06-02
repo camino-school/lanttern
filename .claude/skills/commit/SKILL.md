@@ -70,8 +70,10 @@ Always append these two lines at the end of the commit message (after a blank li
 
 ```
 Generated with Claude Code
-Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
+Co-Authored-By: [model] <noreply@anthropic.com>
 ```
+
+([model] should match the current model. e.g. "Claude Opus 4.8")
 
 ### Key principles
 

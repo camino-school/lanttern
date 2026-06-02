@@ -22,6 +22,10 @@ Lanttern is a Phoenix-based web application for educational assessment and learn
     *   *Avoid*: `User |> where([u], u.active == true)`
 *   **Query Logic**: Write query functions directly in the **Context** file, not the Schema[cite: 1].
 *   **Legacy Data**: Consult `docs/legacy.md` before touching older tables[cite: 1].
+*   **Sortable Text Collation**: Any new `text`/`string` column that will be ordered alphabetically (names, titles, labels — anything used in an `ORDER BY`/`preload_order`) **must** be created with the `und-x-icu` collation so accented characters sort correctly (e.g. *Érico* after *Eric*, not last) and consistently across environments. The cluster default collation is unreliable (differs between local dev and Supabase prod). Since `add/3` has no collation option, set it in the migration with raw SQL right after the table/column is created:
+    *   *Example*: `execute(~s|ALTER TABLE my_table ALTER COLUMN name SET DATA TYPE text COLLATE "und-x-icu"|, ~s|ALTER TABLE my_table ALTER COLUMN name SET DATA TYPE text COLLATE pg_catalog."default"|)`
+    *   Use the **deterministic** ICU collation (the default — do *not* pass `deterministic: false`) so unique indexes, `LIKE`, and `pg_trgm` search keep working.
+    *   This makes `ORDER BY name` accent-aware automatically — never add per-query `COLLATE` fragments. See migration `set_icu_collation_on_name_columns` for the established pattern.
 
 ### 2. Contexts & Scoping
 *   **Scope Pattern**: All new context functions **must** accept `Scope` as the first parameter to support our migration to Phoenix Scopes[cite: 1].

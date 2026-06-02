@@ -5,10 +5,7 @@ defmodule LantternWeb.ReportCardLive.StudentsGradesComponent do
   alias Lanttern.Reporting
 
   import LantternWeb.FiltersHelpers,
-    only: [
-      assign_report_card_linked_student_classes_filter: 2,
-      save_profile_filters: 3
-    ]
+    only: [assign_report_card_linked_student_classes_from_url: 3]
 
   import LantternWeb.GradesReportsHelpers, only: [build_calculation_results_message: 1]
 
@@ -35,7 +32,8 @@ defmodule LantternWeb.ReportCardLive.StudentsGradesComponent do
             filter_items={@linked_students_classes}
             selected_items_ids={@selected_linked_students_classes_ids}
             class="mt-4"
-            notify_component={@myself}
+            apply_on_select={true}
+            notify_parent={true}
           />
         </div>
         <%= if @students == [] do %>
@@ -84,7 +82,7 @@ defmodule LantternWeb.ReportCardLive.StudentsGradesComponent do
             on_entry_click={
               fn student_grades_report_entry_id ->
                 JS.patch(
-                  ~p"/report_cards/#{@report_card}/grades?student_grades_report_entry=#{student_grades_report_entry_id}"
+                  ~p"/report_cards/#{@report_card}/grades?#{Map.put(@url_filter_params, "student_grades_report_entry", student_grades_report_entry_id)}"
                 )
               end
             }
@@ -96,8 +94,8 @@ defmodule LantternWeb.ReportCardLive.StudentsGradesComponent do
           id={@student_grades_report_entry.id}
           student_grades_report_entry={@student_grades_report_entry}
           scale_id={@grades_report.scale_id}
-          navigate={~p"/report_cards/#{@report_card}/grades"}
-          on_cancel={JS.patch(~p"/report_cards/#{@report_card}/grades")}
+          navigate={~p"/report_cards/#{@report_card}/grades?#{@url_filter_params}"}
+          on_cancel={JS.patch(~p"/report_cards/#{@report_card}/grades?#{@url_filter_params}")}
         />
       </div>
     </div>
@@ -107,24 +105,11 @@ defmodule LantternWeb.ReportCardLive.StudentsGradesComponent do
   # lifecycle
 
   @impl true
-  def update(%{action: {InlineFiltersComponent, {:apply, classes_ids}}}, socket) do
-    socket =
-      socket
-      |> assign(:selected_linked_students_classes_ids, classes_ids)
-      |> save_profile_filters(
-        [:linked_students_classes],
-        report_card_id: socket.assigns.report_card.id
-      )
-      |> assign_students_grades_grid()
-
-    {:ok, socket}
-  end
-
   def update(assigns, socket) do
     socket =
       socket
       |> assign(assigns)
-      |> assign_report_card_linked_student_classes_filter(assigns.report_card)
+      |> assign_report_card_linked_student_classes_from_url(assigns.report_card, assigns.params)
       |> assign_new(:grades_report, fn %{report_card: report_card} ->
         case report_card.grades_report_id do
           nil -> nil
@@ -221,7 +206,10 @@ defmodule LantternWeb.ReportCardLive.StudentsGradesComponent do
             :info,
             "#{gettext("Grades calculated succesfully")}. #{build_calculation_results_message(results)}"
           )
-          |> push_navigate(to: ~p"/report_cards/#{socket.assigns.report_card}/grades")
+          |> push_navigate(
+            to:
+              ~p"/report_cards/#{socket.assigns.report_card}/grades?#{socket.assigns.url_filter_params}"
+          )
 
         {:error, _, results} ->
           put_flash(
@@ -252,7 +240,10 @@ defmodule LantternWeb.ReportCardLive.StudentsGradesComponent do
             :info,
             "#{gettext("Student grades calculated succesfully")}. #{build_calculation_results_message(results)}"
           )
-          |> push_navigate(to: ~p"/report_cards/#{socket.assigns.report_card}/grades")
+          |> push_navigate(
+            to:
+              ~p"/report_cards/#{socket.assigns.report_card}/grades?#{socket.assigns.url_filter_params}"
+          )
 
         {:error, _, results} ->
           put_flash(
@@ -288,7 +279,10 @@ defmodule LantternWeb.ReportCardLive.StudentsGradesComponent do
             :info,
             "#{gettext("Subject grades calculated succesfully")}. #{build_calculation_results_message(results)}"
           )
-          |> push_navigate(to: ~p"/report_cards/#{socket.assigns.report_card}/grades")
+          |> push_navigate(
+            to:
+              ~p"/report_cards/#{socket.assigns.report_card}/grades?#{socket.assigns.url_filter_params}"
+          )
 
         {:error, _, results} ->
           put_flash(
@@ -319,12 +313,18 @@ defmodule LantternWeb.ReportCardLive.StudentsGradesComponent do
         {:ok, nil, _} ->
           socket
           |> put_flash(:error, gettext("No assessment point entries for this grade composition"))
-          |> push_navigate(to: ~p"/report_cards/#{socket.assigns.report_card}/grades")
+          |> push_navigate(
+            to:
+              ~p"/report_cards/#{socket.assigns.report_card}/grades?#{socket.assigns.url_filter_params}"
+          )
 
         {:ok, _, _} ->
           socket
           |> put_flash(:info, gettext("Grade calculated succesfully"))
-          |> push_navigate(to: ~p"/report_cards/#{socket.assigns.report_card}/grades")
+          |> push_navigate(
+            to:
+              ~p"/report_cards/#{socket.assigns.report_card}/grades?#{socket.assigns.url_filter_params}"
+          )
 
         {:error, _} ->
           put_flash(socket, :error, gettext("Something went wrong"))
