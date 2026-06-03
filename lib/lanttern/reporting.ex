@@ -14,6 +14,11 @@ defmodule Lanttern.Reporting do
   alias Lanttern.Assessments.AssessmentPoint
   alias Lanttern.Assessments.AssessmentPointEntry
   alias Lanttern.Attachments.Attachment
+  alias Lanttern.GradesReports.GradesReport
+  alias Lanttern.GradesReports.GradesReportCycle
+  alias Lanttern.GradesReports.GradesReportSubject
+  alias Lanttern.Grading.Scale
+  alias Lanttern.Identity.Scope
   alias Lanttern.LearningContext.Moment
   alias Lanttern.LearningContext.Strand
   alias Lanttern.Schools
@@ -122,6 +127,83 @@ defmodule Lanttern.Reporting do
     Schools.list_cycles()
     |> Enum.map(&{&1, Map.get(report_cards_by_cycle_map, &1.id)})
     |> Enum.filter(fn {_cycle, report_cards} -> not is_nil(report_cards) end)
+  end
+
+  @strand_grades_report_card_preloads [
+    :school_cycle,
+    grades_report: [
+      scale: :ordinal_values,
+      grades_report_cycles: :school_cycle,
+      grades_report_subjects: :subject
+    ]
+  ]
+
+  @typedoc """
+  A flattened "grades report card" entry for a strand, representing the
+  intersection of a report card cycle and one of its grades report subjects.
+  """
+  @type strand_grades_report_card_entry :: %{
+          report_card: ReportCard.t(),
+          school_cycle: Cycle.t(),
+          grades_report: GradesReport.t(),
+          grades_report_subject: GradesReportSubject.t(),
+          grades_report_cycle: GradesReportCycle.t() | nil,
+          scale: Scale.t(),
+          is_hidden: boolean()
+        }
+
+  @doc """
+  Returns the "grades report cards" linked to a strand.
+
+  Follows the `strand -> strand report -> report card -> grades report` path
+  (via `list_report_cards/1` with `:strands_ids`), then keeps only the grades
+  report subjects matching the strand's subjects, returning one entry per
+  (report card cycle × matching subject).
+
+  Only report cards that have an associated grades report are considered, and
+  results are scoped to the school in `scope`.
+
+  Entries are ordered by report card cycle (end date desc, start date asc, name
+  asc — inherited from `list_report_cards/1`), then by grades report subject
+  position (asc).
+
+  The strand's `:subjects` must be preloaded.
+  """
+  @spec list_strand_grades_report_cards(Scope.t(), Strand.t()) ::
+          [strand_grades_report_card_entry()]
+  def list_strand_grades_report_cards(%Scope{} = scope, %Strand{} = strand) do
+    strand_subject_ids = strand.subjects |> Enum.map(& &1.id) |> MapSet.new()
+
+    list_report_cards(
+      strands_ids: [strand.id],
+      school_id: scope.school_id,
+      preloads: @strand_grades_report_card_preloads
+    )
+    |> Enum.reject(&is_nil(&1.grades_report))
+    |> Enum.flat_map(fn report_card ->
+      grades_report = report_card.grades_report
+
+      grades_report_cycle =
+        Enum.find(
+          grades_report.grades_report_cycles,
+          &(&1.school_cycle_id == report_card.school_cycle_id)
+        )
+
+      grades_report.grades_report_subjects
+      |> Enum.filter(&MapSet.member?(strand_subject_ids, &1.subject_id))
+      |> Enum.sort_by(& &1.position)
+      |> Enum.map(fn grades_report_subject ->
+        %{
+          report_card: report_card,
+          school_cycle: report_card.school_cycle,
+          grades_report: grades_report,
+          grades_report_subject: grades_report_subject,
+          grades_report_cycle: grades_report_cycle,
+          scale: grades_report.scale,
+          is_hidden: grades_report_cycle != nil and grades_report_cycle.is_visible == false
+        }
+      end)
+    end)
   end
 
   @doc """

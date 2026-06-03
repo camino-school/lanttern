@@ -5,6 +5,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
   alias Lanttern.Assessments.AssessmentPoint
   alias Lanttern.Curricula
   alias Lanttern.LearningContext
+  alias Lanttern.Reporting
 
   import Lanttern.Utils, only: [format_float: 1, reorder: 3]
   import LantternWeb.GradingComponents
@@ -185,6 +186,21 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
             </div>
           </div>
         </section>
+        <section id="grades-report" class="mt-10">
+          <h3 class="font-display font-bold text-2xl">
+            {gettext("Grades report")}
+          </h3>
+          <div class="mt-6 space-y-4">
+            <.grades_report_card
+              :for={entry <- @strand_grades_report_cards}
+              id={"grades-report-card-#{entry.report_card.id}-#{entry.grades_report_subject.id}"}
+              entry={entry}
+            />
+            <.empty_state_simple :if={@strand_grades_report_cards == []}>
+              {gettext("No grades report linked to this strand yet")}
+            </.empty_state_simple>
+          </div>
+        </section>
       </.responsive_container>
       <.live_component
         :if={@assessment_point}
@@ -363,6 +379,42 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
     """
   end
 
+  attr :id, :string, required: true
+  attr :entry, :map, required: true
+
+  defp grades_report_card(assigns) do
+    ~H"""
+    <.card_base id={@id} class="py-6 pl-6 pr-4">
+      <div class="flex items-center gap-4">
+        <div class="flex-1 min-w-0 space-y-4">
+          <p class="font-bold text-ltrn-darkest">
+            {@entry.school_cycle.name}, {@entry.grades_report_subject.subject.name}
+          </p>
+          <div class="flex flex-wrap items-center gap-2">
+            <.button type="button" size="xs">
+              {gettext("Manage grade composition")}
+            </.button>
+            <.badge :if={@entry.is_hidden} class="shrink-0">
+              <.icon name="hero-eye-slash-micro" class="mr-1" />
+              {gettext("Hidden")}
+            </.badge>
+            <span class="font-sans text-sm text-ltrn-subtle truncate">
+              {@entry.grades_report.name}
+            </span>
+          </div>
+        </div>
+        <%= if @entry.scale.type == "numeric" do %>
+          <div class="shrink-0 text-lg text-ltrn-subtle tabular-nums">
+            {format_float(@entry.scale.max_score)}
+          </div>
+        <% else %>
+          <.ordinal_scale_range scale={@entry.scale} id={@id} show_tooltip={true} />
+        <% end %>
+      </div>
+    </.card_base>
+    """
+  end
+
   # lifecycle
 
   @impl true
@@ -488,10 +540,21 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
     socket
     |> load_moments_and_assessment_points()
     |> assign_strand_curriculum_items()
+    |> assign_strand_grades_report_cards()
     |> assign(:initialized, true)
   end
 
   defp initialize(socket), do: socket
+
+  defp assign_strand_grades_report_cards(socket) do
+    entries =
+      Reporting.list_strand_grades_report_cards(
+        socket.assigns.current_scope,
+        socket.assigns.strand
+      )
+
+    assign(socket, :strand_grades_report_cards, entries)
+  end
 
   defp assign_strand_curriculum_items(socket) do
     items =

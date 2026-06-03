@@ -2230,4 +2230,172 @@ defmodule Lanttern.ReportingTest do
       refute extra_class.id in result_ids
     end
   end
+
+  describe "strand grades report cards" do
+    import Lanttern.GradesReportsFixtures
+    alias Lanttern.Identity.Scope
+
+    test "list_strand_grades_report_cards/2 returns one entry per matching subject" do
+      school = insert(:school)
+      cycle = insert(:cycle, school: school)
+      scope = %Scope{school_id: school.id}
+
+      subject_a = insert(:subject)
+      subject_b = insert(:subject)
+
+      scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
+      insert(:ordinal_value, scale_id: scale.id)
+      insert(:ordinal_value, scale_id: scale.id)
+
+      grades_report = grades_report_fixture(%{name: "Grade 9 2026", scale_id: scale.id})
+
+      grades_report_subject_fixture(%{
+        grades_report_id: grades_report.id,
+        subject_id: subject_a.id
+      })
+
+      # subject_b belongs to the grades report but not to the strand
+      grades_report_subject_fixture(%{
+        grades_report_id: grades_report.id,
+        subject_id: subject_b.id
+      })
+
+      grades_report_cycle_fixture(%{
+        grades_report_id: grades_report.id,
+        school_cycle_id: cycle.id,
+        is_visible: false
+      })
+
+      report_card =
+        insert(:report_card, school_cycle: cycle, grades_report_id: grades_report.id)
+
+      strand = insert(:strand, subjects: [subject_a])
+      insert(:strand_report, report_card: report_card, strand: strand)
+
+      assert [entry] = Reporting.list_strand_grades_report_cards(scope, strand)
+      assert entry.school_cycle.id == cycle.id
+      assert entry.grades_report_subject.subject.id == subject_a.id
+      assert entry.grades_report.name == "Grade 9 2026"
+      assert entry.is_hidden
+      assert [_, _] = entry.scale.ordinal_values
+    end
+
+    test "list_strand_grades_report_cards/2 excludes report cards without a grades report" do
+      school = insert(:school)
+      cycle = insert(:cycle, school: school)
+      scope = %Scope{school_id: school.id}
+
+      subject = insert(:subject)
+      report_card = insert(:report_card, school_cycle: cycle)
+      strand = insert(:strand, subjects: [subject])
+      insert(:strand_report, report_card: report_card, strand: strand)
+
+      assert [] = Reporting.list_strand_grades_report_cards(scope, strand)
+    end
+
+    test "list_strand_grades_report_cards/2 returns visible entry when no matching cycle" do
+      school = insert(:school)
+      cycle = insert(:cycle, school: school)
+      scope = %Scope{school_id: school.id}
+
+      subject = insert(:subject)
+      scale = insert(:scale, type: "numeric", max_score: 10)
+      grades_report = grades_report_fixture(%{scale_id: scale.id})
+
+      grades_report_subject_fixture(%{
+        grades_report_id: grades_report.id,
+        subject_id: subject.id
+      })
+
+      # no grades_report_cycle for the report card's cycle
+      report_card =
+        insert(:report_card, school_cycle: cycle, grades_report_id: grades_report.id)
+
+      strand = insert(:strand, subjects: [subject])
+      insert(:strand_report, report_card: report_card, strand: strand)
+
+      assert [entry] = Reporting.list_strand_grades_report_cards(scope, strand)
+      assert entry.grades_report_cycle == nil
+      refute entry.is_hidden
+    end
+
+    test "list_strand_grades_report_cards/2 returns empty list for strand with no subjects" do
+      school = insert(:school)
+      cycle = insert(:cycle, school: school)
+      scope = %Scope{school_id: school.id}
+
+      subject = insert(:subject)
+      scale = insert(:scale, type: "numeric", max_score: 10)
+      grades_report = grades_report_fixture(%{scale_id: scale.id})
+
+      grades_report_subject_fixture(%{
+        grades_report_id: grades_report.id,
+        subject_id: subject.id
+      })
+
+      report_card =
+        insert(:report_card, school_cycle: cycle, grades_report_id: grades_report.id)
+
+      strand = insert(:strand, subjects: [])
+      insert(:strand_report, report_card: report_card, strand: strand)
+
+      assert [] = Reporting.list_strand_grades_report_cards(scope, strand)
+    end
+
+    test "list_strand_grades_report_cards/2 returns one entry per cycle, ordered by cycle end date desc" do
+      school = insert(:school)
+      earlier_cycle = insert(:cycle, school: school, end_at: ~D[2026-03-31])
+      later_cycle = insert(:cycle, school: school, end_at: ~D[2026-06-30])
+      scope = %Scope{school_id: school.id}
+
+      subject = insert(:subject)
+      scale = insert(:scale, type: "numeric", max_score: 10)
+      grades_report = grades_report_fixture(%{scale_id: scale.id})
+
+      grades_report_subject_fixture(%{
+        grades_report_id: grades_report.id,
+        subject_id: subject.id
+      })
+
+      earlier_report_card =
+        insert(:report_card, school_cycle: earlier_cycle, grades_report_id: grades_report.id)
+
+      later_report_card =
+        insert(:report_card, school_cycle: later_cycle, grades_report_id: grades_report.id)
+
+      strand = insert(:strand, subjects: [subject])
+      insert(:strand_report, report_card: earlier_report_card, strand: strand)
+      insert(:strand_report, report_card: later_report_card, strand: strand)
+
+      assert [later_entry, earlier_entry] =
+               Reporting.list_strand_grades_report_cards(scope, strand)
+
+      assert later_entry.school_cycle.id == later_cycle.id
+      assert earlier_entry.school_cycle.id == earlier_cycle.id
+    end
+
+    test "list_strand_grades_report_cards/2 excludes report cards from other schools" do
+      school = insert(:school)
+      other_school = insert(:school)
+      other_cycle = insert(:cycle, school: other_school)
+      scope = %Scope{school_id: school.id}
+
+      subject = insert(:subject)
+      scale = insert(:scale, type: "numeric", max_score: 10)
+      grades_report = grades_report_fixture(%{scale_id: scale.id})
+
+      grades_report_subject_fixture(%{
+        grades_report_id: grades_report.id,
+        subject_id: subject.id
+      })
+
+      report_card =
+        insert(:report_card, school_cycle: other_cycle, grades_report_id: grades_report.id)
+
+      strand = insert(:strand, subjects: [subject])
+      insert(:strand_report, report_card: report_card, strand: strand)
+
+      assert [] = Reporting.list_strand_grades_report_cards(scope, strand)
+    end
+  end
 end
