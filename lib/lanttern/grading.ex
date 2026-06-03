@@ -7,6 +7,7 @@ defmodule Lanttern.Grading do
   alias Lanttern.Repo
   import Lanttern.RepoHelpers
 
+  alias Ecto.Multi
   alias Lanttern.Grading.GradeComponent
   alias Lanttern.Grading.OrdinalValue
   alias Lanttern.Grading.Scale
@@ -122,6 +123,61 @@ defmodule Lanttern.Grading do
   """
   def delete_grade_component(%GradeComponent{} = grade_component) do
     Repo.delete(grade_component)
+  end
+
+  @doc """
+  Atomically replaces the grade composition for a (grades report cycle × subject) pair.
+
+  Deletes the existing `GradeComponent` rows for the pair and inserts the new ones in a
+  single transaction. `components` is a list of maps with `:assessment_point_id` and
+  `:weight` keys; positions follow list order.
+
+  `ids` is a map with `:grades_report_id`, `:grades_report_cycle_id` and
+  `:grades_report_subject_id` keys.
+
+  Returns `{:ok, :replaced}` or `{:error, %Ecto.Changeset{}}`.
+  """
+  @spec replace_grade_composition(Scope.t(), map(), [map()]) ::
+          {:ok, :replaced} | {:error, Ecto.Changeset.t()}
+  def replace_grade_composition(%Scope{} = scope, ids, components) do
+    true = Scope.profile_type?(scope, "staff")
+
+    %{
+      grades_report_id: gr_id,
+      grades_report_cycle_id: grc_id,
+      grades_report_subject_id: grs_id
+    } = ids
+
+    delete_query =
+      from(gc in GradeComponent,
+        where:
+          gc.grades_report_cycle_id == ^grc_id and
+            gc.grades_report_subject_id == ^grs_id
+      )
+
+    multi = Multi.delete_all(Multi.new(), :delete_existing, delete_query)
+
+    multi =
+      components
+      |> Enum.with_index()
+      |> Enum.reduce(multi, fn {%{assessment_point_id: ap_id, weight: weight}, index}, multi ->
+        changeset =
+          GradeComponent.changeset(%GradeComponent{}, %{
+            grades_report_id: gr_id,
+            grades_report_cycle_id: grc_id,
+            grades_report_subject_id: grs_id,
+            assessment_point_id: ap_id,
+            weight: weight,
+            position: index
+          })
+
+        Multi.insert(multi, {:insert, index}, changeset)
+      end)
+
+    case Repo.transaction(multi) do
+      {:ok, _} -> {:ok, :replaced}
+      {:error, _op, changeset, _changes} -> {:error, changeset}
+    end
   end
 
   @doc """

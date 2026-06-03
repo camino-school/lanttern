@@ -475,4 +475,134 @@ defmodule LantternWeb.StrandLive.AssessmentComponentTest do
       |> assert_has("button", text: "Hide")
     end
   end
+
+  describe "grade composition overlay" do
+    alias Lanttern.GradesReports
+    alias Lanttern.GradesReportsFixtures
+    alias Lanttern.Grading
+
+    test "opens the grade composition overlay", %{conn: conn, user: user} do
+      %{strand: strand} = setup_grades_report(user)
+
+      conn
+      |> visit("#{@live_view_base_path}/#{strand.id}/assessment")
+      |> click_button("Manage grade composition")
+      |> assert_has("#grade-composition-overlay", text: "Grade composition")
+      |> assert_has("#grade-composition-overlay", text: "Average-based grade composition")
+    end
+
+    test "setup lists only strand goals (no moment APs) and has no delete button", %{
+      conn: conn,
+      user: user
+    } do
+      %{strand: strand, scale: scale} = setup_grades_report(user)
+
+      goal_ci = insert(:curriculum_item, name: "Reading strand goal")
+      insert(:assessment_point, strand: strand, curriculum_item: goal_ci, scale: scale)
+
+      moment = insert(:moment, strand: strand)
+      insert(:assessment_point, name: "Moment only AP", moment_id: moment.id)
+
+      conn
+      |> visit("#{@live_view_base_path}/#{strand.id}/assessment")
+      |> click_button("Manage grade composition")
+      |> within("#grade-composition-overlay", fn session ->
+        click_button(session, "Setup composition")
+      end)
+      |> assert_has("#grade-composition-overlay", text: "Reading strand goal")
+      |> refute_has("#grade-composition-overlay", text: "Moment only AP")
+      |> refute_has("#grade-composition-overlay button", text: "Delete")
+    end
+
+    test "manage + save keeps the existing composition and returns to overview", %{
+      conn: conn,
+      user: user
+    } do
+      %{
+        strand: strand,
+        scale: scale,
+        grades_report: grades_report,
+        grades_report_subject: grs,
+        grades_report_cycle: grc
+      } = setup_grades_report(user)
+
+      goal_ci = insert(:curriculum_item, name: "Composed strand goal")
+      goal_ap = insert(:assessment_point, strand: strand, curriculum_item: goal_ci, scale: scale)
+
+      {:ok, _} =
+        Grading.create_grade_component(%{
+          assessment_point_id: goal_ap.id,
+          grades_report_id: grades_report.id,
+          grades_report_cycle_id: grc.id,
+          grades_report_subject_id: grs.id,
+          weight: 1.0
+        })
+
+      conn
+      |> visit("#{@live_view_base_path}/#{strand.id}/assessment")
+      |> click_button("Manage grade composition")
+      |> assert_has("#grade-composition-overlay", text: "Composed strand goal")
+      |> within("#grade-composition-overlay", fn session ->
+        click_button(session, "Manage composition")
+      end)
+      |> within("#grade-composition-overlay", fn session ->
+        click_button(session, "Save")
+      end)
+      |> assert_has("#grade-composition-overlay", text: "Composed strand goal")
+
+      assert [_] = GradesReports.list_grade_composition(grc.id, grs.id)
+    end
+
+    test "disables the manage button when the report card cycle has no grades report cycle", %{
+      conn: conn,
+      user: user
+    } do
+      %{strand: strand} = setup_grades_report(user, with_cycle: false)
+
+      conn
+      |> visit("#{@live_view_base_path}/#{strand.id}/assessment")
+      |> assert_has("button[disabled]", text: "Manage grade composition")
+    end
+
+    defp setup_grades_report(user, opts \\ []) do
+      with_cycle = Keyword.get(opts, :with_cycle, true)
+      school = user.current_profile.staff_member.school
+
+      cycle = insert(:cycle, school: school)
+      subject = insert(:subject)
+      scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
+      insert(:ordinal_value, scale_id: scale.id)
+      insert(:ordinal_value, scale_id: scale.id)
+
+      grades_report = GradesReportsFixtures.grades_report_fixture(%{scale_id: scale.id})
+
+      grs =
+        GradesReportsFixtures.grades_report_subject_fixture(%{
+          grades_report_id: grades_report.id,
+          subject_id: subject.id
+        })
+
+      grc =
+        if with_cycle do
+          GradesReportsFixtures.grades_report_cycle_fixture(%{
+            grades_report_id: grades_report.id,
+            school_cycle_id: cycle.id
+          })
+        end
+
+      report_card =
+        insert(:report_card, school_cycle: cycle, grades_report_id: grades_report.id)
+
+      strand = insert(:strand, subjects: [subject])
+      insert(:strand_report, report_card: report_card, strand: strand)
+
+      %{
+        strand: strand,
+        scale: scale,
+        grades_report: grades_report,
+        grades_report_subject: grs,
+        grades_report_cycle: grc
+      }
+    end
+  end
 end

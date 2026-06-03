@@ -13,6 +13,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
   # shared components
   alias LantternWeb.AssessmentComposition.AssessmentPointCompositionOverlayComponent
   alias LantternWeb.Assessments.AssessmentPointFormOverlayComponent
+  alias LantternWeb.Grading.StrandGradeCompositionOverlayComponent
 
   @ap_preloads [:lesson, scale: :ordinal_values, curriculum_item: :curriculum_component]
 
@@ -195,6 +196,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
               :for={entry <- @strand_grades_report_cards}
               id={"grades-report-card-#{entry.report_card.id}-#{entry.grades_report_subject.id}"}
               entry={entry}
+              myself={@myself}
             />
             <.empty_state_simple :if={@strand_grades_report_cards == []}>
               {gettext("No grades report linked to this strand yet")}
@@ -225,6 +227,19 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
         notify_component={@myself}
         initial_view={@composition_overlay_initial_view}
         on_cancel={JS.push("close_composition_overlay", target: @myself)}
+      />
+      <.live_component
+        :if={@grade_composition_overlay_entry}
+        module={StrandGradeCompositionOverlayComponent}
+        id="grade-composition-overlay"
+        current_scope={@current_scope}
+        strand_id={@strand.id}
+        grades_report_id={@grade_composition_overlay_entry.grades_report.id}
+        grades_report_cycle_id={@grade_composition_overlay_entry.grades_report_cycle.id}
+        grades_report_subject_id={@grade_composition_overlay_entry.grades_report_subject.id}
+        cycle_name={@grade_composition_overlay_entry.school_cycle.name}
+        subject_name={@grade_composition_overlay_entry.grades_report_subject.subject.name}
+        on_cancel={JS.push("close_grade_composition_overlay", target: @myself)}
       />
     </div>
     """
@@ -381,6 +396,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
 
   attr :id, :string, required: true
   attr :entry, :map, required: true
+  attr :myself, Phoenix.LiveComponent.CID, required: true
 
   defp grades_report_card(assigns) do
     ~H"""
@@ -391,7 +407,20 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
             {@entry.school_cycle.name}, {@entry.grades_report_subject.subject.name}
           </p>
           <div class="flex flex-wrap items-center gap-2">
-            <.button type="button" size="xs">
+            <.button
+              type="button"
+              size="xs"
+              disabled={is_nil(@entry.grades_report_cycle)}
+              phx-click={
+                JS.push("manage_grade_composition",
+                  value: %{
+                    report_card_id: @entry.report_card.id,
+                    grades_report_subject_id: @entry.grades_report_subject.id
+                  },
+                  target: @myself
+                )
+              }
+            >
               {gettext("Manage grade composition")}
             </.button>
             <.badge :if={@entry.is_hidden} class="shrink-0">
@@ -425,6 +454,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
       |> assign(:assessment_point, nil)
       |> assign(:composition_overlay_ap, nil)
       |> assign(:composition_overlay_initial_view, :overview)
+      |> assign(:grade_composition_overlay_entry, nil)
       |> assign(:initialized, false)
 
     {:ok, socket}
@@ -738,6 +768,23 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
 
   def handle_event("close_composition_overlay", _params, socket),
     do: {:noreply, assign(socket, :composition_overlay_ap, nil)}
+
+  def handle_event(
+        "manage_grade_composition",
+        %{"report_card_id" => report_card_id, "grades_report_subject_id" => grs_id},
+        socket
+      ) do
+    entry =
+      Enum.find(
+        socket.assigns.strand_grades_report_cards,
+        &(&1.report_card.id == report_card_id and &1.grades_report_subject.id == grs_id)
+      )
+
+    {:noreply, assign(socket, :grade_composition_overlay_entry, entry)}
+  end
+
+  def handle_event("close_grade_composition_overlay", _params, socket),
+    do: {:noreply, assign(socket, :grade_composition_overlay_entry, nil)}
 
   def handle_event("toggle_hidden", %{"id" => ap_id, "hidden" => is_hidden}, socket) do
     ap = Assessments.get_assessment_point!(ap_id, preloads: @ap_preloads)
