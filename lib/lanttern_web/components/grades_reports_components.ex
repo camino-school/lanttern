@@ -8,6 +8,7 @@ defmodule LantternWeb.GradesReportsComponents do
 
   use Gettext, backend: Lanttern.Gettext
   import LantternWeb.CoreComponents
+  import LantternWeb.OverlayComponents
 
   alias Lanttern.GradesReports.GradesReport
   alias Lanttern.GradesReports.StudentGradesReportEntry
@@ -722,6 +723,11 @@ defmodule LantternWeb.GradesReportsComponents do
     default: nil,
     doc: "the function to trigger when clicking on student grades report entry. args: `sgre_id`"
 
+  attr :on_manage_composition, :any,
+    default: nil,
+    doc:
+      "the function to trigger when clicking on manage composition in the subject header. args: `grades_report_subject_id`"
+
   def students_grades_grid(assigns) do
     %{
       students: students,
@@ -789,13 +795,40 @@ defmodule LantternWeb.GradesReportsComponents do
             id={"students-grades-grid-header-subject-#{grades_report_subject.id}"}
             class="flex items-center justify-center gap-2 px-1 py-2 text-center bg-white"
           >
-            <span class="flex-1 truncate">
-              {Gettext.dgettext(
-                Lanttern.Gettext,
-                "taxonomy",
-                grades_report_subject.subject.name
-              )}
-            </span>
+            <%= if @on_manage_composition do %>
+              <div class="relative flex-1 min-w-0">
+                <.button
+                  type="button"
+                  theme="ghost"
+                  id={"students-grades-grid-subject-button-#{grades_report_subject.id}"}
+                  class="max-w-full truncate"
+                >
+                  {Gettext.dgettext(
+                    Lanttern.Gettext,
+                    "taxonomy",
+                    grades_report_subject.subject.name
+                  )}
+                </.button>
+                <.dropdown_menu
+                  id={"students-grades-grid-subject-menu-#{grades_report_subject.id}"}
+                  button_id={"students-grades-grid-subject-button-#{grades_report_subject.id}"}
+                  z_index="30"
+                >
+                  <:item
+                    text={gettext("Manage composition")}
+                    on_click={@on_manage_composition.(grades_report_subject.id)}
+                  />
+                </.dropdown_menu>
+              </div>
+            <% else %>
+              <span class="flex-1 truncate">
+                {Gettext.dgettext(
+                  Lanttern.Gettext,
+                  "taxonomy",
+                  grades_report_subject.subject.name
+                )}
+              </span>
+            <% end %>
             <.icon_button
               :if={@on_calculate_subject}
               name="hero-arrow-path-mini"

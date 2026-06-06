@@ -207,6 +207,45 @@ defmodule Lanttern.Reporting do
   end
 
   @doc """
+  Lists the strands where a grades report subject's composition can be managed.
+
+  This is the inverse of `list_strand_grades_report_cards/2`: starting from a
+  grades report cycle × subject, it finds the report card linked to the grades
+  report **for that cycle** (matching the grades report cycle's school cycle),
+  then the strands reported in that card whose subjects match the grades report
+  subject's subject — i.e. the strands whose assessment context surfaces this
+  composition.
+
+  Results are scoped to the school in `scope` and ordered by strand name. The
+  same strand is returned only once even if reached through multiple report cards.
+  """
+  @spec list_grades_report_subject_strands(Scope.t(), pos_integer(), pos_integer()) ::
+          [Strand.t()]
+  def list_grades_report_subject_strands(
+        %Scope{} = scope,
+        grades_report_cycle_id,
+        grades_report_subject_id
+      ) do
+    from(grs in GradesReportSubject,
+      where: grs.id == ^grades_report_subject_id,
+      join: grc in GradesReportCycle,
+      on: grc.id == ^grades_report_cycle_id and grc.grades_report_id == grs.grades_report_id,
+      join: rc in ReportCard,
+      on: rc.grades_report_id == grs.grades_report_id and rc.school_cycle_id == grc.school_cycle_id,
+      join: sc in assoc(rc, :school_cycle),
+      on: sc.school_id == ^scope.school_id,
+      join: sr in assoc(rc, :strand_reports),
+      join: s in assoc(sr, :strand),
+      join: ss in assoc(s, :subjects),
+      on: ss.id == grs.subject_id,
+      order_by: [asc: s.name],
+      distinct: true,
+      select: s
+    )
+    |> Repo.all()
+  end
+
+  @doc """
   Gets a single report_card.
 
   Returns `nil` if the Report card does not exist.

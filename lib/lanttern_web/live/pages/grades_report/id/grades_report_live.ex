@@ -13,7 +13,6 @@ defmodule LantternWeb.GradesReportLive do
   alias LantternWeb.GradesReports.GradesReportGridConfigurationOverlayComponent
   alias LantternWeb.GradesReports.StudentGradesReportEntryOverlayComponent
   alias LantternWeb.GradesReports.StudentGradesReportFinalEntryOverlayComponent
-  # alias LantternWeb.Grading.GradeCompositionOverlayComponent
 
   # shared
   import LantternWeb.GradesReportsHelpers, only: [build_calculation_results_message: 1]

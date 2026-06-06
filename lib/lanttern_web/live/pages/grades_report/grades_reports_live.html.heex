@@ -136,13 +136,14 @@
     on_cancel={JS.navigate(~p"/grades_reports")}
   />
   <.live_component
-    :if={@is_editing_grade_composition}
-    title={gettext("Edit grade composition")}
-    module={GradeCompositionOverlayComponent}
-    id="grade-composition-overlay"
-    grades_report_id={@grades_report_id}
+    :if={@show_grade_composition}
+    module={GradeCompositionViewOverlayComponent}
+    id="grade-composition-view-overlay"
+    current_scope={@current_scope}
     grades_report_cycle_id={@grades_report_cycle_id}
     grades_report_subject_id={@grades_report_subject_id}
+    cycle_name={@grade_composition_cycle_name}
+    subject_name={@grade_composition_subject_name}
     on_cancel={JS.patch(~p"/grades_reports")}
   />
   <.live_component

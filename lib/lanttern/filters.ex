@@ -238,5 +238,4 @@ defmodule Lanttern.Filters do
   def change_profile_strand_filter(%ProfileStrandFilter{} = profile_strand_filter, attrs \\ %{}) do
     ProfileStrandFilter.changeset(profile_strand_filter, attrs)
   end
-
 end
