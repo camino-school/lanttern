@@ -17,6 +17,7 @@ defmodule Lanttern.Reporting do
   alias Lanttern.GradesReports.GradesReport
   alias Lanttern.GradesReports.GradesReportCycle
   alias Lanttern.GradesReports.GradesReportSubject
+  alias Lanttern.Grading.GradeComponent
   alias Lanttern.Grading.Scale
   alias Lanttern.Identity.Scope
   alias Lanttern.LearningContext.Moment
@@ -216,8 +217,16 @@ defmodule Lanttern.Reporting do
   subject's subject — i.e. the strands whose assessment context surfaces this
   composition.
 
+  In addition to those filter-scoped strands, it also returns any strand that
+  owns a **current composition component** for the pair, even if that strand has
+  since fallen out of the filter scope (e.g. its subjects, the report card's
+  strand link, or the cycle changed after the component was added). This keeps
+  "Manage in strand context" pointing at the strand where the composition's goals
+  actually live.
+
   Results are scoped to the school in `scope` and ordered by strand name. The
-  same strand is returned only once even if reached through multiple report cards.
+  same strand is returned only once even if reached through multiple report cards
+  or composition components.
   """
   @spec list_grades_report_subject_strands(Scope.t(), pos_integer(), pos_integer()) ::
           [Strand.t()]
@@ -226,6 +235,12 @@ defmodule Lanttern.Reporting do
         grades_report_cycle_id,
         grades_report_subject_id
       ) do
+    scope
+    |> list_filter_scoped_strands(grades_report_cycle_id, grades_report_subject_id)
+    |> maybe_add_composition_strands(scope, grades_report_cycle_id, grades_report_subject_id)
+  end
+
+  defp list_filter_scoped_strands(scope, grades_report_cycle_id, grades_report_subject_id) do
     from(grs in GradesReportSubject,
       where: grs.id == ^grades_report_subject_id,
       join: grc in GradesReportCycle,
@@ -243,6 +258,35 @@ defmodule Lanttern.Reporting do
       select: s
     )
     |> Repo.all()
+  end
+
+  defp maybe_add_composition_strands(
+         base_strands,
+         scope,
+         grades_report_cycle_id,
+         grades_report_subject_id
+       ) do
+    base_ids = Enum.map(base_strands, & &1.id)
+
+    extra_strands =
+      from(gc in GradeComponent,
+        where:
+          gc.grades_report_cycle_id == ^grades_report_cycle_id and
+            gc.grades_report_subject_id == ^grades_report_subject_id,
+        join: ap in assoc(gc, :assessment_point),
+        join: s in assoc(ap, :strand),
+        join: grc in assoc(gc, :grades_report_cycle),
+        join: sc in assoc(grc, :school_cycle),
+        on: sc.school_id == ^scope.school_id,
+        where: s.id not in ^base_ids,
+        order_by: [asc: s.name],
+        distinct: true,
+        select: s
+      )
+      |> Repo.all()
+
+    (base_strands ++ extra_strands)
+    |> Enum.sort_by(& &1.name)
   end
 
   @doc """

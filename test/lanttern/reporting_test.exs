@@ -2401,6 +2401,8 @@ defmodule Lanttern.ReportingTest do
 
   describe "grades report subject strands" do
     import Lanttern.GradesReportsFixtures
+    import Lanttern.AssessmentsFixtures
+    import Lanttern.GradingFixtures
     alias Lanttern.Identity.Scope
 
     test "list_grades_report_subject_strands/3 returns linked report card's strands matching the subject" do
@@ -2529,6 +2531,198 @@ defmodule Lanttern.ReportingTest do
                  grades_report_cycle.id,
                  grades_report_subject.id
                )
+    end
+
+    test "list_grades_report_subject_strands/3 includes a strand owning a composition component whose subject no longer matches" do
+      school = insert(:school)
+      cycle = insert(:cycle, school: school)
+      scope = %Scope{school_id: school.id}
+
+      subject = insert(:subject)
+      other_subject = insert(:subject)
+      scale = insert(:scale, type: "numeric", max_score: 10)
+      grades_report = grades_report_fixture(%{scale_id: scale.id})
+
+      grades_report_subject =
+        grades_report_subject_fixture(%{
+          grades_report_id: grades_report.id,
+          subject_id: subject.id
+        })
+
+      grades_report_cycle =
+        grades_report_cycle_fixture(%{
+          grades_report_id: grades_report.id,
+          school_cycle_id: cycle.id
+        })
+
+      report_card =
+        insert(:report_card, school_cycle: cycle, grades_report_id: grades_report.id)
+
+      # the strand's subjects changed after the component was added: it is now
+      # tagged with a different subject, so it falls out of the subject filter
+      strand = insert(:strand, subjects: [other_subject])
+      insert(:strand_report, report_card: report_card, strand: strand)
+
+      assessment_point = assessment_point_fixture(%{strand_id: strand.id})
+
+      grade_component_fixture(%{
+        grades_report_id: grades_report.id,
+        grades_report_cycle_id: grades_report_cycle.id,
+        grades_report_subject_id: grades_report_subject.id,
+        assessment_point_id: assessment_point.id
+      })
+
+      assert [result] =
+               Reporting.list_grades_report_subject_strands(
+                 scope,
+                 grades_report_cycle.id,
+                 grades_report_subject.id
+               )
+
+      assert result.id == strand.id
+    end
+
+    test "list_grades_report_subject_strands/3 includes a strand owning a composition component without a matching report card link" do
+      school = insert(:school)
+      cycle = insert(:cycle, school: school)
+      scope = %Scope{school_id: school.id}
+
+      subject = insert(:subject)
+      scale = insert(:scale, type: "numeric", max_score: 10)
+      grades_report = grades_report_fixture(%{scale_id: scale.id})
+
+      grades_report_subject =
+        grades_report_subject_fixture(%{
+          grades_report_id: grades_report.id,
+          subject_id: subject.id
+        })
+
+      grades_report_cycle =
+        grades_report_cycle_fixture(%{
+          grades_report_id: grades_report.id,
+          school_cycle_id: cycle.id
+        })
+
+      # the report card's strand link changed after the component was added: the
+      # strand is no longer reported in any matching card (no strand_report)
+      strand = insert(:strand, subjects: [subject])
+      assessment_point = assessment_point_fixture(%{strand_id: strand.id})
+
+      grade_component_fixture(%{
+        grades_report_id: grades_report.id,
+        grades_report_cycle_id: grades_report_cycle.id,
+        grades_report_subject_id: grades_report_subject.id,
+        assessment_point_id: assessment_point.id
+      })
+
+      assert [result] =
+               Reporting.list_grades_report_subject_strands(
+                 scope,
+                 grades_report_cycle.id,
+                 grades_report_subject.id
+               )
+
+      assert result.id == strand.id
+    end
+
+    test "list_grades_report_subject_strands/3 excludes composition-component strands from other schools" do
+      school = insert(:school)
+      other_school = insert(:school)
+      other_cycle = insert(:cycle, school: other_school)
+      scope = %Scope{school_id: school.id}
+
+      subject = insert(:subject)
+      scale = insert(:scale, type: "numeric", max_score: 10)
+      grades_report = grades_report_fixture(%{scale_id: scale.id})
+
+      grades_report_subject =
+        grades_report_subject_fixture(%{
+          grades_report_id: grades_report.id,
+          subject_id: subject.id
+        })
+
+      grades_report_cycle =
+        grades_report_cycle_fixture(%{
+          grades_report_id: grades_report.id,
+          school_cycle_id: other_cycle.id
+        })
+
+      strand = insert(:strand, subjects: [subject])
+      assessment_point = assessment_point_fixture(%{strand_id: strand.id})
+
+      grade_component_fixture(%{
+        grades_report_id: grades_report.id,
+        grades_report_cycle_id: grades_report_cycle.id,
+        grades_report_subject_id: grades_report_subject.id,
+        assessment_point_id: assessment_point.id
+      })
+
+      assert [] =
+               Reporting.list_grades_report_subject_strands(
+                 scope,
+                 grades_report_cycle.id,
+                 grades_report_subject.id
+               )
+    end
+
+    test "list_grades_report_subject_strands/3 returns each strand once, ordered by name, across filter and composition" do
+      school = insert(:school)
+      cycle = insert(:cycle, school: school)
+      scope = %Scope{school_id: school.id}
+
+      subject = insert(:subject)
+      scale = insert(:scale, type: "numeric", max_score: 10)
+      grades_report = grades_report_fixture(%{scale_id: scale.id})
+
+      grades_report_subject =
+        grades_report_subject_fixture(%{
+          grades_report_id: grades_report.id,
+          subject_id: subject.id
+        })
+
+      grades_report_cycle =
+        grades_report_cycle_fixture(%{
+          grades_report_id: grades_report.id,
+          school_cycle_id: cycle.id
+        })
+
+      report_card =
+        insert(:report_card, school_cycle: cycle, grades_report_id: grades_report.id)
+
+      # reached by BOTH the filter (subject + strand report) and a component
+      shared_strand = insert(:strand, name: "Bravo", subjects: [subject])
+      insert(:strand_report, report_card: report_card, strand: shared_strand)
+      shared_ap = assessment_point_fixture(%{strand_id: shared_strand.id})
+
+      grade_component_fixture(%{
+        grades_report_id: grades_report.id,
+        grades_report_cycle_id: grades_report_cycle.id,
+        grades_report_subject_id: grades_report_subject.id,
+        assessment_point_id: shared_ap.id
+      })
+
+      # reached only through a component; its name sorts before the shared strand
+      component_only_strand = insert(:strand, name: "Alpha", subjects: [insert(:subject)])
+      component_ap = assessment_point_fixture(%{strand_id: component_only_strand.id})
+
+      grade_component_fixture(%{
+        grades_report_id: grades_report.id,
+        grades_report_cycle_id: grades_report_cycle.id,
+        grades_report_subject_id: grades_report_subject.id,
+        assessment_point_id: component_ap.id
+      })
+
+      results =
+        Reporting.list_grades_report_subject_strands(
+          scope,
+          grades_report_cycle.id,
+          grades_report_subject.id
+        )
+
+      assert [%{name: "Alpha"}, %{name: "Bravo"}] = results
+
+      ids = Enum.map(results, & &1.id)
+      assert ids == Enum.uniq(ids)
     end
   end
 end
