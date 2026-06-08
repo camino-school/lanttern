@@ -10,6 +10,7 @@ defmodule LantternWeb.GradesReports.StudentGradesReportEntryOverlayComponent do
   # shared
   alias LantternWeb.GradesReports.StudentGradesReportEntryFormComponent
   alias LantternWeb.Grading.ScaleInfoTableComponent
+  import LantternWeb.DateTimeHelpers, only: [format_local_datetime: 1]
   import LantternWeb.GradesReportsComponents
 
   @impl true
@@ -40,8 +41,7 @@ defmodule LantternWeb.GradesReports.StudentGradesReportEntryOverlayComponent do
           <p class="mt-4 mb-6 text-sm">
             {gettext(
               "Lanttern automatic grade calculation info based on configured grade composition"
-            )} ({Timex.local(@student_grades_report_entry.composition_datetime)
-            |> Timex.format!("{0D}/{0M}/{YYYY} {h24}:{m}")}).
+            )} ({format_local_datetime(@student_grades_report_entry.composition_datetime)}).
           </p>
           <.grade_composition_table student_grades_report_entry={@student_grades_report_entry} />
           <.live_component

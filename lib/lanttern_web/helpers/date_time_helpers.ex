@@ -59,6 +59,18 @@ defmodule LantternWeb.DateTimeHelpers do
   end
 
   @doc """
+  Formats a datetime in the server's local timezone as `dd/MM/yyyy HH:mm`.
+
+  Used for displaying grade composition calculation timestamps.
+  """
+  @spec format_local_datetime(DateTime.t() | NaiveDateTime.t()) :: String.t()
+  def format_local_datetime(datetime) do
+    datetime
+    |> Timex.local()
+    |> Lanttern.Cldr.DateTime.to_string!(format: "dd/MM/yyyy HH:mm")
+  end
+
+  @doc """
   Wrapper around `Timex.to_datetime/2` and Cldr formatter which renders the formated time
   using a datetime, browser timezone, and a optional format map.
   The format map is a map of locale to format string e.g:
