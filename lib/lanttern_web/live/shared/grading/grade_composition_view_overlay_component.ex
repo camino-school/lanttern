@@ -65,8 +65,6 @@ defmodule LantternWeb.Grading.GradeCompositionViewOverlayComponent do
                 </.dropdown_menu>
               </div>
           <% end %>
-
-
         </div>
         <%= if @composition_components == [] do %>
           <div class="mt-6 p-4 rounded-sm border border-dashed border-ltrn-lighter text-center text-sm text-ltrn-subtle">

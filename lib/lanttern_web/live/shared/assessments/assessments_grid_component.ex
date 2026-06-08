@@ -18,6 +18,8 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
       attr :navigate, :string, doc: "defines push_navigate target"
       attr :url_params, :map, doc: "URL-based filter params to preserve in navigation", default: %{}
       attr :filter_assessment_points_ids, :list, default: nil, doc: "when set, restricts displayed assessment points to these IDs"
+      attr :filter_grades_report_cycle_id, :integer, default: nil, doc: "when set with the subject id, keeps only the matching grades report column (grade report filter active)"
+      attr :filter_grades_report_subject_id, :integer, default: nil, doc: "see filter_grades_report_cycle_id"
 
   """
 
@@ -617,6 +619,8 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
       |> assign(:composed_assessment_point_ids, MapSet.new())
       |> assign(:url_params, %{})
       |> assign(:filter_assessment_points_ids, nil)
+      |> assign(:filter_grades_report_cycle_id, nil)
+      |> assign(:filter_grades_report_subject_id, nil)
       |> assign(:grades_report_columns, [])
       |> assign(:grades_report_columns_count, 0)
       |> assign(:grades_report_columns_grid, "")
@@ -863,14 +867,29 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
     assign(socket, :view_bg, view_bg)
   end
 
-  # The grades report column group is only shown in the strand context, and
-  # only when no assessment point filter is active (a dedicated grades report
-  # composition filter is planned separately). When hidden, we fall back to an
-  # empty column list, which collapses the layout to the assessment-points-only
-  # grid.
+  # The grades report column group is only shown in the strand context:
+  # - no filter active → all linked grades report columns;
+  # - a grades report filter active → only the filtered subject's column,
+  #   shown alongside its composition's assessment points;
+  # - an assessment point composition filter active → none (hidden).
+  # When empty, the layout collapses to the assessment-points-only grid.
   defp assign_grades_report_columns(socket) do
     columns =
       case socket.assigns do
+        %{
+          strand: %Strand{} = strand,
+          filter_grades_report_cycle_id: cycle_id,
+          filter_grades_report_subject_id: subject_id
+        }
+        when not is_nil(cycle_id) and not is_nil(subject_id) ->
+          socket.assigns.current_scope
+          |> Reporting.list_strand_grades_report_cards(strand)
+          |> Enum.filter(fn column ->
+            column.grades_report_cycle &&
+              column.grades_report_cycle.id == cycle_id &&
+              column.grades_report_subject.id == subject_id
+          end)
+
         %{filter_assessment_points_ids: nil, strand: %Strand{} = strand} ->
           Reporting.list_strand_grades_report_cards(socket.assigns.current_scope, strand)
 

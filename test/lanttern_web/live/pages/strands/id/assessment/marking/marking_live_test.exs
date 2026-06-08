@@ -6,6 +6,7 @@ defmodule LantternWeb.MarkingLiveTest do
 
   alias Lanttern.Assessments
   alias Lanttern.GradesReportsFixtures
+  alias Lanttern.GradingFixtures
   alias Lanttern.Repo
   alias Lanttern.Schools
 
@@ -615,6 +616,113 @@ defmodule LantternWeb.MarkingLiveTest do
       |> assert_has("#student-grade-report-entry-overlay",
         text: "Edit student grades report entry"
       )
+    end
+  end
+
+  describe "filter by grade report" do
+    test "renders the section with a subject badge when a grades report card is linked",
+         %{conn: conn} = context do
+      %{strand: strand} = setup_grades_report_grid(context, [])
+
+      conn
+      |> visit("#{@live_view_path}/#{strand.id}/assessment/marking")
+      |> within("#strand-assessment-filter-modal", fn session ->
+        session
+        |> assert_has("p", text: "By grade report")
+        |> assert_has("button", text: "Algebra Subject Xyz")
+      end)
+    end
+
+    test "does not render the section when no grades report is linked",
+         %{conn: conn, user: user} do
+      school = Repo.get!(Lanttern.Schools.School, user.current_profile.school_id)
+      strand = insert(:strand)
+      insert(:class_assignment, strand: strand, class: insert(:class, school: school))
+
+      conn
+      |> visit("#{@live_view_path}/#{strand.id}/assessment/marking")
+      |> within("#strand-assessment-filter-modal", fn session ->
+        refute_has(session, "p", text: "By grade report")
+      end)
+    end
+
+    test "selecting a grade report shows its composition APs alongside the grade report column",
+         %{conn: conn} = context do
+      %{
+        strand: strand,
+        class: class,
+        grades_report: grades_report,
+        grades_report_subject: grs,
+        grades_report_cycle: grc
+      } = setup_grades_report_grid(context, [])
+
+      goal_ap = insert(:assessment_point, strand_id: strand.id, name: "Goal In Composition")
+      insert(:assessment_point, strand_id: strand.id, name: "Unrelated AP")
+
+      GradingFixtures.grade_component_fixture(%{
+        grades_report_id: grades_report.id,
+        grades_report_cycle_id: grc.id,
+        grades_report_subject_id: grs.id,
+        assessment_point_id: goal_ap.id
+      })
+
+      session =
+        conn
+        |> visit("#{@live_view_path}/#{strand.id}/assessment/marking?classes_ids=#{class.id}")
+        |> within("#strand-assessment-filter-modal", fn session ->
+          session
+          |> click_button("Algebra Subject Xyz")
+          |> click_button("Save")
+        end)
+
+      session
+      # the filter is applied...
+      |> assert_has("button", text: "1 filter")
+      # ...the composition's assessment point is shown...
+      |> assert_has("p", text: "Goal In Composition")
+      # ...unrelated assessment points are filtered out...
+      |> refute_has("p", text: "Unrelated AP")
+      # ...and the filtered grade report column group itself remains visible
+      |> assert_has("span", text: "Grades report")
+    end
+
+    test "selecting a grade report clears a previously selected composition AP",
+         %{conn: conn} = context do
+      %{strand: strand} = setup_grades_report_grid(context, [])
+
+      parent_ap =
+        insert(:assessment_point,
+          strand_id: strand.id,
+          name: "Composition AP",
+          uses_composition: true
+        )
+
+      # starting from an applied composition filter, selecting a grade report and
+      # saving must replace it (not combine), so the count stays at a single filter
+      conn
+      |> visit(
+        "#{@live_view_path}/#{strand.id}/assessment/marking?composition_ap_id=#{parent_ap.id}"
+      )
+      |> within("#strand-assessment-filter-modal", fn session ->
+        session
+        |> click_button("Algebra Subject Xyz")
+        |> click_button("Save")
+      end)
+      |> assert_has("button", text: "1 filter")
+    end
+
+    test "class and grade report filters combine to show '2 filters'",
+         %{conn: conn} = context do
+      %{strand: strand, class: class, grades_report_subject: grs, grades_report_cycle: grc} =
+        setup_grades_report_grid(context, [])
+
+      value = "#{grc.id}-#{grs.id}"
+
+      conn
+      |> visit(
+        "#{@live_view_path}/#{strand.id}/assessment/marking?classes_ids=#{class.id}&grades_report_filter=#{value}"
+      )
+      |> assert_has("button", text: "2 filters")
     end
   end
 end

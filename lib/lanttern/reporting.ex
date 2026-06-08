@@ -246,7 +246,8 @@ defmodule Lanttern.Reporting do
       join: grc in GradesReportCycle,
       on: grc.id == ^grades_report_cycle_id and grc.grades_report_id == grs.grades_report_id,
       join: rc in ReportCard,
-      on: rc.grades_report_id == grs.grades_report_id and rc.school_cycle_id == grc.school_cycle_id,
+      on:
+        rc.grades_report_id == grs.grades_report_id and rc.school_cycle_id == grc.school_cycle_id,
       join: sc in assoc(rc, :school_cycle),
       on: sc.school_id == ^scope.school_id,
       join: sr in assoc(rc, :strand_reports),
