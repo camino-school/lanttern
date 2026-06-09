@@ -76,9 +76,9 @@ defmodule LantternWeb.Reporting.ReportCardFormComponent do
         <.input
           field={@form[:grades_report_id]}
           type="select"
-          label={gettext("Grades report")}
+          label={gettext("Grade report")}
           options={@grades_report_options}
-          prompt={gettext("Select grades report")}
+          prompt={gettext("Select grade report")}
           phx-target={@myself}
           class={if !@hide_submit, do: "mb-6"}
         />

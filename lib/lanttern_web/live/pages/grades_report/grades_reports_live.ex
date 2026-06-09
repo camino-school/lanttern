@@ -8,7 +8,7 @@ defmodule LantternWeb.GradesReportsLive do
   # live components
   alias LantternWeb.GradesReports.GradesReportFormComponent
   alias LantternWeb.GradesReports.GradesReportGridConfigurationOverlayComponent
-  alias LantternWeb.Grading.GradeCompositionOverlayComponent
+  alias LantternWeb.Grading.GradeCompositionViewOverlayComponent
 
   # shared
   import LantternWeb.GradesReportsComponents
@@ -19,7 +19,7 @@ defmodule LantternWeb.GradesReportsLive do
   def mount(_params, _session, socket) do
     socket =
       socket
-      |> assign(:page_title, gettext("Grades reports"))
+      |> assign(:page_title, gettext("Grade reports"))
       |> assign_user_filters([:years])
       |> stream_grades_reports
       |> set_current_cycle()
@@ -53,7 +53,7 @@ defmodule LantternWeb.GradesReportsLive do
       socket
       |> assign_show_grades_report_form(params)
       |> assign_show_grades_report_grid_configuration(params)
-      |> assign_is_editing_grade_composition(params)
+      |> assign_show_grade_composition(params)
 
     {:noreply, socket}
   end
@@ -63,7 +63,7 @@ defmodule LantternWeb.GradesReportsLive do
 
     socket
     |> assign(:grades_report, %GradesReport{school_cycle_id: current_cycle_id})
-    |> assign(:form_overlay_title, gettext("Create grades report"))
+    |> assign(:form_overlay_title, gettext("Create grade report"))
     |> assign(:show_grades_report_form, true)
   end
 
@@ -72,7 +72,7 @@ defmodule LantternWeb.GradesReportsLive do
       case GradesReports.get_grades_report(id) do
         %GradesReport{} = grades_report ->
           socket
-          |> assign(:form_overlay_title, gettext("Edit grades report"))
+          |> assign(:form_overlay_title, gettext("Edit grade report"))
           |> assign(:grades_report, grades_report)
           |> assign(:show_grades_report_form, true)
 
@@ -114,25 +114,39 @@ defmodule LantternWeb.GradesReportsLive do
   defp assign_show_grades_report_grid_configuration(socket, _),
     do: assign(socket, :show_grades_report_grid_configuration, false)
 
-  defp assign_is_editing_grade_composition(socket, %{
+  defp assign_show_grade_composition(socket, %{
          "gr_id" => grades_report_id,
          "grc_id" => grades_report_cycle_id,
          "grs_id" => grades_report_subject_id
        }) do
-    socket
-    |> assign(:is_editing_grade_composition, true)
-    |> assign(:grades_report_id, grades_report_id)
-    |> assign(:grades_report_cycle_id, grades_report_cycle_id)
-    |> assign(:grades_report_subject_id, grades_report_subject_id)
+    with %GradesReport{} = grades_report <-
+           GradesReports.get_grades_report(grades_report_id, load_grid: true),
+         %{} = grades_report_cycle <-
+           Enum.find(
+             grades_report.grades_report_cycles,
+             &("#{&1.id}" == grades_report_cycle_id)
+           ),
+         %{} = grades_report_subject <-
+           Enum.find(
+             grades_report.grades_report_subjects,
+             &("#{&1.id}" == grades_report_subject_id)
+           ) do
+      subject_name =
+        Gettext.dgettext(Lanttern.Gettext, "taxonomy", grades_report_subject.subject.name)
+
+      socket
+      |> assign(:show_grade_composition, true)
+      |> assign(:grades_report_cycle_id, grades_report_cycle.id)
+      |> assign(:grades_report_subject_id, grades_report_subject.id)
+      |> assign(:grade_composition_cycle_name, grades_report_cycle.school_cycle.name)
+      |> assign(:grade_composition_subject_name, subject_name)
+    else
+      _ -> assign(socket, :show_grade_composition, false)
+    end
   end
 
-  defp assign_is_editing_grade_composition(socket, _) do
-    socket
-    |> assign(:is_editing_grade_composition, false)
-    |> assign(:grades_report_id, nil)
-    |> assign(:grades_report_cycle_id, nil)
-    |> assign(:grades_report_subject_id, nil)
-  end
+  defp assign_show_grade_composition(socket, _),
+    do: assign(socket, :show_grade_composition, false)
 
   # event handlers
 
@@ -142,7 +156,7 @@ defmodule LantternWeb.GradesReportsLive do
       {:ok, _grades_report} ->
         socket =
           socket
-          |> put_flash(:info, gettext("Grades report deleted"))
+          |> put_flash(:info, gettext("Grade report deleted"))
           |> push_navigate(to: ~p"/grades_reports")
 
         {:noreply, socket}

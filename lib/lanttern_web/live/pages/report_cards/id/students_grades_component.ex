@@ -11,6 +11,7 @@ defmodule LantternWeb.ReportCardLive.StudentsGradesComponent do
 
   # shared
   alias LantternWeb.GradesReports.StudentGradesReportEntryOverlayComponent
+  alias LantternWeb.Grading.GradeCompositionViewOverlayComponent
   import LantternWeb.GradesReportsComponents
   alias LantternWeb.Filters.InlineFiltersComponent
 
@@ -24,7 +25,7 @@ defmodule LantternWeb.ReportCardLive.StudentsGradesComponent do
             {gettext("Students grades")}
           </h5>
           <p class="mt-2">
-            {gettext("View grades reports for all students linked in the students tab.")}
+            {gettext("View grade reports for all students linked in the students tab.")}
           </p>
           <.live_component
             module={InlineFiltersComponent}
@@ -86,6 +87,13 @@ defmodule LantternWeb.ReportCardLive.StudentsGradesComponent do
                 )
               end
             }
+            on_manage_composition={
+              fn grades_report_subject_id ->
+                JS.patch(
+                  ~p"/report_cards/#{@report_card}/grades?#{Map.put(@url_filter_params, "grade_composition_subject", grades_report_subject_id)}"
+                )
+              end
+            }
           />
         <% end %>
         <.live_component
@@ -94,7 +102,19 @@ defmodule LantternWeb.ReportCardLive.StudentsGradesComponent do
           id={@student_grades_report_entry.id}
           student_grades_report_entry={@student_grades_report_entry}
           scale_id={@grades_report.scale_id}
+          tz={@current_user.tz}
           navigate={~p"/report_cards/#{@report_card}/grades?#{@url_filter_params}"}
+          on_cancel={JS.patch(~p"/report_cards/#{@report_card}/grades?#{@url_filter_params}")}
+        />
+        <.live_component
+          :if={@show_grade_composition_overlay}
+          module={GradeCompositionViewOverlayComponent}
+          id="grade-composition-view-overlay"
+          current_scope={@current_scope}
+          grades_report_cycle_id={@current_grades_report_cycle.id}
+          grades_report_subject_id={@grade_composition_subject_id}
+          cycle_name={@current_grades_report_cycle.school_cycle.name}
+          subject_name={@grade_composition_subject_name}
           on_cancel={JS.patch(~p"/report_cards/#{@report_card}/grades?#{@url_filter_params}")}
         />
       </div>
@@ -125,10 +145,44 @@ defmodule LantternWeb.ReportCardLive.StudentsGradesComponent do
           |> Enum.find(&(&1.school_cycle_id == report_card.school_cycle_id))
       end)
       |> assign_is_editing_student_grades_report_entry(assigns)
+      |> assign_grade_composition_overlay(assigns)
       |> assign_students_grades_grid()
 
     {:ok, socket}
   end
+
+  defp assign_grade_composition_overlay(socket, %{
+         params: %{"grade_composition_subject" => grades_report_subject_id}
+       }) do
+    grades_report_subject =
+      case socket.assigns.grades_report do
+        nil ->
+          nil
+
+        grades_report ->
+          Enum.find(
+            grades_report.grades_report_subjects,
+            &("#{&1.id}" == grades_report_subject_id)
+          )
+      end
+
+    case grades_report_subject do
+      nil ->
+        assign(socket, :show_grade_composition_overlay, false)
+
+      grades_report_subject ->
+        subject_name =
+          Gettext.dgettext(Lanttern.Gettext, "taxonomy", grades_report_subject.subject.name)
+
+        socket
+        |> assign(:show_grade_composition_overlay, true)
+        |> assign(:grade_composition_subject_id, grades_report_subject.id)
+        |> assign(:grade_composition_subject_name, subject_name)
+    end
+  end
+
+  defp assign_grade_composition_overlay(socket, _),
+    do: assign(socket, :show_grade_composition_overlay, false)
 
   defp assign_is_editing_student_grades_report_entry(socket, %{
          params: %{"student_grades_report_entry" => student_grades_report_entry_id}
@@ -204,7 +258,7 @@ defmodule LantternWeb.ReportCardLive.StudentsGradesComponent do
           socket
           |> put_flash(
             :info,
-            "#{gettext("Grades calculated succesfully")}. #{build_calculation_results_message(results)}"
+            "#{gettext("Grades calculated successfully")}. #{build_calculation_results_message(results)}"
           )
           |> push_navigate(
             to:
@@ -238,7 +292,7 @@ defmodule LantternWeb.ReportCardLive.StudentsGradesComponent do
           socket
           |> put_flash(
             :info,
-            "#{gettext("Student grades calculated succesfully")}. #{build_calculation_results_message(results)}"
+            "#{gettext("Student grades calculated successfully")}. #{build_calculation_results_message(results)}"
           )
           |> push_navigate(
             to:
@@ -277,7 +331,7 @@ defmodule LantternWeb.ReportCardLive.StudentsGradesComponent do
           socket
           |> put_flash(
             :info,
-            "#{gettext("Subject grades calculated succesfully")}. #{build_calculation_results_message(results)}"
+            "#{gettext("Subject grades calculated successfully")}. #{build_calculation_results_message(results)}"
           )
           |> push_navigate(
             to:
@@ -320,7 +374,7 @@ defmodule LantternWeb.ReportCardLive.StudentsGradesComponent do
 
         {:ok, _, _} ->
           socket
-          |> put_flash(:info, gettext("Grade calculated succesfully"))
+          |> put_flash(:info, gettext("Grade calculated successfully"))
           |> push_navigate(
             to:
               ~p"/report_cards/#{socket.assigns.report_card}/grades?#{socket.assigns.url_filter_params}"

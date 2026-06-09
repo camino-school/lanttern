@@ -528,4 +528,128 @@ defmodule Lanttern.GradingTest do
       assert Grading.convert_normalized_value_to_scale_value(1, scale) == 10.0
     end
   end
+
+  describe "replace_grade_composition/3" do
+    import Lanttern.Factory
+    import Lanttern.IdentityFixtures
+    alias Lanttern.GradesReports
+    alias Lanttern.GradesReportsFixtures
+
+    setup do
+      scope = scope_fixture()
+      # the cycle's school cycle must be within the scope's school for the
+      # ownership check in `replace_grade_composition/3` to pass
+      school = Lanttern.Repo.get!(Lanttern.Schools.School, scope.school_id)
+      cycle = insert(:cycle, school: school)
+
+      grades_report = GradesReportsFixtures.grades_report_fixture()
+
+      grc =
+        GradesReportsFixtures.grades_report_cycle_fixture(%{
+          grades_report_id: grades_report.id,
+          school_cycle_id: cycle.id
+        })
+
+      grs =
+        GradesReportsFixtures.grades_report_subject_fixture(%{grades_report_id: grades_report.id})
+
+      ids = %{
+        grades_report_id: grades_report.id,
+        grades_report_cycle_id: grc.id,
+        grades_report_subject_id: grs.id
+      }
+
+      %{scope: scope, ids: ids, strand: insert(:strand)}
+    end
+
+    test "creates components for a fresh pair, ordered by position", %{
+      scope: scope,
+      ids: ids,
+      strand: strand
+    } do
+      ap_1 = insert(:assessment_point, strand: strand)
+      ap_2 = insert(:assessment_point, strand: strand)
+
+      assert {:ok, :replaced} =
+               Grading.replace_grade_composition(scope, ids, [
+                 %{assessment_point_id: ap_1.id, weight: 2.0},
+                 %{assessment_point_id: ap_2.id, weight: 3.0}
+               ])
+
+      assert [first, second] =
+               GradesReports.list_grade_composition(
+                 ids.grades_report_cycle_id,
+                 ids.grades_report_subject_id
+               )
+
+      assert %{assessment_point_id: first_ap_id, weight: 2.0, position: 0} = first
+      assert %{assessment_point_id: second_ap_id, weight: 3.0, position: 1} = second
+      assert first_ap_id == ap_1.id
+      assert second_ap_id == ap_2.id
+    end
+
+    test "replaces an existing composition (adds, drops, updates weights)", %{
+      scope: scope,
+      ids: ids,
+      strand: strand
+    } do
+      ap_1 = insert(:assessment_point, strand: strand)
+      ap_2 = insert(:assessment_point, strand: strand)
+      ap_3 = insert(:assessment_point, strand: strand)
+
+      {:ok, :replaced} =
+        Grading.replace_grade_composition(scope, ids, [
+          %{assessment_point_id: ap_1.id, weight: 1.0},
+          %{assessment_point_id: ap_2.id, weight: 1.0}
+        ])
+
+      assert {:ok, :replaced} =
+               Grading.replace_grade_composition(scope, ids, [
+                 %{assessment_point_id: ap_2.id, weight: 5.0},
+                 %{assessment_point_id: ap_3.id, weight: 2.0}
+               ])
+
+      components =
+        GradesReports.list_grade_composition(
+          ids.grades_report_cycle_id,
+          ids.grades_report_subject_id
+        )
+
+      ap_ids = Enum.map(components, & &1.assessment_point_id)
+      refute ap_1.id in ap_ids
+      assert ap_2.id in ap_ids
+      assert ap_3.id in ap_ids
+
+      ap_2_comp = Enum.find(components, &(&1.assessment_point_id == ap_2.id))
+      assert ap_2_comp.weight == 5.0
+    end
+
+    test "with an empty list clears the composition", %{scope: scope, ids: ids, strand: strand} do
+      ap = insert(:assessment_point, strand: strand)
+
+      {:ok, :replaced} =
+        Grading.replace_grade_composition(scope, ids, [
+          %{assessment_point_id: ap.id, weight: 1.0}
+        ])
+
+      assert {:ok, :replaced} = Grading.replace_grade_composition(scope, ids, [])
+
+      assert [] =
+               GradesReports.list_grade_composition(
+                 ids.grades_report_cycle_id,
+                 ids.grades_report_subject_id
+               )
+    end
+
+    test "raises for a non-staff scope", %{ids: ids} do
+      scope = student_scope_fixture()
+      ap = insert(:assessment_point)
+
+      assert_raise MatchError, fn ->
+        Grading.replace_grade_composition(scope, ids, [
+          %{assessment_point_id: ap.id, weight: 1.0}
+        ])
+      end
+    end
+  end
 end

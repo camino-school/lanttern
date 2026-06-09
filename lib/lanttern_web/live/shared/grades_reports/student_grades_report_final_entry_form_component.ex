@@ -75,7 +75,7 @@ defmodule LantternWeb.GradesReports.StudentGradesReportFinalEntryFormComponent d
           </p>
         </div>
         <.button :if={!@hide_submit} phx-disable-with={gettext("Saving...")}>
-          {gettext("Save student grades report final entry")}
+          {gettext("Save student grade report final entry")}
         </.button>
       </.form>
     </div>
@@ -211,7 +211,7 @@ defmodule LantternWeb.GradesReports.StudentGradesReportFinalEntryFormComponent d
 
         socket =
           socket
-          |> put_flash(:info, gettext("Student grades report final entry created successfully"))
+          |> put_flash(:info, gettext("Student grade report final entry created successfully"))
           |> handle_navigation(student_grades_report_final_entry)
 
         {:noreply, socket}
@@ -235,7 +235,7 @@ defmodule LantternWeb.GradesReports.StudentGradesReportFinalEntryFormComponent d
 
         socket =
           socket
-          |> put_flash(:info, gettext("Student grades report final entry updated successfully"))
+          |> put_flash(:info, gettext("Student grade report final entry updated successfully"))
           |> handle_navigation(student_grades_report_final_entry)
 
         {:noreply, socket}

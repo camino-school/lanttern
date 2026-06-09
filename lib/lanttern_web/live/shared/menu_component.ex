@@ -462,7 +462,7 @@ defmodule LantternWeb.MenuComponent do
         profile: "staff",
         active: :grades_reports,
         path: ~p"/grades_reports",
-        text: gettext("Grades reports")
+        text: gettext("Grade reports")
       },
       # student
       %{

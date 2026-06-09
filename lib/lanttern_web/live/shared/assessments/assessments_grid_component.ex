@@ -13,10 +13,14 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
       attr :current_assessment_view, :string
       attr :classes_ids, :list, doc: "list of classes_ids to filter results"
       attr :strand_id, :integer, doc: "defines a strand grid view"
+      attr :strand, Strand, doc: "strand struct (with :subjects preloaded) enabling the grades report column group"
+      attr :strand_grades_report_cards, :list, default: [], doc: "linked grade report cards (from `Reporting.list_strand_grades_report_cards/2`), fetched once by the parent and narrowed to the active filter here"
       attr :class, :any
       attr :navigate, :string, doc: "defines push_navigate target"
       attr :url_params, :map, doc: "URL-based filter params to preserve in navigation", default: %{}
       attr :filter_assessment_points_ids, :list, default: nil, doc: "when set, restricts displayed assessment points to these IDs"
+      attr :filter_grades_report_cycle_id, :integer, default: nil, doc: "when set with the subject id, keeps only the matching grades report column (grade report filter active)"
+      attr :filter_grades_report_subject_id, :integer, default: nil, doc: "see filter_grades_report_cycle_id"
 
   """
 
@@ -24,6 +28,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
 
   alias Lanttern.Assessments
   alias Lanttern.Assessments.AssessmentPoint
+  alias Lanttern.GradesReports
   alias Lanttern.Identity.Scope
   alias Lanttern.Identity.User
   alias Lanttern.LearningContext.Moment
@@ -31,6 +36,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
   alias Lanttern.Schools.Student
 
   import LantternWeb.GradingComponents
+  import LantternWeb.GradesReportsHelpers, only: [build_calculation_results_message: 1]
 
   # shared components
   alias LantternWeb.AssessmentComposition.AssessmentPointCompositionOverlayComponent
@@ -38,6 +44,9 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
   alias LantternWeb.Assessments.AssessmentPointFormOverlayComponent
   alias LantternWeb.Assessments.EntryCellComponent
   alias LantternWeb.Assessments.EntryDetailsOverlayComponent
+  alias LantternWeb.GradesReports.StudentGradesReportEntryButtonComponent
+  alias LantternWeb.GradesReports.StudentGradesReportEntryOverlayComponent
+  alias LantternWeb.Grading.StrandGradeCompositionOverlayComponent
 
   @impl true
   def render(assigns) do
@@ -71,11 +80,11 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
         ]}>
           <div
             class={["relative grid", if(@entries_changes_map != %{}, do: "pb-20", else: "pb-4")]}
-            style={"grid-template-columns: 15rem #{@assessment_points_columns_grid}"}
+            style={"grid-template-columns: 15rem #{@assessment_points_columns_grid} #{@grades_report_columns_grid}"}
           >
             <div
               class={"sticky top-0 z-20 grid grid-cols-subgrid pt-4 #{@view_bg}"}
-              style={"grid-column: span #{@assessment_points_count + 1} / span #{@assessment_points_count + 1}"}
+              style={"grid-column: span #{@assessment_points_count + @grades_report_columns_count + 1} / span #{@assessment_points_count + @grades_report_columns_count + 1}"}
             >
               <div class={["sticky left-0 z-20 #{@view_bg}", "row-span-2"]}></div>
               <div
@@ -92,6 +101,17 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
                 />
               </div>
               <div
+                :if={@grades_report_columns_count > 0}
+                class="group pt-2 px-2"
+                style={"grid-column: span #{@grades_report_columns_count} / span #{@grades_report_columns_count}"}
+              >
+                <div class="h-full pb-2 border-b border-ltrn-light">
+                  <span class="flex items-center w-full text-sm font-display font-bold truncate">
+                    {gettext("Grade report")}
+                  </span>
+                </div>
+              </div>
+              <div
                 id="grid-assessment-points"
                 phx-update="stream"
                 class="grid grid-cols-subgrid"
@@ -106,19 +126,32 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
                   myself={@myself}
                 />
               </div>
+              <div
+                :if={@grades_report_columns_count > 0}
+                class="grid grid-cols-subgrid"
+                style={"grid-column: span #{@grades_report_columns_count} / span #{@grades_report_columns_count}"}
+              >
+                <.grade_column_header
+                  :for={column <- @grades_report_columns}
+                  column={column}
+                  myself={@myself}
+                />
+              </div>
             </div>
             <div
               id="grid-student-entries"
               phx-update="stream"
               class="grid grid-cols-subgrid"
-              style={"grid-column: span #{@assessment_points_count + 1} / span #{@assessment_points_count + 1}"}
+              style={"grid-column: span #{@assessment_points_count + @grades_report_columns_count + 1} / span #{@assessment_points_count + @grades_report_columns_count + 1}"}
             >
               <.student_entries
-                :for={{dom_id, {student, entries}} <- @streams.students_entries}
+                :for={{dom_id, {student, entries, grade_cells}} <- @streams.students_entries}
                 id={dom_id}
                 current_scope={@current_scope}
                 student={student}
                 entries={entries}
+                grades_report_columns={@grades_report_columns}
+                student_grade_cells={grade_cells}
                 myself={@myself}
                 current_assessment_view={@current_assessment_view}
                 view_bg={@view_bg}
@@ -208,6 +241,29 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
         notify_component={@myself}
         initial_view={@composition_overlay_initial_view}
         on_cancel={JS.push("close_composition_overlay", target: @myself)}
+      />
+      <.live_component
+        :if={@grades_composition_overlay_column}
+        module={StrandGradeCompositionOverlayComponent}
+        id={"#{@id}-grades-report-composition-overlay"}
+        current_scope={@current_scope}
+        strand_id={@strand_id}
+        grades_report_id={@grades_composition_overlay_column.grades_report.id}
+        grades_report_cycle_id={@grades_composition_overlay_column.grades_report_cycle.id}
+        grades_report_subject_id={@grades_composition_overlay_column.grades_report_subject.id}
+        cycle_name={@grades_composition_overlay_column.school_cycle.name}
+        subject_name={@grades_composition_overlay_column.grades_report_subject.subject.name}
+        on_cancel={JS.push("close_grades_composition_overlay", target: @myself)}
+      />
+      <.live_component
+        :if={@student_grades_report_entry}
+        module={StudentGradesReportEntryOverlayComponent}
+        id={"#{@id}-student-grade-entry-overlay"}
+        student_grades_report_entry={@student_grades_report_entry}
+        scale_id={@grades_report_entry_scale_id}
+        tz={@current_user.tz}
+        navigate={@navigate}
+        on_cancel={JS.push("close_grade_entry_overlay", target: @myself)}
       />
     </div>
     """
@@ -371,6 +427,8 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
   attr :current_scope, Scope, required: true
   attr :student, Student, required: true
   attr :entries, :list, required: true
+  attr :grades_report_columns, :list, required: true
+  attr :student_grade_cells, :list, required: true
   attr :myself, Phoenix.LiveComponent.CID, required: true
   attr :current_assessment_view, :string, required: true
   attr :view_bg, :string, required: true
@@ -383,7 +441,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
       id={@id}
       data-grid-row
       class="grid grid-cols-subgrid"
-      style={"grid-column: span #{length(@entries) + 1} / span #{length(@entries) + 1}"}
+      style={"grid-column: span #{length(@entries) + length(@grades_report_columns) + 1} / span #{length(@entries) + length(@grades_report_columns) + 1}"}
     >
       <div class={"sticky left-0 z-10 pl-6 py-2 pr-2 #{@view_bg}"}>
         <.profile_picture_with_name
@@ -409,6 +467,217 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
           notify_component={@myself}
         />
       </div>
+      <div
+        :for={{column, cell} <- Enum.zip(@grades_report_columns, @student_grade_cells)}
+        data-grid-cell
+        class="p-2"
+      >
+        <.grade_cell student={@student} column={column} cell={cell} myself={@myself} />
+      </div>
+    </div>
+    """
+  end
+
+  attr :column, :map, required: true
+  attr :myself, Phoenix.LiveComponent.CID, required: true
+
+  def grade_column_header(assigns) do
+    subject_name =
+      Gettext.dgettext(
+        Lanttern.Gettext,
+        "taxonomy",
+        assigns.column.grades_report_subject.subject.name
+      )
+
+    dom_id =
+      "grades-report-col-#{assigns.column.grades_report.id}-#{assigns.column.grades_report_cycle && assigns.column.grades_report_cycle.id}-#{assigns.column.grades_report_subject.id}"
+
+    assigns =
+      assigns
+      |> assign(:subject_name, subject_name)
+      |> assign(:has_cycle, not is_nil(assigns.column.grades_report_cycle))
+      |> assign(:dom_id, dom_id)
+
+    ~H"""
+    <div class="flex flex-col py-1 px-2">
+      <div class="flex items-center gap-1">
+        <%= if @has_cycle do %>
+          <div class="relative flex-1 min-w-0">
+            <button
+              type="button"
+              id={"#{@dom_id}-button"}
+              class="max-w-full font-display font-bold text-sm text-left truncate hover:text-ltrn-subtle"
+            >
+              {@subject_name}
+            </button>
+            <.dropdown_menu id={"#{@dom_id}-menu"} button_id={"#{@dom_id}-button"} z_index="30">
+              <:item
+                text={gettext("Manage grade composition")}
+                on_click={
+                  JS.push("manage_grades_composition",
+                    value: %{
+                      grades_report_cycle_id: @column.grades_report_cycle.id,
+                      grades_report_subject_id: @column.grades_report_subject.id
+                    },
+                    target: @myself
+                  )
+                }
+              />
+            </.dropdown_menu>
+          </div>
+        <% else %>
+          <p class="flex-1 min-w-0 font-display font-bold text-sm truncate">{@subject_name}</p>
+        <% end %>
+        <.icon_button
+          name="hero-arrow-path-mini"
+          theme="white"
+          rounded
+          size="sm"
+          sr_text={gettext("Calculate subject grades")}
+          disabled={not @has_cycle}
+          phx-click="calculate_subject"
+          phx-value-grades_report_id={@column.grades_report.id}
+          phx-value-grades_report_cycle_id={
+            @column.grades_report_cycle && @column.grades_report_cycle.id
+          }
+          phx-value-grades_report_subject_id={@column.grades_report_subject.id}
+          phx-target={@myself}
+          data-confirm={gettext("Are you sure? Existing grades will be recalculated.")}
+        />
+      </div>
+      <div class="relative mt-2">
+        <.badge
+          icon_name={if @column.is_hidden, do: "hero-eye-slash-micro", else: "hero-eye-micro"}
+          class="w-full"
+        >
+          {if @column.is_hidden, do: gettext("Hidden"), else: gettext("Visible")}
+        </.badge>
+        <.tooltip id={"#{@dom_id}-visibility-tooltip"}>
+          {if @column.is_hidden,
+            do:
+              gettext(
+                "This grade report is hidden from students and guardians. Visibility is managed by the school admin."
+              ),
+            else:
+              gettext(
+                "This grade report is visible to students and guardians. Visibility is managed by the school admin."
+              )}
+        </.tooltip>
+      </div>
+    </div>
+    """
+  end
+
+  attr :student, Student, required: true
+  attr :column, :map, required: true
+  attr :cell, :map, required: true
+  attr :myself, Phoenix.LiveComponent.CID, required: true
+
+  def grade_cell(assigns) do
+    entry = assigns.cell.entry
+
+    has_retake_history =
+      entry && (entry.pre_retake_ordinal_value_id != nil || entry.pre_retake_score != nil)
+
+    has_manual_grade =
+      case entry do
+        %{ordinal_value_id: ov_id, composition_ordinal_value_id: comp_ov_id}
+        when ov_id != comp_ov_id ->
+          true
+
+        %{score: score, composition_score: comp_score}
+        when score != comp_score ->
+          true
+
+        _ ->
+          false
+      end
+
+    has_comment = entry && is_binary(entry.comment) && entry.comment != ""
+
+    base_id =
+      "student-#{assigns.student.id}-grade-for-#{assigns.cell.grades_report_id}-#{assigns.cell.grades_report_cycle_id}-#{assigns.cell.grades_report_subject_id}"
+
+    view_grade_entry_js =
+      entry &&
+        JS.push("view_grade_entry",
+          value: %{id: entry.id, scale_id: assigns.cell.scale_id},
+          target: assigns.myself
+        )
+
+    assigns =
+      assigns
+      |> assign(:has_retake_history, has_retake_history)
+      |> assign(:has_manual_grade, has_manual_grade)
+      |> assign(:has_comment, has_comment)
+      |> assign(:base_id, base_id)
+      |> assign(:view_grade_entry_js, view_grade_entry_js)
+
+    ~H"""
+    <div class="flex items-center justify-center gap-1 w-full h-full">
+      <.live_component
+        :if={@has_retake_history}
+        module={StudentGradesReportEntryButtonComponent}
+        id={"#{@base_id}-pre-retake"}
+        is_pre_retake
+        student_grades_report_entry={@cell.entry}
+        use_short_name
+        class="flex-1 self-stretch my-2 text-xs opacity-70"
+        on_click={@view_grade_entry_js}
+      />
+      <.live_component
+        module={StudentGradesReportEntryButtonComponent}
+        id={@base_id}
+        student_grades_report_entry={@cell.entry}
+        use_short_name
+        class="flex-2 self-stretch"
+        on_click={@view_grade_entry_js}
+      />
+      <button
+        :if={@cell.entry}
+        type="button"
+        tabindex="-1"
+        class="flex flex-col shrink-0 rounded-full text-ltrn-light hover:opacity-60"
+        phx-click={@view_grade_entry_js}
+      >
+        <.icon
+          name="hero-chat-bubble-oval-left-micro"
+          class={["size-3", @has_comment && "text-ltrn-staff-accent"]}
+        />
+        <.icon
+          name="hero-pencil-square-micro"
+          class={["size-3", @has_manual_grade && "text-ltrn-primary"]}
+        />
+        <.tooltip :if={@has_comment || @has_manual_grade} id={"#{@base_id}-indicators-tooltip"}>
+          <div class="space-y-2">
+            <p :if={@has_comment}>{gettext("Has comment")}</p>
+            <p :if={@has_manual_grade}>
+              {gettext("Manual grade adjustment (differs from the calculated composition value)")}
+            </p>
+          </div>
+        </.tooltip>
+      </button>
+      <.icon_button
+        name="hero-arrow-path-mini"
+        theme="white"
+        rounded
+        size="sm"
+        sr_text={gettext("Calculate grade")}
+        disabled={is_nil(@cell.grades_report_cycle_id)}
+        phx-click="calculate_cell"
+        phx-value-student_id={@student.id}
+        phx-value-grades_report_id={@cell.grades_report_id}
+        phx-value-grades_report_cycle_id={@cell.grades_report_cycle_id}
+        phx-value-grades_report_subject_id={@cell.grades_report_subject_id}
+        phx-target={@myself}
+        data-confirm={
+          if @has_manual_grade,
+            do:
+              gettext(
+                "There is a manual grade change that will be overwritten by this operation. Are you sure you want to proceed?"
+              )
+        }
+      />
     </div>
     """
   end
@@ -421,6 +690,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
       socket
       |> assign(:class, nil)
       |> assign(:classes_ids, [])
+      |> assign(:strand, nil)
       |> assign(:strand_id, nil)
       |> assign(:entries_changes_map, %{})
       |> assign(:invalid_changes_set, MapSet.new())
@@ -436,6 +706,16 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
       |> assign(:composed_assessment_point_ids, MapSet.new())
       |> assign(:url_params, %{})
       |> assign(:filter_assessment_points_ids, nil)
+      |> assign(:filter_grades_report_cycle_id, nil)
+      |> assign(:filter_grades_report_subject_id, nil)
+      |> assign(:strand_grades_report_cards, [])
+      |> assign(:grades_report_columns, [])
+      |> assign(:grades_report_columns_count, 0)
+      |> assign(:grades_report_columns_grid, "")
+      |> assign(:students_ids, [])
+      |> assign(:grades_composition_overlay_column, nil)
+      |> assign(:student_grades_report_entry, nil)
+      |> assign(:grades_report_entry_scale_id, nil)
       |> stream_configure(
         :assessment_point_headers,
         dom_id: fn
@@ -445,7 +725,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
       )
       |> stream_configure(
         :students_entries,
-        dom_id: fn {student, _entries} -> "student-#{student.id}" end
+        dom_id: fn {student, _entries, _grade_cells} -> "student-#{student.id}" end
       )
 
     {:ok, socket}
@@ -657,6 +937,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
         socket
       else
         socket
+        |> assign_grades_report_columns()
         |> stream_assessment_points()
         |> stream_students_entries()
       end
@@ -672,6 +953,48 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
       end
 
     assign(socket, :view_bg, view_bg)
+  end
+
+  # The grades report column group is only shown in the strand context. The full
+  # set of linked cards is fetched once by the parent and passed in as
+  # `strand_grades_report_cards`; here we only narrow it to the active filter:
+  # - no filter active → all linked grades report columns;
+  # - a grades report filter active → only the filtered subject's column,
+  #   shown alongside its composition's assessment points;
+  # - an assessment point composition filter active → none (hidden).
+  # When empty, the layout collapses to the assessment-points-only grid.
+  defp assign_grades_report_columns(socket) do
+    cards = socket.assigns.strand_grades_report_cards
+
+    columns =
+      case socket.assigns do
+        %{
+          filter_grades_report_cycle_id: cycle_id,
+          filter_grades_report_subject_id: subject_id
+        }
+        when not is_nil(cycle_id) and not is_nil(subject_id) ->
+          Enum.filter(cards, fn column ->
+            column.grades_report_cycle &&
+              column.grades_report_cycle.id == cycle_id &&
+              column.grades_report_subject.id == subject_id
+          end)
+
+        %{filter_assessment_points_ids: nil} ->
+          cards
+
+        _ ->
+          []
+      end
+
+    columns_count = length(columns)
+
+    columns_grid =
+      if columns_count == 0, do: "", else: "repeat(#{columns_count}, 12rem)"
+
+    socket
+    |> assign(:grades_report_columns, columns)
+    |> assign(:grades_report_columns_count, columns_count)
+    |> assign(:grades_report_columns_grid, columns_grid)
   end
 
   defp stream_assessment_points(socket) do
@@ -745,8 +1068,61 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
           end)
       end
 
+    students_ids = Enum.map(students_entries, fn {student, _entries} -> student.id end)
+
+    grades_maps =
+      build_grades_report_grades_maps(socket.assigns.grades_report_columns, students_ids)
+
+    students_entries_with_grades =
+      Enum.map(students_entries, fn {student, entries} ->
+        grade_cells =
+          build_student_grade_cells(socket.assigns.grades_report_columns, grades_maps, student.id)
+
+        {student, entries, grade_cells}
+      end)
+
     socket
-    |> stream(:students_entries, students_entries, reset: true)
+    |> assign(:students_ids, students_ids)
+    |> stream(:students_entries, students_entries_with_grades, reset: true)
+  end
+
+  # Builds one grades cycle map per distinct `{grades_report_id, school_cycle_id}`
+  # group, so multiple grades reports/cycles linked to the same strand resolve to
+  # the right student entries. Each value is keyed by `student_id => %{subject_id => entry}`.
+  defp build_grades_report_grades_maps([], _students_ids), do: %{}
+
+  defp build_grades_report_grades_maps(columns, students_ids) do
+    columns
+    |> Enum.group_by(fn col -> {col.grades_report.id, col.school_cycle.id} end)
+    |> Map.new(fn {{grades_report_id, school_cycle_id} = key, _cols} ->
+      {key,
+       GradesReports.build_students_grades_cycle_map(
+         students_ids,
+         grades_report_id,
+         school_cycle_id
+       )}
+    end)
+  end
+
+  # Builds the grade cell payloads for a single student, positionally aligned to
+  # `columns` (avoids subject-id collisions when the same subject appears under
+  # two grades reports/cycles).
+  defp build_student_grade_cells(columns, grades_maps, student_id) do
+    Enum.map(columns, fn col ->
+      entry =
+        grades_maps
+        |> Map.get({col.grades_report.id, col.school_cycle.id}, %{})
+        |> Map.get(student_id, %{})
+        |> Map.get(col.grades_report_subject.id)
+
+      %{
+        entry: entry,
+        scale_id: col.scale.id,
+        grades_report_id: col.grades_report.id,
+        grades_report_cycle_id: col.grades_report_cycle && col.grades_report_cycle.id,
+        grades_report_subject_id: col.grades_report_subject.id
+      }
+    end)
   end
 
   # event handlers
@@ -779,6 +1155,118 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
 
       {:noreply, socket}
     end
+  end
+
+  def handle_event("calculate_subject", params, socket) do
+    %{
+      "grades_report_id" => grades_report_id,
+      "grades_report_cycle_id" => grades_report_cycle_id,
+      "grades_report_subject_id" => grades_report_subject_id
+    } = params
+
+    socket =
+      GradesReports.calculate_subject_grades(
+        socket.assigns.students_ids,
+        grades_report_id,
+        grades_report_cycle_id,
+        grades_report_subject_id
+      )
+      |> case do
+        {:ok, results} ->
+          socket
+          |> stream_students_entries()
+          |> delegate_navigation(
+            put_flash:
+              {:info,
+               "#{gettext("Subject grades calculated successfully")}. #{build_calculation_results_message(results)}"}
+          )
+
+        {:error, _, results} ->
+          delegate_navigation(socket,
+            put_flash:
+              {:error,
+               "#{gettext("Something went wrong")}. #{gettext("Partial results")}: #{build_calculation_results_message(results)}"}
+          )
+      end
+
+    {:noreply, socket}
+  end
+
+  def handle_event("calculate_cell", params, socket) do
+    %{
+      "student_id" => student_id,
+      "grades_report_id" => grades_report_id,
+      "grades_report_cycle_id" => grades_report_cycle_id,
+      "grades_report_subject_id" => grades_report_subject_id
+    } = params
+
+    socket =
+      GradesReports.calculate_student_grade(
+        student_id,
+        grades_report_id,
+        grades_report_cycle_id,
+        grades_report_subject_id,
+        force_overwrite: true
+      )
+      |> case do
+        {:ok, nil, _} ->
+          delegate_navigation(socket,
+            put_flash: {:error, gettext("No assessment point entries for this grade composition")}
+          )
+
+        {:ok, _, _} ->
+          socket
+          |> stream_students_entries()
+          |> delegate_navigation(put_flash: {:info, gettext("Grade calculated successfully")})
+
+        {:error, _} ->
+          delegate_navigation(socket, put_flash: {:error, gettext("Something went wrong")})
+      end
+
+    {:noreply, socket}
+  end
+
+  def handle_event("manage_grades_composition", params, socket) do
+    %{
+      "grades_report_cycle_id" => grades_report_cycle_id,
+      "grades_report_subject_id" => grades_report_subject_id
+    } = params
+
+    column =
+      Enum.find(socket.assigns.grades_report_columns, fn col ->
+        "#{col.grades_report_subject.id}" == "#{grades_report_subject_id}" and
+          col.grades_report_cycle != nil and
+          "#{col.grades_report_cycle.id}" == "#{grades_report_cycle_id}"
+      end)
+
+    {:noreply, assign(socket, :grades_composition_overlay_column, column)}
+  end
+
+  def handle_event("close_grades_composition_overlay", _params, socket) do
+    {:noreply, assign(socket, :grades_composition_overlay_column, nil)}
+  end
+
+  def handle_event("view_grade_entry", %{"id" => id, "scale_id" => scale_id}, socket) do
+    entry =
+      GradesReports.get_student_grades_report_entry!(id,
+        preloads: [
+          :student,
+          :composition_ordinal_value,
+          grades_report_subject: :subject,
+          grades_report_cycle: :school_cycle
+        ]
+      )
+
+    socket =
+      socket
+      |> assign(:student_grades_report_entry, entry)
+      |> assign(:grades_report_entry_scale_id, scale_id)
+
+    {:noreply, socket}
+  end
+
+  def handle_event("close_grade_entry_overlay", _params, socket) do
+    {:noreply, assign(socket, :student_grades_report_entry, nil)}
   end
 
   def handle_event("open_command_palette", %{"id" => id}, socket) do

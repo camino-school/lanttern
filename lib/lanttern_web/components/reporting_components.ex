@@ -582,7 +582,7 @@ defmodule LantternWeb.ReportingComponents do
         <% else %>
           <div class="grid grid-cols-subgrid" style={@grid_column_style}>
             <div class="p-4 rounded-sm text-ltrn-subtle bg-ltrn-lightest">
-              {gettext("No students linked to this grades report")}
+              {gettext("No students linked to this grade report")}
             </div>
             <%= if @strands != [] do %>
               TBD

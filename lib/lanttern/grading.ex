@@ -7,6 +7,9 @@ defmodule Lanttern.Grading do
   alias Lanttern.Repo
   import Lanttern.RepoHelpers
 
+  alias Ecto.Multi
+  alias Lanttern.GradesReports.GradesReportCycle
+  alias Lanttern.GradesReports.GradesReportSubject
   alias Lanttern.Grading.GradeComponent
   alias Lanttern.Grading.OrdinalValue
   alias Lanttern.Grading.Scale
@@ -122,6 +125,84 @@ defmodule Lanttern.Grading do
   """
   def delete_grade_component(%GradeComponent{} = grade_component) do
     Repo.delete(grade_component)
+  end
+
+  @doc """
+  Atomically replaces the grade composition for a (grades report cycle × subject) pair.
+
+  Deletes the existing `GradeComponent` rows for the pair and inserts the new ones in a
+  single transaction. `components` is a list of maps with `:assessment_point_id` and
+  `:weight` keys; positions follow list order.
+
+  `ids` is a map with `:grades_report_id`, `:grades_report_cycle_id` and
+  `:grades_report_subject_id` keys.
+
+  Raises (`MatchError`) when `scope` is not a staff member, or when the targeted
+  grades report cycle/subject pair is not within the scope's school.
+
+  Returns `{:ok, :replaced}` or `{:error, %Ecto.Changeset{}}`.
+  """
+  @spec replace_grade_composition(Scope.t(), map(), [map()]) ::
+          {:ok, :replaced} | {:error, Ecto.Changeset.t()}
+  def replace_grade_composition(%Scope{} = scope, ids, components) do
+    true = Scope.profile_type?(scope, "staff")
+
+    %{
+      grades_report_id: gr_id,
+      grades_report_cycle_id: grc_id,
+      grades_report_subject_id: grs_id
+    } = ids
+
+    true = grades_report_pair_in_scope?(scope, gr_id, grc_id, grs_id)
+
+    delete_query =
+      from(gc in GradeComponent,
+        where:
+          gc.grades_report_cycle_id == ^grc_id and
+            gc.grades_report_subject_id == ^grs_id
+      )
+
+    multi = Multi.delete_all(Multi.new(), :delete_existing, delete_query)
+
+    multi =
+      components
+      |> Enum.with_index()
+      |> Enum.reduce(multi, fn {%{assessment_point_id: ap_id, weight: weight}, index}, multi ->
+        changeset =
+          GradeComponent.changeset(%GradeComponent{}, %{
+            grades_report_id: gr_id,
+            grades_report_cycle_id: grc_id,
+            grades_report_subject_id: grs_id,
+            assessment_point_id: ap_id,
+            weight: weight,
+            position: index
+          })
+
+        Multi.insert(multi, {:insert, index}, changeset)
+      end)
+
+    case Repo.transaction(multi) do
+      {:ok, _} -> {:ok, :replaced}
+      {:error, _op, changeset, _changes} -> {:error, changeset}
+    end
+  end
+
+  # Ensures the targeted grades report cycle and subject both belong to the given
+  # grades report, and that the cycle's school cycle is within the scope's school,
+  # guarding against editing another school's composition via a crafted payload.
+  defp grades_report_pair_in_scope?(scope, gr_id, grc_id, grs_id) do
+    query =
+      from(grc in GradesReportCycle,
+        join: sc in assoc(grc, :school_cycle),
+        join: grs in GradesReportSubject,
+        on: grs.grades_report_id == grc.grades_report_id,
+        where:
+          grc.id == ^grc_id and grc.grades_report_id == ^gr_id and
+            grs.id == ^grs_id and grs.grades_report_id == ^gr_id and
+            sc.school_id == ^scope.school_id
+      )
+
+    Repo.exists?(query)
   end
 
   @doc """

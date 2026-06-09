@@ -213,7 +213,7 @@ defmodule LantternWeb.GradesReports.GradesReportFormComponent do
 
         socket =
           socket
-          |> put_flash(:info, gettext("Grades report created successfully"))
+          |> put_flash(:info, gettext("Grade report created successfully"))
           |> handle_navigation(grades_report)
 
         {:noreply, socket}
@@ -230,7 +230,7 @@ defmodule LantternWeb.GradesReports.GradesReportFormComponent do
 
         socket =
           socket
-          |> put_flash(:info, gettext("Grades report updated successfully"))
+          |> put_flash(:info, gettext("Grade report updated successfully"))
           |> handle_navigation(grades_report)
 
         {:noreply, socket}

@@ -150,5 +150,4 @@ defmodule Lanttern.FiltersTest do
                Filters.change_profile_strand_filter(profile_strand_filter)
     end
   end
-
 end

@@ -14,6 +14,12 @@ defmodule Lanttern.Reporting do
   alias Lanttern.Assessments.AssessmentPoint
   alias Lanttern.Assessments.AssessmentPointEntry
   alias Lanttern.Attachments.Attachment
+  alias Lanttern.GradesReports.GradesReport
+  alias Lanttern.GradesReports.GradesReportCycle
+  alias Lanttern.GradesReports.GradesReportSubject
+  alias Lanttern.Grading.GradeComponent
+  alias Lanttern.Grading.Scale
+  alias Lanttern.Identity.Scope
   alias Lanttern.LearningContext.Moment
   alias Lanttern.LearningContext.Strand
   alias Lanttern.Schools
@@ -122,6 +128,166 @@ defmodule Lanttern.Reporting do
     Schools.list_cycles()
     |> Enum.map(&{&1, Map.get(report_cards_by_cycle_map, &1.id)})
     |> Enum.filter(fn {_cycle, report_cards} -> not is_nil(report_cards) end)
+  end
+
+  @strand_grades_report_card_preloads [
+    :school_cycle,
+    grades_report: [
+      scale: :ordinal_values,
+      grades_report_cycles: :school_cycle,
+      grades_report_subjects: :subject
+    ]
+  ]
+
+  @typedoc """
+  A flattened "grades report card" entry for a strand, representing the
+  intersection of a report card cycle and one of its grades report subjects.
+  """
+  @type strand_grades_report_card_entry :: %{
+          report_card: ReportCard.t(),
+          school_cycle: Cycle.t(),
+          grades_report: GradesReport.t(),
+          grades_report_subject: GradesReportSubject.t(),
+          grades_report_cycle: GradesReportCycle.t() | nil,
+          scale: Scale.t(),
+          is_hidden: boolean()
+        }
+
+  @doc """
+  Returns the "grades report cards" linked to a strand.
+
+  Follows the `strand -> strand report -> report card -> grades report` path
+  (via `list_report_cards/1` with `:strands_ids`), then keeps only the grades
+  report subjects matching the strand's subjects, returning one entry per
+  (report card cycle × matching subject).
+
+  Only report cards that have an associated grades report are considered, and
+  results are scoped to the school in `scope`.
+
+  Entries are ordered by report card cycle (end date desc, start date asc, name
+  asc — inherited from `list_report_cards/1`), then by grades report subject
+  position (asc).
+
+  The strand's `:subjects` must be preloaded.
+  """
+  @spec list_strand_grades_report_cards(Scope.t(), Strand.t()) ::
+          [strand_grades_report_card_entry()]
+  def list_strand_grades_report_cards(%Scope{} = scope, %Strand{} = strand) do
+    strand_subject_ids = strand.subjects |> Enum.map(& &1.id) |> MapSet.new()
+
+    list_report_cards(
+      strands_ids: [strand.id],
+      school_id: scope.school_id,
+      preloads: @strand_grades_report_card_preloads
+    )
+    |> Enum.reject(&is_nil(&1.grades_report))
+    |> Enum.flat_map(fn report_card ->
+      grades_report = report_card.grades_report
+
+      grades_report_cycle =
+        Enum.find(
+          grades_report.grades_report_cycles,
+          &(&1.school_cycle_id == report_card.school_cycle_id)
+        )
+
+      grades_report.grades_report_subjects
+      |> Enum.filter(&MapSet.member?(strand_subject_ids, &1.subject_id))
+      |> Enum.sort_by(& &1.position)
+      |> Enum.map(fn grades_report_subject ->
+        %{
+          report_card: report_card,
+          school_cycle: report_card.school_cycle,
+          grades_report: grades_report,
+          grades_report_subject: grades_report_subject,
+          grades_report_cycle: grades_report_cycle,
+          scale: grades_report.scale,
+          is_hidden: grades_report_cycle != nil and grades_report_cycle.is_visible == false
+        }
+      end)
+    end)
+  end
+
+  @doc """
+  Lists the strands where a grades report subject's composition can be managed.
+
+  This is the inverse of `list_strand_grades_report_cards/2`: starting from a
+  grades report cycle × subject, it finds the report card linked to the grades
+  report **for that cycle** (matching the grades report cycle's school cycle),
+  then the strands reported in that card whose subjects match the grades report
+  subject's subject — i.e. the strands whose assessment context surfaces this
+  composition.
+
+  In addition to those filter-scoped strands, it also returns any strand that
+  owns a **current composition component** for the pair, even if that strand has
+  since fallen out of the filter scope (e.g. its subjects, the report card's
+  strand link, or the cycle changed after the component was added). This keeps
+  "Manage in strand context" pointing at the strand where the composition's goals
+  actually live.
+
+  Results are scoped to the school in `scope` and ordered by strand name. The
+  same strand is returned only once even if reached through multiple report cards
+  or composition components.
+  """
+  @spec list_grades_report_subject_strands(Scope.t(), pos_integer(), pos_integer()) ::
+          [Strand.t()]
+  def list_grades_report_subject_strands(
+        %Scope{} = scope,
+        grades_report_cycle_id,
+        grades_report_subject_id
+      ) do
+    scope
+    |> list_filter_scoped_strands(grades_report_cycle_id, grades_report_subject_id)
+    |> maybe_add_composition_strands(scope, grades_report_cycle_id, grades_report_subject_id)
+  end
+
+  defp list_filter_scoped_strands(scope, grades_report_cycle_id, grades_report_subject_id) do
+    from(grs in GradesReportSubject,
+      where: grs.id == ^grades_report_subject_id,
+      join: grc in GradesReportCycle,
+      on: grc.id == ^grades_report_cycle_id and grc.grades_report_id == grs.grades_report_id,
+      join: rc in ReportCard,
+      on:
+        rc.grades_report_id == grs.grades_report_id and rc.school_cycle_id == grc.school_cycle_id,
+      join: sc in assoc(rc, :school_cycle),
+      on: sc.school_id == ^scope.school_id,
+      join: sr in assoc(rc, :strand_reports),
+      join: s in assoc(sr, :strand),
+      join: ss in assoc(s, :subjects),
+      on: ss.id == grs.subject_id,
+      order_by: [asc: s.name],
+      distinct: true,
+      select: s
+    )
+    |> Repo.all()
+  end
+
+  defp maybe_add_composition_strands(
+         base_strands,
+         scope,
+         grades_report_cycle_id,
+         grades_report_subject_id
+       ) do
+    base_ids = Enum.map(base_strands, & &1.id)
+
+    extra_strands =
+      from(gc in GradeComponent,
+        where:
+          gc.grades_report_cycle_id == ^grades_report_cycle_id and
+            gc.grades_report_subject_id == ^grades_report_subject_id,
+        join: ap in assoc(gc, :assessment_point),
+        join: s in assoc(ap, :strand),
+        join: grc in assoc(gc, :grades_report_cycle),
+        join: sc in assoc(grc, :school_cycle),
+        on: sc.school_id == ^scope.school_id,
+        where: s.id not in ^base_ids,
+        order_by: [asc: s.name],
+        distinct: true,
+        select: s
+      )
+      |> Repo.all()
+
+    (base_strands ++ extra_strands)
+    |> Enum.sort_by(& &1.name)
   end
 
   @doc """

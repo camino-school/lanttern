@@ -35,9 +35,13 @@
       current_user={@current_user}
       current_scope={@current_scope}
       current_assessment_view={@current_assessment_view}
+      strand={@strand}
       strand_id={@strand.id}
+      strand_grades_report_cards={@strand_grades_report_cards}
       classes_ids={@selected_classes_ids}
       filter_assessment_points_ids={@filter_ap_ids}
+      filter_grades_report_cycle_id={@filter_grades_report_cycle_id}
+      filter_grades_report_subject_id={@filter_grades_report_subject_id}
       url_params={@url_filter_params}
       navigate={~p"/strands/#{@strand}/assessment/marking?#{@url_filter_params}"}
     >
@@ -91,12 +95,32 @@
       </.badge_button>
     </div>
   </div>
+  <div :if={@strand_grades_report_filters != []}>
+    <p class="mt-8 mb-4 font-display font-bold text-ltrn-subtle">
+      {gettext("By grade report")}
+    </p>
+    <div class="flex flex-wrap gap-2">
+      <.badge_button
+        :for={f <- @strand_grades_report_filters}
+        is_checked={
+          "#{f.grades_report_cycle.id}-#{f.grades_report_subject.id}" == @filter_grades_report
+        }
+        phx-click="select_grades_report"
+        phx-value-id={"#{f.grades_report_cycle.id}-#{f.grades_report_subject.id}"}
+      >
+        {Gettext.dgettext(Lanttern.Gettext, "taxonomy", f.grades_report_subject.subject.name)}
+      </.badge_button>
+    </div>
+  </div>
   <div class="flex justify-between gap-2 mt-10">
     <.button
       type="button"
       theme="ghost"
       phx-click="clear_filter_selections"
-      disabled={@filter_classes_ids == [] and @filter_composition_ap_id == nil}
+      disabled={
+        @filter_classes_ids == [] and @filter_composition_ap_id == nil and
+          @filter_grades_report == nil
+      }
     >
       {gettext("Clear all filters")}
     </.button>

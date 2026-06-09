@@ -4,7 +4,9 @@ defmodule LantternWeb.MarkingLive do
   alias Lanttern.AssessmentComposition
   alias Lanttern.Assessments
   alias Lanttern.Curricula
+  alias Lanttern.GradesReports
   alias Lanttern.LearningContext
+  alias Lanttern.Reporting
 
   # shared components
   import LantternWeb.AssessmentsComponents
@@ -37,6 +39,7 @@ defmodule LantternWeb.MarkingLive do
       |> assign_assessment_points_ids()
       |> assign_strand_curriculum_items()
       |> assign_strand_composition_assessment_points()
+      |> assign_strand_grades_report_filters()
 
     {:ok, socket}
   end
@@ -84,6 +87,28 @@ defmodule LantternWeb.MarkingLive do
     assign(socket, :strand_composition_assessment_points, composition_aps)
   end
 
+  defp assign_strand_grades_report_filters(socket) do
+    # Fetch the linked grade report cards once and reuse them for both the filter
+    # badges here and the grid's column group (passed down as an assign), avoiding
+    # a duplicate query.
+    cards =
+      Reporting.list_strand_grades_report_cards(
+        socket.assigns.current_scope,
+        socket.assigns.strand
+      )
+
+    # Only grade report cards with a cycle have a composition to filter by.
+    # Dedupe by {cycle, subject} so each filterable composition yields one badge.
+    filters =
+      cards
+      |> Enum.filter(& &1.grades_report_cycle)
+      |> Enum.uniq_by(&{&1.grades_report_cycle.id, &1.grades_report_subject.id})
+
+    socket
+    |> assign(:strand_grades_report_cards, cards)
+    |> assign(:strand_grades_report_filters, filters)
+  end
+
   @impl true
   def handle_params(params, _url, socket) do
     socket =
@@ -91,6 +116,7 @@ defmodule LantternWeb.MarkingLive do
       |> assign_url_params(params)
       |> assign_class_filter()
       |> assign_composition_filter()
+      |> assign_grades_report_filter()
       |> assign_goal()
 
     {:noreply, socket}
@@ -100,7 +126,11 @@ defmodule LantternWeb.MarkingLive do
     query_params = Map.drop(params, @route_params)
 
     applied_filters_count =
-      [Map.has_key?(query_params, "classes_ids"), Map.has_key?(query_params, "composition_ap_id")]
+      [
+        Map.has_key?(query_params, "classes_ids"),
+        Map.has_key?(query_params, "composition_ap_id"),
+        Map.has_key?(query_params, "grades_report_filter")
+      ]
       |> Enum.count(& &1)
 
     socket
@@ -176,6 +206,69 @@ defmodule LantternWeb.MarkingLive do
     end
   end
 
+  # Resolves the "by grade report" filter. The URL value is the composite string
+  # "<grades_report_cycle_id>-<grades_report_subject_id>". When present and valid,
+  # the grid is narrowed to the grade report composition's assessment points and the
+  # composition filter is cleared (the two are mutually exclusive).
+  defp assign_grades_report_filter(socket) do
+    raw = Map.get(socket.assigns.query_params, "grades_report_filter")
+
+    case parse_grades_report_filter(socket, raw) do
+      {grc_id, grs_id} ->
+        filter_ap_ids =
+          derive_grades_report_filter_ap_ids(socket.assigns.current_scope, grc_id, grs_id)
+
+        socket
+        |> assign(:filter_grades_report, raw)
+        |> assign(:filter_grades_report_cycle_id, grc_id)
+        |> assign(:filter_grades_report_subject_id, grs_id)
+        |> assign(:filter_ap_ids, filter_ap_ids)
+        |> assign(:selected_composition_ap_id, nil)
+        |> assign(:filter_composition_ap_id, nil)
+
+      :error ->
+        socket
+        |> assign(:filter_grades_report, nil)
+        |> assign(:filter_grades_report_cycle_id, nil)
+        |> assign(:filter_grades_report_subject_id, nil)
+    end
+  end
+
+  # Parses and validates the composite value against the strand's known grade report
+  # filters, guarding against stale or malformed URLs.
+  defp parse_grades_report_filter(_socket, nil), do: :error
+
+  defp parse_grades_report_filter(socket, raw) do
+    with [grc_str, grs_str] <- String.split(raw, "-"),
+         {grc_id, ""} <- Integer.parse(grc_str),
+         {grs_id, ""} <- Integer.parse(grs_str),
+         true <- {grc_id, grs_id} in known_grades_report_filter_pairs(socket) do
+      {grc_id, grs_id}
+    else
+      _ -> :error
+    end
+  end
+
+  defp known_grades_report_filter_pairs(socket) do
+    Enum.map(
+      socket.assigns.strand_grades_report_filters,
+      &{&1.grades_report_cycle.id, &1.grades_report_subject.id}
+    )
+  end
+
+  defp derive_grades_report_filter_ap_ids(scope, grades_report_cycle_id, grades_report_subject_id) do
+    direct_ap_ids =
+      GradesReports.list_grade_composition(grades_report_cycle_id, grades_report_subject_id)
+      |> Enum.map(& &1.assessment_point_id)
+
+    # Per the no-cascading rule, a composed goal's components are never themselves
+    # composed, so a single extra level fully expands the composition.
+    component_ap_ids =
+      AssessmentComposition.list_component_ids_for_parents(scope, direct_ap_ids)
+
+    Enum.uniq(direct_ap_ids ++ component_ap_ids)
+  end
+
   defp assign_goal(%{assigns: %{params: %{"edit_assessment_point" => id}}} = socket) do
     if id in socket.assigns.assessment_points_ids do
       goal = Assessments.get_assessment_point(id)
@@ -217,7 +310,23 @@ defmodule LantternWeb.MarkingLive do
     filter_composition_ap_id =
       if id == socket.assigns.filter_composition_ap_id, do: nil, else: id
 
-    socket = assign(socket, :filter_composition_ap_id, filter_composition_ap_id)
+    socket =
+      socket
+      |> assign(:filter_composition_ap_id, filter_composition_ap_id)
+      |> assign(:filter_grades_report, nil)
+
+    {:noreply, socket}
+  end
+
+  def handle_event("select_grades_report", %{"id" => id}, socket) do
+    filter_grades_report =
+      if id == socket.assigns.filter_grades_report, do: nil, else: id
+
+    socket =
+      socket
+      |> assign(:filter_grades_report, filter_grades_report)
+      |> assign(:filter_composition_ap_id, nil)
+
     {:noreply, socket}
   end
 
@@ -226,6 +335,7 @@ defmodule LantternWeb.MarkingLive do
       socket
       |> assign(:filter_classes_ids, [])
       |> assign(:filter_composition_ap_id, nil)
+      |> assign(:filter_grades_report, nil)
 
     {:noreply, socket}
   end
@@ -249,6 +359,12 @@ defmodule LantternWeb.MarkingLive do
       case socket.assigns.filter_composition_ap_id do
         nil -> Map.delete(params, "composition_ap_id")
         id -> Map.put(params, "composition_ap_id", id)
+      end
+
+    params =
+      case socket.assigns.filter_grades_report do
+        nil -> Map.delete(params, "grades_report_filter")
+        value -> Map.put(params, "grades_report_filter", value)
       end
 
     socket =

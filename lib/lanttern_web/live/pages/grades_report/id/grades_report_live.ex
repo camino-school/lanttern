@@ -13,7 +13,6 @@ defmodule LantternWeb.GradesReportLive do
   alias LantternWeb.GradesReports.GradesReportGridConfigurationOverlayComponent
   alias LantternWeb.GradesReports.StudentGradesReportEntryOverlayComponent
   alias LantternWeb.GradesReports.StudentGradesReportFinalEntryOverlayComponent
-  # alias LantternWeb.Grading.GradeCompositionOverlayComponent
 
   # shared
   import LantternWeb.GradesReportsHelpers, only: [build_calculation_results_message: 1]
@@ -24,7 +23,7 @@ defmodule LantternWeb.GradesReportLive do
   def mount(params, _session, socket) do
     socket =
       socket
-      |> assign(:page_title, gettext("Grades reports"))
+      |> assign(:page_title, gettext("Grade reports"))
       |> assign_grades_report(params)
       |> stream_students()
       |> assign_students_grades_map()
@@ -184,7 +183,7 @@ defmodule LantternWeb.GradesReportLive do
       {:ok, _grades_report} ->
         socket =
           socket
-          |> put_flash(:info, gettext("Grades report deleted"))
+          |> put_flash(:info, gettext("Grade report deleted"))
           |> push_navigate(to: ~p"/grades_reports")
 
         {:noreply, socket}
@@ -209,7 +208,7 @@ defmodule LantternWeb.GradesReportLive do
           socket
           |> put_flash(
             :info,
-            "#{gettext("All final grades calculated succesfully")}. #{build_calculation_results_message(results)}"
+            "#{gettext("All final grades calculated successfully")}. #{build_calculation_results_message(results)}"
           )
           |> push_navigate(to: ~p"/grades_reports/#{socket.assigns.grades_report}")
 
@@ -237,7 +236,7 @@ defmodule LantternWeb.GradesReportLive do
           socket
           |> put_flash(
             :info,
-            "#{gettext("Student final grades calculated succesfully")}. #{build_calculation_results_message(results)}"
+            "#{gettext("Student final grades calculated successfully")}. #{build_calculation_results_message(results)}"
           )
           |> push_navigate(to: ~p"/grades_reports/#{socket.assigns.grades_report}")
 
@@ -266,7 +265,7 @@ defmodule LantternWeb.GradesReportLive do
           socket
           |> put_flash(
             :info,
-            "#{gettext("Students final subject grades calculated succesfully")}. #{build_calculation_results_message(results)}"
+            "#{gettext("Students final subject grades calculated successfully")}. #{build_calculation_results_message(results)}"
           )
           |> push_navigate(to: ~p"/grades_reports/#{socket.assigns.grades_report}")
 
@@ -302,7 +301,7 @@ defmodule LantternWeb.GradesReportLive do
 
         {:ok, _, _} ->
           socket
-          |> put_flash(:info, gettext("Grade calculated succesfully"))
+          |> put_flash(:info, gettext("Grade calculated successfully"))
           |> push_navigate(to: ~p"/grades_reports/#{socket.assigns.grades_report}")
 
         {:error, _} ->

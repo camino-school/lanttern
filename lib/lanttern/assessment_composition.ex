@@ -37,6 +37,23 @@ defmodule Lanttern.AssessmentComposition do
   end
 
   @doc """
+  Lists the component assessment point ids for the given parent assessment point ids.
+
+  Returns the de-duplicated `component_id`s across all parents in a single query —
+  useful for expanding a set of composed goals into the assessment points that
+  feed them without an N+1.
+  """
+  @spec list_component_ids_for_parents(Scope.t(), [pos_integer()]) :: [pos_integer()]
+  def list_component_ids_for_parents(%Scope{} = _scope, parent_ids) do
+    from(c in Component,
+      where: c.parent_id in ^parent_ids,
+      distinct: true,
+      select: c.component_id
+    )
+    |> Repo.all()
+  end
+
+  @doc """
   Creates an assessment point composition component.
 
   ## Examples

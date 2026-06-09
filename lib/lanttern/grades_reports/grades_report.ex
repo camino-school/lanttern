@@ -66,7 +66,7 @@ defmodule Lanttern.GradesReports.GradesReport do
     |> validate_required([:name, :school_cycle_id, :year_id, :scale_id])
     |> unique_constraint(:school_cycle_id,
       name: "grades_reports_year_id_school_cycle_id_index",
-      message: gettext("A grades report for the same cycle and year already exists")
+      message: gettext("A grade report for the same cycle and year already exists")
     )
   end
 end

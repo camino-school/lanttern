@@ -1,6 +1,6 @@
 <Layouts.app_logged_in flash={@flash} current_user={@current_user} current_path={@current_path}>
   <.header_nav current_user={@current_user}>
-    <:title>{gettext("Grades reports")}</:title>
+    <:title>{gettext("Grade reports")}</:title>
     <div class="flex items-center gap-6 p-4">
       <div class="flex-1 flex items-center gap-6 min-w-0">
         <.action
@@ -12,14 +12,14 @@
         </.action>
         <div class="flex items-center gap-2">
           <.icon name="hero-information-circle-mini" class="text-ltrn-subtle" />
-          {gettext("Showing %{cycle} grades reports", cycle: Map.get(@current_cycle, :name))}
+          {gettext("Showing %{cycle} grade reports", cycle: Map.get(@current_cycle, :name))}
           <.tooltip id="grades-reports-cycle-tooltip">
-            {gettext("Change current cycle in main menu to view other cyles' grades reports")}
+            {gettext("Change current cycle in main menu to view other cyles' grade reports")}
           </.tooltip>
         </div>
       </div>
       <.action type="link" patch={~p"/grades_reports?new=true"} icon_name="hero-plus-circle-mini">
-        {gettext("New grades report")}
+        {gettext("New grade report")}
       </.action>
     </div>
   </.header_nav>
@@ -136,20 +136,21 @@
     on_cancel={JS.navigate(~p"/grades_reports")}
   />
   <.live_component
-    :if={@is_editing_grade_composition}
-    title={gettext("Edit grade composition")}
-    module={GradeCompositionOverlayComponent}
-    id="grade-composition-overlay"
-    grades_report_id={@grades_report_id}
+    :if={@show_grade_composition}
+    module={GradeCompositionViewOverlayComponent}
+    id="grade-composition-view-overlay"
+    current_scope={@current_scope}
     grades_report_cycle_id={@grades_report_cycle_id}
     grades_report_subject_id={@grades_report_subject_id}
+    cycle_name={@grade_composition_cycle_name}
+    subject_name={@grade_composition_subject_name}
     on_cancel={JS.patch(~p"/grades_reports")}
   />
   <.live_component
     module={LantternWeb.Filters.FiltersOverlayComponent}
     id="grades-reports-year-filters-overlay"
     current_user={@current_user}
-    title={gettext("Filter grades reports by year")}
+    title={gettext("Filter grade reports by year")}
     filter_type={:years}
     navigate={~p"/grades_reports"}
   />

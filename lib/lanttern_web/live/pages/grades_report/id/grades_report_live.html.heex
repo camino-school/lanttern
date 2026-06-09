@@ -1,7 +1,7 @@
 <Layouts.app_logged_in flash={@flash} current_user={@current_user} current_path={@current_path}>
   <div>
     <.header_nav current_user={@current_user}>
-      <:breadcrumb navigate={~p"/grades_reports"}>{gettext("Grades reports")}</:breadcrumb>
+      <:breadcrumb navigate={~p"/grades_reports"}>{gettext("Grade reports")}</:breadcrumb>
       <:title>{@grades_report.name}</:title>
       <div class="flex items-center gap-6 p-4">
         <div class="flex-1 flex items-center gap-4">
@@ -99,7 +99,7 @@
     show={true}
     on_cancel={JS.patch(~p"/grades_reports/#{@grades_report}")}
   >
-    <:title>{gettext("Edit grades report")}</:title>
+    <:title>{gettext("Edit grade report")}</:title>
     <.live_component
       module={GradesReportFormComponent}
       id={@grades_report.id}
@@ -145,6 +145,7 @@
     id={"student-grade-report-entry-#{@student_grades_report_entry.id}"}
     student_grades_report_entry={@student_grades_report_entry}
     scale_id={@grades_report.scale_id}
+    tz={@current_user.tz}
     navigate={~p"/grades_reports/#{@grades_report}"}
     on_cancel={JS.patch(~p"/grades_reports/#{@grades_report}")}
   />
@@ -154,6 +155,7 @@
     id={@student_grades_report_final_entry.id}
     student_grades_report_final_entry={@student_grades_report_final_entry}
     scale_id={@grades_report.scale_id}
+    tz={@current_user.tz}
     navigate={~p"/grades_reports/#{@grades_report}"}
     on_cancel={JS.patch(~p"/grades_reports/#{@grades_report}")}
   />
