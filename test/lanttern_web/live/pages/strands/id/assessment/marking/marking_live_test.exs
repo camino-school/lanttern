@@ -495,7 +495,7 @@ defmodule LantternWeb.MarkingLiveTest do
 
       conn
       |> visit("#{@live_view_path}/#{strand.id}/assessment/marking?classes_ids=#{class.id}")
-      |> assert_has("span", text: "Grades report")
+      |> assert_has("span", text: "Grade report")
       |> assert_has("button", text: "Algebra Subject Xyz")
     end
 
@@ -532,7 +532,7 @@ defmodule LantternWeb.MarkingLiveTest do
       conn
       |> visit("#{@live_view_path}/#{strand.id}/assessment/marking?classes_ids=#{class.id}")
       |> assert_has("div", text: student.name)
-      |> refute_has("span", text: "Grades report")
+      |> refute_has("span", text: "Grade report")
     end
 
     test "hides the group when a composition filter is active", %{conn: conn} = context do
@@ -543,7 +543,7 @@ defmodule LantternWeb.MarkingLiveTest do
       |> visit(
         "#{@live_view_path}/#{strand.id}/assessment/marking?classes_ids=#{class.id}&composition_ap_id=#{assessment_point.id}"
       )
-      |> refute_has("span", text: "Grades report")
+      |> refute_has("span", text: "Grade report")
     end
 
     test "disables the calculate buttons when the grades report cycle is not set",
@@ -574,7 +574,7 @@ defmodule LantternWeb.MarkingLiveTest do
       conn
       |> visit("#{@live_view_path}/#{strand.id}/assessment/marking?classes_ids=#{class.id}")
       |> click_button("Calculate subject grades")
-      |> assert_has("[role='alert']", text: "Subject grades calculated succesfully")
+      |> assert_has("[role='alert']", text: "Subject grades calculated successfully")
     end
 
     test "managing composition from the subject header opens the grade composition overlay",
@@ -614,7 +614,7 @@ defmodule LantternWeb.MarkingLiveTest do
       |> visit("#{@live_view_path}/#{strand.id}/assessment/marking?classes_ids=#{class.id}")
       |> click_button("Great Grade Value")
       |> assert_has("#student-grade-report-entry-overlay",
-        text: "Edit student grades report entry"
+        text: "Edit student grade report entry"
       )
     end
   end
@@ -683,7 +683,7 @@ defmodule LantternWeb.MarkingLiveTest do
       # ...unrelated assessment points are filtered out...
       |> refute_has("p", text: "Unrelated AP")
       # ...and the filtered grade report column group itself remains visible
-      |> assert_has("span", text: "Grades report")
+      |> assert_has("span", text: "Grade report")
     end
 
     test "selecting a grade report clears a previously selected composition AP",

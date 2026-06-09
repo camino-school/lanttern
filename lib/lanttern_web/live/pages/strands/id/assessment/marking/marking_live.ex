@@ -88,15 +88,25 @@ defmodule LantternWeb.MarkingLive do
   end
 
   defp assign_strand_grades_report_filters(socket) do
+    # Fetch the linked grade report cards once and reuse them for both the filter
+    # badges here and the grid's column group (passed down as an assign), avoiding
+    # a duplicate query.
+    cards =
+      Reporting.list_strand_grades_report_cards(
+        socket.assigns.current_scope,
+        socket.assigns.strand
+      )
+
     # Only grade report cards with a cycle have a composition to filter by.
     # Dedupe by {cycle, subject} so each filterable composition yields one badge.
     filters =
-      socket.assigns.current_scope
-      |> Reporting.list_strand_grades_report_cards(socket.assigns.strand)
+      cards
       |> Enum.filter(& &1.grades_report_cycle)
       |> Enum.uniq_by(&{&1.grades_report_cycle.id, &1.grades_report_subject.id})
 
-    assign(socket, :strand_grades_report_filters, filters)
+    socket
+    |> assign(:strand_grades_report_cards, cards)
+    |> assign(:strand_grades_report_filters, filters)
   end
 
   @impl true
@@ -254,10 +264,7 @@ defmodule LantternWeb.MarkingLive do
     # Per the no-cascading rule, a composed goal's components are never themselves
     # composed, so a single extra level fully expands the composition.
     component_ap_ids =
-      Enum.flat_map(direct_ap_ids, fn ap_id ->
-        AssessmentComposition.list_assessment_point_components(scope, ap_id)
-        |> Enum.map(& &1.component_id)
-      end)
+      AssessmentComposition.list_component_ids_for_parents(scope, direct_ap_ids)
 
     Enum.uniq(direct_ap_ids ++ component_ap_ids)
   end

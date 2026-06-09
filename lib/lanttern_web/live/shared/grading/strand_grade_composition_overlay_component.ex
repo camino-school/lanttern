@@ -280,17 +280,23 @@ defmodule LantternWeb.Grading.StrandGradeCompositionOverlayComponent do
         :grades_report_subject_id
       ])
 
-    {:ok, :replaced} = Grading.replace_grade_composition(scope, ids, components)
+    case Grading.replace_grade_composition(scope, ids, components) do
+      {:ok, :replaced} ->
+        composition_components =
+          GradesReports.list_grade_composition(
+            socket.assigns.grades_report_cycle_id,
+            socket.assigns.grades_report_subject_id
+          )
 
-    composition_components =
-      GradesReports.list_grade_composition(
-        socket.assigns.grades_report_cycle_id,
-        socket.assigns.grades_report_subject_id
-      )
+        {:noreply,
+         socket
+         |> assign(:view, :overview)
+         |> assign(:composition_components, composition_components)}
 
-    {:noreply,
-     socket
-     |> assign(:view, :overview)
-     |> assign(:composition_components, composition_components)}
+      {:error, _changeset} ->
+        # keep the setup view open so the user can adjust and retry
+        socket = delegate_navigation(socket, put_flash: {:error, gettext("Something went wrong")})
+        {:noreply, socket}
+    end
   end
 end

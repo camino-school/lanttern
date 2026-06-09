@@ -330,8 +330,7 @@ defmodule LantternWeb.GradesReports.GradesReportGridConfigurationOverlayComponen
         {:noreply, socket}
 
       {:error, _changeset} ->
-        {:noreply,
-         put_flash(socket, :error, gettext("Error updating grade report cycle weight"))}
+        {:noreply, put_flash(socket, :error, gettext("Error updating grade report cycle weight"))}
     end
   end
 

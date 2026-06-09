@@ -1081,7 +1081,7 @@ msgstr "Nota final"
 #: lib/lanttern_web/live/pages/report_cards/id/students_grades_component.ex:376
 #: lib/lanttern_web/live/shared/assessments/assessments_grid_component.ex:1143
 #, elixir-autogen, elixir-format
-msgid "Grade calculated succesfully"
+msgid "Grade calculated successfully"
 msgstr "Nota calculada com sucesso"
 
 #: lib/lanttern_web/live/shared/assessment_composition/assessment_point_composition_overlay_component.ex:32
@@ -1109,7 +1109,7 @@ msgstr "Notas"
 
 #: lib/lanttern_web/live/pages/report_cards/id/students_grades_component.ex:260
 #, elixir-autogen, elixir-format
-msgid "Grades calculated succesfully"
+msgid "Grades calculated successfully"
 msgstr "Notas calculadas com sucesso"
 
 #: lib/lanttern_web/live/shared/grades_reports/grades_report_grid_configuration_overlay_component.ex:38
@@ -1369,7 +1369,7 @@ msgstr "Registro de relatório de nota de estudante atualizado com sucesso"
 
 #: lib/lanttern_web/live/pages/report_cards/id/students_grades_component.ex:294
 #, elixir-autogen, elixir-format
-msgid "Student grades calculated succesfully"
+msgid "Student grades calculated successfully"
 msgstr "Notas do estudantes calculadas com sucesso"
 
 #: lib/lanttern_web/live/pages/student_report_cards/id/student_report_card_live.html.heex:11
@@ -1402,7 +1402,7 @@ msgstr "Disciplina"
 #: lib/lanttern_web/live/pages/report_cards/id/students_grades_component.ex:333
 #: lib/lanttern_web/live/shared/assessments/assessments_grid_component.ex:1104
 #, elixir-autogen, elixir-format
-msgid "Subject grades calculated succesfully"
+msgid "Subject grades calculated successfully"
 msgstr "Notas da disciplina calculadas com sucesso"
 
 #: lib/lanttern_web/live/shared/grades_reports/grades_report_form_component.ex:46
@@ -2336,7 +2336,7 @@ msgstr "configuração da matriz de %{grades_report}"
 
 #: lib/lanttern_web/live/pages/grades_report/id/grades_report_live.ex:211
 #, elixir-autogen, elixir-format
-msgid "All final grades calculated succesfully"
+msgid "All final grades calculated successfully"
 msgstr "Todas notas finais calculadas com sucesso"
 
 #: lib/lanttern_web/components/grades_reports_components.ex:472
@@ -2420,7 +2420,7 @@ msgstr "Visibilidade do ciclo maior"
 
 #: lib/lanttern_web/live/pages/grades_report/id/grades_report_live.ex:239
 #, elixir-autogen, elixir-format
-msgid "Student final grades calculated succesfully"
+msgid "Student final grades calculated successfully"
 msgstr "Notas finais do estudante calculadas com sucesso"
 
 #: lib/lanttern_web/live/shared/grades_reports/student_grades_report_final_entry_overlay_component.ex:95
@@ -2430,7 +2430,7 @@ msgstr "Registro final do relatório de notas de estudante deletado"
 
 #: lib/lanttern_web/live/pages/grades_report/id/grades_report_live.ex:268
 #, elixir-autogen, elixir-format
-msgid "Students final subject grades calculated succesfully"
+msgid "Students final subject grades calculated successfully"
 msgstr "Notas finais dos estudantes na disciplina calculadas com sucesso"
 
 #: lib/lanttern_web/live/shared/grades_reports/grades_report_grid_configuration_overlay_component.ex:23

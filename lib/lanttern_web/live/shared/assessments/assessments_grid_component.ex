@@ -14,6 +14,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
       attr :classes_ids, :list, doc: "list of classes_ids to filter results"
       attr :strand_id, :integer, doc: "defines a strand grid view"
       attr :strand, Strand, doc: "strand struct (with :subjects preloaded) enabling the grades report column group"
+      attr :strand_grades_report_cards, :list, default: [], doc: "linked grade report cards (from `Reporting.list_strand_grades_report_cards/2`), fetched once by the parent and narrowed to the active filter here"
       attr :class, :any
       attr :navigate, :string, doc: "defines push_navigate target"
       attr :url_params, :map, doc: "URL-based filter params to preserve in navigation", default: %{}
@@ -32,7 +33,6 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
   alias Lanttern.Identity.User
   alias Lanttern.LearningContext.Moment
   alias Lanttern.LearningContext.Strand
-  alias Lanttern.Reporting
   alias Lanttern.Schools.Student
 
   import LantternWeb.GradingComponents
@@ -261,6 +261,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
         id={"#{@id}-student-grade-entry-overlay"}
         student_grades_report_entry={@student_grades_report_entry}
         scale_id={@grades_report_entry_scale_id}
+        tz={@current_user.tz}
         navigate={@navigate}
         on_cancel={JS.push("close_grade_entry_overlay", target: @myself)}
       />
@@ -633,6 +634,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
       |> assign(:filter_assessment_points_ids, nil)
       |> assign(:filter_grades_report_cycle_id, nil)
       |> assign(:filter_grades_report_subject_id, nil)
+      |> assign(:strand_grades_report_cards, [])
       |> assign(:grades_report_columns, [])
       |> assign(:grades_report_columns_count, 0)
       |> assign(:grades_report_columns_grid, "")
@@ -879,31 +881,32 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
     assign(socket, :view_bg, view_bg)
   end
 
-  # The grades report column group is only shown in the strand context:
+  # The grades report column group is only shown in the strand context. The full
+  # set of linked cards is fetched once by the parent and passed in as
+  # `strand_grades_report_cards`; here we only narrow it to the active filter:
   # - no filter active → all linked grades report columns;
   # - a grades report filter active → only the filtered subject's column,
   #   shown alongside its composition's assessment points;
   # - an assessment point composition filter active → none (hidden).
   # When empty, the layout collapses to the assessment-points-only grid.
   defp assign_grades_report_columns(socket) do
+    cards = socket.assigns.strand_grades_report_cards
+
     columns =
       case socket.assigns do
         %{
-          strand: %Strand{} = strand,
           filter_grades_report_cycle_id: cycle_id,
           filter_grades_report_subject_id: subject_id
         }
         when not is_nil(cycle_id) and not is_nil(subject_id) ->
-          socket.assigns.current_scope
-          |> Reporting.list_strand_grades_report_cards(strand)
-          |> Enum.filter(fn column ->
+          Enum.filter(cards, fn column ->
             column.grades_report_cycle &&
               column.grades_report_cycle.id == cycle_id &&
               column.grades_report_subject.id == subject_id
           end)
 
-        %{filter_assessment_points_ids: nil, strand: %Strand{} = strand} ->
-          Reporting.list_strand_grades_report_cards(socket.assigns.current_scope, strand)
+        %{filter_assessment_points_ids: nil} ->
+          cards
 
         _ ->
           []
@@ -1101,7 +1104,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
           |> delegate_navigation(
             put_flash:
               {:info,
-               "#{gettext("Subject grades calculated succesfully")}. #{build_calculation_results_message(results)}"}
+               "#{gettext("Subject grades calculated successfully")}. #{build_calculation_results_message(results)}"}
           )
 
         {:error, _, results} ->
@@ -1140,7 +1143,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
         {:ok, _, _} ->
           socket
           |> stream_students_entries()
-          |> delegate_navigation(put_flash: {:info, gettext("Grade calculated succesfully")})
+          |> delegate_navigation(put_flash: {:info, gettext("Grade calculated successfully")})
 
         {:error, _} ->
           delegate_navigation(socket, put_flash: {:error, gettext("Something went wrong")})

@@ -102,6 +102,7 @@ defmodule LantternWeb.ReportCardLive.StudentsGradesComponent do
           id={@student_grades_report_entry.id}
           student_grades_report_entry={@student_grades_report_entry}
           scale_id={@grades_report.scale_id}
+          tz={@current_user.tz}
           navigate={~p"/report_cards/#{@report_card}/grades?#{@url_filter_params}"}
           on_cancel={JS.patch(~p"/report_cards/#{@report_card}/grades?#{@url_filter_params}")}
         />
@@ -257,7 +258,7 @@ defmodule LantternWeb.ReportCardLive.StudentsGradesComponent do
           socket
           |> put_flash(
             :info,
-            "#{gettext("Grades calculated succesfully")}. #{build_calculation_results_message(results)}"
+            "#{gettext("Grades calculated successfully")}. #{build_calculation_results_message(results)}"
           )
           |> push_navigate(
             to:
@@ -291,7 +292,7 @@ defmodule LantternWeb.ReportCardLive.StudentsGradesComponent do
           socket
           |> put_flash(
             :info,
-            "#{gettext("Student grades calculated succesfully")}. #{build_calculation_results_message(results)}"
+            "#{gettext("Student grades calculated successfully")}. #{build_calculation_results_message(results)}"
           )
           |> push_navigate(
             to:
@@ -330,7 +331,7 @@ defmodule LantternWeb.ReportCardLive.StudentsGradesComponent do
           socket
           |> put_flash(
             :info,
-            "#{gettext("Subject grades calculated succesfully")}. #{build_calculation_results_message(results)}"
+            "#{gettext("Subject grades calculated successfully")}. #{build_calculation_results_message(results)}"
           )
           |> push_navigate(
             to:
@@ -373,7 +374,7 @@ defmodule LantternWeb.ReportCardLive.StudentsGradesComponent do
 
         {:ok, _, _} ->
           socket
-          |> put_flash(:info, gettext("Grade calculated succesfully"))
+          |> put_flash(:info, gettext("Grade calculated successfully"))
           |> push_navigate(
             to:
               ~p"/report_cards/#{socket.assigns.report_card}/grades?#{socket.assigns.url_filter_params}"

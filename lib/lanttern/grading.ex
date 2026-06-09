@@ -8,6 +8,8 @@ defmodule Lanttern.Grading do
   import Lanttern.RepoHelpers
 
   alias Ecto.Multi
+  alias Lanttern.GradesReports.GradesReportCycle
+  alias Lanttern.GradesReports.GradesReportSubject
   alias Lanttern.Grading.GradeComponent
   alias Lanttern.Grading.OrdinalValue
   alias Lanttern.Grading.Scale
@@ -135,6 +137,9 @@ defmodule Lanttern.Grading do
   `ids` is a map with `:grades_report_id`, `:grades_report_cycle_id` and
   `:grades_report_subject_id` keys.
 
+  Raises (`MatchError`) when `scope` is not a staff member, or when the targeted
+  grades report cycle/subject pair is not within the scope's school.
+
   Returns `{:ok, :replaced}` or `{:error, %Ecto.Changeset{}}`.
   """
   @spec replace_grade_composition(Scope.t(), map(), [map()]) ::
@@ -147,6 +152,8 @@ defmodule Lanttern.Grading do
       grades_report_cycle_id: grc_id,
       grades_report_subject_id: grs_id
     } = ids
+
+    true = grades_report_pair_in_scope?(scope, gr_id, grc_id, grs_id)
 
     delete_query =
       from(gc in GradeComponent,
@@ -178,6 +185,24 @@ defmodule Lanttern.Grading do
       {:ok, _} -> {:ok, :replaced}
       {:error, _op, changeset, _changes} -> {:error, changeset}
     end
+  end
+
+  # Ensures the targeted grades report cycle and subject both belong to the given
+  # grades report, and that the cycle's school cycle is within the scope's school,
+  # guarding against editing another school's composition via a crafted payload.
+  defp grades_report_pair_in_scope?(scope, gr_id, grc_id, grs_id) do
+    query =
+      from(grc in GradesReportCycle,
+        join: sc in assoc(grc, :school_cycle),
+        join: grs in GradesReportSubject,
+        on: grs.grades_report_id == grc.grades_report_id,
+        where:
+          grc.id == ^grc_id and grc.grades_report_id == ^gr_id and
+            grs.id == ^grs_id and grs.grades_report_id == ^gr_id and
+            sc.school_id == ^scope.school_id
+      )
+
+    Repo.exists?(query)
   end
 
   @doc """

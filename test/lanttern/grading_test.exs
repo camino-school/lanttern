@@ -537,10 +537,18 @@ defmodule Lanttern.GradingTest do
 
     setup do
       scope = scope_fixture()
+      # the cycle's school cycle must be within the scope's school for the
+      # ownership check in `replace_grade_composition/3` to pass
+      school = Lanttern.Repo.get!(Lanttern.Schools.School, scope.school_id)
+      cycle = insert(:cycle, school: school)
+
       grades_report = GradesReportsFixtures.grades_report_fixture()
 
       grc =
-        GradesReportsFixtures.grades_report_cycle_fixture(%{grades_report_id: grades_report.id})
+        GradesReportsFixtures.grades_report_cycle_fixture(%{
+          grades_report_id: grades_report.id,
+          school_cycle_id: cycle.id
+        })
 
       grs =
         GradesReportsFixtures.grades_report_subject_fixture(%{grades_report_id: grades_report.id})
