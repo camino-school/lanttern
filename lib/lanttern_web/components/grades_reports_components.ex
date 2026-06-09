@@ -136,7 +136,7 @@ defmodule LantternWeb.GradesReportsComponents do
             </div>
           <% else %>
             <div class="p-4 rounded-sm text-ltrn-subtle bg-ltrn-lightest">
-              {gettext("No cycles linked to this grades report")}
+              {gettext("No cycles linked to this grade report")}
             </div>
           <% end %>
         </div>
@@ -184,7 +184,7 @@ defmodule LantternWeb.GradesReportsComponents do
         <% else %>
           <div class="grid grid-cols-subgrid" style={@grid_column_style}>
             <div class="p-4 rounded-sm text-ltrn-subtle bg-ltrn-lightest">
-              {gettext("No subjects linked to this grades report")}
+              {gettext("No subjects linked to this grade report")}
             </div>
             <%= if @has_cycles do %>
               <.grades_report_grid_cell :for={
@@ -492,7 +492,7 @@ defmodule LantternWeb.GradesReportsComponents do
           </div>
         <% else %>
           <div class="p-2 text-center text-ltrn-subtle" style={@cycle_grid_column_span_style}>
-            {gettext("No cycles linked to this grades report")}
+            {gettext("No cycles linked to this grade report")}
           </div>
         <% end %>
         <%= if @has_subjects do %>
@@ -561,10 +561,10 @@ defmodule LantternWeb.GradesReportsComponents do
             :for={_grades_report_cycles <- @grades_report_cycles}
             class="p-2 border-b-2 border-r-2 border-ltrn-subtle text-center text-ltrn-subtle"
           >
-            {gettext("No subjects linked to this grades report")}
+            {gettext("No subjects linked to this grade report")}
           </div>
           <div class="p-2 border-b-2 border-ltrn-subtle text-center text-ltrn-subtle">
-            {gettext("No subjects linked to this grades report")}
+            {gettext("No subjects linked to this grade report")}
           </div>
         <% end %>
       </div>
@@ -638,7 +638,7 @@ defmodule LantternWeb.GradesReportsComponents do
         </div>
       <% else %>
         <div class="sticky left-0 flex items-center justify-center p-4 border-r-2 border-ltrn-subtle text-ltrn-subtle">
-          {gettext("No students linked to this grades report")}
+          {gettext("No students linked to this grade report")}
         </div>
       <% end %>
     </div>
@@ -846,7 +846,7 @@ defmodule LantternWeb.GradesReportsComponents do
           </div>
         <% else %>
           <div class="p-2 rounded-sm text-ltrn-subtle bg-ltrn-lightest">
-            {gettext("No cycles linked to this grades report")}
+            {gettext("No cycles linked to this grade report")}
           </div>
         <% end %>
       </div>
@@ -898,7 +898,7 @@ defmodule LantternWeb.GradesReportsComponents do
       <% else %>
         <div class="grid grid-cols-subgrid" style={@grid_column_style}>
           <div class="p-4 rounded-sm text-ltrn-subtle bg-ltrn-lightest">
-            {gettext("No students linked to this grades report")}
+            {gettext("No students linked to this grade report")}
           </div>
           <%= if @has_subjects do %>
             <.grades_report_grid_cell :for={_grades_report_subject <- @grades_report_subjects} />

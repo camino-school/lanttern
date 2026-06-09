@@ -19,7 +19,7 @@ defmodule LantternWeb.GradesReportsLive do
   def mount(_params, _session, socket) do
     socket =
       socket
-      |> assign(:page_title, gettext("Grades reports"))
+      |> assign(:page_title, gettext("Grade reports"))
       |> assign_user_filters([:years])
       |> stream_grades_reports
       |> set_current_cycle()
@@ -63,7 +63,7 @@ defmodule LantternWeb.GradesReportsLive do
 
     socket
     |> assign(:grades_report, %GradesReport{school_cycle_id: current_cycle_id})
-    |> assign(:form_overlay_title, gettext("Create grades report"))
+    |> assign(:form_overlay_title, gettext("Create grade report"))
     |> assign(:show_grades_report_form, true)
   end
 
@@ -72,7 +72,7 @@ defmodule LantternWeb.GradesReportsLive do
       case GradesReports.get_grades_report(id) do
         %GradesReport{} = grades_report ->
           socket
-          |> assign(:form_overlay_title, gettext("Edit grades report"))
+          |> assign(:form_overlay_title, gettext("Edit grade report"))
           |> assign(:grades_report, grades_report)
           |> assign(:show_grades_report_form, true)
 
@@ -156,7 +156,7 @@ defmodule LantternWeb.GradesReportsLive do
       {:ok, _grades_report} ->
         socket =
           socket
-          |> put_flash(:info, gettext("Grades report deleted"))
+          |> put_flash(:info, gettext("Grade report deleted"))
           |> push_navigate(to: ~p"/grades_reports")
 
         {:noreply, socket}

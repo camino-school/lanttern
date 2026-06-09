@@ -39,7 +39,7 @@ defmodule LantternWeb.GradesReports.GradesReportGridConfigurationOverlayComponen
               <div class="text-center">
                 <.icon name="hero-eye" class="w-6 h-6" />
                 <.tooltip id="grades-report-visibility-tooltip">
-                  {gettext("Visibility in grades reports")}
+                  {gettext("Visibility in grade reports")}
                 </.tooltip>
               </div>
             </div>
@@ -331,7 +331,7 @@ defmodule LantternWeb.GradesReports.GradesReportGridConfigurationOverlayComponen
 
       {:error, _changeset} ->
         {:noreply,
-         put_flash(socket, :error, gettext("Error updating grades report cycle weight"))}
+         put_flash(socket, :error, gettext("Error updating grade report cycle weight"))}
     end
   end
 
@@ -360,7 +360,7 @@ defmodule LantternWeb.GradesReports.GradesReportGridConfigurationOverlayComponen
 
       {:error, _changeset} ->
         {:noreply,
-         put_flash(socket, :error, gettext("Error updating grades report cycle visibility"))}
+         put_flash(socket, :error, gettext("Error updating grade report cycle visibility"))}
     end
   end
 
@@ -395,7 +395,7 @@ defmodule LantternWeb.GradesReports.GradesReportGridConfigurationOverlayComponen
         |> assign(:selected_cycles_ids, selected_cycles_ids)
 
       {:error, _changeset} ->
-        put_flash(socket, :error, gettext("Error adding cycle to grades report"))
+        put_flash(socket, :error, gettext("Error adding cycle to grade report"))
     end
   end
 
@@ -418,7 +418,7 @@ defmodule LantternWeb.GradesReports.GradesReportGridConfigurationOverlayComponen
         |> assign(:selected_cycles_ids, selected_cycles_ids)
 
       {:error, _changeset} ->
-        put_flash(socket, :error, gettext("Error removing cycle from grades report"))
+        put_flash(socket, :error, gettext("Error removing cycle from grade report"))
     end
   end
 
@@ -442,7 +442,7 @@ defmodule LantternWeb.GradesReports.GradesReportGridConfigurationOverlayComponen
         |> assign(:selected_subjects_ids, selected_subjects_ids)
 
       {:error, _changeset} ->
-        put_flash(socket, :error, gettext("Error adding subject to grades report"))
+        put_flash(socket, :error, gettext("Error adding subject to grade report"))
     end
   end
 
@@ -466,7 +466,7 @@ defmodule LantternWeb.GradesReports.GradesReportGridConfigurationOverlayComponen
         |> assign(:selected_subjects_ids, selected_subjects_ids)
 
       {:error, _changeset} ->
-        put_flash(socket, :error, gettext("Error removing subject from grades report"))
+        put_flash(socket, :error, gettext("Error removing subject from grade report"))
     end
   end
 end

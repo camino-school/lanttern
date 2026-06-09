@@ -107,7 +107,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
               >
                 <div class="h-full pb-2 border-b border-ltrn-light">
                   <span class="flex items-center w-full text-sm font-display font-bold truncate">
-                    {gettext("Grades report")}
+                    {gettext("Grade report")}
                   </span>
                 </div>
               </div>
@@ -498,7 +498,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
       |> assign(:dom_id, dom_id)
 
     ~H"""
-    <div class="flex flex-col p-1">
+    <div class="flex flex-col py-1 px-2">
       <div class="flex items-center gap-1">
         <%= if @has_cycle do %>
           <div class="relative flex-1 min-w-0">
@@ -544,13 +544,25 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
           data-confirm={gettext("Are you sure? Existing grades will be recalculated.")}
         />
       </div>
-      <.badge
-        :if={@column.is_hidden}
-        icon_name="hero-eye-slash-micro"
-        class="w-full mt-2"
-      >
-        {gettext("Hidden")}
-      </.badge>
+      <div class="relative mt-2">
+        <.badge
+          icon_name={if @column.is_hidden, do: "hero-eye-slash-micro", else: "hero-eye-micro"}
+          class="w-full"
+        >
+          {if @column.is_hidden, do: gettext("Hidden"), else: gettext("Visible")}
+        </.badge>
+        <.tooltip id={"#{@dom_id}-visibility-tooltip"}>
+          {if @column.is_hidden,
+            do:
+              gettext(
+                "This grade report is hidden from students and guardians. Visibility is managed by the school admin."
+              ),
+            else:
+              gettext(
+                "This grade report is visible to students and guardians. Visibility is managed by the school admin."
+              )}
+        </.tooltip>
+      </div>
     </div>
     """
   end

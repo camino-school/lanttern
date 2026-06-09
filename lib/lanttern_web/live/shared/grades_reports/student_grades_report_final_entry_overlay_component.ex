@@ -18,7 +18,7 @@ defmodule LantternWeb.GradesReports.StudentGradesReportFinalEntryOverlayComponen
     ~H"""
     <div>
       <.slide_over id="student-grade-report-final-entry-overlay" show={true} on_cancel={@on_cancel}>
-        <:title>{gettext("Edit student grades report final entry")}</:title>
+        <:title>{gettext("Edit student grade report final entry")}</:title>
         <.metadata class="mb-4" icon_name="hero-user">
           {@student_grades_report_final_entry.student.name}
         </.metadata>

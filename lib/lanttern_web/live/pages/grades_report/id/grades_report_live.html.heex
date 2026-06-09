@@ -1,7 +1,7 @@
 <Layouts.app_logged_in flash={@flash} current_user={@current_user} current_path={@current_path}>
   <div>
     <.header_nav current_user={@current_user}>
-      <:breadcrumb navigate={~p"/grades_reports"}>{gettext("Grades reports")}</:breadcrumb>
+      <:breadcrumb navigate={~p"/grades_reports"}>{gettext("Grade reports")}</:breadcrumb>
       <:title>{@grades_report.name}</:title>
       <div class="flex items-center gap-6 p-4">
         <div class="flex-1 flex items-center gap-4">
@@ -99,7 +99,7 @@
     show={true}
     on_cancel={JS.patch(~p"/grades_reports/#{@grades_report}")}
   >
-    <:title>{gettext("Edit grades report")}</:title>
+    <:title>{gettext("Edit grade report")}</:title>
     <.live_component
       module={GradesReportFormComponent}
       id={@grades_report.id}

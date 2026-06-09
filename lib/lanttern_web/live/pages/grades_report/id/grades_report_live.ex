@@ -23,7 +23,7 @@ defmodule LantternWeb.GradesReportLive do
   def mount(params, _session, socket) do
     socket =
       socket
-      |> assign(:page_title, gettext("Grades reports"))
+      |> assign(:page_title, gettext("Grade reports"))
       |> assign_grades_report(params)
       |> stream_students()
       |> assign_students_grades_map()
@@ -183,7 +183,7 @@ defmodule LantternWeb.GradesReportLive do
       {:ok, _grades_report} ->
         socket =
           socket
-          |> put_flash(:info, gettext("Grades report deleted"))
+          |> put_flash(:info, gettext("Grade report deleted"))
           |> push_navigate(to: ~p"/grades_reports")
 
         {:noreply, socket}

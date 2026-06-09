@@ -189,7 +189,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
         </section>
         <section id="grades-report" class="mt-10">
           <h3 class="font-display font-bold text-2xl">
-            {gettext("Grades report")}
+            {gettext("Grade report")}
           </h3>
           <div class="mt-6 space-y-4">
             <.grades_report_card
@@ -199,7 +199,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
               myself={@myself}
             />
             <.empty_state_simple :if={@strand_grades_report_cards == []}>
-              {gettext("No grades report linked to this strand yet")}
+              {gettext("No grade report linked to this strand yet")}
             </.empty_state_simple>
           </div>
         </section>
@@ -423,10 +423,26 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
             >
               {gettext("Manage grade composition")}
             </.button>
-            <.badge :if={@entry.is_hidden} class="shrink-0">
-              <.icon name="hero-eye-slash-micro" class="mr-1" />
-              {gettext("Hidden")}
-            </.badge>
+            <span class="relative shrink-0">
+              <.badge class="shrink-0">
+                <.icon
+                  name={if @entry.is_hidden, do: "hero-eye-slash-micro", else: "hero-eye-micro"}
+                  class="mr-1"
+                />
+                {if @entry.is_hidden, do: gettext("Hidden"), else: gettext("Visible")}
+              </.badge>
+              <.tooltip id={"#{@id}-visibility-tooltip"}>
+                {if @entry.is_hidden,
+                  do:
+                    gettext(
+                      "This grade report is hidden from students and guardians. Visibility is managed by the school admin."
+                    ),
+                  else:
+                    gettext(
+                      "This grade report is visible to students and guardians. Visibility is managed by the school admin."
+                    )}
+              </.tooltip>
+            </span>
             <span class="font-sans text-sm text-ltrn-subtle truncate">
               {@entry.grades_report.name}
             </span>

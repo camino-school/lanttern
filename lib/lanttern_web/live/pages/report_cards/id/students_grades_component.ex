@@ -25,7 +25,7 @@ defmodule LantternWeb.ReportCardLive.StudentsGradesComponent do
             {gettext("Students grades")}
           </h5>
           <p class="mt-2">
-            {gettext("View grades reports for all students linked in the students tab.")}
+            {gettext("View grade reports for all students linked in the students tab.")}
           </p>
           <.live_component
             module={InlineFiltersComponent}
