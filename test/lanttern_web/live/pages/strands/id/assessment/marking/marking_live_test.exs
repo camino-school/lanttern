@@ -524,6 +524,47 @@ defmodule LantternWeb.MarkingLiveTest do
       |> assert_has("button", text: "Great Grade Value")
     end
 
+    test "renders pre-retake, manual-adjustment and comment indicators in the cell",
+         %{conn: conn} = context do
+      %{
+        strand: strand,
+        class: class,
+        student: student,
+        scale: scale,
+        ordinal_value: composition_ov,
+        grades_report: grades_report,
+        grades_report_subject: grs,
+        grades_report_cycle: grc
+      } = setup_grades_report_grid(context, [])
+
+      current_ov = insert(:ordinal_value, scale: scale, name: "Adjusted Grade Xyz")
+      pre_retake_ov = insert(:ordinal_value, scale: scale, name: "Pre Retake Xyz")
+
+      GradesReportsFixtures.student_grades_report_entry_fixture(%{
+        student_id: student.id,
+        grades_report_id: grades_report.id,
+        grades_report_cycle_id: grc.id,
+        grades_report_subject_id: grs.id,
+        # current grade differs from the calculated composition value -> manual adjustment
+        ordinal_value_id: current_ov.id,
+        composition_ordinal_value_id: composition_ov.id,
+        pre_retake_ordinal_value_id: pre_retake_ov.id,
+        comment: "Improved after retake",
+        normalized_value: 0.9
+      })
+
+      conn
+      |> visit("#{@live_view_path}/#{strand.id}/assessment/marking?classes_ids=#{class.id}")
+      # current grade and faded pre-retake grade are both rendered
+      |> assert_has("button", text: "Adjusted Grade Xyz")
+      |> assert_has("button", text: "Pre Retake Xyz")
+      # indicator tooltips (rendered in the DOM, hidden via CSS)
+      |> assert_has("[role='tooltip']", text: "Has comment")
+      |> assert_has("[role='tooltip']",
+        text: "Manual grade adjustment (differs from the calculated composition value)"
+      )
+    end
+
     test "does not render the group when no grades report is linked", %{conn: conn, user: user} do
       school = Repo.get!(Lanttern.Schools.School, user.current_profile.school_id)
       strand = insert(:strand)

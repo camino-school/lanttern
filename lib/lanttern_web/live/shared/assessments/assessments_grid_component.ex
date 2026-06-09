@@ -574,22 +574,89 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
   attr :myself, Phoenix.LiveComponent.CID, required: true
 
   def grade_cell(assigns) do
+    entry = assigns.cell.entry
+
+    has_retake_history =
+      entry && (entry.pre_retake_ordinal_value_id != nil || entry.pre_retake_score != nil)
+
+    has_manual_grade =
+      case entry do
+        %{ordinal_value_id: ov_id, composition_ordinal_value_id: comp_ov_id}
+        when ov_id != comp_ov_id ->
+          true
+
+        %{score: score, composition_score: comp_score}
+        when score != comp_score ->
+          true
+
+        _ ->
+          false
+      end
+
+    has_comment = entry && is_binary(entry.comment) && entry.comment != ""
+
+    base_id =
+      "student-#{assigns.student.id}-grade-for-#{assigns.cell.grades_report_id}-#{assigns.cell.grades_report_cycle_id}-#{assigns.cell.grades_report_subject_id}"
+
+    view_grade_entry_js =
+      entry &&
+        JS.push("view_grade_entry",
+          value: %{id: entry.id, scale_id: assigns.cell.scale_id},
+          target: assigns.myself
+        )
+
+    assigns =
+      assigns
+      |> assign(:has_retake_history, has_retake_history)
+      |> assign(:has_manual_grade, has_manual_grade)
+      |> assign(:has_comment, has_comment)
+      |> assign(:base_id, base_id)
+      |> assign(:view_grade_entry_js, view_grade_entry_js)
+
     ~H"""
     <div class="flex items-center justify-center gap-1 w-full h-full">
       <.live_component
+        :if={@has_retake_history}
         module={StudentGradesReportEntryButtonComponent}
-        id={"student-#{@student.id}-grade-for-#{@cell.grades_report_id}-#{@cell.grades_report_cycle_id}-#{@cell.grades_report_subject_id}"}
+        id={"#{@base_id}-pre-retake"}
+        is_pre_retake
         student_grades_report_entry={@cell.entry}
         use_short_name
-        class="flex-1 self-stretch"
-        on_click={
-          @cell.entry &&
-            JS.push("view_grade_entry",
-              value: %{id: @cell.entry.id, scale_id: @cell.scale_id},
-              target: @myself
-            )
-        }
+        class="flex-1 self-stretch my-2 text-xs opacity-70"
+        on_click={@view_grade_entry_js}
       />
+      <.live_component
+        module={StudentGradesReportEntryButtonComponent}
+        id={@base_id}
+        student_grades_report_entry={@cell.entry}
+        use_short_name
+        class="flex-2 self-stretch"
+        on_click={@view_grade_entry_js}
+      />
+      <button
+        :if={@cell.entry}
+        type="button"
+        tabindex="-1"
+        class="flex flex-col shrink-0 rounded-full text-ltrn-light hover:opacity-60"
+        phx-click={@view_grade_entry_js}
+      >
+        <.icon
+          name="hero-chat-bubble-oval-left-micro"
+          class={["size-3", @has_comment && "text-ltrn-staff-accent"]}
+        />
+        <.icon
+          name="hero-pencil-square-micro"
+          class={["size-3", @has_manual_grade && "text-ltrn-primary"]}
+        />
+        <.tooltip :if={@has_comment || @has_manual_grade} id={"#{@base_id}-indicators-tooltip"}>
+          <div class="space-y-2">
+            <p :if={@has_comment}>{gettext("Has comment")}</p>
+            <p :if={@has_manual_grade}>
+              {gettext("Manual grade adjustment (differs from the calculated composition value)")}
+            </p>
+          </div>
+        </.tooltip>
+      </button>
       <.icon_button
         name="hero-arrow-path-mini"
         theme="white"
@@ -603,6 +670,13 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
         phx-value-grades_report_cycle_id={@cell.grades_report_cycle_id}
         phx-value-grades_report_subject_id={@cell.grades_report_subject_id}
         phx-target={@myself}
+        data-confirm={
+          if @has_manual_grade,
+            do:
+              gettext(
+                "There is a manual grade change that will be overwritten by this operation. Are you sure you want to proceed?"
+              )
+        }
       />
     </div>
     """
