@@ -121,6 +121,75 @@ defmodule LantternWeb.ILPLiveTest do
              |> has_element?(~s(input[placeholder="Student age"]))
     end
 
+    test "hides empty components and sections in student ILP visualization", %{
+      conn: conn,
+      user: user
+    } do
+      school_id = user.current_profile.school_id
+      student = SchoolsFixtures.student_fixture(%{school_id: school_id})
+
+      template =
+        ILPFixtures.ilp_template_fixture(%{name: "ILP abc", school_id: school_id})
+        |> Repo.preload(sections: :components)
+
+      {:ok, template} =
+        ILP.update_ilp_template(template, %{
+          sections: [
+            %{
+              name: "section 1",
+              position: 0,
+              components: [
+                %{name: "component 1", template_id: template.id, position: 0},
+                %{name: "component 2", template_id: template.id, position: 1}
+              ]
+            },
+            %{
+              name: "section 2",
+              position: 1,
+              components: [
+                %{name: "component 3", template_id: template.id, position: 0}
+              ]
+            }
+          ]
+        })
+
+      [%{components: [component_1, _component_2]}, %{components: [_component_3]}] =
+        template.sections
+
+      # only component 1 has a content-bearing entry; everything else is empty
+      ILPFixtures.student_ilp_fixture(%{
+        school_id: school_id,
+        cycle_id: user.current_profile.current_school_cycle.id,
+        student_id: student.id,
+        template_id: template.id,
+        entries: [
+          %{
+            template_id: template.id,
+            component_id: component_1.id,
+            description: "some entry description"
+          }
+        ]
+      })
+
+      Filters.set_profile_current_filters(user, %{ilp_template_id: template.id})
+      Filters.set_profile_current_filters(user, %{student_id: student.id})
+
+      {:ok, view, _html} = live(conn, @live_view_path)
+
+      # populated component/section is rendered
+      assert view |> has_element?("div", "section 1")
+      assert view |> has_element?("div", "component 1")
+      assert view |> has_element?("p", "some entry description")
+
+      # empty component and fully-empty section are not rendered
+      refute view |> has_element?("div", "component 2")
+      refute view |> has_element?("div", "section 2")
+      refute view |> has_element?("div", "component 3")
+
+      # the "Nothing yet" placeholder is gone
+      refute view |> has_element?("p", "Nothing yet")
+    end
+
     test "share student ILP", context do
       %{conn: conn, user: user} = set_user_permissions(["ilp_management"], context)
       school = user.current_profile.staff_member.school
