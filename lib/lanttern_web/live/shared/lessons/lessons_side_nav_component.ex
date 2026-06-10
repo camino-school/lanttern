@@ -15,6 +15,11 @@ defmodule LantternWeb.Lessons.LessonsSideNavComponent do
     * `is_staff` - When false (default), editing is disabled and unpublished moments are filtered. We use this separated from scope because teachers can visualize lessons as students/guardians.
     * `base_path` - Base path for lesson links (e.g. `"/strands/lesson"` or `"/strand_report/123/lesson"`). Defaults to `"/strands/lesson"`
 
+  Optional:
+
+    * `subject_filter` - A `%Subject{}` to filter the listed lessons by (or `nil` for all lessons). Defaults to `nil`
+    * `query_params` - Map of query params appended to lesson links, used to persist URL-based filters when navigating between lessons. Defaults to `%{}`
+
   ## Streams
 
   This component manages multiple streams internally:
@@ -51,6 +56,7 @@ defmodule LantternWeb.Lessons.LessonsSideNavComponent do
   alias Lanttern.Lessons
 
   import Lanttern.Utils, only: [reorder: 3]
+  import LantternWeb.FiltersHelpers, only: [path_with_url_filters: 2]
 
   @impl true
   def render(assigns) do
@@ -77,6 +83,7 @@ defmodule LantternWeb.Lessons.LessonsSideNavComponent do
           lesson={lesson}
           current_lesson_id={@lesson_id}
           base_path={@base_path}
+          query_params={@query_params}
           on_edit={JS.push("edit_lesson", value: %{id: lesson.id}, target: @myself)}
           id={dom_id}
           class="mt-2 last:mb-10"
@@ -137,6 +144,7 @@ defmodule LantternWeb.Lessons.LessonsSideNavComponent do
               lesson={lesson}
               current_lesson_id={@lesson_id}
               base_path={@base_path}
+              query_params={@query_params}
               on_edit={JS.push("edit_lesson", value: %{id: lesson.id}, target: @myself)}
               id={dom_id}
               class="mt-2"
@@ -145,7 +153,9 @@ defmodule LantternWeb.Lessons.LessonsSideNavComponent do
               class="p-4 mt-2 mx-6 hidden only:block"
               id={"moment-#{moment.id}-lessons-empty"}
             >
-              {gettext("No lessons for this moment yet")}
+              {if @subject_filter,
+                do: gettext("No lessons in %{subject}", subject: @subject_filter.name),
+                else: gettext("No lessons for this moment yet")}
             </.empty_state_simple>
           </div>
         </div>
@@ -158,6 +168,7 @@ defmodule LantternWeb.Lessons.LessonsSideNavComponent do
   attr :lesson, :map, required: true
   attr :current_lesson_id, :integer, required: true
   attr :base_path, :string, default: "/strands/lesson"
+  attr :query_params, :map, default: %{}
   attr :on_edit, :any, required: true
   attr :class, :any, default: nil
 
@@ -180,7 +191,7 @@ defmodule LantternWeb.Lessons.LessonsSideNavComponent do
         <hr class="w-4 h-0.5 border-0 rounded-r-full bg-ltrn-subtle" />
       </div>
       <.link
-        navigate={"#{@base_path}/#{@lesson.id}"}
+        navigate={path_with_url_filters("#{@base_path}/#{@lesson.id}", @query_params)}
         class={[
           "flex-1 truncate hover:text-ltrn-subtle",
           @link_style
@@ -234,6 +245,8 @@ defmodule LantternWeb.Lessons.LessonsSideNavComponent do
       |> assign(:moment_id, nil)
       |> assign(:is_staff, false)
       |> assign(:base_path, "/strands/lesson")
+      |> assign(:subject_filter, nil)
+      |> assign(:query_params, %{})
       |> assign(:initialized, false)
 
     {:ok, socket}
@@ -269,16 +282,16 @@ defmodule LantternWeb.Lessons.LessonsSideNavComponent do
   end
 
   defp stream_lessons(socket) do
-    # subjects_ids =
-    #   case socket.assigns.subject_filter do
-    #     %{id: id} -> [id]
-    #     _ -> []
-    #   end
-    #
+    subjects_ids =
+      case socket.assigns.subject_filter do
+        %{id: id} -> [id]
+        _ -> []
+      end
+
     opts =
       [
         strand_id: socket.assigns.strand_id,
-        # subjects_ids: subjects_ids,
+        subjects_ids: subjects_ids,
         preloads: [:subjects, :tags]
       ]
 

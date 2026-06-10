@@ -9,6 +9,7 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
 
   import Lanttern.SupabaseHelpers, only: [object_url_to_render_url: 2]
   import Lanttern.Utils, only: [reorder: 3]
+  import LantternWeb.FiltersHelpers, only: [path_with_url_filters: 2]
 
   # shared components
   alias LantternWeb.LearningContext.MomentDetailsOverlayComponent
@@ -113,6 +114,7 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
             <.lesson_entry
               :for={{dom_id, lesson} <- @streams.unattached_lessons}
               lesson={lesson}
+              query_params={@query_params}
               on_edit={JS.push("edit_lesson", value: %{id: lesson.id}, target: @myself)}
               id={dom_id}
               class="mt-4"
@@ -189,6 +191,7 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
                   <.lesson_entry
                     :for={{dom_id, lesson} <- @streams["moment_#{moment.id}_lessons"] || []}
                     lesson={lesson}
+                    query_params={@query_params}
                     on_edit={JS.push("edit_lesson", value: %{id: lesson.id}, target: @myself)}
                     id={dom_id}
                     class="mt-4"
@@ -250,7 +253,7 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
           navigate={
             fn
               {:created, lesson} ->
-                ~p"/strands/lesson/#{lesson}"
+                path_with_url_filters(~p"/strands/lesson/#{lesson}", @query_params)
 
               {_updated_or_deleted, _lesson} ->
                 if @subject_filter,
@@ -267,6 +270,7 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
 
   attr :id, :string, required: true
   attr :lesson, :map, required: true
+  attr :query_params, :map, default: %{}
   attr :on_edit, :any, required: true
   attr :class, :any, default: nil
 
@@ -288,7 +292,7 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
           <div class="flex items-center gap-4">
             <h4 class="flex-1 font-display font-bold text-base">
               <.link
-                navigate={~p"/strands/lesson/#{@lesson.id}"}
+                navigate={path_with_url_filters(~p"/strands/lesson/#{@lesson.id}", @query_params)}
                 class={[
                   "hover:text-ltrn-subtle",
                   if(@lesson.is_published, do: "text-ltrn-darkest", else: "text-ltrn-dark")
@@ -375,10 +379,28 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
       socket.assigns.strand.subjects
       |> Enum.find(&("#{&1.id}" == subject_id))
 
-    assign(socket, :subject_filter, subject_filter)
+    socket
+    |> assign(:subject_filter, subject_filter)
+    |> assign_query_params()
   end
 
-  defp assign_subject_filter(socket), do: assign(socket, :subject_filter, nil)
+  defp assign_subject_filter(socket) do
+    socket
+    |> assign(:subject_filter, nil)
+    |> assign_query_params()
+  end
+
+  # rebuild query params from the validated filter so lesson links
+  # carry the subject filter to the lesson details page
+  defp assign_query_params(socket) do
+    query_params =
+      case socket.assigns.subject_filter do
+        %Subject{id: id} -> %{"subject" => id}
+        nil -> %{}
+      end
+
+    assign(socket, :query_params, query_params)
+  end
 
   defp initialize(%{assigns: %{initialized: false}} = socket) do
     strand = socket.assigns.strand

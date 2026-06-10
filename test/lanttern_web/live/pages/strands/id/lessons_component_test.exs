@@ -158,5 +158,28 @@ defmodule LantternWeb.StrandLive.LessonsComponentTest do
       |> assert_has("h4", text: "Lesson A")
       |> refute_has("h4", text: "Lesson B")
     end
+
+    test "subject filter is kept when navigating to lesson details", %{conn: conn} do
+      subject_a = insert(:subject, name: "Subject A")
+      subject_b = insert(:subject, name: "Subject B")
+      strand = insert(:strand, subjects: [subject_a, subject_b])
+      moment = insert(:moment, strand: strand)
+
+      lesson_a =
+        insert(:lesson, strand: strand, moment: moment, subjects: [subject_a], name: "Lesson A")
+
+      insert(:lesson, strand: strand, moment: moment, subjects: [subject_b], name: "Lesson B")
+
+      conn
+      |> visit("#{@live_view_base_path}/#{strand.id}")
+      |> click_link("#lesson-filter-options a", "Subject A")
+      # lesson links carry the subject filter param
+      |> assert_has("a[href='/strands/lesson/#{lesson_a.id}?subject=#{subject_a.id}']")
+      |> click_link("h4 a", "Lesson A")
+      # lesson details page keeps the filter active
+      |> assert_has("h1", text: "Lesson A")
+      |> assert_has("#lesson-nav-filter-button", text: "Subject: Subject A")
+      |> refute_has("a", text: "Lesson B")
+    end
   end
 end

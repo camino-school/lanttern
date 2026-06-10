@@ -72,6 +72,118 @@ defmodule LantternWeb.LessonLiveTest do
     end
   end
 
+  describe "Side nav subject filter" do
+    test "lists all lessons when no filter is applied", %{conn: conn} do
+      subject_a = insert(:subject, name: "Subject A")
+      subject_b = insert(:subject, name: "Subject B")
+      strand = insert(:strand, subjects: [subject_a, subject_b])
+      lesson_a = insert(:lesson, strand: strand, subjects: [subject_a], name: "Lesson A")
+      insert(:lesson, strand: strand, subjects: [subject_b], name: "Lesson B")
+
+      conn
+      |> visit("#{@live_view_base_path}/#{lesson_a.id}")
+      |> assert_has("#lesson-nav-filter-button", text: "All lessons")
+      |> assert_has("a", text: "Lesson A")
+      |> assert_has("a", text: "Lesson B")
+    end
+
+    test "filters lessons by subject and persists filter in side nav links", %{conn: conn} do
+      subject_a = insert(:subject, name: "Subject A")
+      subject_b = insert(:subject, name: "Subject B")
+      strand = insert(:strand, subjects: [subject_a, subject_b])
+      lesson_a = insert(:lesson, strand: strand, subjects: [subject_a], name: "Lesson A")
+      lesson_aa = insert(:lesson, strand: strand, subjects: [subject_a], name: "Lesson AA")
+      insert(:lesson, strand: strand, subjects: [subject_b], name: "Lesson B")
+
+      conn
+      |> visit("#{@live_view_base_path}/#{lesson_a.id}")
+      |> click_link("#lesson-nav-filter a", "Subject A")
+      |> assert_has("#lesson-nav-filter-button", text: "Subject: Subject A")
+      |> assert_has("a", text: "Lesson AA")
+      |> refute_has("a", text: "Lesson B")
+      # side nav lesson links carry the subject filter param
+      |> assert_has("a[href='#{@live_view_base_path}/#{lesson_aa.id}?subject=#{subject_a.id}']")
+      # filter persists when navigating to another lesson
+      |> click_link("a", "Lesson AA")
+      |> assert_has("h1", text: "Lesson AA")
+      |> assert_has("#lesson-nav-filter-button", text: "Subject: Subject A")
+      |> refute_has("a", text: "Lesson B")
+    end
+
+    test "ignores invalid subject param", %{conn: conn} do
+      subject_a = insert(:subject, name: "Subject A")
+      subject_b = insert(:subject, name: "Subject B")
+      strand = insert(:strand, subjects: [subject_a, subject_b])
+      lesson_a = insert(:lesson, strand: strand, subjects: [subject_a], name: "Lesson A")
+      insert(:lesson, strand: strand, subjects: [subject_b], name: "Lesson B")
+
+      conn
+      |> visit("#{@live_view_base_path}/#{lesson_a.id}?subject=999999")
+      |> assert_has("#lesson-nav-filter-button", text: "All lessons")
+      |> assert_has("a", text: "Lesson A")
+      |> assert_has("a", text: "Lesson B")
+    end
+  end
+
+  describe "Side nav create actions" do
+    test "create new lesson", %{conn: conn} do
+      strand = insert(:strand)
+      lesson = insert(:lesson, strand: strand, name: "Current lesson")
+
+      conn
+      |> visit("#{@live_view_base_path}/#{lesson.id}")
+      |> click_button("Create new lesson")
+      |> within("#new-lesson-form-overlay", fn session ->
+        session
+        |> fill_in("Lesson name", with: "Brand new lesson")
+        |> click_button("Save")
+      end)
+      # after creation, navigates to the new lesson details page
+      |> assert_has("h1", text: "Brand new lesson")
+    end
+
+    test "create new lesson with active subject filter prefills the subject", %{conn: conn} do
+      subject_a = insert(:subject, name: "Subject A")
+      subject_b = insert(:subject, name: "Subject B")
+      strand = insert(:strand, subjects: [subject_a, subject_b])
+      lesson = insert(:lesson, strand: strand, subjects: [subject_a], name: "Current lesson")
+
+      conn
+      |> visit("#{@live_view_base_path}/#{lesson.id}?subject=#{subject_a.id}")
+      |> click_button("Create new lesson")
+      |> within("#new-lesson-form-overlay", fn session ->
+        session
+        |> fill_in("Lesson name", with: "Filtered new lesson")
+        |> click_button("Save")
+      end)
+      |> assert_has("h1", text: "Filtered new lesson")
+      # filter is preserved after creation
+      |> assert_has("#lesson-nav-filter-button", text: "Subject: Subject A")
+
+      new_lesson = Lanttern.Repo.get_by!(Lanttern.Lessons.Lesson, name: "Filtered new lesson")
+      new_lesson = Lanttern.Repo.preload(new_lesson, :subjects)
+      assert [%{id: subject_id}] = new_lesson.subjects
+      assert subject_id == subject_a.id
+    end
+
+    test "create new moment", %{conn: conn} do
+      strand = insert(:strand)
+      lesson = insert(:lesson, strand: strand, name: "Current lesson")
+
+      conn
+      |> visit("#{@live_view_base_path}/#{lesson.id}")
+      |> click_button("Create new moment")
+      |> within("#new-moment-form-overlay", fn session ->
+        session
+        |> fill_in("Name", with: "Brand new moment")
+        |> click_button("Save")
+      end)
+      # after creation, the side nav is refreshed with the new moment
+      |> assert_has("h1", text: "Current lesson")
+      |> assert_has("button", text: "Brand new moment")
+    end
+  end
+
   describe "Lesson curriculum items management" do
     test "displays existing lesson curriculum items", %{conn: conn} do
       strand = insert(:strand)
