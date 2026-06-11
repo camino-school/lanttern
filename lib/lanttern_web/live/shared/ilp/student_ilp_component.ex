@@ -74,11 +74,19 @@ defmodule LantternWeb.ILP.StudentILPComponent do
         />
       </div>
       <div>
-        <.card_base :for={section <- @template.sections} class="p-4 border border-ltrn-lightest mt-4">
+        <.card_base
+          :for={section <- @template.sections}
+          :if={section_has_content?(section, @component_entry_map)}
+          class="p-4 border border-ltrn-lightest mt-4"
+        >
           <div class="font-display font-black text-base">
             {section.name}
           </div>
-          <div :for={component <- section.components} class="p-4 rounded-sm mt-2 bg-ltrn-lightest">
+          <div
+            :for={component <- section.components}
+            :if={@component_entry_map[component.id]}
+            class="p-4 rounded-sm mt-2 bg-ltrn-lightest"
+          >
             <div class="font-bold">{component.name}</div>
             <.ilp_entry entry={@component_entry_map[component.id]} class="mt-4" />
           </div>
@@ -121,26 +129,16 @@ defmodule LantternWeb.ILP.StudentILPComponent do
   attr :entry, ILPEntry
   attr :class, :any, default: nil
 
-  defp ilp_entry(%{entry: nil} = assigns) do
-    ~H"""
-    <.empty_state_simple class={@class}>
-      {gettext("Nothing yet")}
-    </.empty_state_simple>
-    """
-  end
-
-  defp ilp_entry(%{entry: %{description: nil}} = assigns) do
-    ~H"""
-    <.empty_state_simple class={@class}>
-      {gettext("Nothing yet")}
-    </.empty_state_simple>
-    """
-  end
-
   defp ilp_entry(assigns) do
     ~H"""
     <.markdown text={@entry.description} class={["max-w-none", @class]} />
     """
+  end
+
+  # A section is rendered only when at least one of its components has a
+  # content-bearing entry (i.e. is present in `component_entry_map`).
+  defp section_has_content?(section, component_entry_map) do
+    Enum.any?(section.components, &Map.has_key?(component_entry_map, &1.id))
   end
 
   @impl true
@@ -210,7 +208,7 @@ defmodule LantternWeb.ILP.StudentILPComponent do
           Enum.find(student_ilp.entries, &(&1.component_id == component.id))
         }
       end)
-      |> Enum.filter(fn {_component_id, entry} -> entry end)
+      |> Enum.filter(fn {_component_id, entry} -> ILP.ilp_entry_has_content?(entry) end)
       |> Enum.into(%{})
 
     socket

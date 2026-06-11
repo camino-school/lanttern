@@ -7,15 +7,19 @@ defmodule LantternWeb.LessonLive do
   alias Lanttern.LearningContext
   alias Lanttern.LearningContext.Moment
   alias Lanttern.Lessons
+  alias Lanttern.Lessons.Lesson
   alias Lanttern.Strands
+  alias Lanttern.Taxonomy.Subject
 
   import Lanttern.Utils, only: [reorder: 3]
+  import LantternWeb.FiltersHelpers, only: [assign_subject_filter_from_params: 3]
 
   # shared components
   alias LantternWeb.Assessments.AssessmentPointFormOverlayComponent
   alias LantternWeb.Attachments.AttachmentAreaComponent
   alias LantternWeb.Curricula.CurriculumItemSearchComponent
   alias LantternWeb.LearningContext.MomentDetailsOverlayComponent
+  alias LantternWeb.LearningContext.MomentFormComponent
   alias LantternWeb.Lessons.LessonFormComponent
   alias LantternWeb.Lessons.LessonsSideNavComponent
 
@@ -84,6 +88,8 @@ defmodule LantternWeb.LessonLive do
       |> assign_lesson(params)
       |> assign_strand()
       |> assign(:is_editing, false)
+      |> assign(:new_lesson, nil)
+      |> assign(:new_moment, nil)
       |> assign(:description_form, nil)
       |> assign(:teacher_notes_form, nil)
       |> assign(:differentiation_form, nil)
@@ -176,6 +182,14 @@ defmodule LantternWeb.LessonLive do
     assign(socket, :strand_assessment_curriculum_items, items)
   end
 
+  @impl true
+  def handle_params(params, _url, socket) do
+    socket =
+      assign_subject_filter_from_params(socket, socket.assigns.strand.subjects, params)
+
+    {:noreply, socket}
+  end
+
   # event handlers
 
   @impl true
@@ -185,6 +199,29 @@ defmodule LantternWeb.LessonLive do
   def handle_event("cancel_edit", _params, socket),
     do: {:noreply, assign(socket, :is_editing, false)}
 
+  def handle_event("new_lesson", _params, socket) do
+    subjects =
+      case socket.assigns.subject_filter do
+        %Subject{} = subject -> [subject]
+        _ -> []
+      end
+
+    new_lesson = %Lesson{strand_id: socket.assigns.strand.id, subjects: subjects}
+
+    {:noreply, assign(socket, :new_lesson, new_lesson)}
+  end
+
+  def handle_event("cancel_new_lesson", _params, socket),
+    do: {:noreply, assign(socket, :new_lesson, nil)}
+
+  def handle_event("new_moment", _params, socket) do
+    new_moment = %Moment{strand_id: socket.assigns.strand.id}
+    {:noreply, assign(socket, :new_moment, new_moment)}
+  end
+
+  def handle_event("cancel_new_moment", _params, socket),
+    do: {:noreply, assign(socket, :new_moment, nil)}
+
   def handle_event("publish", _params, socket) do
     socket =
       Lessons.update_lesson(socket.assigns.current_scope, socket.assigns.lesson, %{
@@ -193,7 +230,7 @@ defmodule LantternWeb.LessonLive do
       |> case do
         {:ok, lesson} ->
           socket
-          |> push_navigate(to: ~p"/strands/lesson/#{lesson}")
+          |> push_navigate(to: ~p"/strands/lesson/#{lesson}?#{socket.assigns.query_params}")
           |> put_flash(:info, gettext("Lesson published"))
 
         # missing description validation

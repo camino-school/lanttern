@@ -119,15 +119,15 @@ msgstr ""
 #: lib/lanttern_web/live/pages/strands/id/assessment/marking/marking_live.html.heex:133
 #: lib/lanttern_web/live/pages/strands/id/assessment_component.ex:84
 #: lib/lanttern_web/live/pages/strands/id/strand_live.html.heex:154
-#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:137
-#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:277
-#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:330
-#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:473
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:194
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:334
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:387
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:571
 #: lib/lanttern_web/live/pages/strands/library/strands_library_live.html.heex:102
 #: lib/lanttern_web/live/shared/agent_chat/agent_preferences_overlay_component.ex:73
 #: lib/lanttern_web/live/shared/agent_chat/rename_conversation_form_component.ex:28
 #: lib/lanttern_web/live/shared/agents/agent_form_component.ex:47
-#: lib/lanttern_web/live/shared/assessment_composition/assessment_point_composition_overlay_component.ex:167
+#: lib/lanttern_web/live/shared/assessment_composition/assessment_point_composition_overlay_component.ex:170
 #: lib/lanttern_web/live/shared/assessments/assessment_point_form_overlay_component.ex:140
 #: lib/lanttern_web/live/shared/assessments/entry_details_overlay_component.ex:411
 #: lib/lanttern_web/live/shared/attachments/attachment_area_component.ex:100
@@ -209,14 +209,14 @@ msgstr ""
 #: lib/lanttern_web/live/pages/strands/id/assessment/marking/marking_live.html.heex:136
 #: lib/lanttern_web/live/pages/strands/id/assessment_component.ex:86
 #: lib/lanttern_web/live/pages/strands/id/strand_live.html.heex:157
-#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:139
-#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:279
-#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:332
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:196
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:336
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:389
 #: lib/lanttern_web/live/pages/strands/library/strands_library_live.html.heex:105
 #: lib/lanttern_web/live/shared/agent_chat/agent_preferences_overlay_component.ex:75
 #: lib/lanttern_web/live/shared/agent_chat/rename_conversation_form_component.ex:31
 #: lib/lanttern_web/live/shared/agents/agent_form_component.ex:50
-#: lib/lanttern_web/live/shared/assessment_composition/assessment_point_composition_overlay_component.ex:175
+#: lib/lanttern_web/live/shared/assessment_composition/assessment_point_composition_overlay_component.ex:178
 #: lib/lanttern_web/live/shared/assessments/assessment_point_form_overlay_component.ex:149
 #: lib/lanttern_web/live/shared/assessments/assessments_grid_component.ex:202
 #: lib/lanttern_web/live/shared/assessments/entry_details_overlay_component.ex:69
@@ -469,7 +469,7 @@ msgstr ""
 #: lib/lanttern_web/live/pages/settings/grading_scales/ordinal_value_form_component.ex:73
 #: lib/lanttern_web/live/pages/strands/id/strand_live.html.heex:74
 #: lib/lanttern_web/live/shared/agents/agent_form_component.ex:38
-#: lib/lanttern_web/live/shared/assessment_composition/assessment_point_composition_overlay_component.ex:158
+#: lib/lanttern_web/live/shared/assessment_composition/assessment_point_composition_overlay_component.ex:161
 #: lib/lanttern_web/live/shared/assessments/assessment_point_form_overlay_component.ex:131
 #: lib/lanttern_web/live/shared/curricula/curriculum_form_component.ex:52
 #: lib/lanttern_web/live/shared/grades_reports/student_grades_report_entry_overlay_component.ex:62
@@ -529,9 +529,9 @@ msgstr ""
 #: lib/lanttern_web/live/pages/settings/grading_scales/ordinal_value_form_component.ex:71
 #: lib/lanttern_web/live/pages/strands/id/overview_component.ex:100
 #: lib/lanttern_web/live/pages/strands/id/strand_live.html.heex:77
-#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:398
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:455
 #: lib/lanttern_web/live/shared/agents/agent_form_component.ex:36
-#: lib/lanttern_web/live/shared/assessment_composition/assessment_point_composition_overlay_component.ex:156
+#: lib/lanttern_web/live/shared/assessment_composition/assessment_point_composition_overlay_component.ex:159
 #: lib/lanttern_web/live/shared/assessments/assessment_point_form_overlay_component.ex:129
 #: lib/lanttern_web/live/shared/assessments/assessment_point_form_overlay_component.ex:173
 #: lib/lanttern_web/live/shared/assessments/assessments_grid_component.ex:188
@@ -565,8 +565,8 @@ msgstr ""
 
 #: lib/lanttern_web/live/pages/strands/id/assessment_component.ex:359
 #: lib/lanttern_web/live/pages/strands/id/strand_rubrics_component.ex:101
-#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.ex:51
-#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:286
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.ex:55
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:343
 #: lib/lanttern_web/live/shared/assessments/assessment_point_form_overlay_component.ex:79
 #: lib/lanttern_web/live/shared/assessments/entry_details_overlay_component.ex:39
 #: lib/lanttern_web/live/shared/assessments/entry_details_overlay_component.ex:440
@@ -592,14 +592,14 @@ msgstr ""
 #: lib/lanttern_web/live/pages/settings/agents/agent_card_component.ex:28
 #: lib/lanttern_web/live/pages/settings/lesson_tags/lesson_tag_card_component.ex:30
 #: lib/lanttern_web/live/pages/settings/lesson_templates/lesson_template_card_component.ex:28
-#: lib/lanttern_web/live/pages/strands/id/lessons_component.ex:161
-#: lib/lanttern_web/live/pages/strands/id/lessons_component.ex:309
+#: lib/lanttern_web/live/pages/strands/id/lessons_component.ex:174
+#: lib/lanttern_web/live/pages/strands/id/lessons_component.ex:340
 #: lib/lanttern_web/live/pages/strands/id/overview_component.ex:81
 #: lib/lanttern_web/live/pages/strands/id/strand_rubrics_component.ex:231
-#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:79
-#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:248
-#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:301
-#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:383
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:136
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:305
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:358
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:440
 #: lib/lanttern_web/live/pages/students/settings/tags_component.ex:46
 #: lib/lanttern_web/live/pages/students_records/settings/status_component.ex:61
 #: lib/lanttern_web/live/pages/students_records/settings/tags_component.ex:57
@@ -741,7 +741,8 @@ msgstr ""
 msgid "Couldn't find moment"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/strands/id/lessons_component.ex:94
+#: lib/lanttern_web/live/pages/strands/id/lessons_component.ex:97
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:77
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Create new moment"
 msgstr ""
@@ -751,7 +752,7 @@ msgstr ""
 msgid "Curriculum item already added to this strand"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/strands/id/lessons_component.ex:525
+#: lib/lanttern_web/live/pages/strands/id/lessons_component.ex:554
 #, elixir-autogen, elixir-format
 msgid "Edit moment"
 msgstr ""
@@ -792,12 +793,13 @@ msgstr ""
 msgid "Move moment down"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/strands/id/lessons_component.ex:490
+#: lib/lanttern_web/live/pages/strands/id/lessons_component.ex:519
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:533
 #, elixir-autogen, elixir-format
 msgid "New moment"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/strands/id/lessons_component.ex:123
+#: lib/lanttern_web/live/pages/strands/id/lessons_component.ex:136
 #, elixir-autogen, elixir-format, fuzzy
 msgid "No moments for this strand yet"
 msgstr ""
@@ -812,8 +814,8 @@ msgstr ""
 #: lib/lanttern_web/live/pages/report_cards/id/students_grades_component.ex:306
 #: lib/lanttern_web/live/pages/report_cards/id/students_grades_component.ex:345
 #: lib/lanttern_web/live/pages/report_cards/id/students_grades_component.ex:384
-#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.ex:204
-#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.ex:222
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.ex:241
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.ex:259
 #: lib/lanttern_web/live/shared/assessments/assessments_grid_component.ex:1188
 #: lib/lanttern_web/live/shared/assessments/assessments_grid_component.ex:1223
 #: lib/lanttern_web/live/shared/assessments/entry_details_overlay_component.ex:848
@@ -880,7 +882,7 @@ msgstr ""
 
 #: lib/lanttern_web/live/pages/curriculum/component/id/curriculum_component_live.ex:67
 #: lib/lanttern_web/live/pages/strands/id/overview_component.ex:117
-#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:497
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:595
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Add curriculum item"
 msgstr ""
@@ -1234,7 +1236,7 @@ msgstr ""
 #: lib/lanttern_web/components/core_components.ex:1658
 #: lib/lanttern_web/components/form_components.ex:1245
 #: lib/lanttern_web/live/pages/strands/id/overview_component.ex:98
-#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:396
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:453
 #: lib/lanttern_web/live/shared/schools/student_form_overlay_component.ex:158
 #, elixir-autogen, elixir-format
 msgid "Remove"
@@ -1813,8 +1815,8 @@ msgstr ""
 msgid "No strands related to selected cycles"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:233
-#: lib/lanttern_web/live/shared/ilp/student_ilp_component.ex:89
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:290
+#: lib/lanttern_web/live/shared/ilp/student_ilp_component.ex:97
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Notes"
 msgstr ""
@@ -2689,7 +2691,7 @@ msgstr ""
 msgid "Edit report to add a cover image"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/strands/id/lessons_component.ex:26
+#: lib/lanttern_web/live/pages/strands/id/lessons_component.ex:29
 #: lib/lanttern_web/live/pages/strands/id/overview_component.ex:21
 #, elixir-autogen, elixir-format
 msgid "Edit strand to add a cover image"
@@ -2872,7 +2874,7 @@ msgstr ""
 
 #: lib/lanttern_web/live/pages/shared/strand_report/overview/strand_report_overview_live.html.heex:17
 #: lib/lanttern_web/live/pages/shared/strand_report/strand_report_overview_component.ex:27
-#: lib/lanttern_web/live/pages/strands/id/lessons_component.ex:25
+#: lib/lanttern_web/live/pages/strands/id/lessons_component.ex:28
 #: lib/lanttern_web/live/pages/strands/id/overview_component.ex:20
 #, elixir-autogen, elixir-format
 msgid "Strand cover image"
@@ -4151,12 +4153,6 @@ msgstr ""
 msgid "Notes (shared with students/guardians)"
 msgstr ""
 
-#: lib/lanttern_web/live/shared/ilp/student_ilp_component.ex:127
-#: lib/lanttern_web/live/shared/ilp/student_ilp_component.ex:135
-#, elixir-autogen, elixir-format
-msgid "Nothing yet"
-msgstr ""
-
 #: lib/lanttern_web/live/pages/ilp/ilp_live.html.heex:35
 #, elixir-autogen, elixir-format
 msgid "Search for student ILP"
@@ -4167,7 +4163,7 @@ msgstr ""
 msgid "Sections and components"
 msgstr ""
 
-#: lib/lanttern_web/live/shared/ilp/student_ilp_component.ex:99
+#: lib/lanttern_web/live/shared/ilp/student_ilp_component.ex:107
 #, elixir-autogen, elixir-format
 msgid "Teacher notes (internal)"
 msgstr ""
@@ -4371,7 +4367,7 @@ msgstr ""
 msgid "%{school} classes"
 msgstr ""
 
-#: lib/lanttern_web/live/shared/ilp/student_ilp_component.ex:111
+#: lib/lanttern_web/live/shared/ilp/student_ilp_component.ex:119
 #, elixir-autogen, elixir-format
 msgid "About %{template}"
 msgstr ""
@@ -4583,19 +4579,19 @@ msgstr ""
 msgid "Age is required"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/student_ilp/student_ilp_live.ex:132
+#: lib/lanttern_web/live/pages/student_ilp/student_ilp_live.ex:135
 #: lib/lanttern_web/live/shared/ilp/student_ilp_manager_component.ex:177
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Comment created successfully"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/student_ilp/student_ilp_live.ex:114
+#: lib/lanttern_web/live/pages/student_ilp/student_ilp_live.ex:117
 #: lib/lanttern_web/live/shared/ilp/student_ilp_manager_component.ex:179
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Comment deleted successfully"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/student_ilp/student_ilp_live.ex:123
+#: lib/lanttern_web/live/pages/student_ilp/student_ilp_live.ex:126
 #: lib/lanttern_web/live/shared/ilp/student_ilp_manager_component.ex:178
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Comment updated successfully"
@@ -4607,7 +4603,7 @@ msgstr ""
 msgid "Content"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/student_ilp/student_ilp_live.ex:98
+#: lib/lanttern_web/live/pages/student_ilp/student_ilp_live.ex:101
 #: lib/lanttern_web/live/shared/ilp/student_ilp_manager_component.ex:276
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Edit Comment"
@@ -4639,7 +4635,7 @@ msgstr ""
 msgid "LantternAI ILP revision instructions"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/student_ilp/student_ilp_live.ex:89
+#: lib/lanttern_web/live/pages/student_ilp/student_ilp_live.ex:92
 #: lib/lanttern_web/live/shared/ilp/student_ilp_manager_component.ex:267
 #, elixir-autogen, elixir-format, fuzzy
 msgid "New Comment"
@@ -4735,23 +4731,25 @@ msgstr ""
 msgid "User not found."
 msgstr ""
 
-#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:294
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:351
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Add differentiation notes"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:110
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:167
 #, elixir-autogen, elixir-format
 msgid "Add lesson content"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:241
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:298
 #, elixir-autogen, elixir-format
 msgid "Add teacher notes"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/strands/id/lessons_component.ex:58
-#: lib/lanttern_web/live/pages/strands/id/lessons_component.ex:68
+#: lib/lanttern_web/live/pages/strands/id/lessons_component.ex:61
+#: lib/lanttern_web/live/pages/strands/id/lessons_component.ex:71
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:40
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:50
 #, elixir-autogen, elixir-format, fuzzy
 msgid "All lessons"
 msgstr ""
@@ -4776,7 +4774,7 @@ msgstr ""
 msgid "Configure section"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:228
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:285
 #, elixir-autogen, elixir-format
 msgid "Content and resources not shared with students and guardians"
 msgstr ""
@@ -4786,7 +4784,8 @@ msgstr ""
 msgid "Contents"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/strands/id/lessons_component.ex:98
+#: lib/lanttern_web/live/pages/strands/id/lessons_component.ex:101
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:78
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Create new lesson"
 msgstr ""
@@ -4811,19 +4810,19 @@ msgstr ""
 msgid "Done"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/strands/id/lessons_component.ex:299
-#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:52
+#: lib/lanttern_web/live/pages/strands/id/lessons_component.ex:330
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:109
 #, elixir-autogen, elixir-format
 msgid "Draft"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:118
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:175
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Edit content"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/strands/id/lessons_component.ex:560
-#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:428
+#: lib/lanttern_web/live/pages/strands/id/lessons_component.ex:589
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:485
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Edit lesson"
 msgstr ""
@@ -4864,7 +4863,7 @@ msgstr ""
 msgid "Lesson deleted"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:131
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:188
 #, elixir-autogen, elixir-format
 msgid "Lesson description"
 msgstr ""
@@ -4879,17 +4878,17 @@ msgstr ""
 msgid "Lesson name"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.ex:197
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.ex:234
 #, elixir-autogen, elixir-format
 msgid "Lesson published"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:213
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:270
 #, elixir-autogen, elixir-format
 msgid "Lesson resources"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.ex:219
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.ex:256
 #, elixir-autogen, elixir-format
 msgid "Lesson unpublished"
 msgstr ""
@@ -4936,14 +4935,16 @@ msgid "Moment (optional)"
 msgstr ""
 
 #: lib/lanttern_web/live/pages/strands/id/assessment_component.ex:102
-#: lib/lanttern_web/live/pages/strands/id/lessons_component.ex:85
+#: lib/lanttern_web/live/pages/strands/id/lessons_component.ex:88
 #: lib/lanttern_web/live/pages/strands/id/overview_component.ex:55
-#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:358
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:70
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:415
 #, elixir-autogen, elixir-format, fuzzy
 msgid "New"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/strands/id/lessons_component.ex:548
+#: lib/lanttern_web/live/pages/strands/id/lessons_component.ex:577
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:509
 #, elixir-autogen, elixir-format
 msgid "New lesson"
 msgstr ""
@@ -4953,13 +4954,14 @@ msgstr ""
 msgid "New section"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/strands/id/lessons_component.ex:202
-#: lib/lanttern_web/live/shared/lessons/lessons_side_nav_component.ex:148
+#: lib/lanttern_web/live/pages/strands/id/lessons_component.ex:225
+#: lib/lanttern_web/live/shared/lessons/lessons_side_nav_component.ex:160
 #, elixir-autogen, elixir-format
 msgid "No lessons for this moment yet"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/strands/id/lessons_component.ex:201
+#: lib/lanttern_web/live/pages/strands/id/lessons_component.ex:224
+#: lib/lanttern_web/live/shared/lessons/lessons_side_nav_component.ex:159
 #, elixir-autogen, elixir-format
 msgid "No lessons in %{subject}"
 msgstr ""
@@ -4986,7 +4988,7 @@ msgstr ""
 msgid "Please wait before requesting another login code."
 msgstr ""
 
-#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:90
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:147
 #, elixir-autogen, elixir-format
 msgid "Publish"
 msgstr ""
@@ -5038,22 +5040,23 @@ msgstr ""
 msgid "Strand Curriculum"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/strands/id/lessons_component.ex:48
+#: lib/lanttern_web/live/pages/strands/id/lessons_component.ex:51
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Strand lessons"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/strands/id/lessons_component.ex:57
+#: lib/lanttern_web/live/pages/strands/id/lessons_component.ex:60
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:39
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Subject: %{subject}"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:225
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:282
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Teacher area"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:339
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:396
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Teacher resources"
 msgstr ""
@@ -5068,7 +5071,7 @@ msgstr ""
 msgid "The code is invalid or has expired."
 msgstr ""
 
-#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:93
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:150
 #, elixir-autogen, elixir-format
 msgid "This lesson is in draft mode. Publish to make it visible to students and guardians"
 msgstr ""
@@ -5078,12 +5081,12 @@ msgstr ""
 msgid "To change the lesson moment, drag the lesson to the desired moment from the strand lessons timeline"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:83
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:140
 #, elixir-autogen, elixir-format
 msgid "Unpublish"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:86
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:143
 #, elixir-autogen, elixir-format
 msgid "Unpublish to hide lesson from students and guardians"
 msgstr ""
@@ -5356,12 +5359,12 @@ msgstr ""
 msgid "Chat"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:420
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:477
 #, elixir-autogen, elixir-format
 msgid "Create with AI"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:420
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:477
 #, elixir-autogen, elixir-format
 msgid "Enhance with AI"
 msgstr ""
@@ -5437,7 +5440,7 @@ msgstr ""
 msgid "strand"
 msgstr ""
 
-#: lib/lanttern_web/live/shared/lessons/lessons_side_nav_component.ex:192
+#: lib/lanttern_web/live/shared/lessons/lessons_side_nav_component.ex:212
 #, elixir-autogen, elixir-format, fuzzy
 msgid " (Draft)"
 msgstr ""
@@ -5473,14 +5476,14 @@ msgid "Assessment point created"
 msgstr ""
 
 #: lib/lanttern_web/live/pages/strands/id/assessment_component.ex:549
-#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.ex:540
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.ex:577
 #: lib/lanttern_web/live/shared/assessments/assessments_grid_component.ex:893
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Assessment point deleted"
 msgstr ""
 
 #: lib/lanttern_web/live/pages/strands/id/assessment_component.ex:516
-#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.ex:525
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.ex:562
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Assessment point updated"
 msgstr ""
@@ -5491,7 +5494,7 @@ msgid "Assessment points"
 msgstr ""
 
 #: lib/lanttern_web/live/pages/shared/strand_report/lesson/strand_report_lesson_live.html.heex:22
-#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:22
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:25
 #, elixir-autogen, elixir-format
 msgid "Back"
 msgstr ""
@@ -5527,7 +5530,7 @@ msgid "Edit assessment info"
 msgstr ""
 
 #: lib/lanttern_web/live/pages/strands/id/assessment_component.ex:745
-#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.ex:402
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.ex:439
 #: lib/lanttern_web/live/shared/assessments/assessment_point_command_palette_component.ex:35
 #: lib/lanttern_web/live/shared/assessments/assessments_grid_component.ex:230
 #, elixir-autogen, elixir-format, fuzzy
@@ -5618,7 +5621,7 @@ msgid "No lesson tags created yet"
 msgstr ""
 
 #: lib/lanttern_web/live/pages/shared/strand_report/strand_report_overview_component.ex:49
-#: lib/lanttern_web/live/pages/strands/id/lessons_component.ex:45
+#: lib/lanttern_web/live/pages/strands/id/lessons_component.ex:48
 #, elixir-autogen, elixir-format
 msgid "Read the full overview"
 msgstr ""
@@ -5698,7 +5701,7 @@ msgid "Use this area to share assessment information with students (e.g. grade c
 msgstr ""
 
 #: lib/lanttern_web/live/pages/strands/id/assessment_component.ex:355
-#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.ex:47
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.ex:51
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Uses rubric in assessment"
 msgstr ""
@@ -5942,22 +5945,22 @@ msgstr ""
 msgid "We use essential cookies to keep you logged in. We'd also like to use analytics cookies (Google Analytics) to help us improve the app."
 msgstr ""
 
-#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:460
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:558
 #, elixir-autogen, elixir-format
 msgid "Assessment points can be linked to only one lesson at a time, and this one is already linked to another lesson."
 msgstr ""
 
-#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.ex:510
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.ex:547
 #, elixir-autogen, elixir-format
 msgid "Could not link assessment point"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.ex:511
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.ex:548
 #, elixir-autogen, elixir-format
 msgid "Could not unlink assessment point"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:465
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:563
 #, elixir-autogen, elixir-format
 msgid "Do you want to unlink it from \"%{linked_lesson}\" and link to \"%{this_lesson}\" (this lesson)?"
 msgstr ""
@@ -5972,53 +5975,53 @@ msgstr ""
 msgid "Lesson:"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:165
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:222
 #, elixir-autogen, elixir-format
 msgid "Link assessment point to this lesson"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:458
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:556
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Link assessment point"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:146
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:203
 #, elixir-autogen, elixir-format
 msgid "Linked assessment points"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:150
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:207
 #, elixir-autogen, elixir-format
 msgid "Linked assessment points are a great way to present contextualized assessment proposals to students"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:175
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:232
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Loading..."
 msgstr ""
 
-#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:193
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:250
 #, elixir-autogen, elixir-format
 msgid "Manage assessment points"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:176
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:233
 #, elixir-autogen, elixir-format, fuzzy
 msgid "No assessment points found"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:206
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:263
 #, elixir-autogen, elixir-format
 msgid "No linked assessment points"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.ex:72
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.ex:76
 #: lib/lanttern_web/live/shared/schools/class_staff_member_form_overlay_component.ex:48
 #, elixir-autogen, elixir-format
 msgid "Unlink"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:476
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:574
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Update link"
 msgstr ""
@@ -6472,7 +6475,7 @@ msgstr ""
 msgid "Curriculum item already linked to this strand"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:352
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:409
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Lesson Curriculum"
 msgstr ""
@@ -6482,7 +6485,7 @@ msgstr ""
 msgid "New strand goal"
 msgstr ""
 
-#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:406
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:463
 #, elixir-autogen, elixir-format
 msgid "No curriculum items linked to this lesson"
 msgstr ""
@@ -6493,7 +6496,7 @@ msgid "No curriculum items linked to this strand"
 msgstr ""
 
 #: lib/lanttern_web/live/pages/strands/id/overview_component.ex:92
-#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:392
+#: lib/lanttern_web/live/pages/strands/lesson/id/lesson_live.html.heex:449
 #, elixir-autogen, elixir-format, fuzzy
 msgid "Replace"
 msgstr ""
@@ -6546,7 +6549,7 @@ msgstr ""
 msgid "Assessment point"
 msgstr ""
 
-#: lib/lanttern_web/live/shared/assessment_composition/assessment_point_composition_overlay_component.ex:186
+#: lib/lanttern_web/live/shared/assessment_composition/assessment_point_composition_overlay_component.ex:189
 #: lib/lanttern_web/live/shared/assessments/assessments_grid_component.ex:389
 #: lib/lanttern_web/live/shared/grading/grade_composition_view_overlay_component.ex:35
 #: lib/lanttern_web/live/shared/grading/strand_grade_composition_overlay_component.ex:44
@@ -6578,7 +6581,7 @@ msgstr ""
 msgid "Setup composition"
 msgstr ""
 
-#: lib/lanttern_web/live/shared/assessment_composition/assessment_point_composition_overlay_component.ex:185
+#: lib/lanttern_web/live/shared/assessment_composition/assessment_point_composition_overlay_component.ex:188
 #: lib/lanttern_web/live/shared/assessments/assessments_grid_component.ex:383
 #, elixir-autogen, elixir-format
 msgid "Sum-based grade composition"
@@ -6826,7 +6829,7 @@ msgstr ""
 msgid "Composed assessment point"
 msgstr ""
 
-#: lib/lanttern_web/live/shared/assessment_composition/assessment_point_composition_overlay_component.ex:118
+#: lib/lanttern_web/live/shared/assessment_composition/assessment_point_composition_overlay_component.ex:121
 #, elixir-autogen, elixir-format
 msgid "Composed assessment point — can't be part of another composition"
 msgstr ""
@@ -7222,4 +7225,10 @@ msgstr ""
 #: lib/lanttern_web/live/shared/assessments/assessments_grid_component.ex:655
 #, elixir-autogen, elixir-format
 msgid "Manual grade adjustment (differs from the calculated composition value)"
+msgstr ""
+
+#: lib/lanttern_web/live/pages/strands/id/lessons_component.ex:310
+#: lib/lanttern_web/live/shared/lessons/lessons_side_nav_component.ex:199
+#, elixir-autogen, elixir-format
+msgid "Lesson reordering is disabled when a filter is active"
 msgstr ""

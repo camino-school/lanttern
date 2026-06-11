@@ -17,6 +17,7 @@ defmodule LantternWeb.FiltersHelpers do
   alias Lanttern.StudentsRecords
   alias Lanttern.StudentTags
   alias Lanttern.Taxonomy
+  alias Lanttern.Taxonomy.Subject
 
   import LantternWeb.LocalizationHelpers
 
@@ -912,6 +913,42 @@ defmodule LantternWeb.FiltersHelpers do
       # sort for a stable, predictable query string ordering
       params -> "#{path}?#{URI.encode_query(Enum.sort(params))}"
     end
+  end
+
+  @doc """
+  Assigns `:subject_filter` and `:query_params` based on the `"subject"` URL param.
+
+  The subject id from `params` is validated against the given `subjects` list,
+  and `:query_params` is rebuilt from the validated filter — so invalid or
+  unknown URL params are not propagated to links built with `:query_params`
+  (e.g. via `path_with_url_filters/3`).
+
+  ## Returned socket assigns
+
+  - `:subject_filter` - the matched `%Subject{}`, or `nil`
+  - `:query_params` - `%{"subject" => id}` when there's a valid filter, or `%{}`
+  """
+  @spec assign_subject_filter_from_params(
+          Phoenix.LiveView.Socket.t(),
+          [Subject.t()],
+          map()
+        ) :: Phoenix.LiveView.Socket.t()
+  def assign_subject_filter_from_params(socket, subjects, params) do
+    subject_filter =
+      case params do
+        %{"subject" => subject_id} -> Enum.find(subjects, &("#{&1.id}" == subject_id))
+        _ -> nil
+      end
+
+    query_params =
+      case subject_filter do
+        %Subject{id: id} -> %{"subject" => id}
+        nil -> %{}
+      end
+
+    socket
+    |> assign(:subject_filter, subject_filter)
+    |> assign(:query_params, query_params)
   end
 
   @doc """

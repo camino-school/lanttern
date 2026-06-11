@@ -10,6 +10,9 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
   import Lanttern.SupabaseHelpers, only: [object_url_to_render_url: 2]
   import Lanttern.Utils, only: [reorder: 3]
 
+  import LantternWeb.FiltersHelpers,
+    only: [assign_subject_filter_from_params: 3, path_with_url_filters: 2]
+
   # shared components
   alias LantternWeb.LearningContext.MomentDetailsOverlayComponent
   alias LantternWeb.LearningContext.MomentFormComponent
@@ -104,15 +107,25 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
             id="unattached-strand-lessons"
             phx-update="stream"
             class="mt-8"
-            phx-hook="Sortable"
-            data-sortable-handle=".drag-handle"
-            data-sortable-event="sortable_update"
-            data-moment-id="unattached"
-            data-sortable-group="lessons"
+            {
+            if @subject_filter do
+              %{}
+            else
+              %{
+                "phx-hook" => "Sortable",
+                "data-sortable-handle" => ".drag-handle",
+                "data-sortable-event" => "sortable_update",
+                "data-moment-id" => "unattached",
+                "data-sortable-group" => "lessons"
+              }
+            end
+            }
           >
             <.lesson_entry
               :for={{dom_id, lesson} <- @streams.unattached_lessons}
               lesson={lesson}
+              query_params={@query_params}
+              is_reorder_disabled={not is_nil(@subject_filter)}
               on_edit={JS.push("edit_lesson", value: %{id: lesson.id}, target: @myself)}
               id={dom_id}
               class="mt-4"
@@ -179,16 +192,26 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
                 <%!-- lessons --%>
                 <div
                   id={"moment-#{moment.id}-lessons"}
-                  phx-hook="Sortable"
-                  data-sortable-handle=".drag-handle"
-                  data-sortable-event="sortable_update"
                   phx-update="stream"
-                  data-moment-id={moment.id}
-                  data-sortable-group="lessons"
+                  {
+                  if @subject_filter do
+                    %{}
+                  else
+                    %{
+                      "phx-hook" => "Sortable",
+                      "data-sortable-handle" => ".drag-handle",
+                      "data-sortable-event" => "sortable_update",
+                      "data-moment-id" => moment.id,
+                      "data-sortable-group" => "lessons"
+                    }
+                  end
+                  }
                 >
                   <.lesson_entry
                     :for={{dom_id, lesson} <- @streams["moment_#{moment.id}_lessons"] || []}
                     lesson={lesson}
+                    query_params={@query_params}
+                    is_reorder_disabled={not is_nil(@subject_filter)}
                     on_edit={JS.push("edit_lesson", value: %{id: lesson.id}, target: @myself)}
                     id={dom_id}
                     class="mt-4"
@@ -250,7 +273,7 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
           navigate={
             fn
               {:created, lesson} ->
-                ~p"/strands/lesson/#{lesson}"
+                path_with_url_filters(~p"/strands/lesson/#{lesson}", @query_params)
 
               {_updated_or_deleted, _lesson} ->
                 if @subject_filter,
@@ -267,6 +290,8 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
 
   attr :id, :string, required: true
   attr :lesson, :map, required: true
+  attr :query_params, :map, default: %{}
+  attr :is_reorder_disabled, :boolean, default: false
   attr :on_edit, :any, required: true
   attr :class, :any, default: nil
 
@@ -276,8 +301,14 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
       class={["flex items-center gap-4", @class]}
       id={@id}
     >
-      <div class="py-3 hover:cursor-move drag-handle">
+      <div class={[
+        "py-3",
+        if(@is_reorder_disabled, do: "cursor-not-allowed", else: "hover:cursor-move drag-handle")
+      ]}>
         <hr class="w-6 h-0.5 border-0 rounded-full bg-ltrn-subtle" />
+        <.tooltip :if={@is_reorder_disabled} id={"#{@id}-reorder-disabled-tooltip"}>
+          {gettext("Lesson reordering is disabled when a filter is active")}
+        </.tooltip>
       </div>
       <.card_base
         class="flex-1 flex items-stretch overflow-hidden"
@@ -288,7 +319,7 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
           <div class="flex items-center gap-4">
             <h4 class="flex-1 font-display font-bold text-base">
               <.link
-                navigate={~p"/strands/lesson/#{@lesson.id}"}
+                navigate={path_with_url_filters(~p"/strands/lesson/#{@lesson.id}", @query_params)}
                 class={[
                   "hover:text-ltrn-subtle",
                   if(@lesson.is_published, do: "text-ltrn-darkest", else: "text-ltrn-dark")
@@ -370,15 +401,13 @@ defmodule LantternWeb.StrandLive.LessonsComponent do
     {:ok, socket}
   end
 
-  defp assign_subject_filter(%{assigns: %{params: %{"subject" => subject_id}}} = socket) do
-    subject_filter =
-      socket.assigns.strand.subjects
-      |> Enum.find(&("#{&1.id}" == subject_id))
-
-    assign(socket, :subject_filter, subject_filter)
+  defp assign_subject_filter(socket) do
+    assign_subject_filter_from_params(
+      socket,
+      socket.assigns.strand.subjects,
+      socket.assigns.params
+    )
   end
-
-  defp assign_subject_filter(socket), do: assign(socket, :subject_filter, nil)
 
   defp initialize(%{assigns: %{initialized: false}} = socket) do
     strand = socket.assigns.strand

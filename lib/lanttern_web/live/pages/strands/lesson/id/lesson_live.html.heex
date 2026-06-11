@@ -13,7 +13,10 @@
         </h2>
         <span class="font-sm italic text-ltrn-subtle">{gettext("in")}</span>
         <h3>
-          <.link navigate={~p"/strands/#{@strand}"} class="hover:text-ltrn-subtle">
+          <.link
+            navigate={~p"/strands/#{@strand}?#{@query_params}"}
+            class="hover:text-ltrn-subtle"
+          >
             <span class="line-clamp-3">
               {@strand.name}
             </span>
@@ -24,6 +27,58 @@
           </.link>
         </h3>
       </div>
+      <div class="flex flex-wrap items-center gap-2 px-10 mb-6">
+        <div :if={@strand.subjects != []} class="relative">
+          <.button
+            type="button"
+            icon_name="hero-funnel-mini"
+            size="sm"
+            id="lesson-nav-filter-button"
+          >
+            {if @subject_filter,
+              do: gettext("Subject: %{subject}", subject: @subject_filter.name),
+              else: gettext("All lessons")}
+          </.button>
+          <.dropdown_menu
+            id="lesson-nav-filter"
+            button_id="lesson-nav-filter-button"
+            z_index="30"
+          >
+            <:item
+              type="link"
+              navigate={~p"/strands/lesson/#{@lesson}"}
+              text={gettext("All lessons")}
+              is_active={is_nil(@subject_filter)}
+            />
+            <:item
+              :for={subject <- @strand.subjects}
+              type="link"
+              navigate={~p"/strands/lesson/#{@lesson}?subject=#{subject.id}"}
+              text={subject.name}
+              is_active={@subject_filter && @subject_filter.id == subject.id}
+            />
+          </.dropdown_menu>
+        </div>
+        <div class="relative">
+          <.button
+            type="button"
+            id="lesson-nav-new-button"
+            icon_name="hero-plus-mini"
+            theme="primary"
+            size="sm"
+          >
+            {gettext("New")}
+          </.button>
+          <.dropdown_menu
+            id="lesson-nav-new"
+            button_id="lesson-nav-new-button"
+            z_index="30"
+          >
+            <:item on_click={JS.push("new_moment")} text={gettext("Create new moment")} />
+            <:item on_click={JS.push("new_lesson")} text={gettext("Create new lesson")} />
+          </.dropdown_menu>
+        </div>
+      </div>
       <.live_component
         module={LessonsSideNavComponent}
         id="lesson-nav"
@@ -31,6 +86,8 @@
         strand_id={@strand.id}
         current_scope={@current_scope}
         is_staff
+        subject_filter={@subject_filter}
+        query_params={@query_params}
         base_path="/strands/lesson"
         on_moment_click={
           fn moment_id ->
@@ -436,11 +493,52 @@
     current_scope={@current_scope}
     navigate={
       fn
-        {:deleted, _lesson} -> ~p"/strands/#{@strand}"
-        _ -> ~p"/strands/lesson/#{@lesson}"
+        {:deleted, _lesson} -> ~p"/strands/#{@strand}?#{@query_params}"
+        _ -> ~p"/strands/lesson/#{@lesson}?#{@query_params}"
       end
     }
     on_cancel={JS.exec("data-cancel", to: "#lesson-form-overlay")}
+  />
+</.modal>
+<.modal
+  :if={@new_lesson}
+  id="new-lesson-form-overlay"
+  show
+  on_cancel={JS.push("cancel_new_lesson")}
+>
+  <:title>{gettext("New lesson")}</:title>
+  <.live_component
+    module={LessonFormComponent}
+    id="new-lesson-form"
+    lesson={@new_lesson}
+    moments={@strand.moments}
+    subjects={@strand.subjects}
+    strand_id={@strand.id}
+    current_scope={@current_scope}
+    navigate={
+      fn
+        {:created, lesson} -> ~p"/strands/lesson/#{lesson}?#{@query_params}"
+        _ -> ~p"/strands/lesson/#{@lesson}?#{@query_params}"
+      end
+    }
+    on_cancel={JS.exec("data-cancel", to: "#new-lesson-form-overlay")}
+  />
+</.modal>
+<.modal
+  :if={@new_moment}
+  id="new-moment-form-overlay"
+  show
+  on_cancel={JS.push("cancel_new_moment")}
+>
+  <:title>{gettext("New moment")}</:title>
+  <.live_component
+    module={MomentFormComponent}
+    id="new-moment-form"
+    current_scope={@current_scope}
+    moment={@new_moment}
+    strand_id={@strand.id}
+    navigate={fn _ -> ~p"/strands/lesson/#{@lesson}?#{@query_params}" end}
+    on_cancel={JS.exec("data-cancel", to: "#new-moment-form-overlay")}
   />
 </.modal>
 <.live_component

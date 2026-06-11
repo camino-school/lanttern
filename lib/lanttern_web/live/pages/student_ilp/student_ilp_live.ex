@@ -65,12 +65,15 @@ defmodule LantternWeb.StudentILPLive do
         [{:only_shared_with_student, true} | opts]
       end
 
-    student_ilps = ILP.list_students_ilps(opts)
+    # an ILP without any content-bearing entry is treated the same as no ILP
+    student_ilps =
+      ILP.list_students_ilps(opts)
+      |> Enum.filter(&ILP.student_ilp_has_content?/1)
 
     socket
     |> assign(:student_ilp, List.first(student_ilps))
     |> stream(:student_ilps, student_ilps)
-    |> assign(:has_student_ilps, length(student_ilps) > 0)
+    |> assign(:has_student_ilps, student_ilps != [])
   end
 
   @impl true

@@ -7,10 +7,34 @@ defmodule LantternWeb.StudentILPLiveTest do
   setup [:register_and_log_in_student]
 
   describe "Student ILP live view" do
+    test "shows the empty state when the shared ILP has no content-bearing entry", ctx do
+      school = ctx.user.current_profile.student.school
+      student = ctx.user.current_profile.student
+
+      student_ilp =
+        insert(:student_ilp, %{school: school, student: student, is_shared_with_student: true})
+
+      # blank entries don't count as content
+      insert(:ilp_entry, %{
+        student_ilp: student_ilp,
+        template: student_ilp.template,
+        description: nil
+      })
+
+      ctx.conn
+      |> visit("/student_ilp")
+      |> assert_has("div", text: "No ILP in")
+      |> refute_has("h4", text: student_ilp.template.name)
+    end
+
     test "returns ok when create a ILP comments", ctx do
       school = ctx.user.current_profile.student.school
       student = ctx.user.current_profile.student
-      insert(:student_ilp, %{school: school, student: student, is_shared_with_student: true})
+
+      student_ilp =
+        insert(:student_ilp, %{school: school, student: student, is_shared_with_student: true})
+
+      insert(:ilp_entry, %{student_ilp: student_ilp, template: student_ilp.template})
 
       ctx.conn
       |> visit("/student_ilp")
@@ -30,6 +54,8 @@ defmodule LantternWeb.StudentILPLiveTest do
 
       student_ilp =
         insert(:student_ilp, %{school: school, student: student, is_shared_with_student: true})
+
+      insert(:ilp_entry, %{student_ilp: student_ilp, template: student_ilp.template})
 
       comment1 =
         insert(:ilp_comment, %{student_ilp: student_ilp, owner: ctx.user.current_profile})
@@ -53,6 +79,8 @@ defmodule LantternWeb.StudentILPLiveTest do
 
       student_ilp =
         insert(:student_ilp, %{school: school, student: student, is_shared_with_student: true})
+
+      insert(:ilp_entry, %{student_ilp: student_ilp, template: student_ilp.template})
 
       ilp_comment =
         insert(:ilp_comment, %{student_ilp: student_ilp, owner: ctx.user.current_profile})
@@ -78,6 +106,8 @@ defmodule LantternWeb.StudentILPLiveTest do
       student_ilp =
         insert(:student_ilp, %{school: school, student: student, is_shared_with_student: true})
 
+      insert(:ilp_entry, %{student_ilp: student_ilp, template: student_ilp.template})
+
       ilp_comment = insert(:ilp_comment, %{student_ilp: student_ilp, owner: new_profile})
 
       ctx.conn
@@ -98,6 +128,8 @@ defmodule LantternWeb.StudentILPLiveTest do
 
       student_ilp =
         insert(:student_ilp, %{school: school, student: student, is_shared_with_student: true})
+
+      insert(:ilp_entry, %{student_ilp: student_ilp, template: student_ilp.template})
 
       ilp_comment =
         insert(:ilp_comment, %{student_ilp: student_ilp, owner: ctx.user.current_profile})
