@@ -110,6 +110,28 @@ defmodule LantternWeb.LessonLiveTest do
       |> refute_has("a", text: "Lesson B")
     end
 
+    test "lesson reordering is disabled when a subject filter is active", %{conn: conn} do
+      subject_a = insert(:subject, name: "Subject A")
+      strand = insert(:strand, subjects: [subject_a])
+      moment = insert(:moment, strand: strand)
+
+      lesson_a =
+        insert(:lesson, strand: strand, moment: moment, subjects: [subject_a], name: "Lesson A")
+
+      conn
+      |> visit("#{@live_view_base_path}/#{lesson_a.id}")
+      # without a filter, lessons drag-and-drop is enabled
+      |> assert_has("#moment-#{moment.id}-lessons[phx-hook='Sortable']")
+      |> refute_has("div[role='tooltip']", text: "Lesson reordering is disabled")
+      |> click_link("#lesson-nav-filter a", "Subject A")
+      # with an active filter, lessons drag-and-drop is disabled
+      |> refute_has("#moment-#{moment.id}-lessons[phx-hook='Sortable']")
+      |> refute_has("#unattached-strand-lessons[phx-hook='Sortable']")
+      |> assert_has("div[role='tooltip']",
+        text: "Lesson reordering is disabled when a filter is active"
+      )
+    end
+
     test "ignores invalid subject param", %{conn: conn} do
       subject_a = insert(:subject, name: "Subject A")
       subject_b = insert(:subject, name: "Subject B")

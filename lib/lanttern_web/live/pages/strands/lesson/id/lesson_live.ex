@@ -12,6 +12,7 @@ defmodule LantternWeb.LessonLive do
   alias Lanttern.Taxonomy.Subject
 
   import Lanttern.Utils, only: [reorder: 3]
+  import LantternWeb.FiltersHelpers, only: [assign_subject_filter_from_params: 3]
 
   # shared components
   alias LantternWeb.Assessments.AssessmentPointFormOverlayComponent
@@ -21,9 +22,6 @@ defmodule LantternWeb.LessonLive do
   alias LantternWeb.LearningContext.MomentFormComponent
   alias LantternWeb.Lessons.LessonFormComponent
   alias LantternWeb.Lessons.LessonsSideNavComponent
-
-  # params that come from the route pattern, not the query string
-  @route_params ["id"]
 
   # page components
 
@@ -185,33 +183,11 @@ defmodule LantternWeb.LessonLive do
   end
 
   @impl true
-  def handle_params(params, _url, socket),
-    do: {:noreply, assign_url_params(socket, params)}
+  def handle_params(params, _url, socket) do
+    socket =
+      assign_subject_filter_from_params(socket, socket.assigns.strand.subjects, params)
 
-  defp assign_url_params(socket, params) do
-    query_params = Map.drop(params, @route_params)
-
-    subject_filter =
-      case query_params do
-        %{"subject" => subject_id} ->
-          Enum.find(socket.assigns.strand.subjects, &("#{&1.id}" == subject_id))
-
-        _ ->
-          nil
-      end
-
-    # rebuild query params from the validated filter so invalid/unknown
-    # params are not propagated to the side nav lesson links
-    query_params =
-      case subject_filter do
-        %Subject{id: id} -> %{"subject" => id}
-        nil -> %{}
-      end
-
-    socket
-    |> assign(:params, params)
-    |> assign(:subject_filter, subject_filter)
-    |> assign(:query_params, query_params)
+    {:noreply, socket}
   end
 
   # event handlers

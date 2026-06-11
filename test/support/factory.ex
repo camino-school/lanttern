@@ -23,6 +23,7 @@ defmodule Lanttern.Factory do
   use Lanttern.ILPCommentAttachmentFactory
   use Lanttern.ILPCommentFactory
   use Lanttern.ILPComponentFactory
+  use Lanttern.ILPEntryFactory
   use Lanttern.ILPSectionFactory
   use Lanttern.ILPTemplateAILayerFactory
   use Lanttern.ILPTemplateFactory

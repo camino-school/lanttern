@@ -17,7 +17,7 @@ defmodule LantternWeb.Lessons.LessonsSideNavComponent do
 
   Optional:
 
-    * `subject_filter` - A `%Subject{}` to filter the listed lessons by (or `nil` for all lessons). Defaults to `nil`
+    * `subject_filter` - A `%Subject{}` to filter the listed lessons by (or `nil` for all lessons). Defaults to `nil`. While a filter is active, lesson reordering is disabled (positions are relative to the full lessons list, which is partially hidden)
     * `query_params` - Map of query params appended to lesson links, used to persist URL-based filters when navigating between lessons. Defaults to `%{}`
 
   ## Streams
@@ -66,7 +66,7 @@ defmodule LantternWeb.Lessons.LessonsSideNavComponent do
         id="unattached-strand-lessons"
         phx-update="stream"
         {
-        if @is_staff do
+        if @is_staff && is_nil(@subject_filter) do
           %{
             "phx-hook" => "Sortable",
             "data-sortable-handle" => ".drag-handle",
@@ -84,6 +84,7 @@ defmodule LantternWeb.Lessons.LessonsSideNavComponent do
           current_lesson_id={@lesson_id}
           base_path={@base_path}
           query_params={@query_params}
+          is_reorder_disabled={not is_nil(@subject_filter)}
           on_edit={JS.push("edit_lesson", value: %{id: lesson.id}, target: @myself)}
           id={dom_id}
           class="mt-2 last:mb-10"
@@ -127,7 +128,7 @@ defmodule LantternWeb.Lessons.LessonsSideNavComponent do
             id={"moment-#{moment.id}-lessons"}
             phx-update="stream"
             {
-            if @is_staff do
+            if @is_staff && is_nil(@subject_filter) do
               %{
                 "phx-hook" => "Sortable",
                 "data-sortable-handle" => ".drag-handle",
@@ -145,6 +146,7 @@ defmodule LantternWeb.Lessons.LessonsSideNavComponent do
               current_lesson_id={@lesson_id}
               base_path={@base_path}
               query_params={@query_params}
+              is_reorder_disabled={not is_nil(@subject_filter)}
               on_edit={JS.push("edit_lesson", value: %{id: lesson.id}, target: @myself)}
               id={dom_id}
               class="mt-2"
@@ -169,6 +171,7 @@ defmodule LantternWeb.Lessons.LessonsSideNavComponent do
   attr :current_lesson_id, :integer, required: true
   attr :base_path, :string, default: "/strands/lesson"
   attr :query_params, :map, default: %{}
+  attr :is_reorder_disabled, :boolean, default: false
   attr :on_edit, :any, required: true
   attr :class, :any, default: nil
 
@@ -187,8 +190,14 @@ defmodule LantternWeb.Lessons.LessonsSideNavComponent do
       class={["relative flex items-stretch gap-6 max-w-full pr-10", @class]}
       id={@id}
     >
-      <div class="flex items-center hover:cursor-move drag-handle">
+      <div class={[
+        "flex items-center",
+        if(@is_reorder_disabled, do: "cursor-not-allowed", else: "hover:cursor-move drag-handle")
+      ]}>
         <hr class="w-4 h-0.5 border-0 rounded-r-full bg-ltrn-subtle" />
+        <.tooltip :if={@is_reorder_disabled} id={"#{@id}-reorder-disabled-tooltip"}>
+          {gettext("Lesson reordering is disabled when a filter is active")}
+        </.tooltip>
       </div>
       <.link
         navigate={path_with_url_filters("#{@base_path}/#{@lesson.id}", @query_params)}

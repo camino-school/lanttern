@@ -367,6 +367,7 @@ defmodule Lanttern.ILP do
     ILPComponent.changeset(ilp_component, attrs)
   end
 
+  alias Lanttern.ILP.ILPEntry
   alias Lanttern.ILP.StudentILP
 
   @doc """
@@ -429,6 +430,27 @@ defmodule Lanttern.ILP do
 
   defp apply_list_students_ilps_opts(queryable, [_ | opts]),
     do: apply_list_students_ilps_opts(queryable, opts)
+
+  @doc """
+  Checks if the given student ILP has at least one content-bearing entry.
+
+  Use this to decide if an ILP should be displayed in student/guardian-facing
+  views — an ILP without any filled entry is treated the same as no ILP.
+
+  Expects `:entries` to be preloaded.
+  """
+  @spec student_ilp_has_content?(StudentILP.t()) :: boolean()
+  def student_ilp_has_content?(%StudentILP{entries: entries}) when is_list(entries),
+    do: Enum.any?(entries, &ilp_entry_has_content?/1)
+
+  @doc """
+  Checks if the given ILP entry has content (a non-blank description).
+  """
+  @spec ilp_entry_has_content?(ILPEntry.t() | nil) :: boolean()
+  def ilp_entry_has_content?(%ILPEntry{description: description}) when is_binary(description),
+    do: String.trim(description) != ""
+
+  def ilp_entry_has_content?(_entry), do: false
 
   @doc """
   Gets a single student_ilp.

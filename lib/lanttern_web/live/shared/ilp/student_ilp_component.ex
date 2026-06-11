@@ -141,12 +141,6 @@ defmodule LantternWeb.ILP.StudentILPComponent do
     Enum.any?(section.components, &Map.has_key?(component_entry_map, &1.id))
   end
 
-  # An entry is considered content-bearing when its description is a non-blank string.
-  defp has_content?(%{description: description}) when is_binary(description),
-    do: String.trim(description) != ""
-
-  defp has_content?(_entry), do: false
-
   @impl true
   def mount(socket) do
     socket =
@@ -214,7 +208,7 @@ defmodule LantternWeb.ILP.StudentILPComponent do
           Enum.find(student_ilp.entries, &(&1.component_id == component.id))
         }
       end)
-      |> Enum.filter(fn {_component_id, entry} -> entry && has_content?(entry) end)
+      |> Enum.filter(fn {_component_id, entry} -> ILP.ilp_entry_has_content?(entry) end)
       |> Enum.into(%{})
 
     socket
