@@ -77,36 +77,41 @@ defmodule LantternWeb.StrandReportLive.StrandReportAssessmentComponent do
         <section :if={@has_student_grades_report_entries} class="mt-10">
           <h3 class="font-display font-black text-xl">{gettext("Grading")}</h3>
           <div id="grades-report-entries" phx-update="stream">
-            <.card_base
+            <.link
               :for={{dom_id, sgre} <- @streams.student_grades_report_entries}
               id={dom_id}
+              patch={"#{@base_path}/student_grade_report_entry/#{sgre.id}"}
               class={[
-                "p-4 mt-4",
-                "sm:grid sm:grid-cols-[minmax(10px,_5fr)_minmax(10px,_2fr)] sm:items-center sm:gap-4"
+                "group/card block mt-4",
+                "sm:grid sm:grid-cols-[minmax(10px,_5fr)_minmax(10px,_2fr)]"
               ]}
             >
-              <p class="font-bold text-ltrn-subtle">
-                {Gettext.dgettext(
-                  Lanttern.Gettext,
-                  "taxonomy",
-                  sgre.grades_report_subject.subject.name
-                )}
-              </p>
-              <div class="flex items-center gap-2 mt-4 sm:mt-0">
-                <.live_component
-                  module={StudentGradesReportEntryButtonComponent}
-                  id={"#{dom_id}-entry-button"}
-                  student_grades_report_entry={sgre}
-                  on_click={JS.patch("#{@base_path}/student_grade_report_entry/#{sgre.id}")}
-                  class="flex-1 p-2"
-                />
-                <.icon
-                  :if={sgre.comment}
-                  name="hero-chat-bubble-oval-left-mini"
-                  class="text-ltrn-staff-accent"
-                />
-              </div>
-            </.card_base>
+              <.card_base class={[
+                "p-4 group-hover/card:bg-ltrn-lightest",
+                "sm:col-span-2 sm:grid sm:grid-cols-subgrid sm:items-center sm:gap-4"
+              ]}>
+                <p class="font-bold text-ltrn-subtle">
+                  {Gettext.dgettext(
+                    Lanttern.Gettext,
+                    "taxonomy",
+                    sgre.grades_report_subject.subject.name
+                  )}
+                </p>
+                <div class="flex items-center gap-2 mt-4 sm:mt-0">
+                  <.live_component
+                    module={StudentGradesReportEntryButtonComponent}
+                    id={"#{dom_id}-entry-button"}
+                    student_grades_report_entry={sgre}
+                    class="flex-1 p-2 pointer-events-none"
+                  />
+                  <.icon
+                    :if={sgre.comment}
+                    name="hero-chat-bubble-oval-left-mini"
+                    class="text-ltrn-staff-accent"
+                  />
+                </div>
+              </.card_base>
+            </.link>
           </div>
         </section>
         <div :if={@has_strand_evidences} class="mt-10">
