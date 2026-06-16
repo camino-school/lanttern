@@ -9,23 +9,21 @@ defmodule LantternWeb.StrandReportLive.StrandReportAssessmentComponent do
   -`params` - the URL params from parent view `handle_params/3`
   -`base_path` - the base URL path for overlay navigation control
   -`current_profile` - the current `%Profile{}` from `current_user`
+  -`current_scope` - the current `%Scope{}`
   """
 
   use LantternWeb, :live_component
 
+  alias Lanttern.AssessmentComposition
   alias Lanttern.Assessments
-  alias Lanttern.Assessments.AssessmentPoint
   alias Lanttern.GradesReports
   alias Lanttern.LearningContext
   alias Lanttern.Reporting
-  alias LantternWeb.Assessments.EntryParticleComponent
-  alias LantternWeb.Assessments.StrandGoalDetailsOverlayComponent
   alias LantternWeb.Assessments.StudentAssessmentPointDetailsOverlayComponent
   alias LantternWeb.Attachments.AttachmentViewComponent
   alias LantternWeb.GradesReports.GradeDetailsOverlayComponent
   alias LantternWeb.GradesReports.StudentGradesReportEntryButtonComponent
 
-  import LantternWeb.AssessmentsComponents
   import LantternWeb.ReportingComponents, only: [strand_report_assessment_point_card: 1]
 
   @impl true
@@ -43,56 +41,36 @@ defmodule LantternWeb.StrandReportLive.StrandReportAssessmentComponent do
           text={@strand_report.strand.assessment_info}
           class="mt-10"
         />
-        <section :if={@has_ongoing_assessment} id="ongoing-assessment-points" class="mt-10">
-          <h2 class="font-display font-black text-2xl">{gettext("Ongoing assessment")}</h2>
-          <p class="mt-4">
-            {gettext("Information about ongoing assessment points, grouped by moments.")}
-          </p>
-          <div class="mt-6 space-y-10">
-            <div :for={moment <- @moments} id={"moment-#{moment.id}-ap-group"}>
-              <h4 class="font-display font-bold text-lg">{moment.name}</h4>
-              <div
-                id={"moment-#{moment.id}-sortable-aps"}
-                phx-update="stream"
-              >
-                <.strand_report_assessment_point_card
-                  :for={{dom_id, ap} <- @streams["moment_#{moment.id}_assessment_points"] || []}
-                  id={dom_id}
-                  assessment_point={ap}
-                  patch={"#{@base_path}/assessment_point/#{ap.id}"}
-                  class="mt-4"
-                />
-                <.empty_state_simple
-                  class="p-4 mt-4 hidden only:block"
-                  id={"moment-#{moment.id}-assessment-empty"}
-                >
-                  {gettext("No assessment points in this moment")}
-                </.empty_state_simple>
-              </div>
+        <section id="strand-assessment-points" class="mt-10">
+          <div :for={moment <- @moments} id={"moment-#{moment.id}-ap-group"} class="mt-10">
+            <h4 class="font-display font-bold text-lg">{moment.name}</h4>
+            <div
+              id={"moment-#{moment.id}-sortable-aps"}
+              phx-update="stream"
+              class="mt-4 space-y-4"
+            >
+              <.strand_report_assessment_point_card
+                :for={{dom_id, ap} <- @streams["moment_#{moment.id}_assessment_points"] || []}
+                id={dom_id}
+                assessment_point={ap}
+                particle_entries={@composed_particle_entries_map[ap.id] || []}
+                patch={"#{@base_path}/assessment_point/#{ap.id}"}
+              />
             </div>
           </div>
-        </section>
-        <section id="goals-assessment" class="mt-16">
-          <h2 class="font-display font-black text-2xl">{gettext("Goals assessment")}</h2>
-          <p class="mt-4">
-            {gettext("Final assessment points information, grouped by curriculum item.")}
-          </p>
-          <div id="strand-goals-student-entries" phx-update="stream">
-            <.goal_card
-              :for={
-                {dom_id, {goal, entry, moment_entries}} <-
-                  @streams.strand_goals_student_entries
-              }
-              id={dom_id}
-              patch={"#{@base_path}/strand_goal/#{goal.id}"}
-              goal={goal}
-              entry={entry}
-              moment_entries={moment_entries}
-              has_evidence={@goal_has_evidences_map[goal.id]}
-              prevent_preview={@prevent_final_assessment_preview}
-            />
+          <div :if={@has_strand_level_assessment_points} class="mt-10">
+            <h4 class="font-display font-bold text-lg">{gettext("Strand-level assessments")}</h4>
+            <div id="strand-level-assessment-points" phx-update="stream" class="mt-4 space-y-4">
+              <.strand_report_assessment_point_card
+                :for={{dom_id, ap} <- @streams.strand_level_assessment_points}
+                id={dom_id}
+                assessment_point={ap}
+                particle_entries={@composed_particle_entries_map[ap.id] || []}
+                patch={"#{@base_path}/assessment_point/#{ap.id}"}
+              />
+            </div>
           </div>
-          <.empty_state :if={!@has_strand_goals_with_student_entries}>
+          <.empty_state :if={!@has_moment_assessment_points && !@has_strand_level_assessment_points}>
             {gettext("No assessment entries for this strand yet")}
           </.empty_state>
         </section>
@@ -151,7 +129,7 @@ defmodule LantternWeb.StrandReportLive.StrandReportAssessmentComponent do
                   "#{gettext("In the context of")} \"#{moment_name}\"."
                 end}
                 <.link
-                  patch={"#{@base_path}/strand_goal/#{goal_id}"}
+                  patch={"#{@base_path}/assessment_point/#{goal_id}"}
                   class="underline hover:text-ltrn-subtle"
                 >
                   {gettext("View assessment details")}
@@ -164,18 +142,10 @@ defmodule LantternWeb.StrandReportLive.StrandReportAssessmentComponent do
       <.live_component
         :if={@assessment_point_id}
         module={StudentAssessmentPointDetailsOverlayComponent}
-        id="ongoing-assessment-point-details-component"
+        id="assessment-point-details-component"
         assessment_point_id={@assessment_point_id}
         student_id={@student_report_card.student_id}
-        on_cancel={JS.patch(@base_path)}
-      />
-      <.live_component
-        :if={@strand_goal_id}
-        module={StrandGoalDetailsOverlayComponent}
-        id="assessment-point-details-component"
-        strand_goal_id={@strand_goal_id}
-        student_id={@student_report_card.student_id}
-        prevent_preview={@prevent_final_assessment_preview}
+        current_scope={@current_scope}
         on_cancel={JS.patch(@base_path)}
       />
       <.live_component
@@ -189,152 +159,6 @@ defmodule LantternWeb.StrandReportLive.StrandReportAssessmentComponent do
     """
   end
 
-  attr :goal, AssessmentPoint, required: true
-  attr :id, :string, required: true
-  attr :entry, :any, required: true
-  attr :moment_entries, :list, required: true
-  attr :has_evidence, :boolean, required: true
-  attr :patch, :string, required: true
-  attr :prevent_preview, :boolean, required: true
-
-  defp goal_card(assigns) do
-    %{goal: goal, entry: entry, moment_entries: moment_entries, has_evidence: has_evidence} =
-      assigns
-
-    render_icons_area = render_icons_area?(goal, entry, has_evidence)
-    render_extra_fields_area = render_icons_area || moment_entries != []
-
-    assigns =
-      assigns
-      |> assign(:render_extra_fields_area, render_extra_fields_area)
-      |> assign(:render_icons_area, render_icons_area)
-
-    ~H"""
-    <.link
-      id={@id}
-      patch={@patch}
-      class={[
-        "group/card block mt-4",
-        "sm:grid sm:grid-cols-[minmax(10px,_3fr)_minmax(10px,_2fr)]"
-      ]}
-    >
-      <.card_base class={[
-        "p-4 group-hover/card:bg-ltrn-mesh-cyan",
-        "sm:col-span-2 sm:grid sm:grid-cols-subgrid sm:items-center sm:gap-4"
-      ]}>
-        <div>
-          <p class="text-sm">
-            <span class="inline-block mr-1 font-display font-bold text-ltrn-subtle">
-              {@goal.curriculum_item.curriculum_component.name}
-            </span>
-            {@goal.curriculum_item.name}
-          </p>
-          <div
-            :if={@render_extra_fields_area}
-            class="shrink-0 flex items-center gap-4 max-w-full mt-2"
-          >
-            <div :if={@render_icons_area} class="flex items-center gap-1">
-              <.assessment_metadata_icon
-                :if={@goal.is_differentiation || @goal.has_diff_rubric_for_student}
-                type={:diff}
-                id={@id}
-              />
-              <.assessment_metadata_icon
-                :if={@entry && @entry.report_note}
-                type={:teacher_comment}
-                id={@id}
-              />
-              <.assessment_metadata_icon
-                :if={@entry && @entry.student_report_note}
-                type={:student_comment}
-                id={@id}
-              />
-              <.assessment_metadata_icon :if={@has_evidence} type={:evidences} id={@id} />
-              <.assessment_metadata_icon :if={@goal.report_info} type={:info} id={@id} />
-              <.assessment_metadata_icon :if={@goal.rubric_id} type={:rubric} id={@id} />
-            </div>
-            <div class="flex-1 flex flex-wrap gap-1">
-              <.live_component
-                :for={moment_entry <- @moment_entries}
-                module={EntryParticleComponent}
-                id={moment_entry.id}
-                entry={moment_entry}
-              />
-            </div>
-          </div>
-        </div>
-        <.assessment_point_entry_display
-          entry={@entry}
-          scale={@goal.scale}
-          show_student_assessment
-          prevent_preview={@prevent_preview or @goal.is_hidden}
-          class="mt-4 sm:mt-0"
-        />
-      </.card_base>
-    </.link>
-    """
-  end
-
-  defp render_icons_area?(goal, entry, has_evidence) do
-    goal.is_differentiation ||
-      goal.has_diff_rubric_for_student ||
-      (entry && entry.report_note) ||
-      (entry && entry.student_report_note) ||
-      has_evidence ||
-      goal.report_info ||
-      goal.rubric_id
-  end
-
-  attr :type, :atom, required: true
-  attr :id, :string, required: true
-
-  defp assessment_metadata_icon(%{type: :diff} = assigns) do
-    ~H"""
-    <p class="font-sans font-bold text-sm text-ltrn-diff-dark">
-      {gettext("Diff")}
-    </p>
-    """
-  end
-
-  defp assessment_metadata_icon(assigns) do
-    {text, icon_name, bg, color} =
-      assessment_metadata_icon_attrs(assigns.type)
-
-    assigns =
-      assigns
-      |> assign(:text, text)
-      |> assign(:icon_name, icon_name)
-      |> assign(:bg, bg)
-      |> assign(:color, color)
-
-    ~H"""
-    <.icon name={@icon_name} class="text-ltrn-subtle" />
-    """
-  end
-
-  defp assessment_metadata_icon_attrs(:teacher_comment),
-    do:
-      {gettext("Teacher comment"), "hero-chat-bubble-oval-left-mini", "bg-ltrn-staff-lighter",
-       "text-ltrn-staff-accent"}
-
-  defp assessment_metadata_icon_attrs(:student_comment),
-    do:
-      {gettext("Student comment"), "hero-chat-bubble-oval-left-mini", "bg-ltrn-student-lighter",
-       "text-ltrn-student-accent"}
-
-  defp assessment_metadata_icon_attrs(:evidences),
-    do:
-      {gettext("With learning evidences"), "hero-paper-clip-mini", "bg-ltrn-lighter",
-       "text-ltrn-subtle"}
-
-  defp assessment_metadata_icon_attrs(:info),
-    do:
-      {gettext("Assessment info"), "hero-information-circle-mini", "bg-ltrn-lighter",
-       "text-ltrn-subtle"}
-
-  defp assessment_metadata_icon_attrs(:rubric),
-    do: {gettext("Has rubric"), "hero-view-columns-mini", "bg-ltrn-lighter", "text-ltrn-subtle"}
-
   # lifecycle
 
   @impl true
@@ -343,15 +167,11 @@ defmodule LantternWeb.StrandReportLive.StrandReportAssessmentComponent do
       socket
       |> assign(:class, nil)
       |> assign(:moments, [])
-      |> assign(:assessment_points_ids, [])
+      |> assign(:displayed_assessment_points_ids, [])
+      |> assign(:composed_particle_entries_map, %{})
       |> assign(:assessment_point_id, nil)
-      |> assign(:strand_goal_id, nil)
       |> assign(:student_grades_report_entry_id, nil)
       |> assign(:initialized, false)
-      |> stream_configure(
-        :strand_goals_student_entries,
-        dom_id: fn {goal, _, _} -> "goal-#{goal.id}" end
-      )
       |> stream_configure(
         :strand_evidences,
         dom_id: fn {attachment, _, _} -> "attachment-#{attachment.id}" end
@@ -367,7 +187,6 @@ defmodule LantternWeb.StrandReportLive.StrandReportAssessmentComponent do
       |> assign(assigns)
       |> initialize()
       |> assign_assessment_point_id()
-      |> assign_strand_goal_id()
       |> assign_student_grades_report_entry_id()
 
     {:ok, socket}
@@ -375,8 +194,7 @@ defmodule LantternWeb.StrandReportLive.StrandReportAssessmentComponent do
 
   defp initialize(%{assigns: %{initialized: false}} = socket) do
     socket
-    |> load_moments_and_assessment_points()
-    |> stream_strand_goals_student_entries()
+    |> load_assessment_points()
     |> assign_prevent_final_assessment_preview()
     |> stream_strand_evidences()
     |> stream_student_grades_report_entries()
@@ -385,30 +203,70 @@ defmodule LantternWeb.StrandReportLive.StrandReportAssessmentComponent do
 
   defp initialize(socket), do: socket
 
-  defp stream_strand_goals_student_entries(socket) do
-    all_strand_goals_student_entries =
-      Assessments.list_strand_goals_for_student(
-        socket.assigns.student_report_card.student_id,
-        socket.assigns.strand_report.strand_id
+  defp load_assessment_points(socket) do
+    %{
+      current_scope: scope,
+      strand_report: %{strand_id: strand_id},
+      student_report_card: %{student: student}
+    } = socket.assigns
+
+    moments = LearningContext.list_moments(strands_ids: [strand_id])
+
+    moment_assessment_points =
+      Assessments.list_strand_moments_assessment_points_with_student_entries(
+        scope,
+        student,
+        strand_id
       )
 
-    strand_goals_ids =
-      all_strand_goals_student_entries
-      |> Enum.map(fn {strand_goal, _, _} -> "#{strand_goal.id}" end)
+    strand_level_assessment_points =
+      Assessments.list_strand_level_assessment_points_with_student_entries(
+        scope,
+        student,
+        strand_id
+      )
 
-    strand_goals_student_entries =
-      all_strand_goals_student_entries
-      |> Enum.filter(fn {goal, entry, moments_entries} ->
-        moments_entries != [] or (not goal.is_hidden and not is_nil(entry))
-      end)
+    all_assessment_points = moment_assessment_points ++ strand_level_assessment_points
+
+    composed_particle_entries_map =
+      build_composed_particle_entries_map(scope, student.id, all_assessment_points)
+
+    moment_ids_with_aps =
+      moment_assessment_points
+      |> Enum.map(& &1.moment_id)
+      |> MapSet.new()
+
+    moments_with_aps = Enum.filter(moments, &MapSet.member?(moment_ids_with_aps, &1.id))
+
+    displayed_ids = Enum.map(all_assessment_points, &"#{&1.id}")
 
     socket
-    |> stream(:strand_goals_student_entries, strand_goals_student_entries)
-    |> assign(:strand_goals_ids, strand_goals_ids)
-    |> assign(
-      :has_strand_goals_with_student_entries,
-      strand_goals_student_entries != []
-    )
+    |> assign(:moments, moments_with_aps)
+    |> assign(:displayed_assessment_points_ids, displayed_ids)
+    |> assign(:has_moment_assessment_points, moment_assessment_points != [])
+    |> assign(:has_strand_level_assessment_points, strand_level_assessment_points != [])
+    |> assign(:composed_particle_entries_map, composed_particle_entries_map)
+    |> stream_assessment_points_by_moment(moment_assessment_points, moments_with_aps)
+    |> stream(:strand_level_assessment_points, strand_level_assessment_points)
+  end
+
+  defp build_composed_particle_entries_map(scope, student_id, assessment_points) do
+    composed_ids =
+      assessment_points
+      |> Enum.filter(& &1.uses_composition)
+      |> Enum.map(& &1.id)
+
+    AssessmentComposition.list_component_entries_by_parent(scope, composed_ids, student_id)
+  end
+
+  defp stream_assessment_points_by_moment(socket, assessment_points, moments) do
+    Enum.reduce(moments, socket, fn moment, socket ->
+      moment_aps =
+        assessment_points
+        |> Enum.filter(&(&1.moment_id == moment.id))
+
+      stream(socket, "moment_#{moment.id}_assessment_points", moment_aps)
+    end)
   end
 
   defp assign_prevent_final_assessment_preview(socket) do
@@ -433,19 +291,9 @@ defmodule LantternWeb.StrandReportLive.StrandReportAssessmentComponent do
 
     strand_evidences = Reporting.list_student_strand_evidences(strand_id, student_id)
 
-    goal_has_evidences_map =
-      strand_evidences
-      |> Enum.group_by(
-        fn {_, goal_id, _} -> goal_id end,
-        fn _ -> true end
-      )
-      |> Enum.map(fn {goal_id, _} -> {goal_id, true} end)
-      |> Enum.into(%{})
-
     socket
     |> stream(:strand_evidences, strand_evidences)
     |> assign(:has_strand_evidences, strand_evidences != [])
-    |> assign(:goal_has_evidences_map, goal_has_evidences_map)
   end
 
   defp stream_student_grades_report_entries(
@@ -482,20 +330,6 @@ defmodule LantternWeb.StrandReportLive.StrandReportAssessmentComponent do
     |> assign(:student_grades_report_entries_ids, [])
   end
 
-  defp assign_strand_goal_id(
-         %{assigns: %{params: %{"strand_goal_id" => strand_goal_id}}} = socket
-       ) do
-    # simple guard to prevent viewing details from unrelated assessment points
-    strand_goal_id =
-      if strand_goal_id in socket.assigns.strand_goals_ids do
-        strand_goal_id
-      end
-
-    assign(socket, :strand_goal_id, strand_goal_id)
-  end
-
-  defp assign_strand_goal_id(socket), do: assign(socket, :strand_goal_id, nil)
-
   defp assign_student_grades_report_entry_id(
          %{assigns: %{params: %{"student_grade_report_entry_id" => sgre_id}}} = socket
        ) do
@@ -511,49 +345,12 @@ defmodule LantternWeb.StrandReportLive.StrandReportAssessmentComponent do
   defp assign_student_grades_report_entry_id(socket),
     do: assign(socket, :student_grades_report_entry_id, nil)
 
-  defp load_moments_and_assessment_points(socket) do
-    strand_id = socket.assigns.strand_report.strand_id
-
-    moments = LearningContext.list_moments(strands_ids: [strand_id])
-
-    assessment_points =
-      Assessments.list_strand_moments_assessment_points_with_student_entries(
-        socket.assigns.current_scope,
-        socket.assigns.student_report_card.student,
-        socket.assigns.strand_report.strand_id
-      )
-
-    moment_ids_with_entries =
-      assessment_points
-      |> Enum.map(& &1.moment_id)
-      |> MapSet.new()
-
-    moments_with_entries =
-      Enum.filter(moments, &MapSet.member?(moment_ids_with_entries, &1.id))
-
-    socket
-    |> assign(:moments, moments_with_entries)
-    |> assign(:assessment_points_ids, Enum.map(assessment_points, &"#{&1.id}"))
-    |> assign(:has_ongoing_assessment, !Enum.empty?(assessment_points))
-    |> stream_assessment_points_by_moment(assessment_points, moments_with_entries)
-  end
-
-  defp stream_assessment_points_by_moment(socket, assessment_points, moments) do
-    Enum.reduce(moments, socket, fn moment, socket ->
-      moment_aps =
-        assessment_points
-        |> Enum.filter(&(&1.moment_id == moment.id))
-
-      stream(socket, "moment_#{moment.id}_assessment_points", moment_aps)
-    end)
-  end
-
   defp assign_assessment_point_id(
          %{assigns: %{params: %{"assessment_point_id" => assessment_point_id}}} = socket
        ) do
     # simple guard to prevent viewing details from unrelated assessment points
     assessment_point_id =
-      if assessment_point_id in socket.assigns.assessment_points_ids do
+      if assessment_point_id in socket.assigns.displayed_assessment_points_ids do
         assessment_point_id
       end
 

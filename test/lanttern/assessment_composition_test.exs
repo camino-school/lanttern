@@ -71,6 +71,41 @@ defmodule Lanttern.AssessmentCompositionTest do
     end
   end
 
+  describe "list_parent_component_pairs/2" do
+    test "returns empty list when no parents are given" do
+      assert AssessmentComposition.list_parent_component_pairs(@staff_scope, []) == []
+    end
+
+    test "returns {parent_id, component_id} pairs only for the given parents" do
+      parent_ap = insert(:assessment_point)
+      other_parent_ap = insert(:assessment_point)
+      child_ap = insert(:assessment_point)
+      other_child_ap = insert(:assessment_point)
+
+      insert(:assessment_point_component, parent: parent_ap, component: child_ap)
+      insert(:assessment_point_component, parent: other_parent_ap, component: other_child_ap)
+
+      result = AssessmentComposition.list_parent_component_pairs(@staff_scope, [parent_ap.id])
+
+      assert result == [{parent_ap.id, child_ap.id}]
+    end
+
+    test "orders by moment APs first (nulls last on moment_id), then by position" do
+      parent_ap = insert(:assessment_point)
+      moment = insert(:moment)
+
+      moment_ap = insert(:assessment_point, moment_id: moment.id, position: 1)
+      strand_ap = insert(:assessment_point, position: 0)
+
+      insert(:assessment_point_component, parent: parent_ap, component: moment_ap)
+      insert(:assessment_point_component, parent: parent_ap, component: strand_ap)
+
+      result = AssessmentComposition.list_parent_component_pairs(@staff_scope, [parent_ap.id])
+
+      assert result == [{parent_ap.id, moment_ap.id}, {parent_ap.id, strand_ap.id}]
+    end
+  end
+
   describe "create_assessment_point_component/2" do
     test "creates component with valid attrs" do
       parent_ap = insert(:assessment_point)

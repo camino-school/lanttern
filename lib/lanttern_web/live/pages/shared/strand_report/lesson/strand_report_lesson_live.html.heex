@@ -82,6 +82,7 @@
           :for={ap <- @assessment_points}
           id={"lesson-ap-#{ap.id}"}
           assessment_point={ap}
+          particle_entries={@composed_particle_entries_map[ap.id] || []}
           patch={"#{@base_path}/lesson/#{@lesson.id}/assessment_point/#{ap.id}"}
         />
       </div>
@@ -93,6 +94,7 @@
     id="assessment-point-details-component"
     assessment_point_id={@assessment_point_id}
     student_id={@student_report_card.student_id}
+    current_scope={@current_scope}
     on_cancel={JS.patch("#{@base_path}/lesson/#{@lesson.id}")}
   />
 </Layouts.app_with_side_nav>

@@ -2,17 +2,22 @@ defmodule LantternWeb.Assessments.StudentAssessmentPointDetailsOverlayComponent 
   @moduledoc """
   Renders an assessment point info overlay.
 
+  For composed assessment points (`uses_composition`), a composition breakdown table is
+  rendered (components, weights, and current marking). When the assessment point is hidden,
+  its own marking is masked — the composition, if any, is still shown.
+
   ### Required attrs:
 
   - `assessment_point_id`
   - `student_id`
+  - `current_scope` - the current `%Scope{}`
   - `on_cancel` - a `%JS{}` struct to execute on overlay close
   """
 
   use LantternWeb, :live_component
 
+  alias Lanttern.AssessmentComposition
   alias Lanttern.Assessments
-  alias Lanttern.Assessments.AssessmentPoint
   alias Lanttern.Attachments
   alias Lanttern.Rubrics
 
@@ -27,7 +32,7 @@ defmodule LantternWeb.Assessments.StudentAssessmentPointDetailsOverlayComponent 
     <div>
       <.slide_over id="assessment-point-details" show={true} on_cancel={@on_cancel}>
         <h3 class="mb-2 font-display font-bold text-lg">
-          {@assessment_point.name}
+          {ap_display_name(@assessment_point)}
         </h3>
         <.markdown
           :if={@assessment_point.report_info}
@@ -39,6 +44,7 @@ defmodule LantternWeb.Assessments.StudentAssessmentPointDetailsOverlayComponent 
             entry={@entry}
             scale={@assessment_point.scale}
             show_student_assessment
+            prevent_preview={@assessment_point.is_hidden}
           />
           <.comment_area :if={@entry && @entry.report_note} comment={@entry.report_note} class="mt-4" />
           <.comment_area
@@ -46,6 +52,16 @@ defmodule LantternWeb.Assessments.StudentAssessmentPointDetailsOverlayComponent 
             comment={@entry.student_report_note}
             class="mt-4"
             type="student"
+          />
+        </div>
+        <div :if={@assessment_point.uses_composition} class="mt-10">
+          <h5 class="font-display font-black text-base">{gettext("Grade composition")}</h5>
+          <.composition_breakdown_table
+            breakdown={@composition_breakdown}
+            composed_name={ap_display_name(@assessment_point)}
+            mask_hidden_components
+            mask_composed={@assessment_point.is_hidden}
+            class="mt-4"
           />
         </div>
         <div class="flex items-center justify-between gap-2 mt-10">
@@ -64,7 +80,7 @@ defmodule LantternWeb.Assessments.StudentAssessmentPointDetailsOverlayComponent 
           <.report_scale
             scale={@assessment_point.scale}
             rubric={@rubric}
-            entry={@entry}
+            entry={!@assessment_point.is_hidden && @entry}
           />
         </div>
         <div :if={@entry && @entry.evidences != []} class="mt-10">
@@ -106,9 +122,6 @@ defmodule LantternWeb.Assessments.StudentAssessmentPointDetailsOverlayComponent 
   # lifecycle
 
   @impl true
-  def update(%{assessment_point: %AssessmentPoint{}} = assigns, socket),
-    do: {:ok, assign(socket, assigns)}
-
   def update(assigns, socket) do
     socket =
       socket
@@ -116,6 +129,7 @@ defmodule LantternWeb.Assessments.StudentAssessmentPointDetailsOverlayComponent 
       |> assign_assessment_point(assigns)
       |> assign_entry()
       |> assign_rubric()
+      |> assign_composition()
 
     {:ok, socket}
   end
@@ -167,4 +181,19 @@ defmodule LantternWeb.Assessments.StudentAssessmentPointDetailsOverlayComponent 
   end
 
   defp assign_rubric(socket), do: assign(socket, :rubric, nil)
+
+  defp assign_composition(
+         %{assigns: %{assessment_point: %{uses_composition: true} = assessment_point}} = socket
+       ) do
+    breakdown =
+      AssessmentComposition.get_composition_breakdown(
+        socket.assigns.current_scope,
+        assessment_point.id,
+        socket.assigns.student_id
+      )
+
+    assign(socket, :composition_breakdown, breakdown)
+  end
+
+  defp assign_composition(socket), do: assign(socket, :composition_breakdown, nil)
 end

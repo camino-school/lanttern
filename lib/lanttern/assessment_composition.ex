@@ -54,6 +54,59 @@ defmodule Lanttern.AssessmentComposition do
   end
 
   @doc """
+  Lists `{parent_id, component_id}` pairs for the given parent assessment point ids.
+
+  Joins the component assessment point to order pairs by the component's `moment_id`
+  (nulls last) then `position` — matching `list_assessment_point_components/2` — so
+  callers can render component particles in a stable order without an N+1.
+  """
+  @spec list_parent_component_pairs(Scope.t(), [pos_integer()]) :: [
+          {pos_integer(), pos_integer()}
+        ]
+  def list_parent_component_pairs(%Scope{} = _scope, parent_ids) do
+    from(c in Component,
+      join: ap in AssessmentPoint,
+      on: c.component_id == ap.id,
+      where: c.parent_id in ^parent_ids,
+      order_by: [asc: c.parent_id, asc_nulls_last: ap.moment_id, asc: ap.position],
+      select: {c.parent_id, c.component_id}
+    )
+    |> Repo.all()
+  end
+
+  @doc """
+  Returns a map of `parent_id => [%AssessmentPointEntry{}, ...]` with each composed parent's
+  component student entries, ordered for display (matching `list_parent_component_pairs/2`).
+
+  Components without a student entry are omitted. Entries have `ordinal_value`/
+  `student_ordinal_value` preloaded. Resolved in two queries (no N+1), regardless of the
+  number of parents.
+  """
+  @spec list_component_entries_by_parent(Scope.t(), [pos_integer()], pos_integer()) ::
+          %{pos_integer() => [AssessmentPointEntry.t()]}
+  def list_component_entries_by_parent(%Scope{} = scope, parent_ids, student_id) do
+    pairs = list_parent_component_pairs(scope, parent_ids)
+    component_ids = pairs |> Enum.map(&elem(&1, 1)) |> Enum.uniq()
+
+    entries_by_ap =
+      from(e in AssessmentPointEntry,
+        left_join: ov in assoc(e, :ordinal_value),
+        left_join: s_ov in assoc(e, :student_ordinal_value),
+        where: e.assessment_point_id in ^component_ids and e.student_id == ^student_id,
+        preload: [ordinal_value: ov, student_ordinal_value: s_ov]
+      )
+      |> Repo.all()
+      |> Map.new(&{&1.assessment_point_id, &1})
+
+    Enum.reduce(pairs, %{}, fn {parent_id, component_id}, acc ->
+      case Map.get(entries_by_ap, component_id) do
+        nil -> acc
+        entry -> Map.update(acc, parent_id, [entry], &(&1 ++ [entry]))
+      end
+    end)
+  end
+
+  @doc """
   Creates an assessment point composition component.
 
   ## Examples
