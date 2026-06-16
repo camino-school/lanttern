@@ -50,7 +50,7 @@ defmodule LantternWeb.AssessmentComposition.AssessmentPointCompositionOverlayCom
           <%= if @composition_components == [] do %>
             <div class="mt-6 p-4 rounded-sm border border-dashed border-ltrn-lighter text-center text-sm text-ltrn-subtle">
               {gettext("%{name} grading composition not setup yet",
-                name: ap_display_name(@ap)
+                name: @ap.name
               )}
             </div>
           <% else %>
@@ -65,7 +65,7 @@ defmodule LantternWeb.AssessmentComposition.AssessmentPointCompositionOverlayCom
                 :for={comp <- @composition_components}
                 class="flex items-center gap-6 mt-4"
               >
-                <span class="truncate">{ap_display_name(comp.component)}</span>
+                <span class="truncate">{comp.component.name}</span>
                 <span class="flex-1 border-b border-ltrn-lighter" />
                 <span class="shrink-0 tabular-nums">
                   {if @ap.scale.type == "numeric",
@@ -74,7 +74,7 @@ defmodule LantternWeb.AssessmentComposition.AssessmentPointCompositionOverlayCom
                 </span>
               </div>
               <div class="flex items-center gap-12 font-bold mt-4">
-                <span class="flex-1 truncate">{ap_display_name(@ap)}</span>
+                <span class="flex-1 truncate">{@ap.name}</span>
                 <span :if={@ap.scale.type == "numeric"} class="shrink-0 tabular-nums">
                   {composition_total(@ap.scale.type, @composition_components)}
                 </span>
@@ -109,7 +109,7 @@ defmodule LantternWeb.AssessmentComposition.AssessmentPointCompositionOverlayCom
               />
               <div class="flex-1 min-w-0">
                 <p class={if(sibling_ap.uses_composition, do: "text-ltrn-subtle")}>
-                  {ap_display_name(sibling_ap)}
+                  {sibling_ap.name}
                 </p>
                 <p :if={sibling_ap.moment_id} class="mt-1 font-sans text-sm text-ltrn-subtle truncate">
                   {ap_curriculum_info(sibling_ap)}
@@ -187,10 +187,6 @@ defmodule LantternWeb.AssessmentComposition.AssessmentPointCompositionOverlayCom
 
   defp composition_subtitle("numeric"), do: gettext("Sum-based grade composition")
   defp composition_subtitle("ordinal"), do: gettext("Average-based grade composition")
-
-  defp ap_display_name(%{moment_id: nil} = ap), do: ap_curriculum_info(ap)
-
-  defp ap_display_name(ap), do: ap.name
 
   defp ap_curriculum_info(ap),
     do: "(#{ap.curriculum_item.curriculum_component.name}) #{ap.curriculum_item.name}"

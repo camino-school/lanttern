@@ -65,7 +65,6 @@ defmodule LantternWeb.ReportingComponents do
         has_info
       ])
 
-    has_name = is_binary(ap.name) and ap.name != ""
     has_particles = ap.uses_composition and assigns.particle_entries != []
 
     assigns =
@@ -79,7 +78,6 @@ defmodule LantternWeb.ReportingComponents do
       |> assign(:has_evidences, flags.has_evidences)
       |> assign(:has_info, has_info)
       |> assign(:has_icon, has_icon)
-      |> assign(:has_name, has_name)
       |> assign(:has_particles, has_particles)
       |> assign(:render_extra_fields, has_icon or has_particles)
 
@@ -98,14 +96,8 @@ defmodule LantternWeb.ReportingComponents do
         "sm:col-span-2 sm:grid sm:grid-cols-subgrid sm:items-center sm:gap-4"
       ]}>
         <div>
-          <p :if={@has_name} class="font-bold text-ltrn-darkest">
+          <p class="font-bold text-ltrn-darkest">
             {@assessment_point.name}
-          </p>
-          <p :if={!@has_name} class="text-sm">
-            <span class="inline-block mr-1 font-display font-bold text-ltrn-subtle">
-              {@assessment_point.curriculum_item.curriculum_component.name}
-            </span>
-            {@assessment_point.curriculum_item.name}
           </p>
           <.markdown
             :if={@assessment_point.report_info}
@@ -740,7 +732,7 @@ defmodule LantternWeb.ReportingComponents do
       </thead>
       <tbody>
         <tr :for={row <- @rows} class="hover:bg-white">
-          <td class="w-full py-2">{ap_display_name(row.assessment_point)}</td>
+          <td class="w-full py-2">{row.assessment_point.name}</td>
           <td class="py-2 pl-4 text-right tabular-nums whitespace-nowrap">
             <span :if={is_number(row.score)}>{format_float(row.score)}</span>
             <span :if={!is_number(row.score)} class="text-ltrn-subtle">{breakdown_no_value_label(row)}</span>
@@ -790,7 +782,7 @@ defmodule LantternWeb.ReportingComponents do
       </thead>
       <tbody>
         <tr :for={row <- @rows} class="hover:bg-white">
-          <td class="w-full py-2">{ap_display_name(row.assessment_point)}</td>
+          <td class="w-full py-2">{row.assessment_point.name}</td>
           <td class="py-2 pl-4 text-right">
             <.badge :if={row.ordinal_value} color_map={row.ordinal_value}>
               {ov_short(row.ordinal_value)}
@@ -827,15 +819,6 @@ defmodule LantternWeb.ReportingComponents do
     </table>
     """
   end
-
-  @doc """
-  Returns a display name for an assessment point — its `name`, or a curriculum-item label
-  (`(component) item`) when the assessment point has no name (e.g. strand-level goals).
-  """
-  def ap_display_name(%{name: name}) when is_binary(name) and name != "", do: name
-
-  def ap_display_name(ap),
-    do: "(#{ap.curriculum_item.curriculum_component.name}) #{ap.curriculum_item.name}"
 
   defp breakdown_no_value_label(%{masked: true}), do: gettext("Not available")
   defp breakdown_no_value_label(%{is_missing: true}), do: gettext("Lack of evidence")

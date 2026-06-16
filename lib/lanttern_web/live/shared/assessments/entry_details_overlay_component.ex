@@ -8,7 +8,7 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
   """
   use LantternWeb, :live_component
 
-  import LantternWeb.ReportingComponents, only: [composition_breakdown_table: 1, ap_display_name: 1]
+  import LantternWeb.ReportingComponents, only: [composition_breakdown_table: 1]
 
   alias Lanttern.AssessmentComposition
   alias Lanttern.Assessments
@@ -27,7 +27,7 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
     ~H"""
     <div>
       <.modal id={@id} show={true} on_cancel={@on_cancel}>
-        <:title>{@assessment_point.name || gettext("Assessment point entry details")}</:title>
+        <:title>{@assessment_point.name}</:title>
         <.metadata class="mb-6" icon_name="hero-user">
           {@student.name}
         </.metadata>
@@ -180,7 +180,7 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
             </:failed>
             <.composition_breakdown_table
               breakdown={breakdown}
-              composed_name={ap_display_name(@assessment_point)}
+              composed_name={@assessment_point.name}
               class="mt-6"
             />
           </.async_result>

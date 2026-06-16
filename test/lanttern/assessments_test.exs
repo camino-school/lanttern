@@ -189,7 +189,7 @@ defmodule Lanttern.AssessmentsTest do
       assert Enum.find(assessment_point.entries, fn e -> e.student_id == student_3.id end)
     end
 
-    test "check name constraint when creating assessment points" do
+    test "name is required when creating assessment points in any context" do
       curriculum_item = insert(:curriculum_item)
       scale = insert(:scale)
       strand = Lanttern.LearningContextFixtures.strand_fixture()
@@ -205,15 +205,22 @@ defmodule Lanttern.AssessmentsTest do
 
       scope = %Lanttern.Identity.Scope{}
 
-      # assessment point in strand context should be ok without name
-      assert {:ok, %AssessmentPoint{}} =
+      # assessment point in strand context (a goal) now requires a name
+      assert {:error, %Ecto.Changeset{}} =
                Assessments.create_assessment_point(scope, %{attrs | strand_id: strand.id})
 
-      # assessment point in moment should return error without name
+      # assessment point in moment context requires a name
       assert {:error, %Ecto.Changeset{}} =
                Assessments.create_assessment_point(scope, %{attrs | moment_id: moment.id})
 
-      # assessment point in moment should be ok with name
+      # both contexts are ok with a name
+      assert {:ok, %AssessmentPoint{}} =
+               Assessments.create_assessment_point(scope, %{
+                 attrs
+                 | strand_id: strand.id,
+                   name: "some name"
+               })
+
       assert {:ok, %AssessmentPoint{}} =
                Assessments.create_assessment_point(scope, %{
                  attrs
@@ -2426,10 +2433,10 @@ defmodule Lanttern.AssessmentsTest do
       ov = insert(:ordinal_value, scale_id: scale.id)
 
       ap_1 =
-        insert(:assessment_point, strand_id: strand.id, scale: scale, position: 0, name: nil)
+        insert(:assessment_point, strand_id: strand.id, scale: scale, position: 0)
 
       ap_2 =
-        insert(:assessment_point, strand_id: strand.id, scale: scale, position: 1, name: nil)
+        insert(:assessment_point, strand_id: strand.id, scale: scale, position: 1)
 
       for ap <- [ap_1, ap_2] do
         insert(:assessment_point_entry,

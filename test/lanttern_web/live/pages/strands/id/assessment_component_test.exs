@@ -60,6 +60,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponentTest do
       scale = insert(:scale)
 
       AssessmentsFixtures.assessment_point_fixture(%{
+        name: "Goal name xyz",
         strand_id: strand.id,
         scale_id: scale.id,
         curriculum_item_id: curriculum_item.id
@@ -68,7 +69,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponentTest do
       conn
       |> visit("#{@live_view_base_path}/#{strand.id}/assessment")
       |> assert_has("h4", text: "Goals assessment")
-      |> assert_has("button", text: "(#{curriculum_component.name}) CI name xyz")
+      |> assert_has("button", text: "Goal name xyz")
     end
 
     test "shows empty state when moment has no assessment points", %{conn: conn} do
@@ -157,6 +158,51 @@ defmodule LantternWeb.StrandLive.AssessmentComponentTest do
       })
 
       assert view |> has_element?("button", "New moment AP")
+    end
+
+    test "create strand goal requires a name", %{conn: conn, user: user} do
+      school_id = user.current_profile.school_id
+      strand = insert(:strand)
+      scale = insert(:scale, school_id: school_id)
+      curriculum_item = insert(:curriculum_item, %{school_id: school_id})
+
+      {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{strand.id}/assessment")
+
+      view
+      |> element("#new-moment-assessment button", "Strand goal")
+      |> render_click()
+
+      # the goal form now exposes the name field (previously hidden for strand goals)
+      assert view
+             |> has_element?(
+               "#assessment-point-form-overlay-form input[name='assessment_point[name]']"
+             )
+
+      # submitting without a name does not create the goal
+      view
+      |> element("#assessment-point-form-overlay-form")
+      |> render_submit(%{
+        "assessment_point" => %{
+          "name" => "",
+          "scale_id" => "#{scale.id}",
+          "curriculum_item_id" => "#{curriculum_item.id}"
+        }
+      })
+
+      refute view |> has_element?("button", "New strand goal")
+
+      # submitting with a name creates the goal
+      view
+      |> element("#assessment-point-form-overlay-form")
+      |> render_submit(%{
+        "assessment_point" => %{
+          "name" => "New strand goal",
+          "scale_id" => "#{scale.id}",
+          "curriculum_item_id" => "#{curriculum_item.id}"
+        }
+      })
+
+      assert view |> has_element?("button", "New strand goal")
     end
 
     test "update moment assessment point name", %{conn: conn, user: user} do
@@ -497,8 +543,14 @@ defmodule LantternWeb.StrandLive.AssessmentComponentTest do
     } do
       %{strand: strand, scale: scale} = setup_grades_report(user)
 
-      goal_ci = insert(:curriculum_item, name: "Reading strand goal")
-      insert(:assessment_point, strand: strand, curriculum_item: goal_ci, scale: scale)
+      goal_ci = insert(:curriculum_item)
+
+      insert(:assessment_point,
+        name: "Reading strand goal",
+        strand: strand,
+        curriculum_item: goal_ci,
+        scale: scale
+      )
 
       moment = insert(:moment, strand: strand)
       insert(:assessment_point, name: "Moment only AP", moment_id: moment.id)
@@ -526,8 +578,15 @@ defmodule LantternWeb.StrandLive.AssessmentComponentTest do
         grades_report_cycle: grc
       } = setup_grades_report(user)
 
-      goal_ci = insert(:curriculum_item, name: "Composed strand goal")
-      goal_ap = insert(:assessment_point, strand: strand, curriculum_item: goal_ci, scale: scale)
+      goal_ci = insert(:curriculum_item)
+
+      goal_ap =
+        insert(:assessment_point,
+          name: "Composed strand goal",
+          strand: strand,
+          curriculum_item: goal_ci,
+          scale: scale
+        )
 
       {:ok, _} =
         Grading.create_grade_component(%{

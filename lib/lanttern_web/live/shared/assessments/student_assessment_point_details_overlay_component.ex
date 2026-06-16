@@ -32,7 +32,7 @@ defmodule LantternWeb.Assessments.StudentAssessmentPointDetailsOverlayComponent 
     <div>
       <.slide_over id="assessment-point-details" show={true} on_cancel={@on_cancel}>
         <h3 class="mb-2 font-display font-bold text-lg">
-          {ap_display_name(@assessment_point)}
+          {@assessment_point.name}
         </h3>
         <.markdown
           :if={@assessment_point.report_info}
@@ -58,7 +58,7 @@ defmodule LantternWeb.Assessments.StudentAssessmentPointDetailsOverlayComponent 
           <h5 class="font-display font-black text-base">{gettext("Grade composition")}</h5>
           <.composition_breakdown_table
             breakdown={@composition_breakdown}
-            composed_name={ap_display_name(@assessment_point)}
+            composed_name={@assessment_point.name}
             mask_hidden_components
             mask_composed={@assessment_point.is_hidden}
             class="mt-4"

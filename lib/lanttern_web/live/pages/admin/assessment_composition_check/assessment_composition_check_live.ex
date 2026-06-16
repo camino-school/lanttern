@@ -41,11 +41,6 @@ defmodule LantternWeb.Admin.AssessmentCompositionCheckLive do
   defp domain_label(:teacher_entry), do: gettext("Teacher")
   defp domain_label(:student_entry), do: gettext("Student")
 
-  defp ap_display_name(%{moment_id: nil} = ap),
-    do: "(#{ap.curriculum_item.curriculum_component.name}) #{ap.curriculum_item.name}"
-
-  defp ap_display_name(ap), do: ap.name
-
   defp student_name(%{name: name}), do: name
   defp student_name(_student), do: "—"
 
