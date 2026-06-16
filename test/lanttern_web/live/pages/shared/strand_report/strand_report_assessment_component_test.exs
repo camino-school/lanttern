@@ -259,7 +259,7 @@ defmodule LantternWeb.StrandReportLive.StrandReportAssessmentComponentTest do
           "#{@live_view_path_base}/#{strand_report.id}/assessment/assessment_point/#{ap.id}"
         )
 
-      assert view |> has_element?("h3", "AP With Details")
+      assert view |> has_element?("h4", "AP With Details")
       assert view |> has_element?("p", "Some Curriculum Item")
     end
 

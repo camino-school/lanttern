@@ -678,18 +678,28 @@ defmodule LantternWeb.ReportingComponents do
   attr :composed_name, :string, required: true
   attr :mask_hidden_components, :boolean, default: false
   attr :mask_composed, :boolean, default: false
+  attr :component_patch_fn, :any, default: nil
   attr :class, :any, default: nil
 
   def composition_breakdown_table(assigns) do
     rows =
       Enum.map(assigns.breakdown.components, fn row ->
-        if assigns.mask_hidden_components and row.assessment_point.is_hidden do
-          row
-          |> Map.merge(%{ordinal_value: nil, score: nil, normalized_value: nil})
-          |> Map.put(:masked, true)
-        else
-          Map.put(row, :masked, false)
-        end
+        masked = assigns.mask_hidden_components and row.assessment_point.is_hidden
+
+        row =
+          if masked do
+            row
+            |> Map.merge(%{ordinal_value: nil, score: nil, normalized_value: nil})
+            |> Map.put(:masked, true)
+          else
+            Map.put(row, :masked, false)
+          end
+
+        patch =
+          if assigns.component_patch_fn && not masked,
+            do: assigns.component_patch_fn.(row.assessment_point.id)
+
+        Map.put(row, :patch, patch)
       end)
 
     composed =
@@ -732,7 +742,12 @@ defmodule LantternWeb.ReportingComponents do
       </thead>
       <tbody>
         <tr :for={row <- @rows} class="hover:bg-white">
-          <td class="w-full py-2">{row.assessment_point.name}</td>
+          <td class="w-full py-2">
+            <.link :if={row.patch} patch={row.patch} class="underline hover:text-ltrn-subtle">
+              {row.assessment_point.name}
+            </.link>
+            <span :if={!row.patch}>{row.assessment_point.name}</span>
+          </td>
           <td class="py-2 pl-4 text-right tabular-nums whitespace-nowrap">
             <span :if={is_number(row.score)}>{format_float(row.score)}</span>
             <span :if={!is_number(row.score)} class="text-ltrn-subtle">{breakdown_no_value_label(row)}</span>
@@ -782,7 +797,12 @@ defmodule LantternWeb.ReportingComponents do
       </thead>
       <tbody>
         <tr :for={row <- @rows} class="hover:bg-white">
-          <td class="w-full py-2">{row.assessment_point.name}</td>
+          <td class="w-full py-2">
+            <.link :if={row.patch} patch={row.patch} class="underline hover:text-ltrn-subtle">
+              {row.assessment_point.name}
+            </.link>
+            <span :if={!row.patch}>{row.assessment_point.name}</span>
+          </td>
           <td class="py-2 pl-4 text-right">
             <.badge :if={row.ordinal_value} color_map={row.ordinal_value}>
               {ov_short(row.ordinal_value)}

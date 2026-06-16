@@ -12,6 +12,9 @@ defmodule LantternWeb.Assessments.StudentAssessmentPointDetailsOverlayComponent 
   - `student_id`
   - `current_scope` - the current `%Scope{}`
   - `on_cancel` - a `%JS{}` struct to execute on overlay close
+  - `base_path` - the base URL path used to build prev/next and component navigation patches
+  - `displayed_assessment_points_ids` - ordered list of viewable assessment point id strings,
+    used to compute prev/next navigation and to gate composition row links
   """
 
   use LantternWeb, :live_component
@@ -30,10 +33,15 @@ defmodule LantternWeb.Assessments.StudentAssessmentPointDetailsOverlayComponent 
   def render(assigns) do
     ~H"""
     <div>
-      <.slide_over id="assessment-point-details" show={true} on_cancel={@on_cancel}>
-        <h3 class="mb-2 font-display font-bold text-lg">
+      <.modal id="assessment-point-details" show={true} on_cancel={@on_cancel}>
+        <:title>
           {@assessment_point.name}
-        </h3>
+        </:title>
+        <%!-- keyed by AP id so navigating between APs remounts the hook and scrolls to top --%>
+        <.scroll_to_top
+          overlay_id="assessment-point-details"
+          id={"assessment-point-details-scroll-top-#{@assessment_point_id}"}
+        />
         <.markdown
           :if={@assessment_point.report_info}
           text={@assessment_point.report_info}
@@ -61,6 +69,7 @@ defmodule LantternWeb.Assessments.StudentAssessmentPointDetailsOverlayComponent 
             composed_name={@assessment_point.name}
             mask_hidden_components
             mask_composed={@assessment_point.is_hidden}
+            component_patch_fn={@component_patch_fn}
             class="mt-4"
           />
         </div>
@@ -114,7 +123,30 @@ defmodule LantternWeb.Assessments.StudentAssessmentPointDetailsOverlayComponent 
             </.badge>
           </div>
         </div>
-      </.slide_over>
+        <div class="flex items-center justify-between gap-4 mt-10">
+          <.button
+            type="link"
+            theme="ghost"
+            size="sm"
+            patch={@prev_patch}
+            disabled={!@prev_patch}
+            icon_name="hero-chevron-left-mini"
+            icon_side="left"
+          >
+            {gettext("Previous")}
+          </.button>
+          <.button
+            type="link"
+            theme="ghost"
+            size="sm"
+            patch={@next_patch}
+            disabled={!@next_patch}
+            icon_name="hero-chevron-right-mini"
+          >
+            {gettext("Next")}
+          </.button>
+        </div>
+      </.modal>
     </div>
     """
   end
@@ -130,9 +162,35 @@ defmodule LantternWeb.Assessments.StudentAssessmentPointDetailsOverlayComponent 
       |> assign_entry()
       |> assign_rubric()
       |> assign_composition()
+      |> assign_navigation()
 
     {:ok, socket}
   end
+
+  defp assign_navigation(socket) do
+    %{
+      assessment_point_id: assessment_point_id,
+      base_path: base_path,
+      displayed_assessment_points_ids: ids
+    } = socket.assigns
+
+    index = Enum.find_index(ids, &(&1 == to_string(assessment_point_id)))
+
+    prev_patch = index && index > 0 && build_ap_patch(base_path, Enum.at(ids, index - 1))
+    next_patch = index && build_ap_patch(base_path, Enum.at(ids, index + 1))
+
+    component_patch_fn = fn ap_id ->
+      if to_string(ap_id) in ids, do: build_ap_patch(base_path, ap_id)
+    end
+
+    socket
+    |> assign(:prev_patch, prev_patch || nil)
+    |> assign(:next_patch, next_patch || nil)
+    |> assign(:component_patch_fn, component_patch_fn)
+  end
+
+  defp build_ap_patch(_base_path, nil), do: nil
+  defp build_ap_patch(base_path, ap_id), do: "#{base_path}/assessment_point/#{ap_id}"
 
   defp assign_assessment_point(socket, assigns) do
     assessment_point =

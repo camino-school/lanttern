@@ -571,7 +571,9 @@ defmodule LantternWeb.CoreComponents do
   attr :theme, :string, default: "default", doc: "default | ghost"
   attr :size, :string, default: "md", doc: "xs | sm | md"
   attr :rounded, :boolean, default: false
+  attr :disabled, :boolean, default: false
   attr :icon_name, :string, default: nil
+  attr :icon_side, :string, default: "right", doc: "left | right"
 
   attr :sr_text, :string,
     default: nil,
@@ -586,9 +588,35 @@ defmodule LantternWeb.CoreComponents do
   attr :csrf_token, :any, default: nil
   # include `<.link>` attrs
   attr :rest, :global,
-    include: ~w(disabled form name value download hreflang referrerpolicy rel target)
+    include: ~w(form name value download hreflang referrerpolicy rel target)
 
   slot :inner_block, doc: "not required when rendering icon only"
+
+  # A disabled link is non-interactive, so render it as a disabled `<button>` to reuse the
+  # `disabled:` styles (which only apply to real form elements, not `<a>`/`<span>`).
+  def button(%{type: "link", disabled: true} = assigns) do
+    ~H"""
+    <button
+      type="button"
+      disabled
+      class={[
+        "group",
+        get_button_styles(@theme, size: @size, rounded: @rounded),
+        @class
+      ]}
+      {@rest}
+    >
+      <.button_inner
+        icon_name={@icon_name}
+        icon_side={@icon_side}
+        sr_text={@sr_text}
+        is_content_empty={@inner_block == []}
+      >
+        {render_slot(@inner_block)}
+      </.button_inner>
+    </button>
+    """
+  end
 
   def button(%{type: "link"} = assigns) do
     ~H"""
@@ -606,15 +634,14 @@ defmodule LantternWeb.CoreComponents do
       csrf_token={@csrf_token}
       {@rest}
     >
-      {render_slot(@inner_block)}
-      <%= if @icon_name do %>
-        <span :if={@inner_block == []} class="sr-only">{@sr_text}</span>
-        <.icon
-          name={@icon_name}
-          class="group-phx-submit-loading:hidden group-phx-click-loading:hidden"
-        />
-      <% end %>
-      <.spinner class="hidden group-phx-submit-loading:block group-phx-click-loading:block" />
+      <.button_inner
+        icon_name={@icon_name}
+        icon_side={@icon_side}
+        sr_text={@sr_text}
+        is_content_empty={@inner_block == []}
+      >
+        {render_slot(@inner_block)}
+      </.button_inner>
     </.link>
     """
   end
@@ -623,6 +650,7 @@ defmodule LantternWeb.CoreComponents do
     ~H"""
     <button
       type={@type}
+      disabled={@disabled}
       class={[
         "group",
         get_button_styles(@theme, size: @size, rounded: @rounded),
@@ -630,16 +658,43 @@ defmodule LantternWeb.CoreComponents do
       ]}
       {@rest}
     >
-      {render_slot(@inner_block)}
-      <%= if @icon_name do %>
-        <span :if={@inner_block == []} class="sr-only">{@sr_text}</span>
-        <.icon
-          name={@icon_name}
-          class="w-5 h-5 group-phx-submit-loading:hidden group-phx-click-loading:hidden"
-        />
-      <% end %>
-      <.spinner class="hidden group-phx-submit-loading:block group-phx-click-loading:block" />
+      <.button_inner
+        icon_name={@icon_name}
+        icon_side={@icon_side}
+        sr_text={@sr_text}
+        is_content_empty={@inner_block == []}
+      >
+        {render_slot(@inner_block)}
+      </.button_inner>
     </button>
+    """
+  end
+
+  attr :icon_name, :string, default: nil
+  attr :icon_side, :string, default: "right"
+  attr :sr_text, :string, default: nil
+  attr :is_content_empty, :boolean, default: false
+  slot :inner_block, required: true
+
+  # `<.icon>` sizes itself from the icon variant (regular/solid 6, mini 5, micro 4), so we
+  # don't set width/height here — pass the right variant (e.g. `-mini`) for the desired size.
+  defp button_inner(assigns) do
+    ~H"""
+    <.icon
+      :if={@icon_name && @icon_side == "left"}
+      name={@icon_name}
+      class="group-phx-submit-loading:hidden group-phx-click-loading:hidden"
+    />
+    {render_slot(@inner_block)}
+    <%= if @icon_name do %>
+      <span :if={@is_content_empty} class="sr-only">{@sr_text}</span>
+      <.icon
+        :if={@icon_side == "right"}
+        name={@icon_name}
+        class="group-phx-submit-loading:hidden group-phx-click-loading:hidden"
+      />
+    <% end %>
+    <.spinner class="hidden group-phx-submit-loading:block group-phx-click-loading:block" />
     """
   end
 
@@ -2074,7 +2129,7 @@ defmodule LantternWeb.CoreComponents do
     <div
       id={@id}
       phx-hook="ScrollToTop"
-      data-scroll-to-selector={"##{@overlay_id} *[aria-modal=true]"}
+      data-scroll-to-selector={"##{@overlay_id}-content"}
     />
     """
   end

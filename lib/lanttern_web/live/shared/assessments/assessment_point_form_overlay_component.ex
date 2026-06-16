@@ -141,7 +141,7 @@ defmodule LantternWeb.Assessments.AssessmentPointFormOverlayComponent do
           <.button
             type="submit"
             theme="primary"
-            icon_name="hero-check"
+            icon_name="hero-check-mini"
             form={"#{@id}-form"}
             phx-disable-with={gettext("Saving...")}
           >

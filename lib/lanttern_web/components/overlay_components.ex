@@ -56,38 +56,47 @@ defmodule LantternWeb.OverlayComponents do
         aria-hidden="true"
       />
       <div
-        class="fixed inset-0 overflow-y-auto"
+        class="fixed inset-0 overflow-hidden"
         aria-labelledby={"#{@id}-title"}
         aria-describedby={"#{@id}-description"}
         role="dialog"
         aria-modal="true"
         tabindex="0"
       >
-        <div class="flex min-h-full items-center justify-center">
-          <div class="w-full max-w-3xl py-10 px-4 sm:px-6">
-            <.focus_wrap
-              id={"#{@id}-container"}
-              phx-window-keydown={JS.exec("data-cancel", to: "##{@id}")}
-              phx-key="escape"
-              phx-click-away={JS.exec("data-cancel", to: "##{@id}")}
-              class="relative hidden p-10 rounded-xl bg-white shadow-lg transition"
+        <div class={
+          [
+            # mobile: full-bleed panel pinned below the top bar (backdrop visible on top),
+            # flush to the screen on the x-axis and at the bottom — like `<.slide_over>`
+            "fixed inset-x-0 top-20 bottom-0 flex",
+            # sm+: centered, boxed modal with breathing room around it
+            "sm:inset-0 sm:items-center sm:justify-center sm:p-6"
+          ]
+        }>
+          <.focus_wrap
+            id={"#{@id}-container"}
+            phx-window-keydown={JS.exec("data-cancel", to: "##{@id}")}
+            phx-key="escape"
+            phx-click-away={JS.exec("data-cancel", to: "##{@id}")}
+            class={[
+              "relative hidden flex-col w-full max-h-full rounded-t-xl bg-white shadow-lg transition",
+              "sm:max-w-3xl sm:rounded-xl"
+            ]}
+          >
+            <button
+              phx-click={JS.exec("data-cancel", to: "##{@id}")}
+              type="button"
+              class="absolute top-4 right-5 z-10 flex-none p-3 opacity-20 hover:opacity-40"
+              aria-label={gettext("close")}
             >
-              <button
-                phx-click={JS.exec("data-cancel", to: "##{@id}")}
-                type="button"
-                class="absolute top-4 right-5 flex-none p-3 opacity-20 hover:opacity-40"
-                aria-label={gettext("close")}
-              >
-                <.icon name="hero-x-mark-solid" class="h-5 w-5" />
-              </button>
-              <div id={"#{@id}-content"}>
-                <h4 :if={@title != []} class="mb-10 font-display font-black text-xl">
-                  {render_slot(@title)}
-                </h4>
-                {render_slot(@inner_block)}
-              </div>
-            </.focus_wrap>
-          </div>
+              <.icon name="hero-x-mark-solid" class="h-5 w-5" />
+            </button>
+            <div id={"#{@id}-content"} class="flex-1 min-h-0 overflow-y-auto p-6 sm:p-10">
+              <h4 :if={@title != []} class="mb-10 font-display font-black text-xl">
+                {render_slot(@title)}
+              </h4>
+              {render_slot(@inner_block)}
+            </div>
+          </.focus_wrap>
         </div>
       </div>
     </div>
@@ -97,6 +106,7 @@ defmodule LantternWeb.OverlayComponents do
   def show(js \\ %JS{}, selector) do
     JS.show(js,
       to: selector,
+      display: "flex",
       transition:
         {"transition-all transform ease-out duration-300",
          "opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95",

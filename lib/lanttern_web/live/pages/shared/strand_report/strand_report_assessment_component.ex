@@ -151,6 +151,8 @@ defmodule LantternWeb.StrandReportLive.StrandReportAssessmentComponent do
         assessment_point_id={@assessment_point_id}
         student_id={@student_report_card.student_id}
         current_scope={@current_scope}
+        base_path={@base_path}
+        displayed_assessment_points_ids={@displayed_assessment_points_ids}
         on_cancel={JS.patch(@base_path)}
       />
       <.live_component
