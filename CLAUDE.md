@@ -11,7 +11,7 @@ Lanttern is a Phoenix-based web application for educational assessment and learn
 *   **Database Migrations**: Always generate migrations via the CLI using `mix ecto.gen.migration <name>` before editing the file. Do not create migration files manually.
 *   **Validation**: Run `mix credo --strict`, `mix sobelow`, and `mix test`[cite: 1]. 
     *   *Agent Rule*: Suggest these commands to the user; do not run them automatically unless requested[cite: 1].
-    *   **Exception — Credo**: After finishing an implementation, always run `mix credo --strict` yourself and resolve any findings in the changed code before reporting the work as done.
+    *   **Exception — Format & Credo**: After finishing an implementation, always run `mix format` first, then `mix credo --strict` yourself, and resolve any findings in the changed code before reporting the work as done.
 *   **HTTP Client**: Use `:req` exclusively. **Avoid** `:httpoison`, `:tesla`, and `:httpc`[cite: 1].
 
 ## 🏗️ Architecture & Patterns
