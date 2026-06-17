@@ -109,7 +109,7 @@ defmodule LantternWeb.Schools.GuardianFormOverlayComponent do
             type="submit"
             theme="primary"
             size="md"
-            icon_name="hero-check"
+            icon_name="hero-check-mini"
             form="guardian-form"
           >
             {gettext("Save")}

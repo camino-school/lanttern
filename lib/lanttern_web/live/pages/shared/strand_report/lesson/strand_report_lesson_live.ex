@@ -1,6 +1,7 @@
 defmodule LantternWeb.StrandReportLessonLive do
   use LantternWeb, :live_view
 
+  alias Lanttern.AssessmentComposition
   alias Lanttern.Assessments
   alias Lanttern.Attachments
   alias Lanttern.Engagement
@@ -136,18 +137,30 @@ defmodule LantternWeb.StrandReportLessonLive do
   end
 
   defp assign_assessment_points(socket) do
+    scope = socket.assigns.current_scope
+    student = socket.assigns.student_report_card.student
+
     assessment_points =
       Assessments.list_lesson_assessment_points_with_student_entries(
-        socket.assigns.current_scope,
-        socket.assigns.student_report_card.student,
+        scope,
+        student,
         socket.assigns.lesson.id
       )
+
+    composed_ids =
+      assessment_points
+      |> Enum.filter(& &1.uses_composition)
+      |> Enum.map(& &1.id)
+
+    composed_particle_entries_map =
+      AssessmentComposition.list_component_entries_by_parent(scope, composed_ids, student.id)
 
     assessment_points_ids = Enum.map(assessment_points, &"#{&1.id}")
 
     socket
     |> assign(:assessment_points, assessment_points)
     |> assign(:assessment_points_ids, assessment_points_ids)
+    |> assign(:composed_particle_entries_map, composed_particle_entries_map)
   end
 
   defp assign_base_path(socket, params) do

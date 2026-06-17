@@ -50,7 +50,6 @@ defmodule LantternWeb.Assessments.AssessmentPointFormOverlayComponent do
             {gettext("Oops, something went wrong! Please check the errors below.")}
           </.error_block>
           <.input
-            :if={!@assessment_point.strand_id}
             field={@form[:name]}
             label={gettext("Assessment point name")}
             phx-debounce="1500"
@@ -142,7 +141,7 @@ defmodule LantternWeb.Assessments.AssessmentPointFormOverlayComponent do
           <.button
             type="submit"
             theme="primary"
-            icon_name="hero-check"
+            icon_name="hero-check-mini"
             form={"#{@id}-form"}
             phx-disable-with={gettext("Saving...")}
           >

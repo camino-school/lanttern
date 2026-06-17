@@ -11,6 +11,7 @@ Lanttern is a Phoenix-based web application for educational assessment and learn
 *   **Database Migrations**: Always generate migrations via the CLI using `mix ecto.gen.migration <name>` before editing the file. Do not create migration files manually.
 *   **Validation**: Run `mix credo --strict`, `mix sobelow`, and `mix test`[cite: 1]. 
     *   *Agent Rule*: Suggest these commands to the user; do not run them automatically unless requested[cite: 1].
+    *   **Exception — Format & Credo**: After finishing an implementation, always run `mix format` first, then `mix credo --strict` yourself, and resolve any findings in the changed code before reporting the work as done.
 *   **HTTP Client**: Use `:req` exclusively. **Avoid** `:httpoison`, `:tesla`, and `:httpc`[cite: 1].
 
 ## 🏗️ Architecture & Patterns
@@ -21,6 +22,10 @@ Lanttern is a Phoenix-based web application for educational assessment and learn
     *   *Avoid*: `User |> where([u], u.active == true)`
 *   **Query Logic**: Write query functions directly in the **Context** file, not the Schema[cite: 1].
 *   **Legacy Data**: Consult `docs/legacy.md` before touching older tables[cite: 1].
+*   **Sortable Text Collation**: Any new `text`/`string` column that will be ordered alphabetically (names, titles, labels — anything used in an `ORDER BY`/`preload_order`) **must** be created with the `und-x-icu` collation so accented characters sort correctly (e.g. *Érico* after *Eric*, not last) and consistently across environments. The cluster default collation is unreliable (differs between local dev and Supabase prod). Since `add/3` has no collation option, set it in the migration with raw SQL right after the table/column is created:
+    *   *Example*: `execute(~s|ALTER TABLE my_table ALTER COLUMN name SET DATA TYPE text COLLATE "und-x-icu"|, ~s|ALTER TABLE my_table ALTER COLUMN name SET DATA TYPE text COLLATE pg_catalog."default"|)`
+    *   Use the **deterministic** ICU collation (the default — do *not* pass `deterministic: false`) so unique indexes, `LIKE`, and `pg_trgm` search keep working.
+    *   This makes `ORDER BY name` accent-aware automatically — never add per-query `COLLATE` fragments. See migration `set_icu_collation_on_name_columns` for the established pattern.
 
 ### 2. Contexts & Scoping
 *   **Scope Pattern**: All new context functions **must** accept `Scope` as the first parameter to support our migration to Phoenix Scopes[cite: 1].
@@ -40,6 +45,7 @@ Lanttern is a Phoenix-based web application for educational assessment and learn
 *   **Module References**: Always use `__MODULE__` instead of aliasing the module in itself[cite: 1].
 *   **Type Specs**: Use `pos_integer()` for IDs and `non_neg_integer()` for positions[cite: 1]. Always include `| Ecto.Association.NotLoaded.t()` for preloads[cite: 1].
 *   **User-Facing Strings**: Always wrap user-facing text in `gettext()`. This applies to all changeset error messages, validation messages, and any string shown to users.
+*   **Boolean Naming**: Reserve the trailing `?` for **functions** that return a boolean (e.g., `def composed?(...)`). For variables, function parameters, and schema fields, use an `is_`/`has_` prefix instead (e.g., `is_already_a_component`, `has_marking`) — never a trailing `?`.
 
 ## 🧪 Testing Strategy
 *   **Factories vs. Fixtures**: Exclusively use `ExMachina` factories.

@@ -1063,114 +1063,18 @@ defmodule Lanttern.Assessments do
   defp maybe_calculate_has_evidences(students_entries, _), do: students_entries
 
   @doc """
-  Returns the list of strand goals, goal entries, and related moment entries for the given student and strand.
-
-  Assessment points without entries will return `nil`.
-
-  Moments without entries are ignored.
-
-  Ordered by `AssessmentPoint` positions.
-
-  Assessment point fields and preloads:
-  - `:has_diff_rubric_for_student` calculated based on student id
-  - curriculum item with curriculum component
-
-  """
-
-  @spec list_strand_goals_for_student(student_id :: pos_integer(), strand_id :: pos_integer()) ::
-          [
-            {AssessmentPoint.t(), AssessmentPointEntry.t() | nil, [AssessmentPointEntry.t()]}
-          ]
-
-  def list_strand_goals_for_student(student_id, strand_id) do
-    goals =
-      from(
-        ap in AssessmentPoint,
-        join: ci in assoc(ap, :curriculum_item),
-        join: cc in assoc(ci, :curriculum_component),
-        left_join: sc in assoc(ap, :scale),
-        where: ap.strand_id == ^strand_id,
-        order_by: ap.position,
-        preload: [
-          curriculum_item: {ci, curriculum_component: cc},
-          scale: sc
-        ]
-      )
-      |> Repo.all()
-
-    goals_ids = Enum.map(goals, & &1.id)
-
-    goals_and_entries_map =
-      from(
-        e in AssessmentPointEntry,
-        left_join: ov in assoc(e, :ordinal_value),
-        left_join: s_ov in assoc(e, :student_ordinal_value),
-        where: e.assessment_point_id in ^goals_ids and e.student_id == ^student_id,
-        where: e.has_marking,
-        preload: [ordinal_value: ov, student_ordinal_value: s_ov]
-      )
-      |> Repo.all()
-      |> Enum.map(&{&1.assessment_point_id, &1})
-      |> Enum.into(%{})
-
-    goals_and_moments_entries_map =
-      from(
-        ap in AssessmentPoint,
-        join: m in assoc(ap, :moment),
-        join: e in AssessmentPointEntry,
-        on: e.assessment_point_id == ap.id and e.student_id == ^student_id,
-        where: m.strand_id == ^strand_id,
-        where: ap.is_hidden == false,
-        where: e.has_marking,
-        order_by: [asc: m.position, asc: ap.position],
-        select: {ap.curriculum_item_id, e}
-      )
-      |> Repo.all()
-      |> Enum.group_by(
-        fn {ci_id, _e} -> ci_id end,
-        fn {_ci_id, e} -> e end
-      )
-
-    goals
-    |> Enum.map(fn ap ->
-      goal_entry = Map.get(goals_and_entries_map, ap.id)
-      moments_entries = Map.get(goals_and_moments_entries_map, ap.curriculum_item_id, [])
-
-      ap = %{
-        ap
-        | has_diff_rubric_for_student:
-            check_has_diff_rubric_for_student(goal_entry, moments_entries)
-      }
-
-      {ap, goal_entry, moments_entries}
-    end)
-  end
-
-  defp check_has_diff_rubric_for_student(
-         %{differentiation_rubric_id: id},
-         _moments_entries
-       )
-       when not is_nil(id),
-       do: true
-
-  defp check_has_diff_rubric_for_student(
-         _assessment_point_entry,
-         moments_entries
-       ) do
-    Enum.any?(moments_entries, fn entry ->
-      entry.differentiation_rubric_id != nil
-    end)
-  end
-
-  @doc """
   Returns the list of all moments assessment points and entries for the given student and strand.
 
-  Student entries are loaded in `assessment_point.student_entry`.
-  Entries have `ordinal_value` preloaded and `has_evidences` calculated.
+  Student entries are loaded in `assessment_point.student_entry` (`nil` when the student
+  has no entry). Entries have `ordinal_value`/`student_ordinal_value` preloaded and
+  `has_evidences` calculated. `scale` and `curriculum_item` (with `curriculum_component`)
+  are loaded on each assessment point.
 
   Scope and student should belong to same school.
 
-  Assessment points without entries are ignored.
+  An assessment point is included when it `uses_composition` (always — even when hidden or
+  without a marked entry, so its composition can be shown) **or** when it is not hidden and
+  the student has an entry with marking.
 
   Ordered by `Moment`, then `AssessmentPoint` positions.
 
@@ -1186,39 +1090,48 @@ defmodule Lanttern.Assessments do
         %Student{school_id: school_id} = student,
         strand_id
       ) do
-    from(
-      ap in AssessmentPoint,
+    from(ap in base_student_entries_query(student.id),
       join: m in assoc(ap, :moment),
-      join: e in assoc(ap, :entries),
-      left_join: ov in assoc(e, :ordinal_value),
-      left_join: s_ov in assoc(e, :student_ordinal_value),
-      left_join: sc in assoc(ap, :scale),
       where: m.strand_id == ^strand_id,
-      where: e.student_id == ^student.id,
-      where: e.has_marking,
-      where: ap.is_hidden == false,
-      order_by: [asc: m.position, asc: ap.position],
-      select: %{
-        ap
-        | scale: sc,
-          student_entry: %{e | ordinal_value: ov, student_ordinal_value: s_ov}
-      }
+      order_by: [asc: m.position, asc: ap.position]
     )
-    |> Repo.all()
-    |> put_student_entries_evidences(student.id)
+    |> resolve_student_entries(student.id)
+  end
+
+  @doc """
+  Returns the list of all strand-level (strand-linked) assessment points and entries for the
+  given student and strand.
+
+  Same loading, visibility rule, and ordering semantics as
+  `list_strand_moments_assessment_points_with_student_entries/3`, but for assessment points
+  linked directly to the strand (`strand_id`), ordered by `AssessmentPoint` position.
+
+  """
+
+  @spec list_strand_level_assessment_points_with_student_entries(
+          Scope.t(),
+          Student.t(),
+          strand_id :: pos_integer()
+        ) :: [AssessmentPoint.t()]
+  def list_strand_level_assessment_points_with_student_entries(
+        %Scope{school_id: school_id} = _scope,
+        %Student{school_id: school_id} = student,
+        strand_id
+      ) do
+    from(ap in base_student_entries_query(student.id),
+      where: ap.strand_id == ^strand_id,
+      order_by: [asc: ap.position]
+    )
+    |> resolve_student_entries(student.id)
   end
 
   @doc """
   Returns the list of all lesson assessment points and entries for the given student.
 
-  Student entries are loaded in `assessment_point.student_entry`.
-  Entries have `ordinal_value` preloaded and `has_evidences` calculated.
+  Same loading and visibility semantics as
+  `list_strand_moments_assessment_points_with_student_entries/3`, scoped to a lesson.
 
-  Scope and student should belong to same school.
-
-  Assessment points without entries are ignored.
-
-  Ordered by `AssessmentPoint` position.
+  Ordered by `Moment` (when linked), then `AssessmentPoint` position.
 
   """
 
@@ -1232,26 +1145,51 @@ defmodule Lanttern.Assessments do
         %Student{school_id: school_id} = student,
         lesson_id
       ) do
-    from(
-      ap in AssessmentPoint,
+    from(ap in base_student_entries_query(student.id),
       join: l in assoc(ap, :lesson),
       left_join: m in assoc(l, :moment),
-      join: e in assoc(ap, :entries),
+      where: l.id == ^lesson_id,
+      order_by: [asc: m.position, asc: ap.position]
+    )
+    |> resolve_student_entries(student.id)
+  end
+
+  # Shared base query for the strand-moments/strand-level/lesson "with student entries"
+  # listings: curriculum item + component, the student's entry (with ordinal values) and
+  # scale, the composition-aware visibility rule, and the `{ap, e, ov, s_ov}` select tuple.
+  # Callers extend it with their context join/`where`/`order_by` and pipe into
+  # `resolve_student_entries/2`.
+  defp base_student_entries_query(student_id) do
+    from(
+      ap in AssessmentPoint,
+      join: ci in assoc(ap, :curriculum_item),
+      join: cc in assoc(ci, :curriculum_component),
+      left_join: e in assoc(ap, :entries),
+      on: e.student_id == ^student_id,
       left_join: ov in assoc(e, :ordinal_value),
       left_join: s_ov in assoc(e, :student_ordinal_value),
-      where: l.id == ^lesson_id,
-      where: e.student_id == ^student.id,
-      where: e.has_marking,
-      where: ap.is_hidden == false,
-      order_by: [asc: m.position, asc: ap.position],
-      select: %{
-        ap
-        | student_entry: %{e | ordinal_value: ov, student_ordinal_value: s_ov}
+      left_join: sc in assoc(ap, :scale),
+      where: ap.uses_composition == true or (ap.is_hidden == false and e.has_marking == true),
+      select: {
+        %{ap | scale: sc, curriculum_item: %{ci | curriculum_component: cc}},
+        e,
+        ov,
+        s_ov
       }
     )
-    |> Repo.all()
-    |> put_student_entries_evidences(student.id)
   end
+
+  defp resolve_student_entries(query, student_id) do
+    query
+    |> Repo.all()
+    |> Enum.map(&merge_student_entry/1)
+    |> put_student_entries_evidences(student_id)
+  end
+
+  defp merge_student_entry({ap, nil, _ov, _s_ov}), do: %{ap | student_entry: nil}
+
+  defp merge_student_entry({ap, entry, ov, s_ov}),
+    do: %{ap | student_entry: %{entry | ordinal_value: ov, student_ordinal_value: s_ov}}
 
   defp put_student_entries_evidences(assessment_points, student_id) do
     assessment_points_ids = Enum.map(assessment_points, & &1.id)
@@ -1269,12 +1207,16 @@ defmodule Lanttern.Assessments do
       |> Repo.all()
       |> Enum.into(%{})
 
-    Enum.map(assessment_points, fn ap ->
-      Map.update!(
-        ap,
-        :student_entry,
-        &%{&1 | has_evidences: Map.get(entry_has_evidences_map, &1.id)}
-      )
+    Enum.map(assessment_points, fn
+      %{student_entry: nil} = ap ->
+        ap
+
+      ap ->
+        Map.update!(
+          ap,
+          :student_entry,
+          &%{&1 | has_evidences: Map.get(entry_has_evidences_map, &1.id)}
+        )
     end)
   end
 

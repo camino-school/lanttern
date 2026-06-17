@@ -26,8 +26,6 @@ defmodule LantternWeb.Grading.StrandGradeCompositionOverlayComponent do
   alias Lanttern.GradesReports
   alias Lanttern.Grading
 
-  @goal_preloads [curriculum_item: :curriculum_component]
-
   @impl true
   def render(assigns) do
     ~H"""
@@ -70,7 +68,7 @@ defmodule LantternWeb.Grading.StrandGradeCompositionOverlayComponent do
                 :for={comp <- @composition_components}
                 class="flex items-center gap-6 mt-4"
               >
-                <span class="truncate">{goal_display_name(comp.assessment_point)}</span>
+                <span class="truncate">{comp.assessment_point.name}</span>
                 <span class="flex-1 border-b border-ltrn-lighter" />
                 <span class="shrink-0 tabular-nums">{comp.weight}</span>
               </div>
@@ -106,7 +104,7 @@ defmodule LantternWeb.Grading.StrandGradeCompositionOverlayComponent do
                 class="appearance-none rounded-xs size-5 border-2 border-ltrn-subtle checked:border-ltrn-primary checked:bg-ltrn-primary indeterminate:border-ltrn-dark indeterminate:bg-ltrn-dark focus:outline-2 focus:outline-offset-2 focus:outline-ltrn-primary disabled:opacity-50 forced-colors:appearance-auto"
               />
               <div class="flex-1 min-w-0">
-                <p>{goal_display_name(goal)}</p>
+                <p>{goal.name}</p>
               </div>
             </label>
             <div class="w-16 text-right shrink-0">
@@ -151,9 +149,6 @@ defmodule LantternWeb.Grading.StrandGradeCompositionOverlayComponent do
     </div>
     """
   end
-
-  defp goal_display_name(ap),
-    do: "(#{ap.curriculum_item.curriculum_component.name}) #{ap.curriculum_item.name}"
 
   defp composition_total(components) do
     components
@@ -203,10 +198,7 @@ defmodule LantternWeb.Grading.StrandGradeCompositionOverlayComponent do
 
   defp load_strand_goals(socket) do
     strand_goals =
-      Assessments.list_assessment_points(
-        strand_id: socket.assigns.strand_id,
-        preloads: @goal_preloads
-      )
+      Assessments.list_assessment_points(strand_id: socket.assigns.strand_id)
 
     existing = socket.assigns.composition_components
 

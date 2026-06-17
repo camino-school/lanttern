@@ -308,22 +308,6 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
   attr :myself, :any, required: true
 
   def assessment_point(assigns) do
-    display_name =
-      assigns.assessment_point.name || assigns.assessment_point.curriculum_item.name
-
-    tooltip_name =
-      if assigns.assessment_point.name do
-        assigns.assessment_point.name
-      else
-        ci = assigns.assessment_point.curriculum_item
-        "#{ci.curriculum_component.name}: #{ci.name}"
-      end
-
-    assigns =
-      assigns
-      |> assign(:display_name, display_name)
-      |> assign(:tooltip_name, tooltip_name)
-
     ~H"""
     <div id={@id} class="flex flex-col p-1">
       <div class="flex flex-1 gap-1">
@@ -344,7 +328,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
                 <% end %>
               </div>
               <p class="flex-1 font-sans text-sm line-clamp-2">
-                {@display_name}
+                {@assessment_point.name}
               </p>
             </div>
           </div>
@@ -364,7 +348,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
           </div>
         </button>
         <.tooltip id={"assessment-point-#{@assessment_point.id}-tooltip"}>
-          <p>{@tooltip_name}</p>
+          <p>{@assessment_point.name}</p>
           <p class="mt-2">
             <%= if @assessment_point.scale.type == "numeric" do %>
               {gettext("Max score: %{max}", max: @assessment_point.scale.max_score)}

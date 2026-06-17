@@ -146,44 +146,41 @@ defmodule LantternWeb.StrandReportLive.StrandReportOverviewComponent do
       id={@id}
     >
       <hr class="w-4 sm:w-6 h-0.5 border-0 rounded-full bg-ltrn-subtle" />
-      <.card_base class="flex-1 flex items-stretch overflow-hidden">
-        <div class="flex-1 p-4">
-          <h4 class="flex-1 font-display font-bold text-base">
-            <.link
-              navigate={"#{@base_path}/lesson/#{@lesson.id}"}
-              class="text-ltrn-dark hover:text-ltrn-subtle"
-            >
+      <.link navigate={"#{@base_path}/lesson/#{@lesson.id}"} class="group/card flex-1 block">
+        <.card_base class="flex items-stretch overflow-hidden group-hover/card:bg-ltrn-lightest">
+          <div class="flex-1 p-4">
+            <h4 class="flex-1 font-display font-bold text-base text-ltrn-dark">
               {@lesson.name}
-            </.link>
-          </h4>
-          <.markdown
-            :if={@lesson.description}
-            text={@lesson.description}
-            strip_tags
-            class="mt-2 text-ltrn-subtle line-clamp-1"
-          />
-          <div
-            :if={!Enum.empty?(@lesson.subjects) || !Enum.empty?(@lesson.tags)}
-            class="flex items-center gap-4 mt-2 font-sans text-sm text-ltrn-subtle"
-          >
-            <div :if={!Enum.empty?(@lesson.subjects)}>
-              {@lesson.subjects |> Enum.map_join(", ", & &1.name)}
-            </div>
-            <div :if={!Enum.empty?(@lesson.tags)} class="flex gap-4">
-              <div
-                :for={tag <- @lesson.tags}
-                class="flex items-center gap-1"
-              >
-                <.icon name="hero-tag-micro" style={"color: #{tag.bg_color}"} />
-                {tag.name}
+            </h4>
+            <.markdown
+              :if={@lesson.description}
+              text={@lesson.description}
+              strip_tags
+              class="mt-2 text-ltrn-subtle line-clamp-1"
+            />
+            <div
+              :if={!Enum.empty?(@lesson.subjects) || !Enum.empty?(@lesson.tags)}
+              class="flex items-center gap-4 mt-2 font-sans text-sm text-ltrn-subtle"
+            >
+              <div :if={!Enum.empty?(@lesson.subjects)}>
+                {@lesson.subjects |> Enum.map_join(", ", & &1.name)}
+              </div>
+              <div :if={!Enum.empty?(@lesson.tags)} class="flex gap-4">
+                <div
+                  :for={tag <- @lesson.tags}
+                  class="flex items-center gap-1"
+                >
+                  <.icon name="hero-tag-micro" style={"color: #{tag.bg_color}"} />
+                  {tag.name}
+                </div>
               </div>
             </div>
           </div>
-        </div>
-        <div class="flex flex-col items-stretch w-2">
-          <div :for={tag <- @lesson.tags} class="flex-1" style={"background: #{tag.bg_color}"} />
-        </div>
-      </.card_base>
+          <div class="flex flex-col items-stretch w-2">
+            <div :for={tag <- @lesson.tags} class="flex-1" style={"background: #{tag.bg_color}"} />
+          </div>
+        </.card_base>
+      </.link>
     </div>
     """
   end

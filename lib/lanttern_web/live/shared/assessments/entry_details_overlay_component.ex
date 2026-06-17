@@ -8,8 +8,7 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
   """
   use LantternWeb, :live_component
 
-  import Lanttern.Utils, only: [format_float: 1]
-  import LantternWeb.GradingComponents, only: [ov_short: 1]
+  import LantternWeb.ReportingComponents, only: [composition_breakdown_table: 1]
 
   alias Lanttern.AssessmentComposition
   alias Lanttern.Assessments
@@ -28,7 +27,7 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
     ~H"""
     <div>
       <.modal id={@id} show={true} on_cancel={@on_cancel}>
-        <:title>{@assessment_point.name || gettext("Assessment point entry details")}</:title>
+        <:title>{@assessment_point.name}</:title>
         <.metadata class="mb-6" icon_name="hero-user">
           {@student.name}
         </.metadata>
@@ -181,7 +180,7 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
             </:failed>
             <.composition_breakdown_table
               breakdown={breakdown}
-              composed_name={ap_display_name(@assessment_point)}
+              composed_name={@assessment_point.name}
               class="mt-6"
             />
           </.async_result>
@@ -484,120 +483,6 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
         </.empty_state_simple>
       <% end %>
     </div>
-    """
-  end
-
-  attr :breakdown, :map, required: true
-  attr :composed_name, :string, required: true
-  attr :class, :any, default: nil
-
-  def composition_breakdown_table(%{breakdown: %{scale_type: "numeric"}} = assigns) do
-    ~H"""
-    <table class={
-      [
-        # widen by 1rem and pull back with -mx-2 so the margin-box still fills 100%
-        # (no overflow) while the hover highlight gets breathing room past the edge
-        # columns, which keep their content aligned via pl-2/pr-2
-        "w-[calc(100%_+_1rem)] -mx-2 border-collapse font-sans text-sm",
-        "[&_tr>*:first-child]:pl-2 [&_tr>*:last-child]:pr-2",
-        @class
-      ]
-    }>
-      <thead>
-        <tr class="text-ltrn-subtle">
-          <th class="w-full py-2 font-bold text-left">{gettext("Assessment point")}</th>
-          <th class="py-2 pl-4 font-bold text-right whitespace-nowrap">
-            {gettext("Student score")}
-          </th>
-          <th class="py-2 pl-4 font-bold text-right">{gettext("Max")}</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr :for={row <- @breakdown.components} class="hover:bg-white">
-          <td class="w-full py-2">{ap_display_name(row.assessment_point)}</td>
-          <td class="py-2 pl-4 text-right tabular-nums whitespace-nowrap">
-            <span :if={is_number(row.score)}>{format_float(row.score)}</span>
-            <span :if={!is_number(row.score)} class="text-ltrn-subtle">{no_marking_label(row)}</span>
-          </td>
-          <td class="py-2 pl-4 text-right tabular-nums text-ltrn-subtle">
-            {format_max(row.assessment_point.scale.max_score)}
-          </td>
-        </tr>
-        <tr class="font-bold">
-          <td class="w-full py-2">{@composed_name}</td>
-          <td class="py-2 pl-4 text-right tabular-nums">
-            <span :if={is_number(@breakdown.composed.score)}>
-              {format_float(@breakdown.composed.score)}
-            </span>
-            <span :if={!is_number(@breakdown.composed.score)} class="text-ltrn-subtle">—</span>
-          </td>
-          <td class="py-2 pl-4 text-right tabular-nums">
-            {format_max(@breakdown.composed.max_score)}
-          </td>
-        </tr>
-      </tbody>
-    </table>
-    """
-  end
-
-  def composition_breakdown_table(%{breakdown: %{scale_type: "ordinal"}} = assigns) do
-    ~H"""
-    <table class={
-      [
-        # widen by 1rem and pull back with -mx-2 so the margin-box still fills 100%
-        # (no overflow) while the hover highlight gets breathing room past the edge
-        # columns, which keep their content aligned via pl-2/pr-2
-        "w-[calc(100%_+_1rem)] -mx-2 border-collapse font-sans text-sm",
-        "[&_tr>*:first-child]:pl-2 [&_tr>*:last-child]:pr-2",
-        @class
-      ]
-    }>
-      <thead>
-        <tr class="text-ltrn-subtle">
-          <th class="w-full py-2 font-bold text-left">{gettext("Assessment point")}</th>
-          <th class="py-2 pl-4 font-bold text-right">{gettext("Value")}</th>
-          <th class="py-2 pl-4 font-bold text-right">{gettext("Normalized")}</th>
-          <th class="py-2 pl-4 font-bold text-right">{gettext("Weight")}</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr :for={row <- @breakdown.components} class="hover:bg-white">
-          <td class="w-full py-2">{ap_display_name(row.assessment_point)}</td>
-          <td class="py-2 pl-4 text-right">
-            <.badge :if={row.ordinal_value} color_map={row.ordinal_value}>
-              {ov_short(row.ordinal_value)}
-            </.badge>
-            <span :if={is_nil(row.ordinal_value)} class="text-ltrn-subtle whitespace-nowrap">
-              {no_marking_label(row)}
-            </span>
-          </td>
-          <td class="py-2 pl-4 text-right tabular-nums text-ltrn-subtle">
-            {format_normalized(row.normalized_value)}
-          </td>
-          <td class="py-2 pl-4 text-right tabular-nums text-ltrn-subtle">
-            {format_float(row.weight)}
-          </td>
-        </tr>
-        <tr class="font-bold">
-          <td class="w-full py-2">{@composed_name}</td>
-          <td class="py-2 pl-4 text-right">
-            <.badge
-              :if={@breakdown.composed.ordinal_value}
-              color_map={@breakdown.composed.ordinal_value}
-            >
-              {ov_short(@breakdown.composed.ordinal_value)}
-            </.badge>
-            <span :if={is_nil(@breakdown.composed.ordinal_value)} class="text-ltrn-subtle">—</span>
-          </td>
-          <td class="py-2 pl-4 text-right tabular-nums">
-            {format_normalized(@breakdown.composed.normalized_value)}
-          </td>
-          <td class="py-2 pl-4 text-right tabular-nums">
-            {format_float(@breakdown.total_weight)}
-          </td>
-        </tr>
-      </tbody>
-    </table>
     """
   end
 
@@ -1138,19 +1023,8 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
     end
   end
 
-  defp ap_display_name(%{moment_id: nil} = ap),
-    do: "(#{ap.curriculum_item.curriculum_component.name}) #{ap.curriculum_item.name}"
-
-  defp ap_display_name(ap), do: ap.name
-
   defp format_normalized(nil), do: "—"
   defp format_normalized(value), do: :erlang.float_to_binary(value * 1.0, decimals: 2)
-
-  defp format_max(nil), do: "—"
-  defp format_max(max_score), do: format_float(max_score)
-
-  defp no_marking_label(%{is_missing: true}), do: gettext("Lack of evidence")
-  defp no_marking_label(_), do: gettext("No marking")
 
   defp get_colors_style(%OrdinalValue{} = ov) do
     "background-color: #{ov.bg_color}; color: #{ov.text_color}"

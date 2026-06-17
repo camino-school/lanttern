@@ -103,8 +103,7 @@ A clear explanation of the functionality added, changed, or fixed:
 ---
 
 Generated with [Claude Code](https://claude.ai/code)
-
-Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>
+Co-Authored-By: [model] <noreply@anthropic.com>
 ```
 
 ---

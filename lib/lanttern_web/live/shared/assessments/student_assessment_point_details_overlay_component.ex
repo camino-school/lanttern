@@ -2,17 +2,25 @@ defmodule LantternWeb.Assessments.StudentAssessmentPointDetailsOverlayComponent 
   @moduledoc """
   Renders an assessment point info overlay.
 
+  For composed assessment points (`uses_composition`), a composition breakdown table is
+  rendered (components, weights, and current marking). When the assessment point is hidden,
+  its own marking is masked — the composition, if any, is still shown.
+
   ### Required attrs:
 
   - `assessment_point_id`
   - `student_id`
+  - `current_scope` - the current `%Scope{}`
   - `on_cancel` - a `%JS{}` struct to execute on overlay close
+  - `base_path` - the base URL path used to build prev/next and component navigation patches
+  - `displayed_assessment_points_ids` - ordered list of viewable assessment point id strings,
+    used to compute prev/next navigation and to gate composition row links
   """
 
   use LantternWeb, :live_component
 
+  alias Lanttern.AssessmentComposition
   alias Lanttern.Assessments
-  alias Lanttern.Assessments.AssessmentPoint
   alias Lanttern.Attachments
   alias Lanttern.Rubrics
 
@@ -25,10 +33,15 @@ defmodule LantternWeb.Assessments.StudentAssessmentPointDetailsOverlayComponent 
   def render(assigns) do
     ~H"""
     <div>
-      <.slide_over id="assessment-point-details" show={true} on_cancel={@on_cancel}>
-        <h3 class="mb-2 font-display font-bold text-lg">
+      <.modal id={"#{@id}-modal"} show={true} on_cancel={@on_cancel}>
+        <:title>
           {@assessment_point.name}
-        </h3>
+        </:title>
+        <%!-- keyed by AP id so navigating between APs remounts the hook and scrolls to top --%>
+        <.scroll_to_top
+          overlay_id={"#{@id}-modal"}
+          id={"#{@id}-scroll-top-#{@assessment_point_id}"}
+        />
         <.markdown
           :if={@assessment_point.report_info}
           text={@assessment_point.report_info}
@@ -39,6 +52,7 @@ defmodule LantternWeb.Assessments.StudentAssessmentPointDetailsOverlayComponent 
             entry={@entry}
             scale={@assessment_point.scale}
             show_student_assessment
+            prevent_preview={@assessment_point.is_hidden}
           />
           <.comment_area :if={@entry && @entry.report_note} comment={@entry.report_note} class="mt-4" />
           <.comment_area
@@ -46,6 +60,17 @@ defmodule LantternWeb.Assessments.StudentAssessmentPointDetailsOverlayComponent 
             comment={@entry.student_report_note}
             class="mt-4"
             type="student"
+          />
+        </div>
+        <div :if={@assessment_point.uses_composition} class="mt-10">
+          <h5 class="font-display font-black text-base">{gettext("Grade composition")}</h5>
+          <.composition_breakdown_table
+            breakdown={@composition_breakdown}
+            composed_name={@assessment_point.name}
+            mask_hidden_components
+            mask_composed={@assessment_point.is_hidden}
+            component_patch_fn={@component_patch_fn}
+            class="mt-4"
           />
         </div>
         <div class="flex items-center justify-between gap-2 mt-10">
@@ -64,7 +89,7 @@ defmodule LantternWeb.Assessments.StudentAssessmentPointDetailsOverlayComponent 
           <.report_scale
             scale={@assessment_point.scale}
             rubric={@rubric}
-            entry={@entry}
+            entry={!@assessment_point.is_hidden && @entry}
           />
         </div>
         <div :if={@entry && @entry.evidences != []} class="mt-10">
@@ -98,7 +123,33 @@ defmodule LantternWeb.Assessments.StudentAssessmentPointDetailsOverlayComponent 
             </.badge>
           </div>
         </div>
-      </.slide_over>
+        <div
+          :if={@prev_patch || @next_patch}
+          class="flex items-center justify-between gap-4 mt-10"
+        >
+          <.button
+            type="link"
+            theme="ghost"
+            size="sm"
+            patch={@prev_patch}
+            disabled={!@prev_patch}
+            icon_name="hero-chevron-left-mini"
+            icon_side="left"
+          >
+            {gettext("Previous")}
+          </.button>
+          <.button
+            type="link"
+            theme="ghost"
+            size="sm"
+            patch={@next_patch}
+            disabled={!@next_patch}
+            icon_name="hero-chevron-right-mini"
+          >
+            {gettext("Next")}
+          </.button>
+        </div>
+      </.modal>
     </div>
     """
   end
@@ -106,9 +157,6 @@ defmodule LantternWeb.Assessments.StudentAssessmentPointDetailsOverlayComponent 
   # lifecycle
 
   @impl true
-  def update(%{assessment_point: %AssessmentPoint{}} = assigns, socket),
-    do: {:ok, assign(socket, assigns)}
-
   def update(assigns, socket) do
     socket =
       socket
@@ -116,9 +164,39 @@ defmodule LantternWeb.Assessments.StudentAssessmentPointDetailsOverlayComponent 
       |> assign_assessment_point(assigns)
       |> assign_entry()
       |> assign_rubric()
+      |> assign_composition()
+      |> assign_navigation()
 
     {:ok, socket}
   end
+
+  defp assign_navigation(socket) do
+    %{
+      assessment_point_id: assessment_point_id,
+      base_path: base_path,
+      displayed_assessment_points_ids: ids
+    } = socket.assigns
+
+    index = Enum.find_index(ids, &(&1 == to_string(assessment_point_id)))
+
+    prev_patch =
+      if index && index > 0, do: build_ap_patch(base_path, Enum.at(ids, index - 1))
+
+    next_patch =
+      if index, do: build_ap_patch(base_path, Enum.at(ids, index + 1))
+
+    component_patch_fn = fn ap_id ->
+      if to_string(ap_id) in ids, do: build_ap_patch(base_path, ap_id)
+    end
+
+    socket
+    |> assign(:prev_patch, prev_patch)
+    |> assign(:next_patch, next_patch)
+    |> assign(:component_patch_fn, component_patch_fn)
+  end
+
+  defp build_ap_patch(_base_path, nil), do: nil
+  defp build_ap_patch(base_path, ap_id), do: "#{base_path}/assessment_point/#{ap_id}"
 
   defp assign_assessment_point(socket, assigns) do
     assessment_point =
@@ -167,4 +245,19 @@ defmodule LantternWeb.Assessments.StudentAssessmentPointDetailsOverlayComponent 
   end
 
   defp assign_rubric(socket), do: assign(socket, :rubric, nil)
+
+  defp assign_composition(
+         %{assigns: %{assessment_point: %{uses_composition: true} = assessment_point}} = socket
+       ) do
+    breakdown =
+      AssessmentComposition.get_composition_breakdown(
+        socket.assigns.current_scope,
+        assessment_point.id,
+        socket.assigns.student_id
+      )
+
+    assign(socket, :composition_breakdown, breakdown)
+  end
+
+  defp assign_composition(socket), do: assign(socket, :composition_breakdown, nil)
 end

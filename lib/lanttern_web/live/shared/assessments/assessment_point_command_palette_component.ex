@@ -28,7 +28,7 @@ defmodule LantternWeb.Assessments.AssessmentPointCommandPaletteComponent do
     ~H"""
     <div>
       <.modal id={@id} show on_cancel={@on_cancel}>
-        <:title>{@ap.name || @ap.curriculum_item.name}</:title>
+        <:title>{@ap.name}</:title>
         <div class="-mx-10">
           <div class="px-10 pb-10">
             <.button type="button" phx-click="edit" phx-target={@myself}>
@@ -64,7 +64,7 @@ defmodule LantternWeb.Assessments.AssessmentPointCommandPaletteComponent do
                 <p class="mt-4 font-sans text-sm">{gettext("Component of:")}</p>
                 <ul class="list-disc list-inside">
                   <li :for={component <- @component_of} class="mt-2 font-sans text-sm">
-                    {ap_display_name(component)}
+                    {component.name}
                   </li>
                 </ul>
               <% end %>
@@ -133,13 +133,6 @@ defmodule LantternWeb.Assessments.AssessmentPointCommandPaletteComponent do
 
     {:ok, socket}
   end
-
-  # prefer the assessment point's name, falling back to its curriculum item
-  # (mirrors the palette title's `@ap.name || @ap.curriculum_item.name`)
-  defp ap_display_name(%{name: name}) when is_binary(name) and name != "", do: name
-
-  defp ap_display_name(ap),
-    do: "(#{ap.curriculum_item.curriculum_component.name}) #{ap.curriculum_item.name}"
 
   @impl true
   def handle_event("edit", _, socket) do

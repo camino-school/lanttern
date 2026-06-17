@@ -264,10 +264,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
               if(@assessment_point.is_hidden, do: "text-ltrn-subtle", else: "text-ltrn-darkest")
             ]}
           >
-            {if @assessment_point.moment_id,
-              do: @assessment_point.name,
-              else:
-                "(#{@assessment_point.curriculum_item.curriculum_component.name}) #{@assessment_point.curriculum_item.name}"}
+            {@assessment_point.name}
           </button>
 
           <.markdown

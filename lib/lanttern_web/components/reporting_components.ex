@@ -24,33 +24,62 @@ defmodule LantternWeb.ReportingComponents do
   alias LantternWeb.Rubrics.RubricDescriptorsComponent
   import LantternWeb.AssessmentsComponents
   import LantternWeb.AttachmentsComponents
+  import LantternWeb.GradingComponents, only: [ov_short: 1]
 
   @doc """
   Renders a strand report assessment point card with student entry display.
+
+  When the assessment point `uses_composition`, the `particle_entries` (its component
+  assessment points' student entries) are rendered as particles. The assessment point's own
+  marking is masked when it is `is_hidden` (a hidden composed assessment point still renders,
+  showing its composition, with its own marking hidden).
   """
 
   attr :id, :string, required: true
   attr :assessment_point, :map, required: true
   attr :patch, :string, required: true
+
+  attr :particle_entries, :list,
+    default: [],
+    doc: "component assessment points' student entries, rendered as particles for composed APs"
+
   attr :class, :any, default: nil
 
   def strand_report_assessment_point_card(assigns) do
     ap = assigns.assessment_point
+    entry = ap.student_entry
+    flags = entry_card_flags(entry)
+
     is_diff = ap.is_differentiation
-    has_diff_rubric = !!ap.student_entry.differentiation_rubric_id
     has_rubric = !!ap.rubric_id
-    has_comment = !!ap.student_entry.report_note
-    has_evidences = ap.student_entry.has_evidences
-    has_icon = is_diff || has_diff_rubric || has_rubric || has_comment || has_evidences
+    has_info = !!ap.report_info
+
+    has_icon =
+      Enum.any?([
+        is_diff,
+        flags.has_diff_rubric,
+        has_rubric,
+        flags.has_teacher_comment,
+        flags.has_student_comment,
+        flags.has_evidences,
+        has_info
+      ])
+
+    has_particles = ap.uses_composition and assigns.particle_entries != []
 
     assigns =
       assigns
+      |> assign(:entry, entry)
       |> assign(:is_diff, is_diff)
-      |> assign(:has_diff_rubric, has_diff_rubric)
+      |> assign(:has_diff_rubric, flags.has_diff_rubric)
       |> assign(:has_rubric, has_rubric)
-      |> assign(:has_comment, has_comment)
-      |> assign(:has_evidences, has_evidences)
+      |> assign(:has_teacher_comment, flags.has_teacher_comment)
+      |> assign(:has_student_comment, flags.has_student_comment)
+      |> assign(:has_evidences, flags.has_evidences)
+      |> assign(:has_info, has_info)
       |> assign(:has_icon, has_icon)
+      |> assign(:has_particles, has_particles)
+      |> assign(:render_extra_fields, has_icon or has_particles)
 
     ~H"""
     <.link
@@ -75,28 +104,68 @@ defmodule LantternWeb.ReportingComponents do
             text={@assessment_point.report_info}
             class="mt-2 line-clamp-2"
           />
-          <div :if={@has_icon} class="flex items-center gap-4 mt-4 text-ltrn-subtle">
-            <p
-              :if={@is_diff || @has_diff_rubric}
-              class="font-sans font-bold text-sm text-ltrn-diff-dark"
-            >
-              {gettext("Diff")}
-            </p>
-            <.icon :if={@has_rubric || @has_diff_rubric} name="hero-view-columns-mini" />
-            <.icon :if={@has_comment} name="hero-chat-bubble-oval-left-mini" />
-            <.icon :if={@has_evidences} name="hero-paper-clip-mini" />
+          <div
+            :if={@render_extra_fields}
+            class="shrink-0 flex items-center gap-4 max-w-full mt-2"
+          >
+            <div :if={@has_icon} class="flex items-center gap-1 text-ltrn-subtle">
+              <p
+                :if={@is_diff || @has_diff_rubric}
+                class="font-sans font-bold text-sm text-ltrn-diff-dark"
+              >
+                {gettext("Diff")}
+              </p>
+              <.icon :if={@has_rubric || @has_diff_rubric} name="hero-view-columns-mini" />
+              <.icon
+                :if={@has_teacher_comment}
+                name="hero-chat-bubble-oval-left-mini"
+                class="text-ltrn-staff-accent"
+              />
+              <.icon
+                :if={@has_student_comment}
+                name="hero-chat-bubble-oval-left-mini"
+                class="text-ltrn-student-accent"
+              />
+              <.icon :if={@has_evidences} name="hero-paper-clip-mini" />
+              <.icon :if={@has_info} name="hero-information-circle-mini" />
+            </div>
+            <div :if={@has_particles} class="flex-1 flex flex-wrap gap-1">
+              <.live_component
+                :for={particle_entry <- @particle_entries}
+                module={EntryParticleComponent}
+                id={"#{@id}-particle-#{particle_entry.id}"}
+                entry={particle_entry}
+              />
+            </div>
           </div>
         </div>
         <.assessment_point_entry_display
-          entry={@assessment_point.student_entry}
+          entry={@entry}
           scale={@assessment_point.scale}
           show_student_assessment
+          prevent_preview={@assessment_point.is_hidden}
           class="mt-4 sm:mt-0"
         />
       </.card_base>
     </.link>
     """
   end
+
+  defp entry_card_flags(nil),
+    do: %{
+      has_diff_rubric: false,
+      has_teacher_comment: false,
+      has_student_comment: false,
+      has_evidences: false
+    }
+
+  defp entry_card_flags(entry),
+    do: %{
+      has_diff_rubric: !!entry.differentiation_rubric_id,
+      has_teacher_comment: !!entry.report_note,
+      has_student_comment: !!entry.student_report_note,
+      has_evidences: !!entry.has_evidences
+    }
 
   @doc """
   Renders a teacher or student comment area
@@ -595,4 +664,191 @@ defmodule LantternWeb.ReportingComponents do
     </div>
     """
   end
+
+  @doc """
+  Renders the breakdown of a composed assessment point: one row per component (with its
+  marking and weight) plus the composed total.
+
+  Set `mask_hidden_components` to mask the marking of components flagged `is_hidden`
+  (the row and weight still render, only the value is hidden), and `mask_composed` to mask
+  the composed total's value (e.g. when the composed assessment point itself is hidden).
+  """
+
+  attr :breakdown, :map, required: true
+  attr :composed_name, :string, required: true
+  attr :mask_hidden_components, :boolean, default: false
+  attr :mask_composed, :boolean, default: false
+  attr :component_patch_fn, :any, default: nil
+  attr :class, :any, default: nil
+
+  def composition_breakdown_table(assigns) do
+    rows =
+      Enum.map(assigns.breakdown.components, fn row ->
+        masked = assigns.mask_hidden_components and row.assessment_point.is_hidden
+
+        row =
+          if masked do
+            row
+            |> Map.merge(%{ordinal_value: nil, score: nil, normalized_value: nil})
+            |> Map.put(:masked, true)
+          else
+            Map.put(row, :masked, false)
+          end
+
+        patch =
+          if assigns.component_patch_fn && not masked,
+            do: assigns.component_patch_fn.(row.assessment_point.id)
+
+        Map.put(row, :patch, patch)
+      end)
+
+    composed =
+      if assigns.mask_composed do
+        assigns.breakdown.composed
+        |> Map.merge(%{ordinal_value: nil, score: nil, normalized_value: nil})
+        |> Map.put(:masked, true)
+      else
+        Map.put(assigns.breakdown.composed, :masked, false)
+      end
+
+    assigns =
+      assigns
+      |> assign(:rows, rows)
+      |> assign(:composed, composed)
+
+    render_composition_breakdown_table(assigns)
+  end
+
+  defp render_composition_breakdown_table(%{breakdown: %{scale_type: "numeric"}} = assigns) do
+    ~H"""
+    <table class={
+      [
+        # widen by 1rem and pull back with -mx-2 so the margin-box still fills 100%
+        # (no overflow) while the hover highlight gets breathing room past the edge
+        # columns, which keep their content aligned via pl-2/pr-2
+        "w-[calc(100%_+_1rem)] -mx-2 border-collapse font-sans text-sm",
+        "[&_tr>*:first-child]:pl-2 [&_tr>*:last-child]:pr-2",
+        @class
+      ]
+    }>
+      <thead>
+        <tr class="text-ltrn-subtle">
+          <th class="w-full py-2 font-bold text-left">{gettext("Assessment point")}</th>
+          <th class="py-2 pl-4 font-bold text-right whitespace-nowrap">
+            {gettext("Student score")}
+          </th>
+          <th class="py-2 pl-4 font-bold text-right">{gettext("Max")}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr :for={row <- @rows} class="hover:bg-white">
+          <td class="w-full py-2">
+            <.link :if={row.patch} patch={row.patch} class="underline hover:text-ltrn-subtle">
+              {row.assessment_point.name}
+            </.link>
+            <span :if={!row.patch}>{row.assessment_point.name}</span>
+          </td>
+          <td class="py-2 pl-4 text-right tabular-nums whitespace-nowrap">
+            <span :if={is_number(row.score)}>{format_float(row.score)}</span>
+            <span :if={!is_number(row.score)} class="text-ltrn-subtle">
+              {breakdown_no_value_label(row)}
+            </span>
+          </td>
+          <td class="py-2 pl-4 text-right tabular-nums text-ltrn-subtle">
+            {format_max(row.assessment_point.scale.max_score)}
+          </td>
+        </tr>
+        <tr class="font-bold">
+          <td class="w-full py-2">{@composed_name}</td>
+          <td class="py-2 pl-4 text-right tabular-nums">
+            <span :if={is_number(@composed.score)}>
+              {format_float(@composed.score)}
+            </span>
+            <span :if={!is_number(@composed.score)} class="text-ltrn-subtle">
+              {if @composed.masked, do: gettext("Not available"), else: "—"}
+            </span>
+          </td>
+          <td class="py-2 pl-4 text-right tabular-nums">
+            {format_max(@composed.max_score)}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    """
+  end
+
+  defp render_composition_breakdown_table(%{breakdown: %{scale_type: "ordinal"}} = assigns) do
+    ~H"""
+    <table class={
+      [
+        # widen by 1rem and pull back with -mx-2 so the margin-box still fills 100%
+        # (no overflow) while the hover highlight gets breathing room past the edge
+        # columns, which keep their content aligned via pl-2/pr-2
+        "w-[calc(100%_+_1rem)] -mx-2 border-collapse font-sans text-sm",
+        "[&_tr>*:first-child]:pl-2 [&_tr>*:last-child]:pr-2",
+        @class
+      ]
+    }>
+      <thead>
+        <tr class="text-ltrn-subtle">
+          <th class="w-full py-2 font-bold text-left">{gettext("Assessment point")}</th>
+          <th class="py-2 pl-4 font-bold text-right">{gettext("Value")}</th>
+          <th class="py-2 pl-4 font-bold text-right">{gettext("Normalized")}</th>
+          <th class="py-2 pl-4 font-bold text-right">{gettext("Weight")}</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr :for={row <- @rows} class="hover:bg-white">
+          <td class="w-full py-2">
+            <.link :if={row.patch} patch={row.patch} class="underline hover:text-ltrn-subtle">
+              {row.assessment_point.name}
+            </.link>
+            <span :if={!row.patch}>{row.assessment_point.name}</span>
+          </td>
+          <td class="py-2 pl-4 text-right">
+            <.badge :if={row.ordinal_value} color_map={row.ordinal_value}>
+              {ov_short(row.ordinal_value)}
+            </.badge>
+            <span :if={is_nil(row.ordinal_value)} class="text-ltrn-subtle whitespace-nowrap">
+              {breakdown_no_value_label(row)}
+            </span>
+          </td>
+          <td class="py-2 pl-4 text-right tabular-nums text-ltrn-subtle">
+            {format_normalized(row.normalized_value)}
+          </td>
+          <td class="py-2 pl-4 text-right tabular-nums text-ltrn-subtle">
+            {format_float(row.weight)}
+          </td>
+        </tr>
+        <tr class="font-bold">
+          <td class="w-full py-2">{@composed_name}</td>
+          <td class="py-2 pl-4 text-right">
+            <.badge :if={@composed.ordinal_value} color_map={@composed.ordinal_value}>
+              {ov_short(@composed.ordinal_value)}
+            </.badge>
+            <span :if={is_nil(@composed.ordinal_value)} class="text-ltrn-subtle">
+              {if @composed.masked, do: gettext("Not available"), else: "—"}
+            </span>
+          </td>
+          <td class="py-2 pl-4 text-right tabular-nums">
+            {format_normalized(@composed.normalized_value)}
+          </td>
+          <td class="py-2 pl-4 text-right tabular-nums">
+            {format_float(@breakdown.total_weight)}
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    """
+  end
+
+  defp breakdown_no_value_label(%{masked: true}), do: gettext("Not available")
+  defp breakdown_no_value_label(%{is_missing: true}), do: gettext("Lack of evidence")
+  defp breakdown_no_value_label(_), do: gettext("No marking")
+
+  defp format_normalized(nil), do: "—"
+  defp format_normalized(value), do: :erlang.float_to_binary(value * 1.0, decimals: 2)
+
+  defp format_max(nil), do: "—"
+  defp format_max(max_score), do: format_float(max_score)
 end

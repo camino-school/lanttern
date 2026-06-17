@@ -189,7 +189,7 @@ defmodule Lanttern.AssessmentsTest do
       assert Enum.find(assessment_point.entries, fn e -> e.student_id == student_3.id end)
     end
 
-    test "check name constraint when creating assessment points" do
+    test "name is required when creating assessment points in any context" do
       curriculum_item = insert(:curriculum_item)
       scale = insert(:scale)
       strand = Lanttern.LearningContextFixtures.strand_fixture()
@@ -205,15 +205,22 @@ defmodule Lanttern.AssessmentsTest do
 
       scope = %Lanttern.Identity.Scope{}
 
-      # assessment point in strand context should be ok without name
-      assert {:ok, %AssessmentPoint{}} =
+      # assessment point in strand context (a goal) now requires a name
+      assert {:error, %Ecto.Changeset{}} =
                Assessments.create_assessment_point(scope, %{attrs | strand_id: strand.id})
 
-      # assessment point in moment should return error without name
+      # assessment point in moment context requires a name
       assert {:error, %Ecto.Changeset{}} =
                Assessments.create_assessment_point(scope, %{attrs | moment_id: moment.id})
 
-      # assessment point in moment should be ok with name
+      # both contexts are ok with a name
+      assert {:ok, %AssessmentPoint{}} =
+               Assessments.create_assessment_point(scope, %{
+                 attrs
+                 | strand_id: strand.id,
+                   name: "some name"
+               })
+
       assert {:ok, %AssessmentPoint{}} =
                Assessments.create_assessment_point(scope, %{
                  attrs
@@ -1362,284 +1369,6 @@ defmodule Lanttern.AssessmentsTest do
     end
   end
 
-  describe "student strand report assessments" do
-    import Lanttern.AssessmentsFixtures
-
-    alias Lanttern.IdentityFixtures
-    alias Lanttern.LearningContextFixtures
-    alias Lanttern.RubricsFixtures
-    alias Lanttern.SchoolsFixtures
-
-    test "list_strand_goals_for_student/2 returns the list of strand goals with student assessments" do
-      #      | moment_1 | moment_2 | moment_3 |
-      # ---------------------------------------
-      # ci_1 |    2     |    1     |    1     | (no entry in m1 pos 2 and m3)
-      # ci_2 |    -     |    1     |    -     |
-      # ci_3 |    -     |    -     |    -     | (no entry for goal)
-      # ci_4 |    1     |    -     |    -     | (no entry for goal)
-
-      strand = LearningContextFixtures.strand_fixture()
-
-      moment_1 = LearningContextFixtures.moment_fixture(%{strand_id: strand.id})
-      moment_2 = LearningContextFixtures.moment_fixture(%{strand_id: strand.id})
-      moment_3 = LearningContextFixtures.moment_fixture(%{strand_id: strand.id})
-
-      curriculum_component_1 = insert(:curriculum_component)
-      curriculum_component_2 = insert(:curriculum_component)
-      curriculum_component_3_4 = insert(:curriculum_component)
-
-      curriculum_item_1 =
-        insert(:curriculum_item, %{
-          curriculum_component_id: curriculum_component_1.id
-        })
-
-      curriculum_item_2 =
-        insert(:curriculum_item, %{
-          curriculum_component_id: curriculum_component_2.id
-        })
-
-      curriculum_item_3 =
-        insert(:curriculum_item, %{
-          curriculum_component_id: curriculum_component_3_4.id
-        })
-
-      curriculum_item_4 =
-        insert(:curriculum_item, %{
-          curriculum_component_id: curriculum_component_3_4.id
-        })
-
-      ordinal_scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
-      ordinal_value = insert(:ordinal_value, scale_id: ordinal_scale.id)
-      numeric_scale = insert(:scale, type: "numeric", max_score: 100.0)
-
-      rubric_1 = RubricsFixtures.rubric_fixture(%{scale_id: ordinal_scale.id})
-      rubric_3 = RubricsFixtures.rubric_fixture(%{scale_id: ordinal_scale.id})
-
-      # create diff rubric to test query consistency
-      # (only diff rubrics of the student should be loaded)
-      diff_rubric_3 =
-        RubricsFixtures.rubric_fixture(%{
-          scale_id: ordinal_scale.id,
-          is_differentiation: true
-        })
-
-      other_diff_rubric_3 =
-        RubricsFixtures.rubric_fixture(%{
-          scale_id: ordinal_scale.id,
-          is_differentiation: true
-        })
-
-      student = SchoolsFixtures.student_fixture()
-
-      assessment_point_1 =
-        assessment_point_fixture(%{
-          position: 1,
-          curriculum_item_id: curriculum_item_1.id,
-          scale_id: ordinal_scale.id,
-          strand_id: strand.id,
-          rubric_id: rubric_1.id
-        })
-
-      assessment_point_2 =
-        assessment_point_fixture(%{
-          position: 2,
-          curriculum_item_id: curriculum_item_2.id,
-          scale_id: numeric_scale.id,
-          strand_id: strand.id
-        })
-
-      assessment_point_3 =
-        assessment_point_fixture(%{
-          position: 3,
-          curriculum_item_id: curriculum_item_3.id,
-          scale_id: ordinal_scale.id,
-          strand_id: strand.id,
-          rubric_id: rubric_3.id
-        })
-
-      assessment_point_4 =
-        assessment_point_fixture(%{
-          position: 4,
-          curriculum_item_id: curriculum_item_4.id,
-          scale_id: ordinal_scale.id,
-          strand_id: strand.id
-        })
-
-      entry_1 =
-        assessment_point_entry_fixture(%{
-          assessment_point_id: assessment_point_1.id,
-          student_id: student.id,
-          scale_id: ordinal_scale.id,
-          scale_type: ordinal_scale.type,
-          ordinal_value_id: ordinal_value.id
-        })
-
-      entry_2 =
-        assessment_point_entry_fixture(%{
-          assessment_point_id: assessment_point_2.id,
-          student_id: student.id,
-          scale_id: numeric_scale.id,
-          scale_type: numeric_scale.type,
-          score: 5.0
-        })
-
-      entry_3 =
-        assessment_point_entry_fixture(%{
-          assessment_point_id: assessment_point_3.id,
-          student_id: student.id,
-          scale_id: ordinal_scale.id,
-          scale_type: ordinal_scale.type,
-          ordinal_value_id: ordinal_value.id,
-          differentiation_rubric_id: diff_rubric_3.id
-        })
-
-      ci_1_m_1_1 =
-        assessment_point_fixture(%{
-          curriculum_item_id: curriculum_item_1.id,
-          scale_id: ordinal_scale.id,
-          moment_id: moment_1.id
-        })
-
-      ci_1_m_1_2 =
-        assessment_point_fixture(%{
-          curriculum_item_id: curriculum_item_1.id,
-          scale_id: ordinal_scale.id,
-          moment_id: moment_1.id
-        })
-
-      ci_1_m_2 =
-        assessment_point_fixture(%{
-          curriculum_item_id: curriculum_item_1.id,
-          scale_id: ordinal_scale.id,
-          moment_id: moment_2.id
-        })
-
-      _empty_ci_1_m_3 =
-        assessment_point_fixture(%{
-          curriculum_item_id: curriculum_item_1.id,
-          scale_id: ordinal_scale.id,
-          moment_id: moment_3.id
-        })
-
-      ci_2_m_2 =
-        assessment_point_fixture(%{
-          curriculum_item_id: curriculum_item_2.id,
-          scale_id: ordinal_scale.id,
-          moment_id: moment_2.id
-        })
-
-      entry_ci_1_m_1_1 =
-        assessment_point_entry_fixture(%{
-          assessment_point_id: ci_1_m_1_1.id,
-          student_id: student.id,
-          scale_id: ordinal_scale.id,
-          scale_type: ordinal_scale.type,
-          ordinal_value_id: ordinal_value.id
-        })
-
-      _empty_entry_ci_1_m_1_2 =
-        assessment_point_entry_fixture(%{
-          assessment_point_id: ci_1_m_1_2.id,
-          student_id: student.id,
-          scale_id: ordinal_scale.id,
-          scale_type: ordinal_scale.type
-        })
-
-      entry_ci_1_m_2 =
-        assessment_point_entry_fixture(%{
-          assessment_point_id: ci_1_m_2.id,
-          student_id: student.id,
-          scale_id: ordinal_scale.id,
-          scale_type: ordinal_scale.type,
-          ordinal_value_id: ordinal_value.id
-        })
-
-      entry_ci_2_m_2 =
-        assessment_point_entry_fixture(%{
-          assessment_point_id: ci_2_m_2.id,
-          student_id: student.id,
-          scale_id: ordinal_scale.id,
-          scale_type: ordinal_scale.type,
-          ordinal_value_id: ordinal_value.id
-        })
-
-      ci_4_m_1 =
-        assessment_point_fixture(%{
-          curriculum_item_id: curriculum_item_4.id,
-          scale_id: ordinal_scale.id,
-          moment_id: moment_1.id
-        })
-
-      entry_ci_4_m_1 =
-        assessment_point_entry_fixture(%{
-          assessment_point_id: ci_4_m_1.id,
-          student_id: student.id,
-          scale_id: ordinal_scale.id,
-          scale_type: ordinal_scale.type,
-          ordinal_value_id: ordinal_value.id
-        })
-
-      # extra entry for different student (test student join)
-      _other_entry =
-        assessment_point_entry_fixture(%{
-          assessment_point_id: assessment_point_3.id,
-          scale_id: ordinal_scale.id,
-          scale_type: ordinal_scale.type,
-          ordinal_value_id: ordinal_value.id,
-          differentiation_rubric_id: other_diff_rubric_3.id
-        })
-
-      assert [
-               {expected_ap_1, expected_entry_1, [expected_ci_1_m_1_1, expected_ci_1_m_2]},
-               {expected_ap_2, expected_entry_2, [expected_ci_2_m_2]},
-               {expected_ap_3, expected_entry_3, []},
-               {expected_ap_4, nil, [expected_ci_4_m_1]}
-             ] = Assessments.list_strand_goals_for_student(student.id, strand.id)
-
-      assert expected_ap_1.id == assessment_point_1.id
-      assert expected_ap_1.scale_id == ordinal_scale.id
-      assert expected_ap_1.rubric_id == rubric_1.id
-      refute expected_ap_1.has_diff_rubric_for_student
-      assert expected_ap_1.curriculum_item.id == curriculum_item_1.id
-      assert expected_ap_1.curriculum_item.curriculum_component.id == curriculum_component_1.id
-      assert expected_ap_1.curriculum_item.id == curriculum_item_1.id
-      assert expected_entry_1.id == entry_1.id
-      assert expected_entry_1.ordinal_value_id == ordinal_value.id
-
-      assert expected_ci_1_m_1_1.id == entry_ci_1_m_1_1.id
-      assert expected_ci_1_m_1_1.ordinal_value_id == ordinal_value.id
-      assert expected_ci_1_m_2.id == entry_ci_1_m_2.id
-      assert expected_ci_1_m_2.ordinal_value_id == ordinal_value.id
-
-      assert expected_ap_2.id == assessment_point_2.id
-      assert expected_ap_2.scale_id == numeric_scale.id
-      assert expected_ap_2.curriculum_item.id == curriculum_item_2.id
-      assert expected_ap_2.curriculum_item.curriculum_component.id == curriculum_component_2.id
-      assert expected_entry_2.id == entry_2.id
-      assert expected_entry_2.score == 5.0
-
-      assert expected_ci_2_m_2.id == entry_ci_2_m_2.id
-      assert expected_ci_2_m_2.ordinal_value_id == ordinal_value.id
-
-      assert expected_ap_3.id == assessment_point_3.id
-      assert expected_ap_3.scale_id == ordinal_scale.id
-      assert expected_ap_3.rubric_id == rubric_3.id
-      assert expected_ap_3.has_diff_rubric_for_student
-      assert expected_ap_3.curriculum_item.id == curriculum_item_3.id
-      assert expected_ap_3.curriculum_item.curriculum_component.id == curriculum_component_3_4.id
-      assert expected_entry_3.id == entry_3.id
-      assert expected_entry_3.ordinal_value_id == ordinal_value.id
-
-      assert expected_ap_4.id == assessment_point_4.id
-      assert expected_ap_4.scale_id == ordinal_scale.id
-      assert expected_ap_4.curriculum_item.id == curriculum_item_4.id
-      assert expected_ap_4.curriculum_item.curriculum_component.id == curriculum_component_3_4.id
-
-      assert expected_ci_4_m_1.id == entry_ci_4_m_1.id
-      assert expected_ci_4_m_1.ordinal_value_id == ordinal_value.id
-    end
-  end
-
   describe "strand assessment points" do
     alias Lanttern.Assessments.AssessmentPoint
 
@@ -2596,6 +2325,186 @@ defmodule Lanttern.AssessmentsTest do
       assert entry_1.has_evidences == true
       assert entry_2.has_evidences == false
     end
+
+    test "list_strand_moments_assessment_points_with_student_entries/3 includes composed APs even without a marked student entry" do
+      school = insert(:school)
+      student = insert(:student, school: school)
+      scope = %Scope{school_id: school.id}
+
+      strand = insert(:strand)
+      moment = insert(:moment, strand: strand)
+      scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
+      ci = insert(:curriculum_item)
+
+      composed_ap =
+        insert(:assessment_point,
+          moment_id: moment.id,
+          scale: scale,
+          curriculum_item: ci,
+          uses_composition: true
+        )
+
+      composed_ap_id = composed_ap.id
+
+      assert [%AssessmentPoint{id: ^composed_ap_id, student_entry: nil}] =
+               Assessments.list_strand_moments_assessment_points_with_student_entries(
+                 scope,
+                 student,
+                 strand.id
+               )
+    end
+
+    test "list_strand_moments_assessment_points_with_student_entries/3 includes hidden composed APs" do
+      school = insert(:school)
+      student = insert(:student, school: school)
+      scope = %Scope{school_id: school.id}
+
+      strand = insert(:strand)
+      moment = insert(:moment, strand: strand)
+      scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
+      ci = insert(:curriculum_item)
+
+      hidden_composed_ap =
+        insert(:assessment_point,
+          moment_id: moment.id,
+          scale: scale,
+          curriculum_item: ci,
+          uses_composition: true,
+          is_hidden: true
+        )
+
+      hidden_composed_ap_id = hidden_composed_ap.id
+
+      assert [%AssessmentPoint{id: ^hidden_composed_ap_id}] =
+               Assessments.list_strand_moments_assessment_points_with_student_entries(
+                 scope,
+                 student,
+                 strand.id
+               )
+    end
+
+    test "list_strand_moments_assessment_points_with_student_entries/3 excludes hidden non-composed APs even with a marked entry" do
+      school = insert(:school)
+      student = insert(:student, school: school)
+      scope = %Scope{school_id: school.id}
+
+      strand = insert(:strand)
+      moment = insert(:moment, strand: strand)
+      scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
+      ov = insert(:ordinal_value, scale_id: scale.id)
+      ci = insert(:curriculum_item)
+
+      hidden_ap =
+        insert(:assessment_point,
+          moment_id: moment.id,
+          scale: scale,
+          curriculum_item: ci,
+          is_hidden: true
+        )
+
+      insert(:assessment_point_entry,
+        assessment_point: hidden_ap,
+        student: student,
+        scale: scale,
+        scale_type: "ordinal",
+        ordinal_value: ov
+      )
+
+      assert [] ==
+               Assessments.list_strand_moments_assessment_points_with_student_entries(
+                 scope,
+                 student,
+                 strand.id
+               )
+    end
+  end
+
+  describe "strand-level assessment points with student entries" do
+    alias Lanttern.Assessments.AssessmentPoint
+    alias Lanttern.Identity.Scope
+
+    test "list_strand_level_assessment_points_with_student_entries/3 returns non-hidden strand APs with a marked entry, ordered by position" do
+      school = insert(:school)
+      student = insert(:student, school: school)
+      scope = %Scope{school_id: school.id}
+
+      strand = insert(:strand)
+      scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
+      ov = insert(:ordinal_value, scale_id: scale.id)
+
+      ap_1 =
+        insert(:assessment_point, strand_id: strand.id, scale: scale, position: 0)
+
+      ap_2 =
+        insert(:assessment_point, strand_id: strand.id, scale: scale, position: 1)
+
+      for ap <- [ap_1, ap_2] do
+        insert(:assessment_point_entry,
+          assessment_point: ap,
+          student: student,
+          scale: scale,
+          scale_type: "ordinal",
+          ordinal_value: ov
+        )
+      end
+
+      ap_1_id = ap_1.id
+      ap_2_id = ap_2.id
+
+      assert [
+               %AssessmentPoint{id: ^ap_1_id, curriculum_item: %{curriculum_component: %{}}},
+               %AssessmentPoint{id: ^ap_2_id}
+             ] =
+               Assessments.list_strand_level_assessment_points_with_student_entries(
+                 scope,
+                 student,
+                 strand.id
+               )
+    end
+
+    test "list_strand_level_assessment_points_with_student_entries/3 includes composed APs (even hidden / without entry) and excludes hidden non-composed APs" do
+      school = insert(:school)
+      student = insert(:student, school: school)
+      scope = %Scope{school_id: school.id}
+
+      strand = insert(:strand)
+      scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
+      ov = insert(:ordinal_value, scale_id: scale.id)
+
+      composed_ap =
+        insert(:assessment_point,
+          strand_id: strand.id,
+          scale: scale,
+          position: 0,
+          uses_composition: true,
+          is_hidden: true
+        )
+
+      hidden_ap =
+        insert(:assessment_point,
+          strand_id: strand.id,
+          scale: scale,
+          position: 1,
+          is_hidden: true
+        )
+
+      insert(:assessment_point_entry,
+        assessment_point: hidden_ap,
+        student: student,
+        scale: scale,
+        scale_type: "ordinal",
+        ordinal_value: ov
+      )
+
+      composed_ap_id = composed_ap.id
+
+      assert [%AssessmentPoint{id: ^composed_ap_id, student_entry: nil}] =
+               Assessments.list_strand_level_assessment_points_with_student_entries(
+                 scope,
+                 student,
+                 strand.id
+               )
+    end
   end
 
   describe "lesson assessment points with student entries" do
@@ -2793,6 +2702,33 @@ defmodule Lanttern.AssessmentsTest do
       ap_visible_id = ap_visible.id
 
       assert [%AssessmentPoint{id: ^ap_visible_id}] =
+               Assessments.list_lesson_assessment_points_with_student_entries(
+                 scope,
+                 student,
+                 lesson.id
+               )
+    end
+
+    test "list_lesson_assessment_points_with_student_entries/3 includes composed APs even without a marked entry" do
+      school = insert(:school)
+      student = insert(:student, school: school)
+      scope = %Scope{school_id: school.id}
+
+      strand = insert(:strand)
+      lesson = insert(:lesson, strand: strand)
+      scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
+
+      composed_ap =
+        insert(:assessment_point,
+          lesson_id: lesson.id,
+          scale: scale,
+          uses_composition: true,
+          is_hidden: true
+        )
+
+      composed_ap_id = composed_ap.id
+
+      assert [%AssessmentPoint{id: ^composed_ap_id, student_entry: nil}] =
                Assessments.list_lesson_assessment_points_with_student_entries(
                  scope,
                  student,

@@ -89,9 +89,7 @@
         phx-click="select_composition_ap"
         phx-value-id={ap.id}
       >
-        {if ap.name && ap.name != "",
-          do: ap.name,
-          else: "(#{ap.curriculum_item.curriculum_component.name}) #{ap.curriculum_item.name}"}
+        {ap.name}
       </.badge_button>
     </div>
   </div>

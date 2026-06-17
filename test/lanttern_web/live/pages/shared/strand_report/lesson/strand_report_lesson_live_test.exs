@@ -81,6 +81,57 @@ defmodule LantternWeb.StrandReportLessonLiveTest do
       |> visit("#{@live_view_path_base}/#{strand_report.id}/lesson/#{lesson.id}")
       |> refute_has("[id*='assessment-point']", text: "AP Without Entry")
     end
+
+    test "shows composed assessment points even without an own marked entry", context do
+      %{conn: conn, student: student} = register_and_log_in_student(context)
+
+      report_card = insert(:report_card)
+
+      insert(:student_report_card,
+        student: student,
+        report_card: report_card,
+        allow_student_access: true
+      )
+
+      strand = insert(:strand)
+      strand_report = insert(:strand_report, report_card: report_card, strand: strand)
+      lesson = insert(:lesson, strand: strand, is_published: true)
+
+      scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
+      ov = insert(:ordinal_value, scale_id: scale.id)
+      ci = insert(:curriculum_item)
+
+      composed_ap =
+        assessment_point_fixture(%{
+          name: "Composed Lesson AP",
+          lesson_id: lesson.id,
+          scale_id: scale.id,
+          curriculum_item_id: ci.id,
+          uses_composition: true
+        })
+
+      component_ap =
+        assessment_point_fixture(%{
+          name: "Component AP",
+          lesson_id: lesson.id,
+          scale_id: scale.id,
+          curriculum_item_id: ci.id
+        })
+
+      insert(:assessment_point_component, parent: composed_ap, component: component_ap)
+
+      assessment_point_entry_fixture(%{
+        assessment_point_id: component_ap.id,
+        student_id: student.id,
+        scale_id: scale.id,
+        scale_type: scale.type,
+        ordinal_value_id: ov.id
+      })
+
+      conn
+      |> visit("#{@live_view_path_base}/#{strand_report.id}/lesson/#{lesson.id}")
+      |> assert_has("[id*='assessment-point']", text: "Composed Lesson AP")
+    end
   end
 
   describe "StudentAssessmentPointDetailsOverlayComponent in lesson view" do
@@ -125,7 +176,7 @@ defmodule LantternWeb.StrandReportLessonLiveTest do
       |> visit(
         "#{@live_view_path_base}/#{strand_report.id}/lesson/#{lesson.id}/assessment_point/#{ap.id}"
       )
-      |> assert_has("h3", text: "AP With Details")
+      |> assert_has("h4", text: "AP With Details")
       |> assert_has("p", text: "Some Curriculum Item")
     end
 
