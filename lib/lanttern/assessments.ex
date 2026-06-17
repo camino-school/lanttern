@@ -1090,29 +1090,12 @@ defmodule Lanttern.Assessments do
         %Student{school_id: school_id} = student,
         strand_id
       ) do
-    from(
-      ap in AssessmentPoint,
+    from(ap in base_student_entries_query(student.id),
       join: m in assoc(ap, :moment),
-      join: ci in assoc(ap, :curriculum_item),
-      join: cc in assoc(ci, :curriculum_component),
-      left_join: e in assoc(ap, :entries),
-      on: e.student_id == ^student.id,
-      left_join: ov in assoc(e, :ordinal_value),
-      left_join: s_ov in assoc(e, :student_ordinal_value),
-      left_join: sc in assoc(ap, :scale),
       where: m.strand_id == ^strand_id,
-      where: ap.uses_composition == true or (ap.is_hidden == false and e.has_marking == true),
-      order_by: [asc: m.position, asc: ap.position],
-      select: {
-        %{ap | scale: sc, curriculum_item: %{ci | curriculum_component: cc}},
-        e,
-        ov,
-        s_ov
-      }
+      order_by: [asc: m.position, asc: ap.position]
     )
-    |> Repo.all()
-    |> Enum.map(&merge_student_entry/1)
-    |> put_student_entries_evidences(student.id)
+    |> resolve_student_entries(student.id)
   end
 
   @doc """
@@ -1135,28 +1118,11 @@ defmodule Lanttern.Assessments do
         %Student{school_id: school_id} = student,
         strand_id
       ) do
-    from(
-      ap in AssessmentPoint,
-      join: ci in assoc(ap, :curriculum_item),
-      join: cc in assoc(ci, :curriculum_component),
-      left_join: e in assoc(ap, :entries),
-      on: e.student_id == ^student.id,
-      left_join: ov in assoc(e, :ordinal_value),
-      left_join: s_ov in assoc(e, :student_ordinal_value),
-      left_join: sc in assoc(ap, :scale),
+    from(ap in base_student_entries_query(student.id),
       where: ap.strand_id == ^strand_id,
-      where: ap.uses_composition == true or (ap.is_hidden == false and e.has_marking == true),
-      order_by: [asc: ap.position],
-      select: {
-        %{ap | scale: sc, curriculum_item: %{ci | curriculum_component: cc}},
-        e,
-        ov,
-        s_ov
-      }
+      order_by: [asc: ap.position]
     )
-    |> Repo.all()
-    |> Enum.map(&merge_student_entry/1)
-    |> put_student_entries_evidences(student.id)
+    |> resolve_student_entries(student.id)
   end
 
   @doc """
@@ -1179,20 +1145,31 @@ defmodule Lanttern.Assessments do
         %Student{school_id: school_id} = student,
         lesson_id
       ) do
-    from(
-      ap in AssessmentPoint,
+    from(ap in base_student_entries_query(student.id),
       join: l in assoc(ap, :lesson),
       left_join: m in assoc(l, :moment),
+      where: l.id == ^lesson_id,
+      order_by: [asc: m.position, asc: ap.position]
+    )
+    |> resolve_student_entries(student.id)
+  end
+
+  # Shared base query for the strand-moments/strand-level/lesson "with student entries"
+  # listings: curriculum item + component, the student's entry (with ordinal values) and
+  # scale, the composition-aware visibility rule, and the `{ap, e, ov, s_ov}` select tuple.
+  # Callers extend it with their context join/`where`/`order_by` and pipe into
+  # `resolve_student_entries/2`.
+  defp base_student_entries_query(student_id) do
+    from(
+      ap in AssessmentPoint,
       join: ci in assoc(ap, :curriculum_item),
       join: cc in assoc(ci, :curriculum_component),
       left_join: e in assoc(ap, :entries),
-      on: e.student_id == ^student.id,
+      on: e.student_id == ^student_id,
       left_join: ov in assoc(e, :ordinal_value),
       left_join: s_ov in assoc(e, :student_ordinal_value),
       left_join: sc in assoc(ap, :scale),
-      where: l.id == ^lesson_id,
       where: ap.uses_composition == true or (ap.is_hidden == false and e.has_marking == true),
-      order_by: [asc: m.position, asc: ap.position],
       select: {
         %{ap | scale: sc, curriculum_item: %{ci | curriculum_component: cc}},
         e,
@@ -1200,9 +1177,13 @@ defmodule Lanttern.Assessments do
         s_ov
       }
     )
+  end
+
+  defp resolve_student_entries(query, student_id) do
+    query
     |> Repo.all()
     |> Enum.map(&merge_student_entry/1)
-    |> put_student_entries_evidences(student.id)
+    |> put_student_entries_evidences(student_id)
   end
 
   defp merge_student_entry({ap, nil, _ov, _s_ov}), do: %{ap | student_entry: nil}

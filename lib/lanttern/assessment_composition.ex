@@ -78,7 +78,8 @@ defmodule Lanttern.AssessmentComposition do
   Returns a map of `parent_id => [%AssessmentPointEntry{}, ...]` with each composed parent's
   component student entries, ordered for display (matching `list_parent_component_pairs/2`).
 
-  Components without a student entry are omitted. Entries have `ordinal_value`/
+  Components without a student entry are omitted, as are components flagged `is_hidden`
+  (their marking must not leak through the parent's particles). Entries have `ordinal_value`/
   `student_ordinal_value` preloaded. Resolved in two queries (no N+1), regardless of the
   number of parents.
   """
@@ -90,9 +91,11 @@ defmodule Lanttern.AssessmentComposition do
 
     entries_by_ap =
       from(e in AssessmentPointEntry,
+        join: ap in assoc(e, :assessment_point),
         left_join: ov in assoc(e, :ordinal_value),
         left_join: s_ov in assoc(e, :student_ordinal_value),
         where: e.assessment_point_id in ^component_ids and e.student_id == ^student_id,
+        where: ap.is_hidden == false,
         preload: [ordinal_value: ov, student_ordinal_value: s_ov]
       )
       |> Repo.all()

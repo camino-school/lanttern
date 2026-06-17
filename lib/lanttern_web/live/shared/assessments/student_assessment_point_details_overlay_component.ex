@@ -33,14 +33,14 @@ defmodule LantternWeb.Assessments.StudentAssessmentPointDetailsOverlayComponent 
   def render(assigns) do
     ~H"""
     <div>
-      <.modal id="assessment-point-details" show={true} on_cancel={@on_cancel}>
+      <.modal id={"#{@id}-modal"} show={true} on_cancel={@on_cancel}>
         <:title>
           {@assessment_point.name}
         </:title>
         <%!-- keyed by AP id so navigating between APs remounts the hook and scrolls to top --%>
         <.scroll_to_top
-          overlay_id="assessment-point-details"
-          id={"assessment-point-details-scroll-top-#{@assessment_point_id}"}
+          overlay_id={"#{@id}-modal"}
+          id={"#{@id}-scroll-top-#{@assessment_point_id}"}
         />
         <.markdown
           :if={@assessment_point.report_info}
@@ -179,16 +179,19 @@ defmodule LantternWeb.Assessments.StudentAssessmentPointDetailsOverlayComponent 
 
     index = Enum.find_index(ids, &(&1 == to_string(assessment_point_id)))
 
-    prev_patch = index && index > 0 && build_ap_patch(base_path, Enum.at(ids, index - 1))
-    next_patch = index && build_ap_patch(base_path, Enum.at(ids, index + 1))
+    prev_patch =
+      if index && index > 0, do: build_ap_patch(base_path, Enum.at(ids, index - 1))
+
+    next_patch =
+      if index, do: build_ap_patch(base_path, Enum.at(ids, index + 1))
 
     component_patch_fn = fn ap_id ->
       if to_string(ap_id) in ids, do: build_ap_patch(base_path, ap_id)
     end
 
     socket
-    |> assign(:prev_patch, prev_patch || nil)
-    |> assign(:next_patch, next_patch || nil)
+    |> assign(:prev_patch, prev_patch)
+    |> assign(:next_patch, next_patch)
     |> assign(:component_patch_fn, component_patch_fn)
   end
 

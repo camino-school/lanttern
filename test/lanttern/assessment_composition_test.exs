@@ -106,6 +106,47 @@ defmodule Lanttern.AssessmentCompositionTest do
     end
   end
 
+  describe "list_component_entries_by_parent/3" do
+    test "excludes hidden components' entries while keeping visible siblings" do
+      student = insert(:student)
+      scale = insert(:scale, type: "numeric", max_score: 100.0)
+      parent_ap = insert(:assessment_point, scale: scale)
+      visible_component = insert(:assessment_point, scale: scale, is_hidden: false)
+      hidden_component = insert(:assessment_point, scale: scale, is_hidden: true)
+
+      insert(:assessment_point_component, parent: parent_ap, component: visible_component)
+      insert(:assessment_point_component, parent: parent_ap, component: hidden_component)
+
+      visible_entry =
+        insert(:assessment_point_entry,
+          assessment_point: visible_component,
+          student: student,
+          scale: scale,
+          scale_type: "numeric",
+          score: 50.0
+        )
+
+      # hidden component also has a marked entry, which must NOT leak through the parent
+      insert(:assessment_point_entry,
+        assessment_point: hidden_component,
+        student: student,
+        scale: scale,
+        scale_type: "numeric",
+        score: 90.0
+      )
+
+      result =
+        AssessmentComposition.list_component_entries_by_parent(
+          @staff_scope,
+          [parent_ap.id],
+          student.id
+        )
+
+      assert [%AssessmentPointEntry{id: visible_entry_id}] = result[parent_ap.id]
+      assert visible_entry_id == visible_entry.id
+    end
+  end
+
   describe "create_assessment_point_component/2" do
     test "creates component with valid attrs" do
       parent_ap = insert(:assessment_point)
