@@ -95,6 +95,8 @@
     assessment_point_id={@assessment_point_id}
     student_id={@student_report_card.student_id}
     current_scope={@current_scope}
+    base_path={"#{@base_path}/lesson/#{@lesson.id}"}
+    displayed_assessment_points_ids={@assessment_points_ids}
     on_cancel={JS.patch("#{@base_path}/lesson/#{@lesson.id}")}
   />
 </Layouts.app_with_side_nav>

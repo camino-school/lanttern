@@ -176,7 +176,7 @@ defmodule LantternWeb.StrandReportLessonLiveTest do
       |> visit(
         "#{@live_view_path_base}/#{strand_report.id}/lesson/#{lesson.id}/assessment_point/#{ap.id}"
       )
-      |> assert_has("h3", text: "AP With Details")
+      |> assert_has("h4", text: "AP With Details")
       |> assert_has("p", text: "Some Curriculum Item")
     end
 

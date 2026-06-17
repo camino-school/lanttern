@@ -587,8 +587,7 @@ defmodule LantternWeb.CoreComponents do
   attr :method, :string, default: nil
   attr :csrf_token, :any, default: nil
   # include `<.link>` attrs
-  attr :rest, :global,
-    include: ~w(form name value download hreflang referrerpolicy rel target)
+  attr :rest, :global, include: ~w(form name value download hreflang referrerpolicy rel target)
 
   slot :inner_block, doc: "not required when rendering icon only"
 

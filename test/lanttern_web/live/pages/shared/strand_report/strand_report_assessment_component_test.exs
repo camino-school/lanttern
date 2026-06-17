@@ -168,7 +168,9 @@ defmodule LantternWeb.StrandReportLive.StrandReportAssessmentComponentTest do
         live(conn, "#{@live_view_path_base}/#{strand_report.id}/assessment")
 
       assert view |> has_element?("#strand-assessment-points", "Hidden Composed AP")
-      assert view |> has_element?("#strand-assessment-points", "Final assessment not available yet")
+
+      assert view
+             |> has_element?("#strand-assessment-points", "Final assessment not available yet")
     end
 
     test "does not show non-composed assessment points that have no entry for the student",

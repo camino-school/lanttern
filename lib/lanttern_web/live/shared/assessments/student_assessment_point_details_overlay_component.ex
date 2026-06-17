@@ -123,7 +123,10 @@ defmodule LantternWeb.Assessments.StudentAssessmentPointDetailsOverlayComponent 
             </.badge>
           </div>
         </div>
-        <div class="flex items-center justify-between gap-4 mt-10">
+        <div
+          :if={@prev_patch || @next_patch}
+          class="flex items-center justify-between gap-4 mt-10"
+        >
           <.button
             type="link"
             theme="ghost"

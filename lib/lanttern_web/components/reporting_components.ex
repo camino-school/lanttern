@@ -750,7 +750,9 @@ defmodule LantternWeb.ReportingComponents do
           </td>
           <td class="py-2 pl-4 text-right tabular-nums whitespace-nowrap">
             <span :if={is_number(row.score)}>{format_float(row.score)}</span>
-            <span :if={!is_number(row.score)} class="text-ltrn-subtle">{breakdown_no_value_label(row)}</span>
+            <span :if={!is_number(row.score)} class="text-ltrn-subtle">
+              {breakdown_no_value_label(row)}
+            </span>
           </td>
           <td class="py-2 pl-4 text-right tabular-nums text-ltrn-subtle">
             {format_max(row.assessment_point.scale.max_score)}
