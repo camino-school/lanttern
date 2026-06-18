@@ -22,6 +22,9 @@ Lanttern is a Phoenix-based web application for educational assessment and learn
 *   Until the Scope migration is complete, use `current_user` (`%User{}`) inside functions to extract profile/school data for access control.
 *   Permission checks raise on failure (MatchError), e.g. `true = Scope.has_permission?(...)`.
 
+### UI & Design
+*   At "sm" and (especially) "xs" font sizes, default to `font-sans` — the display and serif fonts are hard to read when small.
+
 ### LiveView
 *   Assign to a `socket` variable before returning the tuple — never inline the pipe in `{:noreply, ...}`:
     ```elixir
