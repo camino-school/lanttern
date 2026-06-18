@@ -1003,7 +1003,7 @@ defmodule Lanttern.ReportingTest do
       student_report_card_1 = student_report_card_fixture()
       student_report_card_2 = student_report_card_fixture()
 
-      update_attrs = %{allow_student_access: true, allow_guardian_access: true}
+      update_attrs = %{allow_access: true}
 
       src_1_id = student_report_card_1.id
       src_2_id = student_report_card_2.id
@@ -1015,12 +1015,10 @@ defmodule Lanttern.ReportingTest do
                )
 
       assert expected_1.id == student_report_card_1.id
-      assert expected_1.allow_student_access
-      assert expected_1.allow_guardian_access
+      assert expected_1.allow_access
 
       assert expected_2.id == student_report_card_2.id
-      assert expected_2.allow_student_access
-      assert expected_2.allow_guardian_access
+      assert expected_2.allow_access
     end
 
     test "delete_student_report_card/1 deletes the student_report_card" do

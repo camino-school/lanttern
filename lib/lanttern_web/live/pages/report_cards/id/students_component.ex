@@ -149,75 +149,39 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
           )}
         </p>
         <div class="flex items-center gap-2">
-          <span class="text-sm text-white">{gettext("Student access")}</span>
+          <span class="text-sm text-white">{gettext("Student/guardians access")}</span>
           <div>
             <.icon_button
               type="button"
               name="hero-lock-closed"
               theme="ghost"
               rounded
-              sr_text={gettext("Remove access from students")}
+              sr_text={gettext("Remove access")}
               phx-click={
                 JS.push(
                   "batch_update_student_report_card",
-                  value: %{"attrs" => %{"allow_student_access" => false}},
+                  value: %{"attrs" => %{"allow_access" => false}},
                   target: @myself
                 )
               }
             />
-            <.tooltip id="batch-remove-student-access-tooltip">{gettext("Remove access")}</.tooltip>
+            <.tooltip id="batch-remove-access-tooltip">{gettext("Remove access")}</.tooltip>
           </div>
           <div>
             <.icon_button
               type="button"
               name="hero-lock-open"
               rounded
-              sr_text={gettext("Give access to students")}
+              sr_text={gettext("Give access")}
               phx-click={
                 JS.push(
                   "batch_update_student_report_card",
-                  value: %{"attrs" => %{"allow_student_access" => true}},
+                  value: %{"attrs" => %{"allow_access" => true}},
                   target: @myself
                 )
               }
             />
-            <.tooltip id="batch-allow-student-access-tooltip">{gettext("Allow access")}</.tooltip>
-          </div>
-        </div>
-        <div class="flex items-center gap-2">
-          <span class="text-sm text-white">{gettext("Guardian access")}</span>
-          <div>
-            <.icon_button
-              type="button"
-              name="hero-lock-closed"
-              theme="ghost"
-              rounded
-              sr_text={gettext("Remove access from guardians")}
-              phx-click={
-                JS.push(
-                  "batch_update_student_report_card",
-                  value: %{"attrs" => %{"allow_guardian_access" => false}},
-                  target: @myself
-                )
-              }
-            />
-            <.tooltip id="batch-remove-guardian-access-tooltip">{gettext("Remove access")}</.tooltip>
-          </div>
-          <div>
-            <.icon_button
-              type="button"
-              name="hero-lock-open"
-              rounded
-              sr_text={gettext("Give access to guardians")}
-              phx-click={
-                JS.push(
-                  "batch_update_student_report_card",
-                  value: %{"attrs" => %{"allow_guardian_access" => true}},
-                  target: @myself
-                )
-              }
-            />
-            <.tooltip id="batch-allow-guardian-access-tooltip">{gettext("Allow access")}</.tooltip>
+            <.tooltip id="batch-allow-access-tooltip">{gettext("Allow access")}</.tooltip>
           </div>
         </div>
       </.fixed_bar>
@@ -290,18 +254,10 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
           </.tooltip>
         </div>
         <.access_status
-          id={"#{@id}-student-access"}
-          has_access={@student_report_card.allow_student_access}
-          icon_name="hero-user-mini"
-          with_access_text={gettext("Shared with student")}
-          without_access_text={gettext("Not shared with student")}
-        />
-        <.access_status
-          id={"#{@id}-guardian-access"}
-          has_access={@student_report_card.allow_guardian_access}
-          icon_name="hero-users-mini"
-          with_access_text={gettext("Shared with guardians")}
-          without_access_text={gettext("Not shared with guardians")}
+          id={"#{@id}-access"}
+          has_access={@student_report_card.allow_access}
+          with_access_text={gettext("Shared")}
+          without_access_text={gettext("Not shared")}
         />
         <div>
           <a
@@ -332,7 +288,6 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
 
   attr :id, :string, required: true
   attr :has_access, :boolean, required: true
-  attr :icon_name, :string, required: true
   attr :with_access_text, :string, required: true
   attr :without_access_text, :string, required: true
 
@@ -343,7 +298,7 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
       if(@has_access, do: "bg-ltrn-mesh-primary", else: "bg-ltrn-lightest")
     ]}>
       <.icon
-        name={@icon_name}
+        name={if @has_access, do: "hero-lock-open-mini", else: "hero-lock-closed-mini"}
         class={[
           "w-5 h-5",
           if(@has_access, do: "text-ltrn-dark", else: "text-ltrn-subtle")

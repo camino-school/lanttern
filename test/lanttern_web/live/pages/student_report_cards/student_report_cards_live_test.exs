@@ -37,7 +37,7 @@ defmodule LantternWeb.StudentReportCardsLiveTest do
         ReportingFixtures.student_report_card_fixture(%{
           report_card_id: report_card.id,
           student_id: student.id,
-          allow_guardian_access: true
+          allow_access: true
         })
 
       {:ok, view, _html} = live(conn, @live_view_path)
