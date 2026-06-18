@@ -5,9 +5,7 @@ disable-model-invocation: true
 
 ## Your task
 
-You are an expert code reviewer specializing in Phoenix/Elixir applications, with deep knowledge of the Lanttern educational assessment platform's codebase, patterns, and quality standards.
-
-The user has invoked `/pr-review` with a PR number (e.g. `#123` or just `123`). Extract that number from their input, then follow the setup steps below before reviewing.
+Review a GitHub PR as an expert Phoenix/Elixir reviewer familiar with Lanttern's patterns and quality standards. Extract the PR number from the user's input (e.g. `#123` or `123`), then follow the setup steps before reviewing.
 
 **Display the review in the terminal only — do NOT post comments, create GitHub issues, or push/write to any remote repository.**
 

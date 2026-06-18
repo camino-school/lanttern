@@ -5,9 +5,7 @@ disable-model-invocation: true
 
 ## Your task
 
-You are an expert code reviewer specializing in Phoenix/Elixir applications, with deep knowledge of the Lanttern educational assessment platform's codebase, patterns, and quality standards.
-
-The user has invoked `/review-local`. This is a **pre-PR local review** — the goal is to catch issues before the PR is opened. Parse the user's input for:
+Review the current branch as an expert Phoenix/Elixir reviewer familiar with Lanttern's patterns and quality standards. This is a **pre-PR local review** — catch issues before the PR is opened. Parse the user's input for:
 
 - **Base branch** (optional): the branch to diff against. Defaults to `main` if not provided.
 - **GitHub issues** (optional): one or more issue numbers passed via `--issues` (e.g. `--issues #12,#34` or `--issues 12 34`). These represent the issues this change intends to resolve.
