@@ -467,7 +467,13 @@ defmodule Lanttern.AssessmentComposition do
 
   @doc """
   Recalculates every composed entry for the given parent assessment point,
-  across both edit domains.
+  in the teacher edit domain.
+
+  Only the teacher domain is auto-recalculated: composed student entries are no
+  longer derived automatically (they surfaced in the student/guardian view as a
+  self-assessment), pending a redesign of student self-assessment. The engine
+  still supports the `:student_entry` domain via `recalculate_composed_entries/3`
+  for when that redesign lands.
 
   Resolves the affected students from the parent's component entries (the
   composition inputs) and from any existing entries on the parent itself — the
@@ -478,11 +484,7 @@ defmodule Lanttern.AssessmentComposition do
   @spec recalculate_all_composed_entries(Scope.t(), pos_integer()) :: :ok
   def recalculate_all_composed_entries(%Scope{} = scope, parent_id) do
     pairs = composed_pairs_for_parent(parent_id)
-
-    Enum.each([:teacher_entry, :student_entry], fn domain ->
-      recalculate_composed_entries(scope, pairs, domain)
-    end)
-
+    recalculate_composed_entries(scope, pairs, :teacher_entry)
     :ok
   end
 
@@ -493,21 +495,22 @@ defmodule Lanttern.AssessmentComposition do
 
   Admin only (`scope.is_root_admin` must be true).
 
-  The returned map contains entry-level counts and a per-domain list of the
-  out-of-sync entries:
+  Only the teacher edit domain is checked, mirroring what the recalculation
+  actually maintains (see `recalculate_all_composed_entries/2`).
+
+  The returned map contains entry-level counts and a list of the out-of-sync
+  entries:
 
     * `:total_count` — relevant composed entries (`{parent, student}` pairs that
       the recalculation would consider)
     * `:in_sync_count` / `:out_of_sync_count` / `:manual_input_count` — split of
-      `:total_count`; a pair is out of sync when either edit domain (teacher or
-      student) has drifted, and counted under `:manual_input_count` when the
-      composed entry was switched to manual input (which the sync leaves
-      untouched, mirroring `recalculate_student/8`) — those never count as in or
-      out of sync
-    * `:out_of_sync` — one row **per (entry, domain)**, so an entry that drifted in
-      both domains appears twice. Each row is a map with `:student`,
-      `:assessment_point` (the composed parent), `:scale_type`, `:domain`
-      (`:teacher_entry | :student_entry`) and `:stored` / `:expected` value
+      `:total_count`; a pair is out of sync when its teacher composed value has
+      drifted, and counted under `:manual_input_count` when the composed entry
+      was switched to manual input (which the sync leaves untouched, mirroring
+      `recalculate_student/8`) — those never count as in or out of sync
+    * `:out_of_sync` — one row per drifted entry. Each row is a map with
+      `:student`, `:assessment_point` (the composed parent), `:scale_type`,
+      `:domain` (always `:teacher_entry`) and `:stored` / `:expected` value
       summaries (`%{score, normalized_value, ordinal_value}`)
 
   This mirrors exactly what `sync_strand_composed_entries/2` would change, so the
@@ -677,21 +680,24 @@ defmodule Lanttern.AssessmentComposition do
     {rows ++ student_rows, out_of_sync_count + if(is_out_of_sync, do: 1, else: 0), manual_count}
   end
 
+  # Only the teacher domain is checked: composed student entries are no longer
+  # maintained automatically (see `recalculate_all_composed_entries/2`), so the
+  # sync must not report drift on student fields it would never write.
   defp student_sync_rows(parent, mode, student, entries, weights, existing, ordinal_values_by_id) do
-    Enum.reduce([:teacher_entry, :student_entry], {[], false}, fn domain, {rows, out_of_sync} ->
-      {attrs, target_error} =
-        case mode do
-          :sum -> compute_sum_target(parent, domain, entries, existing)
-          :avg -> compute_avg_target(parent, domain, entries, weights, existing)
-        end
+    domain = :teacher_entry
 
-      case domain_sync_row(parent, mode, student, domain, attrs, target_error, existing,
-             ordinal_values_by_id: ordinal_values_by_id
-           ) do
-        :in_sync -> {rows, out_of_sync}
-        {:out_of_sync, row} -> {rows ++ [row], true}
+    {attrs, target_error} =
+      case mode do
+        :sum -> compute_sum_target(parent, domain, entries, existing)
+        :avg -> compute_avg_target(parent, domain, entries, weights, existing)
       end
-    end)
+
+    case domain_sync_row(parent, mode, student, domain, attrs, target_error, existing,
+           ordinal_values_by_id: ordinal_values_by_id
+         ) do
+      :in_sync -> {[], false}
+      {:out_of_sync, row} -> {[row], true}
+    end
   end
 
   defp domain_sync_row(parent, mode, student, domain, attrs, target_error, existing, opts) do

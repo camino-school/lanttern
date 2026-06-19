@@ -1094,16 +1094,16 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
     end)
   end
 
+  # Only the teacher domain is auto-recalculated — composed student entries are
+  # no longer derived automatically (pending a redesign of student self-assessment).
   defp recalculate_entry(entry, current_user) do
     scope = %Scope{profile_id: current_user.current_profile_id}
 
-    Enum.each([:teacher_entry, :student_entry], fn domain ->
-      AssessmentComposition.recalculate_composed_entries(
-        scope,
-        [{entry.assessment_point_id, entry.student_id}],
-        domain
-      )
-    end)
+    AssessmentComposition.recalculate_composed_entries(
+      scope,
+      [{entry.assessment_point_id, entry.student_id}],
+      :teacher_entry
+    )
 
     Lanttern.Repo.reload!(entry)
   end

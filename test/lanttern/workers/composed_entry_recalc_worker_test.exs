@@ -54,7 +54,11 @@ defmodule Lanttern.Workers.ComposedEntryRecalcWorkerTest do
       assert is_nil(composed_entry.calculation_error)
     end
 
-    test "recalculates student_score independently" do
+    # The student domain is no longer enqueued automatically (composed student
+    # entries surfaced in the student/guardian view as a self-assessment), but
+    # the engine still supports it when invoked directly — kept ready for the
+    # planned student self-assessment redesign.
+    test "recalculates student_score when explicitly invoked for the student domain" do
       scale = insert(:scale, type: "numeric", max_score: 100.0)
       parent_ap = insert(:assessment_point, uses_composition: true, scale: scale)
       component_ap = insert(:assessment_point, scale: scale)
