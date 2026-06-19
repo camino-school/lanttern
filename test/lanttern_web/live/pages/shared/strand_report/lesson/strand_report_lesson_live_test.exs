@@ -17,7 +17,7 @@ defmodule LantternWeb.StrandReportLessonLiveTest do
         insert(:student_report_card,
           student: student,
           report_card: report_card,
-          allow_student_access: true
+          allow_access: true
         )
 
       strand = insert(:strand)
@@ -59,7 +59,7 @@ defmodule LantternWeb.StrandReportLessonLiveTest do
         insert(:student_report_card,
           student: student,
           report_card: report_card,
-          allow_student_access: true
+          allow_access: true
         )
 
       strand = insert(:strand)
@@ -90,7 +90,7 @@ defmodule LantternWeb.StrandReportLessonLiveTest do
       insert(:student_report_card,
         student: student,
         report_card: report_card,
-        allow_student_access: true
+        allow_access: true
       )
 
       strand = insert(:strand)
@@ -144,7 +144,7 @@ defmodule LantternWeb.StrandReportLessonLiveTest do
         insert(:student_report_card,
           student: student,
           report_card: report_card,
-          allow_student_access: true
+          allow_access: true
         )
 
       strand = insert(:strand)
@@ -189,7 +189,7 @@ defmodule LantternWeb.StrandReportLessonLiveTest do
         insert(:student_report_card,
           student: student,
           report_card: report_card,
-          allow_student_access: true
+          allow_access: true
         )
 
       strand = insert(:strand)

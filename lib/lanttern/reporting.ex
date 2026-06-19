@@ -686,6 +686,7 @@ defmodule Lanttern.Reporting do
   ## Options
 
   - `:classes_ids` - filter results by given classes
+  - `:students_ids` - filter results by given students
   - `:active_students_only` – (boolean) remove deactivated students from results
   - `:students_only` - when `true`, will return only students
 
@@ -802,6 +803,17 @@ defmodule Lanttern.Reporting do
     from(
       [_s, classes: c] in queryable,
       where: c.id in ^classes_ids
+    )
+    |> apply_list_students_linked_to_report_card_opts(opts)
+  end
+
+  defp apply_list_students_linked_to_report_card_opts(queryable, [
+         {:students_ids, students_ids} | opts
+       ])
+       when is_list(students_ids) and students_ids != [] do
+    from(
+      s in queryable,
+      where: s.id in ^students_ids
     )
     |> apply_list_students_linked_to_report_card_opts(opts)
   end

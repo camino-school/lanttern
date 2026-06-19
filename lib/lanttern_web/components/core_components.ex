@@ -584,8 +584,10 @@ defmodule LantternWeb.CoreComponents do
   attr :patch, :string, default: nil
   attr :href, :any, default: nil
   attr :replace, :boolean, default: nil
-  attr :method, :string, default: nil
-  attr :csrf_token, :any, default: nil
+  # defaults mirror `<.link>` so `<.button type="link" href={...}>` works for GET links;
+  # `nil` here would make `<.link>` treat the method as non-GET and crash on `csrf_token(nil, href)`
+  attr :method, :string, default: "get"
+  attr :csrf_token, :any, default: true
   # include `<.link>` attrs
   attr :rest, :global, include: ~w(form name value download hreflang referrerpolicy rel target)
 

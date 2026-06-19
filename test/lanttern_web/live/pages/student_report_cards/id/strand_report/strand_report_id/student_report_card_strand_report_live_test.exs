@@ -123,7 +123,7 @@ defmodule LantternWeb.StudentReportCardStrandReportLiveTest do
       # update allow_access and assert
 
       Lanttern.Reporting.update_student_report_card(student_report_card, %{
-        allow_student_access: true
+        allow_access: true
       })
 
       {:ok, view, _html} =
@@ -170,7 +170,7 @@ defmodule LantternWeb.StudentReportCardStrandReportLiveTest do
       # update allow_access and assert
 
       Lanttern.Reporting.update_student_report_card(student_report_card, %{
-        allow_guardian_access: true
+        allow_access: true
       })
 
       {:ok, view, _html} =

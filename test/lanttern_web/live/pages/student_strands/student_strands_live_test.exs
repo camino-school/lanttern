@@ -36,7 +36,7 @@ defmodule LantternWeb.StudentStrandsLiveTest do
         ReportingFixtures.student_report_card_fixture(%{
           report_card_id: report_card.id,
           student_id: student.id,
-          allow_student_access: true
+          allow_access: true
         })
 
       strand_a = LearningContextFixtures.strand_fixture(%{name: "AAA"})
@@ -76,7 +76,7 @@ defmodule LantternWeb.StudentStrandsLiveTest do
         ReportingFixtures.student_report_card_fixture(%{
           report_card_id: report_card.id,
           student_id: student.id,
-          allow_student_access: true
+          allow_access: true
         })
 
       strand = LearningContextFixtures.strand_fixture(%{name: "CCC"})

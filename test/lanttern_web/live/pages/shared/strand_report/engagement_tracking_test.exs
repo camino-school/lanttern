@@ -22,7 +22,7 @@ defmodule LantternWeb.StrandReport.EngagementTrackingTest do
       insert(:student_report_card,
         student: student,
         report_card: strand_report.report_card,
-        allow_student_access: true
+        allow_access: true
       )
 
       conn
@@ -40,7 +40,7 @@ defmodule LantternWeb.StrandReport.EngagementTrackingTest do
       insert(:student_report_card,
         student: student,
         report_card: strand_report.report_card,
-        allow_student_access: true
+        allow_access: true
       )
 
       conn
@@ -62,7 +62,7 @@ defmodule LantternWeb.StrandReport.EngagementTrackingTest do
       insert(:student_report_card,
         student: student,
         report_card: strand_report.report_card,
-        allow_student_access: true
+        allow_access: true
       )
 
       conn
@@ -80,7 +80,7 @@ defmodule LantternWeb.StrandReport.EngagementTrackingTest do
       insert(:student_report_card,
         student: student,
         report_card: strand_report.report_card,
-        allow_student_access: true
+        allow_access: true
       )
 
       conn |> visit(~p"/strand_report/#{strand_report.id}")
@@ -102,7 +102,7 @@ defmodule LantternWeb.StrandReport.EngagementTrackingTest do
       insert(:student_report_card,
         student: student,
         report_card: strand_report.report_card,
-        allow_student_access: true
+        allow_access: true
       )
 
       conn |> visit(~p"/strand_report/#{strand_report.id}")
@@ -156,7 +156,7 @@ defmodule LantternWeb.StrandReport.EngagementTrackingTest do
       insert(:student_report_card,
         student: student,
         report_card: strand_report.report_card,
-        allow_student_access: true
+        allow_access: true
       )
 
       conn
@@ -178,7 +178,7 @@ defmodule LantternWeb.StrandReport.EngagementTrackingTest do
       insert(:student_report_card,
         student: student,
         report_card: strand_report.report_card,
-        allow_student_access: true
+        allow_access: true
       )
 
       conn |> visit(~p"/strand_report/#{strand_report.id}/lesson/#{lesson.id}")

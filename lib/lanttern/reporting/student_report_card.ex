@@ -16,8 +16,7 @@ defmodule Lanttern.Reporting.StudentReportCard do
           comment: String.t(),
           footnote: String.t(),
           cover_image_url: String.t(),
-          allow_student_access: boolean(),
-          allow_guardian_access: boolean(),
+          allow_access: boolean(),
           report_card: ReportCard.t(),
           report_card_id: pos_integer(),
           student: Student.t(),
@@ -30,8 +29,7 @@ defmodule Lanttern.Reporting.StudentReportCard do
     field :comment, :string
     field :footnote, :string
     field :cover_image_url, :string
-    field :allow_student_access, :boolean, default: false
-    field :allow_guardian_access, :boolean, default: false
+    field :allow_access, :boolean, default: false
 
     belongs_to :report_card, ReportCard
     belongs_to :student, Student
@@ -46,8 +44,7 @@ defmodule Lanttern.Reporting.StudentReportCard do
       :comment,
       :footnote,
       :cover_image_url,
-      :allow_student_access,
-      :allow_guardian_access,
+      :allow_access,
       :report_card_id,
       :student_id
     ])

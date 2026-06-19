@@ -282,8 +282,7 @@ defmodule LantternWeb.StrandReportLive.StrandReportAssessmentComponent do
     prevent_final_assessment_preview =
       case {profile.type, socket.assigns.student_report_card} do
         {"staff", _} -> false
-        {"student", %{allow_student_access: true}} -> false
-        {"guardian", %{allow_guardian_access: true}} -> false
+        {type, %{allow_access: true}} when type in ["student", "guardian"] -> false
         _ -> true
       end
 

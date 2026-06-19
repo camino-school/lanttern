@@ -137,8 +137,7 @@ defmodule LantternWeb.StrandReportLive do
   defp assign_allow_access(socket) do
     allow_access =
       case {socket.assigns.current_scope.profile_type, socket.assigns.student_report_card} do
-        {"student", %{allow_student_access: true}} -> true
-        {"guardian", %{allow_guardian_access: true}} -> true
+        {type, %{allow_access: true}} when type in ["student", "guardian"] -> true
         _ -> false
       end
 

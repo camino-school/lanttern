@@ -139,7 +139,7 @@ defmodule LantternWeb.StudentReportCardLiveTest do
       # update allow_access and assert
 
       Lanttern.Reporting.update_student_report_card(student_report_card, %{
-        allow_student_access: true
+        allow_access: true
       })
 
       {:ok, view, _html} = live(conn, "#{@live_view_path_base}/#{student_report_card.id}")
@@ -160,7 +160,7 @@ defmodule LantternWeb.StudentReportCardLiveTest do
         student_report_card_fixture(%{
           report_card_id: report_card.id,
           student_id: student.id,
-          allow_student_access: true
+          allow_access: true
         })
 
       strand =
@@ -232,7 +232,7 @@ defmodule LantternWeb.StudentReportCardLiveTest do
       # update allow_access and assert
 
       Lanttern.Reporting.update_student_report_card(student_report_card, %{
-        allow_guardian_access: true
+        allow_access: true
       })
 
       {:ok, view, _html} = live(conn, "#{@live_view_path_base}/#{student_report_card.id}")

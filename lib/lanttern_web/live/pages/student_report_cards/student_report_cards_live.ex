@@ -60,23 +60,13 @@ defmodule LantternWeb.StudentReportCardsLive do
 
     student_report_cards =
       all_student_report_cards
-      |> Enum.filter(fn report_card ->
-        case socket.assigns.current_user.current_profile.type do
-          "guardian" -> report_card.allow_guardian_access
-          "student" -> report_card.allow_student_access
-        end
-      end)
+      |> Enum.filter(& &1.allow_access)
 
     has_student_report_cards = length(student_report_cards) > 0
 
     student_report_cards_wip =
       all_student_report_cards
-      |> Enum.filter(fn report_card ->
-        case socket.assigns.current_user.current_profile.type do
-          "guardian" -> !report_card.allow_guardian_access
-          "student" -> !report_card.allow_student_access
-        end
-      end)
+      |> Enum.reject(& &1.allow_access)
 
     has_student_report_cards_wip = length(student_report_cards_wip) > 0
 

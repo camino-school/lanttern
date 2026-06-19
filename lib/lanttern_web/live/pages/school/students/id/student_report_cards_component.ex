@@ -20,7 +20,7 @@ defmodule LantternWeb.StudentLive.StudentReportCardsComponent do
             year={student_report_card.report_card.year}
             cycle={student_report_card.report_card.school_cycle}
             class="shrink-0 w-64 sm:w-auto"
-            is_wip={!student_report_card.allow_student_access}
+            is_wip={!student_report_card.allow_access}
           />
         </.responsive_grid>
       <% else %>
