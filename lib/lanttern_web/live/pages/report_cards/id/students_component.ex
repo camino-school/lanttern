@@ -341,11 +341,10 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
 
   def access_status(assigns) do
     ~H"""
-    <div id={@id} class="relative shrink-0">
-      <.button
-        type="button"
-        icon_name={if @has_access, do: "hero-lock-open-mini", else: "hero-lock-closed-mini"}
-        theme={if @has_access, do: "primary", else: "ghost_subtle"}
+    <div id={@id} class="relative shrink-0 flex items-center gap-2">
+      <.toggle
+        enabled={@has_access}
+        sr_text={access_status_text(@has_access)}
         phx-click={
           JS.push("toggle_student_report_card_access",
             value: %{
@@ -355,6 +354,10 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
             target: @myself
           )
         }
+      />
+      <.icon
+        name={if @has_access, do: "hero-lock-open-mini", else: "hero-lock-closed-mini"}
+        class={if @has_access, do: "text-ltrn-primary", else: "text-ltrn-subtle"}
       />
       <.tooltip id={"#{@id}-tooltip"}>
         {access_status_text(@has_access)}
@@ -366,7 +369,7 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
   defp access_status_text(true), do: gettext("Shared with student and guardians")
 
   defp access_status_text(false),
-    do: gettext("Not shared with student and guardians (click to share)")
+    do: gettext("Not shared with student and guardians")
 
   attr :has_other_students, :boolean, required: true
   attr :students_stream, LiveStream, required: true
