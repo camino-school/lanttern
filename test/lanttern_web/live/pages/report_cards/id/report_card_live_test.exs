@@ -176,6 +176,166 @@ defmodule LantternWeb.ReportCardLiveTest do
     end
   end
 
+  describe "report card sharing and selection" do
+    setup %{conn: conn, user: user} do
+      parent_cycle = SchoolsFixtures.cycle_fixture(%{school_id: user.current_profile.school_id})
+
+      subcycle =
+        SchoolsFixtures.cycle_fixture(%{
+          school_id: user.current_profile.school_id,
+          parent_cycle_id: parent_cycle.id
+        })
+
+      year = TaxonomyFixtures.year_fixture()
+      report_card = report_card_fixture(%{school_cycle_id: subcycle.id, year_id: year.id})
+
+      class_a =
+        SchoolsFixtures.class_fixture(%{
+          name: "Class AAA",
+          school_id: user.current_profile.school_id,
+          cycle_id: parent_cycle.id,
+          years_ids: [year.id]
+        })
+
+      class_b =
+        SchoolsFixtures.class_fixture(%{
+          name: "Class BBB",
+          school_id: user.current_profile.school_id,
+          cycle_id: parent_cycle.id,
+          years_ids: [year.id]
+        })
+
+      student_a =
+        SchoolsFixtures.student_fixture(%{name: "Student AAA", classes_ids: [class_a.id]})
+
+      student_b =
+        SchoolsFixtures.student_fixture(%{name: "Student BBB", classes_ids: [class_b.id]})
+
+      src_a =
+        student_report_card_fixture(%{report_card_id: report_card.id, student_id: student_a.id})
+
+      src_b =
+        student_report_card_fixture(%{report_card_id: report_card.id, student_id: student_b.id})
+
+      %{
+        conn: conn,
+        report_card: report_card,
+        class_b: class_b,
+        student_a: student_a,
+        student_b: student_b,
+        src_a: src_a,
+        src_b: src_b
+      }
+    end
+
+    test "toggling a linked report card access updates allow_access without navigating", %{
+      conn: conn,
+      report_card: report_card,
+      student_a: student_a,
+      src_a: src_a
+    } do
+      refute src_a.allow_access
+
+      {:ok, view, _html} = live(conn, "#{@live_view_path_base}/#{report_card.id}/students")
+
+      view
+      |> element("#student-#{student_a.id}-access button")
+      |> render_click()
+
+      # the page reflects the new shared state in place (no redirect)
+      assert render(view) =~ "Shared with student and guardians"
+      assert Lanttern.Reporting.get_student_report_card(src_a.id).allow_access
+    end
+
+    test "toggling a row's access keeps the current report cards selection intact", %{
+      conn: conn,
+      report_card: report_card,
+      student_a: student_a,
+      student_b: student_b,
+      src_b: src_b
+    } do
+      {:ok, view, _html} = live(conn, "#{@live_view_path_base}/#{report_card.id}/students")
+
+      # select student A's report card
+      view
+      |> element("#students-and-report-cards button[title='#{student_a.name}']")
+      |> render_click()
+
+      assert render(view) =~ "1 student report card selected"
+      assert has_element?(view, "#student-#{student_a.id}.outline")
+
+      # toggle access on student B's row
+      view
+      |> element("#student-#{student_b.id}-access button")
+      |> render_click()
+
+      # student B's access changed, and student A stays selected (bar + outline)
+      assert Lanttern.Reporting.get_student_report_card(src_b.id).allow_access
+      assert render(view) =~ "1 student report card selected"
+      assert has_element?(view, "#student-#{student_a.id}.outline")
+    end
+
+    test "batch granting access updates the selection and dismisses the action bar", %{
+      conn: conn,
+      report_card: report_card,
+      student_a: student_a,
+      src_a: src_a
+    } do
+      {:ok, view, _html} = live(conn, "#{@live_view_path_base}/#{report_card.id}/students")
+
+      # select the linked student report card
+      view
+      |> element("#students-and-report-cards button[title='#{student_a.name}']")
+      |> render_click()
+
+      assert render(view) =~ "1 student report card selected"
+      assert has_element?(view, "#student-#{student_a.id}.outline")
+
+      # grant access to the current selection
+      view
+      |> element("button", "Give access")
+      |> render_click()
+
+      assert Lanttern.Reporting.get_student_report_card(src_a.id).allow_access
+
+      # the action bar AND the row selection outline are cleared after the batch update
+      refute render(view) =~ "student report card selected"
+      refute has_element?(view, "#student-#{student_a.id}.outline")
+    end
+
+    test "changing the class filter deselects report cards leaving the list", %{
+      conn: conn,
+      report_card: report_card,
+      class_b: class_b,
+      student_a: student_a
+    } do
+      {:ok, view, _html} = live(conn, "#{@live_view_path_base}/#{report_card.id}/students")
+
+      # select student A's report card (student A belongs to class A)
+      view
+      |> element("#students-and-report-cards button[title='#{student_a.name}']")
+      |> render_click()
+
+      assert render(view) =~ "1 student report card selected"
+      assert has_element?(view, "#student-#{student_a.id}.outline")
+
+      # filter to class B only — student A leaves the list and must be deselected
+      view
+      |> element("#linked-students-classes-filter-#{class_b.id}")
+      |> render_click()
+
+      refute render(view) =~ "student report card selected"
+
+      # back to all classes: student A is visible again but no longer selected
+      view
+      |> element("#linked-students-classes-filter-all")
+      |> render_click()
+
+      assert has_element?(view, "#students-and-report-cards", student_a.name)
+      refute has_element?(view, "#student-#{student_a.id}.outline")
+    end
+  end
+
   describe "URL-based class filter" do
     setup %{conn: conn, user: user} do
       parent_cycle = SchoolsFixtures.cycle_fixture(%{school_id: user.current_profile.school_id})

@@ -43,12 +43,7 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
             <button
               type="button"
               class="underline hover:opacity-70"
-              phx-click={
-                JS.push("select_all_student_report_cards", target: @myself)
-                |> JS.add_class("outline outline-4 outline-ltrn-dark",
-                  to: "#students-and-report-cards > div"
-                )
-              }
+              phx-click={JS.push("select_all_student_report_cards", target: @myself)}
             >
               {gettext("Select all")}
             </button>
@@ -63,13 +58,16 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
                 student={student}
                 student_report_card={student_report_card}
                 myself={@myself}
+                is_selected={student_report_card.id in @selected_students_report_cards_ids}
                 disable_on_click={@selected_students_ids != []}
                 on_click={
                   JS.push("toggle_student_report_card_id",
-                    value: %{"student_report_card_id" => student_report_card.id},
+                    value: %{
+                      "student_report_card_id" => student_report_card.id,
+                      "student_id" => student.id
+                    },
                     target: @myself
                   )
-                  |> JS.toggle_class("outline outline-4 outline-ltrn-dark", to: "##{dom_id}")
                 }
               />
             </div>
@@ -172,18 +170,13 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
           <button
             type="button"
             class="underline hover:opacity-70"
-            phx-click={
-              JS.push("clear_student_report_cards_selection", target: @myself)
-              |> JS.remove_class("outline outline-4 outline-ltrn-dark",
-                to: "#students-and-report-cards > div"
-              )
-            }
+            phx-click={JS.push("clear_student_report_cards_selection", target: @myself)}
           >
-            {gettext("Unselect all")}
+            {gettext("Deselect all")}
           </button>
         </div>
         <div class="flex items-center gap-2">
-          <span class="font-sans text-sm text-white">{gettext("Student/guardians access")}</span>
+          <span class="font-sans text-sm text-white">{gettext("Student and guardian access")}</span>
           <div>
             <.icon_button
               type="button"
@@ -261,19 +254,30 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
   attr :student, Student, required: true
   attr :student_report_card, StudentReportCard, required: true
   attr :myself, Phoenix.LiveComponent.CID, required: true
+  attr :is_selected, :boolean, required: true
   attr :disable_on_click, :boolean, required: true
   attr :on_click, JS, required: true
 
   def student_and_report_card_row(assigns) do
     ~H"""
-    <div id={@id} class="flex items-center gap-4 p-4 rounded-sm mt-4 bg-white shadow-lg">
+    <div
+      id={@id}
+      class={
+        [
+          "flex items-center gap-4 p-4 rounded-sm mt-4 bg-white shadow-lg",
+          # selection is fully server-driven (no client-side class toggling), so the
+          # outline stays in sync through stream re-inserts and class-filter resets
+          @is_selected && "outline outline-4 outline-ltrn-dark"
+        ]
+      }
+    >
       <div class="flex-1 flex items-center gap-4">
         <.profile_picture_with_name
           theme="cyan"
           profile_name={@student.name}
           picture_url={@student.profile_picture_url}
           extra_info={@student.classes |> Enum.map(& &1.name) |> Enum.join(", ")}
-          on_click={@on_click}
+          on_click={if @disable_on_click, do: nil, else: @on_click}
           is_deactivated={!is_nil(@student.deactivated_at)}
           navigate={~p"/school/students/#{@student}/report_cards"}
         />
@@ -337,7 +341,7 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
 
   def access_status(assigns) do
     ~H"""
-    <div class="relative shrink-0">
+    <div id={@id} class="relative shrink-0">
       <.button
         type="button"
         icon_name={if @has_access, do: "hero-lock-open-mini", else: "hero-lock-closed-mini"}
@@ -508,6 +512,19 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
     |> assign(:selected_students_report_cards_ids, selected_students_report_cards_ids)
   end
 
+  # re-inserts the given students' rows in place (preserving the current selection
+  # and the rest of the stream), honoring the active class filter
+  defp stream_students_in_report_card(socket, students_ids) do
+    socket.assigns.report_card
+    |> Reporting.list_students_linked_to_report_card(
+      classes_ids: socket.assigns.selected_linked_students_classes_ids,
+      students_ids: students_ids
+    )
+    |> Enum.reduce(socket, fn student_and_report_card, socket ->
+      stream_insert(socket, :students_in_report_card, student_and_report_card)
+    end)
+  end
+
   defp stream_students_not_linked_to_report_card(socket) do
     other_students =
       Reporting.list_students_not_linked_to_report_card(socket.assigns.report_card)
@@ -576,7 +593,11 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
     do: assign(socket, :show_student_report_card_form, false)
 
   @impl true
-  def handle_event("toggle_student_report_card_id", %{"student_report_card_id" => id}, socket) do
+  def handle_event(
+        "toggle_student_report_card_id",
+        %{"student_report_card_id" => id, "student_id" => student_id},
+        socket
+      ) do
     selected_students_report_cards_ids =
       case id in socket.assigns.selected_students_report_cards_ids do
         true ->
@@ -587,21 +608,32 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
           [id | socket.assigns.selected_students_report_cards_ids]
       end
 
-    {:noreply,
-     assign(socket, :selected_students_report_cards_ids, selected_students_report_cards_ids)}
+    # selection is server-rendered (no client-side `JS.toggle_class`), so re-insert
+    # the affected row to reflect its new selection state
+    socket =
+      socket
+      |> assign(:selected_students_report_cards_ids, selected_students_report_cards_ids)
+      |> stream_students_in_report_card([student_id])
+
+    {:noreply, socket}
   end
 
   def handle_event("select_all_student_report_cards", _params, socket) do
-    {:noreply,
-     assign(
-       socket,
-       :selected_students_report_cards_ids,
-       socket.assigns.students_report_cards_ids
-     )}
+    socket =
+      socket
+      |> assign(:selected_students_report_cards_ids, socket.assigns.students_report_cards_ids)
+      |> stream_students_report_cards()
+
+    {:noreply, socket}
   end
 
   def handle_event("clear_student_report_cards_selection", _params, socket) do
-    {:noreply, assign(socket, :selected_students_report_cards_ids, [])}
+    socket =
+      socket
+      |> assign(:selected_students_report_cards_ids, [])
+      |> stream_students_report_cards()
+
+    {:noreply, socket}
   end
 
   def handle_event(
@@ -613,13 +645,11 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
 
     socket =
       case Reporting.update_student_report_card(student_report_card, %{allow_access: allow_access}) do
-        {:ok, _} ->
+        {:ok, student_report_card} ->
+          # update only the affected row, keeping the current selection intact
           socket
           |> put_flash(:info, gettext("Student report card access updated"))
-          |> push_navigate(
-            to:
-              ~p"/report_cards/#{socket.assigns.report_card}/students?#{socket.assigns.url_filter_params}"
-          )
+          |> stream_students_in_report_card([student_report_card.student_id])
 
         {:error, _} ->
           put_flash(socket, :error, gettext("Something went wrong"))
@@ -635,16 +665,18 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
     socket =
       case Reporting.batch_update_student_report_card(selected_students_report_cards, attrs) do
         {:ok, _} ->
+          students_ids = Enum.map(selected_students_report_cards, & &1.student_id)
+
+          # clear the selection before re-inserting, so the affected rows
+          # re-render without the (now server-rendered) selection outline
           socket
           |> put_flash(:info, gettext("Students report cards access updated"))
-          |> push_navigate(
-            to:
-              ~p"/report_cards/#{socket.assigns.report_card}/students?#{socket.assigns.url_filter_params}"
-          )
+          |> assign(:selected_students_report_cards_ids, [])
+          |> stream_students_in_report_card(students_ids)
 
         {:error, _, _, _} ->
           socket
-          |> put_flash(:error, gettext("Something got wrong"))
+          |> put_flash(:error, gettext("Something went wrong"))
       end
 
     {:noreply, socket}
