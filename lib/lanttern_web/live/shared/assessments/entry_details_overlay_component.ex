@@ -790,7 +790,7 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
 
     case Assessments.update_assessment_point_entry(socket.assigns.entry, params, opts) do
       {:ok, entry} ->
-        # is_missing is a composition input (affects both domains' averages);
+        # is_missing is a composition input (affects the teacher average);
         # update_assessment_point_entry/3 enqueues the parent recalc atomically
         notify(__MODULE__, {:change, entry}, socket.assigns)
 
@@ -1051,14 +1051,14 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
   end
 
   # when manual input is switched back off, recompute the composed value
-  # immediately (both domains) and reload the entry to reflect it in the form
+  # immediately (teacher domain) and reload the entry to reflect it in the form
   defp maybe_restore_composed_value(%{use_manual_input: false} = entry, current_user),
     do: recalculate_entry(entry, current_user)
 
   defp maybe_restore_composed_value(entry, _current_user), do: entry
 
   # Opening the composition breakdown doubles as a self-healing check: recompute
-  # the persisted composed entry from its components (both edit domains). The
+  # the persisted composed entry from its components (teacher edit domain). The
   # recalc is idempotent — a no-op when already in sync — so only when a stored
   # value actually changed do we refresh the form inputs and notify the parent
   # grid to re-render the (now corrected) value.
@@ -1079,13 +1079,13 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
 
   defp maybe_sync_composed_entry(socket), do: socket
 
+  # Only the teacher composed fields are recalculated (see `recalculate_entry/2`),
+  # so those are the only fields a sync can change — composed student entries are
+  # no longer derived automatically.
   @composed_value_fields [
     :score,
     :normalized_value,
-    :ordinal_value_id,
-    :student_score,
-    :student_normalized_value,
-    :student_ordinal_value_id
+    :ordinal_value_id
   ]
 
   defp composed_values_changed?(before_entry, after_entry) do

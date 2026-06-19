@@ -551,7 +551,7 @@ defmodule Lanttern.AssessmentComposition do
 
   @doc """
   Recalculates every composed entry of every composed assessment point in a
-  strand, across both edit domains.
+  strand, in the teacher edit domain (see `recalculate_all_composed_entries/2`).
 
   Admin only (`scope.is_root_admin` must be true). Delegates to the idempotent
   `recalculate_all_composed_entries/2`, so in-sync entries are left untouched
