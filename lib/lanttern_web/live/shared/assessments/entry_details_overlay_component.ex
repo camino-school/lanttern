@@ -9,6 +9,7 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
   use LantternWeb, :live_component
 
   import LantternWeb.ReportingComponents, only: [composition_breakdown_table: 1]
+  import Lanttern.Utils, only: [format_normalized: 1]
 
   alias Lanttern.AssessmentComposition
   alias Lanttern.Assessments
@@ -1022,9 +1023,6 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
         end
     end
   end
-
-  defp format_normalized(nil), do: "—"
-  defp format_normalized(value), do: :erlang.float_to_binary(value * 1.0, decimals: 2)
 
   defp get_colors_style(%OrdinalValue{} = ov) do
     "background-color: #{ov.bg_color}; color: #{ov.text_color}"

@@ -9,7 +9,7 @@ defmodule LantternWeb.ReportingComponents do
   import LantternWeb.CoreComponents
 
   import Lanttern.SupabaseHelpers, only: [object_url_to_render_url: 2]
-  import Lanttern.Utils, only: [format_float: 1]
+  import Lanttern.Utils, only: [format_float: 1, format_normalized: 1]
 
   alias Lanttern.Assessments.AssessmentPoint
   alias Lanttern.Assessments.AssessmentPointEntry
@@ -965,9 +965,6 @@ defmodule LantternWeb.ReportingComponents do
   defp breakdown_no_value_label(%{masked: true}), do: gettext("Not available")
   defp breakdown_no_value_label(%{is_missing: true}), do: gettext("Lack of evidence")
   defp breakdown_no_value_label(_), do: gettext("No marking")
-
-  defp format_normalized(nil), do: "—"
-  defp format_normalized(value), do: :erlang.float_to_binary(value * 1.0, decimals: 2)
 
   defp format_max(nil), do: "—"
   defp format_max(max_score), do: format_float(max_score)

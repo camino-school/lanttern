@@ -16,6 +16,7 @@ defmodule LantternWeb.GradesReports.GradeDetailsOverlayComponent do
   # shared components
   alias LantternWeb.Grading.ScaleInfoTableComponent
   import LantternWeb.GradesReportsComponents
+  import LantternWeb.ReportingComponents
 
   @impl true
   def render(assigns) do
@@ -86,11 +87,22 @@ defmodule LantternWeb.GradesReports.GradeDetailsOverlayComponent do
         </div>
         <h6 class="mb-4 font-display font-bold">{gettext("Grade composition")}</h6>
         <.grade_composition_table student_grades_report_entry={@student_grades_report_entry} />
+        <div :if={@is_ordinal_scale} class="mt-10">
+          <h6 class="mb-4 font-display font-bold">{gettext("Scale ranges")}</h6>
+          <div class="py-4 overflow-x-auto">
+            <.report_scale_ordinal_bar
+              id={"#{@id}-ordinal-bar"}
+              scale={@scale}
+              entry={@student_grades_report_entry}
+            />
+          </div>
+        </div>
         <.live_component
+          :if={!@is_ordinal_scale}
           module={ScaleInfoTableComponent}
           id={"#{@id}-scale-info-table"}
           class="mt-10"
-          scale_id={Map.get(@student_grades_report_entry.ordinal_value || %{}, :scale_id)}
+          scale_id={@scale.id}
         />
       </.slide_over>
     </div>
@@ -107,15 +119,24 @@ defmodule LantternWeb.GradesReports.GradeDetailsOverlayComponent do
           :composition_ordinal_value,
           :pre_retake_ordinal_value,
           :ordinal_value,
+          grades_report: [scale: :ordinal_values],
           grades_report_subject: :subject,
           grades_report_cycle: :school_cycle
         ]
       )
 
+    scale = sgre.grades_report.scale
+
+    is_ordinal_scale =
+      scale.type == "ordinal" and
+        length(scale.breakpoints) + 1 == length(scale.ordinal_values)
+
     socket =
       socket
       |> assign(assigns)
       |> assign(:student_grades_report_entry, sgre)
+      |> assign(:scale, scale)
+      |> assign(:is_ordinal_scale, is_ordinal_scale)
 
     {:ok, socket}
   end
