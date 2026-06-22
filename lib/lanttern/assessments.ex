@@ -487,21 +487,17 @@ defmodule Lanttern.Assessments do
 
   # Edit domains touched by a single-entry update, derived from the changeset's
   # actual changes (so note-only / use_manual_input-only updates enqueue nothing).
-  # `is_missing` feeds both the teacher and student sum/average.
+  # Only the teacher domain is auto-recalculated: composed student entries are no
+  # longer derived automatically (they surfaced in the student/guardian view as a
+  # self-assessment), pending a redesign of student self-assessment. `is_missing`
+  # is a teacher concept ("no evidence"), so it feeds the teacher sum/average only.
   defp changed_recalc_domains(changeset) do
     changes = changeset.changes
-    is_missing_changed? = Map.has_key?(changes, :is_missing)
 
     teacher? =
-      Enum.any?([:score, :ordinal_value_id], &Map.has_key?(changes, &1)) or is_missing_changed?
+      Enum.any?([:score, :ordinal_value_id, :is_missing], &Map.has_key?(changes, &1))
 
-    student? =
-      Enum.any?([:student_score, :student_ordinal_value_id], &Map.has_key?(changes, &1)) or
-        is_missing_changed?
-
-    []
-    |> maybe_add_domain("teacher_entry", teacher?)
-    |> maybe_add_domain("student_entry", student?)
+    maybe_add_domain([], "teacher_entry", teacher?)
   end
 
   @doc """
@@ -570,23 +566,18 @@ defmodule Lanttern.Assessments do
   end
 
   @teacher_entry_keys ~w(score ordinal_value_id)
-  @student_entry_keys ~w(student_score student_ordinal_value_id)
 
-  # Returns the edit domains a batch touches, for composed recalc. `is_missing`
-  # feeds both the teacher and student sum/average, so a batch carrying it marks
-  # both domains.
+  # Returns the edit domains a batch touches, for composed recalc. Only the
+  # teacher domain is auto-recalculated (see `changed_recalc_domains/1`).
+  # `is_missing` is a teacher concept ("no evidence"), so a batch carrying it
+  # marks the teacher domain.
   defp detect_edited_domains(maps) do
     has_teacher? =
       Enum.any?(maps, fn m -> Enum.any?(@teacher_entry_keys, &Map.has_key?(m, &1)) end)
 
-    has_student? =
-      Enum.any?(maps, fn m -> Enum.any?(@student_entry_keys, &Map.has_key?(m, &1)) end)
-
     has_is_missing? = Enum.any?(maps, &Map.has_key?(&1, "is_missing"))
 
-    []
-    |> maybe_add_domain("teacher_entry", has_teacher? or has_is_missing?)
-    |> maybe_add_domain("student_entry", has_student? or has_is_missing?)
+    maybe_add_domain([], "teacher_entry", has_teacher? or has_is_missing?)
   end
 
   defp maybe_add_domain(domains, domain, true), do: [domain | domains]

@@ -39,6 +39,8 @@ defmodule LantternWeb.Admin.AssessmentCompositionCheckLive do
   end
 
   defp domain_label(:teacher_entry), do: gettext("Teacher")
+  # the sync status only emits teacher rows today, but the engine still supports
+  # the student domain (kept for the planned student self-assessment redesign)
   defp domain_label(:student_entry), do: gettext("Student")
 
   defp student_name(%{name: name}), do: name

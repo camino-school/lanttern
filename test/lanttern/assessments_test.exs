@@ -1039,7 +1039,7 @@ defmodule Lanttern.AssessmentsTest do
       refute_enqueued(worker: Lanttern.Workers.ComposedEntryRecalcWorker)
     end
 
-    test "save_assessment_point_entries/2 passes student_score field when only student_score is edited" do
+    test "save_assessment_point_entries/2 does not enqueue composed recalc for a student_score-only edit" do
       scale = insert(:scale, type: "numeric", max_score: 100.0)
       parent_ap = insert(:assessment_point, uses_composition: true, scale: scale)
       component_ap = insert(:assessment_point, scale: scale)
@@ -1057,17 +1057,11 @@ defmodule Lanttern.AssessmentsTest do
 
       assert {:ok, 1} = Assessments.save_assessment_point_entries([params])
 
-      assert_enqueued(
-        worker: Lanttern.Workers.ComposedEntryRecalcWorker,
-        args: %{
-          "pairs" => [[parent_ap.id, student.id]],
-          "domain" => "student_entry",
-          "profile_id" => nil
-        }
-      )
+      # composed student entries are no longer derived automatically
+      refute_enqueued(worker: Lanttern.Workers.ComposedEntryRecalcWorker)
     end
 
-    test "save_assessment_point_entries/2 enqueues student recalc when only student_ordinal_value_id is edited" do
+    test "save_assessment_point_entries/2 does not enqueue composed recalc for a student_ordinal_value_id-only edit" do
       scale = insert(:scale, type: "ordinal")
       ordinal_value = insert(:ordinal_value, scale: scale)
       parent_ap = insert(:assessment_point, uses_composition: true, scale: scale)
@@ -1086,17 +1080,11 @@ defmodule Lanttern.AssessmentsTest do
 
       assert {:ok, 1} = Assessments.save_assessment_point_entries([params])
 
-      assert_enqueued(
-        worker: Lanttern.Workers.ComposedEntryRecalcWorker,
-        args: %{
-          "pairs" => [[parent_ap.id, student.id]],
-          "domain" => "student_entry",
-          "profile_id" => nil
-        }
-      )
+      # composed student entries are no longer derived automatically
+      refute_enqueued(worker: Lanttern.Workers.ComposedEntryRecalcWorker)
     end
 
-    test "save_assessment_point_entries/2 enqueues recalc for both domains when only is_missing is edited" do
+    test "save_assessment_point_entries/2 enqueues only the teacher domain when is_missing is edited" do
       scale = insert(:scale, type: "ordinal")
       parent_ap = insert(:assessment_point, uses_composition: true, scale: scale)
       component_ap = insert(:assessment_point, scale: scale)
@@ -1114,14 +1102,14 @@ defmodule Lanttern.AssessmentsTest do
 
       assert {:ok, 1} = Assessments.save_assessment_point_entries([params])
 
-      # is_missing feeds both the teacher and student average, so both domains
-      # must be recomputed
+      # is_missing is a teacher concept ("no evidence"), so only the teacher
+      # average is recomputed — never the student domain
       assert_enqueued(
         worker: Lanttern.Workers.ComposedEntryRecalcWorker,
         args: %{"pairs" => [[parent_ap.id, student.id]], "domain" => "teacher_entry"}
       )
 
-      assert_enqueued(
+      refute_enqueued(
         worker: Lanttern.Workers.ComposedEntryRecalcWorker,
         args: %{"pairs" => [[parent_ap.id, student.id]], "domain" => "student_entry"}
       )
@@ -1160,7 +1148,7 @@ defmodule Lanttern.AssessmentsTest do
       )
     end
 
-    test "update_assessment_point_entry/3 enqueues both domains when is_missing changes" do
+    test "update_assessment_point_entry/3 enqueues only the teacher domain when is_missing changes" do
       scale = insert(:scale, type: "numeric", max_score: 100.0)
       parent_ap = insert(:assessment_point, uses_composition: true, scale: scale)
       component_ap = insert(:assessment_point, scale: scale)
@@ -1178,12 +1166,14 @@ defmodule Lanttern.AssessmentsTest do
 
       assert {:ok, _entry} = Assessments.update_assessment_point_entry(entry, %{is_missing: true})
 
+      # is_missing is a teacher concept ("no evidence"), so only the teacher
+      # average is recomputed — never the student domain
       assert_enqueued(
         worker: Lanttern.Workers.ComposedEntryRecalcWorker,
         args: %{"pairs" => [[parent_ap.id, student.id]], "domain" => "teacher_entry"}
       )
 
-      assert_enqueued(
+      refute_enqueued(
         worker: Lanttern.Workers.ComposedEntryRecalcWorker,
         args: %{"pairs" => [[parent_ap.id, student.id]], "domain" => "student_entry"}
       )

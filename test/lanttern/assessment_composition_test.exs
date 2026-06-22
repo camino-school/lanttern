@@ -551,7 +551,7 @@ defmodule Lanttern.AssessmentCompositionTest do
       assert entry_b.score == 10.0
     end
 
-    test "recalculates teacher and student domains independently" do
+    test "recalculates only the teacher domain, never the student domain" do
       scale = insert(:scale, type: "numeric", max_score: 100.0)
       parent = insert(:assessment_point, uses_composition: true, scale: scale)
       component_ap = insert(:assessment_point, scale: scale)
@@ -577,7 +577,8 @@ defmodule Lanttern.AssessmentCompositionTest do
         )
 
       assert entry.score == 40.0
-      assert entry.student_score == 20.0
+      # composed student entries are no longer derived automatically
+      assert is_nil(entry.student_score)
     end
 
     test "ignores students whose only component entry has no marking (e.g. comment-only)" do
@@ -1821,7 +1822,7 @@ defmodule Lanttern.AssessmentCompositionTest do
       assert status.out_of_sync == []
     end
 
-    test "emits one row per domain when both teacher and student values drift", %{
+    test "checks only the teacher domain, ignoring drift in stored student values", %{
       strand: strand,
       numeric_scale: numeric_scale,
       student: student
@@ -1838,7 +1839,7 @@ defmodule Lanttern.AssessmentCompositionTest do
       insert(:assessment_point_component, parent: parent, component: child_1, weight: 1.0)
       insert(:assessment_point_component, parent: parent, component: child_2, weight: 1.0)
 
-      # teacher sums to 38, student sums to 15
+      # teacher sums to 38, student components sum to 15
       insert(:assessment_point_entry,
         assessment_point: child_1,
         student: student,
@@ -1857,6 +1858,7 @@ defmodule Lanttern.AssessmentCompositionTest do
         student_score: 5.0
       )
 
+      # both stored values are stale, but only the teacher domain is checked
       insert(:assessment_point_entry,
         assessment_point: parent,
         student: student,
@@ -1869,13 +1871,13 @@ defmodule Lanttern.AssessmentCompositionTest do
 
       status = AssessmentComposition.list_strand_composition_sync_status(@admin_scope, strand.id)
 
-      # the entry is counted once, but listed once per drifted domain
       assert status.total_count == 1
       assert status.out_of_sync_count == 1
 
-      by_domain = Map.new(status.out_of_sync, &{&1.domain, &1})
-      assert by_domain[:teacher_entry].expected.score == 38.0
-      assert by_domain[:student_entry].expected.score == 15.0
+      # only the teacher domain is reported — the stale student value is left alone
+      assert [row] = status.out_of_sync
+      assert row.domain == :teacher_entry
+      assert row.expected.score == 38.0
     end
 
     test "flags a stale ordinal composed entry with the expected ordinal value", %{
