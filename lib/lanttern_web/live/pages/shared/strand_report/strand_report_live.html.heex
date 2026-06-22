@@ -27,6 +27,7 @@
           >
           </:tab>
           <:tab
+            :if={@has_rubrics}
             text={gettext("Rubrics")}
             patch={"#{@base_path}/rubrics"}
             is_current={@live_action == :rubrics}

@@ -25,7 +25,7 @@ defmodule LantternWeb.StrandReportLive.StrandReportOverviewComponent do
           context_image_url={@strand_report.cover_image_url}
           image_url={@strand_report.strand.cover_image_url}
           alt_text={gettext("Strand cover image")}
-          size="sm"
+          size={if @is_overview_expanded, do: "lg", else: "sm"}
           class="mb-10"
         />
         <hgroup>
@@ -44,9 +44,25 @@ defmodule LantternWeb.StrandReportLive.StrandReportOverviewComponent do
             {Gettext.dgettext(Lanttern.Gettext, "taxonomy", year.name)}
           </.badge>
         </div>
-        <.markdown text={@strand_report.strand.description} class="mt-10 line-clamp-3" strip_tags />
-        <.button type="link" navigate={"#{@base_path}/overview"} class="mt-4">
-          {gettext("Read the full overview")}
+        <.markdown
+          :if={@is_overview_expanded}
+          text={@strand_report.strand.description}
+          class="mt-10"
+        />
+        <.markdown
+          :if={!@is_overview_expanded}
+          text={@strand_report.strand.description}
+          class="mt-10 line-clamp-3"
+          strip_tags
+        />
+        <.button
+          type="button"
+          phx-click={JS.push("toggle_overview", target: @myself)}
+          class="mt-4"
+        >
+          {if @is_overview_expanded,
+            do: gettext("Show less"),
+            else: gettext("Read the full overview")}
         </.button>
         <section class="mt-20" id="lessons-section">
           <div
@@ -112,15 +128,6 @@ defmodule LantternWeb.StrandReportLive.StrandReportOverviewComponent do
           </div>
         </section>
       </.responsive_container>
-      <.modal
-        :if={@live_action == :overview_full}
-        id="overview-full-overlay"
-        show={true}
-        on_cancel={JS.patch(@base_path)}
-      >
-        <h1 class="font-display font-black text-2xl">{@strand_report.strand.name}</h1>
-        <.markdown text={@strand_report.strand.description} class="mt-10" />
-      </.modal>
       <.modal
         :if={@moment}
         id="moment-details-overlay"
@@ -193,6 +200,7 @@ defmodule LantternWeb.StrandReportLive.StrandReportOverviewComponent do
       socket
       |> assign(:class, nil)
       |> assign(:moment, nil)
+      |> assign(:is_overview_expanded, false)
 
     {:ok, socket}
   end
@@ -203,8 +211,7 @@ defmodule LantternWeb.StrandReportLive.StrandReportOverviewComponent do
       socket
       |> assign(assigns)
       |> assign_description()
-      |> stream_moments()
-      |> stream_lessons()
+      |> stream_moments_and_lessons()
 
     {:ok, socket}
   end
@@ -228,28 +235,31 @@ defmodule LantternWeb.StrandReportLive.StrandReportOverviewComponent do
     assign(socket, :description, description)
   end
 
-  defp stream_moments(socket) do
+  defp stream_moments_and_lessons(socket) do
+    strand_id = socket.assigns.strand_report.strand_id
+
+    lessons =
+      Lessons.list_lessons(
+        strand_id: strand_id,
+        is_published: true,
+        preloads: [:subjects, :tags]
+      )
+
+    # group lessons by moment. lessons are loaded before moments so we can
+    # filter out moments that have neither a description nor any lesson card
+    moments_lessons_map = Enum.group_by(lessons, &Map.get(&1, :moment_id))
+
     moments =
-      LearningContext.list_moments(strands_ids: [socket.assigns.strand_report.strand_id])
+      [strands_ids: [strand_id]]
+      |> LearningContext.list_moments()
+      |> Enum.filter(fn moment ->
+        is_binary(moment.description) or moments_lessons_map[moment.id] not in [nil, []]
+      end)
 
     socket
     |> stream(:moments, moments)
     |> assign(:moments_ids, Enum.map(moments, & &1.id))
     |> assign(:moments, moments)
-  end
-
-  defp stream_lessons(socket) do
-    lessons =
-      Lessons.list_lessons(
-        strand_id: socket.assigns.strand_report.strand_id,
-        is_published: true,
-        preloads: [:subjects, :tags]
-      )
-
-    # group and stream lessons by moment
-    moments_lessons_map = Enum.group_by(lessons, &Map.get(&1, :moment_id))
-
-    socket
     |> stream_moments_lessons(moments_lessons_map)
     |> stream(:lessons, lessons)
     # we have a flat lessons ids list for security quick checks
@@ -322,5 +332,10 @@ defmodule LantternWeb.StrandReportLive.StrandReportOverviewComponent do
 
   def handle_event("close_moment_details", _params, socket) do
     {:noreply, assign(socket, :moment, nil)}
+  end
+
+  def handle_event("toggle_overview", _params, socket) do
+    socket = assign(socket, :is_overview_expanded, !socket.assigns.is_overview_expanded)
+    {:noreply, socket}
   end
 end
