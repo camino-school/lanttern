@@ -15,6 +15,13 @@ defmodule Lanttern.Repo.Migrations.ClearAutoCalculatedStudentComposedValues do
   #
   # Irreversible: the cleared values were derived, not entered, and would be
   # recomputed by a future redesign — so `down` is a no-op rather than a guess.
+  #
+  # This bulk UPDATE intentionally bypasses the `log.assessment_point_entries`
+  # audit mirror (written by application code, not a DB trigger). The audit log
+  # tracks user-entered changes; these values were never user input, so they are
+  # corrected here without a corresponding log row. Historical log rows that may
+  # already record the auto-calculated values are left as-is — point-in-time
+  # records of what the system computed at the time.
 
   def up do
     execute("""
