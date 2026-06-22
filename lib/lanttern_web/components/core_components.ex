@@ -2460,6 +2460,9 @@ defmodule LantternWeb.CoreComponents do
     </div>
     <script :type={Phoenix.LiveView.ColocatedHook} name=".Tooltip">
       let _activeTooltip = null;
+      let _lastHiddenAt = 0;     // timestamp (ms) of the last hide — drives the cooldown
+      const SHOW_DELAY = 500;    // first-show delay on hover
+      const COOLDOWN = 500;      // window after a hide during which shows are instant
 
       export default {
         mounted() {
@@ -2481,17 +2484,40 @@ defmodule LantternWeb.CoreComponents do
           this.floating.style.display = "none";
           document.body.appendChild(this.floating);
 
-          this._show = () => {
-            if (_activeTooltip && _activeTooltip !== this) {
-              _activeTooltip._hide();
-            }
+          // actual display toggle + singleton bookkeeping
+          this._reveal = () => {
+            if (_activeTooltip && _activeTooltip !== this) _activeTooltip._conceal();
             _activeTooltip = this;
             this.floating.style.display = "block";
           };
 
-          this._hide = () => {
-            if (_activeTooltip === this) _activeTooltip = null;
+          this._conceal = () => {
+            if (_activeTooltip === this) {
+              _activeTooltip = null;
+              _lastHiddenAt = Date.now();   // only record a hide when actually visible
+            }
             this.floating.style.display = "none";
+          };
+
+          this._clearTimer = () => {
+            if (this._showTimer) { clearTimeout(this._showTimer); this._showTimer = null; }
+          };
+
+          // mouseenter: instant when warm, otherwise wait SHOW_DELAY
+          this._requestShow = () => {
+            this._clearTimer();
+            const warm = _activeTooltip !== null || (Date.now() - _lastHiddenAt) < COOLDOWN;
+            if (warm) {
+              this._reveal();
+            } else {
+              this._showTimer = setTimeout(() => { this._showTimer = null; this._reveal(); }, SHOW_DELAY);
+            }
+          };
+
+          // mouseleave: cancel any pending show, then hide
+          this._requestHide = () => {
+            this._clearTimer();
+            this._conceal();
           };
 
           this._onMouseMove = (e) => {
@@ -2517,7 +2543,7 @@ defmodule LantternWeb.CoreComponents do
           };
 
           this._onFocus = () => {
-            this._show();
+            this._reveal();
             const parentRect = this.parent.getBoundingClientRect();
             const tooltipRect = this.floating.getBoundingClientRect();
             const vw = window.innerWidth;
@@ -2540,22 +2566,23 @@ defmodule LantternWeb.CoreComponents do
             this.floating.style.top = y + "px";
           };
 
-          this.parent.addEventListener("mouseenter", this._show);
+          this.parent.addEventListener("mouseenter", this._requestShow);
           this.parent.addEventListener("mousemove", this._onMouseMove);
-          this.parent.addEventListener("mouseleave", this._hide);
+          this.parent.addEventListener("mouseleave", this._requestHide);
           this.parent.addEventListener("focusin", this._onFocus);
-          this.parent.addEventListener("focusout", this._hide);
+          this.parent.addEventListener("focusout", this._requestHide);
         },
         updated() {
           // keep the floating clone's content in sync with server-rendered changes
           if (this.floating) this.floating.innerHTML = this.el.innerHTML;
         },
         destroyed() {
-          this.parent.removeEventListener("mouseenter", this._show);
+          this._clearTimer();
+          this.parent.removeEventListener("mouseenter", this._requestShow);
           this.parent.removeEventListener("mousemove", this._onMouseMove);
-          this.parent.removeEventListener("mouseleave", this._hide);
+          this.parent.removeEventListener("mouseleave", this._requestHide);
           this.parent.removeEventListener("focusin", this._onFocus);
-          this.parent.removeEventListener("focusout", this._hide);
+          this.parent.removeEventListener("focusout", this._requestHide);
           this.parent.removeAttribute("aria-describedby");
           if (_activeTooltip === this) _activeTooltip = null;
           if (this.floating) this.floating.remove();
