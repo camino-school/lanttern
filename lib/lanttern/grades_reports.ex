@@ -745,40 +745,46 @@ defmodule Lanttern.GradesReports do
         grades_report_subject_id,
         opts \\ []
       ) do
-    # get grades report scale
-    %{scale: scale} = get_grades_report!(grades_report_id, preloads: :scale)
+    # get grades report scale, year and cycle
+    %{scale: scale, year_id: year_id, school_cycle: school_cycle} =
+      get_grades_report!(grades_report_id, preloads: [:scale, :school_cycle])
 
-    from(
-      e in AssessmentPointEntry,
-      join: s in assoc(e, :scale),
-      left_join: ov in assoc(e, :ordinal_value),
-      join: ap in assoc(e, :assessment_point),
-      join: st in assoc(ap, :strand),
-      join: ci in assoc(ap, :curriculum_item),
-      join: cc in assoc(ci, :curriculum_component),
-      join: gc in assoc(ap, :grade_components),
-      join: gr in assoc(gc, :grades_report),
-      join: grc in assoc(gc, :grades_report_cycle),
-      join: grs in assoc(gc, :grades_report_subject),
-      # exclude empty entries and entries where there are only student self-assessments
-      where: e.has_marking,
-      where: e.student_id == ^student_id,
-      where: gr.id == ^grades_report_id,
-      where: grc.id == ^grades_report_cycle_id,
-      where: grs.id == ^grades_report_subject_id,
-      order_by: gc.position,
-      preload: [ordinal_value: ov, scale: s],
-      select: {e, gc, %{curriculum_item: ci, curriculum_component: cc, strand: st}}
-    )
-    |> Repo.all()
-    |> handle_student_grades_report_entry_creation(
-      student_id,
-      grades_report_id,
-      grades_report_cycle_id,
-      grades_report_subject_id,
-      scale,
-      opts
-    )
+    # skip students that don't belong to the grades report's year and cycle
+    if filter_students_ids_by_year_and_cycle([student_id], year_id, school_cycle) == [] do
+      {:ok, nil, :noop}
+    else
+      from(
+        e in AssessmentPointEntry,
+        join: s in assoc(e, :scale),
+        left_join: ov in assoc(e, :ordinal_value),
+        join: ap in assoc(e, :assessment_point),
+        join: st in assoc(ap, :strand),
+        join: ci in assoc(ap, :curriculum_item),
+        join: cc in assoc(ci, :curriculum_component),
+        join: gc in assoc(ap, :grade_components),
+        join: gr in assoc(gc, :grades_report),
+        join: grc in assoc(gc, :grades_report_cycle),
+        join: grs in assoc(gc, :grades_report_subject),
+        # exclude empty entries and entries where there are only student self-assessments
+        where: e.has_marking,
+        where: e.student_id == ^student_id,
+        where: gr.id == ^grades_report_id,
+        where: grc.id == ^grades_report_cycle_id,
+        where: grs.id == ^grades_report_subject_id,
+        order_by: gc.position,
+        preload: [ordinal_value: ov, scale: s],
+        select: {e, gc, %{curriculum_item: ci, curriculum_component: cc, strand: st}}
+      )
+      |> Repo.all()
+      |> handle_student_grades_report_entry_creation(
+        student_id,
+        grades_report_id,
+        grades_report_cycle_id,
+        grades_report_subject_id,
+        scale,
+        opts
+      )
+    end
   end
 
   defp handle_student_grades_report_entry_creation(
@@ -1072,8 +1078,12 @@ defmodule Lanttern.GradesReports do
         grades_report_cycle_id,
         grades_report_subject_id
       ) do
-    # get grades report scale
-    %{scale: scale} = get_grades_report!(grades_report_id, preloads: :scale)
+    # get grades report scale, year and cycle
+    %{scale: scale, year_id: year_id, school_cycle: school_cycle} =
+      get_grades_report!(grades_report_id, preloads: [:scale, :school_cycle])
+
+    # filter out students that don't belong to the grades report's year and cycle
+    students_ids = filter_students_ids_by_year_and_cycle(students_ids, year_id, school_cycle)
 
     students_entries_grade_components =
       from(
@@ -1139,14 +1149,19 @@ defmodule Lanttern.GradesReports do
         grades_report_id,
         grades_report_cycle_id
       ) do
-    # get grades report scale and all report subjects
+    # get grades report scale, year, cycle and all report subjects
     %{
       scale: scale,
+      year_id: year_id,
+      school_cycle: school_cycle,
       grades_report_subjects: grades_report_subjects
     } =
       get_grades_report!(grades_report_id,
-        preloads: [:scale, :grades_report_subjects]
+        preloads: [:scale, :school_cycle, :grades_report_subjects]
       )
+
+    # filter out students that don't belong to the grades report's year and cycle
+    students_ids = filter_students_ids_by_year_and_cycle(students_ids, year_id, school_cycle)
 
     students_grades_report_subject_entries_grade_components =
       from(
@@ -1199,6 +1214,41 @@ defmodule Lanttern.GradesReports do
       grades_report_cycle_id,
       scale
     )
+  end
+
+  # Restrict the given students to those belonging to the grades report's year
+  # AND cycle, so grade calculation never touches students from other years (e.g.
+  # duplicated grade report columns in multi-year strands).
+  #
+  # A student's year is determined by their *core* class — non-core classes
+  # (electives, clubs, etc.) commonly span multiple years and would otherwise
+  # match every year. The cycle matters too: class→year membership is cycle-scoped
+  # (a Grade 12 student in 2026 was a Grade 11 student in 2025), so we match the
+  # core class for the grades report's school cycle (resolving to the parent cycle
+  # when it is a subcycle, mirroring `list_students_linked_to_report_card/2`).
+  #
+  # A student is kept when one of their core classes matches both the year and the
+  # cycle, or when they have no core class at all (we can't infer a year, so we
+  # don't exclude them — this also keeps classless students).
+  defp filter_students_ids_by_year_and_cycle(students_ids, nil, _school_cycle), do: students_ids
+  defp filter_students_ids_by_year_and_cycle(students_ids, _year_id, nil), do: students_ids
+
+  defp filter_students_ids_by_year_and_cycle(students_ids, year_id, school_cycle) do
+    cycle_id = school_cycle.parent_cycle_id || school_cycle.id
+
+    from(
+      std in Student,
+      left_join: c in assoc(std, :classes),
+      on: c.is_core,
+      left_join: y in assoc(c, :years),
+      where: std.id in ^students_ids,
+      group_by: std.id,
+      having:
+        count(c.id) == 0 or
+          fragment("bool_or(? = ? and ? = ?)", c.cycle_id, ^cycle_id, y.id, ^year_id),
+      select: std.id
+    )
+    |> Repo.all()
   end
 
   defp handle_grades_batch_calculation_results(

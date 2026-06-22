@@ -133,6 +133,7 @@ defmodule Lanttern.Reporting do
   @strand_grades_report_card_preloads [
     :school_cycle,
     grades_report: [
+      :year,
       scale: :ordinal_values,
       grades_report_cycles: :school_cycle,
       grades_report_subjects: :subject
