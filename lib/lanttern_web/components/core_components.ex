@@ -2469,24 +2469,33 @@ defmodule LantternWeb.CoreComponents do
           // Link parent to tooltip for screen readers
           this.parent.setAttribute("aria-describedby", this.el.id);
 
-          // Move to body to escape any parent stacking contexts
-          document.body.appendChild(this.el);
+          // Render the floating tooltip as a body-level CLONE so it escapes any ancestor
+          // stacking/clipping context, while the original element stays in place under
+          // LiveView's control. Moving the managed element itself to <body> severs it
+          // from LiveView, which then can't update or remove it — that caused duplicate
+          // IDs on stream re-inserts and tooltips that lingered after their trigger was
+          // gone. The clone has no id/hook, so LiveView ignores it entirely.
+          this.floating = this.el.cloneNode(true);
+          this.floating.removeAttribute("id");
+          this.floating.removeAttribute("phx-hook");
+          this.floating.style.display = "none";
+          document.body.appendChild(this.floating);
 
           this._show = () => {
             if (_activeTooltip && _activeTooltip !== this) {
               _activeTooltip._hide();
             }
             _activeTooltip = this;
-            this.el.style.display = "block";
+            this.floating.style.display = "block";
           };
 
           this._hide = () => {
             if (_activeTooltip === this) _activeTooltip = null;
-            this.el.style.display = "none";
+            this.floating.style.display = "none";
           };
 
           this._onMouseMove = (e) => {
-            const rect = this.el.getBoundingClientRect();
+            const rect = this.floating.getBoundingClientRect();
             const vw = window.innerWidth;
             const vh = window.innerHeight;
 
@@ -2503,14 +2512,14 @@ defmodule LantternWeb.CoreComponents do
               x = vw - rect.width - 4;
             }
 
-            this.el.style.left = x + "px";
-            this.el.style.top = y + "px";
+            this.floating.style.left = x + "px";
+            this.floating.style.top = y + "px";
           };
 
           this._onFocus = () => {
             this._show();
             const parentRect = this.parent.getBoundingClientRect();
-            const tooltipRect = this.el.getBoundingClientRect();
+            const tooltipRect = this.floating.getBoundingClientRect();
             const vw = window.innerWidth;
             const vh = window.innerHeight;
 
@@ -2527,8 +2536,8 @@ defmodule LantternWeb.CoreComponents do
               x = vw - tooltipRect.width - 4;
             }
 
-            this.el.style.left = x + "px";
-            this.el.style.top = y + "px";
+            this.floating.style.left = x + "px";
+            this.floating.style.top = y + "px";
           };
 
           this.parent.addEventListener("mouseenter", this._show);
@@ -2536,6 +2545,10 @@ defmodule LantternWeb.CoreComponents do
           this.parent.addEventListener("mouseleave", this._hide);
           this.parent.addEventListener("focusin", this._onFocus);
           this.parent.addEventListener("focusout", this._hide);
+        },
+        updated() {
+          // keep the floating clone's content in sync with server-rendered changes
+          if (this.floating) this.floating.innerHTML = this.el.innerHTML;
         },
         destroyed() {
           this.parent.removeEventListener("mouseenter", this._show);
@@ -2545,10 +2558,7 @@ defmodule LantternWeb.CoreComponents do
           this.parent.removeEventListener("focusout", this._hide);
           this.parent.removeAttribute("aria-describedby");
           if (_activeTooltip === this) _activeTooltip = null;
-          // Clean up the element we moved to body
-          if (this.el.parentElement === document.body) {
-            document.body.removeChild(this.el);
-          }
+          if (this.floating) this.floating.remove();
         }
       }
     </script>
