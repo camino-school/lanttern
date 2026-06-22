@@ -439,38 +439,158 @@ defmodule LantternWeb.ReportingComponents do
   attr :is_student, :boolean, default: false
 
   defp report_scale_numeric_bar(assigns) do
+    score_left =
+      if assigns.score,
+        do: "#{Float.round(assigns.score * 100 / assigns.scale.max_score, 4)}%"
+
+    assigns = assign(assigns, :score_left, score_left)
+
     ~H"""
-    <div
-      class="relative flex items-center justify-between rounded-sm w-full h-6 px-2 font-mono text-xs text-ltrn-subtle bg-ltrn-lighter"
-      style={create_color_map_gradient_bg_style(@scale)}
-    >
-      <div style={if @scale.start_text_color, do: "color: #{@scale.start_text_color}"}>
-        0
-      </div>
+    <div class="w-full">
       <div
+        class="flex items-center justify-between rounded-sm w-full h-6 px-2 font-mono text-xs text-ltrn-subtle bg-ltrn-lighter"
+        style={create_color_map_gradient_bg_style(@scale)}
+      >
+        <div style={if @scale.start_text_color, do: "color: #{@scale.start_text_color}"}>
+          0
+        </div>
+        <div
+          class="text-right"
+          style={if @scale.stop_text_color, do: "color: #{@scale.stop_text_color}"}
+        >
+          {format_float(@scale.max_score)}
+        </div>
+      </div>
+      <.report_scale_marker
         :if={@score}
-        class="absolute z-10 flex-1 flex items-center h-full"
-        style={"left: calc(#{@score * 100 / @scale.max_score}% - #{(@score / @scale.max_score) * 48}px)"}
+        left={@score_left}
+        label={@score}
+        is_student={@is_student}
+      />
+    </div>
+    """
+  end
+
+  @doc false
+  # Shared marker rendered below a report scale bar: a tip pointing to the exact
+  # position plus a label box. Used by both the numeric and ordinal scale bars.
+  attr :left, :string, required: true
+  attr :label, :any, required: true
+  attr :is_student, :boolean, default: false
+
+  defp report_scale_marker(assigns) do
+    ~H"""
+    <div class="relative h-8">
+      <div
+        class="absolute top-0 flex flex-col items-center -translate-x-1/2"
+        style={"left: #{@left}"}
       >
         <div class={[
-          "absolute flex items-center justify-center w-12 h-8 rounded-sm text-sm shadow-lg",
+          "w-0 h-0 border-x-4 border-x-transparent border-b-4",
+          if(@is_student, do: "border-b-ltrn-student-dark", else: "border-b-ltrn-dark")
+        ]}>
+        </div>
+        <div class={[
+          "flex items-center justify-center px-2 h-6 rounded-sm font-sans text-sm shadow-lg whitespace-nowrap",
           if(@is_student,
             do: "text-ltrn-student-dark bg-ltrn-student-lighter",
             else: "text-ltrn-dark bg-white"
           )
         ]}>
-          {@score}
+          {@label}
         </div>
-      </div>
-      <div
-        class="text-right"
-        style={if @scale.stop_text_color, do: "color: #{@scale.stop_text_color}"}
-      >
-        {format_float(@scale.max_score)}
       </div>
     </div>
     """
   end
+
+  @doc """
+  Renders an ordinal scale as a segmented bar.
+
+  Each ordinal value becomes a colored segment, ordered by `normalized_value`, with the
+  segment width defined by the scale's `breakpoints` and the color taken from the ordinal
+  value's `bg_color`/`text_color`. Each segment is a `<.tooltip>` area showing the ordinal
+  value name and its range. When an `entry` with a `normalized_value` is given, a marker
+  with that value is positioned below the bar, with a tip pointing to the exact position.
+
+  Requires the scale's `ordinal_values` preload.
+  """
+  attr :scale, Scale, required: true
+  attr :entry, :any, default: nil
+  attr :id, :string, required: true
+  attr :class, :any, default: nil
+
+  def report_scale_ordinal_bar(assigns) do
+    segments = build_ordinal_segments(assigns.scale)
+    normalized_value = assigns.entry && assigns.entry.normalized_value
+    last_index = length(segments) - 1
+
+    marker_left = if normalized_value, do: "#{Float.round(normalized_value * 100, 4)}%"
+
+    assigns =
+      assigns
+      |> assign(:segments, segments)
+      |> assign(:normalized_value, normalized_value)
+      |> assign(:last_index, last_index)
+      |> assign(:marker_left, marker_left)
+
+    ~H"""
+    <div id={@id} class={["w-full", @class]}>
+      <div class="relative flex items-stretch w-full h-6">
+        <div
+          :for={{segment, i} <- Enum.with_index(@segments)}
+          class={[
+            "relative h-full",
+            i == 0 && "rounded-l-sm",
+            i == @last_index && "rounded-r-sm"
+          ]}
+          style={"width: #{segment.width}%; #{create_color_map_style(segment.ordinal_value)}"}
+        >
+          <.tooltip id={"#{@id}-seg-#{i}"}>
+            <div class="font-bold">{segment.ordinal_value.name}</div>
+            <div :if={ordinal_segment_range_text(segment.lower, segment.upper)}>
+              {ordinal_segment_range_text(segment.lower, segment.upper)}
+            </div>
+          </.tooltip>
+        </div>
+      </div>
+      <.report_scale_marker
+        :if={@normalized_value}
+        left={@marker_left}
+        label={format_normalized(@normalized_value)}
+      />
+    </div>
+    """
+  end
+
+  defp build_ordinal_segments(%Scale{ordinal_values: ordinal_values} = scale) do
+    breakpoints = scale.breakpoints || []
+    lowers = [nil | breakpoints]
+    uppers = breakpoints ++ [nil]
+
+    [ordinal_values, lowers, uppers]
+    |> Enum.zip()
+    |> Enum.map(fn {ordinal_value, lower, upper} ->
+      width = Float.round(((upper || 1.0) - (lower || 0.0)) * 100, 4)
+
+      %{ordinal_value: ordinal_value, lower: lower, upper: upper, width: width}
+    end)
+  end
+
+  defp ordinal_segment_range_text(nil, nil), do: nil
+
+  defp ordinal_segment_range_text(nil, upper),
+    do: gettext("Less than %{n}", n: format_float(upper))
+
+  defp ordinal_segment_range_text(lower, nil),
+    do: gettext("Greater than or equal to %{n}", n: format_float(lower))
+
+  defp ordinal_segment_range_text(lower, upper),
+    do:
+      gettext("Greater than or equal to %{lower}, less than %{upper}",
+        lower: format_float(lower),
+        upper: format_float(upper)
+      )
 
   attr :footnote, :string, required: true
   attr :class, :any, default: nil

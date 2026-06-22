@@ -73,24 +73,36 @@ defmodule LantternWeb.Assessments.StudentAssessmentPointDetailsOverlayComponent 
             class="mt-4"
           />
         </div>
-        <div class="flex items-center justify-between gap-2 mt-10">
-          <h5 class="flex items-center gap-2 font-display font-black text-base">
-            <.icon :if={@rubric} name="hero-view-columns" />
-            {if @rubric, do: gettext("Assessment rubric"), else: gettext("Assessment scale")}
-          </h5>
-          <.badge :if={@rubric && @rubric.is_differentiation} theme="diff">
-            {gettext("Differentiation")}
-          </.badge>
+        <div :if={@show_ordinal_bar} class="mt-10">
+          <h5 class="font-display font-black text-base">{gettext("Assessment scale")}</h5>
+          <div class="py-4 overflow-x-auto">
+            <.report_scale_ordinal_bar
+              id={"#{@id}-ordinal-bar"}
+              scale={@assessment_point.scale}
+              entry={!@assessment_point.is_hidden && @entry}
+            />
+          </div>
         </div>
-        <p :if={@rubric} class="mt-2 text-sm">
-          <span class="font-bold">{gettext("Criteria:")}</span> {@rubric.criteria}
-        </p>
-        <div class="py-4 overflow-x-auto">
-          <.report_scale
-            scale={@assessment_point.scale}
-            rubric={@rubric}
-            entry={!@assessment_point.is_hidden && @entry}
-          />
+        <div :if={!@show_ordinal_bar || @rubric}>
+          <div class="flex items-center justify-between gap-2 mt-10">
+            <h5 class="flex items-center gap-2 font-display font-black text-base">
+              <.icon :if={@rubric} name="hero-view-columns" />
+              {if @rubric, do: gettext("Assessment rubric"), else: gettext("Assessment scale")}
+            </h5>
+            <.badge :if={@rubric && @rubric.is_differentiation} theme="diff">
+              {gettext("Differentiation")}
+            </.badge>
+          </div>
+          <p :if={@rubric} class="mt-2 text-sm">
+            <span class="font-bold">{gettext("Criteria:")}</span> {@rubric.criteria}
+          </p>
+          <div class="py-4 overflow-x-auto">
+            <.report_scale
+              scale={@assessment_point.scale}
+              rubric={@rubric}
+              entry={!@assessment_point.is_hidden && @entry}
+            />
+          </div>
         </div>
         <div :if={@entry && @entry.evidences != []} class="mt-10">
           <h5 class="flex items-center gap-2 font-display font-black text-base">
@@ -164,10 +176,21 @@ defmodule LantternWeb.Assessments.StudentAssessmentPointDetailsOverlayComponent 
       |> assign_assessment_point(assigns)
       |> assign_entry()
       |> assign_rubric()
+      |> assign_show_ordinal_bar()
       |> assign_composition()
       |> assign_navigation()
 
     {:ok, socket}
+  end
+
+  defp assign_show_ordinal_bar(socket) do
+    %{assessment_point: assessment_point} = socket.assigns
+
+    show_ordinal_bar =
+      assessment_point.uses_composition and
+        assessment_point.scale.type == "ordinal"
+
+    assign(socket, :show_ordinal_bar, show_ordinal_bar)
   end
 
   defp assign_navigation(socket) do
