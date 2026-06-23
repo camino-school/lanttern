@@ -49,12 +49,18 @@ defmodule LantternWeb.Assessments.AssessmentPointFormOverlayComponent do
           <.error_block :if={@form.source.action == :insert} class="mb-6">
             {gettext("Oops, something went wrong! Please check the errors below.")}
           </.error_block>
+          <%!-- TEMPORARY: strand goals auto-generate their name from the selected
+                curriculum item (see update/2 on curriculum select). Hide the field
+                and submit the generated value via a hidden input. Revisit once
+                curriculum_item becomes optional / many-to-many. --%>
           <.input
+            :if={!@assessment_point.strand_id}
             field={@form[:name]}
             label={gettext("Assessment point name")}
             phx-debounce="1500"
             class="mb-6"
           />
+          <.input :if={@assessment_point.strand_id} field={@form[:name]} type="hidden" />
           <.input
             field={@form[:scale_id]}
             type="select"
@@ -235,6 +241,7 @@ defmodule LantternWeb.Assessments.AssessmentPointFormOverlayComponent do
     params =
       socket.assigns.form.params
       |> Map.put("curriculum_item_id", "#{curriculum_item.id}")
+      |> maybe_put_strand_goal_name(socket.assigns.assessment_point, curriculum_item)
 
     form =
       socket.assigns.assessment_point
@@ -262,6 +269,19 @@ defmodule LantternWeb.Assessments.AssessmentPointFormOverlayComponent do
 
     {:ok, socket}
   end
+
+  # TEMPORARY: strand goals don't expose a name field; derive it from the selected
+  # curriculum item, matching the backfill in the require_assessment_point_name migration.
+  defp maybe_put_strand_goal_name(params, %{strand_id: strand_id}, curriculum_item)
+       when not is_nil(strand_id) do
+    Map.put(
+      params,
+      "name",
+      "(#{curriculum_item.curriculum_component.name}) #{curriculum_item.name}"
+    )
+  end
+
+  defp maybe_put_strand_goal_name(params, _assessment_point, _curriculum_item), do: params
 
   defp initialize(%{assigns: %{initialized: false}} = socket) do
     socket
