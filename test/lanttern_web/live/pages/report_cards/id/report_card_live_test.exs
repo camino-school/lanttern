@@ -336,6 +336,130 @@ defmodule LantternWeb.ReportCardLiveTest do
     end
   end
 
+  describe "not-linked students selection and linking" do
+    setup %{conn: conn, user: user} do
+      parent_cycle = SchoolsFixtures.cycle_fixture(%{school_id: user.current_profile.school_id})
+
+      subcycle =
+        SchoolsFixtures.cycle_fixture(%{
+          school_id: user.current_profile.school_id,
+          parent_cycle_id: parent_cycle.id
+        })
+
+      year = TaxonomyFixtures.year_fixture()
+      report_card = report_card_fixture(%{school_cycle_id: subcycle.id, year_id: year.id})
+
+      class =
+        SchoolsFixtures.class_fixture(%{
+          name: "Class AAA",
+          school_id: user.current_profile.school_id,
+          cycle_id: parent_cycle.id,
+          years_ids: [year.id]
+        })
+
+      student_a =
+        SchoolsFixtures.student_fixture(%{name: "Student AAA", classes_ids: [class.id]})
+
+      student_b =
+        SchoolsFixtures.student_fixture(%{name: "Student BBB", classes_ids: [class.id]})
+
+      student_c =
+        SchoolsFixtures.student_fixture(%{name: "Student CCC", classes_ids: [class.id]})
+
+      # only student A is linked; B and C show up in the not-linked list
+      src_a =
+        student_report_card_fixture(%{report_card_id: report_card.id, student_id: student_a.id})
+
+      %{
+        conn: conn,
+        report_card: report_card,
+        student_a: student_a,
+        student_b: student_b,
+        student_c: student_c,
+        src_a: src_a
+      }
+    end
+
+    test "linking a student in place moves it to the linked list without the form overlay", %{
+      conn: conn,
+      report_card: report_card,
+      student_b: student_b
+    } do
+      {:ok, view, _html} = live(conn, "#{@live_view_path_base}/#{report_card.id}/students")
+
+      assert has_element?(view, "#students-without-report-cards", student_b.name)
+
+      view
+      |> element("#other_students-#{student_b.id} button", "Link")
+      |> render_click()
+
+      # the student report card is created
+      assert Lanttern.Reporting.get_student_report_card_by_student_and_parent_report(
+               student_b.id,
+               report_card.id
+             )
+
+      # student B moves to the linked list and leaves the not-linked list, with no overlay
+      assert has_element?(view, "#students-and-report-cards", student_b.name)
+      refute has_element?(view, "#students-without-report-cards", student_b.name)
+      refute has_element?(view, "#student-report-card-form-overlay")
+    end
+
+    test "selecting students is exclusive between the two lists", %{
+      conn: conn,
+      report_card: report_card,
+      student_a: student_a,
+      student_b: student_b
+    } do
+      {:ok, view, _html} = live(conn, "#{@live_view_path_base}/#{report_card.id}/students")
+
+      # select a not-linked student
+      view
+      |> element("#students-without-report-cards button[title='#{student_b.name}']")
+      |> render_click()
+
+      assert render(view) =~ "1 student selected"
+
+      # the linked list's selection is now disabled: its pictures are no longer
+      # clickable and its "Select all" action is disabled with an explanatory tooltip
+      refute has_element?(view, "#students-and-report-cards button[title='#{student_a.name}']")
+      assert has_element?(view, "#select_all_student_report_cards-button[disabled]")
+      assert has_element?(view, "#select_all_student_report_cards-disabled-tooltip")
+
+      # clear and select a linked student instead — now the not-linked list is disabled
+      view |> element("button", "Clear selection") |> render_click()
+
+      view
+      |> element("#students-and-report-cards button[title='#{student_a.name}']")
+      |> render_click()
+
+      assert render(view) =~ "1 student report card selected"
+
+      refute has_element?(
+               view,
+               "#students-without-report-cards button[title='#{student_b.name}']"
+             )
+
+      assert has_element?(view, "#select_all_students-button[disabled]")
+      assert has_element?(view, "#select_all_students-disabled-tooltip")
+    end
+
+    test "select all selects every not-linked student", %{
+      conn: conn,
+      report_card: report_card,
+      student_b: student_b,
+      student_c: student_c
+    } do
+      {:ok, view, _html} = live(conn, "#{@live_view_path_base}/#{report_card.id}/students")
+
+      view |> element("#select_all_students-button") |> render_click()
+
+      assert render(view) =~ "2 students selected"
+      assert has_element?(view, "#other_students-#{student_b.id}.outline")
+      assert has_element?(view, "#other_students-#{student_c.id}.outline")
+    end
+  end
+
   describe "URL-based class filter" do
     setup %{conn: conn, user: user} do
       parent_cycle = SchoolsFixtures.cycle_fixture(%{school_id: user.current_profile.school_id})

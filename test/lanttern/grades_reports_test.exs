@@ -2308,6 +2308,369 @@ defmodule Lanttern.GradesReportsTest do
              |> is_nil()
     end
 
+    test "calculate_subject_grades/4 only calculates students belonging to the grades report's year" do
+      %{
+        grades_report: grades_report,
+        grades_report_cycle: grades_report_cycle,
+        grades_report_subject: grades_report_subject,
+        goal: goal,
+        marking_ov: marking_ov,
+        marking_scale: marking_scale,
+        year: year,
+        cycle: cycle,
+        school: school
+      } = setup_year_filtered_composition()
+
+      other_year = TaxonomyFixtures.year_fixture()
+
+      class_in_year =
+        SchoolsFixtures.class_fixture(%{
+          school_id: school.id,
+          cycle_id: cycle.id,
+          years_ids: [year.id]
+        })
+
+      class_other_year =
+        SchoolsFixtures.class_fixture(%{
+          school_id: school.id,
+          cycle_id: cycle.id,
+          years_ids: [other_year.id]
+        })
+
+      std_in_year =
+        SchoolsFixtures.student_fixture(%{school_id: school.id, classes_ids: [class_in_year.id]})
+
+      std_other_year =
+        SchoolsFixtures.student_fixture(%{
+          school_id: school.id,
+          classes_ids: [class_other_year.id]
+        })
+
+      # classless students are kept (matches list_grades_report_students/2 behavior)
+      std_classless = SchoolsFixtures.student_fixture(%{school_id: school.id})
+
+      for student <- [std_in_year, std_other_year, std_classless] do
+        AssessmentsFixtures.assessment_point_entry_fixture(%{
+          student_id: student.id,
+          assessment_point_id: goal.id,
+          scale_id: marking_scale.id,
+          scale_type: "ordinal",
+          ordinal_value_id: marking_ov.id
+        })
+      end
+
+      assert {:ok, %{created: 2, updated: 0, updated_with_manual: 0, deleted: 0, noop: 0}} =
+               GradesReports.calculate_subject_grades(
+                 [std_in_year.id, std_other_year.id, std_classless.id],
+                 grades_report.id,
+                 grades_report_cycle.id,
+                 grades_report_subject.id
+               )
+
+      assert Repo.get_by(StudentGradesReportEntry,
+               student_id: std_in_year.id,
+               grades_report_cycle_id: grades_report_cycle.id,
+               grades_report_subject_id: grades_report_subject.id
+             )
+
+      assert Repo.get_by(StudentGradesReportEntry,
+               student_id: std_classless.id,
+               grades_report_cycle_id: grades_report_cycle.id,
+               grades_report_subject_id: grades_report_subject.id
+             )
+
+      assert Repo.get_by(StudentGradesReportEntry,
+               student_id: std_other_year.id,
+               grades_report_cycle_id: grades_report_cycle.id,
+               grades_report_subject_id: grades_report_subject.id
+             )
+             |> is_nil()
+    end
+
+    test "calculate_subject_grades/4 uses the core class (not multi-year non-core classes) to determine a student's year" do
+      %{
+        grades_report: grades_report,
+        grades_report_cycle: grades_report_cycle,
+        grades_report_subject: grades_report_subject,
+        goal: goal,
+        marking_ov: marking_ov,
+        marking_scale: marking_scale,
+        year: year,
+        cycle: cycle,
+        school: school
+      } = setup_year_filtered_composition()
+
+      other_year = TaxonomyFixtures.year_fixture()
+
+      # the student's core class is in another year...
+      core_class =
+        SchoolsFixtures.class_fixture(%{
+          school_id: school.id,
+          cycle_id: cycle.id,
+          is_core: true,
+          years_ids: [other_year.id]
+        })
+
+      # ...but they also belong to a non-core class spanning the grades report's year
+      non_core_class =
+        SchoolsFixtures.class_fixture(%{
+          school_id: school.id,
+          cycle_id: cycle.id,
+          is_core: false,
+          years_ids: [year.id, other_year.id]
+        })
+
+      student =
+        SchoolsFixtures.student_fixture(%{
+          school_id: school.id,
+          classes_ids: [core_class.id, non_core_class.id]
+        })
+
+      AssessmentsFixtures.assessment_point_entry_fixture(%{
+        student_id: student.id,
+        assessment_point_id: goal.id,
+        scale_id: marking_scale.id,
+        scale_type: "ordinal",
+        ordinal_value_id: marking_ov.id
+      })
+
+      # the multi-year non-core class must not make the student count for this year
+      assert {:ok, %{created: 0, updated: 0, updated_with_manual: 0, deleted: 0, noop: 0}} =
+               GradesReports.calculate_subject_grades(
+                 [student.id],
+                 grades_report.id,
+                 grades_report_cycle.id,
+                 grades_report_subject.id
+               )
+
+      assert Repo.get_by(StudentGradesReportEntry,
+               student_id: student.id,
+               grades_report_cycle_id: grades_report_cycle.id,
+               grades_report_subject_id: grades_report_subject.id
+             )
+             |> is_nil()
+    end
+
+    test "calculate_subject_grades/4 matches the student's core class on the grades report's cycle" do
+      %{
+        grades_report: grades_report,
+        grades_report_cycle: grades_report_cycle,
+        grades_report_subject: grades_report_subject,
+        goal: goal,
+        marking_ov: marking_ov,
+        marking_scale: marking_scale,
+        year: year,
+        cycle: cycle,
+        school: school
+      } = setup_year_filtered_composition()
+
+      # a different school cycle (e.g. a previous school year)
+      other_cycle = SchoolsFixtures.cycle_fixture(%{school_id: school.id})
+
+      # same year, but the core class belongs to another cycle (the student held this
+      # year in a previous cycle), so they must not count for this grades report
+      class_other_cycle =
+        SchoolsFixtures.class_fixture(%{
+          school_id: school.id,
+          cycle_id: other_cycle.id,
+          years_ids: [year.id]
+        })
+
+      # same year and same cycle -> should be calculated
+      class_same_cycle =
+        SchoolsFixtures.class_fixture(%{
+          school_id: school.id,
+          cycle_id: cycle.id,
+          years_ids: [year.id]
+        })
+
+      std_other_cycle =
+        SchoolsFixtures.student_fixture(%{
+          school_id: school.id,
+          classes_ids: [class_other_cycle.id]
+        })
+
+      std_same_cycle =
+        SchoolsFixtures.student_fixture(%{
+          school_id: school.id,
+          classes_ids: [class_same_cycle.id]
+        })
+
+      for student <- [std_other_cycle, std_same_cycle] do
+        AssessmentsFixtures.assessment_point_entry_fixture(%{
+          student_id: student.id,
+          assessment_point_id: goal.id,
+          scale_id: marking_scale.id,
+          scale_type: "ordinal",
+          ordinal_value_id: marking_ov.id
+        })
+      end
+
+      assert {:ok, %{created: 1, updated: 0, updated_with_manual: 0, deleted: 0, noop: 0}} =
+               GradesReports.calculate_subject_grades(
+                 [std_other_cycle.id, std_same_cycle.id],
+                 grades_report.id,
+                 grades_report_cycle.id,
+                 grades_report_subject.id
+               )
+
+      assert Repo.get_by(StudentGradesReportEntry,
+               student_id: std_same_cycle.id,
+               grades_report_cycle_id: grades_report_cycle.id,
+               grades_report_subject_id: grades_report_subject.id
+             )
+
+      assert Repo.get_by(StudentGradesReportEntry,
+               student_id: std_other_cycle.id,
+               grades_report_cycle_id: grades_report_cycle.id,
+               grades_report_subject_id: grades_report_subject.id
+             )
+             |> is_nil()
+    end
+
+    test "calculate_student_grade/4 skips students that don't belong to the grades report's year" do
+      %{
+        grades_report: grades_report,
+        grades_report_cycle: grades_report_cycle,
+        grades_report_subject: grades_report_subject,
+        goal: goal,
+        marking_ov: marking_ov,
+        marking_scale: marking_scale,
+        year: year,
+        cycle: cycle,
+        school: school
+      } = setup_year_filtered_composition()
+
+      other_year = TaxonomyFixtures.year_fixture()
+
+      class_in_year =
+        SchoolsFixtures.class_fixture(%{
+          school_id: school.id,
+          cycle_id: cycle.id,
+          years_ids: [year.id]
+        })
+
+      class_other_year =
+        SchoolsFixtures.class_fixture(%{
+          school_id: school.id,
+          cycle_id: cycle.id,
+          years_ids: [other_year.id]
+        })
+
+      std_in_year =
+        SchoolsFixtures.student_fixture(%{school_id: school.id, classes_ids: [class_in_year.id]})
+
+      std_other_year =
+        SchoolsFixtures.student_fixture(%{
+          school_id: school.id,
+          classes_ids: [class_other_year.id]
+        })
+
+      for student <- [std_in_year, std_other_year] do
+        AssessmentsFixtures.assessment_point_entry_fixture(%{
+          student_id: student.id,
+          assessment_point_id: goal.id,
+          scale_id: marking_scale.id,
+          scale_type: "ordinal",
+          ordinal_value_id: marking_ov.id
+        })
+      end
+
+      # correct year student is calculated
+      assert {:ok, %StudentGradesReportEntry{}, :created} =
+               GradesReports.calculate_student_grade(
+                 std_in_year.id,
+                 grades_report.id,
+                 grades_report_cycle.id,
+                 grades_report_subject.id
+               )
+
+      # wrong year student is skipped (no entry persisted)
+      assert {:ok, nil, :skipped} =
+               GradesReports.calculate_student_grade(
+                 std_other_year.id,
+                 grades_report.id,
+                 grades_report_cycle.id,
+                 grades_report_subject.id
+               )
+
+      assert Repo.get_by(StudentGradesReportEntry,
+               student_id: std_other_year.id,
+               grades_report_cycle_id: grades_report_cycle.id,
+               grades_report_subject_id: grades_report_subject.id
+             )
+             |> is_nil()
+    end
+
+    test "calculate_cycle_grades/3 only calculates students belonging to the grades report's year" do
+      %{
+        grades_report: grades_report,
+        grades_report_cycle: grades_report_cycle,
+        grades_report_subject: grades_report_subject,
+        goal: goal,
+        marking_ov: marking_ov,
+        marking_scale: marking_scale,
+        year: year,
+        cycle: cycle,
+        school: school
+      } = setup_year_filtered_composition()
+
+      other_year = TaxonomyFixtures.year_fixture()
+
+      class_in_year =
+        SchoolsFixtures.class_fixture(%{
+          school_id: school.id,
+          cycle_id: cycle.id,
+          years_ids: [year.id]
+        })
+
+      class_other_year =
+        SchoolsFixtures.class_fixture(%{
+          school_id: school.id,
+          cycle_id: cycle.id,
+          years_ids: [other_year.id]
+        })
+
+      std_in_year =
+        SchoolsFixtures.student_fixture(%{school_id: school.id, classes_ids: [class_in_year.id]})
+
+      std_other_year =
+        SchoolsFixtures.student_fixture(%{
+          school_id: school.id,
+          classes_ids: [class_other_year.id]
+        })
+
+      for student <- [std_in_year, std_other_year] do
+        AssessmentsFixtures.assessment_point_entry_fixture(%{
+          student_id: student.id,
+          assessment_point_id: goal.id,
+          scale_id: marking_scale.id,
+          scale_type: "ordinal",
+          ordinal_value_id: marking_ov.id
+        })
+      end
+
+      assert {:ok, %{created: 1, updated: 0, updated_with_manual: 0, deleted: 0, noop: 0}} =
+               GradesReports.calculate_cycle_grades(
+                 [std_in_year.id, std_other_year.id],
+                 grades_report.id,
+                 grades_report_cycle.id
+               )
+
+      assert Repo.get_by(StudentGradesReportEntry,
+               student_id: std_in_year.id,
+               grades_report_cycle_id: grades_report_cycle.id,
+               grades_report_subject_id: grades_report_subject.id
+             )
+
+      assert Repo.get_by(StudentGradesReportEntry,
+               student_id: std_other_year.id,
+               grades_report_cycle_id: grades_report_cycle.id,
+               grades_report_subject_id: grades_report_subject.id
+             )
+             |> is_nil()
+    end
+
     test "calculate_cycle_grades/3 returns the correct student grades report entries for given cycle" do
       # marking scale
       # ordinal scale, 4 levels
@@ -4894,5 +5257,72 @@ defmodule Lanttern.GradesReportsTest do
                only_visible: true
              ) == []
     end
+  end
+
+  # Sets up a minimal single-goal grade composition tied to a year, for the
+  # year-filtering calculation tests. Returns the grades report, its cycle and
+  # subject, the goal assessment point, a marking ordinal value, the marking
+  # scale, the grades report's year, and a school for classes/students.
+  defp setup_year_filtered_composition do
+    marking_scale = insert(:scale, type: "ordinal", breakpoints: [0.5])
+
+    marking_ov = insert(:ordinal_value, scale_id: marking_scale.id, normalized_value: 1.0)
+
+    grading_scale = insert(:scale, type: "ordinal", breakpoints: [0.5])
+
+    _grading_ov = insert(:ordinal_value, scale_id: grading_scale.id, normalized_value: 1.0)
+
+    strand = Lanttern.LearningContextFixtures.strand_fixture()
+
+    goal =
+      Lanttern.AssessmentsFixtures.assessment_point_fixture(%{
+        strand_id: strand.id,
+        scale_id: marking_scale.id
+      })
+
+    year = Lanttern.TaxonomyFixtures.year_fixture()
+    subject = Lanttern.TaxonomyFixtures.subject_fixture()
+    school = Lanttern.SchoolsFixtures.school_fixture()
+    cycle = Lanttern.SchoolsFixtures.cycle_fixture(%{school_id: school.id})
+
+    grades_report =
+      Lanttern.GradesReportsFixtures.grades_report_fixture(%{
+        scale_id: grading_scale.id,
+        year_id: year.id,
+        school_cycle_id: cycle.id
+      })
+
+    grades_report_cycle =
+      Lanttern.GradesReportsFixtures.grades_report_cycle_fixture(%{
+        school_cycle_id: cycle.id,
+        grades_report_id: grades_report.id
+      })
+
+    grades_report_subject =
+      Lanttern.GradesReportsFixtures.grades_report_subject_fixture(%{
+        subject_id: subject.id,
+        grades_report_id: grades_report.id
+      })
+
+    _grade_component =
+      Lanttern.GradingFixtures.grade_component_fixture(%{
+        grades_report_id: grades_report.id,
+        grades_report_cycle_id: grades_report_cycle.id,
+        grades_report_subject_id: grades_report_subject.id,
+        assessment_point_id: goal.id,
+        weight: 1.0
+      })
+
+    %{
+      grades_report: grades_report,
+      grades_report_cycle: grades_report_cycle,
+      grades_report_subject: grades_report_subject,
+      goal: goal,
+      marking_ov: marking_ov,
+      marking_scale: marking_scale,
+      year: year,
+      cycle: cycle,
+      school: school
+    }
   end
 end

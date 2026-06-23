@@ -4,6 +4,7 @@ defmodule LantternWeb.StrandReportLive do
   alias Lanttern.Engagement
   alias Lanttern.Identity.Scope
   alias Lanttern.Reporting
+  alias Lanttern.Rubrics
   import Lanttern.SupabaseHelpers, only: [object_url_to_render_url: 2]
 
   # view components
@@ -26,6 +27,7 @@ defmodule LantternWeb.StrandReportLive do
       |> assign_strand_report(params)
       |> assign_base_path_and_navigation_context(params)
       |> assign_allow_access()
+      |> assign_has_rubrics()
 
     {:ok, socket}
   end
@@ -142,6 +144,21 @@ defmodule LantternWeb.StrandReportLive do
       end
 
     assign(socket, :allow_access, allow_access)
+  end
+
+  defp assign_has_rubrics(socket) do
+    # reuse the same query the rubrics component uses (with the same
+    # allow_access-based opts) so the tab is shown only when it has content
+    opts = if socket.assigns.allow_access, do: [only_with_entries: true], else: []
+
+    has_rubrics =
+      Rubrics.list_student_strand_rubrics_grouped_by_goal(
+        socket.assigns.student_report_card.student_id,
+        socket.assigns.strand_report.strand_id,
+        opts
+      ) != []
+
+    assign(socket, :has_rubrics, has_rubrics)
   end
 
   @trackable_tabs %{

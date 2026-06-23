@@ -160,11 +160,18 @@ defmodule LantternWeb.StrandLive.AssessmentComponentTest do
       assert view |> has_element?("button", "New moment AP")
     end
 
-    test "create strand goal requires a name", %{conn: conn, user: user} do
+    test "create strand goal auto-generates name from curriculum item", %{conn: conn, user: user} do
       school_id = user.current_profile.school_id
       strand = insert(:strand)
       scale = insert(:scale, school_id: school_id)
-      curriculum_item = insert(:curriculum_item, %{school_id: school_id})
+      curriculum_component = insert(:curriculum_component, %{name: "Comp"})
+
+      curriculum_item =
+        insert(:curriculum_item, %{
+          school_id: school_id,
+          curriculum_component_id: curriculum_component.id,
+          name: "CI name"
+        })
 
       {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{strand.id}/assessment")
 
@@ -172,37 +179,23 @@ defmodule LantternWeb.StrandLive.AssessmentComponentTest do
       |> element("#new-moment-assessment button", "Strand goal")
       |> render_click()
 
-      # the goal form now exposes the name field (previously hidden for strand goals)
-      assert view
+      # strand goals no longer expose a visible name field; it's auto-generated (temporary)
+      refute view
              |> has_element?(
-               "#assessment-point-form-overlay-form input[name='assessment_point[name]']"
+               "#assessment-point-form-overlay-form label",
+               "Assessment point name"
              )
 
-      # submitting without a name does not create the goal
+      # selecting a curriculum item auto-generates the "(Component) Item" name
+      view
+      |> element("#curriculum-item-search")
+      |> render_hook("autocomplete_result_select", %{"id" => to_string(curriculum_item.id)})
+
       view
       |> element("#assessment-point-form-overlay-form")
-      |> render_submit(%{
-        "assessment_point" => %{
-          "name" => "",
-          "scale_id" => "#{scale.id}",
-          "curriculum_item_id" => "#{curriculum_item.id}"
-        }
-      })
+      |> render_submit(%{"assessment_point" => %{"scale_id" => "#{scale.id}"}})
 
-      refute view |> has_element?("button", "New strand goal")
-
-      # submitting with a name creates the goal
-      view
-      |> element("#assessment-point-form-overlay-form")
-      |> render_submit(%{
-        "assessment_point" => %{
-          "name" => "New strand goal",
-          "scale_id" => "#{scale.id}",
-          "curriculum_item_id" => "#{curriculum_item.id}"
-        }
-      })
-
-      assert view |> has_element?("button", "New strand goal")
+      assert view |> has_element?("button", "(Comp) CI name")
     end
 
     test "update moment assessment point name", %{conn: conn, user: user} do

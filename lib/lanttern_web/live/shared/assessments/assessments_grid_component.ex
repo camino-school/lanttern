@@ -473,12 +473,20 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
         assigns.column.grades_report_subject.subject.name
       )
 
+    year_name =
+      Gettext.dgettext(
+        Lanttern.Gettext,
+        "taxonomy",
+        assigns.column.grades_report.year.name
+      )
+
     dom_id =
       "grades-report-col-#{assigns.column.grades_report.id}-#{assigns.column.grades_report_cycle && assigns.column.grades_report_cycle.id}-#{assigns.column.grades_report_subject.id}"
 
     assigns =
       assigns
       |> assign(:subject_name, subject_name)
+      |> assign(:year_name, year_name)
       |> assign(:has_cycle, not is_nil(assigns.column.grades_report_cycle))
       |> assign(:dom_id, dom_id)
 
@@ -529,6 +537,9 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
           data-confirm={gettext("Are you sure? Existing grades will be recalculated.")}
         />
       </div>
+      <p class="mt-0.5 font-sans text-xs text-ltrn-subtle truncate" title={@year_name}>
+        {@year_name}
+      </p>
       <div class="relative mt-2">
         <.badge
           icon_name={if @column.is_hidden, do: "hero-eye-slash-micro", else: "hero-eye-micro"}
@@ -1193,6 +1204,13 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
         force_overwrite: true
       )
       |> case do
+        {:ok, nil, :skipped} ->
+          delegate_navigation(socket,
+            put_flash:
+              {:error,
+               gettext("This student doesn't belong to this grade report's year and cycle")}
+          )
+
         {:ok, nil, _} ->
           delegate_navigation(socket,
             put_flash: {:error, gettext("No assessment point entries for this grade composition")}

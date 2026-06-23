@@ -202,7 +202,6 @@ defmodule LantternWeb.Router do
       # -- strand report
 
       live "/strand_report/:strand_report_id", StrandReportLive, :overview
-      # live "/strand_report/:strand_report_id/overview", StrandReportLive, :overview
       live "/strand_report/:strand_report_id/rubrics", StrandReportLive, :rubrics
       live "/strand_report/:strand_report_id/assessment", StrandReportLive, :assessment
 
@@ -213,8 +212,6 @@ defmodule LantternWeb.Router do
       live "/strand_report/:strand_report_id/assessment/student_grade_report_entry/:student_grade_report_entry_id",
            StrandReportLive,
            :student_grade_report_entry
-
-      live "/strand_report/:strand_report_id/overview", StrandReportOverviewLive, :overview
 
       live "/strand_report/:strand_report_id/lesson/:id", StrandReportLessonLive, :show
 
@@ -244,7 +241,6 @@ defmodule LantternWeb.Router do
            StrandReportLive,
            :overview
 
-      # live "/student_report_cards/:student_report_card_id/strand_report/:strand_report_id/overview", StrandReportLive, :overview
       live "/student_report_cards/:student_report_card_id/strand_report/:strand_report_id/rubrics",
            StrandReportLive,
            :rubrics
@@ -260,10 +256,6 @@ defmodule LantternWeb.Router do
       live "/student_report_cards/:student_report_card_id/strand_report/:strand_report_id/assessment/student_grade_report_entry/:student_grade_report_entry_id",
            StrandReportLive,
            :student_grade_report_entry
-
-      live "/student_report_cards/:student_report_card_id/strand_report/:strand_report_id/overview",
-           StrandReportOverviewLive,
-           :overview
 
       live "/student_report_cards/:student_report_card_id/strand_report/:strand_report_id/lesson/:id",
            StrandReportLessonLive,

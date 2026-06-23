@@ -34,4 +34,25 @@ defmodule Lanttern.Utils do
     |> Float.to_string()
     |> String.replace(~r/\.0$|(?<=\.\d)0+$/, "")
   end
+
+  @doc """
+  Formats a normalized value (0.0–1.0) for display, floored to 2 decimals.
+
+  Floors — never rounds. Normalized values feed pass/fail (and ordinal band)
+  decisions, so displaying a value greater than the real one is misleading:
+  rounding `0.599` up to `"0.60"` can read as meeting a `0.60` threshold the
+  student did not actually reach. Flooring guarantees the shown value is never
+  above the real one and keeps every normalized-value display (scale bars,
+  composition tables, entry overlays) consistent.
+
+  Returns `"—"` for `nil`.
+  """
+  def format_normalized(nil), do: "—"
+
+  def format_normalized(value) do
+    (value * 1.0)
+    |> Decimal.from_float()
+    |> Decimal.round(2, :floor)
+    |> Decimal.to_string()
+  end
 end

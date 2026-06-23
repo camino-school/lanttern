@@ -34,20 +34,12 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
             apply_on_select={true}
             notify_parent={true}
           />
-          <p
+          <.selection_hint
             :if={@has_students_in_report_card}
-            class="flex items-center gap-2 mt-4 font-sans text-sm text-ltrn-subtle"
-          >
-            <.icon name="hero-information-circle-mini" class="text-ltrn-subtle" />
-            {gettext("Click a student's picture to select them.")}
-            <button
-              type="button"
-              class="underline hover:opacity-70"
-              phx-click={JS.push("select_all_student_report_cards", target: @myself)}
-            >
-              {gettext("Select all")}
-            </button>
-          </p>
+            select_all_event="select_all_student_report_cards"
+            is_disabled={@selected_students_ids != []}
+            myself={@myself}
+          />
           <%= if @has_students_in_report_card do %>
             <div phx-update="stream" id="students-and-report-cards">
               <.student_and_report_card_row
@@ -79,38 +71,33 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
             </div>
           <% end %>
         </div>
-        <div class="flex items-center justify-between gap-4">
-          <p class="flex-1 font-display font-bold text-2xl">
-            {case @report_card.school_cycle.parent_cycle do
-              %{name: parent_cycle_name} ->
-                gettext("Link students from %{year} (%{cycle}) to this report card",
-                  year: @report_card.year.name,
-                  cycle: parent_cycle_name
-                )
+        <p class="font-display font-bold text-2xl">
+          {case @report_card.school_cycle.parent_cycle do
+            %{name: parent_cycle_name} ->
+              gettext("Link students from %{year} (%{cycle}) to this report card",
+                year: @report_card.year.name,
+                cycle: parent_cycle_name
+              )
 
-              _ ->
-                gettext("Link students from %{year} to this report card",
-                  year: @report_card.year.name
-                )
-            end}
-          </p>
-          <.action
-            :if={@other_students_length > 1}
-            type="button"
-            size="md"
-            icon_name="hero-link"
-            data-confirm={gettext("Create %{count} report cards?", count: @other_students_length)}
-            phx-click="create_all_students_report_cards"
-            phx-target={@myself}
-          >
-            {gettext("Link all")}
-          </.action>
-        </div>
+            _ ->
+              gettext("Link students from %{year} to this report card",
+                year: @report_card.year.name
+              )
+          end}
+        </p>
+        <.selection_hint
+          :if={@other_students_length > 0}
+          select_all_event="select_all_students"
+          is_disabled={@selected_students_report_cards_ids != []}
+          myself={@myself}
+        />
         <.other_students_list
           has_other_students={@other_students_length > 0}
           students_stream={@streams.other_students}
           report_card={@report_card}
           url_filter_params={@url_filter_params}
+          selected_students_ids={@selected_students_ids}
+          is_selection_disabled={@selected_students_report_cards_ids != []}
           myself={@myself}
         />
       </.responsive_container>
@@ -225,12 +212,7 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
           <button
             type="button"
             class="underline hover:opacity-70"
-            phx-click={
-              JS.push("clear_student_selection", target: @myself)
-              |> JS.remove_class("outline outline-4 outline-ltrn-dark",
-                to: "#students-without-report-cards > div"
-              )
-            }
+            phx-click={JS.push("clear_student_selection", target: @myself)}
           >
             {gettext("Clear selection")}
           </button>
@@ -244,6 +226,91 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
           {gettext("Link selected")}
         </.button>
       </.fixed_bar>
+    </div>
+    """
+  end
+
+  attr :select_all_event, :string, required: true
+  attr :is_disabled, :boolean, required: true
+  attr :myself, Phoenix.LiveComponent.CID, required: true
+
+  def selection_hint(assigns) do
+    ~H"""
+    <p class="flex items-center gap-2 mt-4 font-sans text-sm text-ltrn-subtle">
+      <.icon name="hero-information-circle-mini" class="text-ltrn-subtle" />
+      {gettext("Click a student's picture to select them.")}
+      <span class={[@is_disabled && "cursor-not-allowed"]}>
+        <button
+          id={"#{@select_all_event}-button"}
+          type="button"
+          disabled={@is_disabled}
+          class={
+            [
+              "underline",
+              # when disabled, let pointer events pass through to the parent <span> so the
+              # tooltip (anchored to the span) still shows on hover
+              if(@is_disabled, do: "opacity-50 pointer-events-none", else: "hover:opacity-70")
+            ]
+          }
+          phx-click={JS.push(@select_all_event, target: @myself)}
+        >
+          {gettext("Select all")}
+        </button>
+        <.tooltip :if={@is_disabled} id={"#{@select_all_event}-disabled-tooltip"}>
+          {cross_list_selection_message()}
+        </.tooltip>
+      </span>
+    </p>
+    """
+  end
+
+  # shared message for the controls disabled while the other list has an active selection
+  defp cross_list_selection_message,
+    do:
+      gettext(
+        "You can't select students from both lists at the same time. Clear the current selection first."
+      )
+
+  # profile picture + name where only the picture toggles selection. The disabled-selection
+  # tooltip is scoped to the picture (its only trigger area), and no disabled styling is
+  # applied to the row — the tooltip alone communicates why the click does nothing.
+  attr :id, :string, required: true
+  attr :theme, :string, required: true
+  attr :student, Student, required: true
+  attr :is_deactivated, :boolean, default: false
+  attr :disable_on_click, :boolean, required: true
+  attr :on_click, JS, required: true
+
+  def selectable_student_profile(assigns) do
+    ~H"""
+    <div class="flex-1 flex gap-2 items-center text-sm">
+      <div>
+        <.profile_picture
+          theme={@theme}
+          profile_name={@student.name}
+          picture_url={@student.profile_picture_url}
+          on_click={if @disable_on_click, do: nil, else: @on_click}
+        />
+        <.tooltip :if={@disable_on_click} id={"#{@id}-disabled-tooltip"}>
+          {cross_list_selection_message()}
+        </.tooltip>
+      </div>
+      <div class="flex-1">
+        <.link
+          navigate={~p"/school/students/#{@student}/report_cards"}
+          target="_blank"
+          class={[
+            "font-bold line-clamp-1 hover:text-ltrn-subtle",
+            @is_deactivated && "text-ltrn-subtle"
+          ]}
+        >
+          {@student.name}
+          {if @is_deactivated, do: gettext("(Deactivated)")}
+        </.link>
+        <div class="line-clamp-1 font-sans text-xs text-ltrn-subtle mt-1">
+          {@student.classes |> Enum.map(& &1.name) |> Enum.join(", ")}
+        </div>
+      </div>
     </div>
     """
   end
@@ -271,17 +338,14 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
         ]
       }
     >
-      <div class="flex-1 flex items-center gap-4">
-        <.profile_picture_with_name
-          theme="cyan"
-          profile_name={@student.name}
-          picture_url={@student.profile_picture_url}
-          extra_info={@student.classes |> Enum.map(& &1.name) |> Enum.join(", ")}
-          on_click={if @disable_on_click, do: nil, else: @on_click}
-          is_deactivated={!is_nil(@student.deactivated_at)}
-          navigate={~p"/school/students/#{@student}/report_cards"}
-        />
-      </div>
+      <.selectable_student_profile
+        id={@id}
+        theme="cyan"
+        student={@student}
+        is_deactivated={!is_nil(@student.deactivated_at)}
+        disable_on_click={@disable_on_click}
+        on_click={@on_click}
+      />
       <div class="shrink-0 flex items-center gap-2">
         <div
           :if={@student_report_card.comment}
@@ -375,6 +439,8 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
   attr :students_stream, LiveStream, required: true
   attr :report_card, ReportCard, required: true
   attr :url_filter_params, :map, required: true
+  attr :selected_students_ids, :list, default: []
+  attr :is_selection_disabled, :boolean, default: false
   attr :myself, Phoenix.LiveComponent.CID, required: true
 
   def other_students_list(%{has_other_students: false} = assigns) do
@@ -408,10 +474,10 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
         report_card_id={@report_card.id}
         url_filter_params={@url_filter_params}
         student={student}
-        on_click={
-          JS.push("toggle_student_id", value: %{"student_id" => student.id}, target: @myself)
-          |> JS.toggle_class("outline outline-4 outline-ltrn-dark", to: "##{dom_id}")
-        }
+        is_selected={student.id in @selected_students_ids}
+        disable_on_click={@is_selection_disabled}
+        on_click={JS.push("toggle_student_id", value: %{"student_id" => student.id}, target: @myself)}
+        myself={@myself}
       />
     </div>
     """
@@ -421,31 +487,40 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
   attr :report_card_id, :string, required: true
   attr :url_filter_params, :map, required: true
   attr :student, Student, required: true
+  attr :is_selected, :boolean, required: true
+  attr :disable_on_click, :boolean, required: true
   attr :on_click, JS, default: nil
+  attr :myself, Phoenix.LiveComponent.CID, required: true
 
   def student_row(assigns) do
     ~H"""
-    <div id={@id} class="flex items-center gap-4 p-4 rounded-sm mt-4 bg-ltrn-lighter">
-      <div class="flex-1 flex items-center gap-4">
-        <.profile_picture_with_name
-          theme="clean"
-          profile_name={@student.name}
-          picture_url={@student.profile_picture_url}
-          extra_info={@student.classes |> Enum.map(& &1.name) |> Enum.join(", ")}
-          on_click={@on_click}
-          navigate={~p"/school/students/#{@student}/report_cards"}
-        />
-      </div>
+    <div
+      id={@id}
+      class={
+        [
+          "flex items-center gap-4 p-4 rounded-sm mt-4 bg-ltrn-lighter",
+          # selection is fully server-driven (no client-side class toggling), so the
+          # outline stays in sync through stream re-inserts
+          @is_selected && "outline outline-4 outline-ltrn-dark"
+        ]
+      }
+    >
+      <.selectable_student_profile
+        id={@id}
+        theme="clean"
+        student={@student}
+        disable_on_click={@disable_on_click}
+        on_click={@on_click}
+      />
       <div class="shrink-0 flex items-center gap-2">
-        <.action
-          type="link"
+        <.button
+          type="button"
+          theme="ghost"
           icon_name="hero-link-mini"
-          patch={
-            ~p"/report_cards/#{@report_card_id}/students?#{Map.put(@url_filter_params, "create_student_report", @student.id)}"
-          }
+          phx-click={JS.push("link_student", value: %{"student_id" => @student.id}, target: @myself)}
         >
           {gettext("Link")}
-        </.action>
+        </.button>
       </div>
     </div>
     """
@@ -536,34 +611,44 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
     |> stream(:other_students, other_students, reset: true)
     |> assign(:other_students_length, length(other_students))
     |> assign(:other_students_ids, Enum.map(other_students, & &1.id))
+    |> assign(:other_students, Map.new(other_students, &{&1.id, &1}))
   end
 
-  defp assign_student_report_card(
-         %{
-           assigns: %{
-             params: %{"create_student_report" => student_id}
-           }
-         } = socket
-       ) do
-    if String.match?(student_id, ~r/[0-9]+/) do
-      case Schools.get_student(student_id) do
-        nil ->
-          # student does not exist, just return socket
-          assign(socket, :show_student_report_card_form, false)
+  # re-streams the not-linked rows from the cached students, so server-driven
+  # selection outlines re-render without an extra DB round-trip
+  defp restream_other_students(socket) do
+    students = Enum.map(socket.assigns.other_students_ids, &socket.assigns.other_students[&1])
+    stream(socket, :other_students, students, reset: true)
+  end
 
-        student ->
-          socket
-          |> assign(:student_report_card, %StudentReportCard{
-            report_card_id: socket.assigns.report_card.id,
-            student_id: student_id
-          })
-          |> assign(:student, student)
-          |> assign(:form_overlay_title, gettext("Create student report card"))
-          |> assign(:show_student_report_card_form, true)
-      end
-    else
-      assign(socket, :show_student_report_card_form, false)
-    end
+  # cross-list selection is mutually exclusive: while one list has a selection, the
+  # other list's pictures + "select all" are disabled. Streams only re-render rows on
+  # re-insert, so when a selection flips between empty/non-empty we must re-stream the
+  # *opposite* list for its disabled state to update.
+  defp sync_linked_disable(socket, was_empty) do
+    if was_empty == (socket.assigns.selected_students_ids == []),
+      do: socket,
+      else: stream_students_report_cards(socket)
+  end
+
+  defp sync_other_disable(socket, was_empty) do
+    if was_empty == (socket.assigns.selected_students_report_cards_ids == []),
+      do: socket,
+      else: restream_other_students(socket)
+  end
+
+  # removes a student from the not-linked list (stream + cached assigns + selection)
+  defp remove_from_other_students(socket, student_id) do
+    student = socket.assigns.other_students[student_id]
+    other_students_ids = Enum.reject(socket.assigns.other_students_ids, &(&1 == student_id))
+    selected_students_ids = Enum.reject(socket.assigns.selected_students_ids, &(&1 == student_id))
+
+    socket
+    |> stream_delete(:other_students, student)
+    |> assign(:other_students, Map.delete(socket.assigns.other_students, student_id))
+    |> assign(:other_students_ids, other_students_ids)
+    |> assign(:other_students_length, length(other_students_ids))
+    |> assign(:selected_students_ids, selected_students_ids)
   end
 
   defp assign_student_report_card(
@@ -601,6 +686,8 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
         %{"student_report_card_id" => id, "student_id" => student_id},
         socket
       ) do
+    was_empty = socket.assigns.selected_students_report_cards_ids == []
+
     selected_students_report_cards_ids =
       case id in socket.assigns.selected_students_report_cards_ids do
         true ->
@@ -617,24 +704,31 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
       socket
       |> assign(:selected_students_report_cards_ids, selected_students_report_cards_ids)
       |> stream_students_in_report_card([student_id])
+      |> sync_other_disable(was_empty)
 
     {:noreply, socket}
   end
 
   def handle_event("select_all_student_report_cards", _params, socket) do
+    was_empty = socket.assigns.selected_students_report_cards_ids == []
+
     socket =
       socket
       |> assign(:selected_students_report_cards_ids, socket.assigns.students_report_cards_ids)
       |> stream_students_report_cards()
+      |> sync_other_disable(was_empty)
 
     {:noreply, socket}
   end
 
   def handle_event("clear_student_report_cards_selection", _params, socket) do
+    was_empty = socket.assigns.selected_students_report_cards_ids == []
+
     socket =
       socket
       |> assign(:selected_students_report_cards_ids, [])
       |> stream_students_report_cards()
+      |> sync_other_disable(was_empty)
 
     {:noreply, socket}
   end
@@ -676,6 +770,7 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
           |> put_flash(:info, gettext("Students report cards access updated"))
           |> assign(:selected_students_report_cards_ids, [])
           |> stream_students_in_report_card(students_ids)
+          |> sync_other_disable(false)
 
         {:error, _, _, _} ->
           socket
@@ -686,6 +781,8 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
   end
 
   def handle_event("toggle_student_id", %{"student_id" => id}, socket) do
+    was_empty = socket.assigns.selected_students_ids == []
+
     selected_students_ids =
       case id in socket.assigns.selected_students_ids do
         true ->
@@ -696,11 +793,39 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
           [id | socket.assigns.selected_students_ids]
       end
 
-    {:noreply, assign(socket, :selected_students_ids, selected_students_ids)}
+    # selection is server-rendered (no client-side `JS.toggle_class`), so re-insert
+    # the affected row to reflect its new selection state
+    socket =
+      socket
+      |> assign(:selected_students_ids, selected_students_ids)
+      |> stream_insert(:other_students, socket.assigns.other_students[id])
+      |> sync_linked_disable(was_empty)
+
+    {:noreply, socket}
+  end
+
+  def handle_event("select_all_students", _params, socket) do
+    was_empty = socket.assigns.selected_students_ids == []
+
+    socket =
+      socket
+      |> assign(:selected_students_ids, socket.assigns.other_students_ids)
+      |> restream_other_students()
+      |> sync_linked_disable(was_empty)
+
+    {:noreply, socket}
   end
 
   def handle_event("clear_student_selection", _params, socket) do
-    {:noreply, assign(socket, :selected_students_ids, [])}
+    was_empty = socket.assigns.selected_students_ids == []
+
+    socket =
+      socket
+      |> assign(:selected_students_ids, [])
+      |> restream_other_students()
+      |> sync_linked_disable(was_empty)
+
+    {:noreply, socket}
   end
 
   def handle_event("batch_create_student_report_card", _params, socket) do
@@ -720,19 +845,33 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
     {:noreply, socket}
   end
 
-  def handle_event("create_all_students_report_cards", _params, socket) do
+  def handle_event("link_student", %{"student_id" => student_id}, socket) do
     report_card_id = socket.assigns.report_card.id
-    students_ids = socket.assigns.other_students_ids
 
-    {:ok, results} = batch_create_student_report_card(report_card_id, students_ids)
-
+    # only link students from the server-computed not-linked list, so a crafted
+    # event can't link an arbitrary (e.g. out-of-school) student to this report card
     socket =
-      socket
-      |> put_flash(:info, build_batch_create_student_report_card_message(results))
-      |> push_navigate(
-        to:
-          ~p"/report_cards/#{socket.assigns.report_card}/students?#{socket.assigns.url_filter_params}"
-      )
+      if Map.has_key?(socket.assigns.other_students, student_id) do
+        case Reporting.create_student_report_card(%{
+               report_card_id: report_card_id,
+               student_id: student_id
+             }) do
+          {:ok, _student_report_card} ->
+            # move the student from the not-linked list to the linked list in place,
+            # skipping the form overlay (notes/footnotes can be added later via edit).
+            # `stream_students_report_cards/1` rebuilds the linked list (honoring the
+            # active class filter) and recomputes its ids and `has_students_in_report_card`.
+            socket
+            |> put_flash(:info, gettext("Student report card created"))
+            |> remove_from_other_students(student_id)
+            |> stream_students_report_cards()
+
+          {:error, _} ->
+            put_flash(socket, :error, gettext("Something went wrong"))
+        end
+      else
+        socket
+      end
 
     {:noreply, socket}
   end

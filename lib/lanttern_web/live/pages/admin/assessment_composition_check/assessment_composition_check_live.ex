@@ -10,7 +10,7 @@ defmodule LantternWeb.Admin.AssessmentCompositionCheckLive do
 
   use LantternWeb, :live_view
 
-  import Lanttern.Utils, only: [format_float: 1]
+  import Lanttern.Utils, only: [format_float: 1, format_normalized: 1]
   import LantternWeb.GradingComponents, only: [ov_short: 1]
 
   alias Lanttern.AssessmentComposition
@@ -49,9 +49,6 @@ defmodule LantternWeb.Admin.AssessmentCompositionCheckLive do
   # the recomputed sum can be an integer (e.g. summing `is_missing` zeros), while
   # `format_float/1` expects a float — coerce before formatting
   defp format_score(value) when is_number(value), do: format_float(value * 1.0)
-
-  defp format_normalized(nil), do: "—"
-  defp format_normalized(value), do: :erlang.float_to_binary(value * 1.0, decimals: 2)
 
   # lifecycle
 

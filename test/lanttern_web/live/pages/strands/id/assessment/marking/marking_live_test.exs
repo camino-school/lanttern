@@ -449,12 +449,18 @@ defmodule LantternWeb.MarkingLiveTest do
       school = Repo.get!(Lanttern.Schools.School, user.current_profile.school_id)
 
       cycle = insert(:cycle, school: school)
+      year = insert(:year)
       subject = insert(:subject, name: "Algebra Subject Xyz")
       scale = insert(:scale, school: school, type: "ordinal", breakpoints: [0.4, 0.8])
       ordinal_value = insert(:ordinal_value, scale: scale, name: "Great Grade Value")
       insert(:ordinal_value, scale: scale)
 
-      grades_report = GradesReportsFixtures.grades_report_fixture(%{scale_id: scale.id})
+      grades_report =
+        GradesReportsFixtures.grades_report_fixture(%{
+          scale_id: scale.id,
+          school_cycle_id: cycle.id,
+          year_id: year.id
+        })
 
       grs =
         GradesReportsFixtures.grades_report_subject_fixture(%{
@@ -475,14 +481,21 @@ defmodule LantternWeb.MarkingLiveTest do
       strand = insert(:strand, subjects: [subject])
       insert(:strand_report, report_card: report_card, strand: strand)
 
-      strand
-      |> add_marking_essentials(school)
+      essentials = add_marking_essentials(strand, school)
+
+      # align the student's (core) class with the grades report's year and cycle, so
+      # grade calculation — now scoped by year+cycle — actually targets the student
+      {:ok, _class} =
+        Schools.update_class(essentials.class, %{cycle_id: cycle.id, years_ids: [year.id]})
+
+      essentials
       |> Map.merge(%{
         strand: strand,
         subject: subject,
         scale: scale,
         ordinal_value: ordinal_value,
         cycle: cycle,
+        year: year,
         grades_report: grades_report,
         grades_report_subject: grs,
         grades_report_cycle: grc
