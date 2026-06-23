@@ -101,6 +101,39 @@ defmodule LantternWeb.ReportingComponentsTest do
 
       refute html =~ "left:"
     end
+
+    test "renders a table view listing each ordinal value with its range", %{scale: scale} do
+      html =
+        render_component(&ReportingComponents.report_scale_ordinal_bar/1, id: "bar", scale: scale)
+
+      assert html =~ "Greater than or equal to"
+      assert html =~ "Less than"
+      # open-ended bounds render as an em dash; inner breakpoints render as numbers
+      assert html =~ "0.4"
+      assert html =~ "0.8"
+      assert html =~ "—"
+    end
+
+    test "highlights the table row containing the entry's normalized value", %{scale: scale} do
+      html =
+        render_component(&ReportingComponents.report_scale_ordinal_bar/1,
+          id: "bar",
+          scale: scale,
+          # 0.5 falls in the middle segment B ([0.4, 0.8))
+          entry: %{normalized_value: 0.5}
+        )
+
+      [active_row] = Regex.run(~r{<tr class="bg-ltrn-lightest">.*?</tr>}s, html)
+      assert active_row =~ "B"
+      refute active_row =~ ">A<"
+    end
+
+    test "does not highlight any table row without an entry", %{scale: scale} do
+      html =
+        render_component(&ReportingComponents.report_scale_ordinal_bar/1, id: "bar", scale: scale)
+
+      refute html =~ ~s(<tr class="bg-ltrn-lightest">)
+    end
   end
 
   describe "composition_breakdown_table/1" do

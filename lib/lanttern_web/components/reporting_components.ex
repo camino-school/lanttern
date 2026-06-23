@@ -6,6 +6,7 @@ defmodule LantternWeb.ReportingComponents do
   use Phoenix.Component
 
   use Gettext, backend: Lanttern.Gettext
+  alias Phoenix.LiveView.JS
   import LantternWeb.CoreComponents
 
   import Lanttern.SupabaseHelpers, only: [object_url_to_render_url: 2]
@@ -552,8 +553,13 @@ defmodule LantternWeb.ReportingComponents do
   attr :class, :any, default: nil
 
   def report_scale_ordinal_bar(assigns) do
-    segments = build_ordinal_segments(assigns.scale)
     normalized_value = assigns.entry && assigns.entry.normalized_value
+
+    segments =
+      assigns.scale
+      |> build_ordinal_segments()
+      |> Enum.map(&Map.put(&1, :is_active, segment_active?(&1, normalized_value)))
+
     last_index = length(segments) - 1
 
     marker_left = if normalized_value, do: "#{Float.round(normalized_value * 100, 4)}%"
@@ -567,32 +573,99 @@ defmodule LantternWeb.ReportingComponents do
 
     ~H"""
     <div id={@id} class={["w-full", @class]}>
-      <div class="relative flex items-stretch w-full h-6">
-        <div
-          :for={{segment, i} <- Enum.with_index(@segments)}
-          class={[
-            "relative h-full",
-            i == 0 && "rounded-l-sm",
-            i == @last_index && "rounded-r-sm"
-          ]}
-          style={"width: #{segment.width}%; #{create_color_map_style(segment.ordinal_value)}"}
-        >
-          <.tooltip id={"#{@id}-seg-#{i}"}>
-            <div class="font-bold">{segment.ordinal_value.name}</div>
-            <div :if={ordinal_segment_range_text(segment.lower, segment.upper)}>
-              {ordinal_segment_range_text(segment.lower, segment.upper)}
-            </div>
-          </.tooltip>
+      <div id={"#{@id}-bar"}>
+        <div class="relative flex items-stretch w-full h-6">
+          <div
+            :for={{segment, i} <- Enum.with_index(@segments)}
+            class={[
+              "relative h-full",
+              i == 0 && "rounded-l-sm",
+              i == @last_index && "rounded-r-sm"
+            ]}
+            style={"width: #{segment.width}%; #{create_color_map_style(segment.ordinal_value)}"}
+          >
+            <.tooltip id={"#{@id}-seg-#{i}"}>
+              <div class="font-bold">{segment.ordinal_value.name}</div>
+              <div :if={ordinal_segment_range_text(segment.lower, segment.upper)}>
+                {ordinal_segment_range_text(segment.lower, segment.upper)}
+              </div>
+            </.tooltip>
+          </div>
+        </div>
+        <.report_scale_marker
+          :if={@normalized_value}
+          left={@marker_left}
+          label={format_normalized(@normalized_value)}
+        />
+      </div>
+      <div id={"#{@id}-table"} class="hidden overflow-x-auto">
+        <table class="w-full border-collapse font-sans text-sm [&_tr>*:first-child]:pl-2 [&_tr>*:last-child]:pr-2">
+          <thead>
+            <tr class="text-ltrn-subtle">
+              <th class="py-2 text-left font-bold">{gettext("Ordinal value")}</th>
+              <th class="py-2 pl-4 text-right font-bold whitespace-nowrap">
+                {gettext("Greater than or equal to")}
+              </th>
+              <th class="py-2 pl-4 text-right font-bold whitespace-nowrap">
+                {gettext("Less than")}
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr :for={segment <- @segments} class={if segment.is_active, do: "bg-ltrn-lightest"}>
+              <td class="py-2">
+                <.badge color_map={segment.ordinal_value}>{segment.ordinal_value.name}</.badge>
+              </td>
+              <td class="py-2 pl-4 text-right tabular-nums text-ltrn-subtle">
+                {if segment.lower, do: format_float(segment.lower), else: "—"}
+              </td>
+              <td class="py-2 pl-4 text-right tabular-nums text-ltrn-subtle">
+                {if segment.upper, do: format_float(segment.upper), else: "—"}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="flex justify-end mt-2">
+        <div data-view-toggle>
+          <.button
+            type="button"
+            size="xs"
+            theme="ghost"
+            icon_name="hero-table-cells-mini"
+            icon_side="left"
+            phx-click={toggle_ordinal_scale_views(@id)}
+          >
+            {gettext("Switch to table view")}
+          </.button>
+        </div>
+        <div data-view-toggle class="hidden">
+          <.button
+            type="button"
+            size="xs"
+            theme="ghost"
+            icon_name="hero-chart-bar-mini"
+            icon_side="left"
+            phx-click={toggle_ordinal_scale_views(@id)}
+          >
+            {gettext("Switch to bar view")}
+          </.button>
         </div>
       </div>
-      <.report_scale_marker
-        :if={@normalized_value}
-        left={@marker_left}
-        label={format_normalized(@normalized_value)}
-      />
     </div>
     """
   end
+
+  defp toggle_ordinal_scale_views(id) do
+    JS.toggle_class("hidden", to: "##{id}-bar")
+    |> JS.toggle_class("hidden", to: "##{id}-table")
+    |> JS.toggle_class("hidden", to: "##{id} [data-view-toggle]")
+  end
+
+  defp segment_active?(_segment, nil), do: false
+
+  defp segment_active?(%{lower: lower, upper: upper}, normalized_value),
+    do: normalized_value >= (lower || 0.0) and (is_nil(upper) or normalized_value < upper)
 
   defp build_ordinal_segments(%Scale{ordinal_values: ordinal_values} = scale) do
     breakpoints = scale.breakpoints || []
