@@ -1204,6 +1204,13 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
         force_overwrite: true
       )
       |> case do
+        {:ok, nil, :skipped} ->
+          delegate_navigation(socket,
+            put_flash:
+              {:error,
+               gettext("This student doesn't belong to this grade report's year and cycle")}
+          )
+
         {:ok, nil, _} ->
           delegate_navigation(socket,
             put_flash: {:error, gettext("No assessment point entries for this grade composition")}

@@ -2585,8 +2585,8 @@ defmodule Lanttern.GradesReportsTest do
                  grades_report_subject.id
                )
 
-      # wrong year student is skipped (noop, no entry persisted)
-      assert {:ok, nil, :noop} =
+      # wrong year student is skipped (no entry persisted)
+      assert {:ok, nil, :skipped} =
                GradesReports.calculate_student_grade(
                  std_other_year.id,
                  grades_report.id,

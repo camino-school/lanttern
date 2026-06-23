@@ -364,6 +364,17 @@ defmodule LantternWeb.ReportCardLive.StudentsGradesComponent do
         force_overwrite: true
       )
       |> case do
+        {:ok, nil, :skipped} ->
+          socket
+          |> put_flash(
+            :error,
+            gettext("This student doesn't belong to this grade report's year and cycle")
+          )
+          |> push_navigate(
+            to:
+              ~p"/report_cards/#{socket.assigns.report_card}/grades?#{socket.assigns.url_filter_params}"
+          )
+
         {:ok, nil, _} ->
           socket
           |> put_flash(:error, gettext("No assessment point entries for this grade composition"))

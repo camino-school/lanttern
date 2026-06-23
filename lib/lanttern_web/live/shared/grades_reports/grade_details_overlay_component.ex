@@ -129,7 +129,7 @@ defmodule LantternWeb.GradesReports.GradeDetailsOverlayComponent do
 
     is_ordinal_scale =
       scale.type == "ordinal" and
-        length(scale.breakpoints) + 1 == length(scale.ordinal_values)
+        length(scale.breakpoints || []) + 1 == length(scale.ordinal_values)
 
     socket =
       socket

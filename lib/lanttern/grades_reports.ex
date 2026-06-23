@@ -723,6 +723,8 @@ defmodule Lanttern.GradesReports do
   - `:updated_with_manual` when the `StudentGradesReportEntry` is updated, except from manually adjusted `ordinal_value_id` or `score`
   - `:deleted` when the `StudentGradesReportEntry` is deleted (always `nil` in the second element)
   - `:noop` when the nothing is created, updated, or deleted (always `nil` in the second element)
+  - `:skipped` when the student doesn't belong to the grades report's year and cycle, so no
+    calculation is attempted (always `nil` in the second element)
 
   ### Options
 
@@ -736,7 +738,7 @@ defmodule Lanttern.GradesReports do
           Keyword.t()
         ) ::
           {:ok, StudentGradesReportEntry.t() | nil,
-           :created | :updated | :updated_keep_manual | :deleted | :noop}
+           :created | :updated | :updated_keep_manual | :deleted | :noop | :skipped}
           | {:error, Ecto.Changeset.t()}
   def calculate_student_grade(
         student_id,
@@ -751,7 +753,7 @@ defmodule Lanttern.GradesReports do
 
     # skip students that don't belong to the grades report's year and cycle
     if filter_students_ids_by_year_and_cycle([student_id], year_id, school_cycle) == [] do
-      {:ok, nil, :noop}
+      {:ok, nil, :skipped}
     else
       from(
         e in AssessmentPointEntry,

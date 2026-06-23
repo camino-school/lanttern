@@ -848,23 +848,29 @@ defmodule LantternWeb.ReportCardLive.StudentsComponent do
   def handle_event("link_student", %{"student_id" => student_id}, socket) do
     report_card_id = socket.assigns.report_card.id
 
+    # only link students from the server-computed not-linked list, so a crafted
+    # event can't link an arbitrary (e.g. out-of-school) student to this report card
     socket =
-      case Reporting.create_student_report_card(%{
-             report_card_id: report_card_id,
-             student_id: student_id
-           }) do
-        {:ok, _student_report_card} ->
-          # move the student from the not-linked list to the linked list in place,
-          # skipping the form overlay (notes/footnotes can be added later via edit).
-          # `stream_students_report_cards/1` rebuilds the linked list (honoring the
-          # active class filter) and recomputes its ids and `has_students_in_report_card`.
-          socket
-          |> put_flash(:info, gettext("Student report card created"))
-          |> remove_from_other_students(student_id)
-          |> stream_students_report_cards()
+      if Map.has_key?(socket.assigns.other_students, student_id) do
+        case Reporting.create_student_report_card(%{
+               report_card_id: report_card_id,
+               student_id: student_id
+             }) do
+          {:ok, _student_report_card} ->
+            # move the student from the not-linked list to the linked list in place,
+            # skipping the form overlay (notes/footnotes can be added later via edit).
+            # `stream_students_report_cards/1` rebuilds the linked list (honoring the
+            # active class filter) and recomputes its ids and `has_students_in_report_card`.
+            socket
+            |> put_flash(:info, gettext("Student report card created"))
+            |> remove_from_other_students(student_id)
+            |> stream_students_report_cards()
 
-        {:error, _} ->
-          put_flash(socket, :error, gettext("Something went wrong"))
+          {:error, _} ->
+            put_flash(socket, :error, gettext("Something went wrong"))
+        end
+      else
+        socket
       end
 
     {:noreply, socket}
