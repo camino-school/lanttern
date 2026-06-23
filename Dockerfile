@@ -21,7 +21,7 @@ ARG RUNNER_IMAGE="debian:${DEBIAN_VERSION}"
 FROM ${BUILDER_IMAGE} as builder
 
 # install build dependencies
-RUN apt-get update -y && apt-get install -y build-essential git curl \
+RUN apt-get update -y && apt-get install -y build-essential git curl libvips-dev pkg-config \
   && apt-get clean && rm -f /var/lib/apt/lists/*_*
 
 # install specific Node.js version
@@ -37,6 +37,10 @@ RUN mix local.hex --force && \
 
 # set build ENV
 ENV MIX_ENV="prod"
+
+# vix can't download its precompiled NIF in this build (TLS key_usage_mismatch),
+# so build the NIF against the system-provided libvips instead.
+ENV VIX_COMPILATION_MODE=PLATFORM_PROVIDED_LIBVIPS
 
 # install mix dependencies
 COPY mix.exs mix.lock ./
@@ -76,7 +80,7 @@ RUN mix release
 FROM ${RUNNER_IMAGE}
 
 RUN apt-get update -y && \
-  apt-get install -y libstdc++6 openssl libncurses5 locales ca-certificates \
+  apt-get install -y libstdc++6 openssl libncurses5 locales ca-certificates libvips42 \
   && apt-get clean && rm -f /var/lib/apt/lists/*_*
 
 # Set the locale
