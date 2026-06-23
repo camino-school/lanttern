@@ -48,15 +48,51 @@ defmodule LantternWeb.Assessments.StudentAssessmentPointDetailsOverlayComponent 
           class="mt-4"
         />
         <div class="mt-10">
+          <%!-- composed ordinal (visible): marked ordinal value box + normalized value box --%>
+          <div :if={@scale_normalized_badge} class="flex items-center gap-2">
+            <div
+              class="flex-1 flex items-center justify-center p-4 rounded-sm font-sans font-bold text-sm text-center shadow-lg"
+              style={create_color_map_style(@entry.ordinal_value)}
+            >
+              {@entry.ordinal_value.name}
+            </div>
+            <div class="flex items-center justify-center p-4 rounded-sm font-sans font-bold text-sm text-center shadow-lg border border-ltrn-lighter bg-white">
+              {@scale_normalized_badge}
+            </div>
+          </div>
           <.assessment_point_entry_display
+            :if={!@scale_normalized_badge}
             entry={@entry}
             scale={@assessment_point.scale}
             show_student_assessment
             prevent_preview={@assessment_point.is_hidden}
           />
-          <.comment_area :if={@entry && @entry.report_note} comment={@entry.report_note} class="mt-4" />
+          <div :if={@show_scale_visual} class="py-4 overflow-x-auto">
+            <.report_scale_numeric_bar
+              :if={@scale_display_mode == :numeric}
+              id={"#{@id}-scale"}
+              class="min-w-full"
+              scale={@assessment_point.scale}
+              score={if !@assessment_point.is_hidden && @entry, do: @entry.score}
+            />
+            <.report_scale_ordinal_columns
+              :if={@scale_display_mode == :ordinal_columns}
+              id={"#{@id}-scale"}
+              scale={@assessment_point.scale}
+              entry={!@assessment_point.is_hidden && @entry}
+            />
+            <.report_scale_ordinal_bar
+              :if={@scale_display_mode == :ordinal_bar}
+              id={"#{@id}-ordinal-bar"}
+              scale={@assessment_point.scale}
+              entry={!@assessment_point.is_hidden && @entry}
+            />
+          </div>
+        </div>
+        <div :if={@entry && (@entry.report_note || @entry.student_report_note)} class="mt-10">
+          <.comment_area :if={@entry.report_note} comment={@entry.report_note} />
           <.comment_area
-            :if={@entry && @entry.student_report_note}
+            :if={@entry.student_report_note}
             comment={@entry.student_report_note}
             class="mt-4"
             type="student"
@@ -64,6 +100,9 @@ defmodule LantternWeb.Assessments.StudentAssessmentPointDetailsOverlayComponent 
         </div>
         <div :if={@assessment_point.uses_composition} class="mt-10">
           <h5 class="font-display font-black text-base">{gettext("Grade composition")}</h5>
+          <p :if={@composition_help_text} class="mt-2 text-sm text-ltrn-subtle">
+            {@composition_help_text}
+          </p>
           <.composition_breakdown_table
             breakdown={@composition_breakdown}
             composed_name={@assessment_point.name}
@@ -73,31 +112,21 @@ defmodule LantternWeb.Assessments.StudentAssessmentPointDetailsOverlayComponent 
             class="mt-4"
           />
         </div>
-        <div :if={@show_ordinal_bar} class="mt-10">
-          <h5 class="font-display font-black text-base">{gettext("Assessment scale")}</h5>
-          <div class="py-4 overflow-x-auto">
-            <.report_scale_ordinal_bar
-              id={"#{@id}-ordinal-bar"}
-              scale={@assessment_point.scale}
-              entry={!@assessment_point.is_hidden && @entry}
-            />
-          </div>
-        </div>
-        <div :if={!@show_ordinal_bar || @rubric}>
-          <div class="flex items-center justify-between gap-2 mt-10">
+        <div :if={@rubric && @assessment_point.scale.type == "ordinal"} class="mt-10">
+          <div class="flex items-center justify-between gap-2">
             <h5 class="flex items-center gap-2 font-display font-black text-base">
-              <.icon :if={@rubric} name="hero-view-columns" />
-              {if @rubric, do: gettext("Assessment rubric"), else: gettext("Assessment scale")}
+              <.icon name="hero-view-columns" /> {gettext("Assessment rubric")}
             </h5>
-            <.badge :if={@rubric && @rubric.is_differentiation} theme="diff">
+            <.badge :if={@rubric.is_differentiation} theme="diff">
               {gettext("Differentiation")}
             </.badge>
           </div>
-          <p :if={@rubric} class="mt-2 text-sm">
+          <p class="mt-2 text-sm">
             <span class="font-bold">{gettext("Criteria:")}</span> {@rubric.criteria}
           </p>
           <div class="py-4 overflow-x-auto">
             <.report_scale
+              id={"#{@id}-rubric-scale"}
               scale={@assessment_point.scale}
               rubric={@rubric}
               entry={!@assessment_point.is_hidden && @entry}
@@ -176,22 +205,53 @@ defmodule LantternWeb.Assessments.StudentAssessmentPointDetailsOverlayComponent 
       |> assign_assessment_point(assigns)
       |> assign_entry()
       |> assign_rubric()
-      |> assign_show_ordinal_bar()
+      |> assign_scale_display()
       |> assign_composition()
       |> assign_navigation()
 
     {:ok, socket}
   end
 
-  defp assign_show_ordinal_bar(socket) do
-    %{assessment_point: assessment_point} = socket.assigns
+  # Collapses the (uses_composition × scale type × is_hidden) matrix into the
+  # single scale visual that should render:
+  #
+  #   * `:numeric`         — numeric bar (simple or composed, hidden or not)
+  #   * `:ordinal_bar`     — segmented ordinal bar with normalized marker
+  #     (composed ordinal, visible)
+  #   * `:ordinal_columns` — ordinal value columns (simple ordinal, or hidden
+  #     composed ordinal)
+  #
+  # `scale_normalized_badge` is the pre-formatted normalized value shown next to
+  # the marked ordinal value box, set only in the `:ordinal_bar` case when there
+  # is an entry with both an ordinal value and a normalized value.
+  defp assign_scale_display(socket) do
+    %{assessment_point: assessment_point, entry: entry} = socket.assigns
+    mode = scale_display_mode(assessment_point)
 
-    show_ordinal_bar =
-      assessment_point.uses_composition and
-        assessment_point.scale.type == "ordinal"
-
-    assign(socket, :show_ordinal_bar, show_ordinal_bar)
+    socket
+    |> assign(:scale_display_mode, mode)
+    |> assign(:scale_normalized_badge, scale_normalized_badge(mode, entry))
+    |> assign(:show_scale_visual, show_scale_visual?(mode, assessment_point.scale))
   end
+
+  defp scale_display_mode(%{scale: %{type: "numeric"}}), do: :numeric
+  defp scale_display_mode(%{uses_composition: true, is_hidden: false}), do: :ordinal_bar
+  defp scale_display_mode(_assessment_point), do: :ordinal_columns
+
+  # the pre-formatted normalized value shown next to the marked ordinal value box
+  # (composed ordinal entries only)
+  defp scale_normalized_badge(:ordinal_bar, %{ordinal_value: ov, normalized_value: nv})
+       when not is_nil(ov) and is_number(nv),
+       do: Lanttern.Utils.format_normalized(nv)
+
+  defp scale_normalized_badge(_mode, _entry), do: nil
+
+  # single-value ordinal scales add no information as columns, so skip the
+  # whole (padded) scale visual block in that case
+  defp show_scale_visual?(:ordinal_columns, %{ordinal_values: ordinal_values}),
+    do: length(ordinal_values) > 1
+
+  defp show_scale_visual?(_mode, _scale), do: true
 
   defp assign_navigation(socket) do
     %{
@@ -279,8 +339,25 @@ defmodule LantternWeb.Assessments.StudentAssessmentPointDetailsOverlayComponent 
         socket.assigns.student_id
       )
 
-    assign(socket, :composition_breakdown, breakdown)
+    help_text =
+      case breakdown.scale_type do
+        "numeric" ->
+          gettext("This grade is calculated by the sum of the assessment points listed below.")
+
+        _ ->
+          gettext(
+            "This grade is calculated by the average of the assessment points listed below."
+          )
+      end
+
+    socket
+    |> assign(:composition_breakdown, breakdown)
+    |> assign(:composition_help_text, help_text)
   end
 
-  defp assign_composition(socket), do: assign(socket, :composition_breakdown, nil)
+  defp assign_composition(socket) do
+    socket
+    |> assign(:composition_breakdown, nil)
+    |> assign(:composition_help_text, nil)
+  end
 end

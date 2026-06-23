@@ -341,6 +341,40 @@ defmodule LantternWeb.ReportingComponents do
   end
 
   def report_scale(%{scale: %{type: "ordinal"}} = assigns) do
+    ~H"""
+    <.report_scale_ordinal_columns
+      id={@id}
+      class={@class}
+      scale={@scale}
+      rubric={@rubric}
+      entry={@entry}
+    />
+    """
+  end
+
+  def report_scale(%{scale: %{type: "numeric"}} = assigns) do
+    ~H"""
+    <.report_scale_numeric_bar
+      id={@id}
+      class={["min-w-full", @class]}
+      scale={@scale}
+      score={@entry && @entry.score}
+    />
+    """
+  end
+
+  @doc """
+  Renders an ordinal scale as a row of value columns, highlighting the entry's value.
+
+  When a `rubric` is given, its descriptors are rendered below the matching values.
+  """
+  attr :scale, Scale, required: true, doc: "Requires `ordinal_values` preload"
+  attr :rubric, Rubric, default: nil, doc: "Requires `descriptors` preload"
+  attr :entry, AssessmentPointEntry, default: nil
+  attr :id, :string, default: nil
+  attr :class, :any, default: nil
+
+  def report_scale_ordinal_columns(assigns) do
     %{ordinal_values: ordinal_values} = assigns.scale
     n = length(ordinal_values)
 
@@ -391,14 +425,6 @@ defmodule LantternWeb.ReportingComponents do
     """
   end
 
-  def report_scale(%{scale: %{type: "numeric"}} = assigns) do
-    ~H"""
-    <div id={@id} class={["min-w-full", @class]}>
-      <.report_scale_numeric_bar score={@entry && @entry.score} scale={@scale} />
-    </div>
-    """
-  end
-
   attr :entry, :any, required: true
   attr :ordinal_value, :map, required: true
   attr :descriptor, :map, required: true
@@ -434,11 +460,16 @@ defmodule LantternWeb.ReportingComponents do
     """
   end
 
+  @doc """
+  Renders a numeric scale as a horizontal gradient bar with an optional score marker.
+  """
   attr :scale, Scale, required: true
   attr :score, :float, default: nil
   attr :is_student, :boolean, default: false
+  attr :id, :string, default: nil
+  attr :class, :any, default: nil
 
-  defp report_scale_numeric_bar(assigns) do
+  def report_scale_numeric_bar(assigns) do
     score_left =
       if assigns.score,
         do: "#{Float.round(assigns.score * 100 / assigns.scale.max_score, 4)}%"
@@ -446,7 +477,7 @@ defmodule LantternWeb.ReportingComponents do
     assigns = assign(assigns, :score_left, score_left)
 
     ~H"""
-    <div class="w-full">
+    <div id={@id} class={["w-full", @class]}>
       <div
         class="flex items-center justify-between rounded-sm w-full h-6 px-2 font-mono text-xs text-ltrn-subtle bg-ltrn-lighter"
         style={create_color_map_gradient_bg_style(@scale)}
