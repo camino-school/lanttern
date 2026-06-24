@@ -12,6 +12,7 @@ defmodule Lanttern.Personalization do
   - `agents_management` - allows AI agents management
   - `assessment_management` - allows assessment management
   - `curriculum_management` - allows curriculum management and configuration
+  - `strand_lock_management` - allows locking strands and editing locked strands
   """
 
   import Ecto.Query, warn: false
@@ -28,7 +29,8 @@ defmodule Lanttern.Personalization do
     "ilp_management",
     "agents_management",
     "assessment_management",
-    "curriculum_management"
+    "curriculum_management",
+    "strand_lock_management"
   ]
 
   @doc """

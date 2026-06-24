@@ -123,13 +123,21 @@ lock.
       `mix deps.unlock --unused`, `mix test test/lanttern/learning_context_test.exs`.
 
 ### Step 2 — Permission + context plumbing
-- [ ] Add `"strand_lock_management"` to `@valid_permissions` (`personalization.ex`).
-- [ ] Add label to `@permission_to_option_map` (`personalization_helpers.ex`).
-- [ ] `Strands.lock_strand/2` & `unlock_strand/2` (permission-gated; set/clear provenance;
+- [x] Add `"strand_lock_management"` to `@valid_permissions` (`personalization.ex`) + moduledoc.
+- [x] Add label to `@permission_to_option_map` (`personalization_helpers.ex`).
+- [x] `Strands.lock_strand/2` & `unlock_strand/2` (permission-gated; set/clear provenance;
       `AuditLog.maybe_log(StrandLog, "UPDATE", …)`).
-- [ ] `Strands.strand_locked?/1` + `ensure_strand_editable!/2` central guard.
-- [ ] Wire `StrandLog` into `LearningContext.create/update/delete_strand`
-      (`AuditLog.maybe_log(StrandLog, "CREATE"/"UPDATE"/"DELETE", scope, [])`).
+- [x] `Strands.strand_locked?/1` + `ensure_strand_editable!/2` central guard.
+- [ ] ~~Wire `StrandLog` into `LearningContext.create/update/delete_strand`~~ **moved to Step 3.**
+      These take no `scope` today; wiring `maybe_log` requires threading `current_scope`
+      through the shared `StrandFormComponent` + delete sites — the same `scope` the Step 3
+      guard needs. Done together there to avoid touching those call sites twice.
+- [x] **Admin cleanup (extra):** removed the `/admin/strands` LiveViews
+      (`admin/strand_live/{index,show}.{ex,heex}`), their routes, the admin-home nav link, and
+      `admin/strand_live_test.exs`. Shrinks the `StrandFormComponent` render surface (now only
+      the strands library + strand-show pages) ahead of the Step 4 scope plumbing.
+- [x] Validated: `mix compile --warning-as-errors`, `mix format`, `mix credo --strict`,
+      `mix deps.unlock --unused`, `mix test` (strands, personalization, admin_controller).
 
 > **Note:** `LearningContext` is being phased out. **All new** strand-related functions
 > (lock toggle, guard, `strand_locked?`) go in the **`Strands`** context. Existing
@@ -139,10 +147,12 @@ lock.
 ### Step 3 — Enforcement sweep (guard + thread Scope where missing)
 
 **LearningContext**
-- [ ] `update_strand`, `delete_strand` (need scope)
+- [ ] `update_strand`, `delete_strand` (need scope; guard **and** `AuditLog.maybe_log(StrandLog,
+      "UPDATE"/"DELETE", scope, [])` — the Step 2 logging item folded in here)
+- [ ] `create_strand` intentionally **not** guarded (new strand can't be locked yet), but
+      **does** get `AuditLog.maybe_log(StrandLog, "CREATE", scope, [])` once it takes scope
 - [ ] `create_moment`, `update_moment`, `delete_moment`, `update_moments_positions` (need scope)
 - [ ] `delete_moment_detaching_lessons`, `delete_moment_with_lessons` (already scoped)
-- [ ] `create_strand` intentionally **not** guarded (new strand can't be locked yet)
 
 **Assessments**
 - [ ] `create/update/delete_assessment_point`, `delete_assessment_point_and_entries` (scoped)

@@ -300,14 +300,6 @@ defmodule LantternWeb.Router do
     resources "/subjects", SubjectController
     resources "/years", YearController
 
-    # Learning Context context
-    live "/strands", Admin.StrandLive.Index, :index
-    live "/strands/new", Admin.StrandLive.Index, :new
-    live "/strands/:id/edit", Admin.StrandLive.Index, :edit
-
-    live "/strands/:id", Admin.StrandLive.Show, :show
-    live "/strands/:id/show/edit", Admin.StrandLive.Show, :edit
-
     # Reporting context
     live "/report_cards", Admin.ReportCardLive.Index, :index
     live "/report_cards/new", Admin.ReportCardLive.Index, :new
