@@ -58,3 +58,36 @@ staff keep editing unlocked strands without it.
 - Lock provenance is stored twice for different jobs: denormalized `locked_at` /
   `locked_by_staff_member_id` on `strands` (cheap current state for the UI, keyed by
   staff member) and `StrandLog` (full history, keyed by `profile_id`).
+
+## Update (issue #564): narrowed enforcement scope
+
+The architecture above is unchanged, but the **set of guarded call sites was narrowed**. The
+original "freeze everything strand-owned" reach (~70 functions across LearningContext,
+Assessments, Lessons, Rubrics, AssessmentComposition, Strands) had a blast radius larger than
+the actual need: *prevent teachers from changing assessment and marking after a report card is
+shared with families*.
+
+Enforcement is now limited to the writes that can change the **grade families saw**:
+
+- **Assessment points** — CRUD + reorder (`update_assessment_points_positions`).
+- **Assessment point entries (marking)** — CRUD + `save_assessment_point_entries`.
+- **Composition structure** — `replace_assessment_point_components` + component CRUD. Included
+  because restructuring composition recalcs the composed grade *without editing any entry*;
+  editing a component entry is already covered (it is an entry).
+
+Everything else strand-owned is **left editable while locked**: strand edit/delete, moments,
+lessons (+ attachments, + lesson-curriculum-items), rubrics (+ descriptors, + AP↔rubric links),
+strand curriculum items, class assignments, and entry **evidence** (it doesn't change the
+numeric grade). The standing exclusions (strand reports, grade components, lesson tags, personal
+mutations) are unchanged, as is the recalc-worker bypass.
+
+Two consequences of the narrowing:
+- `StrandLog` is wired into `lock_strand`/`unlock_strand` **only**, not strand CRUD — the narrow
+  scope doesn't guard `create/update/delete_strand`, so threading `scope` through
+  `StrandFormComponent` purely to log them isn't worth it.
+- The three-way `strand_id_from_assessment_point/1` resolver is still extracted once and reused
+  by the entry, composition-component, and AP-position paths (no longer the evidence path, which
+  is now out of scope).
+
+The **lock trigger is manual and permanent** — staff lock a strand when a report cycle is
+shared. Auto-lock-on-share was considered and rejected as the intended workflow.
