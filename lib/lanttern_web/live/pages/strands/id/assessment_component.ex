@@ -838,7 +838,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
       |> List.insert_at(new_index, ap_id)
 
     # the interface was already updated (optimistic update), just persist the new order and moment
-    Assessments.update_assessment_points_positions(to_ids)
+    Assessments.update_assessment_points_positions(socket.assigns.current_scope, to_ids)
 
     ap = Assessments.get_assessment_point!(ap_id)
     Assessments.update_assessment_point(socket.assigns.current_scope, ap, %{moment_id: to_key})
@@ -867,7 +867,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
       reorder(socket.assigns.moments_assessment_points_ids_map[moment_key], old_index, new_index)
 
     # the interface was already updated (optimistic update), just persist the new order
-    Assessments.update_assessment_points_positions(ap_ids)
+    Assessments.update_assessment_points_positions(socket.assigns.current_scope, ap_ids)
 
     moments_map = Map.put(socket.assigns.moments_assessment_points_ids_map, moment_key, ap_ids)
 

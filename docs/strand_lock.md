@@ -170,7 +170,7 @@ re-planned below.
 > mutation functions (Assessments + AssessmentComposition only, under the narrow scope) stay
 > where they are but call into `Strands.ensure_strand_editable!/2` for the guard.
 
-### Step 3 — Enforcement sweep (narrow: assessment points, entries, composition)
+### Step 3 — Enforcement sweep (narrow: assessment points, entries, composition) ✅
 
 Add the canonical resolver `Assessments.strand_id_from_assessment_point/1` (accepts an
 `%AssessmentPoint{}` **or** an AP id; handles the three-way `strand_id|moment_id|lesson_id`;
@@ -179,25 +179,34 @@ clause (no-op) so the leaf guard tolerates an AP that doesn't resolve to a stran
 `%Scope{}` into the few entry call sites that lack it.
 
 **Assessments** (resolve via `strand_id_from_assessment_point/1`)
-- [ ] `create_assessment_point` (resolve `strand_id|moment_id|lesson_id` from **attrs**),
+- [x] `create_assessment_point` (resolve `strand_id|moment_id|lesson_id` from **attrs**),
       `update_assessment_point`, `delete_assessment_point`, `delete_assessment_point_and_entries`
-- [ ] `update_assessment_points_positions` (resolve from the first AP id; batch is single-strand)
-- [ ] entries: `create_assessment_point_entry`, `update_assessment_point_entry`,
-      `delete_assessment_point_entry`, `save_assessment_point_entries` (resolve per distinct AP,
-      not per row; the grid batch is single-strand so the whole batch raises if locked)
+- [x] `update_assessment_points_positions` — gained `%Scope{}` as a new **first arg** (resolve
+      from the first AP id; batch is single-strand). Only 3 callers, so scope-first was cleaner
+      than an opt.
+- [x] entries: `create_assessment_point_entry`, `update_assessment_point_entry`,
+      `delete_assessment_point_entry`, `save_assessment_point_entries` — gained `%Scope{}` as a
+      **required first arg** (the guard is unconditional, consistent with the AP/composition
+      functions; an opt-in `:scope` would have been silently bypassable). Production cost was
+      tiny (8 call sites in 2 files — overlay + grid; `delete` had none); the churn was ~42 test
+      call sites + the `assessment_point_entry_fixture`, mechanically updated to pass a bare
+      `%Scope{}` (the guard no-ops on unlocked strands). Bulk save resolves per distinct AP.
+      `strand_id_from_assessment_point/1` + the `nil` guard clause added.
 
 **AssessmentComposition** (resolve via component → parent AP → strand)
-- [ ] `create_assessment_point_component`, `update_assessment_point_component`,
+- [x] `create_assessment_point_component`, `update_assessment_point_component`,
       `delete_assessment_point_component`, `delete_all_assessment_point_components`,
       `replace_assessment_point_components` (the production save path — closes the composition
-      grade-leak)
-- [ ] `sync_strand_composed_entries` **intentionally NOT guarded** — recalc path
+      grade-leak). Resolve from `parent_id` via `Assessments.strand_id_from_assessment_point/1`.
+- [x] `sync_strand_composed_entries` **intentionally NOT guarded** — recalc path
       (root-admin gated, idempotent, writes already-validated values via `Repo`); falls under
       the ADR recalc-bypass principle alongside `ComposedEntryRecalcWorker`.
 
 **Call-site plumbing (production):**
-- [ ] `EntryDetailsOverlayComponent` — plumb `current_scope` in (it only gets `current_user` today)
-- [ ] `AssessmentsGridComponent` — `current_scope` already present; pass it at the entry-save call
+- [x] `EntryDetailsOverlayComponent` — `current_scope` plumbed in (passed from the grid render)
+      and threaded into the entry-mutation opts.
+- [x] `AssessmentsGridComponent` — `current_scope` passed at the `save_assessment_point_entries`
+      call; also `update_assessment_points_positions` callers in `assessment_component.ex` updated.
 
 **Out of scope (left editable while locked — do NOT guard):** strand edit/delete, moments,
 lessons + attachments + lesson-curriculum-items, rubrics + descriptors + AP↔rubric links,

@@ -208,6 +208,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
         id={"#{@id}-entry-details-overlay"}
         entry={@assessment_point_entry}
         current_user={@current_user}
+        current_scope={@current_scope}
         on_cancel={JS.push("close_entry_details_overlay", target: @myself)}
         notify_component={@myself}
       />
@@ -1129,13 +1130,14 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
     else
       %{
         entries_changes_map: entries_changes_map,
-        current_user: current_user
+        current_user: current_user,
+        current_scope: current_scope
       } = socket.assigns
 
       changes = Map.values(entries_changes_map)
 
       socket =
-        case Assessments.save_assessment_point_entries(changes,
+        case Assessments.save_assessment_point_entries(current_scope, changes,
                log_profile_id: current_user.current_profile_id
              ) do
           {:ok, count} ->

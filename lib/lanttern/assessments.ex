@@ -20,8 +20,10 @@ defmodule Lanttern.Assessments do
   alias Lanttern.Identity.User
   alias Lanttern.LearningContext.Moment
   alias Lanttern.LearningContext.Strand
+  alias Lanttern.Lessons.Lesson
   alias Lanttern.Rubrics
   alias Lanttern.Schools.Student
+  alias Lanttern.Strands
 
   @doc """
   Returns the list of assessment points.
@@ -130,6 +132,91 @@ defmodule Lanttern.Assessments do
   end
 
   @doc """
+  Resolves the owning strand id for an assessment point.
+
+  Accepts an `%AssessmentPoint{}` or an assessment point id. Handles the three-way
+  `strand_id | moment_id | lesson_id` ownership: a strand-level AP returns its
+  `strand_id` directly; a moment- or lesson-level AP resolves through its moment or
+  lesson to the owning strand. Returns `nil` when the AP doesn't resolve to a strand
+  (or the id doesn't exist).
+
+  Canonical for the strand-lock guard so a lesson- or moment-level AP can't silently
+  escape the lock — reused by the entry, composition-component, and AP-position paths.
+
+  ## Examples
+
+      iex> strand_id_from_assessment_point(%AssessmentPoint{strand_id: 1})
+      1
+
+      iex> strand_id_from_assessment_point(123)
+      1
+
+  """
+  @spec strand_id_from_assessment_point(AssessmentPoint.t() | pos_integer()) ::
+          pos_integer() | nil
+  def strand_id_from_assessment_point(%AssessmentPoint{} = assessment_point) do
+    cond do
+      not is_nil(assessment_point.strand_id) ->
+        assessment_point.strand_id
+
+      not is_nil(assessment_point.moment_id) ->
+        Repo.one(
+          from(m in Moment, where: m.id == ^assessment_point.moment_id, select: m.strand_id)
+        )
+
+      not is_nil(assessment_point.lesson_id) ->
+        Repo.one(
+          from(l in Lesson, where: l.id == ^assessment_point.lesson_id, select: l.strand_id)
+        )
+
+      true ->
+        nil
+    end
+  end
+
+  def strand_id_from_assessment_point(assessment_point_id)
+      when is_integer(assessment_point_id) do
+    case Repo.get(AssessmentPoint, assessment_point_id) do
+      nil -> nil
+      assessment_point -> strand_id_from_assessment_point(assessment_point)
+    end
+  end
+
+  # Resolves the owning strand id from create-attrs (no struct yet), normalizing
+  # blank/string ids before delegating to the canonical resolver.
+  defp strand_id_from_attrs(attrs) do
+    %AssessmentPoint{
+      strand_id: attr_id(attrs, :strand_id),
+      moment_id: attr_id(attrs, :moment_id),
+      lesson_id: attr_id(attrs, :lesson_id)
+    }
+    |> strand_id_from_assessment_point()
+  end
+
+  defp attr_id(attrs, key) do
+    case Map.get(attrs, key) || Map.get(attrs, Atom.to_string(key)) do
+      nil -> nil
+      "" -> nil
+      id when is_integer(id) -> id
+      id when is_binary(id) -> String.to_integer(id)
+    end
+  end
+
+  # tolerates an empty id list (resolves to nil → guard no-ops)
+  defp maybe_strand_id_from_ap(nil), do: nil
+  defp maybe_strand_id_from_ap(ap_id), do: strand_id_from_assessment_point(ap_id)
+
+  # Bulk save: resolve the distinct APs once (not per row) and guard each. The grid
+  # batch is single-strand, so a locked strand raises for the whole batch.
+  defp ensure_save_entries_strand_editable(%Scope{} = scope, maps) do
+    maps
+    |> Enum.map(&attr_id(&1, :assessment_point_id))
+    |> Enum.reject(&is_nil/1)
+    |> Enum.uniq()
+    |> Enum.each(&Strands.ensure_strand_editable!(scope, strand_id_from_assessment_point(&1)))
+  end
+
+  @doc """
   Creates an assessment point.
 
   The function handles the position field based on the learning context (moment or strand),
@@ -145,6 +232,8 @@ defmodule Lanttern.Assessments do
 
   """
   def create_assessment_point(%Scope{} = scope, attrs \\ %{}) do
+    Strands.ensure_strand_editable!(scope, strand_id_from_attrs(attrs))
+
     attrs =
       AssessmentPoint
       |> filter_assessment_points_by_context(attrs)
@@ -200,6 +289,8 @@ defmodule Lanttern.Assessments do
         %AssessmentPoint{} = assessment_point,
         attrs
       ) do
+    Strands.ensure_strand_editable!(scope, strand_id_from_assessment_point(assessment_point))
+
     # an assessment point that is already a component of another composition can't
     # itself become composed — query that here (only when composition is being
     # enabled) and let the schema changeset surface the error
@@ -227,6 +318,8 @@ defmodule Lanttern.Assessments do
 
   """
   def delete_assessment_point(%Scope{} = scope, %AssessmentPoint{} = assessment_point) do
+    Strands.ensure_strand_editable!(scope, strand_id_from_assessment_point(assessment_point))
+
     assessment_point
     |> AssessmentPoint.delete_changeset()
     |> Repo.delete()
@@ -246,6 +339,8 @@ defmodule Lanttern.Assessments do
 
   """
   def delete_assessment_point_and_entries(%Scope{} = scope, %AssessmentPoint{} = assessment_point) do
+    Strands.ensure_strand_editable!(scope, strand_id_from_assessment_point(assessment_point))
+
     # capture the composition parents before deleting — the `Component` rows
     # linking this assessment point cascade away during the delete
     composition_parent_ids =
@@ -417,6 +512,9 @@ defmodule Lanttern.Assessments do
   @doc """
   Creates an assessment_point_entry.
 
+  Enforces the strand lock: raises when the owning strand is locked and `scope`
+  lacks `strand_lock_management`.
+
   ## Options:
 
   - `:preloads` – preloads associated data
@@ -424,14 +522,19 @@ defmodule Lanttern.Assessments do
 
   ## Examples
 
-      iex> create_assessment_point_entry(%{field: value})
+      iex> create_assessment_point_entry(scope, %{field: value})
       {:ok, %AssessmentPointEntry{}}
 
-      iex> create_assessment_point_entry(%{field: bad_value})
+      iex> create_assessment_point_entry(scope, %{field: bad_value})
       {:error, %Ecto.Changeset{}}
 
   """
-  def create_assessment_point_entry(attrs \\ %{}, opts \\ []) do
+  def create_assessment_point_entry(%Scope{} = scope, attrs \\ %{}, opts \\ []) do
+    Strands.ensure_strand_editable!(
+      scope,
+      maybe_strand_id_from_ap(attr_id(attrs, :assessment_point_id))
+    )
+
     %AssessmentPointEntry{}
     |> AssessmentPointEntry.changeset(attrs)
     |> Repo.insert()
@@ -442,6 +545,9 @@ defmodule Lanttern.Assessments do
   @doc """
   Updates a assessment_point_entry.
 
+  Enforces the strand lock: raises when the owning strand is locked and `scope`
+  lacks `strand_lock_management`.
+
   ## Options:
 
   - `:preloads` – preloads associated data
@@ -450,18 +556,24 @@ defmodule Lanttern.Assessments do
 
   ## Examples
 
-      iex> update_assessment_point_entry(assessment_point_entry, %{field: new_value})
+      iex> update_assessment_point_entry(scope, assessment_point_entry, %{field: new_value})
       {:ok, %AssessmentPointEntry{}}
 
-      iex> update_assessment_point_entry(assessment_point_entry, %{field: bad_value})
+      iex> update_assessment_point_entry(scope, assessment_point_entry, %{field: bad_value})
       {:error, %Ecto.Changeset{}}
 
   """
   def update_assessment_point_entry(
+        %Scope{} = scope,
         %AssessmentPointEntry{} = assessment_point_entry,
         attrs,
         opts \\ []
       ) do
+    Strands.ensure_strand_editable!(
+      scope,
+      maybe_strand_id_from_ap(assessment_point_entry.assessment_point_id)
+    )
+
     changeset = AssessmentPointEntry.changeset(assessment_point_entry, attrs)
     log_profile_id = Keyword.get(opts, :log_profile_id)
     domains = changed_recalc_domains(changeset)
@@ -507,22 +619,27 @@ defmodule Lanttern.Assessments do
   for conflict check. When conflicting, will update only the ordinal value and score fields (teacher and student),
   as this functions is expected to be used only in the `AssessmentsGridComponent` context.
 
+  Enforces the strand lock: raises when any owning strand is locked and `scope`
+  lacks `strand_lock_management`.
+
   ## Options:
 
   - `:log_profile_id` - logs the operation, linked to given profile
 
   ## Examples
 
-      iex> save_assessment_point_entries(maps)
+      iex> save_assessment_point_entries(scope, maps)
       {:ok, 10}
 
-      iex> save_assessment_point_entries(bad_maps)
+      iex> save_assessment_point_entries(scope, bad_maps)
       {:error, %Ecto.Changeset{}}
 
   """
-  @spec save_assessment_point_entries(maps :: list(map()), opts :: Keyword.t()) ::
+  @spec save_assessment_point_entries(Scope.t(), maps :: list(map()), opts :: Keyword.t()) ::
           {:ok, non_neg_integer()} | {:error, Ecto.Changeset.t()}
-  def save_assessment_point_entries(maps, opts \\ []) do
+  def save_assessment_point_entries(%Scope{} = scope, maps, opts \\ []) do
+    ensure_save_entries_strand_editable(scope, maps)
+
     timestamp =
       NaiveDateTime.utc_now()
       |> NaiveDateTime.truncate(:second)
@@ -678,20 +795,32 @@ defmodule Lanttern.Assessments do
   After the whole operation, in case of success, we trigger a request for deleting
   the attachments from the cloud (if they are internal).
 
+  Enforces the strand lock: raises when the owning strand is locked and `scope`
+  lacks `strand_lock_management`.
+
   ## Options:
 
   - `:log_profile_id` - logs the operation, linked to given profile
 
   ## Examples
 
-      iex> delete_assessment_point_entry(assessment_point_entry)
+      iex> delete_assessment_point_entry(scope, assessment_point_entry)
       {:ok, %AssessmentPointEntry{}}
 
-      iex> delete_assessment_point_entry(assessment_point_entry)
+      iex> delete_assessment_point_entry(scope, assessment_point_entry)
       {:error, %Ecto.Changeset{}}
 
   """
-  def delete_assessment_point_entry(%AssessmentPointEntry{} = assessment_point_entry, opts \\ []) do
+  def delete_assessment_point_entry(
+        %Scope{} = scope,
+        %AssessmentPointEntry{} = assessment_point_entry,
+        opts \\ []
+      ) do
+    Strands.ensure_strand_editable!(
+      scope,
+      maybe_strand_id_from_ap(assessment_point_entry.assessment_point_id)
+    )
+
     entry_attachments_query =
       from(
         a in Attachment,
@@ -1214,13 +1343,21 @@ defmodule Lanttern.Assessments do
   @doc """
   Update assessment points positions based on ids list order.
 
+  The batch is single-strand (the reorder is scoped to one strand/moment grid), so
+  the strand-lock guard resolves from the first id and blocks the whole batch.
+
   ## Examples
 
-      iex> update_assessment_points_positions([3, 2, 1])
+      iex> update_assessment_points_positions(scope, [3, 2, 1])
       {:ok, [%AssessmentPoint{}, ...]}
 
   """
-  def update_assessment_points_positions(assessment_points_ids) do
+  def update_assessment_points_positions(%Scope{} = scope, assessment_points_ids) do
+    Strands.ensure_strand_editable!(
+      scope,
+      assessment_points_ids |> List.first() |> maybe_strand_id_from_ap()
+    )
+
     assessment_points_ids
     |> Enum.with_index()
     |> Enum.reduce(

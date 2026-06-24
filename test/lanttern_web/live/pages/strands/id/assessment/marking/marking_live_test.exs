@@ -148,7 +148,7 @@ defmodule LantternWeb.MarkingLiveTest do
       {:ok, student} = Schools.update_student(student, %{classes_ids: [class.id]})
 
       {:ok, _entry} =
-        Assessments.create_assessment_point_entry(%{
+        Assessments.create_assessment_point_entry(%Lanttern.Identity.Scope{}, %{
           student_id: student.id,
           assessment_point_id: assessment_point.id,
           scale_id: scale.id,

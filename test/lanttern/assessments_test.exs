@@ -470,7 +470,10 @@ defmodule Lanttern.AssessmentsTest do
                 expected_ap_1,
                 expected_ap_4
               ]} =
-               Assessments.update_assessment_points_positions(sorted_assessment_points_ids)
+               Assessments.update_assessment_points_positions(
+                 %Lanttern.Identity.Scope{},
+                 sorted_assessment_points_ids
+               )
 
       assert expected_ap_1.id == assessment_point_1.id
       assert expected_ap_2.id == assessment_point_2.id
@@ -592,7 +595,9 @@ defmodule Lanttern.AssessmentsTest do
       }
 
       assert {:ok, %AssessmentPointEntry{} = assessment_point_entry} =
-               Assessments.create_assessment_point_entry(valid_attrs, log_profile_id: profile.id)
+               Assessments.create_assessment_point_entry(%Lanttern.Identity.Scope{}, valid_attrs,
+                 log_profile_id: profile.id
+               )
 
       assert assessment_point_entry.assessment_point_id == assessment_point.id
       assert assessment_point_entry.student_id == student.id
@@ -630,7 +635,7 @@ defmodule Lanttern.AssessmentsTest do
       }
 
       assert {:ok, %AssessmentPointEntry{} = assessment_point_entry} =
-               Assessments.create_assessment_point_entry(valid_attrs)
+               Assessments.create_assessment_point_entry(%Lanttern.Identity.Scope{}, valid_attrs)
 
       assert assessment_point_entry.assessment_point_id == assessment_point.id
       assert assessment_point_entry.score == 0.5
@@ -652,7 +657,9 @@ defmodule Lanttern.AssessmentsTest do
       }
 
       assert {:ok, %AssessmentPointEntry{} = assessment_point_entry} =
-               Assessments.create_assessment_point_entry(valid_attrs, preloads: :ordinal_value)
+               Assessments.create_assessment_point_entry(%Lanttern.Identity.Scope{}, valid_attrs,
+                 preloads: :ordinal_value
+               )
 
       assert assessment_point_entry.assessment_point_id == assessment_point.id
       assert assessment_point_entry.ordinal_value.id == ordinal_value.id
@@ -660,7 +667,10 @@ defmodule Lanttern.AssessmentsTest do
 
     test "create_assessment_point_entry/1 with invalid data returns error changeset" do
       assert {:error, %Ecto.Changeset{}} =
-               Assessments.create_assessment_point_entry(@invalid_attrs)
+               Assessments.create_assessment_point_entry(
+                 %Lanttern.Identity.Scope{},
+                 @invalid_attrs
+               )
     end
 
     test "create_assessment_point_entry/1 with score out of scale returns error changeset" do
@@ -675,7 +685,7 @@ defmodule Lanttern.AssessmentsTest do
       }
 
       assert {:error, %Ecto.Changeset{}} =
-               Assessments.create_assessment_point_entry(attrs)
+               Assessments.create_assessment_point_entry(%Lanttern.Identity.Scope{}, attrs)
     end
 
     test "create_assestudent = SchoolsFixtures.student_fixture()ssment_point_entry/1 with ordinal_value out of scale returns error changeset" do
@@ -692,7 +702,7 @@ defmodule Lanttern.AssessmentsTest do
       }
 
       assert {:error, %Ecto.Changeset{}} =
-               Assessments.create_assessment_point_entry(attrs)
+               Assessments.create_assessment_point_entry(%Lanttern.Identity.Scope{}, attrs)
     end
 
     test "update_assessment_point_entry/3 with valid data updates the assessment_point_entry" do
@@ -708,7 +718,10 @@ defmodule Lanttern.AssessmentsTest do
       profile = Lanttern.IdentityFixtures.staff_member_profile_fixture()
 
       assert {:ok, %AssessmentPointEntry{} = assessment_point_entry} =
-               Assessments.update_assessment_point_entry(assessment_point_entry, update_attrs,
+               Assessments.update_assessment_point_entry(
+                 %Lanttern.Identity.Scope{},
+                 assessment_point_entry,
+                 update_attrs,
                  log_profile_id: profile.id
                )
 
@@ -739,7 +752,10 @@ defmodule Lanttern.AssessmentsTest do
       update_attrs = %{observation: "some updated observation"}
 
       assert {:ok, %AssessmentPointEntry{} = assessment_point_entry} =
-               Assessments.update_assessment_point_entry(assessment_point_entry, update_attrs,
+               Assessments.update_assessment_point_entry(
+                 %Lanttern.Identity.Scope{},
+                 assessment_point_entry,
+                 update_attrs,
                  preloads: :student
                )
 
@@ -750,7 +766,11 @@ defmodule Lanttern.AssessmentsTest do
       assessment_point_entry = assessment_point_entry_fixture()
 
       assert {:error, %Ecto.Changeset{}} =
-               Assessments.update_assessment_point_entry(assessment_point_entry, @invalid_attrs)
+               Assessments.update_assessment_point_entry(
+                 %Lanttern.Identity.Scope{},
+                 assessment_point_entry,
+                 @invalid_attrs
+               )
 
       assert assessment_point_entry ==
                Assessments.get_assessment_point_entry!(assessment_point_entry.id)
@@ -772,7 +792,9 @@ defmodule Lanttern.AssessmentsTest do
         })
 
       assert {:ok, %AssessmentPointEntry{is_missing: false}} =
-               Assessments.update_assessment_point_entry(entry, %{ordinal_value_id: ov.id})
+               Assessments.update_assessment_point_entry(%Lanttern.Identity.Scope{}, entry, %{
+                 ordinal_value_id: ov.id
+               })
     end
 
     test "update_assessment_point_entry/3 clears is_missing when score is set" do
@@ -790,7 +812,9 @@ defmodule Lanttern.AssessmentsTest do
         })
 
       assert {:ok, %AssessmentPointEntry{is_missing: false}} =
-               Assessments.update_assessment_point_entry(entry, %{score: 7.0})
+               Assessments.update_assessment_point_entry(%Lanttern.Identity.Scope{}, entry, %{
+                 score: 7.0
+               })
     end
 
     test "update_assessment_point_entry/3 setting is_missing flips has_marking to true" do
@@ -809,7 +833,9 @@ defmodule Lanttern.AssessmentsTest do
       assert entry.has_marking == false
 
       assert {:ok, %AssessmentPointEntry{is_missing: true, has_marking: true}} =
-               Assessments.update_assessment_point_entry(entry, %{is_missing: true})
+               Assessments.update_assessment_point_entry(%Lanttern.Identity.Scope{}, entry, %{
+                 is_missing: true
+               })
     end
 
     test "save_assessment_point_entries/2 handles all mapped changes correctly" do
@@ -870,7 +896,9 @@ defmodule Lanttern.AssessmentsTest do
       Process.sleep(1000)
 
       assert {:ok, 3} =
-               Assessments.save_assessment_point_entries([params_1, params_2, params_3],
+               Assessments.save_assessment_point_entries(
+                 %Lanttern.Identity.Scope{},
+                 [params_1, params_2, params_3],
                  log_profile_id: profile.id
                )
 
@@ -948,7 +976,7 @@ defmodule Lanttern.AssessmentsTest do
       }
 
       assert {:ok, 1} =
-               Assessments.save_assessment_point_entries([
+               Assessments.save_assessment_point_entries(%Lanttern.Identity.Scope{}, [
                  Map.put(base_params, "student_ordinal_value_id", ov_2.id)
                ])
 
@@ -956,7 +984,7 @@ defmodule Lanttern.AssessmentsTest do
 
       # clearing the value should null the column
       assert {:ok, 1} =
-               Assessments.save_assessment_point_entries([
+               Assessments.save_assessment_point_entries(%Lanttern.Identity.Scope{}, [
                  Map.put(base_params, "student_ordinal_value_id", "")
                ])
 
@@ -986,7 +1014,8 @@ defmodule Lanttern.AssessmentsTest do
         "ordinal_value_id" => ov.id
       }
 
-      assert {:ok, 1} = Assessments.save_assessment_point_entries([params])
+      assert {:ok, 1} =
+               Assessments.save_assessment_point_entries(%Lanttern.Identity.Scope{}, [params])
 
       assert %AssessmentPointEntry{is_missing: false} = Repo.get!(AssessmentPointEntry, entry.id)
     end
@@ -1009,7 +1038,9 @@ defmodule Lanttern.AssessmentsTest do
       }
 
       assert {:ok, 1} =
-               Assessments.save_assessment_point_entries([params], log_profile_id: profile.id)
+               Assessments.save_assessment_point_entries(%Lanttern.Identity.Scope{}, [params],
+                 log_profile_id: profile.id
+               )
 
       assert_enqueued(
         worker: Lanttern.Workers.ComposedEntryRecalcWorker,
@@ -1034,7 +1065,8 @@ defmodule Lanttern.AssessmentsTest do
         "score" => 10.0
       }
 
-      assert {:ok, 1} = Assessments.save_assessment_point_entries([params])
+      assert {:ok, 1} =
+               Assessments.save_assessment_point_entries(%Lanttern.Identity.Scope{}, [params])
 
       refute_enqueued(worker: Lanttern.Workers.ComposedEntryRecalcWorker)
     end
@@ -1055,7 +1087,8 @@ defmodule Lanttern.AssessmentsTest do
         "student_score" => 25.0
       }
 
-      assert {:ok, 1} = Assessments.save_assessment_point_entries([params])
+      assert {:ok, 1} =
+               Assessments.save_assessment_point_entries(%Lanttern.Identity.Scope{}, [params])
 
       # composed student entries are no longer derived automatically
       refute_enqueued(worker: Lanttern.Workers.ComposedEntryRecalcWorker)
@@ -1078,7 +1111,8 @@ defmodule Lanttern.AssessmentsTest do
         "student_ordinal_value_id" => ordinal_value.id
       }
 
-      assert {:ok, 1} = Assessments.save_assessment_point_entries([params])
+      assert {:ok, 1} =
+               Assessments.save_assessment_point_entries(%Lanttern.Identity.Scope{}, [params])
 
       # composed student entries are no longer derived automatically
       refute_enqueued(worker: Lanttern.Workers.ComposedEntryRecalcWorker)
@@ -1100,7 +1134,8 @@ defmodule Lanttern.AssessmentsTest do
         "is_missing" => true
       }
 
-      assert {:ok, 1} = Assessments.save_assessment_point_entries([params])
+      assert {:ok, 1} =
+               Assessments.save_assessment_point_entries(%Lanttern.Identity.Scope{}, [params])
 
       # is_missing is a teacher concept ("no evidence"), so only the teacher
       # average is recomputed — never the student domain
@@ -1134,7 +1169,10 @@ defmodule Lanttern.AssessmentsTest do
         )
 
       assert {:ok, _entry} =
-               Assessments.update_assessment_point_entry(entry, %{score: 50.0},
+               Assessments.update_assessment_point_entry(
+                 %Lanttern.Identity.Scope{},
+                 entry,
+                 %{score: 50.0},
                  log_profile_id: profile.id
                )
 
@@ -1164,7 +1202,10 @@ defmodule Lanttern.AssessmentsTest do
           scale_type: "numeric"
         )
 
-      assert {:ok, _entry} = Assessments.update_assessment_point_entry(entry, %{is_missing: true})
+      assert {:ok, _entry} =
+               Assessments.update_assessment_point_entry(%Lanttern.Identity.Scope{}, entry, %{
+                 is_missing: true
+               })
 
       # is_missing is a teacher concept ("no evidence"), so only the teacher
       # average is recomputed — never the student domain
@@ -1193,7 +1234,10 @@ defmodule Lanttern.AssessmentsTest do
           score: 10.0
         )
 
-      assert {:ok, _entry} = Assessments.update_assessment_point_entry(entry, %{score: 20.0})
+      assert {:ok, _entry} =
+               Assessments.update_assessment_point_entry(%Lanttern.Identity.Scope{}, entry, %{
+                 score: 20.0
+               })
 
       refute_enqueued(worker: Lanttern.Workers.ComposedEntryRecalcWorker)
     end
@@ -1217,7 +1261,9 @@ defmodule Lanttern.AssessmentsTest do
 
       # only a comment changes — no composition input is touched
       assert {:ok, _entry} =
-               Assessments.update_assessment_point_entry(entry, %{report_note: "a comment"})
+               Assessments.update_assessment_point_entry(%Lanttern.Identity.Scope{}, entry, %{
+                 report_note: "a comment"
+               })
 
       refute_enqueued(worker: Lanttern.Workers.ComposedEntryRecalcWorker)
     end
@@ -1241,8 +1287,11 @@ defmodule Lanttern.AssessmentsTest do
         "score" => 50.0
       }
 
-      assert {:ok, 1} = Assessments.save_assessment_point_entries([params])
-      assert {:ok, 1} = Assessments.save_assessment_point_entries([params])
+      assert {:ok, 1} =
+               Assessments.save_assessment_point_entries(%Lanttern.Identity.Scope{}, [params])
+
+      assert {:ok, 1} =
+               Assessments.save_assessment_point_entries(%Lanttern.Identity.Scope{}, [params])
 
       # under the old `unique: true` the second insert was a silent conflict and
       # produced no second row; without it each enqueue creates its own job.
@@ -1260,7 +1309,9 @@ defmodule Lanttern.AssessmentsTest do
       profile = Lanttern.IdentityFixtures.staff_member_profile_fixture()
 
       assert {:ok, %AssessmentPointEntry{}} =
-               Assessments.delete_assessment_point_entry(assessment_point_entry,
+               Assessments.delete_assessment_point_entry(
+                 %Lanttern.Identity.Scope{},
+                 assessment_point_entry,
                  log_profile_id: profile.id
                )
 
@@ -1308,7 +1359,10 @@ defmodule Lanttern.AssessmentsTest do
         )
 
       assert {:ok, %AssessmentPointEntry{}} =
-               Assessments.delete_assessment_point_entry(assessment_point_entry)
+               Assessments.delete_assessment_point_entry(
+                 %Lanttern.Identity.Scope{},
+                 assessment_point_entry
+               )
 
       assert_raise Ecto.NoResultsError, fn ->
         Assessments.get_assessment_point_entry!(assessment_point_entry.id)

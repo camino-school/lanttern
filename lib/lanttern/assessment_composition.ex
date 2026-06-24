@@ -13,12 +13,14 @@ defmodule Lanttern.AssessmentComposition do
   alias Lanttern.Repo
 
   alias Lanttern.AssessmentComposition.Component
+  alias Lanttern.Assessments
   alias Lanttern.Assessments.AssessmentPoint
   alias Lanttern.Assessments.AssessmentPointEntry
   alias Lanttern.AssessmentsLog
   alias Lanttern.Grading
   alias Lanttern.Grading.OrdinalValue
   alias Lanttern.Identity.Scope
+  alias Lanttern.Strands
 
   @doc """
   Returns the list of composition components for the given parent assessment point id.
@@ -123,6 +125,7 @@ defmodule Lanttern.AssessmentComposition do
   """
   def create_assessment_point_component(%Scope{} = scope, attrs \\ %{}) do
     true = Scope.profile_type?(scope, "staff")
+    ensure_parent_editable!(scope, Map.get(attrs, :parent_id, Map.get(attrs, "parent_id")))
 
     component_id = Map.get(attrs, :component_id, Map.get(attrs, "component_id"))
 
@@ -145,6 +148,7 @@ defmodule Lanttern.AssessmentComposition do
   """
   def update_assessment_point_component(%Scope{} = scope, %Component{} = component, attrs) do
     true = Scope.profile_type?(scope, "staff")
+    ensure_parent_editable!(scope, component.parent_id)
 
     component_id =
       Map.get(attrs, :component_id, Map.get(attrs, "component_id")) || component.component_id
@@ -159,6 +163,7 @@ defmodule Lanttern.AssessmentComposition do
   """
   def delete_assessment_point_component(%Scope{} = scope, %Component{} = component) do
     true = Scope.profile_type?(scope, "staff")
+    ensure_parent_editable!(scope, component.parent_id)
 
     Repo.delete(component)
   end
@@ -168,6 +173,7 @@ defmodule Lanttern.AssessmentComposition do
   """
   def delete_all_assessment_point_components(%Scope{} = scope, parent_id) do
     true = Scope.profile_type?(scope, "staff")
+    ensure_parent_editable!(scope, parent_id)
 
     from(c in Component, where: c.parent_id == ^parent_id)
     |> Repo.delete_all()
@@ -185,6 +191,7 @@ defmodule Lanttern.AssessmentComposition do
   """
   def replace_assessment_point_components(%Scope{} = scope, parent_id, components) do
     true = Scope.profile_type?(scope, "staff")
+    ensure_parent_editable!(scope, parent_id)
 
     composed_ids = composed_component_ids(Enum.map(components, & &1.component_id))
 
@@ -225,6 +232,24 @@ defmodule Lanttern.AssessmentComposition do
       {:error, _op, changeset, _changes} -> {:error, changeset}
     end
   end
+
+  # Strand-lock guard for composition mutations: resolve the parent AP up to its
+  # owning strand (composition structure changes recalc the composed grade without
+  # touching any entry, so it must be guarded too).
+  defp ensure_parent_editable!(%Scope{} = scope, parent_id) do
+    strand_id =
+      case normalize_parent_id(parent_id) do
+        nil -> nil
+        id -> Assessments.strand_id_from_assessment_point(id)
+      end
+
+    Strands.ensure_strand_editable!(scope, strand_id)
+  end
+
+  defp normalize_parent_id(nil), do: nil
+  defp normalize_parent_id(""), do: nil
+  defp normalize_parent_id(id) when is_integer(id), do: id
+  defp normalize_parent_id(id) when is_binary(id), do: String.to_integer(id)
 
   defp composed_component_ids([]), do: []
 

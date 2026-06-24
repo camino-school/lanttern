@@ -602,7 +602,7 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
       }
 
     {:ok, entry} =
-      Assessments.create_assessment_point_entry(params,
+      Assessments.create_assessment_point_entry(socket.assigns.current_scope, params,
         log_profile_id: socket.assigns.current_user.current_profile_id
       )
 
@@ -716,10 +716,16 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
 
   def handle_event("save_teacher_marking", %{"assessment_point_entry" => params}, socket) do
     entry = socket.assigns.entry
+
     opts = [log_profile_id: socket.assigns.current_user.current_profile_id]
 
     socket =
-      case Assessments.update_assessment_point_entry(entry, params, opts) do
+      case Assessments.update_assessment_point_entry(
+             socket.assigns.current_scope,
+             entry,
+             params,
+             opts
+           ) do
         {:ok, entry} ->
           # recalc of any composed parent is enqueued atomically inside
           # update_assessment_point_entry/3 based on what actually changed
@@ -739,10 +745,16 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
 
   def handle_event("save_student_marking", %{"assessment_point_entry" => params}, socket) do
     entry = socket.assigns.entry
+
     opts = [log_profile_id: socket.assigns.current_user.current_profile_id]
 
     socket =
-      case Assessments.update_assessment_point_entry(entry, params, opts) do
+      case Assessments.update_assessment_point_entry(
+             socket.assigns.current_scope,
+             entry,
+             params,
+             opts
+           ) do
         {:ok, entry} ->
           notify(__MODULE__, {:change, entry}, socket.assigns)
 
@@ -789,7 +801,12 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
   def handle_event("toggle_is_missing", %{"assessment_point_entry" => params}, socket) do
     opts = [log_profile_id: socket.assigns.current_user.current_profile_id]
 
-    case Assessments.update_assessment_point_entry(socket.assigns.entry, params, opts) do
+    case Assessments.update_assessment_point_entry(
+           socket.assigns.current_scope,
+           socket.assigns.entry,
+           params,
+           opts
+         ) do
       {:ok, entry} ->
         # is_missing is a composition input (affects the teacher average);
         # update_assessment_point_entry/3 enqueues the parent recalc atomically
@@ -960,7 +977,12 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
     opts = [log_profile_id: socket.assigns.current_user.current_profile_id]
 
     socket =
-      case Assessments.update_assessment_point_entry(socket.assigns.entry, params, opts) do
+      case Assessments.update_assessment_point_entry(
+             socket.assigns.current_scope,
+             socket.assigns.entry,
+             params,
+             opts
+           ) do
         {:ok, entry} ->
           notify(
             __MODULE__,
@@ -985,7 +1007,12 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
   defp handle_save_note(socket, params, type) do
     opts = [log_profile_id: socket.assigns.current_user.current_profile_id]
 
-    case Assessments.update_assessment_point_entry(socket.assigns.entry, params, opts) do
+    case Assessments.update_assessment_point_entry(
+           socket.assigns.current_scope,
+           socket.assigns.entry,
+           params,
+           opts
+         ) do
       {:ok, entry} ->
         notify(
           __MODULE__,
@@ -1030,9 +1057,15 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
 
   defp set_use_manual_input(socket, value) do
     opts = [log_profile_id: socket.assigns.current_user.current_profile_id]
+
     params = %{"use_manual_input" => value}
 
-    case Assessments.update_assessment_point_entry(socket.assigns.entry, params, opts) do
+    case Assessments.update_assessment_point_entry(
+           socket.assigns.current_scope,
+           socket.assigns.entry,
+           params,
+           opts
+         ) do
       {:ok, entry} ->
         entry = maybe_restore_composed_value(entry, socket.assigns.current_user)
         notify(__MODULE__, {:change, entry}, socket.assigns)

@@ -105,7 +105,9 @@ defmodule Lanttern.Strands do
       :ok
 
   """
-  @spec ensure_strand_editable!(Scope.t(), pos_integer()) :: :ok
+  @spec ensure_strand_editable!(Scope.t(), pos_integer() | nil) :: :ok
+  def ensure_strand_editable!(%Scope{} = _scope, nil), do: :ok
+
   def ensure_strand_editable!(%Scope{} = scope, strand_id) do
     if strand_locked?(strand_id) and
          not Scope.has_permission?(scope, "strand_lock_management") do
