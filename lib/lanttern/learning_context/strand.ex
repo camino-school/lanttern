@@ -31,6 +31,7 @@ defmodule Lanttern.LearningContext.Strand do
           year_id: pos_integer(),
           years_ids: [pos_integer()],
           is_starred: boolean(),
+          is_locked: boolean(),
           strand_report_id: pos_integer(),
           assessment_points_count: non_neg_integer(),
           report_cycle: Cycle.t(),
@@ -52,6 +53,7 @@ defmodule Lanttern.LearningContext.Strand do
     field :assessment_info, :string
     field :teacher_instructions, :string
     field :cover_image_url, :string
+    field :is_locked, :boolean, default: false
     field :subject_id, :id, virtual: true
     field :subjects_ids, {:array, :id}, virtual: true
     field :year_id, :id, virtual: true
@@ -94,6 +96,19 @@ defmodule Lanttern.LearningContext.Strand do
     |> validate_required([:name, :description])
     |> put_subjects()
     |> put_years()
+  end
+
+  @doc """
+  Changeset for toggling the strand lock (`is_locked`).
+
+  Intentionally separate from `changeset/2`: `is_locked` is never castable through
+  regular content edits, only through this changeset (gated by the `strand_management`
+  permission at the context level).
+  """
+  def lock_changeset(strand, attrs) do
+    strand
+    |> cast(attrs, [:is_locked])
+    |> validate_required([:is_locked])
   end
 
   def delete_changeset(strand) do
