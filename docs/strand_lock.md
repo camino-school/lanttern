@@ -107,13 +107,20 @@ lock.
 - [x] Validated: `mix compile --warning-as-errors`, `mix format`.
 
 ### Step 1b — Provenance columns + `StrandLog` (new, from grilling)
-- [ ] Migration: add `locked_at :utc_datetime` + `locked_by_staff_member_id` (FK → staff_member,
-      `null: true`) to `strands`. Use the `db-migrations` skill.
-- [ ] `Strand` schema: add the two fields to schema + `@type t`; extend `lock_changeset/2` to
-      set them on lock and clear them on unlock (still **not** in `changeset/2`).
-- [ ] `StrandLog` schema (`log`-prefixed) + migration following the `...Log` pattern; index on
-      `strand_id`; `operation` CHECK; **no** `is_ai_agent`. `build_log_attrs/1` mirrors strand
-      scalars incl. `is_locked` + `subjects_ids`/`years_ids`.
+- [x] Migration `add_lock_provenance_to_strands`: `locked_at :utc_datetime` +
+      `locked_by_staff_member_id` (FK → `staff`, `null: true`, `on_delete: :nothing` —
+      matches Lanttern's defensive delete-blocking pattern) +
+      index on `locked_by_staff_member_id` (applied).
+- [x] `Strand` schema: added `locked_at`/`locked_by_staff_member_id` to schema + `@type t`;
+      extended `lock_changeset/2` to stamp `locked_at` (+ keep caller-supplied
+      `locked_by_staff_member_id`) on lock and clear both on unlock (still **not** in
+      `changeset/2`).
+- [x] `StrandLog` schema (`Lanttern.LearningContext.StrandLog`, `log`-prefixed) + migration
+      `create_strands_log` following the `...Log` pattern; index on `strand_id`; `operation`
+      CHECK; **no** `is_ai_agent`. `build_log_attrs/1` mirrors strand scalars incl. `is_locked`
+      + `subjects_ids`/`years_ids`.
+- [x] Validated: `mix compile --warning-as-errors`, `mix format`, `mix credo --strict`,
+      `mix deps.unlock --unused`, `mix test test/lanttern/learning_context_test.exs`.
 
 ### Step 2 — Permission + context plumbing
 - [ ] Add `"strand_lock_management"` to `@valid_permissions` (`personalization.ex`).
