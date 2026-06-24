@@ -139,7 +139,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
                 <h4 class="font-display font-bold text-lg">{moment.name}</h4>
                 <div
                   id={"moment-#{moment.id}-sortable-aps"}
-                  phx-hook="Sortable"
+                  phx-hook={if @can_edit_strand, do: "Sortable"}
                   phx-update="stream"
                   phx-target={@myself}
                   data-sortable-handle=".sortable-handle"
@@ -168,7 +168,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
               <h4 class="mb-4 font-display font-bold text-lg">{gettext("Goals assessment")}</h4>
               <div
                 id="strand-sortable-aps"
-                phx-hook="Sortable"
+                phx-hook={if @can_edit_strand, do: "Sortable"}
                 phx-update="stream"
                 phx-target={@myself}
                 data-sortable-handle=".sortable-handle"
@@ -468,6 +468,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
       |> assign(:composition_overlay_ap, nil)
       |> assign(:composition_overlay_initial_view, :overview)
       |> assign(:grade_composition_overlay_entry, nil)
+      |> assign(:can_edit_strand, true)
       |> assign(:initialized, false)
 
     {:ok, socket}
@@ -708,75 +709,85 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
   # -- assessment points
 
   def handle_event("new_assessment_point", %{"moment_id" => moment_id}, socket) do
-    assessment_point = %AssessmentPoint{moment_id: moment_id}
+    guard_can_edit(socket, fn ->
+      assessment_point = %AssessmentPoint{moment_id: moment_id}
 
-    socket =
-      socket
-      |> assign(:assessment_point, assessment_point)
-      |> assign(:assessment_point_overlay_title, gettext("New assessment point"))
+      socket =
+        socket
+        |> assign(:assessment_point, assessment_point)
+        |> assign(:assessment_point_overlay_title, gettext("New assessment point"))
 
-    {:noreply, socket}
+      {:noreply, socket}
+    end)
   end
 
   def handle_event("new_strand_goal", _params, socket) do
-    assessment_point = %AssessmentPoint{
-      strand_id: socket.assigns.strand.id,
-      datetime: DateTime.utc_now()
-    }
+    guard_can_edit(socket, fn ->
+      assessment_point = %AssessmentPoint{
+        strand_id: socket.assigns.strand.id,
+        datetime: DateTime.utc_now()
+      }
 
-    socket =
-      socket
-      |> assign(:assessment_point, assessment_point)
-      |> assign(:assessment_point_overlay_title, gettext("New strand goal"))
+      socket =
+        socket
+        |> assign(:assessment_point, assessment_point)
+        |> assign(:assessment_point_overlay_title, gettext("New strand goal"))
 
-    {:noreply, socket}
+      {:noreply, socket}
+    end)
   end
 
   def handle_event("edit_assessment_point", %{"id" => ap_id}, socket) do
-    socket =
-      if ap_id in socket.assigns.assessment_points_ids do
-        ap = Assessments.get_assessment_point!(ap_id)
+    guard_can_edit(socket, fn ->
+      socket =
+        if ap_id in socket.assigns.assessment_points_ids do
+          ap = Assessments.get_assessment_point!(ap_id)
 
-        socket
-        |> assign(:assessment_point, ap)
-        |> assign(:assessment_point_overlay_title, gettext("Edit assessment point"))
-      else
-        socket
-      end
+          socket
+          |> assign(:assessment_point, ap)
+          |> assign(:assessment_point_overlay_title, gettext("Edit assessment point"))
+        else
+          socket
+        end
 
-    {:noreply, socket}
+      {:noreply, socket}
+    end)
   end
 
   # -- composition
 
   def handle_event("add_composition", %{"assessment_point_id" => ap_id}, socket) do
-    ap = Assessments.get_assessment_point!(ap_id)
+    guard_can_edit(socket, fn ->
+      ap = Assessments.get_assessment_point!(ap_id)
 
-    {:ok, updated_ap} =
-      Assessments.update_assessment_point(socket.assigns.current_scope, ap, %{
-        uses_composition: true
-      })
+      {:ok, updated_ap} =
+        Assessments.update_assessment_point(socket.assigns.current_scope, ap, %{
+          uses_composition: true
+        })
 
-    ap = Assessments.get_assessment_point!(updated_ap.id, preloads: @ap_preloads)
+      ap = Assessments.get_assessment_point!(updated_ap.id, preloads: @ap_preloads)
 
-    socket =
-      socket
-      |> stream_insert(ap_stream_key(ap.moment_id), ap)
-      |> assign(:composition_overlay_ap, ap)
-      |> assign(:composition_overlay_initial_view, :setup)
+      socket =
+        socket
+        |> stream_insert(ap_stream_key(ap.moment_id), ap)
+        |> assign(:composition_overlay_ap, ap)
+        |> assign(:composition_overlay_initial_view, :setup)
 
-    {:noreply, socket}
+      {:noreply, socket}
+    end)
   end
 
   def handle_event("open_composition", %{"id" => ap_id}, socket) do
-    ap = Assessments.get_assessment_point!(ap_id, preloads: @ap_preloads)
+    guard_can_edit(socket, fn ->
+      ap = Assessments.get_assessment_point!(ap_id, preloads: @ap_preloads)
 
-    socket =
-      socket
-      |> assign(:composition_overlay_ap, ap)
-      |> assign(:composition_overlay_initial_view, :overview)
+      socket =
+        socket
+        |> assign(:composition_overlay_ap, ap)
+        |> assign(:composition_overlay_initial_view, :overview)
 
-    {:noreply, socket}
+      {:noreply, socket}
+    end)
   end
 
   def handle_event("close_composition_overlay", _params, socket),
@@ -800,14 +811,16 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
     do: {:noreply, assign(socket, :grade_composition_overlay_entry, nil)}
 
   def handle_event("toggle_hidden", %{"id" => ap_id, "hidden" => is_hidden}, socket) do
-    ap = Assessments.get_assessment_point!(ap_id, preloads: @ap_preloads)
+    guard_can_edit(socket, fn ->
+      ap = Assessments.get_assessment_point!(ap_id, preloads: @ap_preloads)
 
-    {:ok, _} =
-      Assessments.update_assessment_point(socket.assigns.current_scope, ap, %{
-        is_hidden: is_hidden
-      })
+      {:ok, _} =
+        Assessments.update_assessment_point(socket.assigns.current_scope, ap, %{
+          is_hidden: is_hidden
+        })
 
-    {:noreply, stream_insert(socket, ap_stream_key(ap.moment_id), %{ap | is_hidden: is_hidden})}
+      {:noreply, stream_insert(socket, ap_stream_key(ap.moment_id), %{ap | is_hidden: is_hidden})}
+    end)
   end
 
   def handle_event("close_assessment_point_form", _params, socket),
@@ -826,29 +839,31 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
         socket
       )
       when from_moment_id != to_moment_id do
-    from_key = parse_ap_moment_key(from_moment_id)
-    to_key = parse_ap_moment_key(to_moment_id)
+    guard_can_edit(socket, fn ->
+      from_key = parse_ap_moment_key(from_moment_id)
+      to_key = parse_ap_moment_key(to_moment_id)
 
-    {ap_id, from_ids} =
-      socket.assigns.moments_assessment_points_ids_map[from_key]
-      |> List.pop_at(old_index)
+      {ap_id, from_ids} =
+        socket.assigns.moments_assessment_points_ids_map[from_key]
+        |> List.pop_at(old_index)
 
-    to_ids =
-      socket.assigns.moments_assessment_points_ids_map[to_key]
-      |> List.insert_at(new_index, ap_id)
+      to_ids =
+        socket.assigns.moments_assessment_points_ids_map[to_key]
+        |> List.insert_at(new_index, ap_id)
 
-    # the interface was already updated (optimistic update), just persist the new order and moment
-    Assessments.update_assessment_points_positions(socket.assigns.current_scope, to_ids)
+      # the interface was already updated (optimistic update), just persist the new order and moment
+      Assessments.update_assessment_points_positions(socket.assigns.current_scope, to_ids)
 
-    ap = Assessments.get_assessment_point!(ap_id)
-    Assessments.update_assessment_point(socket.assigns.current_scope, ap, %{moment_id: to_key})
+      ap = Assessments.get_assessment_point!(ap_id)
+      Assessments.update_assessment_point(socket.assigns.current_scope, ap, %{moment_id: to_key})
 
-    moments_map =
-      socket.assigns.moments_assessment_points_ids_map
-      |> Map.put(from_key, from_ids)
-      |> Map.put(to_key, to_ids)
+      moments_map =
+        socket.assigns.moments_assessment_points_ids_map
+        |> Map.put(from_key, from_ids)
+        |> Map.put(to_key, to_ids)
 
-    {:noreply, assign(socket, :moments_assessment_points_ids_map, moments_map)}
+      {:noreply, assign(socket, :moments_assessment_points_ids_map, moments_map)}
+    end)
   end
 
   def handle_event(
@@ -861,22 +876,45 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
         socket
       )
       when old_index != new_index do
-    moment_key = parse_ap_moment_key(moment_id)
+    guard_can_edit(socket, fn ->
+      moment_key = parse_ap_moment_key(moment_id)
 
-    ap_ids =
-      reorder(socket.assigns.moments_assessment_points_ids_map[moment_key], old_index, new_index)
+      ap_ids =
+        reorder(
+          socket.assigns.moments_assessment_points_ids_map[moment_key],
+          old_index,
+          new_index
+        )
 
-    # the interface was already updated (optimistic update), just persist the new order
-    Assessments.update_assessment_points_positions(socket.assigns.current_scope, ap_ids)
+      # the interface was already updated (optimistic update), just persist the new order
+      Assessments.update_assessment_points_positions(socket.assigns.current_scope, ap_ids)
 
-    moments_map = Map.put(socket.assigns.moments_assessment_points_ids_map, moment_key, ap_ids)
+      moments_map = Map.put(socket.assigns.moments_assessment_points_ids_map, moment_key, ap_ids)
 
-    {:noreply, assign(socket, :moments_assessment_points_ids_map, moments_map)}
+      {:noreply, assign(socket, :moments_assessment_points_ids_map, moments_map)}
+    end)
   end
 
   def handle_event("sortable_ap_update", _payload, socket), do: {:noreply, socket}
 
   # defp helpers
+
+  # Lock gate for assessment mutations. When the strand is locked and the current
+  # user lacks lock-management authority, the affordance stays visible but the
+  # action is refused with a toast instead of crashing on the context guard's
+  # raise (the raise remains the backstop for any path this misses).
+  defp guard_can_edit(socket, fun) do
+    if socket.assigns.can_edit_strand do
+      fun.()
+    else
+      {:noreply,
+       put_flash(
+         socket,
+         :error,
+         gettext("This strand is locked. Unlock it to change assessment and marking.")
+       )}
+    end
+  end
 
   defp ap_stream_key(nil), do: :strand_assessment_points
   defp ap_stream_key(moment_id), do: "moment_#{moment_id}_assessment_points"

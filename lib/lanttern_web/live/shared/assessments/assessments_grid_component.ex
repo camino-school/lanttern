@@ -11,6 +11,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
       attr :current_user, User
       attr :current_scope, Scope
       attr :current_assessment_view, :string
+      attr :can_edit, :boolean, default: true, doc: "when false (strand locked, no lock authority), entry cells are read-only and the AP command palette is refused"
       attr :classes_ids, :list, doc: "list of classes_ids to filter results"
       attr :strand_id, :integer, doc: "defines a strand grid view"
       attr :strand, Strand, doc: "strand struct (with :subjects preloaded) enabling the grades report column group"
@@ -154,6 +155,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
                 student_grade_cells={grade_cells}
                 myself={@myself}
                 current_assessment_view={@current_assessment_view}
+                can_edit={@can_edit}
                 view_bg={@view_bg}
                 current_user={@current_user}
                 composed_assessment_point_ids={@composed_assessment_point_ids}
@@ -416,6 +418,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
   attr :student_grade_cells, :list, required: true
   attr :myself, Phoenix.LiveComponent.CID, required: true
   attr :current_assessment_view, :string, required: true
+  attr :can_edit, :boolean, required: true
   attr :view_bg, :string, required: true
   attr :current_user, User, required: true
   attr :composed_assessment_point_ids, :any, required: true
@@ -444,7 +447,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
           class="w-full h-full"
           entry={entry}
           view={@current_assessment_view}
-          allow_edit={true}
+          allow_edit={@can_edit}
           is_composed={
             entry.assessment_point_id in @composed_assessment_point_ids and
               not entry.use_manual_input
@@ -685,6 +688,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
     socket =
       socket
       |> assign(:class, nil)
+      |> assign(:can_edit, true)
       |> assign(:classes_ids, [])
       |> assign(:strand, nil)
       |> assign(:strand_id, nil)
@@ -1274,13 +1278,25 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
   end
 
   def handle_event("open_command_palette", %{"id" => id}, socket) do
-    ap =
-      Assessments.get_assessment_point!(
-        id,
-        preloads: [curriculum_item: :curriculum_component, scale: :ordinal_values]
-      )
+    # The command palette opens AP edit / hide / composition actions — all
+    # in-scope strand mutations. On a locked strand without lock authority, refuse
+    # with a toast instead of crashing on the context guard's raise downstream.
+    if socket.assigns.can_edit do
+      ap =
+        Assessments.get_assessment_point!(
+          id,
+          preloads: [curriculum_item: :curriculum_component, scale: :ordinal_values]
+        )
 
-    {:noreply, assign(socket, :command_palette_ap, ap)}
+      {:noreply, assign(socket, :command_palette_ap, ap)}
+    else
+      {:noreply,
+       put_flash(
+         socket,
+         :error,
+         gettext("This strand is locked. Unlock it to change assessment and marking.")
+       )}
+    end
   end
 
   def handle_event("close_command_palette", _, socket) do

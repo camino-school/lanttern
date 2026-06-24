@@ -214,7 +214,26 @@ strand curriculum items, class assignments, entry **evidence**. Plus the standin
 all `strand_report` functions (Reporting), **grade components** (Grading), lesson **tags**, and
 personal mutations (`star/unstar_strand`, `ProfileStrandFilter`, `StrandConversation`).
 
-### Step 4 — UI / LiveView gating (narrow: assessment + marking surfaces)
+### Step 4 — UI / LiveView gating (narrow: assessment + marking surfaces) ✅
+
+**UI decision (issue #564): never hide action buttons.** Affordances stay visible
+when a strand is locked — they are either **disabled** or left active and the action
+is **refused with a toast** (an `{:error, ...}`-style flash) instead of crashing on the
+context guard's raise. This consciously softens the "`true = Scope.has_permission?`
+raises" stance *at the UI layer only*: the context functions still raise (the backstop
+for any path the UI misses), but the LiveViews pre-check the derived `can_edit_strand`
+boolean and short-circuit to a toast so a locked-out user gets a friendly message, not a
+500. Concretely:
+- **Marking grid cells** → **disabled** (read-only) via `EntryCellComponent.allow_edit`.
+- **AP reorder (Sortable)** → hook **not attached** when locked (drag disabled).
+- **AP create/edit/hide/composition buttons + the grid's AP command palette** → stay
+  visible/active; the `handle_event` pre-checks `can_edit_strand`/`can_edit` and toasts
+  when locked (`guard_can_edit/2` in `assessment_component`; an inline check in the grid's
+  `open_command_palette`). This avoids threading a `disabled` flag through a dozen buttons
+  and the shared overlays.
+- **Out of scope, left editable while locked:** strand "assessment info" (it's
+  `LearningContext.update_strand` — strand edit, not guarded) and "manage grade
+  composition" (grade-report machinery, excluded).
 
 **Model: two derived booleans + one indicator** (follows the existing
 `@has_agents_management_permission` compute-once-in-`mount`-and-thread-down pattern):
@@ -226,25 +245,31 @@ personal mutations (`star/unstar_strand`, `ProfileStrandFilter`, `StrandConversa
   can't be folded into `@can_edit_strand`).
 - **Lock indicator** (🔒 badge + "Locked by X on Y" from the provenance columns) → shown to
   **everyone** when `strand.is_locked`; no permission needed (explains *why* edits are hidden).
-  Implement as a `LearningContextComponents.strand_lock_bar/1` (top-bar variant) plus a
-  `strand_card` overlay badge; both call a shared `lock_provenance_text/2` helper.
+  Implement as a `StrandsComponents.strand_lock_bar/1` (new `Strands`-context component
+  module — `LearningContext` is being phased out) plus a `strand_card` overlay badge (the
+  badge stays in `LearningContextComponents` with the existing `strand_card`). The bar uses
+  `StrandsComponents.lock_provenance_text/2`.
 
 **Surfaces (narrow — only where assessment/marking is mutated):**
-- [ ] Strand show `strand_live.ex` → compute both booleans in `mount` (`assign_strand_lock/1`);
-      thread `@can_edit_strand` into the **Assessment tab only** (`assessment_component`), which
-      gates AP create/edit/delete buttons, disables the Sortable reorder hook, gates the
-      composition overlay save, and sets the grid cells' `allow_edit`. Overview/Lessons/Rubrics
-      tabs are **not** gated.
-- [ ] Marking route `marking_live.ex` → compute `@can_edit_strand`, pass into
-      `AssessmentsGridComponent` as `can_edit` → reuses `EntryCellComponent.allow_edit`. Add the
-      lock bar (preload `:locked_by_staff_member` for provenance text).
-- [ ] Lock/unlock control + indicator in the strand header (`strand_live`): `toggle_lock` event
+- [x] Strand show `strand_live.ex` → compute both booleans in `mount` (`assign_strand_lock/1`);
+      thread `@can_edit_strand` into the **Assessment tab only** (`assessment_component`).
+      The AP create/edit/hide/composition mutations toast-on-locked via `guard_can_edit/2`;
+      the Sortable reorder hook is **not attached** when locked. Overview/Lessons/Rubrics tabs
+      are **not** gated. (Composition overlay save is left to the context raise + the gated
+      entry points — opening the overlay is already blocked for non-holders.)
+- [x] Marking route `marking_live.ex` → compute `@can_edit_strand`, pass into
+      `AssessmentsGridComponent` as `can_edit` → reuses `EntryCellComponent.allow_edit` (cells
+      read-only) and toasts on the AP command palette. Lock bar added (preloads
+      `:locked_by_staff_member`).
+- [x] Lock/unlock control + indicator in the strand header (`strand_live`): `toggle_lock` event
       gated by `@has_strand_lock_management` + confirm-dialog menu item; indicator via
-      `strand_lock_bar` in the header `:top_bar` slot.
-- [ ] 🔒 badge on **staff** strand-browse surfaces (library, `/strands`, dashboard) via the
-      `strand_card` overlay (`show_lock`, default `false`; enable only on these staff surfaces;
-      **never** on student/guardian surfaces). Preload `:locked_by_staff_member` for full text.
-- [ ] Context `raise` remains the backstop for any affordance the UI sweep misses — not a
+      `strand_lock_bar` rendered under the `header_nav`.
+- [x] 🔒 badge on **staff** strand-browse surfaces (library, `/strands`, dashboard) via the
+      `strand_card` overlay (`show_lock`, default `false`; enabled only on these staff surfaces;
+      **never** on student/guardian surfaces). The badge reads `is_locked` (always loaded) and
+      shows no provenance tooltip, so no extra preload is needed on the list pages — full
+      provenance lives in the `strand_lock_bar` on the strand/marking pages.
+- [x] Context `raise` remains the backstop for any affordance the UI sweep misses — not a
       substitute for it.
 
 ### Step 5 — Tests (narrow)

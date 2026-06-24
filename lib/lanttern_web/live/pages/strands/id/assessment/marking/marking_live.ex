@@ -5,11 +5,13 @@ defmodule LantternWeb.MarkingLive do
   alias Lanttern.Assessments
   alias Lanttern.Curricula
   alias Lanttern.GradesReports
+  alias Lanttern.Identity.Scope
   alias Lanttern.LearningContext
   alias Lanttern.Reporting
 
   # shared components
   import LantternWeb.AssessmentsComponents
+  import LantternWeb.StrandsComponents, only: [strand_lock_bar: 1]
 
   import LantternWeb.FiltersHelpers,
     only: [
@@ -47,7 +49,7 @@ defmodule LantternWeb.MarkingLive do
   defp assign_strand(socket, %{"id" => id}) do
     LearningContext.get_strand(id,
       show_starred_for_profile_id: socket.assigns.current_user.current_profile_id,
-      preloads: [:subjects, :years]
+      preloads: [:subjects, :years, :locked_by_staff_member]
     )
     |> case do
       strand when is_nil(strand) ->
@@ -56,9 +58,14 @@ defmodule LantternWeb.MarkingLive do
         |> redirect(to: ~p"/strands")
 
       strand ->
+        can_edit_strand =
+          not strand.is_locked or
+            Scope.has_permission?(socket.assigns.current_scope, "strand_lock_management")
+
         socket
         |> assign(:strand, strand)
         |> assign(:page_title, strand.name)
+        |> assign(:can_edit_strand, can_edit_strand)
     end
   end
 

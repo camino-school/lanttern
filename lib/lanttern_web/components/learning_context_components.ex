@@ -22,6 +22,12 @@ defmodule LantternWeb.LearningContextComponents do
   attr :open_in_new, :boolean, default: false
   attr :hide_description, :boolean, default: false
   attr :strand_report_cover_image_url, :string, default: nil
+
+  attr :show_lock, :boolean,
+    default: false,
+    doc:
+      "shows a lock badge overlay when the strand is locked. Enable only on staff surfaces — never on student/guardian surfaces. Requires the `:locked_by_staff_member` preload for the full provenance tooltip"
+
   attr :id, :string, default: nil
   attr :class, :any, default: nil
 
@@ -75,6 +81,11 @@ defmodule LantternWeb.LearningContextComponents do
         </div>
         <div :if={@has_multiple_images} class="absolute bottom-2 flex justify-center w-full">
           <div class="slider-dots px-1 rounded-full bg-white" />
+        </div>
+        <div :if={@show_lock && @strand.is_locked} class="absolute top-2 left-2">
+          <.badge theme="dark" icon_name="hero-lock-closed-mini">
+            {gettext("Locked")}
+          </.badge>
         </div>
         <div :if={@on_star_click || @on_edit} class="absolute top-2 right-2 flex items-center gap-2">
           <.button :if={@on_edit} type="button" theme="ghost" size="sm" phx-click={@on_edit}>
