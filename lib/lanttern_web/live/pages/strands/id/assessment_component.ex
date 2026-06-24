@@ -96,8 +96,9 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
               <.button
                 type="button"
                 id="new-moment-assessment-button"
-                icon_name="hero-plus-mini"
+                icon_name={if @can_edit_strand, do: "hero-plus-mini", else: "hero-lock-closed-mini"}
                 theme="primary"
+                disabled={!@can_edit_strand}
               >
                 {gettext("New")}
               </.button>
@@ -152,6 +153,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
                     id={dom_id}
                     assessment_point={ap}
                     class="mt-2"
+                    can_edit={@can_edit_strand}
                     on_edit={JS.push("edit_assessment_point", value: %{id: ap.id}, target: @myself)}
                     myself={@myself}
                   />
@@ -180,6 +182,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
                   id={dom_id}
                   assessment_point={ap}
                   class="mb-2"
+                  can_edit={@can_edit_strand}
                   on_edit={JS.push("edit_assessment_point", value: %{id: ap.id}, target: @myself)}
                   myself={@myself}
                 />
@@ -210,6 +213,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
         id="assessment-point-form-overlay"
         current_scope={@current_scope}
         assessment_point={@assessment_point}
+        can_edit={@can_edit_strand}
         notify_component={@myself}
         title={@assessment_point_overlay_title}
         on_cancel={JS.push("close_assessment_point_form", target: @myself)}
@@ -224,6 +228,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
         current_scope={@current_scope}
         ap={@composition_overlay_ap}
         strand_id={@strand.id}
+        can_edit={@can_edit_strand}
         notify_component={@myself}
         initial_view={@composition_overlay_initial_view}
         on_cancel={JS.push("close_composition_overlay", target: @myself)}
@@ -249,6 +254,12 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
   attr :assessment_point, :map, required: true
   attr :on_edit, :any, required: true
   attr :myself, Phoenix.LiveComponent.CID, required: true
+
+  attr :can_edit, :boolean,
+    default: true,
+    doc:
+      "when false (strand locked, no lock authority), the composition/hide controls are disabled. Opening the AP overlay and viewing an existing composition stay enabled"
+
   attr :class, :any, default: nil
 
   defp assessment_point_card(assigns) do
@@ -277,6 +288,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
               <.button
                 type="button"
                 size="xs"
+                disabled={!@can_edit}
                 phx-click={
                   JS.push("add_composition",
                     value: %{"assessment_point_id" => @assessment_point.id},
@@ -314,6 +326,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
                   size="xs"
                   theme="primary"
                   icon_name="hero-eye-slash-micro"
+                  disabled={!@can_edit}
                   phx-click={
                     JS.push("toggle_hidden",
                       value: %{id: @assessment_point.id, hidden: false},
@@ -330,6 +343,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
                 <.button
                   type="button"
                   size="xs"
+                  disabled={!@can_edit}
                   phx-click={
                     JS.push("toggle_hidden",
                       value: %{id: @assessment_point.id, hidden: true},
@@ -737,21 +751,21 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
     end)
   end
 
+  # Opening the AP overlay is allowed even when locked — the overlay renders its
+  # Save/Delete disabled (view-only), so no guard here.
   def handle_event("edit_assessment_point", %{"id" => ap_id}, socket) do
-    guard_can_edit(socket, fn ->
-      socket =
-        if ap_id in socket.assigns.assessment_points_ids do
-          ap = Assessments.get_assessment_point!(ap_id)
+    socket =
+      if ap_id in socket.assigns.assessment_points_ids do
+        ap = Assessments.get_assessment_point!(ap_id)
 
-          socket
-          |> assign(:assessment_point, ap)
-          |> assign(:assessment_point_overlay_title, gettext("Edit assessment point"))
-        else
-          socket
-        end
+        socket
+        |> assign(:assessment_point, ap)
+        |> assign(:assessment_point_overlay_title, gettext("Edit assessment point"))
+      else
+        socket
+      end
 
-      {:noreply, socket}
-    end)
+    {:noreply, socket}
   end
 
   # -- composition
@@ -777,17 +791,17 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
     end)
   end
 
+  # Viewing an existing composition is allowed even when locked — the overview
+  # overlay renders its setup/manage control disabled, so no guard here.
   def handle_event("open_composition", %{"id" => ap_id}, socket) do
-    guard_can_edit(socket, fn ->
-      ap = Assessments.get_assessment_point!(ap_id, preloads: @ap_preloads)
+    ap = Assessments.get_assessment_point!(ap_id, preloads: @ap_preloads)
 
-      socket =
-        socket
-        |> assign(:composition_overlay_ap, ap)
-        |> assign(:composition_overlay_initial_view, :overview)
+    socket =
+      socket
+      |> assign(:composition_overlay_ap, ap)
+      |> assign(:composition_overlay_initial_view, :overview)
 
-      {:noreply, socket}
-    end)
+    {:noreply, socket}
   end
 
   def handle_event("close_composition_overlay", _params, socket),

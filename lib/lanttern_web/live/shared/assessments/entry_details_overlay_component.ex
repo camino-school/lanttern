@@ -5,6 +5,10 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
   When initializing the component, it will create the entry in the DB if it doesn't exist yet.
   ```
 
+  Pass `can_edit: false` (default `true`) to open the overlay read-only on a locked
+  strand: marking inputs, the missing toggle, notes, composition switches, evidence
+  editing, and the differentiation rubric are all disabled, while viewing the
+  composition breakdown stays available.
   """
   use LantternWeb, :live_component
 
@@ -57,6 +61,7 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
               ov_style_map={@ov_style_map}
               has_change={@has_teacher_change}
               is_composed={@is_composed}
+              can_edit={@can_edit}
             />
             <.tooltip :if={@is_composed} id={"entry-#{@id}-teacher-disabled-tooltip"}>
               {gettext("Manual input disabled (automatic calculation via grade composition)")}
@@ -110,6 +115,7 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
               type="toggle"
               label={gettext("Lack of evidence")}
               theme="alert"
+              disabled={!@can_edit}
             />
           </.form>
         </div>
@@ -119,6 +125,7 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
           form={@note_form}
           error={@save_note_error}
           theme="staff"
+          can_edit={@can_edit}
           on_edit={JS.push("edit_note", target: @myself)}
           on_cancel={JS.push("cancel_edit_note", target: @myself)}
           on_save={JS.push("save_note", target: @myself)}
@@ -141,6 +148,7 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
             <%= if @is_composed do %>
               <.button
                 size="sm"
+                disabled={!@can_edit}
                 phx-click="use_manual_input"
                 phx-target={@myself}
               >
@@ -159,6 +167,7 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
             <% else %>
               <.button
                 size="sm"
+                disabled={!@can_edit}
                 phx-click="use_automatic_calculation"
                 phx-target={@myself}
               >
@@ -193,7 +202,7 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
           current_user={@current_user}
           assessment_point_entry_id={@entry.id}
           title={gettext("Assessment point entry's evidences")}
-          allow_editing
+          allow_editing={@can_edit}
           notify_component={@myself}
         />
         <.diff_rubric_area
@@ -202,6 +211,7 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
           differentiation_rubric={@differentiation_rubric}
           diff_rubric_options={@diff_rubric_options}
           has_change={@has_diff_rubric_change}
+          can_edit={@can_edit}
           on_change={JS.push("change_diff_rubric", target: @myself)}
           on_cancel={JS.push("cancel_edit_diff_rubric", target: @myself)}
           on_save={JS.push("save_diff_rubric", target: @myself)}
@@ -225,6 +235,7 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
               ov_style_map={@ov_style_map}
               has_change={@has_student_change}
               is_composed={@is_composed}
+              can_edit={@can_edit}
             />
             <.tooltip :if={@is_composed} id={"entry-#{@id}-student-disabled-tooltip"}>
               {gettext("Manual input disabled (automatic calculation via grade composition)")}
@@ -261,6 +272,7 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
             error={@save_student_note_error}
             theme="student"
             student_name={@student.name}
+            can_edit={@can_edit}
             on_edit={JS.push("edit_student_note", target: @myself)}
             on_cancel={JS.push("cancel_edit_student_note", target: @myself)}
             on_save={JS.push("save_student_note", target: @myself)}
@@ -280,6 +292,7 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
   attr :ov_style_map, :map, required: true
   attr :has_change, :boolean, required: true
   attr :is_composed, :boolean, required: true
+  attr :can_edit, :boolean, default: true
 
   def marking_input(%{scale: %{type: "ordinal"}} = assigns) do
     field =
@@ -315,7 +328,7 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
       prompt="—"
       class={["py-3 rounded-xs font-mono text-sm text-center truncate", @class]}
       style={@style}
-      disabled={@is_composed}
+      disabled={@is_composed or not @can_edit}
     />
     """
   end
@@ -336,7 +349,7 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
       phx-debounce="1000"
       min="0"
       max={@scale.max_score}
-      disabled={@is_composed}
+      disabled={@is_composed or not @can_edit}
     />
     """
   end
@@ -347,6 +360,7 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
   attr :error, :string, required: true
   attr :theme, :string, required: true, doc: "teacher or student"
   attr :student_name, :string, default: nil
+  attr :can_edit, :boolean, default: true
   attr :on_edit, JS, required: true
   attr :on_cancel, JS, required: true
   attr :on_save, JS, required: true
@@ -391,7 +405,7 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
           <span class={@text_dark}>{@comment_text}</span>
         </div>
         <button
-          :if={!@is_editing}
+          :if={!@is_editing && @can_edit}
           phx-click={@on_edit}
           class={["font-display font-bold text-sm underline hover:opacity-50", @text_dark]}
         >
@@ -429,6 +443,7 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
   attr :form, Phoenix.HTML.Form, required: true
   attr :diff_rubric_options, :list, required: true
   attr :has_change, :boolean, required: true
+  attr :can_edit, :boolean, default: true
   attr :on_change, JS, required: true
   attr :on_cancel, JS, required: true
   attr :on_save, JS, required: true
@@ -450,6 +465,7 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
             field={@form[:differentiation_rubric_id]}
             prompt={gettext("No differentiation rubric")}
             options={@diff_rubric_options}
+            disabled={!@can_edit}
             phx-change={@on_change}
           />
           <div :if={@differentiation_rubric} class="mt-2">
@@ -505,6 +521,7 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
       |> assign(:is_editing_student_note, false)
       |> assign(:save_note_error, nil)
       |> assign(:save_student_note_error, nil)
+      |> assign(:can_edit, true)
 
     {:ok, socket}
   end

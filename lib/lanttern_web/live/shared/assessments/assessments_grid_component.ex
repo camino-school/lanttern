@@ -11,7 +11,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
       attr :current_user, User
       attr :current_scope, Scope
       attr :current_assessment_view, :string
-      attr :can_edit, :boolean, default: true, doc: "when false (strand locked, no lock authority), entry cells are read-only and the AP command palette is refused"
+      attr :can_edit, :boolean, default: true, doc: "when false (strand locked, no lock authority), entry inputs and the AP edit/composition/hide actions are disabled while the cell layout, detail view, and composition view stay available"
       attr :classes_ids, :list, doc: "list of classes_ids to filter results"
       attr :strand_id, :integer, doc: "defines a strand grid view"
       attr :strand, Strand, doc: "strand struct (with :subjects preloaded) enabling the grades report column group"
@@ -211,6 +211,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
         entry={@assessment_point_entry}
         current_user={@current_user}
         current_scope={@current_scope}
+        can_edit={@can_edit}
         on_cancel={JS.push("close_entry_details_overlay", target: @myself)}
         notify_component={@myself}
       />
@@ -220,6 +221,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
         id={"#{@id}-ap-command-palette"}
         ap={@command_palette_ap}
         current_scope={@current_scope}
+        can_edit={@can_edit}
         notify_component={@myself}
         on_cancel={JS.push("close_command_palette", target: @myself)}
       />
@@ -229,6 +231,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
         id={"#{@id}-assessment-point-form-overlay"}
         current_scope={@current_scope}
         assessment_point={@assessment_point_overlay}
+        can_edit={@can_edit}
         notify_component={@myself}
         title={gettext("Edit assessment point")}
         on_cancel={JS.push("close_assessment_point_form", target: @myself)}
@@ -241,6 +244,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
         current_scope={@current_scope}
         ap={@composition_overlay_ap}
         strand_id={@strand_id}
+        can_edit={@can_edit}
         notify_component={@myself}
         initial_view={@composition_overlay_initial_view}
         on_cancel={JS.push("close_composition_overlay", target: @myself)}
@@ -447,7 +451,8 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
           class="w-full h-full"
           entry={entry}
           view={@current_assessment_view}
-          allow_edit={@can_edit}
+          allow_edit={true}
+          can_edit={@can_edit}
           is_composed={
             entry.assessment_point_id in @composed_assessment_point_ids and
               not entry.use_manual_input
@@ -1278,25 +1283,16 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
   end
 
   def handle_event("open_command_palette", %{"id" => id}, socket) do
-    # The command palette opens AP edit / hide / composition actions — all
-    # in-scope strand mutations. On a locked strand without lock authority, refuse
-    # with a toast instead of crashing on the context guard's raise downstream.
-    if socket.assigns.can_edit do
-      ap =
-        Assessments.get_assessment_point!(
-          id,
-          preloads: [curriculum_item: :curriculum_component, scale: :ordinal_values]
-        )
+    # The palette opens even on a locked strand: it carries `can_edit` and renders
+    # its edit / add composition / hide actions disabled, while letting the user
+    # still open the AP overlay and view an existing composition (both read-only).
+    ap =
+      Assessments.get_assessment_point!(
+        id,
+        preloads: [curriculum_item: :curriculum_component, scale: :ordinal_values]
+      )
 
-      {:noreply, assign(socket, :command_palette_ap, ap)}
-    else
-      {:noreply,
-       put_flash(
-         socket,
-         :error,
-         gettext("This strand is locked. Unlock it to change assessment and marking.")
-       )}
-    end
+    {:noreply, assign(socket, :command_palette_ap, ap)}
   end
 
   def handle_event("close_command_palette", _, socket) do

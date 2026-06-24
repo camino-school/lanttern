@@ -14,6 +14,7 @@ defmodule LantternWeb.Assessments.AssessmentPointFormOverlayComponent do
   - `:notify_component`
   - `:notify_parent`
   - `:initial_curriculum_results` - list of `CurriculumItem` structs shown as suggestions before the user types
+  - `:can_edit` - boolean (default `true`). When `false` (strand locked, no lock authority), Save and Delete are disabled
   """
   use LantternWeb, :live_component
 
@@ -129,6 +130,9 @@ defmodule LantternWeb.Assessments.AssessmentPointFormOverlayComponent do
           <.button
             type="button"
             theme="ghost"
+            icon_name={unless @can_edit, do: "hero-lock-closed-mini"}
+            icon_side="left"
+            disabled={!@can_edit}
             phx-click="delete"
             phx-target={@myself}
             data-confirm={gettext("Are you sure?")}
@@ -147,7 +151,8 @@ defmodule LantternWeb.Assessments.AssessmentPointFormOverlayComponent do
           <.button
             type="submit"
             theme="primary"
-            icon_name="hero-check-mini"
+            icon_name={if @can_edit, do: "hero-check-mini", else: "hero-lock-closed-mini"}
+            disabled={!@can_edit}
             form={"#{@id}-form"}
             phx-disable-with={gettext("Saving...")}
           >
@@ -230,6 +235,7 @@ defmodule LantternWeb.Assessments.AssessmentPointFormOverlayComponent do
       |> assign(:initial_curriculum_results, [])
       |> assign(:rubric, nil)
       |> assign(:delete_error, nil)
+      |> assign(:can_edit, true)
       |> assign(:initialized, false)
 
     {:ok, socket}
