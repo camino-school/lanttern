@@ -122,8 +122,15 @@ defmodule Lanttern.Attachments do
     )
   end
 
-  defp maybe_filter_by_shared_with_student(queryable, _shared_tuple),
+  defp maybe_filter_by_shared_with_student(queryable, nil),
     do: queryable
+
+  defp maybe_filter_by_shared_with_student(_queryable, other),
+    do:
+      raise(ArgumentError,
+        message:
+          "expected :shared_with_student to be {:student_cycle_info, boolean} or nil, got: #{inspect(other)}"
+      )
 
   defp maybe_filter_by_is_teacher_only_resource(queryable, {:lesson, is_teacher_only_resource})
        when is_boolean(is_teacher_only_resource) do
@@ -133,8 +140,15 @@ defmodule Lanttern.Attachments do
     )
   end
 
-  defp maybe_filter_by_is_teacher_only_resource(queryable, _tuple),
+  defp maybe_filter_by_is_teacher_only_resource(queryable, nil),
     do: queryable
+
+  defp maybe_filter_by_is_teacher_only_resource(_queryable, other),
+    do:
+      raise(ArgumentError,
+        message:
+          "expected :is_teacher_only_resource to be {:lesson, boolean} or nil, got: #{inspect(other)}"
+      )
 
   @doc """
   Gets a single attachment.

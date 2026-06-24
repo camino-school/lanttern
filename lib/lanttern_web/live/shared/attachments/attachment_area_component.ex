@@ -19,8 +19,8 @@ defmodule LantternWeb.Attachments.AttachmentAreaComponent do
   - `assessment_point_entry_id` (optional, integer) - view supported contexts above
   - `student_cycle_info_id` (optional, integer) - view supported contexts above
   - `lesson_id` (optional, integer) - view supported contexts above
-  - `shared_with_student` (optional, boolean) - used with student cycle info. View supported contexts above
-  - `is_teacher_only_resource` (optional, boolean) - used with lesson. View supported contexts above
+  - `shared_with_student` (boolean) - **required** when using the student cycle info context (it drives access filtering, so a non-boolean raises). View supported contexts above
+  - `is_teacher_only_resource` (boolean) - **required** when using the lesson context (it drives access filtering, so a non-boolean raises). View supported contexts above
 
   """
 

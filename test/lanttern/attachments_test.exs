@@ -127,6 +127,17 @@ defmodule Lanttern.AttachmentsTest do
                )
     end
 
+    test "list_attachments/1 raises when shared_with_student opt is not a {:student_cycle_info, boolean} tuple" do
+      student_cycle_info = StudentsCycleInfoFixtures.student_cycle_info_fixture()
+
+      assert_raise ArgumentError, fn ->
+        Attachments.list_attachments(
+          student_cycle_info_id: student_cycle_info.id,
+          shared_with_student: false
+        )
+      end
+    end
+
     test "list_attachments/1 with ilp_comment_id opts returns all attachments linked to given ILP comment" do
       ilp_comment = insert(:ilp_comment)
 
@@ -357,6 +368,7 @@ defmodule Lanttern.AttachmentsTest do
         )
 
       assert expected_teacher.id == teacher_attachment.id
+      assert expected_teacher.is_teacher_only == true
 
       # only student attachments
       [expected_shared] =
@@ -366,6 +378,15 @@ defmodule Lanttern.AttachmentsTest do
         )
 
       assert expected_shared.id == shared_attachment.id
+      assert expected_shared.is_teacher_only == false
+    end
+
+    test "list_attachments/1 raises when is_teacher_only_resource opt is not a {:lesson, boolean} tuple" do
+      lesson = insert(:lesson)
+
+      assert_raise ArgumentError, fn ->
+        Attachments.list_attachments(lesson_id: lesson.id, is_teacher_only_resource: false)
+      end
     end
   end
 end
