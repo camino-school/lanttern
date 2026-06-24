@@ -368,6 +368,7 @@ defmodule Lanttern.AttachmentsTest do
         )
 
       assert expected_teacher.id == teacher_attachment.id
+      assert expected_teacher.is_teacher_only == true
 
       # only student attachments
       [expected_shared] =
@@ -377,6 +378,7 @@ defmodule Lanttern.AttachmentsTest do
         )
 
       assert expected_shared.id == shared_attachment.id
+      assert expected_shared.is_teacher_only == false
     end
 
     test "list_attachments/1 raises when is_teacher_only_resource opt is not a {:lesson, boolean} tuple" do
