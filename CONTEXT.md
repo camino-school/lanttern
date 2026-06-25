@@ -4,18 +4,21 @@ A glossary of the ubiquitous language. No implementation details — terms only.
 
 ## Strand lock
 
-A boolean state on a **strand** (`is_locked`) that freezes the strand and
-**all** of its owned data (moments, lessons, assessment points, grade
-entries/markings, evidence, curriculum items, class assignments). While locked,
-those mutations are blocked for ordinary staff.
+A boolean state on a **strand** (`is_locked`) that freezes its **assessment and
+marking** so the grade families saw can't change after a report card is shared.
+While locked, those mutations are blocked for ordinary staff. The lock is a
+manual, reversible action — not an automatic lifecycle side effect.
 
-- **Owned** by the strand (frozen by the lock): moments, lessons + their
-  attachments/curriculum-items, assessment points + entries + evidence,
-  composition components, assessment **rubrics** (+ descriptors), strand
-  curriculum items, class assignments.
-- **Excluded** from the lock: strand **reports** and **grade components** (both
-  governed by the report-card lifecycle, not the strand); lesson **tags**
-  (school-owned); and per-user state (starring, strand filters, AI chat).
+- **Frozen** by the lock: **assessment points** (and their order), **marking**
+  (assessment point entries), and **composition structure** (which components
+  make up a composed grade, and their weights).
+- **Left editable** while locked (not assessment/marking, so they can't change a
+  shared grade): strand details, moments, lessons + attachments/curriculum-items,
+  rubrics + descriptors + AP↔rubric links, strand curriculum items, class
+  assignments, and entry **evidence**.
+- **Outside the lock entirely** (governed elsewhere): strand **reports** and
+  **grade components** (report-card lifecycle); lesson **tags** (school-owned);
+  per-user state (starring, strand filters, AI chat).
 - A lock is a *freeze*, not a *delete* — read access is unchanged.
 
 ## Strand lock management (permission)

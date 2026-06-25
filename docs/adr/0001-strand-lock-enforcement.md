@@ -24,10 +24,24 @@ composition-component, and AP-position paths so a lesson-level AP can't silently
 lock.
 
 **Uniform `raise` on locked-without-permission**, mirroring the codebase's
-`true = Scope.has_permission?(...)` style. The UI hides affordances up front (defense in
-depth); the guard is the backstop. The lock-state race — a non-holder opens an edit form,
-the strand is then locked, they submit — is consciously accepted as a rare crash rather than
-handled as a recoverable `{:error, :strand_locked}`.
+`true = Scope.has_permission?(...)` style. The context guard is the backstop for any path the
+UI misses (see the UI-gating decision below); it is not a substitute for it. The lock-state
+race — a non-holder opens an edit form, the strand is then locked, they submit — is consciously
+accepted as a rare crash rather than handled as a recoverable `{:error, :strand_locked}`.
+
+**UI gating softens the raise — affordances are never hidden.** At the LiveView layer the
+locked-out user must get a friendly message, not a 500, so the assessment/marking affordances
+stay **visible**: each is either **disabled** (read-only) or left active with the action
+**refused via a toast** (an `{:error, ...}`-style flash). Concretely — marking grid cells are
+disabled (`EntryCellComponent.allow_edit`), the AP-reorder Sortable hook is not attached when
+locked, and the AP create/edit/hide/composition buttons + grid command palette stay active but
+their `handle_event` pre-checks a derived `can_edit_strand` boolean and toasts when locked. This
+deliberately deviates from "hide what you can't do": hiding was rejected because threading a
+`disabled`/visibility flag through a dozen buttons and the shared overlays is more churn than a
+single derived boolean + a per-event pre-check, and because a visible-but-disabled control plus
+a lock indicator explains *why* editing is blocked. A 🔒 lock indicator (badge + "Locked by X
+on Y" from the provenance columns) is shown to **everyone** when the strand is locked, on staff
+surfaces only — never on student/guardian surfaces.
 
 **Bypass + lock authority is one permission, `strand_lock_management`** — named for what it
 governs (toggle the lock + edit while locked), *not* a general strand-admin role. Ordinary
