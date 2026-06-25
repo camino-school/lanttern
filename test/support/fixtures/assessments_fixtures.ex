@@ -35,7 +35,7 @@ defmodule Lanttern.AssessmentsFixtures do
         score: nil,
         ordinal_value_id: nil
       })
-      |> Lanttern.Assessments.create_assessment_point_entry()
+      |> then(&Lanttern.Assessments.create_assessment_point_entry(%Lanttern.Identity.Scope{}, &1))
 
     assessment_point_entry
   end
@@ -56,7 +56,7 @@ defmodule Lanttern.AssessmentsFixtures do
         scale_id: scale.id,
         scale_type: scale.type
       })
-      |> Lanttern.Assessments.create_assessment_point_entry()
+      |> then(&Lanttern.Assessments.create_assessment_point_entry(%Lanttern.Identity.Scope{}, &1))
 
     assessment_point_entry
   end

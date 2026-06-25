@@ -3,6 +3,7 @@ defmodule LantternWeb.StrandLive do
 
   alias Lanttern.Identity.Scope
   alias Lanttern.LearningContext
+  alias Lanttern.Strands
 
   # page components
   alias __MODULE__.AssessmentComponent
@@ -19,6 +20,9 @@ defmodule LantternWeb.StrandLive do
     only: [assign_strand_class_assignments: 1, assign_strand_classes_filter: 1]
 
   import LantternWeb.LearningContextComponents, only: [mini_strand_card: 1]
+  import LantternWeb.StrandsComponents, only: [strand_lock_bar: 1]
+
+  @strand_preloads [:subjects, :years, :moments, :locked_by_staff_member]
 
   # lifecycle
 
@@ -40,7 +44,7 @@ defmodule LantternWeb.StrandLive do
   defp assign_strand(socket, %{"id" => id}) do
     LearningContext.get_strand(id,
       show_starred_for_profile_id: socket.assigns.current_user.current_profile_id,
-      preloads: [:subjects, :years, :moments]
+      preloads: @strand_preloads
     )
     |> case do
       strand when is_nil(strand) ->
@@ -52,7 +56,24 @@ defmodule LantternWeb.StrandLive do
         socket
         |> assign(:strand, strand)
         |> assign(:page_title, strand.name)
+        |> assign_strand_lock()
     end
+  end
+
+  # Computes the two derived booleans threaded into the assessment surfaces:
+  # - `has_strand_lock_management` gates the lock/unlock control itself
+  #   (independent of lock state);
+  # - `can_edit_strand` gates the assessment/marking affordances (free to edit
+  #   while unlocked; while locked only lock-management holders may edit).
+  defp assign_strand_lock(socket) do
+    has_lock_management =
+      Scope.has_permission?(socket.assigns.current_scope, "strand_lock_management")
+
+    can_edit_strand = not socket.assigns.strand.is_locked or has_lock_management
+
+    socket
+    |> assign(:has_strand_lock_management, has_lock_management)
+    |> assign(:can_edit_strand, can_edit_strand)
   end
 
   @impl true
@@ -89,6 +110,25 @@ defmodule LantternWeb.StrandLive do
   # event handlers
 
   @impl true
+  def handle_event("toggle_lock", _params, socket) do
+    %{current_scope: scope, strand: strand} = socket.assigns
+
+    {:ok, _strand} =
+      if strand.is_locked,
+        do: Strands.unlock_strand(scope, strand),
+        else: Strands.lock_strand(scope, strand)
+
+    flash_msg =
+      if strand.is_locked, do: gettext("Strand unlocked"), else: gettext("Strand locked")
+
+    socket =
+      socket
+      |> assign_strand(%{"id" => strand.id})
+      |> put_flash(:info, flash_msg)
+
+    {:noreply, socket}
+  end
+
   def handle_event("delete_strand", _params, socket) do
     case LearningContext.delete_strand(socket.assigns.strand) do
       {:ok, _strand} ->
@@ -117,6 +157,8 @@ defmodule LantternWeb.StrandLive do
 
   @impl true
   def handle_info({StrandFormComponent, {:saved, strand}}, socket) do
-    {:noreply, assign(socket, :strand, strand)}
+    # Reload through `assign_strand/2` to keep the lock provenance preload and
+    # derived booleans in sync (the saved struct lacks them).
+    {:noreply, assign_strand(socket, %{"id" => strand.id})}
   end
 end

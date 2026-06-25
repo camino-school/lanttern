@@ -19,6 +19,7 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
       attr :entry, AssessmentPointEntry
       attr :current_scope, Scope
       attr :allow_edit, :boolean
+      attr :can_edit, :boolean, default: true, doc: "when false (strand locked), the editable layout still renders but the marking input is disabled (read-only); the detail view, missing indicator, and icon tooltips stay available"
       attr :is_composed, :boolean, default: false
       attr :view, :string, default: "teacher", doc: "teacher | student | compare. When compare, disallow edit"
       attr :class, :any
@@ -44,8 +45,8 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
         @grid_class,
         @class
       ]}
-      tabindex={if @form, do: "0"}
-      phx-hook={if @form, do: "EntryCell"}
+      tabindex={if @form && @can_edit, do: "0"}
+      phx-hook={if @form && @can_edit, do: "EntryCell"}
       data-scale-type={if @form, do: @entry.scale_type}
       data-is-composed={if @is_composed, do: "true"}
     >
@@ -83,6 +84,7 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
                 ov_options={@ov_options}
                 field={@field}
                 input_id={"entry-#{@id}-#{@field.name}"}
+                disabled={!@can_edit}
                 style={if(@has_changes, do: "background-color: white", else: @field_style)}
               />
               <.missing_indicator entry={@entry} />
@@ -140,6 +142,7 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
   attr :ov_options, :list
   attr :style, :string
   attr :input_id, :string, required: true
+  attr :disabled, :boolean, default: false
 
   def marking_input(%{scale_type: "ordinal"} = assigns) do
     current_label =
@@ -155,7 +158,7 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
       <div
         class={[
           "flex items-center justify-center w-full h-full rounded-xs font-mono text-sm px-1",
-          "cursor-pointer hover:opacity-60",
+          if(@disabled, do: "cursor-not-allowed", else: "cursor-pointer hover:opacity-60"),
           is_nil(@current_label) && "text-ltrn-subtle bg-ltrn-lighter"
         ]}
         style={if @current_label, do: @style}
@@ -198,6 +201,7 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
       type="text"
       inputmode="decimal"
       phx-debounce="1000"
+      disabled={@disabled}
       value={format_score_input_value(@field.value)}
       errors={@field.errors}
       style={@style}
@@ -300,6 +304,7 @@ defmodule LantternWeb.Assessments.EntryCellComponent do
       |> assign(:grid_class, nil)
       |> assign(:view, "teacher")
       |> assign(:allow_edit, false)
+      |> assign(:can_edit, true)
       |> assign(:is_composed, false)
       |> assign(:has_changes, false)
       |> assign(:is_invalid, false)

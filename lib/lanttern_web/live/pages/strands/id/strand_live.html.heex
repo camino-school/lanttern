@@ -70,6 +70,25 @@
               on_click={JS.exec("data-show", to: "#strand-class-assignment-modal")}
             />
             <:item
+              :if={@has_strand_lock_management}
+              id={"toggle-lock-strand-#{@strand.id}"}
+              text={
+                if @strand.is_locked, do: gettext("Unlock strand"), else: gettext("Lock strand")
+              }
+              on_click={JS.push("toggle_lock")}
+              confirm_msg={
+                if @strand.is_locked,
+                  do:
+                    gettext(
+                      "Are you sure? Unlocking lets anyone edit this strand's assessment and marking again."
+                    ),
+                  else:
+                    gettext(
+                      "Are you sure? Locking prevents changes to this strand's assessment and marking."
+                    )
+              }
+            />
+            <:item
               id={"remove-strand-#{@strand.id}"}
               text={gettext("Delete")}
               theme="alert"
@@ -80,6 +99,7 @@
         </div>
       </div>
     </.header_nav>
+    <.strand_lock_bar strand={@strand} tz={@current_user.tz} class="mx-4 mt-4" />
     <.live_component
       :if={@live_action == :lessons}
       module={LessonsComponent}
@@ -115,6 +135,7 @@
       strand={@strand}
       current_user={@current_user}
       current_scope={@current_scope}
+      can_edit_strand={@can_edit_strand}
       selected_classes_ids={@selected_classes_ids}
       params={@params}
     />

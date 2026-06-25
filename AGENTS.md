@@ -1,5 +1,7 @@
 # AGENTS.md — Lanttern Core
 
+<!-- CLAUDE.md and AGENTS.md must be kept in sync — they are mirrors. Edit one, then copy it to the other. -->
+
 ## 🎯 Project Context & Persona
 Lanttern is a Phoenix-based web application for educational assessment and learning management.
 *   **Primary Stack**: Elixir, Phoenix 1.8+, LiveView, PostgreSQL.
@@ -21,6 +23,9 @@ Lanttern is a Phoenix-based web application for educational assessment and learn
 *   New context functions **must** take `Scope` as the first param: `def list_items(%Scope{} = scope, attrs)`.
 *   Until the Scope migration is complete, use `current_user` (`%User{}`) inside functions to extract profile/school data for access control.
 *   Permission checks raise on failure (MatchError), e.g. `true = Scope.has_permission?(...)`.
+
+### UI & Design
+*   At "sm" and (especially) "xs" font sizes, default to `font-sans` — the display and serif fonts are hard to read when small.
 
 ### LiveView
 *   Assign to a `socket` variable before returning the tuple — never inline the pipe in `{:noreply, ...}`:
@@ -46,3 +51,17 @@ Lanttern is a Phoenix-based web application for educational assessment and learn
 *   Elixir / Phoenix / Ecto / LiveView: [`deps/phoenix/usage-rules/`](deps/phoenix/usage-rules/) (`elixir.md`, `phoenix.md`, `ecto.md`, `liveview.md`)
 *   igniter: [`deps/igniter/usage-rules.md`](deps/igniter/usage-rules.md)
 *   usage_rules: [`deps/usage_rules/usage-rules.md`](deps/usage_rules/usage-rules.md)
+
+## Agent skills
+
+### Issue tracker
+
+Issues are tracked as GitHub issues in `camino-school/lanttern` (via the `gh` CLI). See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Default five-role vocabulary (`needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`); all exist as GitHub labels. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context layout (`CONTEXT.md` + `docs/adr/` at the repo root). See `docs/agents/domain.md`.

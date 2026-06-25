@@ -657,4 +657,81 @@ defmodule LantternWeb.StrandLive.AssessmentComponentTest do
       }
     end
   end
+
+  describe "strand lock" do
+    test "the 'New' assessment point button is disabled when locked for a non-holder", %{
+      conn: conn
+    } do
+      strand = insert(:strand, is_locked: true)
+      insert(:moment, strand: strand, name: "Moment One")
+
+      conn
+      |> visit("#{@live_view_base_path}/#{strand.id}/assessment")
+      |> assert_has("#new-moment-assessment-button[disabled]")
+    end
+
+    test "AP composition and hide controls are disabled when locked for a non-holder", %{
+      conn: conn
+    } do
+      strand = insert(:strand, is_locked: true)
+      moment = insert(:moment, strand: strand)
+      insert(:assessment_point, name: "Locked AP", moment_id: moment.id)
+
+      conn
+      |> visit("#{@live_view_base_path}/#{strand.id}/assessment")
+      |> assert_has("button[disabled]", text: "Add composition")
+      |> assert_has("button[disabled]", text: "Hide")
+    end
+
+    test "the AP reorder hook is not attached when locked for a non-holder", %{conn: conn} do
+      strand = insert(:strand, is_locked: true)
+      insert(:assessment_point, strand_id: strand.id, name: "Goal AP")
+
+      conn
+      |> visit("#{@live_view_base_path}/#{strand.id}/assessment")
+      |> refute_has("#strand-sortable-aps[phx-hook='Sortable']")
+    end
+
+    test "the AP reorder hook stays attached on an unlocked strand", %{conn: conn} do
+      strand = insert(:strand, is_locked: false)
+      insert(:assessment_point, strand_id: strand.id, name: "Goal AP")
+
+      conn
+      |> visit("#{@live_view_base_path}/#{strand.id}/assessment")
+      |> assert_has("#strand-sortable-aps[phx-hook='Sortable']")
+    end
+
+    test "a guarded event reaching the server while locked is refused with a flash", %{
+      conn: conn
+    } do
+      # The dropdown menu items aren't disabled (only the trigger button is), so
+      # firing one exercises the `guard_can_edit/2` backstop directly: the action is
+      # refused with a toast instead of opening the form (or crashing on the context
+      # guard's raise).
+      strand = insert(:strand, is_locked: true)
+
+      {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{strand.id}/assessment")
+
+      view
+      |> element("#new-moment-assessment button", "Strand goal")
+      |> render_click()
+
+      assert render(view) =~ "This strand is locked"
+      # the AP form overlay did not open
+      refute view |> has_element?("#assessment-point-form-overlay")
+    end
+
+    test "affordances stay active for a lock-management holder even when locked", context do
+      %{conn: conn} = set_user_permissions(["strand_lock_management"], context)
+      strand = insert(:strand, is_locked: true)
+      moment = insert(:moment, strand: strand)
+      insert(:moment, strand: strand, name: "Moment One")
+      insert(:assessment_point, name: "Holder AP", moment_id: moment.id)
+
+      conn
+      |> visit("#{@live_view_base_path}/#{strand.id}/assessment")
+      |> refute_has("#new-moment-assessment-button[disabled]")
+      |> refute_has("button[disabled]", text: "Add composition")
+    end
+  end
 end

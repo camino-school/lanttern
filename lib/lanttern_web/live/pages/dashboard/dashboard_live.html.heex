@@ -21,6 +21,7 @@
         :for={{dom_id, strand} <- @streams.starred_strands}
         id={dom_id}
         strand={strand}
+        show_lock
         on_star_click={JS.push("unstar", value: %{id: strand.id, dom_id: dom_id})}
         navigate={~p"/strands/#{strand}"}
         class="shrink-0 w-64 sm:w-auto"

@@ -148,7 +148,7 @@ defmodule LantternWeb.MarkingLiveTest do
       {:ok, student} = Schools.update_student(student, %{classes_ids: [class.id]})
 
       {:ok, _entry} =
-        Assessments.create_assessment_point_entry(%{
+        Assessments.create_assessment_point_entry(%Lanttern.Identity.Scope{}, %{
           student_id: student.id,
           assessment_point_id: assessment_point.id,
           scale_id: scale.id,
@@ -777,6 +777,99 @@ defmodule LantternWeb.MarkingLiveTest do
         "#{@live_view_path}/#{strand.id}/assessment/marking?classes_ids=#{class.id}&grades_report_filter=#{value}"
       )
       |> assert_has("button", text: "2 filters")
+    end
+  end
+
+  describe "strand lock" do
+    # Builds a markable grid (one ordinal AP, one enrolled student) for a strand
+    # locked or unlocked per `:is_locked`. No entry is created, so cells start empty.
+    defp setup_lockable_marking(%{user: user}, is_locked) do
+      school = Repo.get!(Lanttern.Schools.School, user.current_profile.school_id)
+      strand = insert(:strand, is_locked: is_locked)
+      class = insert(:class, school: school)
+      insert(:class_assignment, strand: strand, class: class)
+
+      scale = insert(:scale, school: school, type: "ordinal", breakpoints: [0.4, 0.8])
+      insert(:ordinal_value, scale: scale, name: "OV One")
+
+      assessment_point =
+        insert(:assessment_point, strand_id: strand.id, name: "Locked AP", scale: scale)
+
+      student = insert(:student, school: school) |> Repo.preload(:classes)
+      {:ok, student} = Schools.update_student(student, %{classes_ids: [class.id]})
+
+      %{strand: strand, class: class, student: student, assessment_point: assessment_point}
+    end
+
+    test "shows the lock indicator when the strand is locked", %{conn: conn} = context do
+      %{strand: strand, class: class} = setup_lockable_marking(context, true)
+
+      conn
+      |> visit("#{@live_view_path}/#{strand.id}/assessment/marking?classes_ids=#{class.id}")
+      |> assert_has("p", text: "This strand is locked")
+    end
+
+    test "marking cells are read-only when locked for a non-holder", %{conn: conn} = context do
+      %{strand: strand, class: class} = setup_lockable_marking(context, true)
+
+      conn
+      |> visit("#{@live_view_path}/#{strand.id}/assessment/marking?classes_ids=#{class.id}")
+      |> refute_has("[phx-hook='EntryCell']")
+    end
+
+    test "marking cells stay editable for a lock-management holder even when locked",
+         context do
+      %{conn: conn} = set_user_permissions(["strand_lock_management"], context)
+      %{strand: strand, class: class} = setup_lockable_marking(context, true)
+
+      conn
+      |> visit("#{@live_view_path}/#{strand.id}/assessment/marking?classes_ids=#{class.id}")
+      |> assert_has("[phx-hook='EntryCell']")
+    end
+
+    test "marking cells are editable on an unlocked strand", %{conn: conn} = context do
+      %{strand: strand, class: class} = setup_lockable_marking(context, false)
+
+      conn
+      |> visit("#{@live_view_path}/#{strand.id}/assessment/marking?classes_ids=#{class.id}")
+      |> assert_has("[phx-hook='EntryCell']")
+      |> refute_has("p", text: "This strand is locked")
+    end
+
+    test "opening an unmarked cell's details on a locked strand does not crash or create an entry",
+         %{conn: conn} = context do
+      # Regression: the detail overlay used to eagerly insert an entry on open, which
+      # hit the lock guard and raised (500). On a locked strand it must open read-only
+      # without persisting a row.
+      %{strand: strand, class: class, student: student, assessment_point: ap} =
+        setup_lockable_marking(context, true)
+
+      {:ok, view, _html} =
+        live(conn, "#{@live_view_path}/#{strand.id}/assessment/marking?classes_ids=#{class.id}")
+
+      view
+      |> element(
+        "#cell-student-#{student.id}-entry-for-#{ap.id} button[phx-click='view_details']"
+      )
+      |> render_click()
+
+      # the overlay opened (read-only) ...
+      assert render(view) =~ "Student self-assessment"
+      # ... and no entry was persisted
+      assert Repo.aggregate(Lanttern.Assessments.AssessmentPointEntry, :count, :id) == 0
+    end
+
+    test "command palette edit stays enabled but composition/hide are disabled when locked",
+         %{conn: conn} = context do
+      %{strand: strand, class: class} = setup_lockable_marking(context, true)
+
+      conn
+      |> visit("#{@live_view_path}/#{strand.id}/assessment/marking?classes_ids=#{class.id}")
+      |> within("#grid-assessment-points", &click_button(&1, "Locked AP"))
+      |> assert_has("button", text: "Edit assessment point")
+      |> refute_has("button[disabled]", text: "Edit assessment point")
+      |> assert_has("button[disabled]", text: "Add grade composition")
+      |> assert_has("button[disabled]", text: "Hide from students")
     end
   end
 end

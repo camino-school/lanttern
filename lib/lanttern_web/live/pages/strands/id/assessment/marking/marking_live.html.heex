@@ -10,6 +10,7 @@
   </div>
 
   <div>
+    <.strand_lock_bar strand={@strand} tz={@current_user.tz} class="mx-4 mb-4" />
     <div class="flex items-center justify-center gap-4 px-4 mb-4">
       <.button
         :if={@assigned_classes != []}
@@ -35,6 +36,7 @@
       current_user={@current_user}
       current_scope={@current_scope}
       current_assessment_view={@current_assessment_view}
+      can_edit={@can_edit_strand}
       strand={@strand}
       strand_id={@strand.id}
       strand_grades_report_cards={@strand_grades_report_cards}

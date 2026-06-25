@@ -12,6 +12,10 @@ defmodule LantternWeb.AssessmentComposition.AssessmentPointCompositionOverlayCom
 
   Navigates between views without closing the modal. Notifies the parent on
   composition updates (so the card refreshes) and on deletion (which closes the modal).
+
+  Pass `can_edit: false` (default `true`) to keep the overview read-only on a
+  locked strand: the setup/manage control is disabled, so the editable `:setup`
+  view is unreachable while the user can still view the composition.
   """
 
   use LantternWeb, :live_component
@@ -38,6 +42,7 @@ defmodule LantternWeb.AssessmentComposition.AssessmentPointCompositionOverlayCom
             <.button
               type="button"
               theme={if @composition_components == [], do: "primary"}
+              disabled={!@can_edit}
               phx-click="show_setup"
               phx-target={@myself}
               class="shrink-0"
@@ -225,6 +230,7 @@ defmodule LantternWeb.AssessmentComposition.AssessmentPointCompositionOverlayCom
     socket =
       socket
       |> assign(:view, :overview)
+      |> assign(:can_edit, true)
       |> assign(:composition_components, [])
       |> assign(:all_aps, [])
       |> assign(:selected_ids, MapSet.new())

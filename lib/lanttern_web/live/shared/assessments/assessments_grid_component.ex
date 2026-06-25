@@ -11,6 +11,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
       attr :current_user, User
       attr :current_scope, Scope
       attr :current_assessment_view, :string
+      attr :can_edit, :boolean, default: true, doc: "when false (strand locked, no lock authority), entry inputs and the AP edit/composition/hide actions are disabled while the cell layout, detail view, and composition view stay available"
       attr :classes_ids, :list, doc: "list of classes_ids to filter results"
       attr :strand_id, :integer, doc: "defines a strand grid view"
       attr :strand, Strand, doc: "strand struct (with :subjects preloaded) enabling the grades report column group"
@@ -154,6 +155,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
                 student_grade_cells={grade_cells}
                 myself={@myself}
                 current_assessment_view={@current_assessment_view}
+                can_edit={@can_edit}
                 view_bg={@view_bg}
                 current_user={@current_user}
                 composed_assessment_point_ids={@composed_assessment_point_ids}
@@ -208,6 +210,8 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
         id={"#{@id}-entry-details-overlay"}
         entry={@assessment_point_entry}
         current_user={@current_user}
+        current_scope={@current_scope}
+        can_edit={@can_edit}
         on_cancel={JS.push("close_entry_details_overlay", target: @myself)}
         notify_component={@myself}
       />
@@ -217,6 +221,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
         id={"#{@id}-ap-command-palette"}
         ap={@command_palette_ap}
         current_scope={@current_scope}
+        can_edit={@can_edit}
         notify_component={@myself}
         on_cancel={JS.push("close_command_palette", target: @myself)}
       />
@@ -226,6 +231,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
         id={"#{@id}-assessment-point-form-overlay"}
         current_scope={@current_scope}
         assessment_point={@assessment_point_overlay}
+        can_edit={@can_edit}
         notify_component={@myself}
         title={gettext("Edit assessment point")}
         on_cancel={JS.push("close_assessment_point_form", target: @myself)}
@@ -238,6 +244,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
         current_scope={@current_scope}
         ap={@composition_overlay_ap}
         strand_id={@strand_id}
+        can_edit={@can_edit}
         notify_component={@myself}
         initial_view={@composition_overlay_initial_view}
         on_cancel={JS.push("close_composition_overlay", target: @myself)}
@@ -415,6 +422,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
   attr :student_grade_cells, :list, required: true
   attr :myself, Phoenix.LiveComponent.CID, required: true
   attr :current_assessment_view, :string, required: true
+  attr :can_edit, :boolean, required: true
   attr :view_bg, :string, required: true
   attr :current_user, User, required: true
   attr :composed_assessment_point_ids, :any, required: true
@@ -444,6 +452,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
           entry={entry}
           view={@current_assessment_view}
           allow_edit={true}
+          can_edit={@can_edit}
           is_composed={
             entry.assessment_point_id in @composed_assessment_point_ids and
               not entry.use_manual_input
@@ -684,6 +693,7 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
     socket =
       socket
       |> assign(:class, nil)
+      |> assign(:can_edit, true)
       |> assign(:classes_ids, [])
       |> assign(:strand, nil)
       |> assign(:strand_id, nil)
@@ -1129,13 +1139,14 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
     else
       %{
         entries_changes_map: entries_changes_map,
-        current_user: current_user
+        current_user: current_user,
+        current_scope: current_scope
       } = socket.assigns
 
       changes = Map.values(entries_changes_map)
 
       socket =
-        case Assessments.save_assessment_point_entries(changes,
+        case Assessments.save_assessment_point_entries(current_scope, changes,
                log_profile_id: current_user.current_profile_id
              ) do
           {:ok, count} ->
@@ -1272,6 +1283,9 @@ defmodule LantternWeb.Assessments.AssessmentsGridComponent do
   end
 
   def handle_event("open_command_palette", %{"id" => id}, socket) do
+    # The palette opens even on a locked strand: it carries `can_edit` and renders
+    # its edit / add composition / hide actions disabled, while letting the user
+    # still open the AP overlay and view an existing composition (both read-only).
     ap =
       Assessments.get_assessment_point!(
         id,

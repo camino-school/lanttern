@@ -14,7 +14,8 @@ defmodule LantternWeb.PersonalizationHelpers do
     "ilp_management" => "ILP management",
     "agents_management" => "AI agents management",
     "assessment_management" => "Assessment management",
-    "curriculum_management" => "Curriculum management"
+    "curriculum_management" => "Curriculum management",
+    "strand_lock_management" => "Strand lock management"
   }
 
   @doc """

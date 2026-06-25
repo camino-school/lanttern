@@ -55,6 +55,7 @@
         :for={{dom_id, strand} <- @streams.strands}
         id={dom_id}
         strand={strand}
+        show_lock
         on_star_click={
           JS.push(
             if(strand.is_starred, do: "unstar-strand", else: "star-strand"),

@@ -1266,9 +1266,9 @@ defmodule Lanttern.GradesReportsTest do
       # that is now empty, delete the entry
 
       # delete std 3 entries
-      Assessments.delete_assessment_point_entry(entry_3_1)
-      Assessments.delete_assessment_point_entry(entry_3_2)
-      Assessments.delete_assessment_point_entry(entry_3_diff)
+      Assessments.delete_assessment_point_entry(%Lanttern.Identity.Scope{}, entry_3_1)
+      Assessments.delete_assessment_point_entry(%Lanttern.Identity.Scope{}, entry_3_2)
+      Assessments.delete_assessment_point_entry(%Lanttern.Identity.Scope{}, entry_3_diff)
 
       assert {:ok, nil, :deleted} =
                GradesReports.calculate_student_grade(
@@ -1812,9 +1812,9 @@ defmodule Lanttern.GradesReportsTest do
           grades_report_subject_1.id
         )
 
-      Assessments.delete_assessment_point_entry(entry_1_1)
-      Assessments.delete_assessment_point_entry(entry_1_2)
-      Assessments.delete_assessment_point_entry(entry_1_3)
+      Assessments.delete_assessment_point_entry(%Lanttern.Identity.Scope{}, entry_1_1)
+      Assessments.delete_assessment_point_entry(%Lanttern.Identity.Scope{}, entry_1_2)
+      Assessments.delete_assessment_point_entry(%Lanttern.Identity.Scope{}, entry_1_3)
 
       # UPDATE CASE - pre calculate subject 3
       {:ok, %{id: student_grades_report_entry_3_id}, :created} =
@@ -2206,9 +2206,9 @@ defmodule Lanttern.GradesReportsTest do
           grades_report_subject.id
         )
 
-      Assessments.delete_assessment_point_entry(entry_1_1)
-      Assessments.delete_assessment_point_entry(entry_1_2)
-      Assessments.delete_assessment_point_entry(entry_1_3)
+      Assessments.delete_assessment_point_entry(%Lanttern.Identity.Scope{}, entry_1_1)
+      Assessments.delete_assessment_point_entry(%Lanttern.Identity.Scope{}, entry_1_2)
+      Assessments.delete_assessment_point_entry(%Lanttern.Identity.Scope{}, entry_1_3)
 
       # UPDATE CASE - pre calculate student 3
       {:ok, %{id: student_3_grade_report_entry_id}, :created} =
@@ -3070,9 +3070,9 @@ defmodule Lanttern.GradesReportsTest do
           grades_report_subject_1.id
         )
 
-      Assessments.delete_assessment_point_entry(entry_1_1)
-      Assessments.delete_assessment_point_entry(entry_1_2)
-      Assessments.delete_assessment_point_entry(entry_1_3)
+      Assessments.delete_assessment_point_entry(%Lanttern.Identity.Scope{}, entry_1_1)
+      Assessments.delete_assessment_point_entry(%Lanttern.Identity.Scope{}, entry_1_2)
+      Assessments.delete_assessment_point_entry(%Lanttern.Identity.Scope{}, entry_1_3)
 
       # UPDATE CASE - pre calculate student 3
       {:ok, %{id: student_3_grade_report_entry_id}, :created} =

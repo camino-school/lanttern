@@ -339,4 +339,222 @@ defmodule Lanttern.StrandsTest do
       end
     end
   end
+
+  describe "strand lock changesets (schema)" do
+    alias Lanttern.LearningContext.Strand
+
+    test "lock_changeset/2 stamps locked_at and keeps locked_by_staff_member_id when locking" do
+      changeset =
+        Strand.lock_changeset(%Strand{}, %{is_locked: true, locked_by_staff_member_id: 7})
+
+      assert changeset.valid?
+      assert get_change(changeset, :is_locked) == true
+      assert get_change(changeset, :locked_by_staff_member_id) == 7
+      assert %DateTime{} = get_change(changeset, :locked_at)
+    end
+
+    test "lock_changeset/2 clears locked_at and locked_by_staff_member_id when unlocking" do
+      locked = %Strand{
+        is_locked: true,
+        locked_at: ~U[2025-01-01 00:00:00Z],
+        locked_by_staff_member_id: 7
+      }
+
+      changeset = Strand.lock_changeset(locked, %{is_locked: false})
+
+      assert changeset.valid?
+      assert get_change(changeset, :is_locked) == false
+      assert get_change(changeset, :locked_at) == nil
+      assert get_change(changeset, :locked_by_staff_member_id) == nil
+    end
+
+    test "lock_changeset/2 requires is_locked" do
+      changeset = Strand.lock_changeset(%Strand{is_locked: true}, %{is_locked: nil})
+
+      refute changeset.valid?
+      assert %{is_locked: ["can't be blank"]} = errors_on(changeset)
+    end
+
+    test "changeset/2 does not cast is_locked or its provenance" do
+      changeset =
+        Strand.changeset(%Strand{}, %{
+          name: "n",
+          description: "d",
+          is_locked: true,
+          locked_at: ~U[2025-01-01 00:00:00Z],
+          locked_by_staff_member_id: 7
+        })
+
+      refute Map.has_key?(changeset.changes, :is_locked)
+      refute Map.has_key?(changeset.changes, :locked_at)
+      refute Map.has_key?(changeset.changes, :locked_by_staff_member_id)
+    end
+  end
+
+  describe "lock_strand/2 and unlock_strand/2" do
+    alias Lanttern.LearningContext.Strand
+    alias Lanttern.LearningContext.StrandLog
+
+    import Lanttern.Factory
+    import Lanttern.IdentityFixtures, only: [staff_scope_fixture: 1]
+
+    test "lock_strand/2 locks the strand and stamps provenance for a holder" do
+      scope = staff_scope_fixture(permissions: ["strand_lock_management"])
+      strand = insert(:strand)
+
+      assert {:ok, %Strand{} = locked} = Strands.lock_strand(scope, strand)
+      assert locked.is_locked
+      assert %DateTime{} = locked.locked_at
+      assert locked.locked_by_staff_member_id == scope.staff_member_id
+    end
+
+    test "lock_strand/2 raises for a non-holder" do
+      scope = staff_scope_fixture(permissions: [])
+      strand = insert(:strand)
+
+      assert_raise MatchError, fn -> Strands.lock_strand(scope, strand) end
+    end
+
+    test "lock_strand/2 is idempotent and re-stamps provenance on an already-locked strand" do
+      scope = staff_scope_fixture(permissions: ["strand_lock_management"])
+
+      strand =
+        insert(:strand,
+          is_locked: true,
+          locked_at: ~U[2020-01-01 00:00:00Z],
+          locked_by_staff_member_id: nil
+        )
+
+      assert {:ok, %Strand{} = locked} = Strands.lock_strand(scope, strand)
+      assert locked.is_locked
+      assert DateTime.compare(locked.locked_at, ~U[2020-01-01 00:00:00Z]) == :gt
+      assert locked.locked_by_staff_member_id == scope.staff_member_id
+    end
+
+    test "lock_strand/2 writes a StrandLog UPDATE row" do
+      scope = staff_scope_fixture(permissions: ["strand_lock_management"])
+      strand = insert(:strand)
+
+      assert {:ok, _} = Strands.lock_strand(scope, strand)
+
+      assert [%StrandLog{} = log] = Repo.all(StrandLog)
+      assert log.operation == "UPDATE"
+      assert log.strand_id == strand.id
+      assert log.profile_id == scope.profile_id
+      assert log.is_locked == true
+    end
+
+    test "unlock_strand/2 unlocks and clears provenance for a holder" do
+      scope = staff_scope_fixture(permissions: ["strand_lock_management"])
+
+      strand =
+        insert(:strand,
+          is_locked: true,
+          locked_at: ~U[2025-01-01 00:00:00Z],
+          locked_by_staff_member_id: scope.staff_member_id
+        )
+
+      assert {:ok, %Strand{} = unlocked} = Strands.unlock_strand(scope, strand)
+      refute unlocked.is_locked
+      assert unlocked.locked_at == nil
+      assert unlocked.locked_by_staff_member_id == nil
+    end
+
+    test "unlock_strand/2 raises for a non-holder" do
+      scope = staff_scope_fixture(permissions: [])
+      strand = insert(:strand, is_locked: true)
+
+      assert_raise MatchError, fn -> Strands.unlock_strand(scope, strand) end
+    end
+
+    test "unlock_strand/2 writes a StrandLog UPDATE row" do
+      scope = staff_scope_fixture(permissions: ["strand_lock_management"])
+      strand = insert(:strand, is_locked: true)
+
+      assert {:ok, _} = Strands.unlock_strand(scope, strand)
+
+      assert [%StrandLog{} = log] = Repo.all(StrandLog)
+      assert log.operation == "UPDATE"
+      assert log.strand_id == strand.id
+      assert log.profile_id == scope.profile_id
+      assert log.is_locked == false
+    end
+  end
+
+  describe "strand_locked?/1" do
+    import Lanttern.Factory
+
+    test "returns true for a locked strand" do
+      strand = insert(:strand, is_locked: true)
+      assert Strands.strand_locked?(strand.id)
+    end
+
+    test "returns false for an unlocked strand" do
+      strand = insert(:strand)
+      refute Strands.strand_locked?(strand.id)
+    end
+
+    test "returns false for a missing strand" do
+      refute Strands.strand_locked?(-1)
+    end
+  end
+
+  describe "ensure_strand_editable!/2" do
+    import Lanttern.Factory
+    import Lanttern.IdentityFixtures, only: [staff_scope_fixture: 0, staff_scope_fixture: 1]
+
+    test "returns :ok for a nil strand_id" do
+      assert :ok = Strands.ensure_strand_editable!(staff_scope_fixture(), nil)
+    end
+
+    test "returns :ok for an unlocked strand" do
+      strand = insert(:strand)
+      assert :ok = Strands.ensure_strand_editable!(staff_scope_fixture(), strand.id)
+    end
+
+    test "returns :ok for a locked strand when the scope holds the permission" do
+      scope = staff_scope_fixture(permissions: ["strand_lock_management"])
+      strand = insert(:strand, is_locked: true)
+      assert :ok = Strands.ensure_strand_editable!(scope, strand.id)
+    end
+
+    test "raises for a locked strand without the permission" do
+      strand = insert(:strand, is_locked: true)
+
+      assert_raise RuntimeError, fn ->
+        Strands.ensure_strand_editable!(staff_scope_fixture(), strand.id)
+      end
+    end
+  end
+
+  describe "strand lock — out-of-scope mutations stay editable while locked" do
+    import Lanttern.Factory
+    import Lanttern.IdentityFixtures, only: [staff_scope_fixture: 0]
+
+    test "strand curriculum items remain editable on a locked strand" do
+      scope = staff_scope_fixture()
+      strand = insert(:strand, is_locked: true)
+      curriculum_item = insert(:curriculum_item)
+
+      assert {:ok, _} =
+               Strands.create_strand_curriculum_item(scope, %{
+                 position: 1,
+                 strand_id: strand.id,
+                 curriculum_item_id: curriculum_item.id
+               })
+    end
+
+    test "class assignments remain editable on a locked strand" do
+      scope = staff_scope_fixture()
+      school = Repo.get!(Lanttern.Schools.School, scope.school_id)
+      strand = insert(:strand, is_locked: true)
+      class = insert(:class, school: school)
+
+      assert {:ok, _} =
+               Strands.create_strand_class_assignment(scope, %{
+                 strand_id: strand.id,
+                 class_id: class.id
+               })
+    end
+  end
 end

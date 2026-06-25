@@ -11,6 +11,12 @@ defmodule LantternWeb.Assessments.AssessmentPointCommandPaletteComponent do
   - `:current_scope` - `Scope` (used to check if the AP is itself a component)
   - `:on_cancel` - JS action to close the palette
   - `:notify_component` - parent LiveComponent CID (`@myself`)
+
+  ### Optional attrs
+
+  - `:can_edit` - boolean (default `true`). When `false` (strand locked, no lock
+    authority), the edit / add composition / hide actions are disabled. Managing
+    an existing composition stays enabled so the user can still view it.
   """
   use LantternWeb, :live_component
 
@@ -22,6 +28,7 @@ defmodule LantternWeb.Assessments.AssessmentPointCommandPaletteComponent do
   attr :current_scope, Scope, required: true
   attr :on_cancel, :any, required: true, doc: "JS action to close the palette"
   attr :notify_component, :any, required: true, doc: "parent LiveComponent CID (`@myself`)"
+  attr :can_edit, :boolean, default: true
 
   @impl true
   def render(assigns) do
@@ -30,6 +37,8 @@ defmodule LantternWeb.Assessments.AssessmentPointCommandPaletteComponent do
       <.modal id={@id} show on_cancel={@on_cancel}>
         <:title>{@ap.name}</:title>
         <div class="-mx-10">
+          <%!-- Edit stays enabled even when locked: it opens the AP form overlay,
+                which renders its Save/Delete disabled (view-only). --%>
           <div class="px-10 pb-10">
             <.button type="button" phx-click="edit" phx-target={@myself}>
               {gettext("Edit assessment point")}
@@ -38,7 +47,12 @@ defmodule LantternWeb.Assessments.AssessmentPointCommandPaletteComponent do
           <div class="border-t border-ltrn-light p-10">
             <%= if !@ap.uses_composition do %>
               <%= if @component_of == [] do %>
-                <.button type="button" phx-click="add_composition" phx-target={@myself}>
+                <.button
+                  type="button"
+                  disabled={!@can_edit}
+                  phx-click="add_composition"
+                  phx-target={@myself}
+                >
                   {gettext("Add grade composition")}
                 </.button>
                 <p class="mt-4">
@@ -93,6 +107,7 @@ defmodule LantternWeb.Assessments.AssessmentPointCommandPaletteComponent do
                 type="button"
                 theme="primary"
                 icon_name="hero-eye-slash-micro"
+                disabled={!@can_edit}
                 phx-click="toggle_hidden"
                 phx-target={@myself}
               >
@@ -102,7 +117,12 @@ defmodule LantternWeb.Assessments.AssessmentPointCommandPaletteComponent do
                 {gettext("Students won't see marking results for this assessment point.")}
               </p>
             <% else %>
-              <.button type="button" phx-click="toggle_hidden" phx-target={@myself}>
+              <.button
+                type="button"
+                disabled={!@can_edit}
+                phx-click="toggle_hidden"
+                phx-target={@myself}
+              >
                 {gettext("Hide from students")}
               </.button>
               <p class="mt-4">

@@ -11,10 +11,112 @@ defmodule Lanttern.Strands do
   alias Ecto.Multi
   alias Lanttern.Repo
 
+  alias Lanttern.AuditLog
   alias Lanttern.Identity.Scope
+  alias Lanttern.LearningContext.Strand
+  alias Lanttern.LearningContext.StrandLog
   alias Lanttern.Schools.Class
   alias Lanttern.Strands.ClassAssignment
   alias Lanttern.Strands.StrandCurriculumItem
+
+  # strand lock
+
+  @doc """
+  Locks a strand, blocking content mutations for users without lock authority.
+
+  Requires the `strand_lock_management` permission (raises otherwise). Stamps the
+  lock provenance (`locked_at` + `locked_by_staff_member_id`) from the scope and
+  records a `StrandLog` `"UPDATE"` entry.
+
+  Re-locking an already-locked strand is allowed and simply re-stamps the provenance.
+
+  ## Examples
+
+      iex> lock_strand(scope, strand)
+      {:ok, %Strand{is_locked: true}}
+
+  """
+  @spec lock_strand(Scope.t(), Strand.t()) ::
+          {:ok, Strand.t()} | {:error, Ecto.Changeset.t()}
+  def lock_strand(%Scope{} = scope, %Strand{} = strand) do
+    true = Scope.has_permission?(scope, "strand_lock_management")
+
+    strand
+    |> Strand.lock_changeset(%{
+      is_locked: true,
+      locked_by_staff_member_id: scope.staff_member_id
+    })
+    |> Repo.update()
+    |> AuditLog.maybe_log(StrandLog, "UPDATE", scope, [])
+  end
+
+  @doc """
+  Unlocks a strand, restoring normal content mutations for all staff.
+
+  Requires the `strand_lock_management` permission (raises otherwise). Clears the
+  lock provenance (`locked_at` + `locked_by_staff_member_id`) and records a
+  `StrandLog` `"UPDATE"` entry.
+
+  ## Examples
+
+      iex> unlock_strand(scope, strand)
+      {:ok, %Strand{is_locked: false}}
+
+  """
+  @spec unlock_strand(Scope.t(), Strand.t()) ::
+          {:ok, Strand.t()} | {:error, Ecto.Changeset.t()}
+  def unlock_strand(%Scope{} = scope, %Strand{} = strand) do
+    true = Scope.has_permission?(scope, "strand_lock_management")
+
+    strand
+    |> Strand.lock_changeset(%{is_locked: false})
+    |> Repo.update()
+    |> AuditLog.maybe_log(StrandLog, "UPDATE", scope, [])
+  end
+
+  @doc """
+  Returns `true` if the strand with the given id exists and is locked.
+
+  A missing strand is treated as not locked (returns `false`); existence is
+  enforced by the mutation itself, not by this guard.
+
+  ## Examples
+
+      iex> strand_locked?(123)
+      true
+
+  """
+  @spec strand_locked?(pos_integer()) :: boolean()
+  def strand_locked?(strand_id) do
+    Repo.exists?(from(s in Strand, where: s.id == ^strand_id and s.is_locked))
+  end
+
+  @doc """
+  Central guard for every strand-owned mutation.
+
+  Raises when the strand is locked and the scope lacks the `strand_lock_management`
+  permission; returns `:ok` otherwise. Each context resolves the owning `strand_id`
+  with its own FK knowledge before calling this leaf guard, which only ever queries
+  the `strands` table.
+
+  ## Examples
+
+      iex> ensure_strand_editable!(scope, 123)
+      :ok
+
+  """
+  @spec ensure_strand_editable!(Scope.t(), pos_integer() | nil) :: :ok
+  def ensure_strand_editable!(%Scope{} = _scope, nil), do: :ok
+
+  def ensure_strand_editable!(%Scope{} = scope, strand_id) do
+    if strand_locked?(strand_id) and
+         not Scope.has_permission?(scope, "strand_lock_management") do
+      raise "strand #{strand_id} is locked and cannot be edited without the " <>
+              "strand_lock_management permission"
+    end
+
+    :ok
+  end
 
   @doc """
   Subscribes to scoped notifications about any strand_curriculum_item changes.
