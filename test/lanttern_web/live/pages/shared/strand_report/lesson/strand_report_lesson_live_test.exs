@@ -134,6 +134,42 @@ defmodule LantternWeb.StrandReportLessonLiveTest do
     end
   end
 
+  describe "lesson attachments" do
+    test "shows shared attachments but not teacher-only attachments", context do
+      %{conn: conn, student: student} = register_and_log_in_student(context)
+
+      report_card = insert(:report_card)
+
+      _student_report_card =
+        insert(:student_report_card,
+          student: student,
+          report_card: report_card,
+          allow_access: true
+        )
+
+      strand = insert(:strand)
+      strand_report = insert(:strand_report, report_card: report_card, strand: strand)
+      lesson = insert(:lesson, strand: strand, is_published: true)
+
+      insert(:lesson_attachment,
+        lesson: lesson,
+        is_teacher_only_resource: true,
+        attachment: build(:attachment, name: "Teacher Only Doc")
+      )
+
+      insert(:lesson_attachment,
+        lesson: lesson,
+        is_teacher_only_resource: false,
+        attachment: build(:attachment, name: "Shared Doc")
+      )
+
+      conn
+      |> visit("#{@live_view_path_base}/#{strand_report.id}/lesson/#{lesson.id}")
+      |> assert_has("#lesson-attachments", text: "Shared Doc")
+      |> refute_has("#lesson-attachments", text: "Teacher Only Doc")
+    end
+  end
+
   describe "StudentAssessmentPointDetailsOverlayComponent in lesson view" do
     test "renders assessment point details overlay when navigating to ap id path", context do
       %{conn: conn, student: student} = register_and_log_in_student(context)

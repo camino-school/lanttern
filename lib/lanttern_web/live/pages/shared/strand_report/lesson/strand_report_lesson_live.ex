@@ -130,7 +130,7 @@ defmodule LantternWeb.StrandReportLessonLive do
     attachments =
       Attachments.list_attachments(
         lesson_id: socket.assigns.lesson.id,
-        is_teacher_only_resource: false
+        is_teacher_only_resource: {:lesson, false}
       )
 
     assign(socket, :attachments, attachments)
