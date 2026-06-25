@@ -249,7 +249,15 @@ defmodule Lanttern.AssessmentComposition do
   defp normalize_parent_id(nil), do: nil
   defp normalize_parent_id(""), do: nil
   defp normalize_parent_id(id) when is_integer(id), do: id
-  defp normalize_parent_id(id) when is_binary(id), do: String.to_integer(id)
+
+  # A malformed/non-numeric id degrades to nil (guard no-ops) rather than raising
+  # `ArgumentError` — the downstream component changeset rejects the bad parent anyway.
+  defp normalize_parent_id(id) when is_binary(id) do
+    case Integer.parse(id) do
+      {int, _rest} -> int
+      :error -> nil
+    end
+  end
 
   defp composed_component_ids([]), do: []
 

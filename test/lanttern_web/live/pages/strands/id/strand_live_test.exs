@@ -138,4 +138,88 @@ defmodule LantternWeb.StrandLiveTest do
       assert_redirect(view, "/strands")
     end
   end
+
+  describe "strand lock" do
+    test "lock control is hidden without strand_lock_management permission", %{conn: conn} do
+      strand = insert(:strand, is_locked: false)
+
+      conn
+      |> visit("#{@live_view_base_path}/#{strand.id}")
+      |> refute_has("#toggle-lock-strand-#{strand.id}")
+    end
+
+    test "lock control is shown for a holder and reads 'Lock strand' when unlocked", context do
+      %{conn: conn} = set_user_permissions(["strand_lock_management"], context)
+      strand = insert(:strand, is_locked: false)
+
+      conn
+      |> visit("#{@live_view_base_path}/#{strand.id}")
+      |> assert_has("#toggle-lock-strand-#{strand.id}", text: "Lock strand")
+    end
+
+    test "lock control reads 'Unlock strand' for a holder when the strand is locked", context do
+      %{conn: conn} = set_user_permissions(["strand_lock_management"], context)
+      strand = insert(:strand, is_locked: true)
+
+      conn
+      |> visit("#{@live_view_base_path}/#{strand.id}")
+      |> assert_has("#toggle-lock-strand-#{strand.id}", text: "Unlock strand")
+    end
+
+    test "a holder can lock a strand, persisting the lock and showing the indicator", context do
+      %{conn: conn} = set_user_permissions(["strand_lock_management"], context)
+      strand = insert(:strand, is_locked: false)
+
+      {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{strand.id}")
+
+      refute view |> has_element?("p", "This strand is locked")
+
+      view
+      |> element("#toggle-lock-strand-#{strand.id}")
+      |> render_click()
+
+      assert view |> has_element?("p", "This strand is locked")
+      assert %{is_locked: true} = Lanttern.Repo.get!(Lanttern.LearningContext.Strand, strand.id)
+    end
+
+    test "a holder can unlock a locked strand", context do
+      %{conn: conn} = set_user_permissions(["strand_lock_management"], context)
+      strand = insert(:strand, is_locked: true)
+
+      {:ok, view, _html} = live(conn, "#{@live_view_base_path}/#{strand.id}")
+
+      view
+      |> element("#toggle-lock-strand-#{strand.id}")
+      |> render_click()
+
+      refute view |> has_element?("p", "This strand is locked")
+      assert %{is_locked: false} = Lanttern.Repo.get!(Lanttern.LearningContext.Strand, strand.id)
+    end
+
+    test "the lock indicator shows provenance to everyone when the strand is locked", %{
+      conn: conn
+    } do
+      staff_member = insert(:staff_member, name: "Coordinator Jane")
+
+      strand =
+        insert(:strand,
+          is_locked: true,
+          locked_at: ~U[2026-06-01 10:00:00Z],
+          locked_by_staff_member: staff_member
+        )
+
+      conn
+      |> visit("#{@live_view_base_path}/#{strand.id}")
+      |> assert_has("p", text: "This strand is locked")
+      |> assert_has("p", text: "Locked by Coordinator Jane")
+    end
+
+    test "the lock indicator is hidden when the strand is unlocked", %{conn: conn} do
+      strand = insert(:strand, is_locked: false)
+
+      conn
+      |> visit("#{@live_view_base_path}/#{strand.id}")
+      |> refute_has("p", text: "This strand is locked")
+    end
+  end
 end

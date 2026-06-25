@@ -89,5 +89,8 @@ Two consequences of the narrowing:
   by the entry, composition-component, and AP-position paths (no longer the evidence path, which
   is now out of scope).
 
-The **lock trigger is manual and permanent** — staff lock a strand when a report cycle is
-shared. Auto-lock-on-share was considered and rejected as the intended workflow.
+The **lock trigger is manual and reversible** — staff lock a strand when a report cycle is
+shared, and a `strand_lock_management` holder can unlock it again (e.g. to let teachers fix a
+generalized marking error found after sharing) and re-lock. Auto-lock-on-share was considered
+and rejected as the intended workflow; both lock and unlock are deliberate human actions,
+audited in `StrandLog`.

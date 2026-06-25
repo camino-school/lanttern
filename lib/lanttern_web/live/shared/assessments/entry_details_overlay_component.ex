@@ -609,6 +609,14 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
     assign(socket, :differentiation_rubric, differentiation_rubric)
   end
 
+  # On a locked strand (read-only for this user) don't persist an empty entry just
+  # to view it — that would hit the `create_assessment_point_entry` lock guard and
+  # raise. Render the overlay from the in-memory placeholder; every write affordance
+  # is already disabled via `can_edit`. (Eagerly creating on open for the editable
+  # case is intentionally left as-is here — see the deferred-creation follow-up #567.)
+  defp maybe_create_and_assign_entry(%{assigns: %{entry: %{id: nil}, can_edit: false}} = socket),
+    do: socket
+
   defp maybe_create_and_assign_entry(%{assigns: %{entry: %{id: nil}}} = socket) do
     params =
       %{
@@ -1110,7 +1118,8 @@ defmodule LantternWeb.Assessments.EntryDetailsOverlayComponent do
   # recalc is idempotent — a no-op when already in sync — so only when a stored
   # value actually changed do we refresh the form inputs and notify the parent
   # grid to re-render the (now corrected) value.
-  defp maybe_sync_composed_entry(%{assigns: %{is_composed: true}} = socket) do
+  defp maybe_sync_composed_entry(%{assigns: %{is_composed: true, entry: %{id: id}}} = socket)
+       when not is_nil(id) do
     current = socket.assigns.entry
     synced = recalculate_entry(current, socket.assigns.current_user)
 

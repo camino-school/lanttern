@@ -18,8 +18,8 @@ defmodule LantternWeb.StrandsComponents do
   Renders a lock indicator bar, shown only when the strand is locked.
 
   Surfaces *why* assessment/marking edits are blocked. Visible to everyone (no
-  permission needed). Pass an `:action` slot (e.g. the unlock control) to render
-  on the right for users with lock authority.
+  permission needed). The lock/unlock control itself lives in the strand header menu
+  (gated by `strand_lock_management`), not here — this bar is purely the indicator.
   """
   attr :strand, Strand,
     required: true,
@@ -27,8 +27,6 @@ defmodule LantternWeb.StrandsComponents do
 
   attr :tz, :string, default: nil
   attr :class, :any, default: nil
-
-  slot :action, doc: "optional right-aligned content (e.g. the unlock control)"
 
   def strand_lock_bar(assigns) do
     ~H"""
@@ -41,7 +39,6 @@ defmodule LantternWeb.StrandsComponents do
         <p class="font-bold">{gettext("This strand is locked")}</p>
         <p>{lock_provenance_text(@strand, @tz)}</p>
       </div>
-      {render_slot(@action)}
     </div>
     """
   end

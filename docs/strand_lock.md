@@ -11,8 +11,11 @@ mutations to its **assessment points**, **assessment point entries (marking)**, 
 **assessment-point composition structure** are blocked — **except** for users holding a new
 `strand_lock_management` permission, who can edit those while locked and toggle the lock.
 
-The lock is a **manual, permanent** action: staff with `strand_lock_management` lock a strand
-when a report cycle is shared. There is no automatic lock-on-share hook.
+The lock is a **manual, reversible** action: staff with `strand_lock_management` lock a strand
+when a report cycle is shared, and can unlock it again when needed. There is no automatic
+lock-on-share hook. "Reversible" does not mean casual: unlocking is a deliberate
+`strand_lock_management` action for a real reason (e.g. a generalized marking error is found
+after sharing — the holder unlocks so teachers can fix it, then re-locks).
 
 **Scope narrowed (issue #564).** An earlier revision blocked *everything* strand-owned
 (moments, lessons, rubrics, curriculum items, class assignments, …). The blast radius was
@@ -32,9 +35,12 @@ re-planned below.
   **assessment point entries / marking** (CRUD + bulk save), and **composition structure**
   (`replace_assessment_point_components` + component CRUD). Everything else strand-owned stays
   editable while locked — see Excluded below.
-- **Lock trigger:** **manual and permanent.** A `strand_lock_management` holder locks the strand
-  (e.g. once a report cycle is shared). Auto-lock-on-report-share was considered and **rejected**
-  as the intended workflow — the lock is a deliberate human action, not a lifecycle side effect.
+- **Lock trigger:** **manual and reversible.** A `strand_lock_management` holder locks the strand
+  (e.g. once a report cycle is shared) and can unlock it again. Auto-lock-on-report-share was
+  considered and **rejected** as the intended workflow — the lock is a deliberate human action,
+  not a lifecycle side effect. Unlock is the same kind of deliberate action: e.g. a coordinator
+  locks a shared strand, a generalized error surfaces, the coordinator unlocks so teachers can
+  correct it, then re-locks. Both transitions are audited in `StrandLog`.
 - **Why composition is *in* but marking-adjacent data is *out*:** the goal is that the **grade
   families saw** can't change after sharing. Editing an entry changes it directly; editing a
   *component* entry changes it via recalc (also blocked — component entries *are* entries). But

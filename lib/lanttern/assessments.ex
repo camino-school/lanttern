@@ -193,12 +193,21 @@ defmodule Lanttern.Assessments do
     |> strand_id_from_assessment_point()
   end
 
+  # A malformed/non-numeric id degrades to nil (guard no-ops) rather than raising
+  # `ArgumentError` — the downstream insert/changeset rejects the bad id anyway.
   defp attr_id(attrs, key) do
     case Map.get(attrs, key) || Map.get(attrs, Atom.to_string(key)) do
       nil -> nil
       "" -> nil
       id when is_integer(id) -> id
-      id when is_binary(id) -> String.to_integer(id)
+      id when is_binary(id) -> parse_id(id)
+    end
+  end
+
+  defp parse_id(id) when is_binary(id) do
+    case Integer.parse(id) do
+      {int, _rest} -> int
+      :error -> nil
     end
   end
 
@@ -206,14 +215,16 @@ defmodule Lanttern.Assessments do
   defp maybe_strand_id_from_ap(nil), do: nil
   defp maybe_strand_id_from_ap(ap_id), do: strand_id_from_assessment_point(ap_id)
 
-  # Bulk save: resolve the distinct APs once (not per row) and guard each. The grid
-  # batch is single-strand, so a locked strand raises for the whole batch.
+  # Bulk save: the grid batch is single-strand (scoped to one strand/moment), so
+  # resolve the owning strand once from the first AP — consistent with
+  # update_assessment_points_positions/2 — and guard the whole batch.
   defp ensure_save_entries_strand_editable(%Scope{} = scope, maps) do
-    maps
-    |> Enum.map(&attr_id(&1, :assessment_point_id))
-    |> Enum.reject(&is_nil/1)
-    |> Enum.uniq()
-    |> Enum.each(&Strands.ensure_strand_editable!(scope, strand_id_from_assessment_point(&1)))
+    strand_id =
+      maps
+      |> Enum.find_value(&attr_id(&1, :assessment_point_id))
+      |> maybe_strand_id_from_ap()
+
+    Strands.ensure_strand_editable!(scope, strand_id)
   end
 
   @doc """
