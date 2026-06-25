@@ -217,7 +217,9 @@ defmodule LantternWeb.Layouts do
           id="client-error"
           kind={:error}
           title={gettext("We can't find the internet")}
-          phx-disconnected={show(".phx-client-error #client-error") |> JS.remove_attribute("hidden")}
+          phx-disconnected={
+            show_flash(".phx-client-error #client-error") |> JS.remove_attribute("hidden")
+          }
           phx-connected={hide("#client-error") |> JS.set_attribute({"hidden", ""})}
           hidden
         >
@@ -229,7 +231,9 @@ defmodule LantternWeb.Layouts do
           id="server-error"
           kind={:error}
           title={gettext("Something went wrong!")}
-          phx-disconnected={show(".phx-server-error #server-error") |> JS.remove_attribute("hidden")}
+          phx-disconnected={
+            show_flash(".phx-server-error #server-error") |> JS.remove_attribute("hidden")
+          }
           phx-connected={hide("#server-error") |> JS.set_attribute({"hidden", ""})}
           hidden
         >
@@ -239,6 +243,22 @@ defmodule LantternWeb.Layouts do
       </div>
     </div>
     """
+  end
+
+  # The connection/server-error flashes are revealed via JS. We can't reuse the
+  # shared overlay `show/2` here because it forces `display: flex`, which turns the
+  # flash card into a flex row and collapses its inner layout (text stops expanding,
+  # the close button jumps out of the top-right). Keep the card's default block
+  # layout while still animating it in.
+  defp show_flash(selector) do
+    JS.show(
+      to: selector,
+      display: "block",
+      transition:
+        {"transition-all transform ease-out duration-300",
+         "opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95",
+         "opacity-100 translate-y-0 sm:scale-100"}
+    )
   end
 
   # @doc """
