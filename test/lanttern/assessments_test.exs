@@ -2854,4 +2854,184 @@ defmodule Lanttern.AssessmentsTest do
       assert entry_2.has_evidences == false
     end
   end
+
+  describe "strand lock enforcement" do
+    # Co-located with the guarded functions (the lock guard is wired into each, just
+    # like the staff-scope checks). The holder-bypass path is covered once at the guard
+    # unit in `Lanttern.StrandsTest` (`ensure_strand_editable!/2`), so these only assert
+    # the per-function raise. A bare `%Scope{}` has no permissions → it is the non-holder.
+    alias Lanttern.Identity.Scope
+
+    setup do
+      strand = insert(:strand, is_locked: true)
+      scale = insert(:scale)
+      ap = insert(:assessment_point, strand: strand, scale: scale)
+      student = insert(:student)
+
+      %{strand: strand, scale: scale, ap: ap, student: student, scope: %Scope{}}
+    end
+
+    test "create_assessment_point raises when the strand is locked", %{
+      scope: scope,
+      strand: strand,
+      scale: scale
+    } do
+      ci = insert(:curriculum_item)
+
+      attrs = %{name: "AP", strand_id: strand.id, scale_id: scale.id, curriculum_item_id: ci.id}
+
+      assert_raise RuntimeError, fn -> Assessments.create_assessment_point(scope, attrs) end
+    end
+
+    test "update_assessment_point raises when the strand is locked", %{scope: scope, ap: ap} do
+      assert_raise RuntimeError, fn ->
+        Assessments.update_assessment_point(scope, ap, %{name: "new"})
+      end
+    end
+
+    test "delete_assessment_point raises when the strand is locked", %{scope: scope, ap: ap} do
+      assert_raise RuntimeError, fn -> Assessments.delete_assessment_point(scope, ap) end
+    end
+
+    test "delete_assessment_point_and_entries raises when the strand is locked", %{
+      scope: scope,
+      ap: ap
+    } do
+      assert_raise RuntimeError, fn ->
+        Assessments.delete_assessment_point_and_entries(scope, ap)
+      end
+    end
+
+    test "update_assessment_points_positions raises when the strand is locked", %{
+      scope: scope,
+      ap: ap
+    } do
+      assert_raise RuntimeError, fn ->
+        Assessments.update_assessment_points_positions(scope, [ap.id])
+      end
+    end
+
+    test "create_assessment_point_entry raises when the strand is locked", %{
+      scope: scope,
+      ap: ap,
+      scale: scale,
+      student: student
+    } do
+      attrs = entry_attrs(ap, scale, student)
+
+      assert_raise RuntimeError, fn ->
+        Assessments.create_assessment_point_entry(scope, attrs)
+      end
+    end
+
+    test "update_assessment_point_entry raises when the strand is locked", %{
+      scope: scope,
+      ap: ap,
+      scale: scale,
+      student: student
+    } do
+      entry =
+        insert(:assessment_point_entry, assessment_point: ap, scale: scale, student: student)
+
+      assert_raise RuntimeError, fn ->
+        Assessments.update_assessment_point_entry(scope, entry, %{score: 1.0})
+      end
+    end
+
+    test "delete_assessment_point_entry raises when the strand is locked", %{
+      scope: scope,
+      ap: ap,
+      scale: scale,
+      student: student
+    } do
+      entry =
+        insert(:assessment_point_entry, assessment_point: ap, scale: scale, student: student)
+
+      assert_raise RuntimeError, fn ->
+        Assessments.delete_assessment_point_entry(scope, entry)
+      end
+    end
+
+    test "save_assessment_point_entries raises when the strand is locked", %{
+      scope: scope,
+      ap: ap,
+      scale: scale,
+      student: student
+    } do
+      assert_raise RuntimeError, fn ->
+        Assessments.save_assessment_point_entries(scope, [entry_attrs(ap, scale, student)])
+      end
+    end
+  end
+
+  describe "strand lock enforcement — strand_id resolution" do
+    # The guard must find the owning strand through every AP→strand branch, so a
+    # moment- or lesson-level AP can't silently escape the lock.
+    alias Lanttern.Identity.Scope
+
+    setup do
+      %{scope: %Scope{}, scale: insert(:scale), student: insert(:student)}
+    end
+
+    test "a strand-level AP resolves to its locked strand", %{
+      scope: scope,
+      scale: scale,
+      student: student
+    } do
+      strand = insert(:strand, is_locked: true)
+      ap = insert(:assessment_point, strand: strand, scale: scale)
+
+      assert_raise RuntimeError, fn ->
+        Assessments.create_assessment_point_entry(scope, entry_attrs(ap, scale, student))
+      end
+    end
+
+    test "a moment-level AP resolves through its moment to the locked strand", %{
+      scope: scope,
+      scale: scale,
+      student: student
+    } do
+      strand = insert(:strand, is_locked: true)
+      moment = insert(:moment, strand: strand)
+      ap = insert(:assessment_point, moment: moment, scale: scale)
+
+      assert_raise RuntimeError, fn ->
+        Assessments.create_assessment_point_entry(scope, entry_attrs(ap, scale, student))
+      end
+    end
+
+    test "a lesson-level AP resolves through its lesson to the locked strand", %{
+      scope: scope,
+      scale: scale,
+      student: student
+    } do
+      strand = insert(:strand, is_locked: true)
+      lesson = insert(:lesson, strand: strand)
+      ap = insert(:assessment_point, lesson: lesson, scale: scale)
+
+      assert_raise RuntimeError, fn ->
+        Assessments.create_assessment_point_entry(scope, entry_attrs(ap, scale, student))
+      end
+    end
+
+    test "an AP with no owning strand does not raise (guard no-ops)", %{
+      scope: scope,
+      scale: scale,
+      student: student
+    } do
+      ap = insert(:assessment_point, scale: scale)
+
+      assert {:ok, _} =
+               Assessments.create_assessment_point_entry(scope, entry_attrs(ap, scale, student))
+    end
+  end
+
+  defp entry_attrs(ap, scale, student) do
+    %{
+      assessment_point_id: ap.id,
+      student_id: student.id,
+      scale_id: scale.id,
+      scale_type: scale.type
+    }
+  end
 end

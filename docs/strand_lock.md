@@ -272,26 +272,52 @@ boolean and short-circuit to a toast so a locked-out user gets a friendly messag
 - [x] Context `raise` remains the backstop for any affordance the UI sweep misses — not a
       substitute for it.
 
-### Step 5 — Tests (narrow)
-- [ ] Migration/schema: `is_locked` default; lock changeset sets/clears `locked_at` +
-      `locked_by_staff_member_id`; `is_locked`/provenance **not** castable via `changeset/2`.
-- [ ] `lock_strand`/`unlock_strand`: permission-gated (holder ok, non-holder raises);
-      idempotent (locking an already-locked strand re-stamps provenance, doesn't error);
-      each writes a `StrandLog` `"UPDATE"` row.
-- [ ] Guard: locked strand blocks the **in-scope** mutation classes — APs (CRUD + reorder),
-      entries (CRUD + bulk save), and composition components (CRUD + `replace_…`);
-      `strand_lock_management` bypasses all.
-- [ ] **Resolution**: lesson-level *and* moment-level *and* strand-level APs each resolve to
-      the right strand (the three-way branch) — a lesson-level AP must not escape the lock.
-- [ ] **Out-of-scope paths stay editable when locked:** strand edit/delete, moments, lessons +
-      attachments + lesson-curriculum-items, rubrics + descriptors + AP↔rubric links, strand
-      curriculum items, class assignments, entry **evidence**; plus strand reports, grade
-      components, lesson tags, and the personal mutations.
-- [ ] Recalc worker write path is unaffected by the lock (system write via `Repo`).
-- [ ] `StrandLog`: lock/unlock produce `"UPDATE"` rows with correct `profile_id`/`is_locked`;
-      no `is_ai_agent` column. (No strand-CRUD logging under the narrow scope.)
-- [ ] Permission validation accepts `strand_lock_management`.
-- [ ] ExMachina factory: support `is_locked` (+ provenance) in strand factory.
+### Step 5 — Tests (narrow) ✅
+
+**Test placement follows the repo convention: a guard is tested in the context where the
+guarded function lives** (mirroring the existing `"raises when scope is not staff"` tests).
+So the lock guard's per-function raises are co-located with the functions, not centralized.
+
+- `strands_test.exs` — the genuinely-`Strands` parts: schema `lock_changeset`/`changeset`,
+  `lock_strand`/`unlock_strand` (+ `StrandLog`), `strand_locked?`, the `ensure_strand_editable!`
+  unit (incl. the holder-bypass → `:ok` path), and the lock **scope boundary** (Strands-owned
+  out-of-scope mutations stay editable: strand curriculum items, class assignments).
+- `assessments_test.exs` — `"strand lock enforcement"` describe: per-function "raises when
+  locked" for AP CRUD + reorder and entry CRUD + bulk save; plus a
+  `"strand_id resolution"` describe (strand/moment/lesson-level resolve, no-strand no-ops).
+- `assessment_composition_test.exs` — a "raises when the owning strand is locked" test inside
+  each of the five component-mutation describes (next to their `"raises when scope is not
+  staff"` sibling), plus the recalc-bypass test.
+- `learning_context_test.exs` — `update_moment` stays editable on a locked strand (boundary,
+  in its own context).
+- `personalization_test.exs` — permission validation accepts `strand_lock_management`.
+
+Holder-bypass is asserted once at the `ensure_strand_editable!/2` unit (holder → `:ok`); the
+per-function tests therefore only assert the raise (the guard being wired in), avoiding a
+redundant end-to-end holder path per function.
+
+- [x] Migration/schema: `lock_changeset/2` stamps `locked_at` + keeps caller's
+      `locked_by_staff_member_id` on lock and clears both on unlock; requires `is_locked`;
+      `changeset/2` does **not** cast `is_locked`/`locked_at`/`locked_by_staff_member_id`.
+- [x] `lock_strand`/`unlock_strand`: permission-gated (holder ok, non-holder `MatchError`);
+      idempotent (re-locking re-stamps provenance); each writes a `StrandLog` `"UPDATE"` row.
+- [x] Guard: locked strand blocks every **in-scope** mutation class — APs (create/update/
+      delete/delete+entries/reorder), entries (create/update/delete/bulk save), and composition
+      components (create/update/delete/delete-all/`replace_…`); `strand_lock_management` bypasses
+      (via the guard unit).
+- [x] **Resolution**: strand-, moment-, and lesson-level APs each resolve to the locked strand
+      and raise; an AP with no owning strand no-ops the guard.
+- [x] **Out-of-scope paths stay editable when locked:** representative coverage co-located by
+      context — strand curriculum items + class assignments (`Strands`) and a moment rename
+      (`LearningContext`). The full excluded list (lessons, rubrics, evidence, reports, grade
+      components, lesson tags, personal mutations) is by construction (no guard call site).
+- [x] Recalc worker write path is unaffected — `recalculate_composed_entries` writes a composed
+      parent entry through a locked strand with an unpermissioned `%Scope{}`.
+- [x] `StrandLog`: lock/unlock produce `"UPDATE"` rows with correct `profile_id`/`is_locked`.
+      No `is_ai_agent` column is structural; no strand-CRUD logging under the narrow scope.
+- [x] Permission validation accepts `strand_lock_management`.
+- [x] ExMachina factory: `insert(:strand, is_locked: true, locked_at: …,
+      locked_by_staff_member_id: …)` already works via `merge_attributes` — no factory change.
 
 ## Resolved during grilling (smaller items)
 - **Holder edits-while-locked accountability:** **accepted as-is** — a holder's content edits to

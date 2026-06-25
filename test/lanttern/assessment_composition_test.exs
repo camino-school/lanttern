@@ -200,6 +200,20 @@ defmodule Lanttern.AssessmentCompositionTest do
       end
     end
 
+    test "raises when the owning strand is locked and scope lacks lock permission" do
+      strand = insert(:strand, is_locked: true)
+      parent_ap = insert(:assessment_point, strand: strand)
+      child_ap = insert(:assessment_point)
+
+      assert_raise RuntimeError, fn ->
+        AssessmentComposition.create_assessment_point_component(@staff_scope, %{
+          parent_id: parent_ap.id,
+          component_id: child_ap.id,
+          weight: 1.0
+        })
+      end
+    end
+
     test "returns error changeset on duplicate parent_id and component_id pair" do
       parent_ap = insert(:assessment_point)
       child_ap = insert(:assessment_point)
@@ -266,6 +280,18 @@ defmodule Lanttern.AssessmentCompositionTest do
         })
       end
     end
+
+    test "raises when the owning strand is locked and scope lacks lock permission" do
+      strand = insert(:strand, is_locked: true)
+      parent_ap = insert(:assessment_point, strand: strand)
+      component = insert(:assessment_point_component, parent: parent_ap)
+
+      assert_raise RuntimeError, fn ->
+        AssessmentComposition.update_assessment_point_component(@staff_scope, component, %{
+          weight: 2.0
+        })
+      end
+    end
   end
 
   describe "delete_assessment_point_component/2" do
@@ -285,6 +311,16 @@ defmodule Lanttern.AssessmentCompositionTest do
 
       assert_raise MatchError, fn ->
         AssessmentComposition.delete_assessment_point_component(@student_scope, component)
+      end
+    end
+
+    test "raises when the owning strand is locked and scope lacks lock permission" do
+      strand = insert(:strand, is_locked: true)
+      parent_ap = insert(:assessment_point, strand: strand)
+      component = insert(:assessment_point_component, parent: parent_ap)
+
+      assert_raise RuntimeError, fn ->
+        AssessmentComposition.delete_assessment_point_component(@staff_scope, component)
       end
     end
   end
@@ -341,6 +377,15 @@ defmodule Lanttern.AssessmentCompositionTest do
 
       assert_raise MatchError, fn ->
         AssessmentComposition.delete_all_assessment_point_components(@student_scope, parent_ap.id)
+      end
+    end
+
+    test "raises when the owning strand is locked and scope lacks lock permission" do
+      strand = insert(:strand, is_locked: true)
+      parent_ap = insert(:assessment_point, strand: strand)
+
+      assert_raise RuntimeError, fn ->
+        AssessmentComposition.delete_all_assessment_point_components(@staff_scope, parent_ap.id)
       end
     end
   end
@@ -492,6 +537,18 @@ defmodule Lanttern.AssessmentCompositionTest do
           parent_ap.id,
           []
         )
+      end
+    end
+
+    test "raises when the owning strand is locked and scope lacks lock permission" do
+      strand = insert(:strand, is_locked: true)
+      parent_ap = insert(:assessment_point, strand: strand)
+      child_ap = insert(:assessment_point)
+
+      assert_raise RuntimeError, fn ->
+        AssessmentComposition.replace_assessment_point_components(@staff_scope, parent_ap.id, [
+          %{component_id: child_ap.id, weight: 1.0}
+        ])
       end
     end
   end
@@ -2047,6 +2104,42 @@ defmodule Lanttern.AssessmentCompositionTest do
       assert_raise MatchError, fn ->
         AssessmentComposition.sync_strand_composed_entries(%Scope{}, strand.id)
       end
+    end
+  end
+
+  describe "recalculate_composed_entries/3 — strand lock bypass" do
+    test "writes the composed entry through a locked strand without lock permission" do
+      # the recalc path writes parent entries directly via Repo and is intentionally
+      # not lock-guarded — a locked strand must not block this system write
+      strand = insert(:strand, is_locked: true)
+      scale = insert(:scale, type: "numeric", max_score: 100.0)
+      parent = insert(:assessment_point, strand: strand, uses_composition: true, scale: scale)
+      component_ap = insert(:assessment_point, strand: strand, scale: scale)
+      insert(:assessment_point_component, parent: parent, component: component_ap)
+      student = insert(:student)
+
+      insert(:assessment_point_entry,
+        assessment_point: component_ap,
+        student: student,
+        scale: scale,
+        scale_type: "numeric",
+        score: 42.0
+      )
+
+      assert :ok =
+               AssessmentComposition.recalculate_composed_entries(
+                 %Scope{},
+                 [{parent.id, student.id}],
+                 :teacher_entry
+               )
+
+      entry =
+        Repo.get_by!(AssessmentPointEntry,
+          assessment_point_id: parent.id,
+          student_id: student.id
+        )
+
+      assert entry.score == 42.0
     end
   end
 end

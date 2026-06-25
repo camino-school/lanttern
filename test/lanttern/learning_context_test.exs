@@ -705,6 +705,14 @@ defmodule Lanttern.LearningContextTest do
       assert moment.description == "some updated description"
     end
 
+    test "update_moment/2 is not blocked when the owning strand is locked" do
+      # moments are out of the strand-lock scope (only assessment/marking is guarded)
+      moment = insert(:moment, strand: insert(:strand, is_locked: true))
+
+      assert {:ok, %Moment{name: "renamed"}} =
+               LearningContext.update_moment(moment, %{name: "renamed"})
+    end
+
     test "update_moment/2 with invalid data returns error changeset" do
       moment = moment_fixture()
 
