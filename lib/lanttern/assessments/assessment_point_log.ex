@@ -24,7 +24,6 @@ defmodule Lanttern.Assessments.AssessmentPointLog do
     field :curriculum_item_id, :integer
     field :scale_id, :integer
     field :rubric_id, :integer
-    field :lesson_id, :integer
     field :moment_id, :integer
     field :strand_id, :integer
 
@@ -49,7 +48,6 @@ defmodule Lanttern.Assessments.AssessmentPointLog do
       :curriculum_item_id,
       :scale_id,
       :rubric_id,
-      :lesson_id,
       :moment_id,
       :strand_id
     ])
@@ -58,8 +56,6 @@ defmodule Lanttern.Assessments.AssessmentPointLog do
 
   @impl Lanttern.AuditLog
   def build_log_attrs(%Lanttern.Assessments.AssessmentPoint{} = assessment_point) do
-    assessment_point = Lanttern.Repo.preload(assessment_point, [:classes])
-
     %{
       assessment_point_id: assessment_point.id,
       name: assessment_point.name,
@@ -73,7 +69,6 @@ defmodule Lanttern.Assessments.AssessmentPointLog do
       curriculum_item_id: assessment_point.curriculum_item_id,
       scale_id: assessment_point.scale_id,
       rubric_id: assessment_point.rubric_id,
-      lesson_id: assessment_point.lesson_id,
       moment_id: assessment_point.moment_id,
       strand_id: assessment_point.strand_id
     }

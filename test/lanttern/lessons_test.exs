@@ -923,4 +923,170 @@ defmodule Lanttern.LessonsTest do
                Lessons.change_lesson_curriculum_item(scope, lesson_curriculum_item)
     end
   end
+
+  describe "lesson assessment point links" do
+    import Lanttern.IdentityFixtures, only: [staff_scope_fixture: 0]
+
+    alias Lanttern.Lessons.Lesson
+    alias Lanttern.Lessons.LessonLog
+
+    defp linked_pairs do
+      Repo.all(
+        from(apl in "assessment_points_lessons",
+          select: {apl.assessment_point_id, apl.lesson_id}
+        )
+      )
+    end
+
+    test "link_assessment_point_to_lesson/3 links the pair and logs the snapshot" do
+      scope = staff_scope_fixture()
+      strand = insert(:strand)
+      lesson = insert(:lesson, strand: strand)
+      moment = insert(:moment, strand: strand)
+      ap = insert(:assessment_point, moment: moment)
+
+      assert {:ok, %Lesson{}} =
+               Lessons.link_assessment_point_to_lesson(scope, ap.id, lesson.id)
+
+      assert [{ap_id, lesson_id}] = linked_pairs()
+      assert ap_id == ap.id
+      assert lesson_id == lesson.id
+
+      assert [%LessonLog{operation: "UPDATE", assessment_points_ids: [^ap_id]}] =
+               Repo.all(from(l in LessonLog, where: l.lesson_id == ^lesson.id))
+    end
+
+    test "link_assessment_point_to_lesson/3 is idempotent (double-link no-ops and skips the log)" do
+      scope = staff_scope_fixture()
+      strand = insert(:strand)
+      lesson = insert(:lesson, strand: strand)
+      moment = insert(:moment, strand: strand)
+      ap = insert(:assessment_point, moment: moment)
+
+      {:ok, _} = Lessons.link_assessment_point_to_lesson(scope, ap.id, lesson.id)
+      {:ok, _} = Lessons.link_assessment_point_to_lesson(scope, ap.id, lesson.id)
+
+      assert [{_, _}] = linked_pairs()
+
+      # the no-op re-link doesn't write a second (unchanged) log snapshot
+      assert [%LessonLog{operation: "UPDATE"}] =
+               Repo.all(from(l in LessonLog, where: l.lesson_id == ^lesson.id))
+    end
+
+    test "link_assessment_point_to_lesson/3 is additive (a second lesson does not displace the first)" do
+      scope = staff_scope_fixture()
+      strand = insert(:strand)
+      lesson_a = insert(:lesson, strand: strand)
+      lesson_b = insert(:lesson, strand: strand)
+      moment = insert(:moment, strand: strand)
+      ap = insert(:assessment_point, moment: moment)
+
+      {:ok, _} = Lessons.link_assessment_point_to_lesson(scope, ap.id, lesson_a.id)
+      {:ok, _} = Lessons.link_assessment_point_to_lesson(scope, ap.id, lesson_b.id)
+
+      pairs = linked_pairs()
+      assert {ap.id, lesson_a.id} in pairs
+      assert {ap.id, lesson_b.id} in pairs
+    end
+
+    test "link_assessment_point_to_lesson/3 succeeds on a locked strand (lock-free)" do
+      scope = staff_scope_fixture()
+      strand = insert(:strand, is_locked: true)
+      lesson = insert(:lesson, strand: strand)
+      moment = insert(:moment, strand: strand)
+      ap = insert(:assessment_point, moment: moment)
+
+      assert {:ok, %Lesson{}} =
+               Lessons.link_assessment_point_to_lesson(scope, ap.id, lesson.id)
+
+      assert [{_, _}] = linked_pairs()
+    end
+
+    test "unlink_assessment_point_from_lesson/3 removes only this lesson's link" do
+      scope = staff_scope_fixture()
+      strand = insert(:strand)
+      lesson_a = insert(:lesson, strand: strand)
+      lesson_b = insert(:lesson, strand: strand)
+      moment = insert(:moment, strand: strand)
+      ap = insert(:assessment_point, moment: moment)
+
+      {:ok, _} = Lessons.link_assessment_point_to_lesson(scope, ap.id, lesson_a.id)
+      {:ok, _} = Lessons.link_assessment_point_to_lesson(scope, ap.id, lesson_b.id)
+
+      assert {:ok, %Lesson{}} =
+               Lessons.unlink_assessment_point_from_lesson(scope, ap.id, lesson_a.id)
+
+      assert linked_pairs() == [{ap.id, lesson_b.id}]
+    end
+
+    test "unlink_assessment_point_from_lesson/3 succeeds on a locked strand (lock-free)" do
+      scope = staff_scope_fixture()
+      strand = insert(:strand, is_locked: true)
+      lesson = insert(:lesson, strand: strand)
+      moment = insert(:moment, strand: strand)
+      ap = insert(:assessment_point, moment: moment)
+
+      {:ok, _} = Lessons.link_assessment_point_to_lesson(scope, ap.id, lesson.id)
+
+      assert {:ok, %Lesson{}} =
+               Lessons.unlink_assessment_point_from_lesson(scope, ap.id, lesson.id)
+
+      assert linked_pairs() == []
+    end
+
+    test "unlink_assessment_point_from_lesson/3 no-ops (and skips the log) when the pair is absent" do
+      scope = staff_scope_fixture()
+      strand = insert(:strand)
+      lesson = insert(:lesson, strand: strand)
+      moment = insert(:moment, strand: strand)
+      ap = insert(:assessment_point, moment: moment)
+
+      assert {:ok, %Lesson{}} =
+               Lessons.unlink_assessment_point_from_lesson(scope, ap.id, lesson.id)
+
+      assert linked_pairs() == []
+      assert [] = Repo.all(from(l in LessonLog, where: l.lesson_id == ^lesson.id))
+    end
+
+    test "link_assessment_point_to_lesson/3 raises when scope is not staff" do
+      scope = %Lanttern.Identity.Scope{profile_type: "student"}
+      strand = insert(:strand)
+      lesson = insert(:lesson, strand: strand)
+      moment = insert(:moment, strand: strand)
+      ap = insert(:assessment_point, moment: moment)
+
+      assert_raise MatchError, fn ->
+        Lessons.link_assessment_point_to_lesson(scope, ap.id, lesson.id)
+      end
+    end
+
+    test "link_assessment_point_to_lesson/3 raises for a strand-owned AP (strand goal)" do
+      scope = staff_scope_fixture()
+      strand = insert(:strand)
+      lesson = insert(:lesson, strand: strand)
+      strand_goal_ap = insert(:assessment_point, strand: strand)
+
+      assert_raise MatchError, fn ->
+        Lessons.link_assessment_point_to_lesson(scope, strand_goal_ap.id, lesson.id)
+      end
+
+      assert linked_pairs() == []
+    end
+
+    test "link_assessment_point_to_lesson/3 raises for a moment AP from another strand" do
+      scope = staff_scope_fixture()
+      strand = insert(:strand)
+      lesson = insert(:lesson, strand: strand)
+
+      other_strand = insert(:strand)
+      other_moment = insert(:moment, strand: other_strand)
+      cross_strand_ap = insert(:assessment_point, moment: other_moment)
+
+      assert_raise MatchError, fn ->
+        Lessons.link_assessment_point_to_lesson(scope, cross_strand_ap.id, lesson.id)
+      end
+
+      assert linked_pairs() == []
+    end
+  end
 end

@@ -83,6 +83,52 @@ defmodule LantternWeb.StrandLive.AssessmentComponentTest do
     end
   end
 
+  describe "linked lessons dropdown" do
+    test "lists each linked lesson as a navigate link to its lesson page, ordered by lesson position",
+         %{conn: conn} do
+      strand = insert(:strand)
+      moment = insert(:moment, strand: strand)
+
+      # insertion order contradicts position order, so the dropdown order below can
+      # only come from the position-ordered preload
+      lesson_a = insert(:lesson, strand: strand, name: "Lesson Alpha", position: 1)
+      lesson_b = insert(:lesson, strand: strand, name: "Lesson Beta", position: 0)
+
+      ap =
+        AssessmentsFixtures.moment_assessment_point_linked_to_lesson_fixture(
+          moment,
+          lesson_a,
+          %{name: "Linked AP"}
+        )
+        |> AssessmentsFixtures.link_assessment_point_to_lesson_fixture(lesson_b)
+
+      conn
+      |> visit("#{@live_view_base_path}/#{strand.id}/assessment")
+      |> assert_has("#ap-#{ap.id}-lessons a", text: "Lesson Beta", at: 1)
+      |> assert_has("#ap-#{ap.id}-lessons a", text: "Lesson Alpha", at: 2)
+      |> assert_has("a[href='/strands/lesson/#{lesson_a.id}']", text: "Lesson Alpha")
+      |> assert_has("a[href='/strands/lesson/#{lesson_b.id}']", text: "Lesson Beta")
+      |> click_link("a[href='/strands/lesson/#{lesson_b.id}']", "Lesson Beta")
+      |> assert_has("h1", text: "Lesson Beta")
+    end
+
+    test "does not render the dropdown when the AP has no linked lessons", %{conn: conn} do
+      strand = insert(:strand)
+      moment = insert(:moment, strand: strand)
+
+      ap =
+        AssessmentsFixtures.assessment_point_fixture(%{
+          name: "Unlinked AP",
+          moment_id: moment.id
+        })
+
+      conn
+      |> visit("#{@live_view_base_path}/#{strand.id}/assessment")
+      |> assert_has("button", text: "Unlinked AP")
+      |> refute_has("#ap-#{ap.id}-lessons-button")
+    end
+  end
+
   describe "assessment info management" do
     test "add assessment info", %{conn: conn} do
       strand = insert(:strand)

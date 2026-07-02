@@ -7,6 +7,7 @@ defmodule Lanttern.Lessons do
   import Lanttern.RepoHelpers
   alias Lanttern.Repo
 
+  alias Lanttern.Assessments.AssessmentPoint
   alias Lanttern.Attachments.Attachment
   alias Lanttern.AuditLog
   alias Lanttern.Identity.Scope
@@ -244,6 +245,115 @@ defmodule Lanttern.Lessons do
     true = Scope.profile_type?(scope, "staff")
 
     Lesson.changeset(lesson, attrs)
+  end
+
+  # Lesson assessment points
+
+  @doc """
+  Links an assessment point to a lesson.
+
+  The link is many-to-many and lives in the bare `assessment_points_lessons` join
+  table. Linking is **additive** — it never displaces existing links — and
+  **idempotent**: re-linking the same pair is a no-op (the unique pair index absorbs
+  it via `on_conflict: :nothing`).
+
+  Unlike assessment/marking edits, linking does **not** change the strand's
+  assessment data, so it is **lock-free**: it succeeds on a locked strand and never
+  calls `Strands.ensure_strand_editable!`. The link is conceptually "lesson content",
+  so the change is audited through the lesson log — one `UPDATE` row per effective
+  toggle (a no-op re-link writes nothing), snapshotting the new
+  `assessment_points_ids` set.
+
+  Only **moment-owned assessment points from the lesson's strand** are linkable —
+  every listing query inner-joins the AP's moment, so a linked strand goal would be
+  silently dropped, and a cross-strand link would leak into this strand's report
+  views. Raises (`MatchError`) otherwise.
+
+  ## Examples
+
+      iex> link_assessment_point_to_lesson(scope, assessment_point_id, lesson_id)
+      {:ok, %Lesson{}}
+
+  """
+  @spec link_assessment_point_to_lesson(
+          scope :: Scope.t(),
+          assessment_point_id :: pos_integer(),
+          lesson_id :: pos_integer()
+        ) :: {:ok, Lesson.t()}
+  def link_assessment_point_to_lesson(%Scope{} = scope, assessment_point_id, lesson_id) do
+    true = Scope.profile_type?(scope, "staff")
+
+    lesson = Repo.get!(Lesson, lesson_id)
+
+    true =
+      Repo.exists?(
+        from(ap in AssessmentPoint,
+          join: m in assoc(ap, :moment),
+          where: ap.id == ^assessment_point_id and m.strand_id == ^lesson.strand_id
+        )
+      )
+
+    now = NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second)
+
+    {count, _} =
+      Repo.insert_all(
+        "assessment_points_lessons",
+        [
+          %{
+            assessment_point_id: assessment_point_id,
+            lesson_id: lesson_id,
+            inserted_at: now,
+            updated_at: now
+          }
+        ],
+        on_conflict: :nothing
+      )
+
+    maybe_log_lesson_assessment_points_change(scope, lesson, count)
+  end
+
+  @doc """
+  Unlinks an assessment point from a lesson.
+
+  Removes only this lesson's link (other lessons linked to the same assessment point
+  are untouched). Idempotent — unlinking an absent pair is a no-op (and writes no log
+  row). Like linking, it is lock-free and audited through the lesson log.
+
+  ## Examples
+
+      iex> unlink_assessment_point_from_lesson(scope, assessment_point_id, lesson_id)
+      {:ok, %Lesson{}}
+
+  """
+  @spec unlink_assessment_point_from_lesson(
+          scope :: Scope.t(),
+          assessment_point_id :: pos_integer(),
+          lesson_id :: pos_integer()
+        ) :: {:ok, Lesson.t()}
+  def unlink_assessment_point_from_lesson(%Scope{} = scope, assessment_point_id, lesson_id) do
+    true = Scope.profile_type?(scope, "staff")
+
+    lesson = Repo.get!(Lesson, lesson_id)
+
+    {count, _} =
+      Repo.delete_all(
+        from(apl in "assessment_points_lessons",
+          where: apl.assessment_point_id == ^assessment_point_id and apl.lesson_id == ^lesson_id
+        )
+      )
+
+    maybe_log_lesson_assessment_points_change(scope, lesson, count)
+  end
+
+  # Writes one lesson-log row snapshotting the new `assessment_points_ids` set (via
+  # `LessonLog.build_log_attrs/1`) — skipped when the toggle was a no-op (count 0),
+  # so idempotent re-links/re-unlinks don't write unchanged snapshots.
+  defp maybe_log_lesson_assessment_points_change(%Scope{}, %Lesson{} = lesson, 0),
+    do: {:ok, lesson}
+
+  defp maybe_log_lesson_assessment_points_change(%Scope{} = scope, %Lesson{} = lesson, _count) do
+    {:ok, lesson}
+    |> AuditLog.maybe_log(LessonLog, "UPDATE", scope, [])
   end
 
   # Lesson attachments

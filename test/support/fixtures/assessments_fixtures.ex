@@ -23,6 +23,46 @@ defmodule Lanttern.AssessmentsFixtures do
   end
 
   @doc """
+  Links an assessment point to a lesson via the `assessment_points_lessons` join.
+
+  Bare state setup for tests — inserts the join row directly, bypassing the
+  `Lanttern.Lessons` link API (and its scope guard / audit log) so it works with any
+  scope. Returns the assessment point unchanged.
+  """
+  def link_assessment_point_to_lesson_fixture(assessment_point, lesson) do
+    now = NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second)
+
+    Lanttern.Repo.insert_all(
+      "assessment_points_lessons",
+      [
+        %{
+          assessment_point_id: assessment_point.id,
+          lesson_id: lesson.id,
+          inserted_at: now,
+          updated_at: now
+        }
+      ],
+      on_conflict: :nothing
+    )
+
+    assessment_point
+  end
+
+  @doc """
+  Generates a moment-owned assessment point and links it to a lesson.
+
+  Replaces the old `assessment_point_fixture(%{lesson_id: ...})` pattern: an AP must be
+  moment-owned to be linkable, and the link now lives in the join table. `attrs` are
+  forwarded to `assessment_point_fixture/1` (with `:moment_id` set from `moment`).
+  """
+  def moment_assessment_point_linked_to_lesson_fixture(moment, lesson, attrs \\ %{}) do
+    attrs
+    |> Enum.into(%{moment_id: moment.id})
+    |> assessment_point_fixture()
+    |> link_assessment_point_to_lesson_fixture(lesson)
+  end
+
+  @doc """
   Generate a assessment_point_entry.
   """
   def assessment_point_entry_fixture(attrs \\ %{})

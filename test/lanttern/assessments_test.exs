@@ -129,36 +129,6 @@ defmodule Lanttern.AssessmentsTest do
       assert log.operation == "CREATE"
     end
 
-    test "create_assessment_point/1 with valid data containing classes creates an assessment point with linked classes" do
-      curriculum_item = insert(:curriculum_item)
-      scale = insert(:scale)
-
-      class_1 = Lanttern.SchoolsFixtures.class_fixture()
-      class_2 = Lanttern.SchoolsFixtures.class_fixture()
-      class_3 = Lanttern.SchoolsFixtures.class_fixture()
-
-      valid_attrs = %{
-        name: "some name",
-        datetime: ~U[2023-08-02 15:30:00Z],
-        description: "some description",
-        curriculum_item_id: curriculum_item.id,
-        scale_id: scale.id,
-        classes_ids: [
-          class_1.id,
-          class_2.id,
-          class_3.id
-        ]
-      }
-
-      assert {:ok, %AssessmentPoint{} = assessment_point} =
-               Assessments.create_assessment_point(%Lanttern.Identity.Scope{}, valid_attrs)
-
-      assert assessment_point.name == "some name"
-      assert Enum.find(assessment_point.classes, fn c -> c.id == class_1.id end)
-      assert Enum.find(assessment_point.classes, fn c -> c.id == class_2.id end)
-      assert Enum.find(assessment_point.classes, fn c -> c.id == class_3.id end)
-    end
-
     test "create_assessment_point/1 with students creates an assessment point with linked assessment point entries for each student" do
       curriculum_item = insert(:curriculum_item)
       scale = insert(:scale)
@@ -255,30 +225,6 @@ defmodule Lanttern.AssessmentsTest do
       assert log.assessment_point_id == assessment_point.id
       assert log.profile_id == scope.profile_id
       assert log.operation == "UPDATE"
-    end
-
-    test "update_assessment_point/2 with valid data containing classes updates the assessment point" do
-      class_1 = Lanttern.SchoolsFixtures.class_fixture()
-      class_2 = Lanttern.SchoolsFixtures.class_fixture()
-      class_3 = Lanttern.SchoolsFixtures.class_fixture()
-      assessment_point = assessment_point_fixture(%{classes_ids: [class_1.id, class_2.id]})
-
-      update_attrs = %{
-        name: "some updated name",
-        classes_ids: [class_1.id, class_3.id]
-      }
-
-      assert {:ok, %AssessmentPoint{} = assessment_point} =
-               Assessments.update_assessment_point(
-                 %Lanttern.Identity.Scope{},
-                 assessment_point,
-                 update_attrs
-               )
-
-      assert assessment_point.name == "some updated name"
-      assert length(assessment_point.classes) == 2
-      assert Enum.find(assessment_point.classes, fn c -> c.id == class_1.id end)
-      assert Enum.find(assessment_point.classes, fn c -> c.id == class_3.id end)
     end
 
     test "update_assessment_point/2 with invalid data returns error changeset" do
@@ -446,6 +392,26 @@ defmodule Lanttern.AssessmentsTest do
       assert expected_1.id == assessment_point_1.id
       assert expected_2.id == assessment_point_2.id
       assert expected_3.id == assessment_point_3.id
+    end
+
+    test "list_assessment_points/1 with lesson filter orders by moment position, then AP position" do
+      strand = LearningContextFixtures.strand_fixture()
+      lesson = insert(:lesson, strand: strand)
+      moment_1 = insert(:moment, strand: strand, position: 0)
+      moment_2 = insert(:moment, strand: strand, position: 1)
+
+      # create the later-moment AP first, so creation/id order contradicts the
+      # expected moment-position order
+      ap_moment_2 = moment_assessment_point_linked_to_lesson_fixture(moment_2, lesson)
+      ap_moment_1 = moment_assessment_point_linked_to_lesson_fixture(moment_1, lesson)
+
+      ap_moment_1_id = ap_moment_1.id
+      ap_moment_2_id = ap_moment_2.id
+
+      assert [
+               %AssessmentPoint{id: ^ap_moment_1_id},
+               %AssessmentPoint{id: ^ap_moment_2_id}
+             ] = Assessments.list_assessment_points(lesson_id: lesson.id)
     end
 
     test "update_assessment_points_positions/1 update assessment points position based on list order" do
@@ -2568,6 +2534,7 @@ defmodule Lanttern.AssessmentsTest do
 
       strand = LearningContextFixtures.strand_fixture()
       lesson = insert(:lesson, strand: strand)
+      moment = insert(:moment, strand: strand)
 
       scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
       ov = insert(:ordinal_value, scale_id: scale.id)
@@ -2575,23 +2542,20 @@ defmodule Lanttern.AssessmentsTest do
 
       # create in order so positions are 0, 1
       ap_1 =
-        assessment_point_fixture(%{
-          lesson_id: lesson.id,
+        moment_assessment_point_linked_to_lesson_fixture(moment, lesson, %{
           scale_id: scale.id,
           curriculum_item_id: ci.id
         })
 
       ap_2 =
-        assessment_point_fixture(%{
-          lesson_id: lesson.id,
+        moment_assessment_point_linked_to_lesson_fixture(moment, lesson, %{
           scale_id: scale.id,
           curriculum_item_id: ci.id
         })
 
       # AP with no entry for this student – should be ignored
       _ap_no_entry =
-        assessment_point_fixture(%{
-          lesson_id: lesson.id,
+        moment_assessment_point_linked_to_lesson_fixture(moment, lesson, %{
           scale_id: scale.id,
           curriculum_item_id: ci.id
         })
@@ -2643,6 +2607,108 @@ defmodule Lanttern.AssessmentsTest do
       assert result_entry_2.id == entry_2.id
     end
 
+    test "list_lesson_assessment_points_with_student_entries/3 returns an AP linked to two lessons in both listings" do
+      school = SchoolsFixtures.school_fixture()
+      student = SchoolsFixtures.student_fixture(%{school_id: school.id})
+      scope = %Scope{school_id: school.id}
+
+      strand = LearningContextFixtures.strand_fixture()
+      lesson_a = insert(:lesson, strand: strand)
+      lesson_b = insert(:lesson, strand: strand)
+      moment = insert(:moment, strand: strand)
+
+      scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
+      ov = insert(:ordinal_value, scale_id: scale.id)
+      ci = insert(:curriculum_item)
+
+      # a single moment-owned AP linked to BOTH lessons via the join table
+      ap =
+        assessment_point_fixture(%{
+          moment_id: moment.id,
+          scale_id: scale.id,
+          curriculum_item_id: ci.id
+        })
+
+      link_assessment_point_to_lesson_fixture(ap, lesson_a)
+      link_assessment_point_to_lesson_fixture(ap, lesson_b)
+
+      assessment_point_entry_fixture(%{
+        assessment_point_id: ap.id,
+        student_id: student.id,
+        scale_id: scale.id,
+        scale_type: scale.type,
+        ordinal_value_id: ov.id
+      })
+
+      ap_id = ap.id
+
+      assert [%AssessmentPoint{id: ^ap_id}] =
+               Assessments.list_lesson_assessment_points_with_student_entries(
+                 scope,
+                 student,
+                 lesson_a.id
+               )
+
+      assert [%AssessmentPoint{id: ^ap_id}] =
+               Assessments.list_lesson_assessment_points_with_student_entries(
+                 scope,
+                 student,
+                 lesson_b.id
+               )
+    end
+
+    test "list_lesson_assessment_points_with_student_entries/3 orders by moment position, then AP position" do
+      school = SchoolsFixtures.school_fixture()
+      student = SchoolsFixtures.student_fixture(%{school_id: school.id})
+      scope = %Scope{school_id: school.id}
+
+      strand = LearningContextFixtures.strand_fixture()
+      lesson = insert(:lesson, strand: strand)
+      moment_1 = insert(:moment, strand: strand, position: 0)
+      moment_2 = insert(:moment, strand: strand, position: 1)
+
+      scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
+      ov = insert(:ordinal_value, scale_id: scale.id)
+      ci = insert(:curriculum_item)
+
+      # create the later-moment AP first, so creation/id order contradicts the
+      # expected moment-position order
+      ap_moment_2 =
+        moment_assessment_point_linked_to_lesson_fixture(moment_2, lesson, %{
+          scale_id: scale.id,
+          curriculum_item_id: ci.id
+        })
+
+      ap_moment_1 =
+        moment_assessment_point_linked_to_lesson_fixture(moment_1, lesson, %{
+          scale_id: scale.id,
+          curriculum_item_id: ci.id
+        })
+
+      for ap <- [ap_moment_1, ap_moment_2] do
+        assessment_point_entry_fixture(%{
+          assessment_point_id: ap.id,
+          student_id: student.id,
+          scale_id: scale.id,
+          scale_type: scale.type,
+          ordinal_value_id: ov.id
+        })
+      end
+
+      ap_moment_1_id = ap_moment_1.id
+      ap_moment_2_id = ap_moment_2.id
+
+      assert [
+               %AssessmentPoint{id: ^ap_moment_1_id},
+               %AssessmentPoint{id: ^ap_moment_2_id}
+             ] =
+               Assessments.list_lesson_assessment_points_with_student_entries(
+                 scope,
+                 student,
+                 lesson.id
+               )
+    end
+
     test "list_lesson_assessment_points_with_student_entries/3 excludes assessment points with unmarked entries" do
       school = SchoolsFixtures.school_fixture()
       student = SchoolsFixtures.student_fixture(%{school_id: school.id})
@@ -2650,21 +2716,20 @@ defmodule Lanttern.AssessmentsTest do
 
       strand = LearningContextFixtures.strand_fixture()
       lesson = insert(:lesson, strand: strand)
+      moment = insert(:moment, strand: strand)
 
       scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
       ov = insert(:ordinal_value, scale_id: scale.id)
       ci = insert(:curriculum_item)
 
       ap_marked =
-        assessment_point_fixture(%{
-          lesson_id: lesson.id,
+        moment_assessment_point_linked_to_lesson_fixture(moment, lesson, %{
           scale_id: scale.id,
           curriculum_item_id: ci.id
         })
 
       ap_unmarked =
-        assessment_point_fixture(%{
-          lesson_id: lesson.id,
+        moment_assessment_point_linked_to_lesson_fixture(moment, lesson, %{
           scale_id: scale.id,
           curriculum_item_id: ci.id
         })
@@ -2704,21 +2769,20 @@ defmodule Lanttern.AssessmentsTest do
 
       strand = LearningContextFixtures.strand_fixture()
       lesson = insert(:lesson, strand: strand)
+      moment = insert(:moment, strand: strand)
 
       scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
       ov = insert(:ordinal_value, scale_id: scale.id)
       ci = insert(:curriculum_item)
 
       ap_visible =
-        assessment_point_fixture(%{
-          lesson_id: lesson.id,
+        moment_assessment_point_linked_to_lesson_fixture(moment, lesson, %{
           scale_id: scale.id,
           curriculum_item_id: ci.id
         })
 
       ap_hidden =
-        assessment_point_fixture(%{
-          lesson_id: lesson.id,
+        moment_assessment_point_linked_to_lesson_fixture(moment, lesson, %{
           scale_id: scale.id,
           curriculum_item_id: ci.id,
           is_hidden: true
@@ -2760,15 +2824,17 @@ defmodule Lanttern.AssessmentsTest do
 
       strand = insert(:strand)
       lesson = insert(:lesson, strand: strand)
+      moment = insert(:moment, strand: strand)
       scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
 
       composed_ap =
         insert(:assessment_point,
-          lesson_id: lesson.id,
+          moment: moment,
           scale: scale,
           uses_composition: true,
           is_hidden: true
         )
+        |> link_assessment_point_to_lesson_fixture(lesson)
 
       composed_ap_id = composed_ap.id
 
@@ -2789,21 +2855,20 @@ defmodule Lanttern.AssessmentsTest do
 
       strand = LearningContextFixtures.strand_fixture()
       lesson = insert(:lesson, strand: strand)
+      moment = insert(:moment, strand: strand)
 
       scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
       ov = insert(:ordinal_value, scale_id: scale.id)
       ci = insert(:curriculum_item)
 
       ap_with_evidence =
-        assessment_point_fixture(%{
-          lesson_id: lesson.id,
+        moment_assessment_point_linked_to_lesson_fixture(moment, lesson, %{
           scale_id: scale.id,
           curriculum_item_id: ci.id
         })
 
       ap_without_evidence =
-        assessment_point_fixture(%{
-          lesson_id: lesson.id,
+        moment_assessment_point_linked_to_lesson_fixture(moment, lesson, %{
           scale_id: scale.id,
           curriculum_item_id: ci.id
         })
@@ -2994,20 +3059,6 @@ defmodule Lanttern.AssessmentsTest do
       strand = insert(:strand, is_locked: true)
       moment = insert(:moment, strand: strand)
       ap = insert(:assessment_point, moment: moment, scale: scale)
-
-      assert_raise RuntimeError, fn ->
-        Assessments.create_assessment_point_entry(scope, entry_attrs(ap, scale, student))
-      end
-    end
-
-    test "a lesson-level AP resolves through its lesson to the locked strand", %{
-      scope: scope,
-      scale: scale,
-      student: student
-    } do
-      strand = insert(:strand, is_locked: true)
-      lesson = insert(:lesson, strand: strand)
-      ap = insert(:assessment_point, lesson: lesson, scale: scale)
 
       assert_raise RuntimeError, fn ->
         Assessments.create_assessment_point_entry(scope, entry_attrs(ap, scale, student))
