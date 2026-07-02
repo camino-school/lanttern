@@ -16,7 +16,8 @@ defmodule Lanttern.Repo.Migrations.CreateAssessmentPointsLessons do
       timestamps()
     end
 
-    create index(:assessment_points_lessons, [:assessment_point_id])
+    # no standalone :assessment_point_id index — the unique pair index below covers
+    # assessment-point-prefix lookups (mirrors `lesson_curriculum_items`)
     create index(:assessment_points_lessons, [:lesson_id])
     create unique_index(:assessment_points_lessons, [:assessment_point_id, :lesson_id])
 

@@ -394,6 +394,26 @@ defmodule Lanttern.AssessmentsTest do
       assert expected_3.id == assessment_point_3.id
     end
 
+    test "list_assessment_points/1 with lesson filter orders by moment position, then AP position" do
+      strand = LearningContextFixtures.strand_fixture()
+      lesson = insert(:lesson, strand: strand)
+      moment_1 = insert(:moment, strand: strand, position: 0)
+      moment_2 = insert(:moment, strand: strand, position: 1)
+
+      # create the later-moment AP first, so creation/id order contradicts the
+      # expected moment-position order
+      ap_moment_2 = moment_assessment_point_linked_to_lesson_fixture(moment_2, lesson)
+      ap_moment_1 = moment_assessment_point_linked_to_lesson_fixture(moment_1, lesson)
+
+      ap_moment_1_id = ap_moment_1.id
+      ap_moment_2_id = ap_moment_2.id
+
+      assert [
+               %AssessmentPoint{id: ^ap_moment_1_id},
+               %AssessmentPoint{id: ^ap_moment_2_id}
+             ] = Assessments.list_assessment_points(lesson_id: lesson.id)
+    end
+
     test "update_assessment_points_positions/1 update assessment points position based on list order" do
       moment = LearningContextFixtures.moment_fixture()
       assessment_point_1 = assessment_point_fixture(%{moment_id: moment.id})
@@ -2634,6 +2654,58 @@ defmodule Lanttern.AssessmentsTest do
                  scope,
                  student,
                  lesson_b.id
+               )
+    end
+
+    test "list_lesson_assessment_points_with_student_entries/3 orders by moment position, then AP position" do
+      school = SchoolsFixtures.school_fixture()
+      student = SchoolsFixtures.student_fixture(%{school_id: school.id})
+      scope = %Scope{school_id: school.id}
+
+      strand = LearningContextFixtures.strand_fixture()
+      lesson = insert(:lesson, strand: strand)
+      moment_1 = insert(:moment, strand: strand, position: 0)
+      moment_2 = insert(:moment, strand: strand, position: 1)
+
+      scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
+      ov = insert(:ordinal_value, scale_id: scale.id)
+      ci = insert(:curriculum_item)
+
+      # create the later-moment AP first, so creation/id order contradicts the
+      # expected moment-position order
+      ap_moment_2 =
+        moment_assessment_point_linked_to_lesson_fixture(moment_2, lesson, %{
+          scale_id: scale.id,
+          curriculum_item_id: ci.id
+        })
+
+      ap_moment_1 =
+        moment_assessment_point_linked_to_lesson_fixture(moment_1, lesson, %{
+          scale_id: scale.id,
+          curriculum_item_id: ci.id
+        })
+
+      for ap <- [ap_moment_1, ap_moment_2] do
+        assessment_point_entry_fixture(%{
+          assessment_point_id: ap.id,
+          student_id: student.id,
+          scale_id: scale.id,
+          scale_type: scale.type,
+          ordinal_value_id: ov.id
+        })
+      end
+
+      ap_moment_1_id = ap_moment_1.id
+      ap_moment_2_id = ap_moment_2.id
+
+      assert [
+               %AssessmentPoint{id: ^ap_moment_1_id},
+               %AssessmentPoint{id: ^ap_moment_2_id}
+             ] =
+               Assessments.list_lesson_assessment_points_with_student_entries(
+                 scope,
+                 student,
+                 lesson.id
                )
     end
 

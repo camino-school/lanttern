@@ -956,7 +956,7 @@ defmodule Lanttern.LessonsTest do
                Repo.all(from(l in LessonLog, where: l.lesson_id == ^lesson.id))
     end
 
-    test "link_assessment_point_to_lesson/3 is idempotent (double-link no-ops)" do
+    test "link_assessment_point_to_lesson/3 is idempotent (double-link no-ops and skips the log)" do
       scope = staff_scope_fixture()
       strand = insert(:strand)
       lesson = insert(:lesson, strand: strand)
@@ -967,6 +967,10 @@ defmodule Lanttern.LessonsTest do
       {:ok, _} = Lessons.link_assessment_point_to_lesson(scope, ap.id, lesson.id)
 
       assert [{_, _}] = linked_pairs()
+
+      # the no-op re-link doesn't write a second (unchanged) log snapshot
+      assert [%LessonLog{operation: "UPDATE"}] =
+               Repo.all(from(l in LessonLog, where: l.lesson_id == ^lesson.id))
     end
 
     test "link_assessment_point_to_lesson/3 is additive (a second lesson does not displace the first)" do
@@ -1030,6 +1034,20 @@ defmodule Lanttern.LessonsTest do
       assert linked_pairs() == []
     end
 
+    test "unlink_assessment_point_from_lesson/3 no-ops (and skips the log) when the pair is absent" do
+      scope = staff_scope_fixture()
+      strand = insert(:strand)
+      lesson = insert(:lesson, strand: strand)
+      moment = insert(:moment, strand: strand)
+      ap = insert(:assessment_point, moment: moment)
+
+      assert {:ok, %Lesson{}} =
+               Lessons.unlink_assessment_point_from_lesson(scope, ap.id, lesson.id)
+
+      assert linked_pairs() == []
+      assert [] = Repo.all(from(l in LessonLog, where: l.lesson_id == ^lesson.id))
+    end
+
     test "link_assessment_point_to_lesson/3 raises when scope is not staff" do
       scope = %Lanttern.Identity.Scope{profile_type: "student"}
       strand = insert(:strand)
@@ -1040,6 +1058,35 @@ defmodule Lanttern.LessonsTest do
       assert_raise MatchError, fn ->
         Lessons.link_assessment_point_to_lesson(scope, ap.id, lesson.id)
       end
+    end
+
+    test "link_assessment_point_to_lesson/3 raises for a strand-owned AP (strand goal)" do
+      scope = staff_scope_fixture()
+      strand = insert(:strand)
+      lesson = insert(:lesson, strand: strand)
+      strand_goal_ap = insert(:assessment_point, strand: strand)
+
+      assert_raise MatchError, fn ->
+        Lessons.link_assessment_point_to_lesson(scope, strand_goal_ap.id, lesson.id)
+      end
+
+      assert linked_pairs() == []
+    end
+
+    test "link_assessment_point_to_lesson/3 raises for a moment AP from another strand" do
+      scope = staff_scope_fixture()
+      strand = insert(:strand)
+      lesson = insert(:lesson, strand: strand)
+
+      other_strand = insert(:strand)
+      other_moment = insert(:moment, strand: other_strand)
+      cross_strand_ap = insert(:assessment_point, moment: other_moment)
+
+      assert_raise MatchError, fn ->
+        Lessons.link_assessment_point_to_lesson(scope, cross_strand_ap.id, lesson.id)
+      end
+
+      assert linked_pairs() == []
     end
   end
 end
