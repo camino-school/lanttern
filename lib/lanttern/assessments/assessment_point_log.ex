@@ -58,8 +58,6 @@ defmodule Lanttern.Assessments.AssessmentPointLog do
 
   @impl Lanttern.AuditLog
   def build_log_attrs(%Lanttern.Assessments.AssessmentPoint{} = assessment_point) do
-    assessment_point = Lanttern.Repo.preload(assessment_point, [:classes])
-
     %{
       assessment_point_id: assessment_point.id,
       name: assessment_point.name,

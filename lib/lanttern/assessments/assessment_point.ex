@@ -5,7 +5,6 @@ defmodule Lanttern.Assessments.AssessmentPoint do
 
   use Ecto.Schema
   import Ecto.Changeset
-  import Ecto.Query, only: [from: 2]
   use Gettext, backend: Lanttern.Gettext
 
   alias Lanttern.Repo
@@ -19,7 +18,6 @@ defmodule Lanttern.Assessments.AssessmentPoint do
   alias Lanttern.LearningContext.Strand
   alias Lanttern.Lessons.Lesson
   alias Lanttern.Rubrics.Rubric
-  alias Lanttern.Schools.Class
 
   @type t :: %__MODULE__{
           id: pos_integer(),
@@ -33,8 +31,6 @@ defmodule Lanttern.Assessments.AssessmentPoint do
           date: Date.t(),
           hour: non_neg_integer(),
           minute: non_neg_integer(),
-          class_id: pos_integer(),
-          classes_ids: [pos_integer()],
           student_id: pos_integer(),
           students_ids: [pos_integer()],
           curriculum_item: CurriculumItem.t(),
@@ -52,7 +48,6 @@ defmodule Lanttern.Assessments.AssessmentPoint do
           student_entry: AssessmentPointEntry.t() | nil,
           entries: [AssessmentPointEntry.t()],
           grade_components: [GradeComponent.t()],
-          classes: [Class.t()],
           uses_composition: boolean(),
           composition_components: [Component.t()] | Ecto.Association.NotLoaded.t(),
           inserted_at: DateTime.t(),
@@ -73,8 +68,6 @@ defmodule Lanttern.Assessments.AssessmentPoint do
     field :date, :date, virtual: true
     field :hour, :integer, virtual: true
     field :minute, :integer, virtual: true
-    field :class_id, :id, virtual: true
-    field :classes_ids, {:array, :id}, virtual: true
     field :student_id, :id, virtual: true
     field :students_ids, {:array, :id}, virtual: true
 
@@ -91,10 +84,6 @@ defmodule Lanttern.Assessments.AssessmentPoint do
     has_many :entries, AssessmentPointEntry
     has_many :grade_components, GradeComponent
     has_many :composition_components, Component, foreign_key: :parent_id
-
-    many_to_many :classes, Class,
-      join_through: "assessment_points_classes",
-      on_replace: :delete
 
     timestamps()
   end
@@ -127,13 +116,11 @@ defmodule Lanttern.Assessments.AssessmentPoint do
       :strand_id,
       :lesson_id,
       :uses_composition,
-      :classes_ids,
       :students_ids
     ])
     |> validate_required([:name, :curriculum_item_id, :scale_id])
     |> validate_not_already_a_component(is_already_a_component)
     |> validate_and_build_datetime()
-    |> put_classes()
     |> cast_entries()
     |> unique_constraint([:strand_id, :curriculum_item_id],
       message: gettext("Curriculum item already added to this strand")
@@ -225,24 +212,6 @@ defmodule Lanttern.Assessments.AssessmentPoint do
         changeset
         |> cast(attrs, [:date, :hour, :minute])
     end
-  end
-
-  defp put_classes(changeset) do
-    put_classes(
-      changeset,
-      get_change(changeset, :classes_ids)
-    )
-  end
-
-  defp put_classes(changeset, nil), do: changeset
-
-  defp put_classes(changeset, classes_ids) do
-    classes =
-      from(c in Lanttern.Schools.Class, where: c.id in ^classes_ids)
-      |> Repo.all()
-
-    changeset
-    |> put_assoc(:classes, classes)
   end
 
   defp cast_entries(%{valid?: true, changes: %{students_ids: students_ids}} = changeset) do
