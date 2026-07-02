@@ -23,6 +23,7 @@ defmodule Lanttern.Lessons.LessonLog do
     field :moment_id, :integer
     field :subjects_ids, {:array, :integer}
     field :tags_ids, {:array, :integer}
+    field :assessment_points_ids, {:array, :integer}
     field :is_ai_agent, :boolean, default: false
 
     timestamps(updated_at: false)
@@ -45,6 +46,7 @@ defmodule Lanttern.Lessons.LessonLog do
       :moment_id,
       :subjects_ids,
       :tags_ids,
+      :assessment_points_ids,
       :is_ai_agent
     ])
     |> validate_required([
@@ -59,7 +61,7 @@ defmodule Lanttern.Lessons.LessonLog do
 
   @impl Lanttern.AuditLog
   def build_log_attrs(%Lanttern.Lessons.Lesson{} = lesson) do
-    lesson = Lanttern.Repo.preload(lesson, [:subjects, :tags])
+    lesson = Lanttern.Repo.preload(lesson, [:subjects, :tags, :assessment_points])
 
     %{
       lesson_id: lesson.id,
@@ -72,7 +74,8 @@ defmodule Lanttern.Lessons.LessonLog do
       strand_id: lesson.strand_id,
       moment_id: lesson.moment_id,
       subjects_ids: Enum.map(lesson.subjects, & &1.id),
-      tags_ids: Enum.map(lesson.tags, & &1.id)
+      tags_ids: Enum.map(lesson.tags, & &1.id),
+      assessment_points_ids: Enum.map(lesson.assessment_points, & &1.id)
     }
   end
 end

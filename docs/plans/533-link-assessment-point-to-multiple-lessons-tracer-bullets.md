@@ -60,19 +60,21 @@ Make the change easy first: this shrinks the schema and the fixture so Slice 1's
 are smaller and less error-prone.
 
 ### Acceptance criteria
-- [ ] `assessment_points_classes` table dropped via migration (comment notes it is
+- [x] `assessment_points_classes` table dropped via migration (comment notes it is
       pre-strands legacy); migration is reversible.
-- [ ] `many_to_many :classes`, the `classes_ids` + never-cast singular `class_id`
+- [x] `many_to_many :classes`, the `classes_ids` + never-cast singular `class_id`
       virtuals, `put_classes/1..2`, `:classes_ids` from cast, and the classes/class_id
       type entries removed from `AssessmentPoint`.
-- [ ] Stray unused `preload([:classes])` removed from `AssessmentPointLog`.
-- [ ] Any reverse `many_to_many :assessment_points` on `Schools.Class` verified and
+- [x] Stray unused `preload([:classes])` removed from `AssessmentPointLog`.
+- [x] Any reverse `many_to_many :assessment_points` on `Schools.Class` verified and
       removed if present.
-- [ ] `classes_ids` dropped from `assessment_point_fixture`; the classes assertion in
+- [x] `classes_ids` dropped from `assessment_point_fixture`; the classes assertion in
       the assessments test deleted.
-- [ ] Datetime and student/entry legacy virtuals on `AssessmentPoint` left intact.
-- [ ] `mix compile --warning-as-errors`, `mix format`, `mix credo --strict`, and the
+- [x] Datetime and student/entry legacy virtuals on `AssessmentPoint` left intact.
+- [x] `mix compile --warning-as-errors`, `mix format`, `mix credo --strict`, and the
       scoped test suite all pass.
+
+**Status: DONE** (commit `994c553c`).
 
 ### Blocked by
 None — can start immediately.
@@ -132,42 +134,50 @@ and single-lesson render are gone) — a plain render of the linked lessons is a
 here; the polished dropdown is Slice 2.
 
 ### Acceptance criteria
-- [ ] `assessment_points_lessons` join table created (both FKs `on_delete: :delete_all`,
+- [x] `assessment_points_lessons` join table created (both FKs `on_delete: :delete_all`,
       unique `(assessment_point_id, lesson_id)`, FK indexes) and backfilled from
       existing `lesson_id`; migration `down` repopulates `lesson_id` from the join.
-- [ ] `assessment_points.lesson_id` (and its FK/index) dropped;
+- [x] `assessment_points.lesson_id` (and its FK/index) dropped;
       `log.assessment_points.lesson_id` dropped; `log.lessons.assessment_points_ids`
       added.
-- [ ] `AssessmentPoint` exposes `many_to_many :lessons` **read/preload-only** (never
+- [x] `AssessmentPoint` exposes `many_to_many :lessons` **read/preload-only** (never
       cast/`put_assoc`); `Lesson` exposes `many_to_many :assessment_points`; logs
       updated (`AssessmentPointLog` loses `lesson_id`; `LessonLog` gains
       `assessment_points_ids`, mapped from preloaded `:assessment_points`).
-- [ ] `Assessments` no longer resolves ownership/lock/context via lesson; the
+- [x] `Assessments` no longer resolves ownership/lock/context via lesson; the
       `:lesson_id` listing filter and the student-entries report listing both join
       through `assessment_points_lessons`; `update_assessment_point` no longer touches
       lessons (keeps its lock guard for real edits).
-- [ ] `Lessons.link_assessment_point_to_lesson/3` and
+- [x] `Lessons.link_assessment_point_to_lesson/3` and
       `unlink_assessment_point_from_lesson/3` exist, are idempotent (double-link no-ops
       via the unique index), succeed on a **locked strand**, and emit a lesson-log row
       with the `assessment_points_ids` snapshot.
-- [ ] On the lesson editor: linking an AP is **additive** (a second lesson link does
+- [x] On the lesson editor: linking an AP is **additive** (a second lesson link does
       not remove the first); the same AP appears in both lessons; unlinking removes only
       this lesson's link; the move-confirmation modal and its handlers are gone; the
       candidate list excludes APs already linked to this lesson; the linked list is
       ordered moment → AP position.
-- [ ] The student-entries report listing is ordered by the AP's own moment → AP
+- [x] The student-entries report listing is ordered by the AP's own moment → AP
       position, and **one AP linked to two lessons appears in both lessons' listings**.
-- [ ] Existing `assessment_point_fixture(%{lesson_id: ...})` call sites converted to
+- [x] Existing `assessment_point_fixture(%{lesson_id: ...})` call sites converted to
       "create moment AP → link to lesson" via a small DRY test helper (minimal fixture
       edits only — no wholesale ExMachina migration).
-- [ ] Lesson-page view tests (`phoenix_test`): additive linking with **no** confirmation
+- [x] Lesson-page view tests (`phoenix_test`): additive linking with **no** confirmation
       modal, and unlink removes only this lesson's link.
-- [ ] `mix compile --warning-as-errors`, `mix deps.unlock --unused`, `mix format`,
+- [x] `mix compile --warning-as-errors`, `mix deps.unlock --unused`, `mix format`,
       `mix credo --strict`, and the scoped test suite all pass.
 
 ### Blocked by
 - Slice 0 (recommended, for a clean `AssessmentPoint` schema and fixture). Otherwise
   none.
+
+**Status: DONE.** Full suite green (1919 tests, 0 failures). One obsolete unit test
+(`a lesson-level AP resolves through its lesson to the locked strand`) was removed —
+lessons no longer participate in ownership/lock resolution, so a lesson-only AP now
+correctly no-ops the guard (already covered by the "no owning strand" case). Added a
+DRY `moment_assessment_point_linked_to_lesson_fixture/3` + bare
+`link_assessment_point_to_lesson_fixture/2` in `AssessmentsFixtures`. The AP card
+renders a minimal plain list of linked lessons; the polished dropdown is Slice 2.
 
 ---
 

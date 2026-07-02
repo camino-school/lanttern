@@ -15,7 +15,7 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
   alias LantternWeb.Assessments.AssessmentPointFormOverlayComponent
   alias LantternWeb.Grading.StrandGradeCompositionOverlayComponent
 
-  @ap_preloads [:lesson, scale: :ordinal_values, curriculum_item: :curriculum_component]
+  @ap_preloads [:lessons, scale: :ordinal_values, curriculum_item: :curriculum_component]
 
   @impl true
   def render(assigns) do
@@ -379,15 +379,19 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
               </.tooltip>
             </div>
           </div>
-          <.link
-            :if={@assessment_point.lesson}
-            navigate={~p"/strands/lesson/#{@assessment_point.lesson}"}
-            class="flex items-center gap-2 font-sans text-sm text-ltrn-subtle hover:text-ltrn-dark"
+          <div
+            :if={@assessment_point.lessons != []}
+            class="flex items-center gap-2 font-sans text-sm text-ltrn-subtle"
           >
             <.icon name="hero-link-mini" />
-            {gettext("Lesson:")}
-            <span>{@assessment_point.lesson.name}</span>
-          </.link>
+            <.link
+              :for={lesson <- @assessment_point.lessons}
+              navigate={~p"/strands/lesson/#{lesson}"}
+              class="hover:text-ltrn-dark"
+            >
+              {lesson.name}
+            </.link>
+          </div>
         </div>
         <%= if @assessment_point.scale.type == "numeric" do %>
           <div class="shrink-0 text-lg text-ltrn-subtle tabular-nums">

@@ -54,7 +54,8 @@ defmodule Lanttern.Lessons.Lesson do
 
     has_many :lesson_attachments, LessonAttachment
     has_many :attachments, through: [:lesson_attachments, :attachment]
-    has_many :assessment_points, AssessmentPoint
+
+    many_to_many :assessment_points, AssessmentPoint, join_through: "assessment_points_lessons"
 
     many_to_many :subjects, Subject, join_through: "lessons_subjects", on_replace: :delete
 

@@ -39,8 +39,7 @@ defmodule Lanttern.Assessments.AssessmentPoint do
           scale_id: pos_integer(),
           rubric: Rubric.t(),
           rubric_id: pos_integer(),
-          lesson: Lesson.t() | Ecto.Association.NotLoaded.t(),
-          lesson_id: pos_integer() | nil,
+          lessons: [Lesson.t()] | Ecto.Association.NotLoaded.t(),
           moment: Moment.t() | Ecto.Association.NotLoaded.t(),
           moment_id: pos_integer() | nil,
           strand: Strand.t() | Ecto.Association.NotLoaded.t(),
@@ -77,13 +76,16 @@ defmodule Lanttern.Assessments.AssessmentPoint do
     belongs_to :curriculum_item, CurriculumItem
     belongs_to :scale, Scale
     belongs_to :rubric, Rubric
-    belongs_to :lesson, Lesson
     belongs_to :moment, Moment
     belongs_to :strand, Strand
 
     has_many :entries, AssessmentPointEntry
     has_many :grade_components, GradeComponent
     has_many :composition_components, Component, foreign_key: :parent_id
+
+    # read/preload only — links are managed by raw insert/delete in `Lanttern.Lessons`,
+    # never via `cast`/`put_assoc` (linking is additive and lock-free)
+    many_to_many :lessons, Lesson, join_through: "assessment_points_lessons"
 
     timestamps()
   end
@@ -114,7 +116,6 @@ defmodule Lanttern.Assessments.AssessmentPoint do
       :rubric_id,
       :moment_id,
       :strand_id,
-      :lesson_id,
       :uses_composition,
       :students_ids
     ])

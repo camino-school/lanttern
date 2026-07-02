@@ -20,7 +20,6 @@ defmodule Lanttern.Assessments do
   alias Lanttern.Identity.User
   alias Lanttern.LearningContext.Moment
   alias Lanttern.LearningContext.Strand
-  alias Lanttern.Lessons.Lesson
   alias Lanttern.Rubrics
   alias Lanttern.Schools.Student
   alias Lanttern.Strands
@@ -71,7 +70,12 @@ defmodule Lanttern.Assessments do
     do: from(ap in queryable, where: ap.moment_id in ^ids)
 
   defp apply_assessment_points_filter({:lesson_id, id}, queryable),
-    do: from(ap in queryable, where: ap.lesson_id == ^id)
+    do:
+      from(ap in queryable,
+        join: apl in "assessment_points_lessons",
+        on: apl.assessment_point_id == ap.id,
+        where: apl.lesson_id == ^id
+      )
 
   defp apply_assessment_points_filter({:strand_id, id}, queryable),
     do: from(ap in queryable, where: ap.strand_id == ^id)
@@ -134,11 +138,13 @@ defmodule Lanttern.Assessments do
   @doc """
   Resolves the owning strand id for an assessment point.
 
-  Accepts an `%AssessmentPoint{}` or an assessment point id. Handles the three-way
-  `strand_id | moment_id | lesson_id` ownership: a strand-level AP returns its
-  `strand_id` directly; a moment- or lesson-level AP resolves through its moment or
-  lesson to the owning strand. Returns `nil` when the AP doesn't resolve to a strand
-  (or the id doesn't exist).
+  Accepts an `%AssessmentPoint{}` or an assessment point id. Handles the two-way
+  `strand_id | moment_id` ownership: a strand-level AP returns its `strand_id`
+  directly; a moment-level AP resolves through its moment to the owning strand.
+  Returns `nil` when the AP doesn't resolve to a strand (or the id doesn't exist).
+
+  Lessons no longer participate in ownership — the AP↔lesson link is many-to-many
+  and lock-free, so it never resolves the owning strand.
 
   Canonical for the strand-lock guard so a lesson- or moment-level AP can't silently
   escape the lock — reused by the entry, composition-component, and AP-position paths.
@@ -164,11 +170,6 @@ defmodule Lanttern.Assessments do
           from(m in Moment, where: m.id == ^assessment_point.moment_id, select: m.strand_id)
         )
 
-      not is_nil(assessment_point.lesson_id) ->
-        Repo.one(
-          from(l in Lesson, where: l.id == ^assessment_point.lesson_id, select: l.strand_id)
-        )
-
       true ->
         nil
     end
@@ -187,8 +188,7 @@ defmodule Lanttern.Assessments do
   defp strand_id_from_attrs(attrs) do
     %AssessmentPoint{
       strand_id: attr_id(attrs, :strand_id),
-      moment_id: attr_id(attrs, :moment_id),
-      lesson_id: attr_id(attrs, :lesson_id)
+      moment_id: attr_id(attrs, :moment_id)
     }
     |> strand_id_from_assessment_point()
   end
@@ -263,14 +263,6 @@ defmodule Lanttern.Assessments do
   defp filter_assessment_points_by_context(queryable, %{"moment_id" => moment_id})
        when not is_nil(moment_id) and moment_id != "",
        do: from(q in queryable, where: q.moment_id == ^moment_id)
-
-  defp filter_assessment_points_by_context(queryable, %{lesson_id: lesson_id})
-       when not is_nil(lesson_id) and lesson_id != "",
-       do: from(q in queryable, where: q.lesson_id == ^lesson_id)
-
-  defp filter_assessment_points_by_context(queryable, %{"lesson_id" => lesson_id})
-       when not is_nil(lesson_id) and lesson_id != "",
-       do: from(q in queryable, where: q.lesson_id == ^lesson_id)
 
   defp filter_assessment_points_by_context(queryable, %{strand_id: strand_id})
        when not is_nil(strand_id) and strand_id != "",
@@ -1260,9 +1252,11 @@ defmodule Lanttern.Assessments do
   Returns the list of all lesson assessment points and entries for the given student.
 
   Same loading and visibility semantics as
-  `list_strand_moments_assessment_points_with_student_entries/3`, scoped to a lesson.
+  `list_strand_moments_assessment_points_with_student_entries/3`, scoped to a lesson
+  via the `assessment_points_lessons` join.
 
-  Ordered by `Moment` (when linked), then `AssessmentPoint` position.
+  Ordered by the AP's own `Moment` position, then `AssessmentPoint` position — so an
+  AP linked to multiple lessons groups identically in every lesson's report view.
 
   """
 
@@ -1277,9 +1271,10 @@ defmodule Lanttern.Assessments do
         lesson_id
       ) do
     from(ap in base_student_entries_query(student.id),
-      join: l in assoc(ap, :lesson),
-      left_join: m in assoc(l, :moment),
-      where: l.id == ^lesson_id,
+      join: apl in "assessment_points_lessons",
+      on: apl.assessment_point_id == ap.id,
+      join: m in assoc(ap, :moment),
+      where: apl.lesson_id == ^lesson_id,
       order_by: [asc: m.position, asc: ap.position]
     )
     |> resolve_student_entries(student.id)

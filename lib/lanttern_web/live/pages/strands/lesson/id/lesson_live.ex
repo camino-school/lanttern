@@ -95,7 +95,6 @@ defmodule LantternWeb.LessonLive do
       |> assign(:differentiation_form, nil)
       |> assign(:moment_id, nil)
       |> assign(:strand_assessment_points, nil)
-      |> assign(:unlinking_from_lesson, nil)
       |> assign(:assessment_point, nil)
       |> assign(:assessment_point_overlay_title, nil)
       |> assign(:show_lesson_curriculum_modal, false)
@@ -134,7 +133,9 @@ defmodule LantternWeb.LessonLive do
         preloads: [:scale, curriculum_item: :curriculum_component]
       )
 
-    stream(socket, :lesson_assessment_points, lesson_assessment_points, reset: true)
+    socket
+    |> stream(:lesson_assessment_points, lesson_assessment_points, reset: true)
+    |> assign(:linked_assessment_point_ids, Enum.map(lesson_assessment_points, & &1.id))
   end
 
   defp assign_strand(socket) do
@@ -382,7 +383,7 @@ defmodule LantternWeb.LessonLive do
 
         assessment_points =
           Assessments.list_assessment_points(moments_ids: moments_ids)
-          |> Enum.filter(&(&1.lesson_id != socket.assigns.lesson.id))
+          |> Enum.reject(&(&1.id in socket.assigns.linked_assessment_point_ids))
 
         assign(socket, :strand_assessment_points, assessment_points)
       else
@@ -392,41 +393,11 @@ defmodule LantternWeb.LessonLive do
     {:noreply, socket}
   end
 
-  def handle_event("link_assessment_point", %{"assessment_point_id" => ap_id}, socket) do
-    ap = Assessments.get_assessment_point!(ap_id)
+  def handle_event("link_assessment_point", %{"assessment_point_id" => ap_id}, socket),
+    do: {:noreply, toggle_assessment_point_link(socket, :link, ap_id)}
 
-    socket =
-      if ap.lesson_id do
-        linked_lesson = Lessons.get_lesson!(ap.lesson_id)
-
-        socket
-        |> assign(:unlinking_from_lesson, linked_lesson)
-        |> assign(:linking_to_assessment_point, ap)
-      else
-        update_assessment_point_lesson_link(socket, ap, socket.assigns.lesson.id)
-      end
-
-    {:noreply, socket}
-  end
-
-  def handle_event("unlink_assessment_point", %{"assessment_point_id" => ap_id}, socket) do
-    ap = Assessments.get_assessment_point!(ap_id)
-    {:noreply, update_assessment_point_lesson_link(socket, ap, nil)}
-  end
-
-  def handle_event("confirm_assessment_point_link", _params, socket) do
-    ap = socket.assigns.linking_to_assessment_point
-    {:noreply, update_assessment_point_lesson_link(socket, ap, socket.assigns.lesson.id)}
-  end
-
-  def handle_event("cancel_assessment_point_link", _params, socket) do
-    socket =
-      socket
-      |> assign(:unlinking_from_lesson, nil)
-      |> assign(:linking_to_assessment_point, nil)
-
-    {:noreply, socket}
-  end
+  def handle_event("unlink_assessment_point", %{"assessment_point_id" => ap_id}, socket),
+    do: {:noreply, toggle_assessment_point_link(socket, :unlink, ap_id)}
 
   # -- assessment point form
 
@@ -530,26 +501,27 @@ defmodule LantternWeb.LessonLive do
 
   # handle_event helpers
 
-  defp update_assessment_point_lesson_link(socket, ap, lesson_id) do
-    case Assessments.update_assessment_point(socket.assigns.current_scope, ap, %{
-           lesson_id: lesson_id
-         }) do
-      {:ok, _} ->
-        socket
-        |> stream_lesson_assessment_points()
-        |> assign(:strand_assessment_points, nil)
-        |> assign(:unlinking_from_lesson, nil)
-        |> assign(:linking_to_assessment_point, nil)
+  # Link/unlink share the same re-stream + candidate-reset flow; only the `Lessons`
+  # call differs. The pushed `assessment_point_id` may arrive as an integer (JS.push
+  # keeps JSON number types) or a binary — normalize before hitting the join table.
+  defp toggle_assessment_point_link(socket, action, ap_id) do
+    scope = socket.assigns.current_scope
+    ap_id = to_integer_id(ap_id)
+    lesson_id = socket.assigns.lesson.id
 
-      {:error, _} ->
-        error_msg =
-          if lesson_id,
-            do: gettext("Could not link assessment point"),
-            else: gettext("Could not unlink assessment point")
+    {:ok, _lesson} =
+      case action do
+        :link -> Lessons.link_assessment_point_to_lesson(scope, ap_id, lesson_id)
+        :unlink -> Lessons.unlink_assessment_point_from_lesson(scope, ap_id, lesson_id)
+      end
 
-        put_flash(socket, :error, error_msg)
-    end
+    socket
+    |> stream_lesson_assessment_points()
+    |> assign(:strand_assessment_points, nil)
   end
+
+  defp to_integer_id(id) when is_integer(id), do: id
+  defp to_integer_id(id) when is_binary(id), do: String.to_integer(id)
 
   # info handlers
 

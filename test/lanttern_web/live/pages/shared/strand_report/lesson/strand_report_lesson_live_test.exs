@@ -23,15 +23,15 @@ defmodule LantternWeb.StrandReportLessonLiveTest do
       strand = insert(:strand)
       strand_report = insert(:strand_report, report_card: report_card, strand: strand)
       lesson = insert(:lesson, strand: strand, name: "Lesson Alpha", is_published: true)
+      moment = insert(:moment, strand: strand)
 
       scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
       ov = insert(:ordinal_value, scale_id: scale.id)
       ci = insert(:curriculum_item)
 
       ap =
-        assessment_point_fixture(%{
+        moment_assessment_point_linked_to_lesson_fixture(moment, lesson, %{
           name: "AP in Lesson",
-          lesson_id: lesson.id,
           scale_id: scale.id,
           curriculum_item_id: ci.id
         })
@@ -65,14 +65,14 @@ defmodule LantternWeb.StrandReportLessonLiveTest do
       strand = insert(:strand)
       strand_report = insert(:strand_report, report_card: report_card, strand: strand)
       lesson = insert(:lesson, strand: strand, is_published: true)
+      moment = insert(:moment, strand: strand)
 
       scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
       ci = insert(:curriculum_item)
 
       _ap_without_entry =
-        assessment_point_fixture(%{
+        moment_assessment_point_linked_to_lesson_fixture(moment, lesson, %{
           name: "AP Without Entry",
-          lesson_id: lesson.id,
           scale_id: scale.id,
           curriculum_item_id: ci.id
         })
@@ -96,24 +96,23 @@ defmodule LantternWeb.StrandReportLessonLiveTest do
       strand = insert(:strand)
       strand_report = insert(:strand_report, report_card: report_card, strand: strand)
       lesson = insert(:lesson, strand: strand, is_published: true)
+      moment = insert(:moment, strand: strand)
 
       scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
       ov = insert(:ordinal_value, scale_id: scale.id)
       ci = insert(:curriculum_item)
 
       composed_ap =
-        assessment_point_fixture(%{
+        moment_assessment_point_linked_to_lesson_fixture(moment, lesson, %{
           name: "Composed Lesson AP",
-          lesson_id: lesson.id,
           scale_id: scale.id,
           curriculum_item_id: ci.id,
           uses_composition: true
         })
 
       component_ap =
-        assessment_point_fixture(%{
+        moment_assessment_point_linked_to_lesson_fixture(moment, lesson, %{
           name: "Component AP",
-          lesson_id: lesson.id,
           scale_id: scale.id,
           curriculum_item_id: ci.id
         })
@@ -186,15 +185,15 @@ defmodule LantternWeb.StrandReportLessonLiveTest do
       strand = insert(:strand)
       strand_report = insert(:strand_report, report_card: report_card, strand: strand)
       lesson = insert(:lesson, strand: strand, is_published: true)
+      moment = insert(:moment, strand: strand)
 
       scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
       ov = insert(:ordinal_value, scale_id: scale.id)
       ci = insert(:curriculum_item, %{name: "Some Curriculum Item"})
 
       ap =
-        assessment_point_fixture(%{
+        moment_assessment_point_linked_to_lesson_fixture(moment, lesson, %{
           name: "AP With Details",
-          lesson_id: lesson.id,
           scale_id: scale.id,
           curriculum_item_id: ci.id
         })
@@ -231,14 +230,14 @@ defmodule LantternWeb.StrandReportLessonLiveTest do
       strand = insert(:strand)
       strand_report = insert(:strand_report, report_card: report_card, strand: strand)
       lesson = insert(:lesson, strand: strand, is_published: true)
+      moment = insert(:moment, strand: strand)
 
       scale = insert(:scale, type: "ordinal", breakpoints: [0.4, 0.8])
       ci = insert(:curriculum_item)
 
       unrelated_ap =
-        assessment_point_fixture(%{
+        moment_assessment_point_linked_to_lesson_fixture(moment, lesson, %{
           name: "Unrelated AP",
-          lesson_id: lesson.id,
           scale_id: scale.id,
           curriculum_item_id: ci.id
         })

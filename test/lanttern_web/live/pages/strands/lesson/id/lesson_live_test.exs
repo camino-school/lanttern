@@ -304,9 +304,8 @@ defmodule LantternWeb.LessonLiveTest do
       |> refute_has("button", text: "Unlink")
     end
 
-    test "linking already-linked assessment point to new lesson shows confirmation modal", %{
-      conn: conn
-    } do
+    test "linking an already-linked assessment point to a new lesson is additive (no confirmation modal)",
+         %{conn: conn} do
       strand = insert(:strand)
       lesson_a = insert(:lesson, strand: strand, name: "Lesson Alpha")
       lesson_b = insert(:lesson, strand: strand, name: "Lesson Beta")
@@ -314,23 +313,28 @@ defmodule LantternWeb.LessonLiveTest do
       scale = insert(:scale)
       curriculum_item = insert(:curriculum_item)
 
-      AssessmentsFixtures.assessment_point_fixture(%{
-        name: "Already linked AP",
-        moment_id: moment.id,
-        lesson_id: lesson_a.id,
-        scale_id: scale.id,
-        curriculum_item_id: curriculum_item.id
-      })
+      ap =
+        AssessmentsFixtures.assessment_point_fixture(%{
+          name: "Already linked AP",
+          moment_id: moment.id,
+          scale_id: scale.id,
+          curriculum_item_id: curriculum_item.id
+        })
 
+      AssessmentsFixtures.link_assessment_point_to_lesson_fixture(ap, lesson_a)
+
+      # linking to lesson B links additively — no confirmation modal, no displacement
       conn
       |> visit("#{@live_view_base_path}/#{lesson_b.id}")
       |> click_button("Link assessment point to this lesson")
       |> click_button("Already linked AP")
-      |> assert_has("h4", text: "Link assessment point")
-      |> assert_has("p",
-        text:
-          "Do you want to unlink it from \"Lesson Alpha\" and link to \"Lesson Beta\" (this lesson)?"
-      )
+      |> refute_has("h4", text: "Link assessment point")
+      |> assert_has("button", text: "Already linked AP")
+
+      # the original link to lesson A is preserved
+      conn
+      |> visit("#{@live_view_base_path}/#{lesson_a.id}")
+      |> assert_has("button", text: "Already linked AP")
     end
   end
 end
