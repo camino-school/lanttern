@@ -196,17 +196,27 @@ the lesson page.
 The button/dropdown renders only when the AP has at least one linked lesson.
 
 ### Acceptance criteria
-- [ ] AP card renders a `size="xs"` link-icon button + `.dropdown_menu`, shown only when
+- [x] AP card renders a `size="xs"` link-icon button + `.dropdown_menu`, shown only when
       the AP has ≥1 linked lesson.
-- [ ] The dropdown lists each linked lesson (ordered by lesson position) as a `navigate`
+- [x] The dropdown lists each linked lesson (ordered by lesson position) as a `navigate`
       link to that lesson's page; no link-management controls appear on the card.
-- [ ] View test (`phoenix_test`): the dropdown lists multiple linked lessons and each
+- [x] View test (`phoenix_test`): the dropdown lists multiple linked lessons and each
       navigates to its lesson.
-- [ ] `mix compile --warning-as-errors`, `mix format`, `mix credo --strict`, and the
+- [x] `mix compile --warning-as-errors`, `mix format`, `mix credo --strict`, and the
       scoped test suite all pass.
 
 ### Blocked by
 - Slice 1.
+
+**Status: DONE.** The plain linked-lessons list on the AP card was replaced with a
+`size="xs"` ghost link-icon button (`hero-link-mini`, `sr_text` "Linked lessons") wrapped
+in a `relative` parent that triggers a `.dropdown_menu` of `type="link"` navigate items —
+rendered only when `@assessment_point.lessons != []`. Lesson ordering by position is
+guaranteed at the schema level via `preload_order: [asc: :position]` on the
+`many_to_many :lessons` (assessment_point.ex:88). Two view tests added: the dropdown
+lists both linked lessons as navigate links and one navigates through to its lesson page;
+an unlinked AP renders no lessons button. Scoped assessment/lessons suites green
+(35 + 169 tests, 0 failures).
 
 ---
 

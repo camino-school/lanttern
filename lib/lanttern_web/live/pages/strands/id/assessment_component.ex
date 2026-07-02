@@ -284,6 +284,30 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
             class="line-clamp-2"
           />
           <div class="flex items-center gap-2">
+            <div :if={@assessment_point.lessons != []} class="relative">
+              <.button
+                type="button"
+                id={"ap-#{@assessment_point.id}-lessons-button"}
+                size="xs"
+                theme="ghost"
+                icon_name="hero-link-mini"
+                sr_text={gettext("Linked lessons")}
+              />
+              <.dropdown_menu
+                id={"ap-#{@assessment_point.id}-lessons"}
+                button_id={"ap-#{@assessment_point.id}-lessons-button"}
+              >
+                <:item
+                  :for={lesson <- @assessment_point.lessons}
+                  type="link"
+                  navigate={~p"/strands/lesson/#{lesson}"}
+                  text={lesson.name}
+                />
+              </.dropdown_menu>
+              <.tooltip id={"ap-#{@assessment_point.id}-lessons-tooltip"}>
+                {gettext("Linked lessons")}
+              </.tooltip>
+            </div>
             <div :if={!@assessment_point.uses_composition} class="relative">
               <.button
                 type="button"
@@ -378,19 +402,6 @@ defmodule LantternWeb.StrandLive.AssessmentComponent do
                 ({@assessment_point.curriculum_item.curriculum_component.name}) {@assessment_point.curriculum_item.name}
               </.tooltip>
             </div>
-          </div>
-          <div
-            :if={@assessment_point.lessons != []}
-            class="flex items-center gap-2 font-sans text-sm text-ltrn-subtle"
-          >
-            <.icon name="hero-link-mini" />
-            <.link
-              :for={lesson <- @assessment_point.lessons}
-              navigate={~p"/strands/lesson/#{lesson}"}
-              class="hover:text-ltrn-dark"
-            >
-              {lesson.name}
-            </.link>
           </div>
         </div>
         <%= if @assessment_point.scale.type == "numeric" do %>

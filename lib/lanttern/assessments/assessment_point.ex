@@ -85,7 +85,9 @@ defmodule Lanttern.Assessments.AssessmentPoint do
 
     # read/preload only — links are managed by raw insert/delete in `Lanttern.Lessons`,
     # never via `cast`/`put_assoc` (linking is additive and lock-free)
-    many_to_many :lessons, Lesson, join_through: "assessment_points_lessons"
+    many_to_many :lessons, Lesson,
+      join_through: "assessment_points_lessons",
+      preload_order: [asc: :position]
 
     timestamps()
   end

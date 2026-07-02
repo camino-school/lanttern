@@ -1,5 +1,14 @@
 const handleButtonClick = (event, menu, liveSocket) => {
-  // event.preventDefault();
+  // If the menu is already open, do nothing and let the menu's own
+  // phx-click-away close it — this makes the trigger a proper toggle.
+  //
+  // This handler runs on the button, before the window-level click-away, so
+  // aria-expanded still reflects the pre-click "open" state here. Re-opening
+  // (the setTimeout below) would race click-away's close and leave the menu in
+  // a broken state: visually hidden (display:none from the close transition)
+  // but still aria-expanded="true".
+  if (menu.getAttribute("aria-expanded") === "true") return;
+
   setTimeout(() => {
     liveSocket.execJS(menu, menu.getAttribute("data-open"));
   }, 1)

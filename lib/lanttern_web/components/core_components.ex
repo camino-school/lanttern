@@ -2506,9 +2506,15 @@ defmodule LantternWeb.CoreComponents do
             if (this._showTimer) { clearTimeout(this._showTimer); this._showTimer = null; }
           };
 
+          // don't show while something in the same trigger region is expanded
+          // (e.g. an open dropdown menu) — avoids two stacked floating elements
+          this._hovering = false;
+          this._isExpanded = () => !!this.parent.querySelector('[aria-expanded="true"]');
+
           // mouseenter: instant when warm, otherwise wait SHOW_DELAY
           this._requestShow = () => {
             this._clearTimer();
+            if (this._isExpanded()) return;
             const warm = _activeTooltip !== null || (Date.now() - _lastHiddenAt) < COOLDOWN;
             if (warm) {
               this._reveal();
@@ -2546,6 +2552,7 @@ defmodule LantternWeb.CoreComponents do
           };
 
           this._onFocus = () => {
+            if (this._isExpanded()) return;
             this._reveal();
             const parentRect = this.parent.getBoundingClientRect();
             const tooltipRect = this.floating.getBoundingClientRect();
@@ -2569,9 +2576,26 @@ defmodule LantternWeb.CoreComponents do
             this.floating.style.top = y + "px";
           };
 
-          this.parent.addEventListener("mouseenter", this._requestShow);
+          // track hover so the observer below can re-show once an expandable closes
+          this._onMouseEnter = () => { this._hovering = true; this._requestShow(); };
+          this._onMouseLeave = () => { this._hovering = false; this._requestHide(); };
+
+          // React to an expandable (e.g. dropdown menu) toggling inside the trigger
+          // region: hide while it's open, and re-show on close if still hovering —
+          // the pointer never left, so no mouseenter would otherwise fire.
+          this._observer = new MutationObserver(() => {
+            if (this._isExpanded()) this._requestHide();
+            else if (this._hovering) this._requestShow();
+          });
+          this._observer.observe(this.parent, {
+            subtree: true,
+            attributes: true,
+            attributeFilter: ["aria-expanded"],
+          });
+
+          this.parent.addEventListener("mouseenter", this._onMouseEnter);
           this.parent.addEventListener("mousemove", this._onMouseMove);
-          this.parent.addEventListener("mouseleave", this._requestHide);
+          this.parent.addEventListener("mouseleave", this._onMouseLeave);
           this.parent.addEventListener("focusin", this._onFocus);
           this.parent.addEventListener("focusout", this._requestHide);
         },
@@ -2581,9 +2605,10 @@ defmodule LantternWeb.CoreComponents do
         },
         destroyed() {
           this._clearTimer();
-          this.parent.removeEventListener("mouseenter", this._requestShow);
+          if (this._observer) this._observer.disconnect();
+          this.parent.removeEventListener("mouseenter", this._onMouseEnter);
           this.parent.removeEventListener("mousemove", this._onMouseMove);
-          this.parent.removeEventListener("mouseleave", this._requestHide);
+          this.parent.removeEventListener("mouseleave", this._onMouseLeave);
           this.parent.removeEventListener("focusin", this._onFocus);
           this.parent.removeEventListener("focusout", this._requestHide);
           this.parent.removeAttribute("aria-describedby");
